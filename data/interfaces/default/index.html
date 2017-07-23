@@ -141,6 +141,40 @@
 </div>
 % endif
 
+% if _session['user_group'] == 'admin':
+<div id="terminate-session-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="terminate-session-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Terminate Session</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you sure you want to terminate this session?</p>
+                <p>
+                    <strong>
+                        <span id="terminate-user"></span><br />
+                        <span id="terminate-title"></span><br />
+                        <span id="terminate-subtitle"></span>
+                    </strong>
+                </p>
+                <br />
+                <label for="terminate-message">Terminate Message</label>
+                <div class="row">
+                    <div class="col-md-8" style="float: none; margin: 0 auto;">
+                        <input type="text" class="form-control" id="terminate-message" name="terminate-message" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-terminate-session">Terminate</button>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -357,6 +391,7 @@
             complete: function(xhr, status) {
                 $('#currentActivity').append(xhr.responseText);
                 $('#instance-' + session.session_key).find('.dashboard-activity-poster-face').hide().fadeIn(1000);
+                $('#terminate-button-' + session.session_key + ' span').tooltip({ container: 'body', placement: 'right', delay: 50 });
                 $('#bufferbar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
                 $('#bar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
             }
@@ -379,20 +414,67 @@
     $('#currentActivity').on('click', '.btn-activity-info', function (e) {
         e.preventDefault();
         $($(this).attr('data-target')).toggle();
-        var key = $(this).data('id');
+        var key = $(this).data('key');
         blurArtwork(key);
+        $('#terminate-button-' + key).toggle();
     });
 
     // Add hover class to dashboard-instance
     $('#currentActivity').on('mouseover', '.dashboard-hover-container', function () {
         $(this).closest('.dashboard-instance').addClass('hover');
-    });
-    $('#currentActivity').on('mouseleave', '.dashboard-hover-container', function () {
-        var id = $(this).closest('.dashboard-instance').data('id');
-        if (!($('#stream-' + id).is(':visible'))) {
-            $(this).closest('.dashboard-instance').removeClass('hover');
+        var key = $(this).closest('.dashboard-instance').data('key');
+        if (!($('#stream-' + key).is(':visible'))) {
+            $('#terminate-button-' + key).fadeIn(200);
         }
     });
+    $('#currentActivity').on('mouseleave', '.dashboard-hover-container', function () {
+        var key = $(this).closest('.dashboard-instance').data('key');
+        if (!($('#stream-' + key).is(':visible'))) {
+            $(this).closest('.dashboard-instance').removeClass('hover');
+            $('#terminate-button-' + key).fadeOut(200);
+        }
+    });
+
+    % if _session['user_group'] == 'admin':
+    // Terminate session
+    $('#currentActivity').on('click', '.dashboard-activity-terminate-session', function (e) {
+        e.preventDefault();
+        var session_id = $(this).data('id');
+        var key = $(this).data('key');
+        var instance = $('#instance-' + key);
+
+        $('#terminate-user').text(instance.find('.dashboard-activity-metadata-user').text());
+        $('#terminate-title').text(instance.find('.dashboard-activity-metadata-title').text());
+        $('#terminate-subtitle').text(instance.find('.dashboard-activity-metadata-subtitle').text());
+
+        $('#terminate-session-modal').modal();
+        $('#terminate-session-modal').one('click', '#confirm-terminate-session', function () {
+            var message = $('#terminate-message').val();
+
+            showMsg('Terminating session', true);
+
+            $.ajax({
+                url: 'terminate_session',
+                data: {
+                    session_id: session_id,
+                    message: message
+                },
+                async: true,
+                success: function (data) {
+                    if (data.result === 'success') {
+                        setTimeout(function() {
+                            currentActivityHeader();
+                            getCurrentActivity();
+                            showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                        }, 2500);
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                    }
+                }
+            });
+        });
+    });
+    % endif
 </script>
 % endif
 % if 'watch_stats' in config['home_sections']:

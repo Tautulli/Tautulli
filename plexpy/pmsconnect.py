@@ -1268,7 +1268,7 @@ class PmsConnect(object):
                                'location': helpers.get_xml_attr(session_info, 'location')
                                }
         else:
-            session_details = {}
+            session_details = {'session_id': ''}
 
         # Get the transcode details
         if session.getElementsByTagName('TranscodeSession'):

@@ -64,7 +64,7 @@ DOCUMENTATION :: END
     from urllib import quote
     import plexpy
 %>
-<div class="dashboard-instance" id="instance-${data['session_key']}" data-id="${data['session_key']}">
+<div class="dashboard-instance" id="instance-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}">
     <div class="dashboard-hover-container">
         % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
         <a href="info?rating_key=${data['rating_key']}">
@@ -74,15 +74,15 @@ DOCUMENTATION :: END
             <div class="dashboard-activity-poster" id="poster-${data['session_key']}">
                 % if not data['art'].startswith('interfaces') or not data['thumb'].startswith('interfaces'):
                     % if (data['media_type'] == 'movie' and not plexpy.CONFIG.PMS_USE_BIF) or (plexpy.CONFIG.PMS_USE_BIF and not data['view_offset']):
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
+                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
                     % elif (data['media_type'] == 'episode' and not plexpy.CONFIG.PMS_USE_BIF) or (plexpy.CONFIG.PMS_USE_BIF and not data['view_offset']):
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
+                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
                     % elif plexpy.CONFIG.PMS_USE_BIF:
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
                     % else:
                         % if data['media_type'] == 'track':
-                        <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                        <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                         % elif data['media_type'] == 'clip':
                             % if data['art'].startswith('http'):
                             <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
@@ -91,26 +91,30 @@ DOCUMENTATION :: END
                             % else:
                                 % if data['art']:
                                 <!--Hacky solution to escape the image url until I come up with something better-->
-                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art&clip=true);"></div>
+                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art&refresh=true&clip=true);"></div>
                                 % else:
                                 <!--Hacky solution to escape the image url until I come up with something better-->
-                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art&clip=true);"></div>
+                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art&refresh=true&clip=true);"></div>
                                 % endif
                             % endif
                         % elif data['media_type'] == 'photo':
-                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
+                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover&refresh=true);"></div>
                         % else:
-                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                         % endif
                     % endif
                 % else:
                 <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
                 % endif
-                % if _session['user_group'] == 'admin':
-                <span class="overlay-refresh-image left" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
+                <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" style="display: none;">
+                    <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </div>
                 % endif
                 <div class="dashboard-activity-button-info">
-                    <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${data['session_key']}" data-id="${data['session_key']}">
+                    <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${data['session_key']}" data-key="${data['session_key']}">
                         <i class="fa fa-info-circle"></i>
                     </button>
                 </div>
