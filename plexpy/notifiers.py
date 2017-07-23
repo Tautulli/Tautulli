@@ -616,7 +616,7 @@ class PrettyMetadata(object):
             provider_link = self.parameters['themoviedb_url']
         elif self.parameters['imdb_url']:
             provider_link = self.parameters['imdb_url']
-        elif self.self.parameters['tvmaze_url']:
+        elif self.parameters['tvmaze_url']:
             provider_link = self.parameters['tvmaze_url']
         elif self.parameters['lastfm_url']:
             provider_link = self.parameters['lastfm_url']
@@ -1478,6 +1478,8 @@ class FACEBOOK(Notifier):
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.',
                           'input_type': 'select',
                           'select_options': {'': '',
+                                             'imdb': 'IMDB',
+                                             'themoviedb': 'The Movie Database',
                                              'trakt': 'Trakt.tv',
                                              'plexweb': 'Plex Web'
                                              }
@@ -1491,6 +1493,7 @@ class FACEBOOK(Notifier):
                                              'thetvdb': 'TheTVDB',
                                              'tvmaze': 'TVmaze',
                                              'imdb': 'IMDB',
+                                             'themoviedb': 'The Movie Database',
                                              'trakt': 'Trakt.tv',
                                              'plexweb': 'Plex Web'
                                              }

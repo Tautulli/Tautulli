@@ -541,13 +541,28 @@ def dbcheck():
         'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
     )
 
-    # tvmaze_lookup table :: This table keeps record of the notification poster urls
+    # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS tvmaze_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'thetvdb_id INTEGER, imdb_id TEXT, tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_thetvdb_id ON tvmaze_lookup (thetvdb_id);'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_thetvdb_id ON tvmaze_lookup (thetvdb_id)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_imdb_id ON tvmaze_lookup (imdb_id)'
+    )
+
+    # themoviedb_lookup table :: This table keeps record of the TheMovieDB lookups
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS themoviedb_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'thetvdb_id INTEGER, imdb_id TEXT, themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup_thetvdb_id ON themoviedb_lookup (thetvdb_id)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup_imdb_id ON themoviedb_lookup (imdb_id)'
     )
 
     # Upgrade sessions table from earlier versions

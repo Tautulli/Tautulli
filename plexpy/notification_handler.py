@@ -528,12 +528,29 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
-    # Get TV Maze info (for tv only)
-    if metadata.get('thetvdb_id'):
-        tvmaze_info = lookup_tvmaze_by_tvdb_id(metadata['thetvdb_id'])
+    # Get TheMovieDB info
+    if metadata.get('themoviedb_id'):
+        themoveidb_json = get_themoviedb_info(metadata['media_type'], metadata['themoviedb_id'])
+
+        if themoveidb_json.get('imdb_id'):
+            metadata['imdb_id'] = themoveidb_json['imdb_id']
+            metadata['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
+
+    elif metadata.get('thetvdb_id') or metadata.get('imdb_id'):
+        themoviedb_info = lookup_themoviedb_by_id(thetvdb_id=metadata.get('thetvdb_id'),
+                                                  imdb_id=metadata.get('imdb_id'))
+        metadata.update(themoviedb_info)
+
+    # Get TVmaze info (for tv shows only)
+    if metadata['media_type'] in ('show', 'season', 'episode') and (metadata.get('thetvdb_id') or metadata.get('imdb_id')):
+        tvmaze_info = lookup_tvmaze_by_id(thetvdb_id=metadata.get('thetvdb_id'),
+                                          imdb_id=metadata.get('imdb_id'))
         metadata.update(tvmaze_info)
-        if 'imdb_id' in tvmaze_info:
-            metadata['imdb_url'] = 'https://www.imdb.com/title/' + metadata['imdb_id']
+
+        if tvmaze_info.get('thetvdb_id'):
+            metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+        if tvmaze_info.get('imdb_id'):
+            metadata['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
 
     if metadata['media_type'] in ('movie', 'show', 'artist'):
         poster_thumb = metadata['thumb']
@@ -994,30 +1011,37 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
     return poster_info
 
 
-def lookup_tvmaze_by_tvdb_id(thetvdb_id):
+def lookup_tvmaze_by_id(thetvdb_id=None, imdb_id=None):
     tvmaze_info = {}
 
     db = database.MonitorDatabase()
 
     try:
         query = 'SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup ' \
-                'WHERE thetvdb_id = ?'
-        tvmaze_info = db.select_single(query, args=[thetvdb_id])
+                'WHERE {} = ?'.format('thetvdb_id' if thetvdb_id else 'imdb_id')
+        tvmaze_info = db.select_single(query, args=[thetvdb_id or imdb_id])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
 
     if not tvmaze_info:
-        response, err_msg, req_msg = request.request_response2('http://api.tvmaze.com/lookup/shows?thetvdb={}'.format(thetvdb_id))
+        if thetvdb_id:
+            logger.debug(u"PlexPy NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
+        else:
+            logger.debug(u"PlexPy NotificationHandler :: Looking up TVmaze info for imdb_id '{}'.".format(imdb_id))
+
+        params = {'thetvdb': thetvdb_id} if thetvdb_id else {'imdb': imdb_id}
+        response, err_msg, req_msg = request.request_response2('http://api.tvmaze.com/lookup/shows', params=params)
 
         if response and not err_msg:
             tvmaze_json = response.json()
+            thetvdb_id = tvmaze_json.get('externals', {}).get('thetvdb', '')
             imdb_id = tvmaze_json.get('externals', {}).get('imdb', '')
             tvmaze_id = tvmaze_json.get('id', '')
             tvmaze_url = tvmaze_json.get('url', '')
             
-            keys = {'thetvdb_id': thetvdb_id}
-            tvmaze_info = {'imdb_id': imdb_id,
-                           'tvmaze_id': tvmaze_id,
+            keys = {'tvmaze_id': tvmaze_id}
+            tvmaze_info = {'thetvdb_id': thetvdb_id,
+                           'imdb_id': imdb_id,
                            'tvmaze_url': tvmaze_url,
                            'tvmaze_json': json.dumps(tvmaze_json)}
             db.upsert(table_name='tvmaze_lookup', key_dict=keys, value_dict=tvmaze_info)
@@ -1032,3 +1056,100 @@ def lookup_tvmaze_by_tvdb_id(thetvdb_id):
                 logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
 
     return tvmaze_info
+
+
+def lookup_themoviedb_by_id(thetvdb_id=None, imdb_id=None):
+    themoviedb_info = {}
+
+    db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup ' \
+                'WHERE {} = ?'.format('thetvdb_id' if thetvdb_id else 'imdb_id')
+        themoviedb_info = db.select_single(query, args=[thetvdb_id or imdb_id])
+    except Exception as e:
+        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
+
+    if not themoviedb_info:
+        if thetvdb_id:
+            logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
+        else:
+            logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for imdb_id '{}'.".format(imdb_id))
+
+        params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY,
+                  'external_source': 'tvdb_id' if thetvdb_id else 'imdb_id'
+                  }
+        response, err_msg, req_msg = request.request_response2('https://api.themoviedb.org/3/find/{}'.format(thetvdb_id or imdb_id), params=params)
+
+        if response and not err_msg:
+            themoviedb_find_json = response.json()
+            if themoviedb_find_json.get('tv_results'):
+                themoviedb_id = themoviedb_find_json['tv_results'][0]['id']
+            elif themoviedb_find_json.get('movie_results'):
+                themoviedb_id = themoviedb_find_json['movie_results'][0]['id']
+            else:
+                themoviedb_id = ''
+
+            if themoviedb_id:
+                media_type = 'tv' if thetvdb_id else 'movie'
+                themoviedb_url = 'https://www.themoviedb.org/{}/{}'.format(media_type, themoviedb_id)
+                themoviedb_json = get_themoviedb_info(media_type, themoviedb_id)
+
+                keys = {'themoviedb_id': themoviedb_id}
+                themoviedb_info = {'thetvdb_id': thetvdb_id,
+                                   'imdb_id': imdb_id or themoviedb_json.get('imdb_id'),
+                                   'themoviedb_url': themoviedb_url,
+                                   'themoviedb_json': json.dumps(themoviedb_json)
+                                   }
+
+                db.upsert(table_name='themoviedb_lookup', key_dict=keys, value_dict=themoviedb_info)
+
+                themoviedb_info.pop('themoviedb_json')
+
+        else:
+            if err_msg:
+                logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+
+            if req_msg:
+                logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+
+    return themoviedb_info
+
+
+def get_themoviedb_info(media_type, themoviedb_id):
+    if media_type == 'show':
+        media_type = 'tv'
+
+    themoviedb_json = {}
+
+    db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT themoviedb_json FROM themoviedb_lookup ' \
+                'WHERE themoviedb_id = ?'
+        result = db.select_single(query, args=[themoviedb_id])
+    except Exception as e:
+        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
+
+    if result:
+        try:
+            return json.loads(result['themoviedb_json'])
+        except:
+            pass
+
+    logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for themoviedb_id '{}'.".format(themoviedb_id))
+
+    params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY}
+    response, err_msg, req_msg = request.request_response2('https://api.themoviedb.org/3/{}/{}'.format(media_type, themoviedb_id), params=params)
+
+    if response and not err_msg:
+        themoviedb_json = response.json()
+
+    else:
+        if err_msg:
+            logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+
+        if req_msg:
+            logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+
+    return themoviedb_json

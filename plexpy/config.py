@@ -547,6 +547,7 @@ _CONFIG_DEFINITIONS = {
     'TELEGRAM_ON_PMSUPDATE': (int, 'Telegram', 0),
     'TELEGRAM_ON_CONCURRENT': (int, 'Telegram', 0),
     'TELEGRAM_ON_NEWDEVICE': (int, 'Telegram', 0),
+    'THEMOVIEDB_APIKEY': (str, 'General', 'e9a6655bae34bf694a0f3e33338dc28e'),
     'TV_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'TV_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'TV_NOTIFY_ON_START': (int, 'Monitoring', 1),
