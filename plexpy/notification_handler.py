@@ -1026,6 +1026,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
+        return tvmaze_info
 
     if not tvmaze_info:
         if thetvdb_id:
@@ -1074,6 +1075,7 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
+        return themoviedb_info
 
     if not themoviedb_info:
         if thetvdb_id:
@@ -1138,6 +1140,7 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
+        return themoviedb_json
 
     if result:
         try:
