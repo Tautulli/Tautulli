@@ -388,11 +388,12 @@ class Libraries(object):
             pms_connect = pmsconnect.PmsConnect()
 
             if rating_key:
-                library_children = pms_connect.get_library_children_details(rating_key=rating_key)
+                library_children = pms_connect.get_library_children_details(rating_key=rating_key,
+                                                                            get_media_info=True)
             elif section_id:
                 library_children = pms_connect.get_library_children_details(section_id=section_id,
-                                                                            section_type=section_type)
-            
+                                                                            section_type=section_type,
+                                                                            get_media_info=True)
             if library_children:
                 library_count = library_children['library_count']
                 children_list = library_children['childern_list']
@@ -403,14 +404,9 @@ class Libraries(object):
             new_rows = []
             for item in children_list:
                 ## TODO: Check list of media info items, currently only grabs first item
-                media_info = media_part_info = {}
-                if 'media_info' in item:
-                    media_info = item['media_info'][0]
-                    if 'parts' in media_info:
-                        media_part_info = media_info['parts'][0]
 
                 cached_file_size = cached_items.get(item['rating_key'], None)
-                file_size = cached_file_size if cached_file_size else media_part_info.get('file_size', '')
+                file_size = cached_file_size if cached_file_size else item.get('file_size', '')
 
                 row = {'section_id': library_details['section_id'],
                        'section_type': library_details['section_type'],
@@ -424,13 +420,13 @@ class Libraries(object):
                        'media_index': item['media_index'],
                        'parent_media_index': item['parent_media_index'],
                        'thumb': item['thumb'],
-                       'container': media_info.get('container', ''),
-                       'bitrate': media_info.get('bitrate', ''),
-                       'video_codec': media_info.get('video_codec', ''),
-                       'video_resolution': media_info.get('video_resolution', ''),
-                       'video_framerate': media_info.get('video_framerate', ''),
-                       'audio_codec': media_info.get('audio_codec', ''),
-                       'audio_channels': media_info.get('audio_channels', ''),
+                       'container': item.get('container', ''),
+                       'bitrate': item.get('bitrate', ''),
+                       'video_codec': item.get('video_codec', ''),
+                       'video_resolution': item.get('video_resolution', ''),
+                       'video_framerate': item.get('video_framerate', ''),
+                       'audio_codec': item.get('audio_codec', ''),
+                       'audio_channels': item.get('audio_channels', ''),
                        'file_size': file_size
                        }
                 new_rows.append(row)
@@ -521,10 +517,10 @@ class Libraries(object):
             return False
         
         if section_id and not str(section_id).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid section_id provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info file size called but invalid section_id provided.")
             return False
         elif rating_key and not str(rating_key).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid rating_key provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info file size called but invalid rating_key provided.")
             return False
 
         # Get the library details
@@ -571,12 +567,12 @@ class Libraries(object):
                 for child_metadata in metadata:
                     ## TODO: Check list of media info items, currently only grabs first item
                     media_info = media_part_info = {}
-                    if 'media_info' in child_metadata and len (child_metadata['media_info']) > 0:
+                    if 'media_info' in child_metadata and len(child_metadata['media_info']) > 0:
                         media_info = child_metadata['media_info'][0]
                         if 'parts' in media_info and len (media_info['parts']) > 0:
                             media_part_info = media_info['parts'][0]
 
-                    file_size += helpers.cast_to_int(media_info.get('file_size', 0))
+                    file_size += helpers.cast_to_int(media_part_info.get('file_size', 0))
 
                 item['file_size'] = file_size
 
