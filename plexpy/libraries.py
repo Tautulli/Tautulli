@@ -382,7 +382,7 @@ class Libraries(object):
                 pass
 
         # If no cache was imported, get all library children items
-        cached_items = {d['rating_key']: d['file_size'] for d in rows}
+        cached_items = {d['rating_key']: d['file_size'] for d in rows} if not refresh else {}
 
         if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
@@ -492,6 +492,8 @@ class Libraries(object):
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k['media_index']), reverse=reverse)
             elif sort_key == 'file_size' or sort_key == 'bitrate':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key]), reverse=reverse)
+            elif sort_key == 'video_resolution':
+                results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key].replace('4k', '2160p').rstrip('p')), reverse=reverse)
             else:
                 results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
 

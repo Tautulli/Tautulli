@@ -261,6 +261,8 @@ function getPlatformImagePath(platformName) {
         return 'images/platforms/pmp.png';
     } else if (platformName.indexOf("DLNA") > -1) {
         return 'images/platforms/dlna.png';
+    } else if (platformName.indexOf("PlexTogether") > -1) {
+        return 'images/platforms/plextogether.png';
     } else {
         return 'images/platforms/default.png';
     }

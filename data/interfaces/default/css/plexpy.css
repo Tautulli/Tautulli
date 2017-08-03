@@ -2621,6 +2621,9 @@ a .home-platforms-list-cover-face:hover
 .dataTables_paginate li {
     margin: 0;
 }
+div.dataTables_info {
+    white-space: normal !important;
+}
 .tooltip.top .tooltip-arrow {
     border-top-color: #fff;
 }

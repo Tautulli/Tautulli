@@ -223,8 +223,7 @@
                             <li><a href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
                             <li><a href="settings?support=true"><i class="fa fa-fw fa-comment"></i> Support</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DG783BMSCU3V4')}" target="_blank"><i class="fa fa-fw fa-paypal"></i> Paypal</a></li>
-                            <li><a href="${anon_url('https://www.coinbase.com/JonnyWong16')}" target="_blank"><i class="fa fa-fw fa-btc"></i> Bitcoin</a></li>
+                            <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
                             <li role="separator" class="divider"></li>
                             % if plexpy.CONFIG.CHECK_GITHUB:
                             <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-circle-up"></i> Check for Updates</a></li>
@@ -294,6 +293,63 @@ ${next.modalIncludes()}
         </div>
     </div>
 </div>
+% else:
+<div id="donate-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="crypto-donate-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">PlexPy Donation</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12" style="text-align: center;">
+                        <h4>
+                            <strong>Thank you for supporting PlexPy!</strong>
+                        </h4>
+                        <p>
+                            Please select a donation method.
+                        </p>
+                    </div>
+                </div>
+                <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
+                    <li class="active"><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
+                    <li><a href="#flattr-donation" role="tab" data-toggle="tab">Flattr</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Bitcoin" data-address="15YMw9c8uH7QecVPXSSjdZ7s55vnbmdKLq">Bitcoin</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Ethereum" data-address="0x8512f6545858eB6269A0F39349F1cC86Df6Ffaf6">Ethereum</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Litecoin" data-address="LZWsygTHuL4KNbg2H5EzXBDdJKNtZoqq2R">Litecoin</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="paypal-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to PayPal.
+                        </p>
+                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=PlexPy&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
+                            <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="flattr-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Flattr.
+                        </p>
+                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/JonnyWong16/plexpy&title=PlexPy&language=en_GB&tags=github&category=software')}" target="_blank">
+                            <img src="images/flattr-badge-large.png" alt="Flattr">
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="crypto-donation">
+                        <label>QR Code</label>
+                        <pre id="crypto_qr_code" style="text-align: center"></pre>
+                        <label><span id="crypto_type_label"></span> Address</label>
+                        <pre id="crypto_address" style="text-align: center"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
 % endif
 
 <div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
@@ -320,8 +376,10 @@ ${next.modalIncludes()}
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js"></script>
+<script src="${http_root}js/jquery.qrcode.min.js"></script>
 % if _session['user_group'] == 'admin' and plexpy.CONFIG.BROWSER_ENABLED:
 <script src="${http_root}js/ajaxNotifications.js"></script>
+% else:
 % endif
 <script>
     % if _session['user_group'] == 'admin':
@@ -356,6 +414,16 @@ ${next.modalIncludes()}
         setCookie('updateDismiss', 'true', 0);
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         window.location.href = "checkGithub";
+    });
+
+    $('#donation_type a.crypto-donation').on('shown.bs.tab', function () {
+        var crypto_type = $(this).data('coin');
+        var crypto_address = $(this).data('address')
+        $('#crypto_qr_code').empty().qrcode({
+            text: crypto_type + ":" + crypto_address
+        });
+        $('#crypto_type_label').html(crypto_type);
+        $('#crypto_address').html(crypto_address);
     });
     % endif
 

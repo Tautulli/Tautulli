@@ -4632,13 +4632,18 @@ class WebInterface(object):
                       'Come with me if you want to live.',
                       'Who is your daddy and what does he do?',
                       'Oh, cookies! I can\'t wait to toss them.',
-                      'Can you hurry up. My horse is getting tired.',
+                      'Make it quick because my horse is getting tired.',
                       'What killed the dinosaurs? The Ice Age!',
                       'That\'s for sleeping with my wife!',
                       'Remember when I said I\'d kill you last... I lied!',
                       'You want to be a farmer? Here\'s a couple of acres',
                       'Now, this is the plan. Get your ass to Mars.',
-                      'I just had a terrible thought... What if this is a dream?'
+                      'I just had a terrible thought... What if this is a dream?',
+                      'Well, listen to this one: Rubber baby buggy bumpers!',
+                      'Take your toy back to the carpet!',
+                      'My name is John Kimble... And I love my car.',
+                      'I eat Green Berets for breakfast.',
+                      'Put that cookie down! NOW!'
                       ]
 
         return random.choice(quote_list)
