@@ -31,6 +31,7 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
+% if data:
 <div class="dashboard-recent-media-row">
     <div id="recently-added-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
@@ -176,6 +177,9 @@ DOCUMENTATION :: END
         </ul>
     </div>
 </div>
+% else:
+<div id="dashboard-no-recently-added" class="text-muted">No recently added items.</div>
+% endif
 % else:
 <div class="text-muted">There was an error communicating with your Plex Server.</div><br>
 % endif

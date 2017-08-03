@@ -1009,6 +1009,9 @@ a .dashboard-activity-metadata-user-thumb:hover {
     font-weight: bold;
     color: #e9a049;
 }
+#dashboard-no-recently-added {
+    margin-bottom: 20px;
+}
 .dashboard-recent-media-row {
     width: 100%;
     margin: 0 auto;
