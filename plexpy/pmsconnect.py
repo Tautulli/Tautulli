@@ -484,7 +484,26 @@ class PmsConnect(object):
 
         return request
 
-    def get_recently_added_details(self, section_id='', start='0', count='0'):
+    def get_hub_recently_added(self, start='0', count='0', type='', output_format=''):
+        """
+        Return Plex hub recently added.
+
+        Parameters required:    start { item number to start from }
+                                count { number of results to return }
+                                type { str }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/hubs/home/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s&type=%s' % (start, count, type)
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_recently_added_details(self, start='0', count='0', type='', section_id=''):
         """
         Return processed and validated list of recently added items.
 
@@ -492,7 +511,15 @@ class PmsConnect(object):
 
         Output: array
         """
-        if section_id:
+        if type in ('movie', 'show', 'artist'):
+            if type == 'movie':
+                type = '1'
+            elif type == 'show':
+                type = '2'
+            elif type == 'artist':
+                type = '8'
+            recent = self.get_hub_recently_added(start, count, type, output_format='xml')
+        elif section_id:
             recent = self.get_library_recently_added(section_id, start, count, output_format='xml')
         else:
             recent = self.get_recently_added(start, count, output_format='xml')
@@ -529,7 +556,8 @@ class PmsConnect(object):
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
                                     'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
-                                    'added_at': helpers.get_xml_attr(item, 'addedAt')
+                                    'added_at': helpers.get_xml_attr(item, 'addedAt'),
+                                    'child_count': helpers.get_xml_attr(item, 'childCount')
                                     }
                     recents_list.append(recent_items)
 
@@ -551,7 +579,8 @@ class PmsConnect(object):
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
                                     'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
-                                    'added_at': helpers.get_xml_attr(item, 'addedAt')
+                                    'added_at': helpers.get_xml_attr(item, 'addedAt'),
+                                    'child_count': helpers.get_xml_attr(item, 'childCount')
                                     }
                     recents_list.append(recent_items)
 

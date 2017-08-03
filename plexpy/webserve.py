@@ -350,11 +350,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_recently_added(self, count='0', **kwargs):
+    def get_recently_added(self, count='0', type='', **kwargs):
 
         try:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(count=count)
+            result = pms_connect.get_recently_added_details(count=count, type=type)
         except IOError as e:
             return serve_template(templatename="recently_added.html", data=None)
 
@@ -4072,7 +4072,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_recently_added")
-    def get_recently_added_details(self, start='0', count='0', section_id='', **kwargs):
+    def get_recently_added_details(self, start='0', count='0', type='', section_id='', **kwargs):
         """ Get all items that where recelty added to plex.
 
             ```
@@ -4081,6 +4081,7 @@ class WebInterface(object):
 
             Optional parameters:
                 start (str):        The item number to start at
+                type (str):         The media type: movie, show, artist
                 section_id (str):   The id of the Plex library section
 
             Returns:
@@ -4110,7 +4111,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(start=start, count=count, section_id=section_id)
+        result = pms_connect.get_recently_added_details(start=start, count=count, type=type, section_id=section_id)
 
         if result:
             return result

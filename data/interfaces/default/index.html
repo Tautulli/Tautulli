@@ -91,18 +91,21 @@
                     </li>
                 </ul>
                 <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
-                    <label class="btn btn-dark disabled" id="recently-added-label-movies">
-                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-movies" id="recently-added-toggle-movies" value="movies" data-type="movie" autocomplete="off"> Movies
+                    <label class="btn btn-dark active" id="recently-added-label-all">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="" autocomplete="off"> All
                     </label>
-                    <label class="btn btn-dark disabled" id="recently-added-label-tv">
-                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-tv" id="recently-added-toggle-tv" value="tv" data-type="season" autocomplete="off"> TV Shows
+                    <label class="btn btn-dark" id="recently-added-label-movies">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
                     </label>
-                    <label class="btn btn-dark disabled" id="recently-added-label-music">
-                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-music" id="recently-added-toggle-music" value="music" data-type="album" autocomplete="off"> Music
+                    <label class="btn btn-dark" id="recently-added-label-tv">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
+                    </label>
+                    <label class="btn btn-dark" id="recently-added-label-music">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-music" value="artist" autocomplete="off"> Music
                     </label>
                 </div>
                 <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
-                    <input type="number" class="form-control" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="50" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 50 items" />
+                    <input type="number" class="form-control" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="100" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 100 items" />
                     <span class="input-group-addon btn-dark inactive">items</span>
                 </div>
             </div>
@@ -542,75 +545,24 @@
 % endif
 % if 'recently_added' in config['home_sections']:
 <script>
-    function recentlyAdded(recently_added_count) {
+    function recentlyAdded(recently_added_count, recently_added_type) {
         $.ajax({
             url: 'get_recently_added',
-            type: "GET",
+            type: 'GET',
             async: true,
-            data: { count : recently_added_count },
+            data: {
+                count: recently_added_count,
+                type: recently_added_type 
+            },
             complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
                 highlightAddedScrollerButton();
-                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) {
-                    $('#recently-added-label-movies').removeClass('disabled').addClass('active');
-                    $('#recently-added-toggle-movies').prop('checked', true);
-                }
-                if ($('.dashboard-recent-media-instance li[data-type=season]').length) {
-                    $('#recently-added-label-tv').removeClass('disabled').addClass('active');
-                    $('#recently-added-toggle-tv').prop('checked', true);
-                }
-                if ($('.dashboard-recent-media-instance li[data-type=album]').length) {
-                    $('#recently-added-label-music').removeClass('disabled').addClass('active');
-                    $('#recently-added-toggle-music').prop('checked', true);
-                }
-
-                $('#recently-added-toggles').on('change', '.recently-added-toggle', function () {
-                    var scroller = $("#recently-added-row-scroller");
-                    var media_type = $(this).data('type');
-                    var margin_right = $(this).prop('checked') ? '25px' : 0;
-                    var toggle_items = $('.dashboard-recent-media-instance li[data-type=' + media_type + ']');
-                    var containerWidth = $("body").find(".container-fluid").width();
-                    console.log(margin_right)
-
-                    if (margin_right == 0) {
-                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
-                            toggle_items.hide();
-
-                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
-                            scroller.width(scroller_width);
-
-                            if (scroller_width < containerWidth) {
-                                $("#recently-added-page-right").addClass("disabled").blur();
-                            } else {
-                                $("#recently-added-page-right").removeClass("disabled");
-                            }
-                        })
-                    } else {
-                        scroller.width(50 * 175);
-                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
-                            toggle_items.show();
-
-                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
-                            scroller.width(scroller_width);
-
-                            if (scroller_width < containerWidth) {
-                                $("#recently-added-page-right").addClass("disabled").blur();
-                            } else {
-                                $("#recently-added-page-right").removeClass("disabled");
-                            }
-                        })
-                    }
-
-                    leftTotal = 0;
-                    scroller.animate({ left: leftTotal }, 1000);
-                    $("#recently-added-page-left").addClass("disabled").blur();
-                    $(this).toggleClass('text-muted').blur();
-                });
             }
         });
     }
     var recently_added_count = $('#recently-added-count').val();
-    recentlyAdded(recently_added_count);
+    var recently_added_type = '';
+    recentlyAdded(recently_added_count, recently_added_type);
 
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");
@@ -651,10 +603,18 @@
         }
     });
 
+    $('#recently-added-toggles').on('change', function () {
+        $('#recently-added-toggles > label').removeClass('active');
+        selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
+        $(selected_filter).closest('label').addClass('active');
+        recently_added_type = $(selected_filter).val();
+        recentlyAdded(recently_added_count, recently_added_type);
+    });
+
     $('#recently-added-count').change(function () {
         forceMinMax($(this));
         recently_added_count = $(this).val();
-        recentlyAdded(recently_added_count);
+        recentlyAdded(recently_added_count, recently_added_type);
         $.post('set_home_stats_config', { recently_added_count: recently_added_count });
     });
 

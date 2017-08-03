@@ -70,7 +70,7 @@ DOCUMENTATION :: END
                     <h3>
                         <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
-                    <h3>
+                    <h3 class="text-muted">
                         <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
@@ -82,6 +82,7 @@ DOCUMENTATION :: END
                         <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">${item['year']}</h3>
+                    <h3 class="text-muted">&nbsp;</h3>
                     % endif
                 </div>
                 % elif item['media_type'] == 'album':
@@ -104,6 +105,7 @@ DOCUMENTATION :: END
                         <h3 class="text-muted">
                             <a class="text-muted" href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                         </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
                     </div>
                 </a>
                 % endif
