@@ -107,10 +107,12 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
                 % endif
                 % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
-                <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" style="display: none;">
-                    <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
-                        <i class="fa fa-times"></i>
-                    </span>
+                <div class="dashboard-activity-terminate-bar">
+                    <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" style="display: none;">
+                        <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
+                            <i class="fa fa-times"></i>
+                        </span>
+                    </div>
                 </div>
                 % endif
                 <div class="dashboard-activity-button-info">

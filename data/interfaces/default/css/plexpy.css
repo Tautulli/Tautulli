@@ -641,7 +641,8 @@ a .users-poster-face:hover {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
 }
-.dashboard-instance.hover .dashboard-activity-poster-info-bar {
+.dashboard-instance.hover .dashboard-activity-poster-info-bar,
+.dashboard-instance.hover .dashboard-activity-terminate-bar {
     opacity: 1;
 }
 .dashboard-instance.hover .dashboard-activity-progress-bar { 
@@ -780,6 +781,19 @@ a .users-poster-face:hover {
     height: 100%;
     display: none;
     z-index: -1;
+}
+.dashboard-activity-terminate-bar {
+    position:absolute;
+    width: 100%;
+    height: 100%;
+    background-image: -webkit-gradient(linear,left 60%,left 0%,from(rgba(0,0,0,0)),to(rgba(0,0,0,0.4)));
+    background-image: -webkit-linear-gradient(bottom,rgba(0,0,0,0),40%,rgba(0,0,0,0.4),100%);
+    background-image: -moz-linear-gradient(bottom,rgba(0,0,0,0) 40%,rgba(0,0,0,0.4) 100%);
+    background-image: linear-gradient(to top,rgba(0,0,0,0) 40%,rgba(0,0,0,0.4) 100%);
+    opacity: 0;
+    -webkit-transition: all .2s;
+    transition: all .2s;
+    z-index: 0W;
 }
 .dashboard-activity-terminate-session {
     width: 50px;
