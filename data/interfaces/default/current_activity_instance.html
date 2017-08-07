@@ -106,20 +106,18 @@ DOCUMENTATION :: END
                 % else:
                 <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
                 % endif
-                % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
-                <div class="dashboard-activity-terminate-bar">
-                    <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" style="display: none;">
-                        <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
-                            <i class="fa fa-times"></i>
-                        </span>
-                    </div>
-                </div>
-                % endif
                 <div class="dashboard-activity-button-info">
                     <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${data['session_key']}" data-key="${data['session_key']}">
                         <i class="fa fa-info-circle"></i>
                     </button>
                 </div>
+                % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
+                <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}">
+                    <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </div>
+                % endif
                 <div id="stream-${data['session_key']}" class="dashboard-activity-info-details-overlay">
                     <div class="dashboard-activity-info-details-content">
                         <div id="platform-${data['session_key']}" title="${data['platform']}">
@@ -131,11 +129,11 @@ DOCUMENTATION :: END
                             <strong>${data['player']}</strong><br />
                             <span id="overlay-play-state-${data['session_key']}">
                                 % if data['state'] == 'playing':
-                                State &nbsp;<strong>Playing</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
+                                State &nbsp;<strong>Playing</strong>
                                 % elif data['state'] == 'paused':
-                                State &nbsp;<strong>Paused</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
+                                State &nbsp;<strong>Paused</strong>
                                 % elif data['state'] == 'buffering':
-                                State &nbsp;<strong>Buffering</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
+                                State &nbsp;<strong>Buffering</strong>
                                 % endif
                             </span>
                         </div>
@@ -195,24 +193,29 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                 </div>
+                <div class="dashboard-activity-terminate-bar">
+                </div>
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-poster-info-bar">
                     <div class="dashboard-activity-poster-info-ip-address">
-                        % if data['ip_address']:
-                        <span>IP: ${data['ip_address']}</span>
-                        % else:
-                        <span>IP: N/A</span>
-                        % endif
+                        Quality: 
+                        <span id="stream-quality-${data['session_key']}">
+                            ${data['quality_profile'] if data['media_type'] != 'track' else ''}
+                        </span>
                         <br />
+                        % if data['ip_address']:
+                        IP: ${data['ip_address']} (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${data['bandwidth']}</span> kbps)
+                        % else:
+                        IP: N/A
+                        % endif
+                    </div>
+                    <div class="dashboard-activity-poster-info-time">
                         ETA:
                         <span id="stream-eta-${data['session_key']}">
                             <script>
                                 $("#stream-eta-${data['session_key']}").html(moment().add(parseInt("${data['duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
                             </script>
-                        </span>
-                    </div>
-                    <div class="dashboard-activity-poster-info-time">
-                        <span class="progress_time" id="stream-view-offset-${data['session_key']}">
+                        </span><br /><span class="progress_time" id="stream-view-offset-${data['session_key']}">
                             <script>
                                 $("#stream-view-offset-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
                             </script>

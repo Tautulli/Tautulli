@@ -611,7 +611,7 @@ textarea.form-control:focus {
 a .poster-face:hover,
 a .cover-face:hover,
 a .users-poster-face:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
@@ -642,7 +642,8 @@ a .users-poster-face:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
 }
 .dashboard-instance.hover .dashboard-activity-poster-info-bar,
-.dashboard-instance.hover .dashboard-activity-terminate-bar {
+.dashboard-instance.hover .dashboard-activity-terminate-bar,
+.dashboard-instance.hover .dashboard-activity-terminate-session {
     opacity: 1;
 }
 .dashboard-instance.hover .dashboard-activity-progress-bar { 
@@ -793,7 +794,7 @@ a .users-poster-face:hover {
     opacity: 0;
     -webkit-transition: all .2s;
     transition: all .2s;
-    z-index: 0W;
+    z-index: -2;
 }
 .dashboard-activity-terminate-session {
     width: 50px;
@@ -803,9 +804,12 @@ a .users-poster-face:hover {
     left: 0;
     font-size: 30px;
     color: #eee;
-    z-index: 1;
     text-align: center;
     padding-top: 5px;
+    opacity: 0;
+    -webkit-transition: all .2s;
+    transition: all .2s;
+    z-index: 1;
 }
 .dashboard-activity-terminate-session:hover {
     color: #e9a049;
