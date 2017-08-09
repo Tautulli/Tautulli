@@ -1506,7 +1506,7 @@ class PmsConnect(object):
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_video_bitrate' in video_details:
             stream_video_bitrate = helpers.cast_to_int(video_details['stream_video_bitrate'])
-            video_bitrate = helpers.cast_to_int(source_video_details['video_bitrate'])
+            video_bitrate = helpers.cast_to_int(source_video_details.get('video_bitrate'))
 
             try:
                 quailtiy_bitrate = min(b for b in common.QUALITY_PROFILES if stream_video_bitrate <= b <= video_bitrate)
