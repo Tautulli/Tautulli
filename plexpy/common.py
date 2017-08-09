@@ -75,20 +75,28 @@ AUDIO_CHANNELS = {'1': 'Mono',
                   '8': '7.1'
                   }
 
-QUALITY_PROFILES = {20000: '20 Mbps 1080p',
-                    12000: '12 Mbps 1080p',
-                    10000: '10 Mbps 1080p',
-                    8000: '8 Mbps 1080p',
-                    4000: '4 Mbps 720p',
-                    3000: '3 Mbps 720p',
-                    2000: '2 Mbps 720p',
-                    1500: '1.5 Mbps 480p',
-                    720: '720 kbps',
-                    320: '320 kbps',
-                    208: '208 kbps',
-                    96: '96 kbps',
-                    64: '64 kbps'
-                    }
+VIDEO_QUALITY_PROFILES = {20000: '20 Mbps 1080p',
+                          12000: '12 Mbps 1080p',
+                          10000: '10 Mbps 1080p',
+                          8000: '8 Mbps 1080p',
+                          4000: '4 Mbps 720p',
+                          3000: '3 Mbps 720p',
+                          2000: '2 Mbps 720p',
+                          1500: '1.5 Mbps 480p',
+                          720: '720 kbps',
+                          320: '320 kbps',
+                          208: '208 kbps',
+                          96: '96 kbps',
+                          64: '64 kbps'
+                          }
+
+AUDIO_QUALITY_PROFILES = {512: '512 kbps',
+                          320: '320 kbps',
+                          256: '256 kbps',
+                          192: '192 kbps',
+                          128: '128 kbps',
+                          96: '96 kbps'
+                          }
 
 SCHEDULER_LIST = ['Check GitHub for updates',
                   'Check for active sessions',

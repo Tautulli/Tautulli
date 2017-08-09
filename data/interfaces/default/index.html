@@ -292,7 +292,7 @@
                         } else {
                             ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
                         }
-                        if (s.video_decision != '' && s.media_type != 'photo') {
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.video_decision != '') {
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
                                     var v_res = 'SD';
@@ -320,8 +320,12 @@
                             } else {
                                 ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')</strong><br>';
                             }
+                        } else if (s.media_type == 'photo') {
+                            ts += 'Video &nbsp;<strong>Direct Play (' + s.width + 'x' + s.height + ')</strong><br>';
+                        } else {
+                            ts += 'Video &nbsp;<strong>None</strong><br>';
                         }
-                        if (s.audio_codec) {
+                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_codec) {
                             var a_codec = (s.audio_codec == 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec == 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.audio_decision == 'transcode') {
@@ -335,7 +339,7 @@
                         else {
                             ts += 'Audio &nbsp;<strong>None</strong><br>';
                         }
-                        if (s.subtitles) {
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles == '1') {
                             if (s.subtitle_decision == 'transcode') {
                                 ts += 'Subtitle &nbsp;<strong>Transcode (' + s.subtitle_codec.toUpperCase() + ' &rarr; ' + s.stream_subtitle_codec.toUpperCase() + ')</strong>';
                             } else if (s.subtitle_decision == 'copy') {
@@ -345,13 +349,13 @@
                             } else {
                                 ts += 'Subtitle &nbsp;<strong>Direct Play (' + s.subtitle_codec.toUpperCase() + ')</strong>';
                             }
-                        } else if (s.media_type != 'track') {
+                        } else {
                             ts += 'Subtitle &nbsp;<strong>None</strong>';
                         }
                         $('#transcode-state-' + key).html(ts);
 
                         // update the stream quality profile and bandwidth
-                        $('#stream-quality-' + key).html((s.media_type != 'track') ? s.quality_profile : '');
+                        $('#stream-quality-' + key).html(s.quality_profile);
                         $('#stream-bandwidth-' + key).html(s.bandwidth);
 
                         // update the stream progress times

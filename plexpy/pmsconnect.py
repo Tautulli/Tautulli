@@ -1509,13 +1509,26 @@ class PmsConnect(object):
             video_bitrate = helpers.cast_to_int(source_video_details.get('video_bitrate'))
 
             try:
-                quailtiy_bitrate = min(b for b in common.QUALITY_PROFILES if stream_video_bitrate <= b <= video_bitrate)
-                quality_profile = common.QUALITY_PROFILES[quailtiy_bitrate]
+                quailtiy_bitrate = min(b for b in common.VIDEO_QUALITY_PROFILES if stream_video_bitrate <= b <= video_bitrate)
+                quality_profile = common.VIDEO_QUALITY_PROFILES[quailtiy_bitrate]
             except ValueError:
                 quality_profile = 'Original'
             
+        elif media_type == 'track' and 'stream_audio_bitrate' in audio_details:
+            stream_audio_bitrate = helpers.cast_to_int(audio_details['stream_audio_bitrate'])
+            audio_bitrate = helpers.cast_to_int(source_audio_details['audio_bitrate'])
+
+            try:
+                quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_audio_bitrate <= b <= audio_bitrate)
+                quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
+            except ValueError:
+                quality_profile = 'Original'
+
+        elif media_type == 'photo':
+            quality_profile = 'Original'
+
         else:
-            quality_profile = ''
+            quality_profile = 'Unknown'
 
         # Entire session output (single dict for backwards compatibility)
         session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),

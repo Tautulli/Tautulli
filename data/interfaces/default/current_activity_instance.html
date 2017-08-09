@@ -163,6 +163,12 @@ DOCUMENTATION :: END
                                 Video &nbsp;<strong>Direct Play (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])})</strong>
                                 % endif
                             <br />
+                            % elif data['media_type'] == 'photo':
+                            Video &nbsp;<strong>Direct Play (${data['width']}x${data['height']})</strong>
+                            <br />
+                            % else:
+                            Video &nbsp;<strong>None</strong>
+                            <br />
                             % endif
                             % if data['media_type'] in ('movie', 'episode', 'clip', 'track') and data['audio_codec']:
                                 % if data['audio_decision'] == 'transcode':
@@ -187,7 +193,7 @@ DOCUMENTATION :: END
                                 % else:
                                 Subtitle &nbsp;<strong>Direct Play (${data['subtitle_codec'].upper()})</strong>
                                 % endif
-                            % elif data['media_type'] != 'track':
+                            % else:
                                 Subtitle &nbsp;<strong>None</strong>
                             % endif
                         </div>
@@ -195,20 +201,23 @@ DOCUMENTATION :: END
                 </div>
                 <div class="dashboard-activity-terminate-bar">
                 </div>
-                % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-poster-info-bar">
                     <div class="dashboard-activity-poster-info-ip-address">
                         Quality: 
                         <span id="stream-quality-${data['session_key']}">
-                            ${data['quality_profile'] if data['media_type'] != 'track' else ''}
+                            ${data['quality_profile']}
                         </span>
                         <br />
                         % if data['ip_address']:
-                        IP: ${data['ip_address']} (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${data['bandwidth']}</span> kbps)
+                        IP: ${data['ip_address']} 
+                        % if data['media_type'] != 'photo' and 'location' in data:
+                        (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${data['bandwidth']}</span> kbps)
+                        % endif
                         % else:
                         IP: N/A
                         % endif
                     </div>
+                    % if data['media_type'] != 'photo':
                     <div class="dashboard-activity-poster-info-time">
                         ETA:
                         <span id="stream-eta-${data['session_key']}">
@@ -225,8 +234,8 @@ DOCUMENTATION :: END
                             </script>
                         </span>
                     </div>
+                    % endif
                 </div>
-                % endif
             </div>
             % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
         </a>
@@ -284,13 +293,13 @@ DOCUMENTATION :: END
             <a href="info?rating_key=${data['parent_rating_key']}" title="Season ${data['parent_media_index']}" class="text-muted">S${data['parent_media_index']}</a>
                 &middot; <a href="info?rating_key=${data['rating_key']}" title="Episode ${data['media_index']}" class="text-muted">E${data['media_index']}</a>
             % elif data['media_type'] == 'movie':
-            <span title="${data['year']}">${data['year']}</span>
+            <span title="${data['year']}" class="text-muted">${data['year']}</span>
             % elif data['media_type'] == 'track':
-            <a href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}">${data['parent_title']}</a>
+            <a href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}" class="text-muted">${data['parent_title']}</a>
             % elif data['media_type'] == 'photo':
-            <span title="${data['title']}">${data['title']}</span>
+            <span title="${data['title']}" class="text-muted">${data['title']}</span>
             % else:
-            <span title="${data['year']}">${data['year']}</span>
+            <span title="${data['year']}" class="text-muted">${data['year']}</span>
             % endif
             % endif
         </div>
