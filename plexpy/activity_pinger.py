@@ -41,7 +41,7 @@ def check_active_sessions(ws_request=False):
         session_list = pms_connect.get_current_activity()
         monitor_db = database.MonitorDatabase()
         monitor_process = activity_processor.ActivityProcessor()
-        # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
+        logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
         if session_list:
             media_container = session_list['sessions']

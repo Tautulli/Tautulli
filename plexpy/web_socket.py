@@ -100,7 +100,7 @@ def run():
 
             # successfully received data, reset reconnects counter
             reconnects = 0
-        except (websocket.WebSocketConnectionClosedException, Exception):
+        except websocket.WebSocketConnectionClosedException:
             if reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
 
