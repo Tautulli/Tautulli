@@ -284,9 +284,9 @@
                         // if transcoding, update the transcode state
                         var ts = '';
                         if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
-                            var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
+                            var throttled = (s.throttled == '1') ? ' (Throttled)' : ' (Speed: ' + s.transcode_speed + ')';
                             var hw = (s.transcode_hardware == '1') ? ' (HW)' : '';
-                            ts += 'Stream &nbsp;<strong>Transcode' + hw + ' (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
+                            ts += 'Stream &nbsp;<strong>Transcode' + hw + throttled + '</strong><br>';
                         } else if (s.video_decision == 'copy' || s.audio_decision == 'copy') {
                             ts += 'Stream &nbsp;<strong>Direct Stream</strong><br>';
                         } else {

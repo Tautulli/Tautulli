@@ -140,13 +140,14 @@ DOCUMENTATION :: END
                         </div>
                         <div class="dashboard-activity-info-details-transcode-state" id="transcode-state-${data['session_key']}">
                             % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
+                                Stream &nbsp;<strong>Transcode
                                 % if data['transcode_hardware'] == '1':
-                                Stream &nbsp;<strong>Transcode (HW) (Speed: ${data['transcode_speed']})
-                                % else:
-                                Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
+                                (HW)
                                 % endif
                                 % if data['transcode_throttled'] == '1':
                                 (Throttled)
+                                % else:
+                                (Speed: ${data['transcode_speed']})
                                 % endif
                                 </strong>
                             % elif data['video_decision'] == 'copy' or data['audio_decision'] == 'copy':
