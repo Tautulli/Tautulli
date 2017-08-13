@@ -355,8 +355,23 @@
                         $('#transcode-state-' + key).html(ts);
 
                         // update the stream quality profile and bandwidth
+                        var br = parseInt(s.stream_bitrate) || 'Unknown';
+                        var br_units = 'kbps'
+                        if (br != "Unknown" && br > 1000) {
+                            br = (br / 1000).toFixed(1);
+                            br_units = 'Mbps';
+                        }
                         $('#stream-quality-' + key).html(s.quality_profile);
-                        $('#stream-bandwidth-' + key).html(s.bandwidth);
+                        $('#stream-quality-bitrate-' + key).html(br);
+                        $('#stream-quality-bitrate-units-' + key).html(br_units);
+                        var bw = parseInt(s.bandwidth) || 'Unknown';
+                        var bw_units = 'kbps'
+                        if (bw != "Unknown" && bw > 1000) {
+                            bw = (bw / 1000).toFixed(1);
+                            bw_units = 'Mbps';
+                        }
+                        $('#stream-bandwidth-' + key).html(bw);
+                        $('#stream-bandwidth-units-' + key).html(bw_units);
 
                         // update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));

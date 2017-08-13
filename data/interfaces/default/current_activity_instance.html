@@ -62,6 +62,7 @@ DOCUMENTATION :: END
 % if data is not None:
 <%
     from urllib import quote
+    from plexpy import helpers
     import plexpy
 %>
 <div class="dashboard-instance" id="instance-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}">
@@ -204,14 +205,26 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-poster-info-bar">
                     <div class="dashboard-activity-poster-info-ip-address">
                         Quality: 
-                        <span id="stream-quality-${data['session_key']}">
-                            ${data['quality_profile']}
-                        </span>
+                        <%
+                            br = helpers.cast_to_int(data['stream_bitrate']) or "Unknown"
+                            br_units = "kbps"
+                            if br != "Unknown" and br > 1000:
+                                br = round(br / 1000, 1)
+                                br_units = "Mbps"
+                            %>
+                        <span id="stream-quality-${data['session_key']}">${data['quality_profile']}</span> (<span id="stream-quality-bitrate-${data['session_key']}">${br}</span> <span id="stream-quality-bitrate-units-${data['session_key']}">${br_units}</span>)
                         <br />
                         % if data['ip_address']:
                         IP: ${data['ip_address']} 
                         % if data['media_type'] != 'photo' and 'location' in data:
-                        (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${data['bandwidth']}</span> kbps)
+                        <%
+                            bw = helpers.cast_to_int(data['bandwidth']) or "Unknown"
+                            bw_units = "kbps"
+                            if bw != "Unknown" and bw > 1000:
+                                bw = round(bw / 1000, 1)
+                                bw_units = "Mbps"
+                        %>
+                        (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${bw}</span> <span id="stream-bandwidth-units-${data['session_key']}">${bw_units}</span>)
                         % endif
                         % else:
                         IP: N/A
