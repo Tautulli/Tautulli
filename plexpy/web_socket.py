@@ -86,12 +86,15 @@ def run():
                 plexpy.PLEX_SERVER_UP = True
 
             plexpy.initialize_scheduler()
+
         except IOError as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
             time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
+
         except (websocket.WebSocketException, Exception) as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
+            plexpy.WS_CONNECTED = False
             break
 
     while plexpy.WS_CONNECTED:
@@ -100,6 +103,7 @@ def run():
 
             # successfully received data, reset reconnects counter
             reconnects = 0
+
         except websocket.WebSocketConnectionClosedException:
             if reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
@@ -112,6 +116,7 @@ def run():
                 try:
                     ws = create_connection(uri, header=header)
                     logger.info(u"PlexPy WebSocket :: Ready")
+                    plexpy.WS_CONNECTED = True
                 except IOError as e:
                     logger.info(u"PlexPy WebSocket :: %s." % e)
 
@@ -119,8 +124,10 @@ def run():
                 ws.shutdown()
                 plexpy.WS_CONNECTED = False
                 break
+
         except (websocket.WebSocketException, Exception) as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
+            plexpy.WS_CONNECTED = False
             break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
