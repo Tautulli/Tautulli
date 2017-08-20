@@ -80,7 +80,7 @@ class ActivityHandler(object):
                 if not session:
                     return
 
-            logger.debug(u"PlexPy ActivityHandler :: Session %s started by user %s (%) with ratingKey %s (%s)."
+            logger.debug(u"PlexPy ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)."
                          % (str(session['session_key']), str(session['user_id']), session['username'],
                             str(session['rating_key']), session['full_title']))
 
