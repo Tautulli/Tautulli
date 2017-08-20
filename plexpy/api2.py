@@ -500,9 +500,9 @@ General optional parameters:
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:
                 if self._api_debug:
-                    out = json.dumps(out, indent=4, sort_keys=True)
+                    out = json.dumps(out, indent=4, sort_keys=True, ensure_ascii=False).encode('utf-8')
                 else:
-                    out = json.dumps(out)
+                    out = json.dumps(out, ensure_ascii=False).encode('utf-8')
                 if self._api_callback is not None:
                     cherrypy.response.headers['Content-Type'] = 'application/javascript'
                     # wrap with JSONP call if requested
