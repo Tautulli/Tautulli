@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.22 (2017-08-19)
+
+* Fix: Cleaning up of old config backups.
+* Fix: Temporary fix for incorrect source media info.
+
+
 ## v1.4.21 (2017-07-01)
 
 * New: Updated donation methods.
