@@ -186,8 +186,14 @@ class ActivityProcessor(object):
                     metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
                     if not metadata:
                         return False
+                    else:
+                        media_info = {}
+                        if 'media_info' in metadata and len(metadata['media_info']) > 0:
+                            media_info = metadata['media_info'][0]
                 else:
                     metadata = import_metadata
+                    ## TODO: Fix media info from imports. Temporary media info from import session.
+                    media_info = session
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history table...")
                 query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, ' \
@@ -253,10 +259,10 @@ class ActivityProcessor(object):
                         '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['video_decision'], session['audio_decision'],
-                        session['duration'], session['width'], session['height'], session['container'],
-                        session['video_codec'], session['audio_codec'], session['bitrate'],
-                        session['video_resolution'], session['video_framerate'], session['aspect_ratio'],
-                        session['audio_channels'], session['transcode_protocol'], session['transcode_container'],
+                        metadata['duration'], media_info.get('width',''), media_info.get('height',''), media_info.get('container',''),
+                        media_info.get('video_codec',''), media_info.get('audio_codec',''), media_info.get('bitrate',''),
+                        media_info.get('video_resolution',''), media_info.get('video_framerate',''), media_info.get('aspect_ratio',''),
+                        media_info.get('audio_channels',''), session['transcode_protocol'], session['transcode_container'],
                         session['transcode_video_codec'], session['transcode_audio_codec'],
                         session['transcode_audio_channels'], session['transcode_width'], session['transcode_height'],
                         session['transcode_decision']]

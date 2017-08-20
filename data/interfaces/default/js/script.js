@@ -263,6 +263,8 @@ function getPlatformImagePath(platformName) {
         return 'images/platforms/dlna.png';
     } else if (platformName.indexOf("PlexTogether") > -1) {
         return 'images/platforms/plextogether.png';
+    } else if (platformName.indexOf("Linux") > -1) {
+        return 'images/platforms/linux.png';
     } else {
         return 'images/platforms/default.png';
     }

@@ -17,6 +17,7 @@ import arrow
 import os
 import re
 import shutil
+import time
 
 from configobj import ConfigObj
 
@@ -629,7 +630,7 @@ def make_backup(cleanup=False, scheduler=False):
 
     if cleanup:
         now = time.time()
-        # Delete all scheduled backup files except from the last 5.
+        # Delete all scheduled backup older than BACKUP_DAYS.
         for root, dirs, files in os.walk(backup_folder):
             ini_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
             for file_ in ini_files:
