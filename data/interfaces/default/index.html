@@ -501,6 +501,8 @@
 % if 'watch_stats' in config['home_sections']:
 <script>
     function getHomeStats(time_range, stats_type, stats_count) {
+        showMsg("Loading watch statistics...", true, false, 0);
+
         $.ajax({
             url: 'home_stats',
             type: 'GET',
@@ -513,6 +515,7 @@
             },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
             }
         });
     }
@@ -564,6 +567,8 @@
 % if 'recently_added' in config['home_sections']:
 <script>
     function recentlyAdded(recently_added_count, recently_added_type) {
+        showMsg("Loading recently added items...", true, false, 0);
+
         $.ajax({
             url: 'get_recently_added',
             type: 'GET',
@@ -574,6 +579,7 @@
             },
             complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
                 highlightAddedScrollerButton();
             }
         });
