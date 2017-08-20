@@ -138,11 +138,11 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         library_details = library_data.get_details(section_id=stream_data['section_id'])
 
         if not user_details['do_notify']:
-            # logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' is disabled." % user_details['username'])
+            logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' are disabled." % user_details['username'])
             return False
 
         elif not library_details['do_notify'] and notify_action not in ('on_concurrent', 'on_newdevice'):
-            # logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
+            logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' are disabled." % library_details['section_name'])
             return False
 
         if notify_action == 'on_concurrent':
