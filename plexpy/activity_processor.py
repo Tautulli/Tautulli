@@ -220,7 +220,7 @@ class ActivityProcessor(object):
                 if not is_import:
                     logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     pms_connect = pmsconnect.PmsConnect()
-                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']), get_media_info=True)
                     if result and result['metadata']:
                         metadata = result['metadata']
                     else:
@@ -293,10 +293,10 @@ class ActivityProcessor(object):
                         '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['video_decision'], session['audio_decision'],
-                        session['duration'], session['width'], session['height'], session['container'],
-                        session['video_codec'], session['audio_codec'], session['bitrate'],
-                        session['video_resolution'], session['video_framerate'], session['aspect_ratio'],
-                        session['audio_channels'], session['transcode_protocol'], session['transcode_container'],
+                        metadata['duration'], metadata['width'], metadata['height'], metadata['container'],
+                        metadata['video_codec'], metadata['audio_codec'], metadata['bitrate'],
+                        metadata['video_resolution'], metadata['video_framerate'], metadata['aspect_ratio'],
+                        metadata['audio_channels'], session['transcode_protocol'], session['transcode_container'],
                         session['transcode_video_codec'], session['transcode_audio_codec'],
                         session['transcode_audio_channels'], session['transcode_width'], session['transcode_height'],
                         session['transcode_decision']]

@@ -881,6 +881,9 @@ class PmsConnect(object):
                               'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                               'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                               'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
+                              'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
+                              'width': helpers.get_xml_attr(media, 'width'),
+                              'height': helpers.get_xml_attr(media, 'height'),
                               'file': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'file'),
                               'file_size': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'size'),
                               }
