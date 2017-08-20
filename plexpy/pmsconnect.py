@@ -1323,8 +1323,8 @@ class PmsConnect(object):
                                  'transcode_audio_channels': helpers.get_xml_attr(transcode_info, 'audioChannels'),
                                  'transcode_audio_codec': helpers.get_xml_attr(transcode_info, 'audioCodec'),
                                  'transcode_video_codec': helpers.get_xml_attr(transcode_info, 'videoCodec'),
-                                 'transcode_width': helpers.get_xml_attr(transcode_info, 'width'),
-                                 'transcode_height': helpers.get_xml_attr(transcode_info, 'height'),
+                                 'transcode_width': helpers.get_xml_attr(transcode_info, 'width'),  # Blank but keep for backwards compatibility
+                                 'transcode_height': helpers.get_xml_attr(transcode_info, 'height'),  # Blank but keep backwards compatibility
                                  'transcode_container': helpers.get_xml_attr(transcode_info, 'container'),
                                  'transcode_protocol': helpers.get_xml_attr(transcode_info, 'protocol'),
                                  'transcode_hardware': transcode_hardware,

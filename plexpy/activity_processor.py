@@ -81,8 +81,8 @@ class ActivityProcessor(object):
                       'transcode_video_codec': session.get('transcode_video_codec', ''),
                       'transcode_audio_codec': session.get('transcode_audio_codec', ''),
                       'transcode_audio_channels': session.get('transcode_audio_channels', ''),
-                      'transcode_width': session.get('transcode_width', ''),
-                      'transcode_height': session.get('transcode_height', ''),
+                      'transcode_width': session.get('stream_video_width', ''),
+                      'transcode_height': session.get('stream_video_height', ''),
                       'stopped': None
                       }
 
