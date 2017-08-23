@@ -83,7 +83,7 @@ class ActivityProcessor(object):
                       'transcode_audio_channels': session.get('transcode_audio_channels', ''),
                       'transcode_width': session.get('stream_video_width', ''),
                       'transcode_height': session.get('stream_video_height', ''),
-                      'stopped': None
+                      'stopped': int(time.time())
                       }
 
             # Add ip_address back into values

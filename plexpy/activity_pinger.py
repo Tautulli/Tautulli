@@ -151,9 +151,9 @@ def check_active_sessions(ws_request=False):
 
                         progress_percent = helpers.get_percent(stream['view_offset'], stream['duration'])
                         notify_states = notification_handler.get_notify_state(session=stream)
-                        if (session['media_type'] == 'movie' and progress_percent >= plexpy.CONFIG.MOVIE_WATCHED_PERCENT or
-                            session['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
-                            session['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
+                        if (stream['media_type'] == 'movie' and progress_percent >= plexpy.CONFIG.MOVIE_WATCHED_PERCENT or
+                            stream['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
+                            stream['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
                             and not any(d['notify_action'] == 'on_watched' for d in notify_states):
                             plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_watched'})
 

@@ -130,7 +130,8 @@ class ActivityHandler(object):
             # Update the session state and viewOffset
             ap.set_session_state(session_key=self.get_session_key(),
                                  state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'])
+                                 view_offset=self.timeline['viewOffset'],
+                                 stopped=int(time.time()))
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -148,7 +149,8 @@ class ActivityHandler(object):
             # Update the session state and viewOffset
             ap.set_session_state(session_key=self.get_session_key(),
                                  state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'])
+                                 view_offset=self.timeline['viewOffset'],
+                                 stopped=int(time.time()))
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -204,7 +206,8 @@ class ActivityHandler(object):
                     if this_state == 'playing':
                         ap.set_session_state(session_key=self.get_session_key(),
                                              state=this_state,
-                                             view_offset=self.timeline['viewOffset'])
+                                             view_offset=self.timeline['viewOffset'],
+                                             stopped=int(time.time()))
                     # Start our state checks
                     if this_state != last_state:
                         if this_state == 'paused':

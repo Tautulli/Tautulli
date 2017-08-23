@@ -203,7 +203,7 @@ history_table_options = {
             "targets": [9],
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === null) {
+                if (cellData === null || rowData['state'] != null) {
                     $(td).html('n/a');
                 } else {
                     $(td).html(moment(cellData,"X").format(time_format));
