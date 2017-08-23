@@ -1378,13 +1378,16 @@
                 <p class="help-block">
                     Scan the QR code below with the PlexPy Android app to automatically register it with the server.
                     Make sure the PlexPy Address below is correct.
-                    <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
                 </p>
                 <label>QR Code</label>
                 <pre id="api_qr_code" style="text-align: center"></pre>
                 <label>PlexPy Address</label>
                 <input type="text" class="form-control" id="api_qr_address">
                 <input type="hidden" class="form-control" id="api_qr_token">
+                <p class="help-block" id="api_qr_localhost" style="display: none;">
+                    Note: <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
+                    Please enter an internal or external IP address, or hostname or domain instead.
+                </p>
                 <p class="help-block" id="api_qr_private" style="display: none;">
                     Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
                     Access PlexPy externally to generate the QR code for remote access.
@@ -2030,17 +2033,30 @@ $(document).ready(function() {
         return deferred;
     }
 
-    var verifiedDevice = false;
-    $('#generate_qr').click(function () {
-        getPlexPyURL().then(function (url) {
-            var parser = document.createElement('a');
-            parser.href = url;
-            isPrivateIP(parser.hostname).then(function (valid) {
+    function checkQRAddress(url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        var hostname = parser.hostname;
+        var protocol = parser.protocol;
+
+        if (hostname === '127.0.0.1' || hostname === 'localhost') {
+            $('#api_qr_localhost').toggle(true);
+            $('#api_qr_private').toggle(false);
+        } else {
+            $('#api_qr_localhost').toggle(false);
+            isPrivateIP(hostname).then(function (valid) {
                 $('#api_qr_private').toggle((valid !== 'n/a'));
             }, function () {
                 $('#api_qr_private').toggle(false);
             });
-            $('#api_qr_https').toggle(!(url.startsWith('https')));
+        }
+        $('#api_qr_https').toggle((protocol === 'http:'));
+    }
+
+    var verifiedDevice = false;
+    $('#generate_qr').click(function () {
+        getPlexPyURL().then(function (url) {
+            checkQRAddress(url)
 
             $.get('generate_api_key', { device: true }).then(function (token) {
                 $('#api_qr_address').val(url);
@@ -2079,14 +2095,7 @@ $(document).ready(function() {
 
     $('#api_qr_address').change(function () {
         var url = $(this).val();
-        var parser = document.createElement('a');
-        parser.href = url;
-        isPrivateIP(parser.hostname).then(function (valid) {
-            $('#api_qr_private').toggle((valid !== 'n/a'));
-        }, function () {
-            $('#api_qr_private').toggle(false);
-        });
-        $('#api_qr_https').toggle(!(url.startsWith('https')));
+        checkQRAddress(url)
 
         $('#api_qr_code').empty().qrcode({
             text: url + '|' + $('#api_qr_token').val()
