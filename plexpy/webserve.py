@@ -4775,9 +4775,18 @@ class WebInterface(object):
         else:
            scheme = 'http'
 
+        # Have to return some hostname if socket fails even if 127.0.0.1 won't work
+        hostname = '127.0.0.1'
+
         if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
             import socket
-            hostname = socket.gethostbyname(socket.gethostname())
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                s.connect(('<broadcast>', 0))
+                hostname = s.getsockname()[0]
+            except socket.error:
+                hostname = socket.gethostbyname(socket.gethostname())
         else:
             hostname = plexpy.CONFIG.HTTP_HOST
 

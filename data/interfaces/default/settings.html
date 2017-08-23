@@ -1377,11 +1377,14 @@
                 <label>Instructions</label>
                 <p class="help-block">
                     Scan the QR code below with the PlexPy Android app to automatically register it with the server.
+                    Make sure the PlexPy Address below is correct.
+                    <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
                 </p>
                 <label>QR Code</label>
                 <pre id="api_qr_code" style="text-align: center"></pre>
-                <label>Encoded String</label>
-                <pre id="api_qr_string"></pre>
+                <label>PlexPy Address</label>
+                <input type="text" class="form-control" id="api_qr_address">
+                <input type="hidden" class="form-control" id="api_qr_token">
                 <p class="help-block" id="api_qr_private" style="display: none;">
                     Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
                     Access PlexPy externally to generate the QR code for remote access.
@@ -2034,14 +2037,16 @@ $(document).ready(function() {
             parser.href = url;
             isPrivateIP(parser.hostname).then(function (valid) {
                 $('#api_qr_private').toggle((valid !== 'n/a'));
+            }, function () {
+                $('#api_qr_private').toggle(false);
             });
             $('#api_qr_https').toggle(!(url.startsWith('https')));
 
             $.get('generate_api_key', { device: true }).then(function (token) {
-                var encoded_string = url + '|' + token;
-                $('#api_qr_string').html(encoded_string);
+                $('#api_qr_address').val(url);
+                $('#api_qr_token').val(token);
                 $('#api_qr_code').empty().qrcode({
-                    text: encoded_string
+                    text: url + '|' + token
                 });
 
                 (function poll(){
@@ -2069,6 +2074,22 @@ $(document).ready(function() {
                     }, 1000);
                 })();
             });
+        });
+    });
+
+    $('#api_qr_address').change(function () {
+        var url = $(this).val();
+        var parser = document.createElement('a');
+        parser.href = url;
+        isPrivateIP(parser.hostname).then(function (valid) {
+            $('#api_qr_private').toggle((valid !== 'n/a'));
+        }, function () {
+            $('#api_qr_private').toggle(false);
+        });
+        $('#api_qr_https').toggle(!(url.startsWith('https')));
+
+        $('#api_qr_code').empty().qrcode({
+            text: url + '|' + $('#api_qr_token').val()
         });
     });
 
