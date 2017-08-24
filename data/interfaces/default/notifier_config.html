@@ -224,6 +224,10 @@
                                     <p class="help-block">
                                         Test if ${notifier['agent_label']} notifications are working. Check the <a href="logs">logs</a> for troubleshooting.
                                     </p>
+                                    <p class="help-block">
+                                        Note: Test with the real values since parameters will not be substituted. 
+                                        (i.e. Use <span class="inline-pre">"Game of Thrones"</span> not <span class="inline-pre">{title}</span>)
+                                    </p>
                                     % if notifier['agent_name'] == 'scripts':
                                     <div class="form-group">
                                         <label for="test_script">Script</label>
@@ -235,8 +239,8 @@
                                         <p class="help-block">Choose the script to test.</p>
                                     </div>
                                     <div class="form-group">
-                                        <label for="test_subject">Script Arguments</label>
-                                        <input class="form-control" type="text" id="test_subject" name="test_subject" value="">
+                                        <label for="test_script_args">Script Arguments</label>
+                                        <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
                                         <p class="help-block">Set custom arguments passed to the script.</p>
                                     </div>
                                     % else:
@@ -477,6 +481,7 @@
                     subject: $('#test_subject').val(),
                     body: $('#test_body').val(),
                     script: $('#test_script').val(),
+                    script_args: $('#test_script_args').val(),
                     notify_action: 'test'
                 },
                 cache: false,
