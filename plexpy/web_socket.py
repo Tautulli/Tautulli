@@ -191,8 +191,11 @@ def process(opcode, data):
             logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
             return False
 
-        activity = activity_handler.ActivityHandler(timeline=time_line[0])
-        activity.process()
+        try:
+            activity = activity_handler.ActivityHandler(timeline=time_line[0])
+            activity.process()
+        except Exception as e:
+            logger.error(u"PlexPy WebSocket :: Failed to process session data: %s." % e)
 
     if type == 'timeline':
         time_line = info.get('TimelineEntry', info.get('_children', {}))
@@ -201,7 +204,10 @@ def process(opcode, data):
             logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
             return False
 
-        activity = activity_handler.TimelineHandler(timeline=time_line[0])
-        activity.process()
+        try:
+            activity = activity_handler.ActivityHandler(timeline=time_line[0])
+            activity.process()
+        except Exception as e:
+            logger.error(u"PlexPy WebSocket :: Failed to process timeline data: %s." % e)
 
     return True
