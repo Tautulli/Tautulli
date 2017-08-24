@@ -272,7 +272,7 @@
 
                         % if config['pms_use_bif']:
                         // if using bif indexes, update the bif thumbnail
-                        if (s.indexes) {
+                        if (s.indexes && s.state == 'playing') {
                             var bif_poster = $('#bif-' + key);
                             bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
                             bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
