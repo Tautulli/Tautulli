@@ -174,6 +174,12 @@ class ActivityHandler(object):
             # Get our last triggered time
             buffer_last_triggered = ap.get_session_buffer_trigger_time(self.get_session_key())
 
+            # Update the session state and viewOffset
+            ap.set_session_state(session_key=self.get_session_key(),
+                                 state=self.timeline['state'],
+                                 view_offset=self.timeline['viewOffset'],
+                                 stopped=int(time.time()))
+
             time_since_last_trigger = 0
             if buffer_last_triggered:
                 logger.debug(u"PlexPy ActivityHandler :: Session %s buffer last triggered at %s." %
@@ -183,6 +189,9 @@ class ActivityHandler(object):
             if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
                 time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
+
+                # Retrieve the session data from our temp table
+                db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
                 plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_buffer'})
 
