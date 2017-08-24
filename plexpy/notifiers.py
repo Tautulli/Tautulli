@@ -19,6 +19,7 @@ import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
+from paho.mqtt.publish import single
 import os
 import re
 import requests
@@ -84,7 +85,8 @@ AGENT_IDS = {'growl': 0,
              'hipchat': 19,
              'discord': 20,
              'androidapp': 21,
-             'groupme': 22
+             'groupme': 22,
+             'mqtt': 23
              }
 
 
@@ -136,6 +138,10 @@ def available_notification_agents():
               {'label': 'Notify My Android',
                'name': 'nma',
                'id': AGENT_IDS['nma']
+               },
+              {'label': 'MQTT',
+               'name': 'mqtt',
+               'id': AGENT_IDS['mqtt']
                },
               {'label': 'Plex Home Theater',
                'name': 'plex',
@@ -365,6 +371,8 @@ def get_agent_class(agent_id=None, config=None):
             return ANDROIDAPP(config=config)
         elif agent_id == 22:
             return GROUPME(config=config)
+        elif agent_id == 23:
+            return MQTT(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -2022,6 +2030,119 @@ class JOIN(Notifier):
         return config_option
 
 
+class MQTT(Notifier):
+    """
+    MQTT notifications
+    """
+    _DEFAULT_CONFIG = {'broker': '',
+                       'port': 1883,
+                       'protocol': 'MQTTv311',
+                       'username': '',
+                       'password': '',
+                       'client_id': 'plexpy',
+                       'topic': '',
+                       'qos': 1,
+                       'retain': 0,
+                       'keep_alive': 60
+                       }
+
+    def notify(self, subject='', body='', action='', **kwargs):
+        if not subject or not body:
+            return
+
+        if not self.config['topic']:
+            logger.error(u"PlexPy Notifiers :: MQTT topic not specified.")
+            return
+
+        data = {'subject': subject.encode("utf-8"),
+                'body': body.encode("utf-8"),
+                'topic': self.config['topic'].encode("utf-8")}
+
+        auth = {}
+        if self.config['username']:
+            auth['username'] = self.config['username']
+        if self.config['password']:
+            auth['password'] = self.config['password']
+
+        single(self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+               hostname=self.config['broker'], port=self.config['port'], client_id=self.config['client_id'],
+               keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
+
+        return True
+
+    def return_config_options(self):
+        config_option = [{'label': 'Broker',
+                          'value': self.config['broker'],
+                          'name': 'mqtt_broker',
+                          'description': 'The hostname or IP address of the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Port',
+                          'value': self.config['port'],
+                          'name': 'mqtt_port',
+                          'description': 'The network port for connecting to the MQTT broker.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Protocol',
+                          'value': self.config['protocol'],
+                          'name': 'mqtt_protocol',
+                          'description': 'The MQTT protocol version.',
+                          'input_type': 'select',
+                          'select_options': {'MQTTv31': '3.1',
+                                             'MQTTv311': '3.1.1'
+                                             }
+                          },
+                         {'label': 'Client ID',
+                          'value': self.config['client_id'],
+                          'name': 'mqtt_client_id',
+                          'description': 'The client ID for connecting to the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Username',
+                          'value': self.config['username'],
+                          'name': 'mqtt_username',
+                          'description': 'The username to authenticate with the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Password',
+                          'value': self.config['password'],
+                          'name': 'mqtt_password',
+                          'description': 'The password to authenticate with the MQTT broker.',
+                          'input_type': 'password'
+                          },
+                         {'label': 'Topic',
+                          'value': self.config['topic'],
+                          'name': 'mqtt_topic',
+                          'description': 'The topic to publish notifications to.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Quality of Service',
+                          'value': self.config['qos'],
+                          'name': 'mqtt_qos',
+                          'description': 'The quality of service level to use when publishing the notification.',
+                          'input_type': 'select',
+                          'select_options': {0: 0,
+                                             1: 1,
+                                             2: 2
+                                             }
+                          },
+                         {'label': 'Retain Message',
+                          'value': self.config['retain'],
+                          'name': 'mqtt_retain',
+                          'description': 'Set the message to be retained on the MQTT broker.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Keep-Alive',
+                          'value': self.config['keep_alive'],
+                          'name': 'mqtt_keep_alive',
+                          'description': 'Maximum period in seconds before timing out the connection with the broker.',
+                          'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
+
+
 class NMA(Notifier):
     """
     Notify My Android notifications
@@ -3359,3 +3480,4 @@ def upgrade_config_to_db():
                 # Add a new notifier and update the config
                 notifier_id = add_notifier_config(agent_id=agent_id)
                 set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **notifier_config)
+
