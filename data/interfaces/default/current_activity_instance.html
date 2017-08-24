@@ -216,7 +216,7 @@ DOCUMENTATION :: END
                         <span id="stream-quality-${data['session_key']}">${data['quality_profile']}</span> (<span id="stream-quality-bitrate-${data['session_key']}">${br}</span> <span id="stream-quality-bitrate-units-${data['session_key']}">${br_units}</span>)
                         <br />
                         % if data['ip_address']:
-                        IP: ${data['ip_address']} 
+                        ${data['location'].upper()}: ${data['ip_address']} 
                         % if data['media_type'] != 'photo' and 'location' in data:
                         <%
                             bw = helpers.cast_to_float(data['bandwidth']) or "Unknown"
@@ -225,7 +225,7 @@ DOCUMENTATION :: END
                                 bw = round(bw / 1000, 1)
                                 bw_units = "Mbps"
                         %>
-                        (${data['location'].upper()} - <span id="stream-bandwidth-${data['session_key']}">${bw}</span> <span id="stream-bandwidth-units-${data['session_key']}">${bw_units}</span>)
+                        (<span id="stream-bandwidth-${data['session_key']}">${bw}</span> <span id="stream-bandwidth-units-${data['session_key']}">${bw_units}</span>)
                         % endif
                         % else:
                         IP: N/A
