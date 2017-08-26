@@ -113,8 +113,8 @@ class DataFactory(object):
                 'started AS date',
                 'started',
                 'stopped',
-                'strftime("%s", "now") - started - \
-                SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+                'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE (strftime("%s", "now") - started) END) - \
+                 SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
                 'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
                 'user_id',
                 'user',
