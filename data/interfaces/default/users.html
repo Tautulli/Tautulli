@@ -119,7 +119,7 @@
                     });
 
                     if (users_to_delete.length > 0) {
-                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete the following users:</p>')
+                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete and purge all history for the following users:</p>')
                         for (var i = 0; i < users_to_delete.length; i++) {
                             $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_delete[i] + '] > input').val() + '</li>');
                         }
