@@ -205,7 +205,7 @@ def process(opcode, data):
             return False
 
         try:
-            activity = activity_handler.ActivityHandler(timeline=time_line[0])
+            activity = activity_handler.TimelineHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
             logger.error(u"PlexPy WebSocket :: Failed to process timeline data: %s." % e)

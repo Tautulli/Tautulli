@@ -708,7 +708,7 @@ def uploadToImgur(imgPath, imgTitle=''):
     if response and not err_msg:
         t = '\'' + imgTitle + '\' ' if imgTitle else ''
         logger.debug(u"PlexPy Helpers :: Image {}uploaded to Imgur.".format(t))
-        img_url = response.json().get('data').get('link', '').replace('http', 'https')
+        img_url = response.json().get('data').get('link', '').replace('http://', 'https://')
 
     else:
         if err_msg:
