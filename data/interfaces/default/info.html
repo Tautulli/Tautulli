@@ -385,6 +385,20 @@ DOCUMENTATION :: END
                                 </span>
                             </div>
                             % endif
+                            <div class="btn-group">
+                                <%
+                                    if data['media_type'] in ('movie', 'show', 'artist'):
+                                        full_title = data['title']
+                                    elif data['media_type'] in ('season', 'album'):
+                                        full_title = data['parent_title'] + ' - ' + data['title']
+                                    else:
+                                        full_title = data['grandparent_title'] + ' - ' + data['title']
+                                %>
+                                <button class="btn btn-dark" data-toggle="button" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
+                                        data-id="${data['rating_key']}" data-title="${full_title}">
+                                    <i class="fa fa-bell"></i> Recently Added Notification
+                                </button>
+                            </div>
                             % endif
                             <div class="btn-group colvis-button-bar"></div>
                         </div>
@@ -546,6 +560,14 @@ DOCUMENTATION :: END
                 });
             }
         });
+    });
+
+    $('#send-recently-added-notification').on('click', function () {
+        var full_title = $(this).data('title');
+        var msg = 'Are you sure you want to send a recently added notification for the following?<br><br><strong>' + full_title + '</strong>';
+        var url = 'send_manual_on_created';
+        var data = { rating_key: $(this).data('id') }
+        confirmAjaxCall(url, msg, data, false);
     });
 </script>
 % if data['media_type'] in ('show', 'season', 'artist', 'album'):

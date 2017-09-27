@@ -68,7 +68,7 @@ def start_threads(num_threads=1):
         thread.start()
 
 
-def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, **kwargs):
+def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, manual_trigger=False, **kwargs):
     if not notify_action:
         logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
         return
@@ -86,9 +86,10 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
 
     if notifiers_enabled:
         # Check if notification conditions are satisfied
-        conditions = notify_conditions(notify_action=notify_action,
-                                       stream_data=stream_data,
-                                       timeline_data=timeline_data)
+        conditions = manual_trigger or \
+            notify_conditions(notify_action=notify_action,
+                              stream_data=stream_data,
+                              timeline_data=timeline_data)
 
     if notifiers_enabled and conditions:
         if stream_data or timeline_data:
@@ -96,6 +97,7 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
             parameters = build_media_notify_params(notify_action=notify_action,
                                                    session=stream_data,
                                                    timeline=timeline_data,
+                                                   manual_trigger=manual_trigger,
                                                    **kwargs)
         else:
             # Build the notification parameters
@@ -108,7 +110,7 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
 
         for notifier in notifiers_enabled:
             # Check custom user conditions
-            if notify_custom_conditions(notifier_id=notifier['id'], parameters=parameters):
+            if manual_trigger or notify_custom_conditions(notifier_id=notifier['id'], parameters=parameters):
                 # Add each notifier to the queue
                 data = {'notifier_id': notifier['id'],
                         'notify_action': notify_action,
@@ -409,7 +411,7 @@ def set_notify_success(notification_id):
     monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
 
 
-def build_media_notify_params(notify_action=None, session=None, timeline=None, **kwargs):
+def build_media_notify_params(notify_action=None, session=None, timeline=None, manual_trigger=False, **kwargs):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
@@ -577,7 +579,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         poster_info = get_poster_info(poster_thumb=poster_thumb, poster_key=poster_key, poster_title=poster_title)
         metadata.update(poster_info)
 
-    if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and metadata['media_type'] in ('show', 'artist'):
+    if ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT)
+        and metadata['media_type'] in ('show', 'artist')):
         show_name = metadata['title']
         episode_name = ''
         artist_name = metadata['title']
@@ -591,7 +594,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         episode_num, episode_num00 = '', ''
         track_num, track_num00 = '', ''
 
-    elif plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and metadata['media_type'] in ('season', 'album'):
+    elif ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT)
+          and metadata['media_type'] in ('season', 'album')):
         show_name = metadata['parent_title']
         episode_name = ''
         artist_name = metadata['parent_title']

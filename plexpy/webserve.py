@@ -3592,6 +3592,26 @@ class WebInterface(object):
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    def send_manual_on_created(self, rating_key='', **kwargs):
+        if rating_key:
+            pms_connect = pmsconnect.PmsConnect()
+            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+            data = {'timeline_data': metadata, 'notify_action': 'on_created', 'manual_trigger': True}
+
+            if metadata['media_type'] not in ('movie', 'episode', 'track'):
+                children = pms_connect.get_item_children(rating_key=rating_key)
+                child_keys = [child['rating_key'] for child in children['children_list'] if child['rating_key']]
+                data['child_keys'] = child_keys
+
+            plexpy.NOTIFY_QUEUE.put(data)
+            return {'result': 'success', 'message': 'Notification queued.'}
+
+        else:
+            return {'result': 'error', 'message': 'Notification failed.'}
+
+    @cherrypy.expose
     @requireAuth()
     def pms_image_proxy(self, **kwargs):
         """ See real_pms_image_proxy docs string"""
