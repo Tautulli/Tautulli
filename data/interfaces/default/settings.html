@@ -328,7 +328,7 @@
                             <h3>Web Interface</h3>
                         </div>
 
-                        <p class="help-block">Web interface changes require a restart.</p>
+                        <p class="help-block">Note: Web interface changes require a restart.</p>
                         <div class="form-group">
                             <label for="http_host">HTTP Host</label>
                             <div class="row">
@@ -336,7 +336,7 @@
                                     <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
-                            <p class="help-block">e.g. localhost or an IP, such as 0.0.0.0</p>
+                            <p class="help-block">localhost or an IP address to bind the web server to. Default 0.0.0.0 to bind to all interfaces.</p>
                         </div>
                         <div class="form-group">
                             <label for="http_port">HTTP Port</label>
