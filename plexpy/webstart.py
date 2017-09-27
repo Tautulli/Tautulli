@@ -78,10 +78,10 @@ def initialize(options):
     else:
         auth_enabled = session_enabled = basic_auth_enabled = False
 
-    if not options['http_root'] or options['http_root'] == '/':
-        plexpy.HTTP_ROOT = options['http_root'] = '/'
-    else:
+    if options['http_root'].strip('/'):
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
+    else:
+        plexpy.HTTP_ROOT = options['http_root'] = '/'
 
     cherrypy.config.update(options_dict)
 
