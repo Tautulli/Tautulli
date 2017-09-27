@@ -3493,7 +3493,7 @@ class WebInterface(object):
         quote = self.random_arnold_quotes()
         plexpy.SIGNAL = signal
 
-        if plexpy.CONFIG.HTTP_ROOT:
+        if plexpy.CONFIG.HTTP_ROOT.strip('/'):
             new_http_root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/') + '/'
         else:
             new_http_root = '/'
@@ -4795,7 +4795,7 @@ class WebInterface(object):
         else:
             port = ''
 
-        if plexpy.CONFIG.HTTP_ROOT:
+        if plexpy.CONFIG.HTTP_ROOT.strip('/'):
             root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/')
         else:
             root = ''
