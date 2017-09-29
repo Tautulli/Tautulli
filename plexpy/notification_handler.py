@@ -1020,8 +1020,6 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
 
 
 def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
-    tvmaze_info = {}
-
     db = database.MonitorDatabase()
 
     try:
@@ -1030,9 +1028,11 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
-        return tvmaze_info
+        return {}
 
     if not tvmaze_info:
+        tvmaze_info = {}
+
         if thetvdb_id:
             logger.debug(u"PlexPy NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
         else:
@@ -1069,8 +1069,6 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
 
 def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
-    themoviedb_info = {}
-
     db = database.MonitorDatabase()
 
     try:
@@ -1079,9 +1077,11 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
-        return themoviedb_info
+        return {}
 
     if not themoviedb_info:
+        themoviedb_info = {}
+
         if thetvdb_id:
             logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
         else:
@@ -1134,8 +1134,6 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
     if media_type == 'show':
         media_type = 'tv'
 
-    themoviedb_json = {}
-
     db = database.MonitorDatabase()
 
     try:
@@ -1144,13 +1142,15 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
-        return themoviedb_json
+        return {}
 
     if result:
         try:
             return json.loads(result['themoviedb_json'])
         except:
             pass
+
+    themoviedb_json = {}
 
     logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for themoviedb_id '{}'.".format(themoviedb_id))
 
