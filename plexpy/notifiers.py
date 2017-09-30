@@ -1123,7 +1123,7 @@ class PUSHBULLET(object):
         http_handler.request("POST",
                              "/v2/pushes",
                              headers={'Content-type': "application/json",
-                             'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")},
+                                      'Access-Token': self.apikey},
                              body=json.dumps(data))
 
         response = http_handler.getresponse()
@@ -1155,7 +1155,7 @@ class PUSHBULLET(object):
             http_handler = HTTPSConnection("api.pushbullet.com")
             http_handler.request("GET", "/v2/devices",
                                  headers={'Content-type': "application/json",
-                                 'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")})
+                                          'Access-Token': self.apikey})
 
             response = http_handler.getresponse()
             request_status = response.status
