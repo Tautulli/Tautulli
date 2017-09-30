@@ -172,6 +172,7 @@ def process(opcode, data):
         return False
 
     try:
+        logger.websocket_debug(data)
         info = json.loads(data)
     except Exception as e:
         logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % e)

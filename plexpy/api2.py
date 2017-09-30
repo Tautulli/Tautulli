@@ -122,9 +122,9 @@ class API2:
             self._api_kwargs = kwargs
 
         if self._api_msg:
-            logger.debug(u'PlexPy APIv2 :: %s.' % self._api_msg)
+            logger.api_debug(u'PlexPy APIv2 :: %s.' % self._api_msg)
 
-        logger.debug(u'PlexPy APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
+        logger.api_debug(u'PlexPy APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
 
         return self._api_kwargs
 
@@ -162,7 +162,7 @@ class API2:
         end = int(kwargs.get('end', 0))
 
         if regex:
-            logger.debug(u'PlexPy APIv2 :: Filtering log using regex %s' % regex)
+            logger.api_debug(u'PlexPy APIv2 :: Filtering log using regex %s' % regex)
             reg = re.compile('u' + regex, flags=re.I)
 
         for line in open(logfile, 'r').readlines():
@@ -194,15 +194,15 @@ class API2:
                 templog.append(d)
 
         if end > 0 or start > 0:
-                logger.debug(u'PlexPy APIv2 :: Slicing the log from %s to %s' % (start, end))
+                logger.api_debug(u'PlexPy APIv2 :: Slicing the log from %s to %s' % (start, end))
                 templog = templog[start:end]
 
         if sort:
-            logger.debug(u'PlexPy APIv2 :: Sorting log based on %s' % sort)
+            logger.api_debug(u'PlexPy APIv2 :: Sorting log based on %s' % sort)
             templog = sorted(templog, key=lambda k: k[sort])
 
         if search:
-            logger.debug(u'PlexPy APIv2 :: Searching log values for %s' % search)
+            logger.api_debug(u'PlexPy APIv2 :: Searching log values for %s' % search)
             tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
 
             if len(tt):
@@ -509,7 +509,7 @@ General optional parameters:
                     out = self._api_callback + '(' + out + ');'
             # if we fail to generate the output fake an error
             except Exception as e:
-                logger.info(u'PlexPy APIv2 :: ' + traceback.format_exc())
+                logger.api_exception(u'PlexPy APIv2 :: ' + traceback.format_exc())
                 out['message'] = traceback.format_exc()
                 out['result'] = 'error'
 
@@ -518,14 +518,14 @@ General optional parameters:
             try:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
-                logger.error(u'PlexPy APIv2 :: Failed to parse xml result')
+                logger.api_error(u'PlexPy APIv2 :: Failed to parse xml result')
                 try:
                     out['message'] = e
                     out['result'] = 'error'
                     out = xmltodict.unparse(out, pretty=True)
 
                 except Exception as e:
-                    logger.error(u'PlexPy APIv2 :: Failed to parse xml result error message %s' % e)
+                    logger.api_error(u'PlexPy APIv2 :: Failed to parse xml result error message %s' % e)
                     out = '''<?xml version="1.0" encoding="utf-8"?>
                                 <response>
                                     <message>%s</message>
@@ -540,7 +540,7 @@ General optional parameters:
         """ handles the stuff from the handler """
 
         result = {}
-        logger.debug(u'PlexPy APIv2 :: API called with kwargs: %s' % kwargs)
+        logger.api_debug(u'PlexPy APIv2 :: API called with kwargs: %s' % kwargs)
 
         self._api_validate(**kwargs)
 
@@ -558,7 +558,7 @@ General optional parameters:
 
                 result = call(**self._api_kwargs)
             except Exception as e:
-                logger.error(u'PlexPy APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
+                logger.api_error(u'PlexPy APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True
                     # Reraise the exception so the traceback hits the browser

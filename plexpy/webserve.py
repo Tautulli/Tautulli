@@ -2278,7 +2278,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def get_log(self, **kwargs):
+    def get_log(self, logfile='', **kwargs):
         json_data = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
         log_level = kwargs.get('log_level', "")
 
@@ -2292,7 +2292,15 @@ class WebInterface(object):
         filt = []
         filtered = []
         fa = filt.append
-        with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)) as f:
+
+        if logfile == "plexpy_api":
+            filename = logger.FILENAME_API
+        elif logfile == "plexpy_websocket":
+            filename = logger.FILENAME_WEBSOCKET
+        else:
+            filename = logger.FILENAME
+
+        with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename)) as f:
             for l in f.readlines():
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
@@ -2487,17 +2495,23 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_logs(self, **kwargs):
-        log_file = logger.FILENAME
+    def delete_logs(self, logfile='', **kwargs):
+        if logfile == "plexpy_api":
+            filename = logger.FILENAME_API
+        elif logfile == "plexpy_websocket":
+            filename = logger.FILENAME_WEBSOCKET
+        else:
+            filename = logger.FILENAME
+
         try:
-            open(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), 'w').close()
+            open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'w').close()
             result = 'success'
-            msg = 'Cleared the %s file.' % log_file
+            msg = 'Cleared the %s file.' % filename
             logger.info(msg)
         except Exception as e:
             result = 'error'
-            msg = 'Failed to clear the %s file.' % log_file
-            logger.exception(u'Failed to clear the %s file: %s.' % (log_file, e))
+            msg = 'Failed to clear the %s file.' % filename
+            logger.exception(u'Failed to clear the %s file: %s.' % (filename, e))
 
         return {'result': result, 'message': msg}
 
@@ -3737,15 +3751,24 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def download_log(self, **kwargs):
+    def download_log(self, logfile='', **kwargs):
         """ Download the PlexPy log file. """
-        log_file = logger.FILENAME
+        if logfile == "plexpy_api":
+            filename = logger.FILENAME_API
+            log = logger.logger
+        elif logfile == "plexpy_websocket":
+            filename = logger.FILENAME_WEBSOCKET
+            log = logger.logger_api
+        else:
+            filename = logger.FILENAME
+            log = logger.logger_websocket
+
         try:
-            logger.logger.flush()
+            log.flush()
         except:
             pass
 
-        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), name=log_file)
+        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, filename), name=filename)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
