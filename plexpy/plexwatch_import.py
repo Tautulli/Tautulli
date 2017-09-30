@@ -407,7 +407,17 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'genres': extracted_xml['genres'],
                                     'studio': extracted_xml['studio'],
                                     'labels': extracted_xml['labels'],
-                                    'full_title': row['full_title']
+                                    'full_title': row['full_title'],
+                                    'width': extracted_xml['width'],
+                                    'height': extracted_xml['height'],
+                                    'container': extracted_xml['container'],
+                                    'video_codec': extracted_xml['video_codec'],
+                                    'audio_codec': extracted_xml['audio_codec'],
+                                    'bitrate': extracted_xml['bitrate'],
+                                    'video_resolution': extracted_xml['video_resolution'],
+                                    'video_framerate': extracted_xml['video_framerate'],
+                                    'aspect_ratio': extracted_xml['aspect_ratio'],
+                                    'audio_channels': extracted_xml['audio_channels']
                                     }
 
         # On older versions of PMS, "clip" items were still classified as "movie" and had bad ratingKey values
