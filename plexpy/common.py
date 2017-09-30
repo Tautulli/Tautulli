@@ -39,7 +39,8 @@ DEFAULT_ART = "interfaces/default/images/art.png"
 PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
                            'Mystery 3': 'Playstation 3',
                            'Mystery 4': 'Playstation 4',
-                           'Mystery 5': 'Xbox 360'
+                           'Mystery 5': 'Xbox 360',
+                           'WebMAF': 'Playstation 4'
                            }
 
 PMS_PLATFORM_NAME_OVERRIDES = {'MacOSX': 'Mac'

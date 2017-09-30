@@ -315,9 +315,10 @@ ${next.modalIncludes()}
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
                     <li class="active"><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#flattr-donation" role="tab" data-toggle="tab">Flattr</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Bitcoin" data-address="15YMw9c8uH7QecVPXSSjdZ7s55vnbmdKLq">Bitcoin</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Ethereum" data-address="0x8512f6545858eB6269A0F39349F1cC86Df6Ffaf6">Ethereum</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="Litecoin" data-address="LZWsygTHuL4KNbg2H5EzXBDdJKNtZoqq2R">Litecoin</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoin" data-name="Bitcoin" data-address="3FdfJAyNWU15Sf11U9FTgPHuP1hPz32eEN">Bitcoin</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoincash" data-name="Bitcoin Cash" data-address="1H2atabxAQGaFAWYQEiLkXKSnK9CZZvt2n">Bitcoin Cash</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="ethereum" data-name="Ethereum" data-address="0x77ae4c2b8de1a1ccfa93553db39971da58c873d3">Ethereum</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="litecoin" data-name="Litecoin" data-address="LWpPmUqQYHBhMV83XSCsHzPmKLhJt6r57J">Litecoin</a></li>
                 </ul>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="paypal-donation" style="text-align: center">
@@ -417,12 +418,13 @@ ${next.modalIncludes()}
     });
 
     $('#donation_type a.crypto-donation').on('shown.bs.tab', function () {
-        var crypto_type = $(this).data('coin');
+        var crypto_coin = $(this).data('coin');
+        var crypto_name = $(this).data('name');
         var crypto_address = $(this).data('address')
         $('#crypto_qr_code').empty().qrcode({
-            text: crypto_type + ":" + crypto_address
+            text: crypto_coin + ":" + crypto_address
         });
-        $('#crypto_type_label').html(crypto_type);
+        $('#crypto_type_label').html(crypto_name);
         $('#crypto_address').html(crypto_address);
     });
     % endif
