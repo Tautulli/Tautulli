@@ -378,7 +378,7 @@ DOCUMENTATION :: END
                                 % else:
                                 <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
                                 % endif
-                                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster"
+                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-imgur-poster"
                                             data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}">
                                         <i class="fa fa-picture-o"></i> Reset Imgur Poster
                                     </button>
@@ -386,7 +386,7 @@ DOCUMENTATION :: END
                             </div>
                             % endif
                             <div class="btn-group">
-                                <button class="btn btn-dark" data-toggle="button" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
+                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
                                         data-id="${data['rating_key']}">
                                     <i class="fa fa-bell"></i> Recently Added Notification
                                 </button>
