@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.23 (2017-09-30)
+
+* Fix: Playstation 4 platform name.
+* Fix: PlexWatch and Plexivity import.
+* Fix: Pushbullet authorization header.
+
+
 ## v1.4.22 (2017-08-19)
 
 * Fix: Cleaning up of old config backups.
