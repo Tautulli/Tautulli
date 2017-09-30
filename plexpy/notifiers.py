@@ -396,7 +396,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     if notifier_id or notify_action:
         where = 'WHERE '
         if notifier_id:
-            where_id += 'notifier_id = ?'
+            where_id += 'id = ?'
             args.append(notifier_id)
         if notify_action and notify_action in notify_actions:
             where_action = '%s = ?' % notify_action

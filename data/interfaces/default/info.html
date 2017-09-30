@@ -38,7 +38,7 @@ DOCUMENTATION :: END
 <%!
     import re
 
-    from plexpy import common
+    from plexpy import common, notifiers
 
     # Get audio codec file
     def af(codec):
@@ -386,16 +386,8 @@ DOCUMENTATION :: END
                             </div>
                             % endif
                             <div class="btn-group">
-                                <%
-                                    if data['media_type'] in ('movie', 'show', 'artist'):
-                                        full_title = data['title']
-                                    elif data['media_type'] in ('season', 'album'):
-                                        full_title = data['parent_title'] + ' - ' + data['title']
-                                    else:
-                                        full_title = data['grandparent_title'] + ' - ' + data['title']
-                                %>
                                 <button class="btn btn-dark" data-toggle="button" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
-                                        data-id="${data['rating_key']}" data-title="${full_title}">
+                                        data-id="${data['rating_key']}">
                                     <i class="fa fa-bell"></i> Recently Added Notification
                                 </button>
                             </div>
@@ -451,6 +443,58 @@ DOCUMENTATION :: END
             <div class="modal-footer">
                 <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="send-recently-added-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="send-recently-added-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Recently Added Notification</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Send a recently added notification for the following:</p>
+                <p>
+                    <strong>
+                        % if data['media_type'] == 'movie':
+                        ${data['title']}<br />${data['year']}
+                        % elif data['media_type'] == 'show':
+                        ${data['title']}
+                        % elif data['media_type'] == 'season':
+                        ${data['parent_title']}<br />S${data['media_index']}
+                        % elif data['media_type'] == 'episode':
+                        ${data['grandparent_title']}<br />${data['title']}<br />S${data['parent_media_index']} &middot; E${data['media_index']}
+                        % elif data['media_type'] == 'artist':
+                        ${data['title']}
+                        % elif data['media_type'] == 'album':
+                        ${data['parent_title']}<br />${data['title']}
+                        % elif data['media_type'] == 'track':
+                        ${data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
+                        % endif
+                    </strong>
+                </p>
+                <br />
+                <label for="send-notification-notifier">Select the Notification Agent</label>
+                <div class="row">
+                    <div class="col-md-8" style="float: none; margin: 0 auto;">
+                        <select class="form-control" id="send-notification-notifier" name="send-notification-notifier" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                            <option value="">All Enabled Recently Added Notification Agents</option>
+                            % for notifier in sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'], k['friendly_name'], k['id'])):
+                            % if notifier['friendly_name']:
+                            <option value="${notifier['id']}"> ${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                            % else:
+                            <option value="${notifier['id']}"> ${notifier['agent_label']} (${notifier['id']})</option>
+                            % endif
+                            % endfor
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-bright btn-ok" data-dismiss="modal" id="confirm-send-notification">Send</button>
             </div>
         </div>
     </div>
@@ -562,12 +606,28 @@ DOCUMENTATION :: END
         });
     });
 
+    // Send recently added notification
     $('#send-recently-added-notification').on('click', function () {
-        var full_title = $(this).data('title');
-        var msg = 'Are you sure you want to send a recently added notification for the following?<br><br><strong>' + full_title + '</strong>';
-        var url = 'send_manual_on_created';
-        var data = { rating_key: $(this).data('id') }
-        confirmAjaxCall(url, msg, data, false);
+        var rating_key = $(this).data('id');
+
+        $('#send-recently-added-modal').modal();
+        $('#send-recently-added-modal').one('click', '#confirm-send-notification', function () {
+            $.ajax({
+                url: 'send_manual_on_created',
+                data: {
+                    rating_key: rating_key,
+                    notifier_id: $('#send-notification-notifier option:selected').val()
+                    },
+                async: true,
+                success: function (data) {
+                    if (data.result === 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                    }
+                }
+            });
+        });
     });
 </script>
 % if data['media_type'] in ('show', 'season', 'artist', 'album'):

@@ -48,7 +48,7 @@ def process_queue():
             break
         elif params:
             try:
-                if 'notifier_id' in params:
+                if 'notify' in params:
                     notify(**params)
                 else:
                     add_notifier_each(**params)
@@ -68,13 +68,17 @@ def start_threads(num_threads=1):
         thread.start()
 
 
-def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, manual_trigger=False, **kwargs):
+def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, manual_trigger=False, **kwargs):
     if not notify_action:
         logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
         return
 
-    # Check if any notification agents have notifications enabled for the action
-    notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
+    if notifier_id:
+        # Send to a specific notifier regardless if it is enabled
+        notifiers_enabled = notifiers.get_notifiers(notifier_id=notifier_id)
+    else:
+        # Check if any notification agents have notifications enabled for the action
+        notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
     # Check on_watched for each notifier
     if notifiers_enabled and notify_action == 'on_watched':
@@ -84,14 +88,13 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
                 # Already notified on_watched, remove from notifier
                 notifiers_enabled.pop(n)
 
-    if notifiers_enabled:
+    if notifiers_enabled and not manual_trigger:
         # Check if notification conditions are satisfied
-        conditions = manual_trigger or \
-            notify_conditions(notify_action=notify_action,
-                              stream_data=stream_data,
-                              timeline_data=timeline_data)
+        conditions = notify_conditions(notify_action=notify_action,
+                                       stream_data=stream_data,
+                                       timeline_data=timeline_data)
 
-    if notifiers_enabled and conditions:
+    if notifiers_enabled and (manual_trigger or conditions):
         if stream_data or timeline_data:
             # Build the notification parameters
             parameters = build_media_notify_params(notify_action=notify_action,
@@ -112,7 +115,8 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
             # Check custom user conditions
             if manual_trigger or notify_custom_conditions(notifier_id=notifier['id'], parameters=parameters):
                 # Add each notifier to the queue
-                data = {'notifier_id': notifier['id'],
+                data = {'notify': True,
+                        'notifier_id': notifier['id'],
                         'notify_action': notify_action,
                         'stream_data': stream_data,
                         'timeline_data': timeline_data,
@@ -1005,11 +1009,12 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
             # Upload poster_thumb to Imgur and get link
             poster_url = helpers.uploadToImgur(poster_file, poster_title)
 
-            # Create poster info
-            poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
+            if poster_url:
+                # Create poster info
+                poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
 
-            # Save the poster url in the database
-            data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
+                # Save the poster url in the database
+                data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
 
             # Delete the cached poster
             os.remove(poster_file)

@@ -3091,28 +3091,9 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                agent_id(str):          The id of the notification agent to use
-                                            9    # Boxcar2
-                                            17   # Browser
-                                            10   # Email
-                                            16   # Facebook
-                                            0    # Growl
-                                            19   # Hipchat
-                                            12   # IFTTT
-                                            18   # Join
-                                            4    # NotifyMyAndroid
-                                            3    # Plex Home Theater
-                                            1    # Prowl
-                                            5    # Pushalot
-                                            6    # Pushbullet
-                                            7    # Pushover
-                                            15   # Scripts
-                                            14   # Slack
-                                            13   # Telegram
-                                            11   # Twitter
-                                            2    # XBMC
-                subject(str):           The subject of the message
-                body(str):              The body of the message
+                notifier_id (int):      The ID number of the notification agent
+                subject (str):          The subject of the message
+                body (str):             The body of the message
 
             Optional parameters:
                 None
@@ -3594,7 +3575,25 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
-    def send_manual_on_created(self, rating_key='', **kwargs):
+    @addtoapi('notify_recently_added')
+    def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
+        """ Send a recently added notification using PlexPy.
+
+            ```
+            Required parameters:
+                rating_key (int):       The rating key for the media
+
+            Optional parameters:
+                notifier_id (int):      The ID number of the notification agent.
+                                        The notification will send to all enabled notification agents if notifier id is not provided.
+
+            Returns:
+                json
+                    {"result": "success",
+                     "message": "Notification queued."
+                    }
+            ```
+        """
         if rating_key:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
@@ -3604,6 +3603,9 @@ class WebInterface(object):
                 children = pms_connect.get_item_children(rating_key=rating_key)
                 child_keys = [child['rating_key'] for child in children['children_list'] if child['rating_key']]
                 data['child_keys'] = child_keys
+
+            if notifier_id:
+                data['notifier_id'] = notifier_id
 
             plexpy.NOTIFY_QUEUE.put(data)
             return {'result': 'success', 'message': 'Notification queued.'}
