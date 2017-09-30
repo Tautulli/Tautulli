@@ -1269,6 +1269,7 @@ class PmsConnect(object):
         # Get the player details
         player_info = session.getElementsByTagName('Player')[0]
 
+        # Override platform names
         platform = helpers.get_xml_attr(player_info, 'platform')
         platform = common.PLATFORM_NAME_OVERRIDES.get(platform, platform)
         if not platform and helpers.get_xml_attr(player_info, 'product') == 'DLNA':
@@ -1282,7 +1283,7 @@ class PmsConnect(object):
                           'product': helpers.get_xml_attr(player_info, 'product'),
                           'product_version': helpers.get_xml_attr(player_info, 'version'),
                           'profile': helpers.get_xml_attr(player_info, 'profile'),
-                          'player': helpers.get_xml_attr(player_info, 'title'),
+                          'player': helpers.get_xml_attr(player_info, 'title') or helpers.get_xml_attr(player_info, 'product'),
                           'machine_id': helpers.get_xml_attr(player_info, 'machineIdentifier').rstrip('_Video').rstrip('_Track'),
                           'state': helpers.get_xml_attr(player_info, 'state'),
                           'local': helpers.get_xml_attr(player_info, 'local')
