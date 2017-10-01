@@ -92,7 +92,9 @@ def main():
         '--nolaunch', action='store_true', help='Prevent browser from launching on startup')
     parser.add_argument(
         '--pidfile', help='Create a pid file (only relevant when running as a daemon)')
-
+    parser.add_argument(
+        '--nofork', action='store_true', help='Start PlexPy as a service, do not fork when restarting')
+		
     args = parser.parse_args()
 
     if args.verbose:
@@ -116,6 +118,10 @@ def main():
             plexpy.DAEMON = True
             plexpy.QUIET = True
 
+    if args.nofork:
+		plexpy.NOFORK = True
+		logger.info("PlexPy is running as a service, it will not fork when restarted.")
+	
     if args.pidfile:
         plexpy.PIDFILE = str(args.pidfile)
 

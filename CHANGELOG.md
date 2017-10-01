@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.24 (2017-10-01)
+
+* Fix: New Plex Web urls. (Thanks @Joshua1337)
+* Fix: Fallback to the product name if the player title is blank.
+* New: Added no forking option to startup arguments. (Thanks @Vashypooh)
+
+
 ## v1.4.23 (2017-09-30)
 
 * Fix: Playstation 4 platform name.

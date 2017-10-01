@@ -58,6 +58,7 @@ VERBOSE = True
 DAEMON = False
 CREATEPID = False
 PIDFILE = None
+NOFORK = False
 
 SCHED = BackgroundScheduler()
 SCHED_LOCK = threading.Lock()
@@ -1195,13 +1196,16 @@ def shutdown(restart=False, update=False, checkout=False):
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']
-        logger.info(u"Restarting PlexPy with %s", args)
 
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
-        if os.name == 'nt':
+        if NOFORK:
+            logger.info('Running as service, not forking. Exiting...')
+        elif os.name == 'nt':
+            logger.info('Restarting PlexPy with %s', args)
             subprocess.Popen(args, cwd=os.getcwd())
         else:
+            logger.info('Restarting PlexPy with %s', args)
             os.execv(exe, args)
 
     os._exit(0)
