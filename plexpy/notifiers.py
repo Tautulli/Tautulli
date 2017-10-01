@@ -638,6 +638,8 @@ class PrettyMetadata(object):
             provider_name = 'The Movie Database'
         elif provider == 'tvmaze':
             provider_name = 'TVmaze'
+        elif provider == 'trakt':
+            provider_name = 'Trakt.tv'
         elif provider == 'lastfm':
             provider_name = 'Last.fm'
         return provider_name
