@@ -2537,9 +2537,16 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def logFile(self, **kwargs):
+    def logFile(self, logfile='', **kwargs):
+        if logfile == "plexpy_api":
+            filename = logger.FILENAME_API
+        elif logfile == "plexpy_websocket":
+            filename = logger.FILENAME_WEBSOCKET
+        else:
+            filename = logger.FILENAME
+
         try:
-            with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME), 'r') as f:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r') as f:
                 return '<pre>%s</pre>' % f.read()
         except IOError as e:
             return "Log file not found."
