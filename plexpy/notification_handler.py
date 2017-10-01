@@ -535,32 +535,34 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
     # Get TheMovieDB info
-    if metadata.get('themoviedb_id'):
-        themoveidb_json = get_themoviedb_info(rating_key=rating_key,
-                                              media_type=metadata['media_type'],
-                                              themoviedb_id=metadata['themoviedb_id'])
+    if plexpy.CONFIG.THEMOVIEDB_LOOKUP:
+        if metadata.get('themoviedb_id'):
+            themoveidb_json = get_themoviedb_info(rating_key=rating_key,
+                                                  media_type=metadata['media_type'],
+                                                  themoviedb_id=metadata['themoviedb_id'])
 
-        if themoveidb_json.get('imdb_id'):
-            metadata['imdb_id'] = themoveidb_json['imdb_id']
-            metadata['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
+            if themoveidb_json.get('imdb_id'):
+                metadata['imdb_id'] = themoveidb_json['imdb_id']
+                metadata['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
-    elif metadata.get('thetvdb_id') or metadata.get('imdb_id'):
-        themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
-                                                  thetvdb_id=metadata.get('thetvdb_id'),
-                                                  imdb_id=metadata.get('imdb_id'))
-        metadata.update(themoviedb_info)
+        elif metadata.get('thetvdb_id') or metadata.get('imdb_id'):
+            themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
+                                                      thetvdb_id=metadata.get('thetvdb_id'),
+                                                      imdb_id=metadata.get('imdb_id'))
+            metadata.update(themoviedb_info)
 
     # Get TVmaze info (for tv shows only)
-    if metadata['media_type'] in ('show', 'season', 'episode') and (metadata.get('thetvdb_id') or metadata.get('imdb_id')):
-        tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
-                                          thetvdb_id=metadata.get('thetvdb_id'),
-                                          imdb_id=metadata.get('imdb_id'))
-        metadata.update(tvmaze_info)
+    if plexpy.CONFIG.TVMAZE_LOOKUP:
+        if metadata['media_type'] in ('show', 'season', 'episode') and (metadata.get('thetvdb_id') or metadata.get('imdb_id')):
+            tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
+                                              thetvdb_id=metadata.get('thetvdb_id'),
+                                              imdb_id=metadata.get('imdb_id'))
+            metadata.update(tvmaze_info)
 
-        if tvmaze_info.get('thetvdb_id'):
-            metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
-        if tvmaze_info.get('imdb_id'):
-            metadata['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
+            if tvmaze_info.get('thetvdb_id'):
+                metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+            if tvmaze_info.get('imdb_id'):
+                metadata['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
 
     if metadata['media_type'] in ('movie', 'show', 'artist'):
         poster_thumb = metadata['thumb']

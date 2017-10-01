@@ -2648,7 +2648,9 @@ class WebInterface(object):
             "git_remote": plexpy.CONFIG.GIT_REMOTE,
             "movie_watched_percent": plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
             "tv_watched_percent": plexpy.CONFIG.TV_WATCHED_PERCENT,
-            "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+            "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
+            "themoviedb_lookup": checked(plexpy.CONFIG.THEMOVIEDB_LOOKUP),
+            "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2668,7 +2670,8 @@ class WebInterface(object):
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_basic_auth", "notify_concurrent_by_ip",
-            "history_table_activity", "plexpy_auto_update"
+            "history_table_activity", "plexpy_auto_update",
+            "themoviedb_lookup", "tvmaze_lookup"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
