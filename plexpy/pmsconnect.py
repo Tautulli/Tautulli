@@ -1115,7 +1115,8 @@ class PmsConnect(object):
                               'friendly_name': user_details['friendly_name'],
                               'user_thumb': user_details['user_thumb'],
                               'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title')
+                                  or helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'product'),
                               'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                               'machine_id': machine_id,
                               'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -1258,7 +1259,8 @@ class PmsConnect(object):
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title')
+                                      or helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'product'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -1322,7 +1324,8 @@ class PmsConnect(object):
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title')
+                                      or helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'product'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -1385,7 +1388,8 @@ class PmsConnect(object):
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title')
+                                      or helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'product'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -1491,7 +1495,8 @@ class PmsConnect(object):
                               'friendly_name': user_details['friendly_name'],
                               'user_thumb': user_details['user_thumb'],
                               'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title')
+                                  or helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'product'),
                               'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                               'machine_id': machine_id,
                               'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
