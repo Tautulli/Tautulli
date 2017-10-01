@@ -190,7 +190,8 @@ class AuthController(object):
                                user_group=user_group,
                                ip_address=ip_address,
                                host=host,
-                               user_agent=user_agent)
+                               user_agent=user_agent,
+                               success=1)
 
         logger.debug(u"PlexPy WebAuth :: %s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
     
@@ -198,6 +199,20 @@ class AuthController(object):
         """Called on logout"""
         logger.debug(u"PlexPy WebAuth :: %s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
     
+    def on_login_failed(self, username):
+        """Called on failed login"""
+
+        # Save login attempt to the database
+        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
+        host = cherrypy.request.headers.get('Origin')
+        user_agent = cherrypy.request.headers.get('User-Agent')
+
+        Users().set_user_login(user=username,
+                               ip_address=ip_address,
+                               host=host,
+                               user_agent=user_agent,
+                               success=0)
+
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
         return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
@@ -240,9 +255,11 @@ class AuthController(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':
+            self.on_login_failed(username)
             logger.debug(u"PlexPy WebAuth :: Invalid admin login attempt from '%s'." % username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
+            self.on_login_failed(username)
             logger.debug(u"PlexPy WebAuth :: Invalid login attempt from '%s'." % username)
             return self.get_loginform(username, u"Incorrect username/email or password.")
     

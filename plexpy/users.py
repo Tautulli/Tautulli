@@ -678,7 +678,7 @@ class Users(object):
 
         return filters_list
 
-    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None):
+    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None, success=0):
 
         if user_id is None or str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
@@ -690,7 +690,8 @@ class Users(object):
                       'user_group': user_group,
                       'ip_address': ip_address,
                       'host': host,
-                      'user_agent': user_agent}
+                      'user_agent': user_agent,
+                      'success': success}
 
             try:
                 monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
@@ -714,13 +715,14 @@ class Users(object):
         else:
             custom_where = [['user_login.user_id', user_id]] if user_id else []
 
-        columns = ['user_login.user_id',
+        columns = ['user_login.timestamp',
+                   'user_login.user_id',
                    'user_login.user',
                    'user_login.user_group',
                    'user_login.ip_address',
                    'user_login.host',
                    'user_login.user_agent',
-                   'user_login.timestamp',
+                   'user_login.success',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name'
                    ]
@@ -744,14 +746,15 @@ class Users(object):
         for item in results:
             (os, browser) = httpagentparser.simple_detect(item['user_agent'])
 
-            row = {'user_id': item['user_id'],
+            row = {'timestamp': item['timestamp'],
+                   'user_id': item['user_id'],
                    'user_group': item['user_group'],
                    'ip_address': item['ip_address'],
                    'host': item['host'],
                    'user_agent': item['user_agent'],
                    'os': os,
                    'browser': browser,
-                   'timestamp': item['timestamp'],
+                   'success': item['success'],
                    'friendly_name': item['friendly_name'] or item['user']
                    }
 

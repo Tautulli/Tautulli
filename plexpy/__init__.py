@@ -496,7 +496,8 @@ def dbcheck():
     # user_login table :: This table keeps record of the PlexPy guest logins
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
+        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, '
+        'ip_address TEXT, host TEXT, user_agent TEXT, success INTEGER DEFAULT 1)'
     )
 
     # notifiers table :: This table keeps record of the notification agent settings
@@ -1122,6 +1123,15 @@ def dbcheck():
         )
         c_db.execute(
             'DROP INDEX IF EXISTS idx_themoviedb_lookup_imdb_id'
+        )
+
+    # Upgrade user_login table from earlier versions
+    try:
+        c_db.execute('SELECT success FROM user_login')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table user_login.")
+        c_db.execute(
+            'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
         )
 
     # Add "Local" user to database as default unauthenticated user.

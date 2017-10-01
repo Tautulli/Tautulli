@@ -77,9 +77,24 @@ login_log_table_options = {
         {
             "targets": [6],
             "data": "browser",
-            "width": "20%",
+            "width": "18%",
             "className": "no-wrap"
-        }
+        },
+        {
+            "targets": [7],
+            "data": "success",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData == 1) {
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Login Successful"><i class="fa fa-lg fa-fw fa-check"></i></span>');
+                } else {
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Login Failed"><i class="fa fa-lg fa-fw fa-times"></i></span>');
+                }
+            },
+            "searchable": false,
+            "orderable": false,
+            "className": "no-wrap",
+            "width": "2%"
+        },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
