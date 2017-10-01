@@ -24,6 +24,7 @@ import websocket
 import plexpy
 import activity_handler
 import activity_pinger
+import activity_processor
 import logger
 
 name = 'websocket'
@@ -36,6 +37,10 @@ def start_thread():
     activity_pinger.check_active_sessions(ws_request=True)
     # Start the websocket listener on it's own thread
     threading.Thread(target=run).start()
+
+
+def on_disconnect():
+    activity_processor.ActivityProcessor().set_temp_stopped()
 
 
 def reconnect():
@@ -64,57 +69,83 @@ def run():
 
     global ws_reconnect
     ws_reconnect = False
-    ws_connected = False
     reconnects = 0
 
-    # Try an open the websocket connection - if it fails after 15 retries fallback to polling
-    while not ws_connected and reconnects <= 15:
+    # Try an open the websocket connection
+    while not plexpy.WS_CONNECTED and reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
         try:
             logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
             ws = create_connection(uri, header=header)
             reconnects = 0
-            ws_connected = True
             logger.info(u"PlexPy WebSocket :: Ready")
+            plexpy.WS_CONNECTED = True
+
+            if not plexpy.PLEX_SERVER_UP:
+                logger.info(u"PlexPy WebSocket :: The Plex Media Server is back up.")
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
+                plexpy.PLEX_SERVER_UP = True
+
+            plexpy.initialize_scheduler()
+
         except IOError as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
-            time.sleep(5)
+            time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-    while ws_connected:
+        except (websocket.WebSocketException, Exception) as e:
+            logger.error(u"PlexPy WebSocket :: %s." % e)
+            plexpy.WS_CONNECTED = False
+            break
+
+    while plexpy.WS_CONNECTED:
         try:
             process(*receive(ws))
 
             # successfully received data, reset reconnects counter
             reconnects = 0
-        except (websocket.WebSocketConnectionClosedException, Exception):
-            if reconnects <= 15:
+
+        except websocket.WebSocketConnectionClosedException:
+            if reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
 
                 # Sleep 5 between connection attempts
                 if reconnects > 1:
-                    time.sleep(5)
+                    time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
                 logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnection attempt %s." % reconnects)
                 try:
                     ws = create_connection(uri, header=header)
+                    logger.info(u"PlexPy WebSocket :: Ready")
+                    plexpy.WS_CONNECTED = True
                 except IOError as e:
                     logger.info(u"PlexPy WebSocket :: %s." % e)
 
             else:
                 ws.shutdown()
-                ws_connected = False
+                plexpy.WS_CONNECTED = False
                 break
+
+        except (websocket.WebSocketException, Exception) as e:
+            logger.error(u"PlexPy WebSocket :: %s." % e)
+            plexpy.WS_CONNECTED = False
+            break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
         if ws_reconnect:
             logger.info(u"PlexPy WebSocket :: Reconnecting websocket...")
             ws.shutdown()
-            ws_connected = False
+            plexpy.WS_CONNECTED = False
             start_thread()
     
-    if not ws_connected and not ws_reconnect:
-        logger.error(u"PlexPy WebSocket :: Connection unavailable, falling back to polling.")
-        plexpy.POLLING_FAILOVER = True
+    if not plexpy.WS_CONNECTED and not ws_reconnect:
+        logger.error(u"PlexPy WebSocket :: Connection unavailable.")
+
+        if plexpy.PLEX_SERVER_UP:
+            logger.info(u"PlexPy WebSocket :: Unable to get an internal response from the server, Plex server is down.")
+            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
+            plexpy.PLEX_SERVER_UP = False
+            on_disconnect()
+
         plexpy.initialize_scheduler()
 
     logger.debug(u"PlexPy WebSocket :: Leaving thread.")
@@ -141,6 +172,7 @@ def process(opcode, data):
         return False
 
     try:
+        logger.websocket_debug(data)
         info = json.loads(data)
     except Exception as e:
         logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % e)
@@ -154,24 +186,29 @@ def process(opcode, data):
         return False
 
     if type == 'playing':
-        # logger.debug('%s.playing %s' % (name, info))
-        time_line = info.get('PlaySessionStateNotification', info.get('_children'))
+        time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
         if not time_line:
             logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
             return False
 
-        activity = activity_handler.ActivityHandler(timeline=time_line[0])
-        activity.process()
+        try:
+            activity = activity_handler.ActivityHandler(timeline=time_line[0])
+            activity.process()
+        except Exception as e:
+            logger.error(u"PlexPy WebSocket :: Failed to process session data: %s." % e)
 
-    #if type == 'timeline':
-    #    try:
-    #        time_line = info.get('_children')
-    #    except:
-    #        logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
-    #        return False
+    if type == 'timeline':
+        time_line = info.get('TimelineEntry', info.get('_children', {}))
 
-    #    activity = activity_handler.TimelineHandler(timeline=time_line[0])
-    #    activity.process()
+        if not time_line:
+            logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
+            return False
+
+        try:
+            activity = activity_handler.TimelineHandler(timeline=time_line[0])
+            activity.process()
+        except Exception as e:
+            logger.error(u"PlexPy WebSocket :: Failed to process timeline data: %s." % e)
 
     return True

@@ -38,6 +38,7 @@ import xmltodict
 
 import plexpy
 import logger
+import request
 from plexpy.api2 import API2
 
 
@@ -440,11 +441,8 @@ def convert_xml_to_dict(xml):
 
 def get_percent(value1, value2):
 
-    if str(value1).isdigit() and str(value2).isdigit():
-        value1 = cast_to_float(value1)
-        value2 = cast_to_float(value2)
-    else:
-        return 0
+    value1 = cast_to_float(value1)
+    value2 = cast_to_float(value2)
 
     if value1 != 0 and value2 != 0:
         percent = (value1 / value2) * 100
@@ -452,6 +450,12 @@ def get_percent(value1, value2):
         percent = 0
 
     return math.trunc(percent)
+
+def hex_to_int(hex):
+    try:
+        return int(hex, 16)
+    except (ValueError, TypeError):
+        return 0
 
 def parse_xml(unparsed=None):
     if unparsed:
@@ -496,27 +500,31 @@ def sanitize(string):
     else:
         return ''
 
-def is_ip_public(host):
-    ip_address = get_ip(host)
-    ip = IP(ip_address)
-    if ip.iptype() == 'PUBLIC':
+def is_public_ip(host):
+    ip = is_valid_ip(get_ip(host))
+    if ip and ip.iptype() == 'PUBLIC':
         return True
-
     return False
 
 def get_ip(host):
     ip_address = ''
-    try:
-        socket.inet_aton(host)
-        ip_address = host
-    except socket.error:
+    if is_valid_ip(host):
+        return host
+    else:
         try:
-            ip_address = socket.gethostbyname(host)
+            ip_address = socket.getaddrinfo(host, None)[0][4][0]
             logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
         except:
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
-
     return ip_address
+
+def is_valid_ip(address):
+    try:
+        return IP(address)
+    except TypeError:
+        return False
+    except ValueError:
+        return False
 
 def install_geoip_db():
     maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
@@ -678,13 +686,8 @@ def uploadToImgur(imgPath, imgTitle=''):
     img_url = ''
 
     if not client_id:
-        #logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
-        #return img_url
-        # Fallback to shared client id for now. This will be remove in a future update.
-        logger.warn(u"PlexPy Helpers :: No Imgur client id specified in the settings. Falling back to the shared client id.")
-        logger.warn(u"***** The shared Imgur client id will be removed in a future PlexPy update! "
-                    "Please enter your own client id in the settings to continue uploading posters! *****")
-        client_id = '743b1a443ccd2b0'
+        logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
+        return img_url
 
     try:
         with open(imgPath, 'rb') as imgFile:
@@ -700,21 +703,21 @@ def uploadToImgur(imgPath, imgTitle=''):
         data['title'] = imgTitle.encode('utf-8')
         data['name'] = imgTitle.encode('utf-8') + '.jpg'
 
-    try:
-        request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
-        response = urllib2.urlopen(request)
-        response = json.loads(response.read())
-    
-        if response.get('status') == 200:
-            t = '\'' + imgTitle + '\' ' if imgTitle else ''
-            logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
-            img_url = response.get('data').get('link', '')
-        elif response.get('status') >= 400 and response.get('status') < 500:
-            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
+    response, err_msg, req_msg = request.request_response2('https://api.imgur.com/3/image', 'POST', headers=headers, data=data)
+
+    if response and not err_msg:
+        t = '\'' + imgTitle + '\' ' if imgTitle else ''
+        logger.debug(u"PlexPy Helpers :: Image {}uploaded to Imgur.".format(t))
+        img_url = response.json().get('data').get('link', '').replace('http://', 'https://')
+
+    else:
+        if err_msg:
+            logger.error(u"PlexPy Helpers :: Unable to upload image to Imgur: {}".format(err_msg))
         else:
-            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
-    except (urllib2.HTTPError, urllib2.URLError) as e:
-            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
+            logger.error(u"PlexPy Helpers :: Unable to upload image to Imgur.")
+
+        if req_msg:
+            logger.debug(u"PlexPy Helpers :: Request response: {}".format(req_msg))
 
     return img_url
 
@@ -773,3 +776,138 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
                     "search": {"value": kwargs.pop("search", "")}
                     }
     return json.dumps(json_data)
+
+def humanFileSize(bytes, si=False):
+    if str(bytes).isdigit():
+        bytes = int(bytes)
+    else:
+        return bytes
+
+    thresh = 1000 if si else 1024
+    if bytes < thresh:
+        return str(bytes) + ' B'
+
+    if si:
+        units = ('kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+    else:
+        units = ('KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    u = -1
+
+    while bytes >= thresh and u < len(units):
+        bytes /= thresh
+        u += 1
+
+    return "{0:.1f} {1}".format(bytes, units[u])
+
+def parse_condition_logic_string(s, num_cond=0):
+    """ Parse a logic string into a nested list
+    Based on http://stackoverflow.com/a/23185606
+    """
+    valid_tokens = re.compile(r'(\(|\)|and|or)')
+    conditions_pattern = re.compile(r'{\d+}')
+    
+    tokens = [x.strip() for x in re.split(valid_tokens, s.lower()) if x.strip()]
+
+    stack = [[]]
+
+    cond_next = True
+    bool_next = False
+    open_bracket_next = True
+    close_bracket_next = False
+    nest_and = 0
+    nest_nest_and = 0
+    
+    for i, x in enumerate(tokens):
+        if open_bracket_next and x == '(':
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            if nest_and:
+                nest_nest_and += 1
+            
+        elif close_bracket_next and x == ')':
+            stack.pop()
+            if not stack:
+                raise ValueError('opening bracket is missing')
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            if nest_and > 0 and nest_nest_and > 0 and nest_and == nest_nest_and:
+                stack.pop()
+                nest_and -= 1
+                nest_nest_and -= 1
+
+        elif cond_next and re.match(conditions_pattern, x):
+            try:
+                num = int(x[1:-1])
+            except:
+                raise ValueError('invalid condition logic')
+            if not 0 < num <= num_cond:
+                raise ValueError('invalid condition number in condition logic')
+            stack[-1].append(num)
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            if nest_and > nest_nest_and:
+                stack.pop()
+                nest_and -= 1
+            
+        elif bool_next and x == 'and' and i < len(tokens)-1:
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            stack[-1].append(stack[-2].pop(-2))
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            nest_and += 1
+            
+        elif bool_next and x == 'or' and i < len(tokens)-1:
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+
+        else:
+            raise ValueError('invalid condition logic')
+
+    if len(stack) > 1:
+        raise ValueError('closing bracket is missing')
+
+    return stack.pop()
+
+def nested_list_to_string(l):
+    for i, x in enumerate(l):
+        if isinstance(x, list):
+            l[i] = nested_list_to_string(x)
+    s = '(' + ' '.join(l) + ')'
+    return s
+
+def eval_logic_groups_to_bool(logic_groups, eval_conds):
+    first_cond = logic_groups[0]
+
+    if isinstance(first_cond, list):
+        result = eval_logic_groups_to_bool(first_cond, eval_conds)
+    else:
+        result = eval_conds[first_cond]
+
+    for op, cond in zip(logic_groups[1::2], logic_groups[2::2]):
+        if isinstance(cond, list):
+            eval_cond = eval_logic_groups_to_bool(cond, eval_conds)
+        else:
+            eval_cond = eval_conds[cond]
+
+        if op == 'and':
+            result = result and eval_cond
+        elif op == 'or':
+            result = result or eval_cond
+
+    return result

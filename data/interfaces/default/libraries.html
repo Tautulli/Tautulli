@@ -58,34 +58,37 @@
                 <th align="left" id="last_accessed">Last Accessed</th>
                 <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
-                <th align="left" id="total_duration">Total Duration</th>
+                <th align="left" id="total_duration">Total Played Duration</th>
             </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
-        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
-                    </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <ul id="libraries-to-delete" class="list-unstyled"></ul>
-                        <ul id="libraries-to-purge" class="list-unstyled"></ul>
-                        <p>This is permanent and cannot be undone!</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
-                    </div>
-                </div>
+    </div>
+</div>
+
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <ul id="libraries-to-delete" class="list-unstyled"></ul>
+                <ul id="libraries-to-purge" class="list-unstyled"></ul>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
             </div>
         </div>
     </div>
 </div>
-
 </%def>
 
 <%def name="javascriptIncludes()">

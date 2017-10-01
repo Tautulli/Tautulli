@@ -1,0 +1,47 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           mobile_devices_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+% if devices_list:
+<ul class="stacked-configs list-unstyled">
+    % for device in sorted(devices_list, key=lambda k: k['device_name']):
+    <li class="registered-device" data-id="${device['device_id']}" data-name="${device['device_name']}">
+        <span>
+            <span class="toggle-left mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Rename Device"><i class="fa fa-lg fa-pencil"></i></span>
+            <span class="mobile-device-name">${device['friendly_name'] or device['device_name']}</span>
+            <input type="text" class="edit-mobile-device-name hidden" value="${device['device_name']}" />
+            <span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>
+        </span>
+    </li>
+    % endfor
+</ul>
+
+<script>
+    $('.mobile-device-tooltip').tooltip();
+    $('.delete-mobile-device').tooltip();
+
+    $('.delete-mobile-device').click(function () {
+        var device_id = $(this).closest('li').data('id');
+        var device_name = $(this).closest('li').data('name');
+        var msg = 'Are you sure you want to unregister the device <strong>' + device_name + '</strong> from PlexPy?';
+        var url = 'delete_mobile_device';
+        confirmAjaxCall(url, msg, { device_id: device_id }, null, getMobileDevicesTable);
+    });
+</script>
+% else:
+<ul class="stacked-configs list-unstyled">
+    <li class="registered-device">
+        <span>
+            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
+            No devices registered
+        </span>
+    </li>
+</ul>
+% endif

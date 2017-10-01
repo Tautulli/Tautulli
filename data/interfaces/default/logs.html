@@ -55,16 +55,18 @@
     </div>
     <div class='table-card-back'>
         <div>
-            <ul class="nav nav-pills" role="tablist">
-                <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">PlexPy Logs</a></li>
-                <li role="presentation"><a id="plex-logs-btn" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
-                <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
-                <li role="presentation"><a id="notification-logs-btn" href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Notification Logs</a></li>
-                <li role="presentation"><a id="login-logs-btn" href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Login Logs</a></li>
+            <ul id="log_tabs" class="nav nav-pills" role="tablist">
+                <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-plexpy_log" aria-controls="tabs-plexpy_log" role="tab" data-toggle="tab">PlexPy Logs</a></li>
+                <li role="presentation"><a id="plexpy-api-logs-btn" href="#tabs-plexpy_api_log" aria-controls="tabs-plexpy_api_log" role="tab" data-toggle="tab">PlexPy API Logs</a></li>
+                <li role="presentation"><a id="plexpy-websocket-logs-btn" href="#tabs-plexpy_websocket_log" aria-controls="tabs-plexpy_websocket_log" role="tab" data-toggle="tab">PlexPy Websocket Logs</a></li>
+                <li role="presentation"><a id="plex-logs-btn" href="#tabs-plex_log" aria-controls="tabs-plex_log" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
+                <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-plex_scanner_log" aria-controls="tabs-plex_scanner_log" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
+                <li role="presentation"><a id="notification-logs-btn" href="#tabs-notification_log" aria-controls="tabs-notification_log" role="tab" data-toggle="tab">Notification Logs</a></li>
+                <li role="presentation"><a id="login-logs-btn" href="#tabs-login_log" aria-controls="tabs-login_log" role="tab" data-toggle="tab">Login Logs</a></li>
             </ul>
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="tabs-1">
-                    <table class="display" id="log_table" width="100%">
+                <div role="tabpanel" class="tab-pane active" id="tabs-plexpy_log" data-logfile="plexpy">
+                    <table class="display" id="plexpy_log_table" width="100%">
                         <thead>
                             <tr>
                                 <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
@@ -75,7 +77,31 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="tabs-2">
+                <div role="tabpanel" class="tab-pane" id="tabs-plexpy_api_log" data-logfile="plexpy_api">
+                    <table class="display" id="plexpy_api_log_table" width="100%">
+                        <thead>
+                            <tr>
+                                <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
+                                <th class="desktop" align="left" id="level">Level</th>
+                                <th class="all" align="left" id="message">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tabs-plexpy_websocket_log" data-logfile="plexpy_websocket">
+                    <table class="display" id="plexpy_websocket_log_table" width="100%">
+                        <thead>
+                            <tr>
+                                <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
+                                <th class="desktop" align="left" id="level">Level</th>
+                                <th class="all" align="left" id="message">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tabs-plex_log">
                     <table class="display" id="plex_log_table" width="100%">
                         <thead>
                             <tr>
@@ -87,7 +113,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="tabs-3">
+                <div role="tabpanel" class="tab-pane" id="tabs-plex_scanner_log">
                     <table class="display" id="plex_scanner_log_table" width="100%">
                         <thead>
                             <tr>
@@ -99,38 +125,38 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="tabs-4">
+                <div role="tabpanel" class="tab-pane" id="tabs-notification_log">
                     <table class="display" id="notification_log_table" width="100%">
                         <thead>
                             <tr>
                                 <th align="left" id="notification_timestamp">Timestamp</th>
+                                <th align="left" id="notification_notifier_id">Notifier ID</th>
                                 <th align="left" id="notification_agent_name">Agent</th>
-                                <th align="left" id="notification_action">Action</th>
-                                <th align="left" id="notification_poster_url">Subject Text</th>
-                                <th align="left" id="notification_poster_url">Body Text</th>
-                                <th align="left" id="notification_poster_url">Script Args</th>
+                                <th align="left" id="notification_notify_action">Action</th>
+                                <th align="left" id="notification_subject_text">Subject Text</th>
+                                <th align="left" id="notification_body_text">Body Text</th>
+                                <th align="left" id="notification_success"></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="tabs-5">
+                <div role="tabpanel" class="tab-pane" id="tabs-login_log">
                     <table class="display login_log_table" id="login_log_table" width="100%">
                         <thead>
                             <tr>
-                                <th align="left" id="timestamp">Timestamp</th>
-                                <th align="left" id="friendly_name">User</th>
-                                <th align="left" id="user_group">User Group</th>
-                                <th align="left" id="ip_address">IP Address</th>
-                                <th align="left" id="host">Host</th>
-                                <th align="left" id="os">Operating System</th>
-                                <th align="left" id="browser">Browser</th>
+                                <th align="left" id="login_timestamp">Timestamp</th>
+                                <th align="left" id="login_friendly_name">User</th>
+                                <th align="left" id="login_user_group">User Group</th>
+                                <th align="left" id="login_ip_address">IP Address</th>
+                                <th align="left" id="login_host">Host</th>
+                                <th align="left" id="login_os">Operating System</th>
+                                <th align="left" id="login_browser">Browser</th>
+                                <th align="left" id="login_success"></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
-                </div>
-                <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                 </div>
             </div>
         </div>
@@ -152,6 +178,11 @@
 </div>
 </%def>
 
+<%def name="modalIncludes()">
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+</%def>
+
 <%def name="javascriptIncludes()">
 <script src="${http_root}js/jquery.dataTables.min.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
@@ -164,8 +195,8 @@
 <script>
 
         $(document).ready(function() {
-            loadPlexPyLogs(selected_log_level);
-            clearSearchButton('log_table', log_table);
+            loadPlexPyLogs('plexpy', selected_log_level);
+            clearSearchButton('plexpy_log_table', log_table);
         });
 
         var log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
@@ -196,18 +227,19 @@
         }
 
         var selected_log_level = null;
-        function loadPlexPyLogs(selected_log_level) {
+        function loadPlexPyLogs(logfile, selected_log_level) {
             log_table_options.ajax = {
                 url: "get_log",
                 type: 'post',
                 data: function (d) {
                     return {
+                        logfile: logfile,
                         json_data: JSON.stringify(d),
                         log_level: selected_log_level
                     };
                 }
             }
-            log_table = $('#log_table').DataTable(log_table_options);
+            log_table = $('#' + logfile + '_log_table').DataTable(log_table_options);
 
             $('#plexpy-log-level-filter').on('change', function () {
                 selected_log_level = $(this).val() || null;
@@ -265,8 +297,34 @@
             $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").hide();
-            loadPlexPyLogs(selected_log_level);
-            clearSearchButton('log_table', log_table);
+            loadPlexPyLogs('plexpy', selected_log_level);
+            clearSearchButton('plexpy_log_table', log_table);
+        });
+
+        $("#plexpy-api-logs-btn").click(function () {
+            $("#plexpy-log-levels").show();
+            $("#plex-log-levels").hide();
+            $("#clear-logs").show();
+            $("#download-plexpylog").show()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").hide()
+            $("#clear-notify-logs").hide();
+            $("#clear-login-logs").hide();
+            loadPlexPyLogs('plexpy_api', selected_log_level);
+            clearSearchButton('plexpy_api_log_table', log_table);
+        });
+
+        $("#plexpy-websocket-logs-btn").click(function () {
+            $("#plexpy-log-levels").show();
+            $("#plex-log-levels").hide();
+            $("#clear-logs").show();
+            $("#download-plexpylog").show()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").hide()
+            $("#clear-notify-logs").hide();
+            $("#clear-login-logs").hide();
+            loadPlexPyLogs('plexpy_websocket', selected_log_level);
+            clearSearchButton('plexpy_websocket_log_table', log_table);
         });
 
         $("#plex-logs-btn").click(function () {
@@ -326,12 +384,15 @@
         });
 
         $("#clear-logs").click(function () {
+            var logfile = $(".tab-pane.active").data('logfile')
+
             $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
                     url: 'delete_logs',
                     type: 'POST',
+                    data: { logfile: logfile },
                     complete: function (xhr, status) {
                         result = $.parseJSON(xhr.responseText);
                         msg = result.message;
@@ -347,7 +408,8 @@
         });
 
         $("#download-plexpylog").click(function () {
-            window.location.href = "download_log";
+            var logfile = $(".tab-pane.active").data('logfile');
+            window.location.href = "download_log?logfile=" + logfile;
         });
 
         $("#download-plexserverlog").click(function () {
@@ -413,15 +475,15 @@
                 if(refreshrate.value != 0)
                 {
                     timer = setInterval(function() {
-                        if ($("#tabs-1").hasClass("active")) {
+                        if ($("#tabs-plexpy_log").hasClass("active") || $("#tabs-plexpy_api_log").hasClass("active") || $("#tabs-plexpy_websocket_log").hasClass("active")) {
                             log_table.ajax.reload();
-                        } else if ($("#tabs-2").hasClass("active")) {
+                        } else if ($("#tabs-plex_log").hasClass("active")) {
                             plex_log_table.ajax.reload();
-                        } else if ($("#tabs-3").hasClass("active")) {
+                        } else if ($("#tabs-plex_scanner_log").hasClass("active")) {
                             plex_scanner_log_table.ajax.reload();
-                        } else if ($("#tabs-4").hasClass("active")) {
+                        } else if ($("#tabs-notificaiton_log").hasClass("active")) {
                             notification_log_table.ajax.reload();
-                        } else if ($("#tabs-5").hasClass("active")) {
+                        } else if ($("#tabs-login_log").hasClass("active")) {
                             login_log_table.ajax.reload();
                         }
                     }, 1000*refreshrate.value);
