@@ -54,7 +54,7 @@ VERBOSE = True
 DAEMON = False
 CREATEPID = False
 PIDFILE = None
-WINDOWSSERVICE = False
+NOFORK = False
 
 SCHED = BackgroundScheduler()
 SCHED_LOCK = threading.Lock()
@@ -993,14 +993,15 @@ def shutdown(restart=False, update=False):
 
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
-        if os.name == 'nt' and plexpy.WINDOWSSERVICE:
-            logger.info("Running as windows service, no need to fork.")
+        if NOFORK:
+            logger.info('Running as service, not forking. Exiting...')
         elif os.name == 'nt':
+            logger.info('Restarting PlexPy with %s', args)
             subprocess.Popen(args, cwd=os.getcwd())
-            logger.info('Restarting PlexPy with %s', args)
         else:
-            os.execv(exe, args)
             logger.info('Restarting PlexPy with %s', args)
+            os.execv(exe, args)
+
     os._exit(0)
 
 

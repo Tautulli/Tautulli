@@ -93,7 +93,7 @@ def main():
     parser.add_argument(
         '--pidfile', help='Create a pid file (only relevant when running as a daemon)')
     parser.add_argument(
-        '--windowsservice', action='store_true', help='Running as a windows service.')
+        '--nofork', action='store_true', help='Start PlexPy as a service, do not fork when restarting')
 		
     args = parser.parse_args()
 
@@ -118,9 +118,9 @@ def main():
             plexpy.DAEMON = True
             plexpy.QUIET = True
 
-    if args.windowsservice:
-		plexpy.WINDOWSSERVICE = True
-		logger.info("Running as windows service: %s", plexpy.WINDOWSSERVICE)
+    if args.nofork:
+		plexpy.NOFORK = True
+		logger.info("PlexPy is running as a service, it will not fork when restarted.")
 	
     if args.pidfile:
         plexpy.PIDFILE = str(args.pidfile)
