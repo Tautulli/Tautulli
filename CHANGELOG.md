@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.25 (2017-10-02)
+
+* Fix: Tab instead of spaces preventing startup.
+
+
 ## v1.4.24 (2017-10-01)
 
 * Fix: New Plex Web urls. (Thanks @Joshua1337)
