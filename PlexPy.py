@@ -119,9 +119,9 @@ def main():
             plexpy.QUIET = True
 
     if args.nofork:
-		plexpy.NOFORK = True
-		logger.info("PlexPy is running as a service, it will not fork when restarted.")
-	
+        plexpy.NOFORK = True
+        logger.info("PlexPy is running as a service, it will not fork when restarted.")
+
     if args.pidfile:
         plexpy.PIDFILE = str(args.pidfile)
 
