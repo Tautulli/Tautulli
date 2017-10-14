@@ -274,10 +274,12 @@
                         // if using bif indexes, update the bif thumbnail
                         if (s.indexes && s.state == 'playing') {
                             var bif_poster = $('#bif-' + key);
-                            bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
-                            bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
-                                + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
-                            blurArtwork(key);
+                            if (s.bif_thumb != bif_poster.data('thumb')) {
+                                bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
+                                bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" data-thumb="' + s.bif_thumb +'" style="background-image: url(pms_image_proxy?img='
+                                    + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
+                                blurArtwork(key);
+                            }
                         }
                         % endif
 

@@ -78,8 +78,8 @@ DOCUMENTATION :: END
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
                     % elif (data['media_type'] == 'episode' and not plexpy.CONFIG.PMS_USE_BIF) or (plexpy.CONFIG.PMS_USE_BIF and not data['view_offset']):
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
-                    % elif plexpy.CONFIG.PMS_USE_BIF:
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
+                    % elif plexpy.CONFIG.PMS_USE_BIF and data['indexes'] == '1':
+                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" data-thumb="${data['bif_thumb']}" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
                     % else:
                         % if data['media_type'] == 'track':
                         <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
