@@ -507,7 +507,7 @@
                 var session = $.parseJSON(xhr.responseText);
                 $('#raw-stream-info-title').text(session.full_title);
                 $('#raw-stream-info-user').text(session.friendly_name);
-                $('#raw-stream-info').text(JSON.stringify(session, null, '\t'));
+                $('#raw-stream-info').text(JSON.stringify(session, Object.keys(session).sort(), 4));
             }
         });
     });
