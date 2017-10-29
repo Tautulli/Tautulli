@@ -750,17 +750,6 @@ a .users-poster-face:hover {
     -webkit-transition: all .2s;
     transition: all .2s;
 }
-.dashboard-activity-info-icon:hover .dashboard-activity-info-platform {
-    opacity: 0;
-}
-.dashboard-activity-info-icon:hover .dashboard-activity-terminate-session {
-    background-color: rgba(0, 0, 0, 0.25);
-    opacity: 1;
-    cursor: pointer;
-}
-.dashboard-activity-terminate-session .btn-terminate-session:hover {
-    color: #e9a049;
-}
 .dashboard-activity-info-scroller {
     height: 225px;
     width: 335px;
@@ -868,6 +857,17 @@ a .users-poster-face:hover {
 }
 .dashboard-activity-container:hover {
     height: 249px;
+}
+.dashboard-activity-container:hover .dashboard-activity-info-platform {
+    opacity: 0;
+}
+.dashboard-activity-container:hover .dashboard-activity-terminate-session {
+    background-color: rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    cursor: pointer;
+}
+.dashboard-activity-terminate-session .btn-terminate-session:hover {
+    color: #e9a049;
 }
 .dashboard-activity-container:hover .dashboard-activity-progress {
 	height: 14px; 
