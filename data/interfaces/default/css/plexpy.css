@@ -628,313 +628,230 @@ a .users-poster-face:hover {
 #dashboard-no-activity {
     margin-bottom: 20px;
 }
-.dashboard-instance {
+.dashboard-activity-instance {
     float: left;
     position: relative;
-    height: 260px;
-    width: 350px;
+    height: 290px;
+    min-width: 350px;
+    max-width: 500px;
     margin-right: 20px;
     margin-bottom: 20px;
 }
-.dashboard-instance.hover .dashboard-activity-poster {
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
-}
-.dashboard-instance.hover .dashboard-activity-poster-info-bar,
-.dashboard-instance.hover .dashboard-activity-terminate-bar,
-.dashboard-instance.hover .dashboard-activity-terminate-session {
-    opacity: 1;
-}
-.dashboard-instance.hover .dashboard-activity-progress-bar { 
-	height: 14px; 
-	transform-origin: top;
-    transition: all .2s ease;
-	border-radius: 0px 0px 3px 3px;
-}
-.dashboard-instance.hover .bar { 
-	height: 14px; 
-    max-width: 100%;
-	transform-origin: top;
-    transition: all .2s ease;
-	border-radius: 0px 0px 3px 3px;
-    color: rgba(255, 255, 255, 1);
-    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
-    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
-    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
-}
-.dashboard-instance.hover .bufferbar { 
-	height: 14px; 
-    max-width: 100%;
-	transform-origin: top;
-    transition: all .2s ease;
-	border-radius: 0px 0px 3px 3px;
-    color: rgba(255, 255, 255, 1);
-    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
-    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
-    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
-}
-.dashboard-instance.hover .dashboard-activity-metadata-wrapper { 
-	margin-top: 11px;
-	transform-origin: top;
-    transition: all .2s ease;
-}
-.dashboard-activity-poster {
-    height: 200px;
+.dashboard-activity-container {
+    height: 240px;
     width: 100%;
     position: relative;
-    overflow: hidden;
+    margin-bottom: 5px;
+    padding: 0px;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
 }
-.dashboard-activity-poster-face {
+.dashboard-activity-background {
+    background-color: #282828;
     background-position: center;
     background-size: cover;
-    height: 100%;
+    height: 235px;
     width: 100%;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    z-index: -3;
-}
-.dashboard-activity-cover-face-bg {
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -webkit-filter: blur(5px);
-    -moz-filter: blur(5px);
-    filter: blur(5px);
-    opacity: 0.75;
-    z-index: -3;
-}
-.dashboard-activity-cover-face {
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    height: 100%;
-    width: 200px;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    position: absolute;
-    top: 0;
-    left: calc(50% - 100px);
-    z-index: -3;
-}
-.dashboard-activity-clip-face-bg {
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -webkit-filter: blur(5px);
-    -moz-filter: blur(5px);
-    filter: blur(5px);
-    opacity: 0.75;
-    z-index: -3;
-}
-.dashboard-activity-clip-face {
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    height: 100%;
-    width: 130px;
-    position: relative;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    position: absolute;
-    top: 0;
-    left: calc(50% - 65px);
-    z-index: -3;
-}
-.dashboard-activity-info-details-overlay {
-    text-align: left;
-    background-image: -webkit-gradient(linear,left 0,left 100%,from(rgba(0,0,0,.75)),to(rgba(0,0,0,0)));
-    background-image: -webkit-linear-gradient(top,rgba(0,0,0,.75),0,rgba(0,0,0,0),100%);
-    background-image: -moz-linear-gradient(top,rgba(0,0,0,.75) 0,rgba(0,0,0,0) 100%);
-    background-image: linear-gradient(to bottom,rgba(0,0,0,.75) 0,rgba(0,0,0,0) 100%);
-    background-repeat: repeat-x;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    display: none;
+    opacity: 0.40;
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    filter: blur(3px);
+    -webkit-transition: background 1s linear;
+    transition: background 1s linear;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     z-index: -1;
 }
-.dashboard-activity-terminate-bar {
-    position:absolute;
+.dashboard-activity-background-overlay {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    height: 235px;
     width: 100%;
-    height: 100%;
-    background-image: -webkit-gradient(linear,left 60%,left 0%,from(rgba(0,0,0,0)),to(rgba(0,0,0,0.4)));
-    background-image: -webkit-linear-gradient(bottom,rgba(0,0,0,0),40%,rgba(0,0,0,0.4),100%);
-    background-image: -moz-linear-gradient(bottom,rgba(0,0,0,0) 40%,rgba(0,0,0,0.4) 100%);
-    background-image: linear-gradient(to top,rgba(0,0,0,0) 40%,rgba(0,0,0,0.4) 100%);
-    opacity: 0;
-    -webkit-transition: all .2s;
-    transition: all .2s;
-    z-index: -2;
-}
-.dashboard-activity-terminate-session {
-    width: 50px;
-    height: 50px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    font-size: 30px;
-    color: #eee;
-    text-align: center;
-    padding-top: 5px;
-    opacity: 0;
-    -webkit-transition: all .2s;
-    transition: all .2s;
-    z-index: 1;
-}
-.dashboard-activity-terminate-session:hover {
-    color: #e9a049;
-}
-.dashboard-activity-button-info {
-    width: 50px;
-    height: 50px;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1;
-}
-.btn-activity-info,
-.btn-activity-info:focus {
-    color: #999;
-    background-color: rgba(0,0,0,0.5);
-}
-.btn-activity-info:hover {
-    color: #fff;
-}
-.dashboard-activity-info-details-content {
-    height: 200px;
-    width: 100%;
-    line-height: 25px;
-    text-overflow: ellipsis;
+    padding: 5px;
     overflow: hidden;
-    white-space: nowrap;
-    color: #aaa;
-    padding: 10px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
 }
-.dashboard-activity-info-details-content strong {
-    color: #fff;
-    font-weight: normal;
-}
-.dashboard-activity-info-details-transcode-state {
-    line-height: 22px;
-}
-.dashboard-activity-info-platform {
-    width: 100%;
-    height: 50px;
-    margin-bottom: 5px;
-}
-.dashboard-activity-info-platform-box {
-    float: left;
+.dashboard-activity-poster {
     background-position: center;
     background-size: cover;
+    height: 225px;
+    width: 150px;
+    margin-right: 5px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-transition: background 1s linear;
+    transition: background 1s linear;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    z-index: 1;
+}
+.dashboard-activity-cover {
+    background-position: center;
+    background-size: cover;
+    height: 150px;
+    width: 150px;
+    margin-top: 37.5px;
+    margin-right: 5px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-transition: background 1s linear;
+    transition: background 1s linear;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    z-index: 1;
+}
+.dashboard-activity-info-icon {
     width: 50px;
     height: 50px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    margin-right: 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    overflow: hidden;
+    z-index: 2;
 }
-.dashboard-activity-poster-info-bar {
-    position:absolute;
-    width: 100%;
-    height: 100%;
-    background-image: -webkit-gradient(linear,left 30%,left 100%,from(rgba(0,0,0,0)),to(rgba(0,0,0,0.75)));
-    background-image: -webkit-linear-gradient(top,rgba(0,0,0,0),30%,rgba(0,0,0,0.75),100%);
-    background-image: -moz-linear-gradient(top,rgba(0,0,0,0) 30%,rgba(0,0,0,0.75) 100%);
-    background-image: linear-gradient(to bottom,rgba(0,0,0,0) 30%,rgba(0,0,0,0.75) 100%);
-    opacity: 0;
+.dashboard-activity-info-platform {
+    background-position: center;
+    background-size: cover;
+    width: 50px;
+    height: 50px;
+    opacity: 1;
     -webkit-transition: all .2s;
     transition: all .2s;
-    z-index: -2;
 }
-.dashboard-activity-poster-info-text {
+.dashboard-activity-terminate-session {
+    width: 100%;
+    height: 100%;
+    padding-top: 3px;
+    font-size: 30px;
+    color: #eee;
+    text-align: center;
+    opacity: 0;
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    float: left;
-    text-align: left;
-    padding: 5px 8px;
-    font-size: 12px;
-    color: #eee;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 150px;
+    -webkit-transition: all .2s;
+    transition: all .2s;
 }
-.dashboard-activity-poster-info-ip-address {
-    position: absolute;
-    bottom: 5px;
+.dashboard-activity-info-icon:hover .dashboard-activity-info-platform {
+    opacity: 0;
+}
+.dashboard-activity-info-icon:hover .dashboard-activity-terminate-session {
+    background-color: rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    cursor: pointer;
+}
+.dashboard-activity-terminate-session .btn-terminate-session:hover {
+    color: #e9a049;
+}
+.dashboard-activity-info-scroller {
+    height: 225px;
+    width: 335px;
+    -webkit-flex-grow: 0;
+    flex-grow: 1;
+    z-index: 1;
+}
+.dashboard-activity-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;
-    text-align: left;
-    font-size: 12px;
-    color: #eee;
 }
-.dashboard-activity-poster-info-time {
+.dashboard-activity-info-scroller.scrollbar-macosx > .scroll-element .scroll-bar {
+    background-color: #999;
+}
+.dashboard-activity-info {
+    width: 100%;
+    font-size: 12px;
+    padding: 5px 5px 5px 15px;
+    position: relative;
+}
+.dashboard-activity-info-list {
+    margin-bottom: 20px;
+    padding-right: 0;
+}
+.dashboard-activity-info-list:last-of-type {
+    margin-bottom: 0;
+}
+.dashboard-activity-info-item {
+    width: 100%;
+    margin-bottom: 5px;
+}
+.dashboard-activity-info-item:last-of-type {
+    margin-bottom: 0;
+}
+.dashboard-activity-info-item .sub-heading {
+    height: 100%;
+    width: 60px;
+    color: #aaa;
+    font-size: 10px;
+    text-align: right;
+    text-transform: uppercase;
+    line-height: 14px;
+    vertical-align: bottom;
+    float: left;
+}
+.dashboard-activity-info-item .sub-value {
+    margin-left: 70px;
+    text-align: left;
+    line-height: 14px;
+    vertical-align: bottom;
+}
+.dashboard-activity-info-time {
     position: absolute;
-    bottom: 5px;
+    top: 200px;
     right: 10px;
     text-align: right;
-    font-size: 12px;
-    color: #eee;
+    font-size: 10px;
+    z-index: 2;
 }
 .dashboard-activity-progress {
     width: 100%;
     height: 5px;
-    margin-bottom: 5px;
+	border-radius: 0px 0px 3px 3px;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+	transform-origin: top;
+    position: absolute;
+    top: 235px;
 }
 .dashboard-activity-progress-bar {
-    overflow: hidden;
-    height: 5px;
     background-color: #111;
+    height: 100%;
     width: 100%;
-    z-index: -1;
-    -webkit-transition: all 0s;
-    transition: all 0s;
+    overflow: hidden;
 }
-.dashboard-activity-progress .bufferbar {
+.dashboard-activity-progress .buffer-bar {
     padding-right: 3px;
     font-size: x-small;
     text-align: right;
+    line-height: 14px;
     color: rgba(255, 255, 255, 0);
     background-color: #444;
     position: absolute;
-    height: 6px;
+    height: 100%;
     max-width: 100%;
     overflow: hidden;
 }
-.dashboard-activity-progress .bar {
+.dashboard-activity-progress .progress-bar {
     padding-right: 3px;
     font-size: x-small;
     text-align: right;
+    line-height: 14px;
     color: rgba(255, 255, 255, 0);
     background-color: #faa732;
     background-image: -moz-linear-gradient(top, #fbb450, #f89406);
@@ -945,16 +862,40 @@ a .users-poster-face:hover {
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
     position: absolute;
-    height: 6px;
+    height: 100%;
     max-width: 100%;
     overflow: hidden;
+}
+.dashboard-activity-container:hover {
+    height: 249px;
+}
+.dashboard-activity-container:hover .dashboard-activity-progress {
+	height: 14px; 
+}
+.dashboard-activity-container:hover .progress-bar { 
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+}
+.dashboard-activity-container:hover .buffer-bar { 
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+}
+a:hover .dashboard-activity-poster,
+a:hover .dashboard-activity-cover {
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .dashboard-activity-metadata-wrapper {
     position: relative;
     width: 100%;
     height: 50px;
     font-size: 13px;
-    padding: 0 3px;
+    padding: 0px 3px 0 3px;
 }
 .dashboard-activity-metadata-title {
     text-overflow: ellipsis;
@@ -964,7 +905,7 @@ a .users-poster-face:hover {
     font-weight: bold;
     line-height: 25px;
     color: #fff;
-    max-width: 300px;
+    max-width: 100%;
 }
 .dashboard-activity-metadata-subtitle {
     text-overflow: ellipsis;
@@ -974,7 +915,7 @@ a .users-poster-face:hover {
     font-weight: bold;
     line-height: 25px;
     color: #999;
-    max-width: 172px;
+    max-width: 75%;
     float: left;
 }
 .dashboard-activity-metadata-user {
@@ -986,7 +927,7 @@ a .users-poster-face:hover {
     line-height: 25px;
     color: #999;
     text-align: right;
-    max-width: 122px;
+    max-width: 25%;
     float: right;
 }
 .dashboard-activity-metadata-user-thumb {
@@ -1019,12 +960,6 @@ a .dashboard-activity-metadata-user-thumb:hover {
     color: #e9a049;
 }
 .dashboard-activity-metadata-title a:hover {
-    color: #e9a049;
-}
-.dashboard-activity-metadata-progress-wrapper {
-    margin-bottom: 20px;
-    font-size: 12px;
-    font-weight: bold;
     color: #e9a049;
 }
 #dashboard-no-recently-added {
@@ -2429,8 +2364,8 @@ a .home-platforms-list-cover-face:hover
     padding: 15px 15px 15px 15px;
     color: #999;
     -webkit-transition: all 0.3s ease;
-      -o-transition: all 0.3s ease;
-      transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
 }
 .nav-settings > li > a:hover,
 .nav-settings > li > a:focus {

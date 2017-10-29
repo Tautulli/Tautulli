@@ -84,11 +84,11 @@ VIDEO_QUALITY_PROFILES = {20000: '20 Mbps 1080p',
                           3000: '3 Mbps 720p',
                           2000: '2 Mbps 720p',
                           1500: '1.5 Mbps 480p',
-                          720: '720 kbps',
-                          320: '320 kbps',
-                          208: '208 kbps',
-                          96: '96 kbps',
-                          64: '64 kbps'
+                          720: '0.7 Mbps 328p',
+                          320: '0.3 Mbps 240p',
+                          208: '0.2 Mbps 160p',
+                          96: '0.096 Mbps',
+                          64: '0.064 Mbps'
                           }
 
 AUDIO_QUALITY_PROFILES = {512: '512 kbps',
