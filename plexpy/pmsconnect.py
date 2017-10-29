@@ -1081,22 +1081,31 @@ class PmsConnect(object):
                         if helpers.get_xml_attr(stream, 'streamType') == '1':
                             streams.append({'id': helpers.get_xml_attr(stream, 'id'),
                                             'type': helpers.get_xml_attr(stream, 'streamType'),
+                                            'video_codec': helpers.get_xml_attr(stream, 'codec'),
+                                            'video_codec_level': helpers.get_xml_attr(stream, 'level'),
                                             'video_bitrate': helpers.get_xml_attr(stream, 'bitrate'),
                                             'video_bit_depth': helpers.get_xml_attr(stream, 'bitDepth'),
-                                            'video_codec_level': helpers.get_xml_attr(stream, 'level'),
+                                            'video_frame_rate': helpers.get_xml_attr(stream, 'frameRate'),
                                             'video_ref_frames': helpers.get_xml_attr(stream, 'refFrames'),
+                                            'video_height': helpers.get_xml_attr(stream, 'height'),
+                                            'video_width': helpers.get_xml_attr(stream, 'width'),
                                             'video_language': helpers.get_xml_attr(stream, 'language'),
-                                            'video_language_code': helpers.get_xml_attr(stream, 'languageCode')
+                                            'video_language_code': helpers.get_xml_attr(stream, 'languageCode'),
+                                            'video_profile': helpers.get_xml_attr(stream, 'profile')
                                             })
 
                         elif helpers.get_xml_attr(stream, 'streamType') == '2':
                             streams.append({'id': helpers.get_xml_attr(stream, 'id'),
                                             'type': helpers.get_xml_attr(stream, 'streamType'),
+                                            'audio_codec': helpers.get_xml_attr(stream, 'codec'),
                                             'audio_bitrate': helpers.get_xml_attr(stream, 'bitrate'),
                                             'audio_bitrate_mode': helpers.get_xml_attr(stream, 'bitrateMode'),
+                                            'audio_channels': helpers.get_xml_attr(stream, 'channels'),
+                                            'audio_channel_layout': helpers.get_xml_attr(stream, 'audioChannelLayout'),
                                             'audio_sample_rate': helpers.get_xml_attr(stream, 'samplingRate'),
                                             'audio_language': helpers.get_xml_attr(stream, 'language'),
                                             'audio_language_code': helpers.get_xml_attr(stream, 'languageCode'),
+                                            'audio_profile': helpers.get_xml_attr(stream, 'profile')
                                             })
 
                         elif helpers.get_xml_attr(stream, 'streamType') == '3':
@@ -1129,9 +1138,11 @@ class PmsConnect(object):
                                'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
                                'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
+                               'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                'audio_channels': audio_channels,
                                'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
+                               'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
                                'optimized_version': 1 if helpers.get_xml_attr(media, 'proxyType') == '42' else 0,
                                'parts': parts
                                })
@@ -1397,22 +1408,12 @@ class PmsConnect(object):
 
         # Figure out which version is being played
         media_info_all = session.getElementsByTagName('Media')
-        media_parts_stream_info = []
-
-        for stream_media_info in media_info_all:
-            media_part_info_all = stream_media_info.getElementsByTagName('Part')
-
-            for stream_media_parts_info in media_part_info_all:
-                if stream_media_parts_info.getElementsByTagName('Stream'):
-                    media_parts_stream_info = stream_media_parts_info.getElementsByTagName('Stream')
-                    break
-
-            if media_parts_stream_info:
-                break
+        stream_media_info = next((m for m in media_info_all if helpers.get_xml_attr(m, 'selected') == '1'), media_info_all[0])
+        stream_media_parts_info = stream_media_info.getElementsByTagName('Part')[0]
 
         # Get the stream details
         video_stream_info = audio_stream_info = subtitle_stream_info = None
-        for stream in media_parts_stream_info:
+        for stream in stream_media_parts_info.getElementsByTagName('Stream'):
             if helpers.get_xml_attr(stream, 'streamType') == '1':
                 video_stream_info = stream
 
@@ -1466,8 +1467,6 @@ class PmsConnect(object):
         else:
             bif_thumb = ''
 
-        stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
-
         # Generate a combined transcode decision value
         if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
             transcode_decision = 'transcode'
@@ -1482,6 +1481,7 @@ class PmsConnect(object):
         else:
             stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p')
 
+        stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),

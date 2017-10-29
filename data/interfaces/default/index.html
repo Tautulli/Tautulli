@@ -314,7 +314,7 @@
                         $('#transcode_decision-' + key).html(transcode_decision);
 
                         var transcode_container = '';
-                        if (s.container != s.stream_container) {
+                        if (s.stream_container_decision === 'transcode') {
                             transcode_container = 'Transcode (' + s.container.toUpperCase() + ' &rarr; ' + s.stream_container.toUpperCase() + ')';
                         } else {
                             transcode_container = 'Direct Play (' + s.container.toUpperCase() + ')';
@@ -343,11 +343,11 @@
                                 default:
                                     var sv_res = s.stream_video_resolution + 'p'
                             }
-                            if (s.video_decision === 'transcode') {
-                                var hw_d = (s.transcode_hw_requested === '1' && s.transcode_hw_decode && s.transcode_hw_full_pipeline === '0') ? ' (HW)' : '';
-                                var hw_e = (s.transcode_hw_requested === '1' && s.transcode_hw_encode && s.transcode_hw_full_pipeline === '1') ? ' (HW)' : '';
+                            if (s.stream_video_decision === 'transcode') {
+                                var hw_d = (s.transcode_hw_requested === '1' && s.transcode_hw_decode && s.transcode_hw_full_pipeline === '0') ? ' (HW)' : ' (HW)';
+                                var hw_e = (s.transcode_hw_requested === '1' && s.transcode_hw_encode && s.transcode_hw_full_pipeline === '1') ? ' (HW)' : ' (HW)';
                                 video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
-                            } else if (s.video_decision === 'copy') {
+                            } else if (s.stream_video_decision === 'copy') {
                                 video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
                             } else {
                                 video_decision = 'Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')';
@@ -361,23 +361,23 @@
                         if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_codec) {
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
-                            if (s.audio_decision === 'transcode') {
-                                audio_decision = 'Transcode (' + a_codec + ' ' + s.audio_channel_layout + ' &rarr; ' + sa_codec + ' ' + s.stream_audio_channel_layout + ')';
-                            } else if (s.audio_decision === 'copy') {
+                            if (s.stream_audio_decision === 'transcode') {
+                                audio_decision = 'Transcode (' + a_codec + ' ' + s.audio_channel_layout.split('(')[0] + ' &rarr; ' + sa_codec + ' ' + s.stream_audio_channel_layout + ')';
+                            } else if (s.stream_audio_decision === 'copy') {
                                 audio_decision = 'Direct Stream (' + sa_codec + ' ' + s.stream_audio_channel_layout + ')';
                             } else {
-                                audio_decision = 'Direct Play (' + a_codec + ' ' + s.audio_channel_layout + ')';
+                                audio_decision = 'Direct Play (' + a_codec + ' ' + s.audio_channel_layout.split('(')[0] + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
 
                         var subtitle_decision = 'None';
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles == '1') {
-                            if (s.subtitle_decision === 'transcode') {
+                            if (s.stream_subtitle_decision === 'transcode') {
                                 subtitle_decision = 'Transcode (' + s.subtitle_codec.toUpperCase() + ' &rarr; ' + s.stream_subtitle_codec.toUpperCase() + ')';
-                            } else if (s.subtitle_decision === 'copy') {
+                            } else if (s.stream_subtitle_decision === 'copy') {
                                 subtitle_decision = 'Direct Stream (' + s.subtitle_codec.toUpperCase() + ')';
-                            } else if (s.subtitle_decision === 'burn') {
+                            } else if (s.stream_subtitle_decision === 'burn') {
                                 subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
                             } else {
                                 subtitle_decision = 'Direct Play (' + s.subtitle_codec.toUpperCase() + ')';

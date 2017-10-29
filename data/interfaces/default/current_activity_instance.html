@@ -170,7 +170,7 @@ DOCUMENTATION :: END
                         <li class="dashboard-activity-info-item">
                             <div class="sub-heading">Container</div>
                             <div class="sub-value" id="transcode_container-${data['session_key']}">
-                                % if data['container'] != data['stream_container']:
+                                % if data['stream_container_decision'] == 'transcode':
                                 Transcode (${data['container'].upper()} &rarr; ${data['stream_container'].upper()})
                                 % else:
                                 Direct Play (${data['container'].upper()})
@@ -182,13 +182,13 @@ DOCUMENTATION :: END
                             <div class="sub-heading">Video</div>
                             <div class="sub-value" id="video_decision-${data['session_key']}">
                                 % if data['media_type'] in ('movie', 'episode', 'clip'):
-                                    % if data['video_decision'] == 'transcode':
+                                    % if data['stream_video_decision'] == 'transcode':
                                     <%
                                         hw_d = ' (HW)' if data['transcode_hw_requested'] == '1' and data['transcode_hw_decode'] and data['transcode_hw_full_pipeline'] == '0' else ''
                                         hw_e = ' (HW)' if data['transcode_hw_requested'] == '1' and data['transcode_hw_encode'] and data['transcode_hw_full_pipeline'] == '1' else ''
                                     %>
                                     Transcode (${data['video_codec'].upper()}${hw_d} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()}${hw_e} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
-                                    % elif data['video_decision'] == 'copy':
+                                    % elif data['stream_video_decision'] == 'copy':
                                     Direct Stream (${data['stream_video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
                                     % else:
                                     Direct Play (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])})
@@ -203,12 +203,12 @@ DOCUMENTATION :: END
                         <li class="dashboard-activity-info-item">
                             <div class="sub-heading">Audio</div>
                             <div class="sub-value" id="audio_decision-${data['session_key']}">
-                                % if data['audio_decision'] == 'transcode':
-                                Transcode (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']} &rarr; ${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})
-                                % elif data['audio_decision'] == 'copy':
+                                % if data['stream_audio_decision'] == 'transcode':
+                                Transcode (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0]} &rarr; ${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})
+                                % elif data['stream_audio_decision'] == 'copy':
                                 Direct Stream (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})
                                 % else:
-                                Direct Play (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']})
+                                Direct Play (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0]})
                                 % endif
                             </div>
                         </li>
@@ -218,11 +218,11 @@ DOCUMENTATION :: END
                             <div class="sub-heading">Subtitle</div>
                             <div class="sub-value" id="subtitle_decision-${data['session_key']}">
                                 % if data['subtitles'] == '1':
-                                    % if data['subtitle_decision'] == 'transcode':
+                                    % if data['stream_subtitle_decision'] == 'transcode':
                                     Transcode (${data['subtitle_codec'].upper()} &rarr; ${data['stream_subtitle_codec'].upper()})
-                                    % elif data['subtitle_decision'] == 'copy':
+                                    % elif data['stream_subtitle_decision'] == 'copy':
                                     Direct Stream (${data['subtitle_codec'].upper()})
-                                    % elif data['subtitle_decision'] == 'burn':
+                                    % elif data['stream_subtitle_decision'] == 'burn':
                                     Burn (${data['subtitle_codec'].upper()})
                                     % else:
                                     Direct Play (${data['subtitle_codec'].upper()})
