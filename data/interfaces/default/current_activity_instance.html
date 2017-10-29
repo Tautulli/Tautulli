@@ -184,8 +184,11 @@ DOCUMENTATION :: END
                                 % if data['media_type'] in ('movie', 'episode', 'clip'):
                                     % if data['stream_video_decision'] == 'transcode':
                                     <%
-                                        hw_d = ' (HW)' if data['transcode_hw_requested'] == '1' and data['transcode_hw_decode'] and data['transcode_hw_full_pipeline'] == '0' else ''
-                                        hw_e = ' (HW)' if data['transcode_hw_requested'] == '1' and data['transcode_hw_encode'] and data['transcode_hw_full_pipeline'] == '1' else ''
+                                        hw_d = hw_e = ''
+                                        if data['transcode_hw_requested'] == '1' and data['transcode_hw_full_pipeline'] == '0':
+                                            hw_d = ' (HW)'
+                                        elif data['transcode_hw_requested'] == '1' and data['transcode_hw_full_pipeline'] == '1':
+                                            hw_d = hw_e = ' (HW)'
                                     %>
                                     Transcode (${data['video_codec'].upper()}${hw_d} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()}${hw_e} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
                                     % elif data['stream_video_decision'] == 'copy':

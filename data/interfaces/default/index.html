@@ -360,8 +360,14 @@
                                     var sv_res = s.stream_video_resolution + 'p'
                             }
                             if (s.stream_video_decision === 'transcode') {
-                                var hw_d = (s.transcode_hw_requested === '1' && s.transcode_hw_decode && s.transcode_hw_full_pipeline === '0') ? ' (HW)' : ' (HW)';
-                                var hw_e = (s.transcode_hw_requested === '1' && s.transcode_hw_encode && s.transcode_hw_full_pipeline === '1') ? ' (HW)' : ' (HW)';
+                                var hw_d = '';
+                                var hw_e = '';
+                                if (s.transcode_hw_requested === '1' && s.transcode_hw_full_pipeline === '0') {
+                                    hw_d = ' (HW)';
+                                } else if (s.transcode_hw_requested === '1' && s.transcode_hw_full_pipeline === '1') {
+                                    hw_d = ' (HW)';
+                                    hw_e = ' (HW)';
+                                }
                                 video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
                             } else if (s.stream_video_decision === 'copy') {
                                 video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
