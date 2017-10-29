@@ -181,6 +181,22 @@
 
 <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
 </div>
+<div class="modal fade wide" id="raw-stream-info-modal" tabindex="-1" role="dialog" aria-labelledby="raw-stream-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Raw Stream Info: <strong><span id="raw-stream-info-title"></span> (<span id="raw-stream-info-user"></span>)</strong></h4>
+            </div>
+            <div class="modal-body">
+                <pre id="raw-stream-info"></pre>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
 
 </%def>
 
@@ -466,6 +482,27 @@
             ip_address: $(this).data('ip')
         }).then(function (jqXHR) {
             $("#ip-info-modal").html(jqXHR);
+        });
+    });
+
+    $('#currentActivity').on('click', '.raw-stream-info-modal', function () {
+        $.ajax({
+            url: 'get_activity',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: {
+                session_key: $(this).data('key')
+            },
+            error: function (xhr, status, error) {
+                console.log(status + ': ' + error);
+            },
+            complete: function (xhr, status) {
+                var session = $.parseJSON(xhr.responseText);
+                $('#raw-stream-info-title').text(session.full_title);
+                $('#raw-stream-info-user').text(session.friendly_name);
+                $('#raw-stream-info').text(JSON.stringify(session, null, '\t'));
+            }
         });
     });
 

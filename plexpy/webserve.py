@@ -4332,7 +4332,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_activity(self, **kwargs):
+    def get_activity(self, session_key=None, **kwargs):
         """ Get the current activity on the PMS.
 
             ```
@@ -4345,7 +4345,7 @@ class WebInterface(object):
             Returns:
                 json:
                     {"stream_count": 3,
-                     "session":
+                     "sessions":
                         [{"art": "/library/metadata/1219/art/1462175063",
                           "aspect_ratio": "1.78",
                           "audio_channels": "6",
@@ -4418,6 +4418,9 @@ class WebInterface(object):
                     if not session['ip_address']:
                         ip_address = data_factory.get_session_ip(session['session_key'])
                         session['ip_address'] = ip_address
+
+                if session_key:
+                    return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
 
                 return result
             else:

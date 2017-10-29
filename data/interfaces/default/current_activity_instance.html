@@ -151,7 +151,7 @@ DOCUMENTATION :: END
                     </ul>
                     <ul class="list-unstyled dashboard-activity-info-list">
                         <li class="dashboard-activity-info-item">
-                            <div class="sub-heading">Stream</div>
+                            <div class="sub-heading"><span class="raw-stream-info-modal" data-toggle="modal" data-target="#raw-stream-info-modal" data-key="${data['session_key']}">Stream</span></div>
                             <div class="sub-value" id="transcode_decision-${data['session_key']}">
                                 % if data['transcode_decision'] == 'transcode':
                                 Transcode
