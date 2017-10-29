@@ -269,7 +269,7 @@
                             default:
                                 var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
                         }
-                        $('#play-state-' + key).html(state_icon);
+                        $('#play-state-' + key).html(state_icon).attr('title', capitalizeFirstLetter(s.state));
 
                         // Switching tracks can be under the same session key, so need to update the info.
                         if (s.media_type === 'track') {

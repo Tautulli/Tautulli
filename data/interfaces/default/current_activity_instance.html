@@ -309,7 +309,7 @@ DOCUMENTATION :: END
         <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
         % endif
         <div class="dashboard-activity-metadata-title">
-            <span id="play-state-${data['session_key']}">
+            <span id="play-state-${data['session_key']}" title="${data['state'].capitalize()}">
                 % if data['state'] == 'playing':
                 <i class="fa fa-fw fa-play"></i>&nbsp;
                 % elif data['state'] == 'paused':
@@ -339,6 +339,19 @@ DOCUMENTATION :: END
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
+            <span id="media-type-${data['session_key']}" title="${data['media_type'].capitalize()}">
+                % if data['media_type'] == 'movie':
+                <i class="fa fa-fw fa-film"></i>&nbsp;
+                % elif data['media_type'] == 'episode':
+                <i class="fa fa-fw fa-television"></i>&nbsp;
+                % elif data['media_type'] == 'track':
+                <i class="fa fa-fw fa-music"></i>&nbsp;
+                % elif data['media_type'] == 'photo':
+                <i class="fa fa-fw fa-picture-o"></i>&nbsp;
+                % elif data['media_type'] == 'clip':
+                <i class="fa fa-fw fa-video-camera"></i>&nbsp;
+                % endif
+            </span>
             % if data['rating_key']:
                 % if data['media_type'] == 'episode':
                 <a href="info?rating_key=${data['parent_rating_key']}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
