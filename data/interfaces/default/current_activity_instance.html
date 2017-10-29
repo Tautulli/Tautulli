@@ -106,7 +106,7 @@ DOCUMENTATION :: END
                 </div>
                 % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
                 <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}">
-                    <span class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
+                    <span id="terminate-button-icon-${data['session_key']}" class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
                         <i class="fa fa-times"></i>
                     </span>
                 </div>
@@ -266,9 +266,8 @@ DOCUMENTATION :: END
                                         bw = round(bw / 1000.0, 1)
                                         bw_units = "Mbps"
                                 %>
-                                <span id="streaming-brain-${data['session_key']}" data-toggle="tooltip" title="Streaming Brain Estimate">
-                                    <span id="stream-bandwidth-${data['session_key']}">${bw} ${bw_units}</span>
-                                </span>
+                                <span id="stream-bandwidth-${data['session_key']}">${bw} ${bw_units}</span>
+                                <span id="streaming-brain-${data['session_key']}" data-toggle="tooltip" title="Streaming Brain Estimate"><i class="fa fa-info-circle"></i></span>
                                 % endif
                             </div>
                         </li>
