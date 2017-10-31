@@ -1867,19 +1867,51 @@ a .library-user-instance-box:hover {
     margin: 0;
 }
 .home-platforms-instance {
-    background-color: #282828;
     position: relative;
     float: left;
-    width: 330px;
-    padding: 10px;
+    width: 340px;
+    padding: 5px;
     margin-right: 20px;
     margin-bottom: 20px;
     -webkit-box-sizing: content-box;
     box-sizing: content-box;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     white-space: nowrap;
+}
+.home-platforms-instance-overlay {
+    height: 130px;
+    width: 100%;
+    padding: 5px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    z-index: 0;
+}
+.home-platforms-instance-background {
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
+    height: 130px;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0.15;
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    filter: blur(3px);
+    -webkit-transition: background 1s linear;
+    transition: background 1s linear;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    z-index: -1;
 }
 .home-platforms-instance li {
     position: relative;
@@ -2204,8 +2236,8 @@ a .library-user-instance-box:hover {
 }
 .home-platforms-instance-list-chevron {
     position: absolute;
-    top: 105px;
-    right: 0;
+    top: 100px;
+    right: 5px;
     cursor: pointer;
 }
 .home-platforms-instance-list-chevron i {
@@ -2243,13 +2275,13 @@ a .home-platforms-list-cover-face:hover
     width: calc(100% + 20px);
     display: none;
     position: absolute;
-    top: 128px;
-    left: -10px;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    top: 124px;
+    left: -5px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     z-index: 1;
-    clip: rect(1px, 354px, 1000px, -2px);
+    clip: rect(1px, 350px, 1000px, -2px);
 }
 .history-table-title {
     text-overflow: ellipsis;

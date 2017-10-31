@@ -75,6 +75,9 @@ DOCUMENTATION :: END
     % for top_stat in data:
     % if top_stat['stat_id'] == 'top_tv' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -181,6 +184,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'popular_tv' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -279,6 +285,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'top_movies' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -385,6 +394,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'popular_movies' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -483,6 +495,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'top_music' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -589,6 +604,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'popular_music' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -687,6 +705,13 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'top_users' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            % if top_stat['rows'][0]['user_thumb'] != '':
+            <div class="home-platforms-instance-background" style="background-image: url(${top_stat['rows'][0]['user_thumb']}"></div>
+            % else:
+            <div class="home-platforms-instance-background" style="background-image: url(${http_root}images/gravatar-default.png}"></div>
+            % endif
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -783,6 +808,12 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'top_platforms' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div id="platform-stat-background" class="home-platforms-instance-background"></div>
+            <script>
+                $("#platform-stat-background").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
+            </script>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -845,6 +876,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'last_watched' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
@@ -971,6 +1005,9 @@ DOCUMENTATION :: END
     </div>
     % elif top_stat['stat_id'] == 'most_concurrent' and top_stat['rows']:
     <div class="home-platforms-instance">
+        <div class="home-platforms-instance-overlay">
+            <div class="home-platforms-instance-background" style="background-image: url(${http_root}images/home-stat_most-concurrent.png)"></div>
+        </div>
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
