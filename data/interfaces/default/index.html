@@ -472,7 +472,7 @@
                 $('#currentActivity').append(xhr.responseText);
                 $('#instance-' + session.session_key + ' .dashboard-activity-info-scroller').scrollbar();
                 $('#instance-' + session.session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 })
-                $('#terminate-button-icon-' + session.session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
+                $('#terminate-button-' + session.session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
             }
         });
     }

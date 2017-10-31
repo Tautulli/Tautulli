@@ -15,6 +15,9 @@
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
     <link href="${http_root}css/plexpy.css" rel="stylesheet">
+    % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
+    <link href="${http_root}css/plexpy-admin.css" rel="stylesheet">
+    % endif
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}

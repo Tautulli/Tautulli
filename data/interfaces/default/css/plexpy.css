@@ -750,6 +750,9 @@ a .users-poster-face:hover {
     -webkit-transition: all .2s;
     transition: all .2s;
 }
+.dashboard-activity-terminate-session:hover {
+    color: #e9a049;
+}
 .dashboard-activity-info-scroller {
     height: 225px;
     width: 335px;
@@ -858,17 +861,6 @@ a .users-poster-face:hover {
 .dashboard-activity-container:hover {
     height: 249px;
 }
-.dashboard-activity-container:hover .dashboard-activity-info-platform {
-    opacity: 0;
-}
-.dashboard-activity-container:hover .dashboard-activity-terminate-session {
-    background-color: rgba(0, 0, 0, 0.25);
-    opacity: 1;
-    cursor: pointer;
-}
-.dashboard-activity-terminate-session .btn-terminate-session:hover {
-    color: #e9a049;
-}
 .dashboard-activity-container:hover .dashboard-activity-progress {
 	height: 14px; 
 }
@@ -915,7 +907,7 @@ a:hover .dashboard-activity-cover {
     font-weight: bold;
     line-height: 25px;
     color: #999;
-    max-width: 75%;
+    max-width: 320px;
     float: left;
 }
 .dashboard-activity-metadata-user {
@@ -927,7 +919,7 @@ a:hover .dashboard-activity-cover {
     line-height: 25px;
     color: #999;
     text-align: right;
-    max-width: 25%;
+    width: 124px;
     float: right;
 }
 .dashboard-activity-metadata-user-thumb {

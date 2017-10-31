@@ -105,10 +105,8 @@ DOCUMENTATION :: END
                     </script>
                 </div>
                 % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
-                <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}">
-                    <span id="terminate-button-icon-${data['session_key']}" class="btn-terminate-session" data-toggle="tooltip" title="Terminate Stream">
-                        <i class="fa fa-times"></i>
-                    </span>
+                <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" data-toggle="tooltip" title="Terminate Stream">
+                    <i class="fa fa-times"></i>
                 </div>
                 % endif
             </div>

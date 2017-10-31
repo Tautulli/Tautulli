@@ -1,0 +1,8 @@
+.dashboard-activity-container:hover .dashboard-activity-info-platform {
+    opacity: 0;
+}
+.dashboard-activity-container:hover .dashboard-activity-terminate-session {
+    background-color: rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    cursor: pointer;
+}
