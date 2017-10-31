@@ -645,6 +645,20 @@ a .users-poster-face:hover {
     padding: 0px;
     -webkit-transition: all .2s ease-in-out;
     transition: all .2s ease-in-out;
+    overflow: hidden;
+}
+.dashboard-activity-background-overlay {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    height: 235px;
+    width: 100%;
+    padding: 5px;
+    overflow: hidden;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .dashboard-activity-background {
     background-color: #282828;
@@ -666,19 +680,6 @@ a .users-poster-face:hover {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: -1;
-}
-.dashboard-activity-background-overlay {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-wrap: nowrap;
-    flex-wrap: nowrap;
-    height: 235px;
-    width: 100%;
-    padding: 5px;
-    overflow: hidden;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .dashboard-activity-poster {
     background-position: center;
@@ -814,12 +815,10 @@ a .users-poster-face:hover {
 .dashboard-activity-progress {
     width: 100%;
     height: 5px;
-	border-radius: 0px 0px 3px 3px;
     -webkit-transition: all .2s ease-in-out;
     transition: all .2s ease-in-out;
 	transform-origin: top;
-    position: absolute;
-    top: 235px;
+    overflow: hidden;
 }
 .dashboard-activity-progress-bar {
     background-color: #111;
