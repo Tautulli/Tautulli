@@ -282,11 +282,11 @@ DOCUMENTATION :: END
                     <script>
                     $("#stream-eta-${data['session_key']}").html(moment().add(parseInt("${data['duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
                     </script>
-                </span><br /><span class="progress_time" id="stream-view-offset-${data['session_key']}">
+                </span><br /><span class="progress_time_offset" id="stream-view-offset-${data['session_key']}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-state="${data['state']}">
                     <script>
                     $("#stream-view-offset-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
                     </script>
-                </span> / <span class="progress_time" id="stream-duration-${data['session_key']}">
+                </span> / <span class="progress_time_total" id="stream-duration-${data['session_key']}">
                     <script>
                     $("#stream-duration-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['duration']}"), false));
                     </script>

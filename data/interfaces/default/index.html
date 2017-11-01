@@ -227,7 +227,6 @@
             }
         });
     }
-    currentActivityHeader();
 
     function getCurrentActivity() {
         $.ajax({
@@ -431,7 +430,10 @@
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
-                        $('#stream-view-offset-' + key).html(millisecondsToMinutes(s.view_offset, false));
+                        $('#stream-view-offset-' + key).data('state', s.state);
+                        if ($('#stream-view-offset-' + key).data('last_view_offset') != s.view_offset) {
+                            $('#stream-view-offset-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
 
                         // Update the progress bars, percent - 3 because of 3px padding-right
                         $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
@@ -477,11 +479,22 @@
         });
     }
 
+    currentActivityHeader();
     getCurrentActivity();
     setInterval(function () {
         currentActivityHeader();
         getCurrentActivity();
     }, 2000);
+
+    setInterval( function(){
+        $('.progress_time_offset').each(function () {
+            if ($(this).data('state') === 'playing') {
+                var ms = parseInt($(this).data('view_offset'));
+                var timestamp = millisecondsToMinutes(ms, false);
+                $(this).html(timestamp).data('view_offset', ms + 1000)
+            }
+        });
+    }, 1000);
 
     $('#currentActivity').on('click', '.external_ip-modal', function () {
         $.get('get_ip_address_details', {
