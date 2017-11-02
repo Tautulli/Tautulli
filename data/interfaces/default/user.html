@@ -367,10 +367,10 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <script src="${http_root}js/moment-with-locale.js"></script>
-<script src="${http_root}js/tables/history_table.js"></script>
-<script src="${http_root}js/tables/user_ips.js"></script>
-<script src="${http_root}js/tables/sync_table.js"></script>
-<script src="${http_root}js/tables/login_logs.js"></script>
+<script src="${http_root}js/tables/history_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/user_ips.js${cache_param}"></script>
+<script src="${http_root}js/tables/sync_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/login_logs.js${cache_param}"></script>
 <script>
     $(document).ready(function () {
 

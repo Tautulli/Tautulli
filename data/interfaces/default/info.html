@@ -509,7 +509,7 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 
 % if data:
-<script src="${http_root}js/tables/history_table.js"></script>
+<script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 % if data['media_type'] in ('show', 'artist'):
 <script>
     function get_history() {

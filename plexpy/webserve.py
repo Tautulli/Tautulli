@@ -61,13 +61,15 @@ def serve_template(templatename, **kwargs):
 
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
+    http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
+    cache_param = '?' + plexpy.CURRENT_VERSION or common.VERSION_NUMBER
 
     _session = get_session_info()
 
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name,
+        return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
                                _session=_session, **kwargs)
     except:
         return exceptions.html_error_template().render()
