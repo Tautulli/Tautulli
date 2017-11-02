@@ -833,6 +833,7 @@ a .users-poster-face:hover {
     background-color: #111;
     height: 100%;
     width: 100%;
+    position: relative;
     overflow: hidden;
 }
 .dashboard-activity-progress .buffer-bar {

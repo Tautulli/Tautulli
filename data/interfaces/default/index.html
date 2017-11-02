@@ -442,8 +442,10 @@
                         // Update the progress bars, percent - 3 because of 3px padding-right
                         $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
-                        $('#progress-bar-' + key).width(parseInt(s.progress_percent) - 3 + '%').html(s.progress_percent + '%')
-                            .attr('data-original-title', 'Stream Progress ' + s.progress_percent + '%');
+                        $('#progress-bar-' + key).data('state', s.state);
+                        if ($('#progress-bar-' + key).data('last_view_offset') != s.view_offset) {
+                            $('#progress-bar-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
 
                         // Add temporary class so we know which instances are still active
                         instance.addClass('updated-temp');
@@ -493,9 +495,19 @@
     setInterval( function(){
         $('.progress_time_offset').each(function () {
             if ($(this).data('state') === 'playing') {
-                var ms = parseInt($(this).data('view_offset'));
-                var timestamp = millisecondsToMinutes(ms, false);
-                $(this).html(timestamp).data('view_offset', ms + 1000)
+                var view_offset = parseInt($(this).data('view_offset'));
+                var timestamp = millisecondsToMinutes(view_offset, false);
+                $(this).html(timestamp).data('view_offset', view_offset + 1000)
+            }
+        });
+        $('.progress-bar').each(function () {
+            if ($(this).data('state') === 'playing') {
+                var view_offset = parseInt($(this).data('view_offset'));
+                var duration = parseInt($(this).data('stream_duration'));
+                var progress_percent = Math.trunc(view_offset / duration * 100)
+                $(this).width(progress_percent - 3 + '%').html(progress_percent + '%')
+                    .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
+                    .data('view_offset', view_offset + 1000);
             }
         });
     }, 1000);

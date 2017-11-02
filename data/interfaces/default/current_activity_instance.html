@@ -273,9 +273,9 @@ DOCUMENTATION :: END
                                     bw = helpers.cast_to_int(data['bandwidth']) or "Unknown"
                                     if bw != "Unknown":
                                         if bw > 1000:
-                                            bw = str(round(bw / 1000.0, 1)) + ' Mbps'
+                                            bw = str(round(bw / 1000.0, 1)) + 'Mbps'
                                         else:
-                                            bw = str(bw) + ' kbps'
+                                            bw = str(bw) + 'kbps'
                                 %>
                                 <span id="stream-bandwidth-${data['session_key']}">${bw}</span>
                                 <span id="streaming-brain-${data['session_key']}" data-toggle="tooltip" title="Streaming Brain Estimate"><i class="fa fa-info-circle"></i></span>
@@ -307,7 +307,7 @@ DOCUMENTATION :: END
         <div class="dashboard-activity-progress">
             <div class="dashboard-activity-progress-bar">
                 <div id="buffer-bar-${data['session_key']}" class="buffer-bar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress ${data['transcode_progress']}%">${data['transcode_progress']}%</div>
-                <div id="progress-bar-${data['session_key']}" class="progress-bar" style="width: ${data['progress_percent']}%" data-toggle="tooltip" title="Stream Progress ${data['progress_percent']}%">${data['progress_percent']}%</div>
+                <div id="progress-bar-${data['session_key']}" class="progress-bar" style="width: ${data['progress_percent']}%" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}" data-toggle="tooltip" title="Stream Progress ${data['progress_percent']}%">${data['progress_percent']}%</div>
             </div>
         </div>
     </div>
