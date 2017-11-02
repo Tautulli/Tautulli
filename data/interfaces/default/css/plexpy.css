@@ -737,6 +737,15 @@ a .users-poster-face:hover {
     -webkit-transition: all .2s ease-in-out;
     transition: all .2s ease-in-out;
 }
+.dashboard-activity-info-platform-no-terminate {
+    background-position: center;
+    background-size: cover;
+    width: 50px;
+    height: 50px;
+    opacity: 1;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
 .dashboard-activity-terminate-session {
     width: 100%;
     height: 100%;
@@ -880,6 +889,14 @@ a:hover .dashboard-activity-cover {
     -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
+}
+.dashboard-activity-container:hover .dashboard-activity-info-platform {
+    opacity: 0;
+}
+.dashboard-activity-container:hover .dashboard-activity-terminate-session {
+    background-color: rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    cursor: pointer;
 }
 .dashboard-activity-metadata-wrapper {
     position: relative;

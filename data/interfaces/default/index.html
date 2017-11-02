@@ -177,10 +177,6 @@
         </div>
     </div>
 </div>
-% endif
-
-<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-</div>
 <div class="modal fade wide" id="raw-stream-info-modal" tabindex="-1" role="dialog" aria-labelledby="raw-stream-info-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -196,6 +192,10 @@
             </div>
         </div>
     </div>
+</div>
+% endif
+
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
 </div>
 
 </%def>
@@ -407,26 +407,30 @@
                         $('#subtitle_decision-' + key).html(subtitle_decision);
 
                         // Update the stream quality profile and bandwidth
-                        if (s.media_type != 'photo') {
-                            var br = parseInt(s.stream_bitrate) || 'Unknown';
-                            var br_units = 'kbps'
-                            if (br != "Unknown" && br > 1000) {
-                                br = (br / 1000).toFixed(1);
-                                br_units = 'Mbps';
+                        if (s.media_type != 'photo' && s.quality_profile != 'Unknown') {
+                            var br = parseInt(s.stream_bitrate) || '';
+                            if (br) {
+                                if (br > 1000) {
+                                    br = ' (' + (br / 1000).toFixed(1) + 'Mbps)';
+                                } else {
+                                    br = ' (' + br + 'kbps)';
+                                }
                             }
-                            $('#stream_quality-' + key).html(s.quality_profile + ' (' + br + ' ' + br_units + ')');
+                            $('#stream_quality-' + key).html(s.quality_profile + br);
                         } else {
                             $('#stream_quality-' + key).html(s.quality_profile);
                         }
                         $('#optimized_version-' + key).html(s.optimized_version_profile);
 
                         var bw = parseInt(s.bandwidth) || 'Unknown';
-                        var bw_units = 'kbps'
-                        if (bw != "Unknown" && bw > 1000) {
-                            bw = (bw / 1000).toFixed(1);
-                            bw_units = 'Mbps';
+                        if (bw != "Unknown") {
+                            if (bw > 1000) {
+                                bw = (bw / 1000).toFixed(1) + 'Mbps';
+                            } else {
+                                bw = bw + ' kbps'
+                            }
                         }
-                        $('#stream-bandwidth-' + key).html(bw + ' ' + bw_units);
+                        $('#stream-bandwidth-' + key).html(bw );
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));

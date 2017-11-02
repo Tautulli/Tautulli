@@ -79,32 +79,36 @@ DOCUMENTATION :: END
                 <div id="background-${data['session_key']}" class="dashboard-activity-background" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art&refresh=true&clip=true);"></div>
                 % endif
             % endif
-            % if data['media_type'] == 'movie':
-            <a id="poster-url-${data['session_key']}" href="info?rating_key=${data['rating_key']}" title="${data['title']}" class="hidden-xs">
-                <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+            <% 
+                if data['media_type'] in ('movie', 'clip'):
+                    rating_key = data['rating_key']
+                    title = data['title']
+                    thumb = data['thumb']
+                elif data['media_type'] in ('track', 'photo'):
+                    rating_key = data['parent_rating_key']
+                    title = data['parent_title']
+                    thumb = data['parent_thumb']
+                elif data['media_type'] in ('episode'):
+                    rating_key = data['grandparent_rating_key']
+                    title = data['grandparent_title']
+                    thumb = data['grandparent_thumb']
+            %>
+            % if data['rating_key'] and data['media_type'] not in ('photo', 'clip'):
+            <a id="poster-url-${data['session_key']}" href="info?rating_key=${rating_key}" title="${title}" class="hidden-xs">
+                <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${thumb}&width=300&height=450&fallback=poster&refresh=true);"></div>
             </a>
-            % elif data['media_type'] == 'episode':
-            <a id="poster-url-${data['session_key']}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}" class="hidden-xs">
-                <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poste&refresh=truer);"></div>
-            </a>
-            % elif data['media_type'] == 'track':
-            <a id="poster-url-${data['session_key']}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}" class="hidden-xs">
-                <div id="poster-${data['session_key']}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
-            </a>
-            % elif data['media_type'] == 'photo':
-            <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
-            % elif data['media_type'] == 'clip':
-            <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+            % elif data['media_type']:
+            <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${thumb}&width=300&height=450&fallback=poster&refresh=true);"></div>
             % else:
             <div id="poster-${data['session_key']}" class="dashboard-activity-poster" style="background-image: url(images/art.png);"></div>
             % endif
             <div class="dashboard-activity-info-icon">
-                <div id="platform-${data['session_key']}" class="dashboard-activity-info-platform" title="${data['platform']}">
+                <div id="platform-${data['session_key']}" class="dashboard-activity-info-platform${'-no-terminate' if not _session['user_group'] == 'admin' else ''}" title="${data['platform']}">
                     <script>
                             $("#platform-${data['session_key']}").css("background-image", "url(" + getPlatformImagePath('${data['platform']}') + ")");
                     </script>
                 </div>
-                % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS:
+                % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS and data['session_id']:
                 <div class="dashboard-activity-terminate-session" id="terminate-button-${data['session_key']}" data-key="${data['session_key']}" data-id="${data['session_id']}" data-toggle="tooltip" title="Terminate Stream">
                     <i class="fa fa-times"></i>
                 </div>
@@ -124,15 +128,16 @@ DOCUMENTATION :: END
                         <li class="dashboard-activity-info-item">
                             <div class="sub-heading">Quality</div>
                             <div class="sub-value" id="stream_quality-${data['session_key']}">
-                                % if data['media_type'] != 'photo':
+                                % if data['media_type'] != 'photo' and data['quality_profile'] != 'Unknown':
                                 <%
-                                    br = helpers.cast_to_int(data['stream_bitrate']) or "Unknown"
-                                    br_units = "kbps"
-                                    if br != "Unknown" and br > 1000:
-                                        br = round(br / 1000.0, 1)
-                                        br_units = "Mbps"
+                                    br = helpers.cast_to_int(data['stream_bitrate']) or ''
+                                    if br:
+                                        if br > 1000:
+                                            br = '(' + str(round(br / 1000.0, 1)) + 'Mbps)'
+                                        else:
+                                            br = '(' + str(br) + 'kbps)'
                                 %>
-                                ${data['quality_profile']} (${br} ${br_units})
+                                ${data['quality_profile']} ${br}
                                 % else:
                                 ${data['quality_profile']}
                                 % endif
@@ -149,7 +154,11 @@ DOCUMENTATION :: END
                     </ul>
                     <ul class="list-unstyled dashboard-activity-info-list">
                         <li class="dashboard-activity-info-item">
-                            <div class="sub-heading"><span class="raw-stream-info-modal" data-toggle="modal" data-target="#raw-stream-info-modal" data-key="${data['session_key']}">Stream</span></div>
+                            % if _session['user_group'] == 'admin':
+                            <div class="sub-heading"><span class="raw-stream-info-modal" data-toggle="modal" data-target="#raw-stream-info-modal" data-key="${data['session_key']}">Stream</span></div>\
+                            % else:
+                            <div class="sub-heading">Stream</div>
+                            % endif
                             <div class="sub-value" id="transcode_decision-${data['session_key']}">
                                 % if data['transcode_decision'] == 'transcode':
                                 Transcode
@@ -239,7 +248,7 @@ DOCUMENTATION :: END
                         <li class="dashboard-activity-info-item">
                             <div class="sub-heading">Location</div>
                             <div class="sub-value">
-                                % if data['ip_address']:
+                                % if data['ip_address'] != 'N/A':
                                 ${'LAN' if data['local'] == '1' else 'WAN'}: ${data['ip_address']} 
                                 <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
                                     <span id="external_ip-${data['session_key']}" class="external-ip-tooltip" data-toggle="tooltip" title="Lookup IP" style="display: none;"><i class="fa fa-map-marker"></i></span>
@@ -262,12 +271,13 @@ DOCUMENTATION :: END
                                 % if data['media_type'] != 'photo' and 'location' in data:
                                 <%
                                     bw = helpers.cast_to_int(data['bandwidth']) or "Unknown"
-                                    bw_units = "kbps"
-                                    if bw != "Unknown" and bw > 1000:
-                                        bw = round(bw / 1000.0, 1)
-                                        bw_units = "Mbps"
+                                    if bw != "Unknown":
+                                        if bw > 1000:
+                                            bw = str(round(bw / 1000.0, 1)) + ' Mbps'
+                                        else:
+                                            bw = str(bw) + ' kbps'
                                 %>
-                                <span id="stream-bandwidth-${data['session_key']}">${bw} ${bw_units}</span>
+                                <span id="stream-bandwidth-${data['session_key']}">${bw}</span>
                                 <span id="streaming-brain-${data['session_key']}" data-toggle="tooltip" title="Streaming Brain Estimate"><i class="fa fa-info-circle"></i></span>
                                 % endif
                             </div>
@@ -340,6 +350,7 @@ DOCUMENTATION :: END
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
+            % if data['rating_key']:
             <span id="media-type-${data['session_key']}" title="${data['media_type'].capitalize()}">
                 % if data['media_type'] == 'movie':
                 <i class="fa fa-fw fa-film"></i>&nbsp;
@@ -353,6 +364,7 @@ DOCUMENTATION :: END
                 <i class="fa fa-fw fa-video-camera"></i>&nbsp;
                 % endif
             </span>
+            % endif
             % if data['rating_key']:
                 % if data['media_type'] == 'episode':
                 <a href="info?rating_key=${data['parent_rating_key']}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
