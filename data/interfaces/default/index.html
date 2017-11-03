@@ -324,7 +324,7 @@
                         } else if (s.transcode_decision === 'copy') {
                             transcode_decision = 'Direct Stream';
                         } else {
-                            transcode_decision = 'Direct Play';
+                            transcode_decision = 'Direct Play' + ((s.synced_version == 1) ? ' (Synced)' : '');
                         }
                         $('#transcode_decision-' + key).html(transcode_decision);
 
@@ -383,11 +383,11 @@
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
-                                audio_decision = 'Transcode (' + a_codec + ' ' + s.audio_channel_layout.split('(')[0] + ' &rarr; ' + sa_codec + ' ' + s.stream_audio_channel_layout + ')';
+                                audio_decision = 'Transcode (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' &rarr; ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else if (s.stream_audio_decision === 'copy') {
-                                audio_decision = 'Direct Stream (' + sa_codec + ' ' + s.stream_audio_channel_layout + ')';
+                                audio_decision = 'Direct Stream (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else {
-                                audio_decision = 'Direct Play (' + a_codec + ' ' + s.audio_channel_layout.split('(')[0] + ')';
+                                audio_decision = 'Direct Play (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
@@ -411,9 +411,9 @@
                             var br = parseInt(s.stream_bitrate) || '';
                             if (br) {
                                 if (br > 1000) {
-                                    br = ' (' + (br / 1000).toFixed(1) + 'Mbps)';
+                                    br = ' (' + (br / 1000).toFixed(1) + ' Mbps)';
                                 } else {
-                                    br = ' (' + br + 'kbps)';
+                                    br = ' (' + br + ' kbps)';
                                 }
                             }
                             $('#stream_quality-' + key).html(s.quality_profile + br);
@@ -422,15 +422,17 @@
                         }
                         $('#optimized_version-' + key).html(s.optimized_version_profile);
 
-                        var bw = parseInt(s.bandwidth) || 'Unknown';
-                        if (bw != "Unknown") {
-                            if (bw > 1000) {
-                                bw = (bw / 1000).toFixed(1) + 'Mbps';
-                            } else {
-                                bw = bw + ' kbps'
+                        if (s.media_type != 'photo' && s.bandwidth) {
+                            var bw = parseInt(s.bandwidth) || 'Unknown';
+                            if (bw != "Unknown") {
+                                if (bw > 1000) {
+                                    bw = (bw / 1000).toFixed(1) + ' Mbps';
+                                } else {
+                                    bw = bw + ' kbps'
+                                }
                             }
+                            $('#stream-bandwidth-' + key).html(bw);
                         }
-                        $('#stream-bandwidth-' + key).html(bw );
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));

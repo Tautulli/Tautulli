@@ -1312,6 +1312,9 @@ class PmsConnect(object):
         Output: dict
         """
 
+        # Get the source media type
+        media_type = helpers.get_xml_attr(session, 'type')
+
         # Get the user details
         user_info = session.getElementsByTagName('User')[0]
         user_details = users.Users().get_details(user=helpers.get_xml_attr(user_info, 'title'))
@@ -1406,6 +1409,20 @@ class PmsConnect(object):
                                  'throttled': '0'  # Keep for backwards compatibility
                                  }
 
+        # Generate a combined transcode decision value
+        if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
+            transcode_decision = 'transcode'
+        elif transcode_details['video_decision'] == 'copy' or transcode_details['audio_decision'] == 'copy':
+            transcode_decision = 'copy'
+        else:
+            transcode_decision = 'direct play'
+    
+        # Determine if a synced version is being played
+        if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') and transcode_decision == 'direct play':
+            synced_version = 1
+        else:
+            synced_version = 0
+
         # Figure out which version is being played
         media_info_all = session.getElementsByTagName('Media')
         stream_media_info = next((m for m in media_info_all if helpers.get_xml_attr(m, 'selected') == '1'), media_info_all[0])
@@ -1441,6 +1458,7 @@ class PmsConnect(object):
             audio_details = {'stream_audio_bitrate': helpers.get_xml_attr(audio_stream_info, 'bitrate'),
                              'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
                              'stream_audio_sample_rate': helpers.get_xml_attr(audio_stream_info, 'samplingRate'),
+                             'stream_audio_channel_layout_': helpers.get_xml_attr(audio_stream_info, 'audioChannelLayout'),
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
@@ -1467,14 +1485,6 @@ class PmsConnect(object):
         else:
             bif_thumb = ''
 
-        # Generate a combined transcode decision value
-        if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
-            transcode_decision = 'transcode'
-        elif transcode_details['video_decision'] == 'copy' or transcode_details['audio_decision'] == 'copy':
-            transcode_decision = 'copy'
-        else:
-            transcode_decision = 'direct play'
-    
         stream_video_width = helpers.get_xml_attr(stream_media_info, 'width')
         if helpers.cast_to_int(stream_video_width) >= 3840:
             stream_video_resolution = '4k'
@@ -1488,7 +1498,7 @@ class PmsConnect(object):
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
                           'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                           'stream_audio_channels': stream_audio_channels,
-                          'stream_audio_channel_layout': common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
+                          'stream_audio_channel_layout': audio_details['stream_audio_channel_layout_'] or common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
                           'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': stream_video_resolution,
@@ -1499,14 +1509,13 @@ class PmsConnect(object):
                           'transcode_decision': transcode_decision,
                           'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
                           'optimized_version_profile': helpers.get_xml_attr(stream_media_info, 'title'),
+                          'synced_version': synced_version,
                           'indexes': 1 if indexes == 'sd' else 0,
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_details else 0
                           }
 
         # Get the source media info
-        media_type = helpers.get_xml_attr(session, 'type')
-
         source_media_details = source_media_part_details = \
             source_video_details = source_audio_details = source_subtitle_details = {}
 
