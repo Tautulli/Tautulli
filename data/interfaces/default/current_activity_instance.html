@@ -365,9 +365,9 @@ DOCUMENTATION :: END
                 % else:
                 <span title="${data['title']}">${data['title']}</span>
                 % endif
-            % elif data['media_type'] == 'episode':
-                <span title="${data['channel_title']}">${data['channel_title']}</span>
-                 - <span title="${data['title']}">${data['title']}</span>
+            % elif data['media_type'] == 'episode' and data['grandparent_title']:
+            <span title="${data['grandparent_title']}">${data['grandparent_title']}</span>
+            - <span title="${data['title']}">${data['title']}</span>
             % else:
             <span title="${data['title']}">${data['title']}</span>
             % endif
@@ -405,11 +405,22 @@ DOCUMENTATION :: END
                 % else:
                 <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                 % endif
-            % elif data['media_type'] == 'episode':
-            <span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
-            &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>
             % elif data['channel_title']:
             <span title="${data['channel_title']}" class="sub-heading">${data['channel_title']}</span>
+                % if data['media_type'] == 'episode' and data['parent_media_index'] and data['media_index']:
+                (<span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
+                &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>)
+                % elif data['media_type'] == 'episode' and data['originally_available_at']:
+                (<span title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</span>)
+                % endif
+            % else:
+            <span title="Channel" class="sub-heading">Channel</span>
+                % if data['media_type'] == 'episode' and data['parent_media_index'] and data['media_index']:
+                (<span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
+                &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>)
+                % elif data['media_type'] == 'episode' and data['originally_available_at']:
+                (<span title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</span>)
+                % endif
             % endif
         </div>
         <div class="dashboard-activity-metadata-user">
