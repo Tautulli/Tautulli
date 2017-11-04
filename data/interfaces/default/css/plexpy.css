@@ -749,8 +749,7 @@ a .users-poster-face:hover {
 .dashboard-activity-terminate-session {
     width: 100%;
     height: 100%;
-    padding-top: 3px;
-    font-size: 30px;
+    font-size: 31px;
     color: #eee;
     text-align: center;
     opacity: 0;

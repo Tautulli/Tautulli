@@ -61,6 +61,7 @@ AUDIO_CODEC_OVERRIDES = {'truehd': 'TrueHD'}
 
 VIDEO_RESOLUTION_OVERRIDES = {'sd': 'SD',
                               '480': '480p',
+                              '540': '540p',
                               '576': '576p',
                               '720': '720p',
                               '1080': '1080p',

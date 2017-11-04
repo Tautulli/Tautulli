@@ -1418,7 +1418,8 @@ class PmsConnect(object):
             transcode_decision = 'direct play'
     
         # Determine if a synced version is being played
-        if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') and transcode_decision == 'direct play':
+        if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') \
+            and helpers.get_xml_attr(session, 'ratingKey').isdigit() and transcode_decision == 'direct play':
             synced_version = 1
         else:
             synced_version = 0
@@ -1498,7 +1499,7 @@ class PmsConnect(object):
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
                           'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                           'stream_audio_channels': stream_audio_channels,
-                          'stream_audio_channel_layout': audio_details['stream_audio_channel_layout_'] or common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
+                          'stream_audio_channel_layout': audio_details.get('stream_audio_channel_layout_') or common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
                           'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': stream_video_resolution,
@@ -1519,7 +1520,9 @@ class PmsConnect(object):
         source_media_details = source_media_part_details = \
             source_video_details = source_audio_details = source_subtitle_details = {}
 
-        if media_type == 'clip' and not helpers.get_xml_attr(session, 'ratingKey').isdigit():
+        if not helpers.get_xml_attr(session, 'ratingKey').isdigit():
+            channel_stream = 1
+
             clip_media = session.getElementsByTagName('Media')[0]
             audio_channels = helpers.get_xml_attr(clip_media, 'audioChannels')
             metadata_details = {'media_type': media_type,
@@ -1565,9 +1568,13 @@ class PmsConnect(object):
                                 'video_resolution': helpers.get_xml_attr(clip_media, 'videoResolution'),
                                 'audio_codec': helpers.get_xml_attr(clip_media, 'audioCodec'),
                                 'audio_channels': audio_channels,
-                                'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels)
+                                'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
+                                'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
+                                'channel_title': helpers.get_xml_attr(session, 'sourceTitle')
                                 }
         else:
+            channel_stream = 0
+
             media_id = helpers.get_xml_attr(stream_media_info, 'id')
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
@@ -1616,7 +1623,8 @@ class PmsConnect(object):
                           'view_offset': progress,
                           'progress_percent': str(helpers.get_percent(progress, stream_details['stream_duration'])),
                           'quality_profile': quality_profile,
-                          'user': user_details['username']  # Keep for backwards compatibility
+                          'user': user_details['username'],  # Keep for backwards compatibility
+                          'channel_stream': channel_stream
                           }
         
         if 'rating_key' not in session_output:

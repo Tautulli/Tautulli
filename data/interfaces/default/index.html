@@ -422,8 +422,8 @@
                         }
                         $('#optimized_version-' + key).html(s.optimized_version_profile);
 
-                        if (s.media_type != 'photo' && s.bandwidth) {
-                            var bw = parseInt(s.bandwidth) || 'Unknown';
+                        if (s.media_type != 'photo' && parseInt(s.bandwidth)) {
+                            var bw = parseInt(s.bandwidth);
                             if (bw != "Unknown") {
                                 if (bw > 1000) {
                                     bw = (bw / 1000).toFixed(1) + ' Mbps';
@@ -496,14 +496,14 @@
 
     setInterval( function(){
         $('.progress_time_offset').each(function () {
-            if ($(this).data('state') === 'playing') {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
                 var view_offset = parseInt($(this).data('view_offset'));
                 var timestamp = millisecondsToMinutes(view_offset, false);
                 $(this).html(timestamp).data('view_offset', view_offset + 1000)
             }
         });
         $('.progress-bar').each(function () {
-            if ($(this).data('state') === 'playing') {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
                 var view_offset = parseInt($(this).data('view_offset'));
                 var duration = parseInt($(this).data('stream_duration'));
                 var progress_percent = Math.trunc(view_offset / duration * 100)
