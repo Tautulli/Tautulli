@@ -762,9 +762,17 @@ a .users-poster-face:hover {
 .dashboard-activity-terminate-session:hover {
     color: #e9a049;
 }
+.dashboard-activity-info-container {
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: column;
+    height: 225px;
+    width: 385px;
+    overflow: hidden;
+}
 .dashboard-activity-info-scroller {
     height: 225px;
-    width: 335px;
+    width: 100%;
     -webkit-flex-grow: 1;
     flex-grow: 1;
     z-index: 1;
@@ -807,7 +815,8 @@ a .users-poster-face:hover {
     text-align: right;
     text-transform: uppercase;
     line-height: 14px;
-    float: left;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 .dashboard-activity-info-item .sub-value {
     margin-left: 10px;
@@ -909,38 +918,59 @@ a:hover .dashboard-activity-cover {
     font-size: 13px;
     padding: 0px 3px 0 3px;
 }
+.dashboard-activity-metadata-title-container {
+    display: flex;
+    flex-direction: row;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 25px;
+    color: #fff;
+}
+.dashboard-activity-metadata-play_state-icon {
+    flex-basis: 25px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
 .dashboard-activity-metadata-title {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 350px;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+}
+.dashboard-activity-metadata-subtitle-container {
+    display: flex;
+    flex-direction: row;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     font-size: 13px;
     font-weight: bold;
     line-height: 25px;
-    color: #fff;
-    max-width: 100%;
+    color: #999;
+}
+.dashboard-activity-metadata-media_type-icon {
+    flex-basis: 25px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 .dashboard-activity-metadata-subtitle {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 25px;
-    color: #999;
-    max-width: 320px;
-    float: left;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
 }
 .dashboard-activity-metadata-user {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 25px;
-    color: #999;
     text-align: right;
-    width: 124px;
-    float: right;
+    max-width: 124px;
+    flex-basis: 124px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 .dashboard-activity-metadata-user-thumb {
     background-color: #282828;
@@ -3062,7 +3092,7 @@ pre::-webkit-scrollbar-thumb {
     .home-platforms-instance {
         width: calc(100% - 20px);
     }
-    .dashboard-instance {
+    .dashboard-activity-instance {
         width: 100%;
     }
 }
