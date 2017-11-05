@@ -64,6 +64,7 @@ DOCUMENTATION :: END
 
 % if data and any(top_stat['rows'] for top_stat in data):
 % for top_stat in data:
+% if top_stat['rows']:
 <% stat_id = top_stat['stat_id'] %>
 <div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-id="${stat_id}">
     <div class="dashboard-stats-container">
@@ -74,25 +75,25 @@ DOCUMENTATION :: END
             <div id="stats-background-${stat_id}" class="dashboard-stats-background flat"></div>
             % endif
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-            <a id="stats-poster-url-${stat_id}" href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}" class="hidden-xs">
+            <a id="stats-thumb-url-${stat_id}" href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}" class="hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-poster-${stat_id}" class="dashboard-stats-cover" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=300&fallback=cover);"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-cover" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % else:
-                <div id="stats-poster-${stat_id}" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
                 % endif
             </a>
             % elif stat_id == 'top_users':
-            <a id="stats-poster-url-${stat_id}" href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}" class="hidden-xs">
-                <div id="stats-poster-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${top_stat['rows'][0]['user_thumb'] or http_root + 'images/gravatar-default.png'})"></div>
+            <a id="stats-thumb-url-${stat_id}" href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}" class="hidden-xs">
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${top_stat['rows'][0]['user_thumb'] or http_root + 'images/gravatar-default.png'})"></div>
             </a>
             % elif stat_id == 'top_platforms':
-            <div id="stats-poster-${stat_id}" class="dashboard-stats-square">
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-square">
                 <script>
-                        $("#stats-poster-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
+                    $("#stats-thumb-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
                 </script>
             </div>
             % elif stat_id == 'most_concurrent':
-            <div id="stats-poster-${stat_id}" class="dashboard-stats-square" style="background-image: url(${http_root}images/home-stat_most-concurrent.png)"></div>
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-square" style="background-image: url(${http_root}images/home-stat_most-concurrent.png)"></div>
             % endif
             <div class="dashboard-stats-info-container">
                 <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
@@ -157,6 +158,7 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+% endif
 % endfor
 <script>
     $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar()
@@ -165,15 +167,14 @@ DOCUMENTATION :: END
         var stat_id = $(elem).data('stat_id');
         var art = $(elem).data('art');
         var thumb = $(elem).data('thumb');
-        var height = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? 450 : 300;
-        var fallback = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? 'poster' : 'cover';
+        var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? [450, 'poster'] : [300, 'cover'];
 
         if (stat_id == 'most_concurrent') {
             return
         } else if (stat_id == 'top_users') {
-            $('#stats-poster-' + stat_id).css('background-image', 'url(' + (thumb || '${http_root}images/gravatar-default.png') + ')');
+            $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (thumb || '${http_root}images/gravatar-default.png') + ')');
         } else if (stat_id == 'top_platforms') {
-            $('#stats-poster-' + stat_id).css('background-image', 'url(' + getPlatformImagePath($(elem).data('platform')) + ')');
+            $('#stats-thumb-' + stat_id).css('background-image', 'url(' + getPlatformImagePath($(elem).data('platform')) + ')');
         } else {
             if (art) {
                 $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&fallback=art)');
@@ -181,7 +182,7 @@ DOCUMENTATION :: END
                 $('#stats-background-' + stat_id).css('background-image', 'url(${http_root}images/art.png)');
             }
             if (thumb) {
-                $('#stats-poster-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
             } else {
                 $('#stats-background-' + stat_id).css('background-image', 'url(${http_root}images/' + fallback + '.png)');
             }
