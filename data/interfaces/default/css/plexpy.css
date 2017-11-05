@@ -1162,6 +1162,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-stats-info-title h4 {
     margin: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-basis: 250px;
     -webkit-flex-grow: 1;
     flex-grow: 1;
 }
@@ -1170,6 +1174,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
     font-size: 12px;
     text-align: right;
     text-transform: uppercase;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 125px;
 }
 .dashboard-stats-info-scroller {
     height: 120px;
@@ -1187,7 +1195,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
 .dashboard-stats-info {
     width: 100%;
     font-size: 12px;
-    padding: 5px 0 5px 15px;
+    padding: 3px 0 5px 15px;
     position: relative;
 }
 .dashboard-stats-info-list {
@@ -1206,6 +1214,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     padding: 2.5px 5px;
     line-height: 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: default;
 }
 .dashboard-stats-info-item:last-of-type {
     margin-bottom: 0;

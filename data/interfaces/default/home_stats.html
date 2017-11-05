@@ -65,31 +65,39 @@ DOCUMENTATION :: END
 % if data and any(top_stat['rows'] for top_stat in data):
 % for top_stat in data:
 % if top_stat['rows']:
-<% stat_id = top_stat['stat_id'] %>
-<div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-id="${stat_id}">
+<%
+    stat_id = top_stat['stat_id']
+    row0 = top_stat['rows'][0]
+%>
+<div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
     <div class="dashboard-stats-container">
         <div class="dashboard-stats-background-overlay">
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+            % if row0['art']:
+            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&width=500&height=280&fallback=art);"></div>
+            % else:
+            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${http_root}images/art.png);"></div>
+            % endif
             % else:
             <div id="stats-background-${stat_id}" class="dashboard-stats-background flat"></div>
             % endif
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-            <a id="stats-thumb-url-${stat_id}" href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}" class="hidden-xs">
-                % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-cover" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=300&fallback=cover);"></div>
+            <a id="stats-thumb-url-${stat_id}" href="info?rating_key=${row0['rating_key']}" title="${row0['title']}" class="hidden-xs">
+                <% type = 'cover' if stat_id in ('top_music', 'popular_music') else 'poster' %>
+                % if row0['thumb']:
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&fallback=${type});"></div>
                 % else:
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(${http_root}images/${type}.png);"></div>
                 % endif
             </a>
             % elif stat_id == 'top_users':
-            <a id="stats-thumb-url-${stat_id}" href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}" class="hidden-xs">
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${top_stat['rows'][0]['user_thumb'] or http_root + 'images/gravatar-default.png'})"></div>
+            <a id="stats-thumb-url-${stat_id}" href="user?user_id=${row0['user_id']}" title="${row0['friendly_name']}" class="hidden-xs">
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or http_root + 'images/gravatar-default.png'})"></div>
             </a>
             % elif stat_id == 'top_platforms':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-square hidden-xs">
                 <script>
-                    $("#stats-thumb-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
+                    $("#stats-thumb-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${row0['platform_type']}") + ")");
                 </script>
             </div>
             % elif stat_id == 'most_concurrent':
@@ -104,15 +112,18 @@ DOCUMENTATION :: END
                     <span class="dashboard-stats-stats-units">hh:mm</span>
                     % elif stat_id.startswith('popular'):
                     <span class="dashboard-stats-stats-units">users</span>
+                    % elif stat_id == 'last_watched':
+                    <span class="dashboard-stats-stats-units" id="last-watched-header-info">${row0['friendly_name']}</span>
                     % elif stat_id == 'most_concurrent':
-                    <span class="dashboard-stats-stats-units">streams</span>
+                    <span class="dashboard-stats-stats-units" id="most-concurrent-header-info">streams</span>
                     % endif
                 </div>
                 <div class="dashboard-stats-info-scroller scrollbar-macosx">
                     <div class="dashboard-stats-info">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
-                            <li class="dashboard-stats-info-item" data-stat_id="${stat_id}" data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}">
+                            <li class="dashboard-stats-info-item" data-stat_id="${stat_id}" data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}"
+                                data-friendly_name="${row.get('friendly_name')}" data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
                                 <div class="sub-heading">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
@@ -138,9 +149,9 @@ DOCUMENTATION :: END
                                     % endif
                                 </div>
                                 <div class="sub-count">
-                                    % if top_stat.get('stat_type') == 'total_plays':
+                                    % if stat_id.startswith('top') and top_stat.get('stat_type') == 'total_plays':
                                     ${row['total_plays']}
-                                    % elif top_stat.get('stat_type') == 'total_duration':
+                                    % elif stat_id.startswith('top') and top_stat.get('stat_type') == 'total_duration':
                                     ${row['total_duration'] | hd}
                                     % elif stat_id.startswith('popular'):
                                     ${row['users_watched']}
@@ -166,7 +177,7 @@ DOCUMENTATION :: END
         var stat_id = $(elem).data('stat_id');
         var art = $(elem).data('art');
         var thumb = $(elem).data('thumb');
-        var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? [450, 'poster'] : [300, 'cover'];
+        var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) ? [300, 'cover'] : [450, 'poster'];
 
         if (stat_id == 'most_concurrent') {
             return
@@ -190,9 +201,22 @@ DOCUMENTATION :: END
 
     $('.dashboard-stats-info-item').mouseenter(function () {
         changeImages(this)
+        if ($(this).data('stat_id') == 'last_watched') {
+            var friendly_name = $(this).data('friendly_name');
+            var last_watch = moment($(this).data('last_watch'), 'X').format(date_format);
+            $('#last-watched-header-info').html(friendly_name);
+        } else if ($(this).data('stat_id') == 'most_concurrent') {
+            var started = moment($(this).data('started'), 'X').format(date_format + ' ' + time_format);
+            $('#most-concurrent-header-info').html(started);
+        }
     });
     $('.dashboard-stats-instance').mouseleave(function () {
         changeImages($(this).find('.dashboard-stats-info-item').first())
+        if ($(this).data('stat_id') == 'last_watched') {
+            $('#last-watched-header-info').text($(this).find('.dashboard-stats-info-item').first().data('friendly_name'));
+        } else if ($(this).data('stat_id') == 'most_concurrent') {
+            $('#most-concurrent-header-info').text('streams');
+        }
     });
 </script>
 % else:

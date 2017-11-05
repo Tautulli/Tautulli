@@ -738,7 +738,7 @@ class DataFactory(object):
                     last_watched.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'stat_title': 'Last Watched Items',
+                                   'stat_title': 'Recently Watched',
                                    'rows': session.mask_session_info(last_watched)})
 
             elif stat == 'most_concurrent':
