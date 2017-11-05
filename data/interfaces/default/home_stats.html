@@ -57,1035 +57,142 @@ DOCUMENTATION :: END
 
     # Human readable duration
     def hd(seconds):
-        minutes = helpers.cast_to_float(seconds) / 60
-        if minutes > 60:
-            hours = int(minutes / 60)
-            minutes = int(minutes % 60)
-            if minutes > 0:
-                return "<h3>" + str(hours) + "</h3><p>hrs</p><h3>" + str(minutes) + "</h3><p>mins</p>"
-            else:
-                return "<h3>" + str(hours) + "</h3><p>hrs</p>"
-        else:
-            return "<h3>" + str(int(minutes)) + "</h3><p>mins</p>"
+        m, s = divmod(helpers.cast_to_int(seconds), 60)
+        h, m = divmod(m, 60)
+        return str(h).zfill(1) + ':' + str(m).zfill(2)
 %>
 
-% if data:
-<ul class="list-unstyled">
-    % if any(top_stat['rows'] for top_stat in data):
-    % for top_stat in data:
-    % if top_stat['stat_id'] == 'top_tv' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Watched TV</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    % if top_stat['stat_type'] == 'total_plays':
-                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
-                    <p> plays</p>
-                    % else:
-                    ${top_stat['rows'][0]['total_duration'] | hd}
-                    % endif
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['grandparent_thumb']:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
+% if data and any(top_stat['rows'] for top_stat in data):
+% for top_stat in data:
+<% stat_id = top_stat['stat_id'] %>
+<div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-id="${stat_id}">
+    <div class="dashboard-stats-container">
+        <div class="dashboard-stats-background-overlay">
+            % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
+            % else:
+            <div id="stats-background-${stat_id}" class="dashboard-stats-background flat"></div>
+            % endif
+            % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+            <a id="stats-poster-url-${stat_id}" href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}" class="hidden-xs">
+                % if stat_id in ('top_music', 'popular_music'):
+                <div id="stats-poster-${stat_id}" class="dashboard-stats-cover" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                </div>
+                <div id="stats-poster-${stat_id}" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
                 % endif
             </a>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    % if top_stat['stat_type'] == 'total_plays':
-                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
-                                    <p> plays</p>
-                                    % else:
-                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
-                                    % endif
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'popular_tv' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Popular TV</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    <h3>${top_stat['rows'][0]['users_watched']}</h3>
-                    <p> users</p>
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['grandparent_thumb'] != '':
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-                % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                </div>
-                % endif
+            % elif stat_id == 'top_users':
+            <a id="stats-poster-url-${stat_id}" href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}" class="hidden-xs">
+                <div id="stats-poster-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${top_stat['rows'][0]['user_thumb'] or http_root + 'images/gravatar-default.png'})"></div>
             </a>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    <h3>${top_stat['rows'][loop.index]['users_watched']}</h3>
-                                    <p> users</p>
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'top_movies' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Watched Movie</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    % if top_stat['stat_type'] == 'total_plays':
-                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
-                    <p> plays</p>
-                    % else:
-                    ${top_stat['rows'][0]['total_duration'] | hd}
-                    % endif
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['thumb']:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-                % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                </div>
-                % endif
-            </a>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    % if top_stat['stat_type'] == 'total_plays':
-                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
-                                    <p> plays</p>
-                                    % else:
-                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
-                                    % endif
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'popular_movies' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Popular Movie</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    <h3>${top_stat['rows'][0]['users_watched']}</h3>
-                    <p> users</p>
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['thumb']:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-                % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                </div>
-                % endif
-            </a>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    <h3>${top_stat['rows'][loop.index]['users_watched']}</h3>
-                                    <p> users</p>
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'top_music' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Listened to Artist</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    % if top_stat['stat_type'] == 'total_plays':
-                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
-                    <p> plays</p>
-                    % else:
-                    ${top_stat['rows'][0]['total_duration'] | hd}
-                    % endif
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['grandparent_thumb']:
-                <div class="home-platforms-instance-cover">
-                    <div class="home-platforms-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-                % else:
-                <div class="home-platforms-instance-cover">
-                    <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                </div>
-                % endif
-            </a>
-            % else:
-            <div class="home-platforms-instance-cover">
-                <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    % if top_stat['stat_type'] == 'total_plays':
-                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
-                                    <p> plays</p>
-                                    % else:
-                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
-                                    % endif
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-cover">
-                                    <div class="home-platforms-list-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-cover">
-                                    <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-cover">
-                                <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'popular_music' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Popular Artist</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    <h3>${top_stat['rows'][0]['users_watched']}</h3>
-                    <p> users</p>
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['grandparent_thumb'] != '':
-                <div class="home-platforms-instance-cover">
-                    <div class="home-platforms-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-                % else:
-                <div class="home-platforms-instance-cover">
-                    <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                </div>
-                % endif
-            </a>
-            % else:
-            <div class="home-platforms-instance-cover">
-                <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    <h3>${top_stat['rows'][loop.index]['users_watched']}</h3>
-                                    <p> users</p>
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-cover">
-                                    <div class="home-platforms-list-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                                    % endif
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-list-cover">
-                                    <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                                </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-cover">
-                                <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'top_users' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            % if top_stat['rows'][0]['user_thumb'] != '':
-            <div class="home-platforms-instance-background" style="background-image: url(${top_stat['rows'][0]['user_thumb']}"></div>
-            % else:
-            <div class="home-platforms-instance-background" style="background-image: url(${http_root}images/gravatar-default.png}"></div>
-            % endif
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Active User</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        % if top_stat['rows'][0]['user_id']:
-                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
-                            ${top_stat['rows'][0]['friendly_name']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['friendly_name']}
-                        % endif
-                    </h4>
-                    % if top_stat['stat_type'] == 'total_plays':
-                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
-                    <p> plays</p>
-                    % else:
-                    ${top_stat['rows'][0]['total_duration'] | hd}
-                    % endif
-                </div>
-            </div>
-            % if top_stat['rows'][0]['user_id']:
-            <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
-            % endif
-                % if top_stat['rows'][0]['user_thumb'] != '':
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-instance-oval" style="background-image: url(${top_stat['rows'][0]['user_thumb']});"></div>
-                </div>
-                % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-instance-oval" style="background-image: url(${http_root}images/gravatar-default.png);"></div>
-                </div>
-                % endif
-            % if top_stat['rows'][0]['user_id']:
-            </a>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['user_id']:
-                                        <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
-                                            ${top_stat['rows'][loop.index]['friendly_name']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['friendly_name']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    % if top_stat['stat_type'] == 'total_plays':
-                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
-                                    <p> plays</p>
-                                    % else:
-                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
-                                    % endif
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['user_id']:
-                            <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
-                            % endif
-                                % if top_stat['rows'][loop.index]['user_thumb'] != '':
-                                <div class="home-platforms-instance-poster">
-                                    <div class="home-platforms-instance-list-oval" style="background-image: url(${top_stat['rows'][loop.index]['user_thumb']});"></div>
-                                </div>
-                                % else:
-                                <div class="home-platforms-instance-poster">
-                                    <div class="home-platforms-instance-list-oval" style="background-image: url(${http_root}images/gravatar-default.png);"></div>
-                                </div>
-                                % endif
-                            % if top_stat['rows'][loop.index]['user_id']:
-                            </a>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'top_platforms' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div id="platform-stat-background" class="home-platforms-instance-background"></div>
-            <script>
-                $("#platform-stat-background").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
-            </script>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Active Platform</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4 title="${top_stat['rows'][0]['platform_type']}">${top_stat['rows'][0]['platform_type']}</h4>
-                    % if top_stat['stat_type'] == 'total_plays':
-                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
-                    <p> plays</p>
-                    % else:
-                    ${top_stat['rows'][0]['total_duration'] | hd}
-                    % endif
-                </div>
-            </div>
-            <div id="platform-stat" class="home-platforms-instance-poster" title="${top_stat['rows'][0]['platform_type']}">
+            % elif stat_id == 'top_platforms':
+            <div id="stats-poster-${stat_id}" class="dashboard-stats-square">
                 <script>
-                    $("#platform-stat").html("<div class='home-platforms-instance-box' style='background-image: url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ");'>");
+                        $("#stats-poster-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${top_stat['rows'][0]['platform_type']}") + ")");
                 </script>
             </div>
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5 title="${top_stat['rows'][loop.index]['platform_type']}">
-                                        ${top_stat['rows'][loop.index]['platform_type']}
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    % if top_stat['stat_type'] == 'total_plays':
-                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
-                                    <p> plays</p>
-                                    % else:
-                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
-                                    % endif
-                                </div>
-                            </div>
-                            <div class="home-platforms-instance-poster" id="home-platforms-instance-poster-${loop.index + 1}" title="${top_stat['rows'][loop.index]['platform_type']}">
-                                <script>
-                                    $("#home-platforms-instance-poster-${loop.index + 1}").html("<div class='home-platforms-instance-list-box' style='background-image: url(" + getPlatformImagePath("${top_stat['rows'][loop.index]['platform_type']}") + ");'>");
-                                </script>
-                            </div>
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
+            % elif stat_id == 'most_concurrent':
+            <div id="stats-poster-${stat_id}" class="dashboard-stats-square" style="background-image: url(${http_root}images/home-stat_most-concurrent.png)"></div>
             % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'last_watched' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['art']}&width=500&height=280&fallback=art);"></div>
-        </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Last Watched</h4>
-                </div>
-                <div class="home-platforms-instance-last-user">
-                    <h4>
-                        % if top_stat['rows'][0]['rating_key']:
-                        <a href="info?source=history&rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                            ${top_stat['rows'][0]['title']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['title']}
-                        % endif
-                    </h4>
-                    <h5>
-                        % if top_stat['rows'][0]['user_id']:
-                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
-                            ${top_stat['rows'][0]['friendly_name']}
-                        </a>
-                        % else:
-                        ${top_stat['rows'][0]['friendly_name']}
-                        % endif
-                    </h5>
-                    <p>
-                        <span id="last-watch-stat">
-                            <script>
-                                $('#last-watch-stat').text(moment(${top_stat['rows'][0]['last_watch']},"X").format(date_format));
-                            </script>
-                        </span> - ${top_stat['rows'][0]['player']}
-                    </p>
-                </div>
-            </div>
-            % if top_stat['rows'][0]['rating_key']:
-            <a href="info?source=history&rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
-                % if top_stat['rows'][0]['thumb']:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+            <div class="dashboard-stats-info-container">
+                <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
+                    <h4>${top_stat['stat_title']}</h4>
+                    % if stat_id.startswith('top') and top_stat.get('stat_type') == 'total_plays':
+                    <span class="dashboard-stats-stats-units">plays</span>
+                    % elif stat_id.startswith('top') and top_stat.get('stat_type') == 'total_duration':
+                    <span class="dashboard-stats-stats-units">hh:mm</span>
+                    % elif stat_id.startswith('popular'):
+                    <span class="dashboard-stats-stats-units">users</span>
+                    % elif stat_id == 'most_concurrent':
+                    <span class="dashboard-stats-stats-units">streams</span>
                     % endif
                 </div>
-                % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                </div>
-                % endif
-            </a>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-            </div>
-            % endif
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['rating_key']:
-                                        <a href="info?source=history&rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                            ${top_stat['rows'][loop.index]['title']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['title']}
-                                        % endif
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-last-user">
-                                    <h5>
-                                        % if top_stat['rows'][loop.index]['user_id']:
-                                        <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
-                                            ${top_stat['rows'][loop.index]['friendly_name']}
-                                        </a>
-                                        % else:
-                                        ${top_stat['rows'][loop.index]['friendly_name']}
-                                        % endif
-                                    </h5>
-                                    <p>
-                                        <span id="home-platforms-instance-list-last-watch-${loop.index + 1}">
-                                            <script>
-                                                $('#home-platforms-instance-list-last-watch-${loop.index + 1}').text(moment(${top_stat['rows'][loop.index]['last_watch']},"X").format(date_format));
-                                            </script>
-                                        </span> - ${top_stat['rows'][loop.index]['player']}
-                                    </p>
-                                </div>
-                            </div>
-                            % if top_stat['rows'][loop.index]['rating_key']:
-                            <a href="info?source=history&rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                                % if top_stat['rows'][loop.index]['thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % if _session['user_group'] == 'admin':
-                                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                <div class="dashboard-stats-info-scroller scrollbar-macosx">
+                    <div class="dashboard-stats-info">
+                        <ul class="list-unstyled dashboard-stats-info-list">
+                            % for row in top_stat['rows']:
+                            <li class="dashboard-stats-info-item" data-stat_id="${stat_id}" data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}">
+                                <div class="sub-heading">${loop.index + 1}</div>
+                                <!--<div class="sub-heading"></div>-->
+                                <div class="sub-value">
+                                    % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+                                    % if top_stat['rows'][loop.index]['rating_key']:
+                                    <a href="info?rating_key=${row['rating_key']}" title="${row['title']}">
+                                        ${row['title']}
+                                    </a>
+                                    % else:
+                                    ${row['title']}
+                                    % endif
+                                    % elif stat_id == 'top_users':
+                                    % if top_stat['rows'][loop.index]['user_id']:
+                                    <a href="user?user_id=${row['user_id']}" title="${row['friendly_name']}">
+                                        ${row['friendly_name']}
+                                    </a>
+                                    % else:
+                                    ${row['friendly_name']}
+                                    % endif
+                                    % elif stat_id == 'top_platforms':
+                                    ${row['platform_type']}
+                                    % elif stat_id == 'most_concurrent':
+                                    ${row['title']}
                                     % endif
                                 </div>
-                                % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                                <div class="sub-count">
+                                    % if top_stat.get('stat_type') == 'total_plays':
+                                    ${row['total_plays']}
+                                    % elif top_stat.get('stat_type') == 'total_duration':
+                                    ${row['total_duration'] | hd}
+                                    % elif stat_id.startswith('popular'):
+                                    ${row['users_watched']}
+                                    % elif stat_id == 'most_concurrent':
+                                    ${row['count']}
+                                    % endif
                                 </div>
-                                % endif
-                            </a>
-                            % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
-                            </div>
-                            % endif
-                            <div class="home-platforms-instance-list-number">
-                                <h4>${loop.index + 1}</h4>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
+                            </li>
+                            % endfor
+                        </ul>
                     </div>
                 </div>
-            </ul>
-            % endif
-        </li>
-    </div>
-    % elif top_stat['stat_id'] == 'most_concurrent' and top_stat['rows']:
-    <div class="home-platforms-instance">
-        <div class="home-platforms-instance-overlay">
-            <div class="home-platforms-instance-background" style="background-image: url(${http_root}images/home-stat_most-concurrent.png)"></div>
+            </div>
         </div>
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>Most Concurrent Streams</h4>
-                </div>
-                <div class="home-platforms-instance-playcount">
-                    <h4>
-                        <span id="most-concurrent-start">
-                            <script>
-                                $('#most-concurrent-start').text(moment(${top_stat['rows'][0]['started']},"X").format(date_format + ' ' + time_format));
-                            </script>
-                        </span>
-                    </h4>
-                    <h3>${top_stat['rows'][0]['count']}</h3>
-                    <p> streams</p>
-                </div>
-            </div>
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-instance-box" style="background-image: url(${http_root}images/home-stat_most-concurrent.png);"></div>
-            </div>
-            % if len(top_stat['rows']) > 1:
-            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
-            <ul class="list-unstyled">
-                <div class="slider">
-                    <div class="home-platforms-instance-list">
-                        % for row in top_stat['rows']:
-                        % if loop.index > 0:
-                        <li>
-                            <div class="home-platforms-instance-list-info">
-                                <div class="home-platforms-instance-list-name">
-                                    <h5>
-                                        ${top_stat['rows'][loop.index]['title']}
-                                    </h5>
-                                </div>
-                                <div class="home-platforms-instance-list-playcount">
-                                    <h3>${top_stat['rows'][loop.index]['count']}</h3>
-                                    <p> streams
-                                        % if top_stat['rows'][loop.index]['started']:
-                                        - <span id="most-concurrent-start-${loop.index + 1}">
-                                            <script>
-                                                $('#most-concurrent-start-${loop.index + 1}').text(moment(${top_stat['rows'][loop.index]['started']},"X").format(date_format + ' ' + time_format));
-                                            </script>
-                                        </span>
-                                        % else:
-                                        - N/A
-                                        % endif
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="home-platforms-instance-poster">
-                                <div class="home-platforms-instance-list-box" style="background-image: url(${http_root}images/home-stat_most-concurrent.png);"></div>
-                            </div>
-                        </li>
-                        % endif
-                        % endfor
-                    </div>
-                </div>
-            </ul>
-            % endif
-        </li>
     </div>
-    % endif
-    % endfor
-    % else:
-    <div class="text-muted">No stats to show for the selected period.</div><br>
-    % endif
-</ul>
+</div>
+% endfor
 <script>
-    var topZIndex = 2;
-    $('.home-platforms-instance-list-chevron').on('click', function() {
-        var instanceBoxChevron = $(this);
-        var instanceBox = $(this).parents('.home-platforms-instance');
-        var instanceBoxSlider = instanceBox.find('.slider');
-        
-        topZIndex++;
-        instanceBoxChevron.toggleClass('active');
-        instanceBoxSlider.css('z-index', topZIndex);
-        instanceBoxSlider.stop().slideToggle(500);
+    $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar()
+
+    function changeImages(elem) {
+        var stat_id = $(elem).data('stat_id');
+        var art = $(elem).data('art');
+        var thumb = $(elem).data('thumb');
+        var height = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? 450 : 300;
+        var fallback = ($.inArray(stat_id, ['top_music', 'popular_music'])) ? 'poster' : 'cover';
+
+        if (stat_id == 'most_concurrent') {
+            return
+        } else if (stat_id == 'top_users') {
+            $('#stats-poster-' + stat_id).css('background-image', 'url(' + (thumb || '${http_root}images/gravatar-default.png') + ')');
+        } else if (stat_id == 'top_platforms') {
+            $('#stats-poster-' + stat_id).css('background-image', 'url(' + getPlatformImagePath($(elem).data('platform')) + ')');
+        } else {
+            if (art) {
+                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&fallback=art)');
+            } else {
+                $('#stats-background-' + stat_id).css('background-image', 'url(${http_root}images/art.png)');
+            }
+            if (thumb) {
+                $('#stats-poster-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
+            } else {
+                $('#stats-background-' + stat_id).css('background-image', 'url(${http_root}images/' + fallback + '.png)');
+            }
+        }
+    }
+
+    $('.dashboard-stats-info-item').mouseenter(function () {
+        changeImages(this)
+    });
+    $('.dashboard-stats-instance').mouseleave(function () {
+        changeImages($(this).find('.dashboard-stats-info-item').first())
     });
 </script>
 % else:
