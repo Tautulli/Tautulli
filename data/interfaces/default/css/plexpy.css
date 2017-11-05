@@ -765,7 +765,7 @@ a .users-poster-face:hover {
 .dashboard-activity-info-scroller {
     height: 225px;
     width: 335px;
-    -webkit-flex-grow: 0;
+    -webkit-flex-grow: 1;
     flex-grow: 1;
     z-index: 1;
 }
@@ -789,6 +789,10 @@ a .users-poster-face:hover {
     margin-bottom: 0;
 }
 .dashboard-activity-info-item {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
     width: 100%;
     margin-bottom: 5px;
 }
@@ -803,14 +807,14 @@ a .users-poster-face:hover {
     text-align: right;
     text-transform: uppercase;
     line-height: 14px;
-    vertical-align: bottom;
     float: left;
 }
 .dashboard-activity-info-item .sub-value {
-    margin-left: 70px;
+    margin-left: 10px;
     text-align: left;
     line-height: 14px;
-    vertical-align: bottom;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
 }
 .dashboard-activity-info-time {
     position: absolute;
