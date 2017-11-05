@@ -9,7 +9,7 @@ a {
 }
 a:hover,
 a:focus {
-    color: #f9be03;
+    color: #e9a049;
     text-decoration: none;
     outline: none;
 }
@@ -1050,8 +1050,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     -webkit-filter: blur(3px);
     -moz-filter: blur(3px);
     filter: blur(3px);
-    -webkit-transition: background .2s linear;
-    transition: background .2s linear;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: -1;
@@ -1070,8 +1070,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
-    -webkit-transition: background .2s linear;
-    transition: background .2s linear;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: 1;
@@ -1088,8 +1088,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
-    -webkit-transition: background .2s linear;
-    transition: background .2s linear;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: 1;
@@ -1106,8 +1106,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
-    -webkit-transition: background .2s linear;
-    transition: background .2s linear;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: 1;
@@ -1128,8 +1128,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
-    -webkit-transition: background .2s linear;
-    transition: background .2s linear;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: 1;
@@ -1152,8 +1152,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     flex-wrap: nowrap;
     align-items: baseline;
     height: 30px;
-    width: 385px;
-    padding: 5px 5px 5px 15px;
+    width: 100%;
+    padding: 5px;
     line-height: 20px;
     border-bottom: 1px solid rgba(255,255,255,.1);
     -webkit-flex-grow: 1;
@@ -1173,7 +1173,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-stats-info-scroller {
     height: 120px;
-    width: 385px;
+    width: 100%;
     -webkit-flex-grow: 1;
     flex-grow: 1;
     z-index: 1;
@@ -1212,15 +1212,16 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-stats-info-item .sub-heading {
     height: 100%;
-    width: 6px;
+    width: 15px;
     color: #aaa;
     font-size: 10px;
-    text-align: right;
+    text-align: left;
     text-transform: uppercase;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 .dashboard-stats-info-item .sub-value {
     height: 100%;
-    margin-left: 10px;
     font-size: 12px;
     text-align: left;
     white-space: nowrap;
@@ -1237,6 +1238,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     text-align: right;
     white-space: nowrap;
     overflow: hidden;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 .dashboard-stats-info-item:first-of-type {
     padding: 5px 5px;
@@ -3093,6 +3096,9 @@ pre::-webkit-scrollbar-thumb {
         width: calc(100% - 20px);
     }
     .dashboard-activity-instance {
+        width: 100%;
+    }
+    .dashboard-stats-instance {
         width: 100%;
     }
 }

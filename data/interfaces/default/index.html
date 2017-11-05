@@ -203,6 +203,7 @@
 <%def name="javascriptIncludes()">
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
+<script src="${http_root}js/jquery.mousewheel.min.js"></script>
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -609,6 +610,7 @@
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
                 $('#ajaxMsg').fadeOut();
+                lockScroll();
             }
         });
     }
@@ -638,6 +640,22 @@
 
     $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
     $('#watched-stats-count').tooltip({ container: 'body', placement: 'top', html: true });
+
+    function lockScroll() {
+        $('#home-stats .dashboard-stats-info-scroller.scroll-content').each(function (i, instance)  {
+            var childHeight = $(instance).children('.dashboard-stats-info').height();
+            var height = $(instance).height();
+            var scrollHeight = $(instance).get(0).scrollHeight;
+
+            if (childHeight > height) {
+                $(instance).on('mousewheel', function(e, d) {
+                    if(($(instance).scrollTop() >= (scrollHeight - height)) && d < 0 || ($(instance).scrollTop() <= 0) && d > 0) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    };
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:
