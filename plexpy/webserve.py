@@ -4424,6 +4424,21 @@ class WebInterface(object):
                 if session_key:
                     return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
 
+
+                counts = {'stream_count_direct_play': 0,
+                        'stream_count_direct_stream': 0,
+                        'stream_count_transcode': 0}
+
+                for s in result['sessions']:
+                    if s['transcode_decision'] == 'transcode':
+                        counts['stream_count_transcode'] += 1
+                    elif s['transcode_decision'] == 'copy':
+                        counts['stream_count_direct_stream'] += 1
+                    else:
+                        counts['stream_count_direct_play'] += 1
+
+                result.update(counts)
+
                 return result
             else:
                 logger.warn(u"Unable to retrieve data for get_activity.")

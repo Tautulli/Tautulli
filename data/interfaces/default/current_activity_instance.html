@@ -66,7 +66,7 @@ DOCUMENTATION :: END
     import plexpy
 %>
 <% sk = data['session_key'] %>
-<div class="dashboard-activity-instance" id="instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
+<div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
         <div class="dashboard-activity-background-overlay">
@@ -94,15 +94,15 @@ DOCUMENTATION :: END
                     <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                 </a>
                 % elif data['media_type'] in ('photo', 'clip'):
-                <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                <div id="poster-${sk}" class="dashboard-activity-poster hidden-xs" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                 % else:
-                <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/art.png);"></div>
+                <div id="poster-${sk}" class="dashboard-activity-poster hidden-xs" style="background-image: url(images/art.png);"></div>
                 % endif
             % else:
                 % if data['channel_icon'].startswith('http'):
-                <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${data['channel_icon']});"></div>
+                <div id="poster-${sk}" class="dashboard-activity-cover hidden-xs" style="background-image: url(${data['channel_icon']});"></div>
                 % else:
-               <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+               <div id="poster-${sk}" class="dashboard-activity-cover hidden-xs" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                 % endif
             % endif
             <div class="dashboard-activity-info-icon">

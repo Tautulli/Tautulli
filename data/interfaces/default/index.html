@@ -11,7 +11,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
-                <h3>Activity</h3>
+                <h3>Activity &nbsp;&nbsp;<small><span id="currentActivityHeader"></span></small></h3>
             </div>
             <div id="currentActivity">
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
@@ -217,17 +217,6 @@
 </script>
 % if 'current_activity' in config['home_sections']:
 <script>
-    function currentActivityHeader() {
-        $.ajax({
-            url: 'get_current_activity_header',
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                $("#current-activity-header").html(xhr.responseText);
-            }
-        });
-    }
-
     function getCurrentActivity() {
         $.ajax({
             url: 'get_activity',
@@ -249,6 +238,7 @@
                 }
 
                 if (!(current_activity)) {
+                    $('#currentActivityHeader').text('');
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.</div>');
                     return
                 }
@@ -259,10 +249,28 @@
                 if (stream_count) {
                     $('#dashboard-no-activity').remove();
 
+                    // Update the header stream counts
+                    var sc_dp = current_activity.stream_count_direct_play,
+                        sc_ds = current_activity.stream_count_direct_stream,
+                        sc_tc = current_activity.stream_count_transcode;
+                    var header_count = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
+                    if (sc_dp) {
+                        header_count += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_ds) {
+                        header_count += sc_ds + ' direct stream' + (sc_ds > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_tc) {
+                        header_count += sc_tc + ' transcode' + (sc_tc > 1 ? 's' : '') + ', ';
+                    }
+                    header_count = header_count.replace(/, $/, '');
+                    header_count += ')';
+                    $('#currentActivityHeader').text(header_count);
+
                     sessions.forEach(function (s) {
                         var key = s.session_key;
                         var session_id = s.session_id;
-                        var instance = $('#instance-' + key);
+                        var instance = $('#activity-instance-' + key);
 
                         // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
@@ -454,8 +462,7 @@
                     });
 
                     // Remove finished instances
-                    var all_instances = $('div[id^=instance-]');
-                    all_instances.each(function (i, instance) {
+                    $('div[id^=activity-instance-]').each(function (i, instance) {
                         if ($(instance).hasClass('updated-temp')) {
                             $(instance).removeClass('updated-temp');
                         } else {
@@ -465,6 +472,7 @@
                     });
 
                 } else {
+                    $('#currentActivityHeader').text('');
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
                 }
             }
@@ -487,10 +495,8 @@
         });
     }
 
-    currentActivityHeader();
     getCurrentActivity();
     setInterval(function () {
-        currentActivityHeader();
         getCurrentActivity();
     }, 2000);
 
