@@ -265,6 +265,8 @@ function getPlatformImagePath(platformName) {
         return 'images/platforms/plextogether.png';
     } else if (platformName.indexOf("Linux") > -1) {
         return 'images/platforms/linux.png';
+    } else if (platformName.indexOf("Vizio") > -1) {
+        return 'images/platforms/opera.png';
     } else {
         return 'images/platforms/default.png';
     }
