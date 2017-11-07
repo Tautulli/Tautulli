@@ -305,21 +305,21 @@ DOCUMENTATION :: END
                     ETA:
                     <span id="stream-eta-${sk}">
                         <script>
-                        $("#stream-eta-${sk}").html(moment().add(parseInt("${data['duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
+                            $("#stream-eta-${sk}").html(moment().add(parseInt("${data['stream_duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
                         </script>
-                    </span><br /><span class="progress_time_offset" id="stream-view-offset-${sk}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-state="${data['state']}">
+                    </span><br /><span class="progress_time_offset" id="stream-view-offset-${sk}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}">
                         <script>
-                        $("#stream-view-offset-${sk}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
+                            $("#stream-view-offset-${sk}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
                         </script>
                     </span> / <span class="progress_time_total" id="stream-duration-${sk}">
                         <script>
-                        $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['duration']}"), false));
+                            $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['stream_duration']}"), false));
                         </script>
                     </span>
                     % else:
                     ETA: Unknown<br />0:00 / <span class="progress_time_total" id="stream-duration-${sk}">
                         <script>
-                        $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['duration']}"), false));
+                            $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['stream_duration']}"), false));
                         </script>
                     </span>
                     % endif

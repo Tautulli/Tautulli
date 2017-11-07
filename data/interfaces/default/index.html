@@ -522,18 +522,19 @@
         $('.progress_time_offset').each(function () {
             if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
                 var view_offset = parseInt($(this).data('view_offset'));
-                var timestamp = millisecondsToMinutes(view_offset, false);
-                $(this).html(timestamp).data('view_offset', view_offset + 1000)
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
             }
         });
         $('.progress-bar').each(function () {
             if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
                 var view_offset = parseInt($(this).data('view_offset'));
-                var duration = parseInt($(this).data('stream_duration'));
-                var progress_percent = Math.trunc(view_offset / duration * 100)
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var progress_percent = Math.min(Math.trunc(view_offset / stream_duration * 100), 100)
                 $(this).width(progress_percent - 3 + '%').html(progress_percent + '%')
                     .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
-                    .data('view_offset', view_offset + 1000);
+                    .data('view_offset', Math.min(view_offset + 1000, stream_duration));
             }
         });
     }, 1000);
