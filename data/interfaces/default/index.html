@@ -215,6 +215,22 @@
             time_format = data.time_format;
         }
     });
+
+    function lockScroll(elem) {
+        $(elem).each(function (i, instance)  {
+            var childHeight = $(instance).children('.scoller-content').height();
+            var height = $(instance).height();
+            var scrollHeight = $(instance).get(0).scrollHeight;
+
+            if (childHeight > height) {
+                $(instance).on('mousewheel', function(e, d) {
+                    if(($(instance).scrollTop() >= (scrollHeight - height)) && d < 0 || ($(instance).scrollTop() <= 0) && d > 0) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    };
 </script>
 % if 'current_activity' in config['home_sections']:
 <script>
@@ -492,6 +508,7 @@
                 $('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller').scrollbar();
                 $('#activity-instance-' + session.session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 })
                 $('#terminate-button-' + session.session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
+                lockScroll('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller');
             }
         });
     }
@@ -610,7 +627,7 @@
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
                 $('#ajaxMsg').fadeOut();
-                lockScroll();
+                lockScroll('#home-stats .dashboard-stats-info-scroller');
             }
         });
     }
@@ -640,22 +657,6 @@
 
     $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
     $('#watched-stats-count').tooltip({ container: 'body', placement: 'top', html: true });
-
-    function lockScroll() {
-        $('#home-stats .dashboard-stats-info-scroller.scroll-content').each(function (i, instance)  {
-            var childHeight = $(instance).children('.dashboard-stats-info').height();
-            var height = $(instance).height();
-            var scrollHeight = $(instance).get(0).scrollHeight;
-
-            if (childHeight > height) {
-                $(instance).on('mousewheel', function(e, d) {
-                    if(($(instance).scrollTop() >= (scrollHeight - height)) && d < 0 || ($(instance).scrollTop() <= 0) && d > 0) {
-                        e.preventDefault();
-                    }
-                });
-            }
-        });
-    };
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:
