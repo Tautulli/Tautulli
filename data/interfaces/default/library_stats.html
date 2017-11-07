@@ -84,7 +84,7 @@ DOCUMENTATION :: END
             </div>
             % else:
             <div class="home-platforms-instance-poster">
-                <div class="home-platforms-library-thumb" style="background-image: url(pms_image_proxy?img=${library['thumb']}&width=300&height=300&fallback=cover);"></div>
+                <div class="home-platforms-library-thumb" style="background-image: url(${library['thumb'].replace('/:/resources', '/images/libraries')});"></div>
             </div>
             % endif
         </li>
