@@ -1479,10 +1479,10 @@ class PmsConnect(object):
 
         # Get the bif thumbnail
         indexes = helpers.get_xml_attr(stream_media_parts_info, 'indexes')
-        progress = helpers.get_xml_attr(session, 'viewOffset')
+        view_offset = helpers.get_xml_attr(session, 'viewOffset')
         if indexes == 'sd':
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
-            bif_thumb = '/library/parts/{part_id}/indexes/sd/{progress}'.format(part_id=part_id, progress=progress)
+            bif_thumb = '/library/parts/{part_id}/indexes/sd/{view_offset}'.format(part_id=part_id, view_offset=view_offset)
         else:
             bif_thumb = ''
 
@@ -1505,7 +1505,7 @@ class PmsConnect(object):
                           'stream_video_resolution': stream_video_resolution,
                           'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
-                          'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
+                          'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
                           'stream_container_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
                           'transcode_decision': transcode_decision,
                           'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
@@ -1620,16 +1620,13 @@ class PmsConnect(object):
         # Entire session output (single dict for backwards compatibility)
         session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                           'media_type': media_type,
-                          'view_offset': progress,
-                          'progress_percent': str(helpers.get_percent(progress, stream_details['stream_duration'])),
+                          'view_offset': view_offset,
+                          'progress_percent': str(helpers.get_percent(view_offset, stream_details['stream_duration'])),
                           'quality_profile': quality_profile,
                           'user': user_details['username'],  # Keep for backwards compatibility
                           'channel_stream': channel_stream
                           }
         
-        if 'rating_key' not in session_output:
-            session_output['rating_key'] = helpers.get_xml_attr(session, 'ratingKey')
-
         session_output.update(metadata_details)
         session_output.update(source_media_details)
         session_output.update(source_media_part_details)
