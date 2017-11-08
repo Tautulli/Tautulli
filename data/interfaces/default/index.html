@@ -45,11 +45,6 @@
                     <input type="number" class="form-control" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
                     <span class="input-group-addon btn-dark inactive">days</span>
                 </div>
-                <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-count-selection">
-                    <span class="input-group-addon btn-dark inactive">Top</span>
-                    <input type="number" class="form-control" name="watched-stats-count" id="watched-stats-count" value="${config['home_stats_count']}" min="1" max="10" data-default="5" data-toggle="tooltip" title="Min: 1 item<br>Max: 10 items" />
-                    <span class="input-group-addon btn-dark inactive">items</span>
-                </div>
             </div>
         </div>
     </div>
@@ -612,7 +607,7 @@
 % endif
 % if 'watch_stats' in config['home_sections']:
 <script>
-    function getHomeStats(time_range, stats_type, stats_count) {
+    function getHomeStats(time_range, stats_type) {
         showMsg("Loading watch statistics...", true, false, 0);
 
         $.ajax({
@@ -622,8 +617,7 @@
             async: true,
             data: {
                 time_range: time_range,
-                stats_type: stats_type,
-                stats_count: stats_count
+                stats_type: stats_type
             },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
@@ -635,29 +629,21 @@
 
     var time_range = $('#watched-stats-days').val();
     var stats_type = $('input[name=watched-stats-type]:checked', '#watch-stats-toggles').val();
-    var stats_count = $('#watched-stats-count').val();
-    getHomeStats(time_range, stats_type, stats_count);
+    getHomeStats(time_range, stats_type);
 
     $('input[name=watched-stats-type]').change(function () {
         stats_type = $(this).filter(':checked').val();
-        getHomeStats(time_range, stats_type, stats_count);
+        getHomeStats(time_range, stats_type);
         $.post('set_home_stats_config', { stats_type: stats_type });
     });
     $('#watched-stats-days').change(function () {
         forceMinMax($(this));
         time_range = $(this).val();
-        getHomeStats(time_range, stats_type, stats_count);
+        getHomeStats(time_range, stats_type);
         $.post('set_home_stats_config', { time_range: time_range });
-    });
-    $('#watched-stats-count').change(function () {
-        forceMinMax($(this));
-        stats_count = $(this).val();
-        getHomeStats(time_range, stats_type, stats_count);
-        $.post('set_home_stats_config', { stats_count: stats_count });
     });
 
     $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
-    $('#watched-stats-count').tooltip({ container: 'body', placement: 'top', html: true });
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:

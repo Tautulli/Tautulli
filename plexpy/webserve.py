@@ -313,7 +313,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def home_stats(self, time_range=30, stats_type=0, stats_count=5, **kwargs):
+    def home_stats(self, time_range=30, stats_type=0, stats_count=10, **kwargs):
         data_factory = datafactory.DataFactory()
         stats_data = data_factory.get_home_stats(time_range=time_range,
                                                  stats_type=stats_type,
@@ -4593,7 +4593,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', **kwargs):
+    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='10', **kwargs):
         """ Get the homepage watch statistics.
 
             ```
