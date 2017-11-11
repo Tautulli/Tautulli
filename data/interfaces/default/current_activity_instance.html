@@ -59,12 +59,14 @@ indexes                     Returns true if the media has media indexes and are 
 DOCUMENTATION :: END
 </%doc>
 
-% if data is not None:
+% if session is not None:
 <%
+    from collections import defaultdict
     from urllib import quote
     from plexpy import helpers
     import plexpy
 %>
+<% data = defaultdict(lambda: 'Unknown', **session) %>
 <% sk = data['session_key'] %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">

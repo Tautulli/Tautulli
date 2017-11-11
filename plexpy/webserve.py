@@ -246,7 +246,7 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity_instance(self, **kwargs):
 
-        return serve_template(templatename="current_activity_instance.html", data=kwargs)
+        return serve_template(templatename="current_activity_instance.html", session=kwargs)
 
     @cherrypy.expose
     @requireAuth()

@@ -229,6 +229,12 @@
 </script>
 % if 'current_activity' in config['home_sections']:
 <script>
+    var defaultHandler = {
+        get: function(target, name) {
+            return target.hasOwnProperty(name) ? target[name] : 'Unknown';
+        }
+    };
+
     function getCurrentActivity() {
         $.ajax({
             url: 'get_activity',
@@ -279,14 +285,15 @@
                     header_count += ')';
                     $('#currentActivityHeader').text(header_count);
 
-                    sessions.forEach(function (s) {
+                    sessions.forEach(function (session) {
+                        var s = new Proxy(session, defaultHandler);
                         var key = s.session_key;
                         var session_id = s.session_id;
                         var instance = $('#activity-instance-' + key);
 
                         // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
-                            getActivityInstance(s);
+                            getActivityInstance(session);
                             return;
                         }
 
