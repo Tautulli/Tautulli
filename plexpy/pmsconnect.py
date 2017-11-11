@@ -1579,16 +1579,23 @@ class PmsConnect(object):
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
             metadata_details = self.get_metadata_details(rating_key=helpers.get_xml_attr(session, 'ratingKey'))
-            source_media_details = next((m for m in metadata_details.pop('media_info', []) if m['id'] == media_id), {})
-            source_media_part_details = next((p for p in source_media_details.pop('parts', []) if p['id'] == part_id), {})
+
+            # Get the media info, fallback to first item if match id is not found
+            source_media_info = metadata_details.pop('media_info', [])
+            source_media_details = next((m for m in source_media_info if m['id'] == media_id), next((m for m in source_media_info), {}))
+            source_media_part_details = next((p for p in source_media_info if p['id'] == part_id), next((p for p in source_media_info), {}))
+
             source_media_part_streams = source_media_part_details.pop('streams', [])
 
             if video_id:
-                source_video_details = next((p for p in source_media_part_streams if p['id'] == video_id), {})
+                source_video_details = next((p for p in source_media_part_streams if p['id'] == video_id),
+                                            next((p for p in source_media_part_streams if p['type'] == '1'), {}))
             if audio_id:
-                source_audio_details = next((p for p in source_media_part_streams if p['id'] == audio_id), {})
+                source_audio_details = next((p for p in source_media_part_streams if p['id'] == audio_id),
+                                            next((p for p in source_media_part_streams if p['type'] == '2'), {}))
             if subtitle_id:
-                source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id), {})
+                source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
+                                               next((p for p in source_media_part_streams if p['type'] == '3'), {}))
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
