@@ -1581,10 +1581,10 @@ class PmsConnect(object):
             metadata_details = self.get_metadata_details(rating_key=helpers.get_xml_attr(session, 'ratingKey'))
 
             # Get the media info, fallback to first item if match id is not found
-            source_media_info = metadata_details.pop('media_info', [])
-            source_media_details = next((m for m in source_media_info if m['id'] == media_id), next((m for m in source_media_info), {}))
-            source_media_part_details = next((p for p in source_media_info if p['id'] == part_id), next((p for p in source_media_info), {}))
-
+            source_medias = metadata_details.pop('media_info', [])
+            source_media_details = next((m for m in source_medias if m['id'] == media_id), next((m for m in source_medias), {}))
+            source_media_parts = source_media_details.pop('parts', [])
+            source_media_part_details = next((p for p in source_media_parts if p['id'] == part_id), next((p for p in source_media_parts), {}))
             source_media_part_streams = source_media_part_details.pop('streams', [])
 
             if video_id:
