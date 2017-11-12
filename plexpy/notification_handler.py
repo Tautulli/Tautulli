@@ -21,6 +21,7 @@ import json
 from operator import itemgetter
 import os
 import re
+from string import Formatter
 import threading
 import time
 
@@ -911,9 +912,11 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     if test:
         return subject, body
 
+    custom_formatter = CustomFormatter()
+
     if agent_id == 15:
         try:
-            script_args = [unicode(arg).format(**parameters) for arg in subject.split()]
+            script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in subject.split()]
         except LookupError as e:
             logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
             script_args = []
@@ -924,7 +927,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         script_args = []
 
     try:
-        subject = unicode(subject).format(**parameters)
+        subject = custom_formatter.format(unicode(subject), **parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
@@ -933,7 +936,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         subject = unicode(default_subject).format(**parameters)
 
     try:
-        body = unicode(body).format(**parameters)
+        body = custom_formatter.format(unicode(body), **parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
@@ -1180,3 +1183,35 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
             logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
 
     return themoviedb_json
+
+
+class CustomFormatter(Formatter):
+    def convert_field(self, value, conversion):
+        if conversion is None:
+            return value
+        elif conversion == 's':
+            return str(value)
+        elif conversion == 'r':
+            return repr(value)
+        elif conversion == 'u':  # uppercase
+            return str(value).upper()
+        elif conversion == 'l':  # lowercase
+            return str(value).lower()
+        elif conversion == 'c':  # capitalize
+            return str(value).title()
+        else:
+            return value
+
+    def format_field(self, value, format_spec):
+        if format_spec.startswith('[') and format_spec.endswith(']'):
+            pattern = re.compile(r'\[(\d*):?(\d*)\]')
+            if re.match(pattern, format_spec):  # slice
+                items = [x.strip() for x in str(value).split(',')]
+                slice_start, slice_end = re.search(pattern, format_spec).groups()
+                slice_start = max(int(slice_start), 0) if slice_start else None
+                slice_end = min(int(slice_end), len(items)) if slice_end else None
+                return ', '.join(items[slice_start:slice_end])
+            else:
+                return value
+        else:
+            return super(CustomFormatter, self).format_field(value, format_spec)

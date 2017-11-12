@@ -113,6 +113,7 @@
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_triggers">
                             <div class="row">
                                 <div class="col-md-12">
+                                    <label>Notification Triggers</label>
                                     <p class="help-block">
                                         Select items that will trigger a notification for this ${notifier['agent_label']} notifiation agent.
                                     </p>
@@ -129,6 +130,7 @@
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
+                            <label>Notification Conditions</label>
                             <p class="help-block">
                                 Add custom notification conditions.
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
@@ -152,6 +154,7 @@
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_text">
+                            <label>Notification Text</label>
                             <p class="help-block">
                                 % if notifier['agent_name'] == 'scripts':
                                 Set the custom arguments passed to the script for each type of notification.
@@ -159,6 +162,10 @@
                                 Set the custom formatted text for each type of notification.
                                 % endif
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
+                            </p>
+                            <p class="help-block">
+                                You can also add text modifiers to change the case or slice parameters with a list of items.
+                                <a href="#notify-text-modifiers-modal" data-toggle="modal">Click here</a> to view usage information.
                             </p>
                             <p class="help-block">
                                 You can also add tags to exclude certain text depending on the media type.
@@ -219,48 +226,61 @@
                             </ul>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-test_notifications">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <p class="help-block">
-                                        Test if ${notifier['agent_label']} notifications are working. Check the <a href="logs">logs</a> for troubleshooting.
-                                    </p>
-                                    <p class="help-block">
-                                        Note: Test with the real values since parameters will not be substituted. 
-                                        (i.e. Use <span class="inline-pre">"Game of Thrones"</span> not <span class="inline-pre">{title}</span>)
-                                    </p>
-                                    % if notifier['agent_name'] == 'scripts':
-                                    <div class="form-group">
-                                        <label for="test_script">Script</label>
+                            <label>Test Notifications</label>
+                            <p class="help-block">
+                                Test if ${notifier['agent_label']} notifications are working. Check the <a href="logs">logs</a> for troubleshooting.
+                            </p>
+                            <p class="help-block">
+                                Note: Test with the real values since parameters will not be substituted. 
+                                (i.e. Use <span class="inline-pre">"Game of Thrones"</span> not <span class="inline-pre">{title}</span>)
+                            </p>
+                            % if notifier['agent_name'] == 'scripts':
+                            <div class="form-group">
+                                <label for="test_script">Script</label>
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <select class="form-control" id="test_script" name="test_script">
                                             % for key, value in sorted(notifier['config_options'][2]['select_options'].iteritems()):
                                             <option value="${key}">${value}</option>
                                             % endfor
                                         </select>
-                                        <p class="help-block">Choose the script to test.</p>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="test_script_args">Script Arguments</label>
+                                </div>
+                                <p class="help-block">Choose the script to test.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="test_script_args">Script Arguments</label>
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
-                                        <p class="help-block">Set custom arguments passed to the script.</p>
                                     </div>
-                                    % else:
-                                    <div class="form-group">
-                                        <label for="test_subject">Subject Line</label>
+                                </div>
+                                <p class="help-block">Set custom arguments passed to the script.</p>
+                            </div>
+                            % else:
+                            <div class="form-group">
+                                <label for="test_subject">Subject Line</label>
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <input class="form-control" type="text" id="test_subject" name="test_subject" value="PlexPy">
-                                        <p class="help-block">Set a custom subject line.</p>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="test_body">Message Body</label>
+                                </div>
+                                <p class="help-block">Set a custom subject line.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="test_body">Message Body</label>
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <input class="form-control" type="text" id="test_body" name="test_body" value="Test notification">
-                                        <p class="help-block">Set a custom body.</p>
                                     </div>
-                                    % endif
-                                    <div class="form-group">
-                                        <div class="row">
-                                            <div class="col-md-8">
-                                                <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${notifier['agent_label']}">
-                                            </div>
-                                        </div>
+                                </div>
+                                <p class="help-block">Set a custom body.</p>
+                            </div>
+                            % endif
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${notifier['agent_label']}">
                                     </div>
                                 </div>
                             </div>
