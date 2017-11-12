@@ -296,7 +296,7 @@ class PlexTV(object):
         return request
 
     def get_plextv_sync_lists(self, machine_id='', output_format=''):
-        uri = '/servers/' + machine_id + '/sync_lists'
+        uri = '/servers/%s/sync_lists' % machine_id
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -330,6 +330,24 @@ class PlexTV(object):
 
     def delete_plextv_device(self, device_id='', output_format=''):
         uri = '/devices/%s.xml' % device_id
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='DELETE',
+                                                    output_format=output_format)
+
+        return request
+
+    def delete_plextv_device_sync_lists(self, client_id='', output_format=''):
+        uri = '/devices/%s/sync_items' % client_id
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def delete_plextv_sync(self, client_id='', sync_id='', output_format=''):
+        uri = '/devices/%s/sync_items/%s' % (client_id, sync_id)
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='DELETE',
@@ -425,7 +443,8 @@ class PlexTV(object):
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
         else:
             for a in xml_head:
-                client_id = helpers.get_xml_attr(a, 'id')
+                sync_id = helpers.get_xml_attr(a, 'id')
+                client_id = helpers.get_xml_attr(a, 'clientIdentifier')
                 sync_device = a.getElementsByTagName('Device')
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
@@ -505,12 +524,17 @@ class PlexTV(object):
                                         "video_quality": settings_video_quality,
                                         "total_size": status_total_size,
                                         "failure": status_failure,
+                                        "client_id": client_id,
                                         "sync_id": sync_id
                                         }
 
                         synced_items.append(sync_details)
 
         return session.filter_session_info(synced_items, filter_key='user_id')
+
+    def delete_sync(self, client_id, sync_id):
+        logger.info(u"PlexPy PlexTV :: Deleting sync item '%s'." % sync_id)
+        self.delete_plextv_sync(client_id=client_id, sync_id=sync_id)
 
     def get_server_urls(self, include_https=True):
 

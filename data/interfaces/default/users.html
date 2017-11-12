@@ -134,10 +134,11 @@
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < users_to_delete.length; i++) {
+                        users_to_delete.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_user',
-                                data: { user_id: users_to_delete[i] },
+                                type: 'POST',
+                                data: { user_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -145,11 +146,12 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
-                        for (var i = 0; i < users_to_purge.length; i++) {
+                        });
+                        users_to_purge.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_all_user_history',
-                                data: { user_id: users_to_purge[i] },
+                                type: 'POST',
+                                data: { user_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -157,7 +159,7 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         users_list_table.draw();
                     });
                 }

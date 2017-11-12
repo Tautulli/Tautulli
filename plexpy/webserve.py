@@ -2271,6 +2271,17 @@ class WebInterface(object):
 
         return output
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def delete_sync_rows(self, client_id, sync_id, **kwargs):
+        if client_id and sync_id:
+            plex_tv = plextv.PlexTV()
+            delete_row = plex_tv.delete_sync(client_id=client_id, sync_id=sync_id)
+            return {'message': 'Sync deleted'}
+        else:
+            return {'message': 'no data received'}
+
 
     ##### Logs #####
     @cherrypy.expose

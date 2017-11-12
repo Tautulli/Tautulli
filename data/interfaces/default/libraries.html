@@ -148,10 +148,11 @@
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                        libraries_to_delete.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_library',
-                                data: { section_id: libraries_to_delete[i] },
+                                type: 'POST',
+                                data: { section_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -159,11 +160,12 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
-                        for (var i = 0; i < libraries_to_purge.length; i++) {
+                        });
+                        libraries_to_purge.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_all_library_history',
-                                data: { section_id: libraries_to_purge[i] },
+                                type: 'POST',
+                                data: { section_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -171,7 +173,7 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         libraries_list_table.draw();
                     });
                 }

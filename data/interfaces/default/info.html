@@ -392,6 +392,9 @@ DOCUMENTATION :: END
                                 </button>
                             </div>
                             % endif
+                            <div class="btn-group">
+                                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
+                            </div>
                             <div class="btn-group colvis-button-bar"></div>
                         </div>
                     </div>
@@ -576,17 +579,18 @@ DOCUMENTATION :: END
                     $('#deleteCount').text(history_to_delete.length);
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_delete.length; i++) {
+                        history_to_delete.forEach(function (row, idx) {
                             $.ajax({
                                 url: 'delete_history_rows',
-                                data: { row_id: history_to_delete[i] },
+                                type: 'POST',
+                                data: { row_id: row },
                                 async: true,
                                 success: function (data) {
                                     var msg = "History deleted";
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         history_table.draw();
                     });
                 }
@@ -604,6 +608,10 @@ DOCUMENTATION :: END
                 });
             }
         });
+    });
+
+    $("#refresh-history-list").click(function () {
+        history_table.draw();
     });
 
     // Send recently added notification
