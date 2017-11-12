@@ -480,7 +480,7 @@ function childTableFormat(rowData) {
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +
-                '<th align="left" id="time">Time</th>' +
+                '<th align="left" id="date">Date</th>' +
                 '<th align="left" id="friendly_name">User</th>' +
                 '<th align="left" id="ip_address">IP Address</th>' +
                 '<th align="left" id="platform">Platform</th>' +
