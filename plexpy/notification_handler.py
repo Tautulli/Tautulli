@@ -1194,11 +1194,11 @@ class CustomFormatter(Formatter):
         elif conversion == 'r':
             return repr(value)
         elif conversion == 'u':  # uppercase
-            return str(value).upper()
+            return unicode(value).upper()
         elif conversion == 'l':  # lowercase
-            return str(value).lower()
+            return unicode(value).lower()
         elif conversion == 'c':  # capitalize
-            return str(value).title()
+            return unicode(value).title()
         else:
             return value
 
@@ -1206,7 +1206,7 @@ class CustomFormatter(Formatter):
         if format_spec.startswith('[') and format_spec.endswith(']'):
             pattern = re.compile(r'\[(\d*):?(\d*)\]')
             if re.match(pattern, format_spec):  # slice
-                items = [x.strip() for x in str(value).split(',')]
+                items = [x.strip() for x in unicode(value).split(',')]
                 slice_start, slice_end = re.search(pattern, format_spec).groups()
                 slice_start = max(int(slice_start), 0) if slice_start else None
                 slice_end = min(int(slice_end), len(items)) if slice_end else None
