@@ -499,6 +499,7 @@ def add_notifier_config(agent_id=None, **kwargs):
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         notifier_id = db.last_insert_id()
         logger.info(u"PlexPy Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        blacklist_logger()
         return notifier_id
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to add notification agent: %s." % e)
@@ -548,6 +549,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info(u"PlexPy Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        blacklist_logger()
         return True
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to update notification agent: %s." % e)
