@@ -2041,7 +2041,7 @@ class MQTT(Notifier):
                        'protocol': 'MQTTv311',
                        'username': '',
                        'password': '',
-                       'client_id': 'plexpy',
+                       'clientid': 'plexpy',
                        'topic': '',
                        'qos': 1,
                        'retain': 0,
@@ -2067,7 +2067,7 @@ class MQTT(Notifier):
             auth['password'] = self.config['password']
 
         single(self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
-               hostname=self.config['broker'], port=self.config['port'], client_id=self.config['client_id'],
+               hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
                keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
 
         return True
@@ -2095,8 +2095,8 @@ class MQTT(Notifier):
                                              }
                           },
                          {'label': 'Client ID',
-                          'value': self.config['client_id'],
-                          'name': 'mqtt_client_id',
+                          'value': self.config['clientid'],
+                          'name': 'mqtt_clientid',
                           'description': 'The client ID for connecting to the MQTT broker.',
                           'input_type': 'text'
                           },
