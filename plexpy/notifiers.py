@@ -2637,7 +2637,7 @@ class PUSHOVER(Notifier):
                           },
                          {'label': 'Pushover User or Group Key',
                           'value': self.config['key'],
-                          'name': 'pushover_keys',
+                          'name': 'pushover_key',
                           'description': 'Your Pushover user or group key.',
                           'input_type': 'text'
                           },
