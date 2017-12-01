@@ -36,7 +36,7 @@ try:
     from Cryptodome.Protocol.KDF import PBKDF2
     from Cryptodome.Cipher import AES
     from Cryptodome.Random import get_random_bytes
-    from Cryptodome.Hash import HMAC, SHA256
+    from Cryptodome.Hash import HMAC, SHA1
     CRYPTODOME = True
 except ImportError:
     try:
@@ -785,7 +785,7 @@ class ANDROIDAPP(Notifier):
             key_length = 32  # AES256
             iterations = 1000
             key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
-                         prf=lambda p, s: HMAC.new(p, s, SHA256).digest())
+                         prf=lambda p, s: HMAC.new(p, s, SHA1).digest())
 
             #logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
 
