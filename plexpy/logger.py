@@ -36,7 +36,7 @@ FILENAME_WEBSOCKET = "plexpy_websocket.log"
 MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
 
-_BLACKLIST_WORDS = []
+_BLACKLIST_WORDS = set()
 
 # PlexPy logger
 logger = logging.getLogger("plexpy")

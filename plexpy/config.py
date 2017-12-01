@@ -666,15 +666,15 @@ class Config(object):
 
     def _blacklist(self):
         """ Add tokens and passwords to blacklisted words in logger """
-        blacklist = []
+        blacklist = set()
 
         for key, subkeys in self._config.iteritems():
             for subkey, value in subkeys.iteritems():
                 if isinstance(value, basestring) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
-                    blacklist.append(value.strip())
+                    blacklist.add(value.strip())
 
-        logger._BLACKLIST_WORDS.extend(blacklist)
+        logger._BLACKLIST_WORDS.update(blacklist)
 
     def _define(self, name):
         key = name.upper()

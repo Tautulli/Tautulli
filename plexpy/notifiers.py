@@ -572,17 +572,17 @@ def blacklist_logger():
     db = database.MonitorDatabase()
     notifiers = db.select('SELECT notifier_config FROM notifiers')
 
-    blacklist = []
-    blacklist_keys = [w.lstrip('_') for w in _BLACKLIST_KEYS]
+    blacklist = set()
+    blacklist_keys = ['hook', 'key', 'password', 'token']
 
     for n in notifiers:
         config = json.loads(n['notifier_config'] or '{}')
         for key, value in config.iteritems():
             if isinstance(value, basestring) and len(value.strip()) > 5 and \
-                key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
-                blacklist.append(value.strip())
+                key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or any(bk in key.upper() for bk in _BLACKLIST_KEYS)):
+                blacklist.add(value.strip())
 
-    logger._BLACKLIST_WORDS.extend(blacklist)
+    logger._BLACKLIST_WORDS.update(blacklist)
 
 
 class PrettyMetadata(object):
@@ -1721,7 +1721,7 @@ class HIPCHAT(Notifier):
     Hipchat notifications
     """
     NAME = 'Hipchat'
-    _DEFAULT_CONFIG = {'api_url': '',
+    _DEFAULT_CONFIG = {'hook': '',
                        'color': '',
                        'emoticon': '',
                        'incl_subject': 1,
@@ -1804,12 +1804,12 @@ class HIPCHAT(Notifier):
 
         headers = {'Content-type': 'application/json'}
 
-        return self.make_request(self.config['api_url'], json=data)
+        return self.make_request(self.config['hook'], json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Hipchat Custom Integrations Full URL',
-                          'value': self.config['api_url'],
-                          'name': 'hipchat_api_url',
+                          'value': self.config['hook'],
+                          'name': 'hipchat_hook',
                           'description': 'Your Hipchat BYO integration URL. You can get a key from'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
@@ -1938,7 +1938,7 @@ class JOIN(Notifier):
     Join notifications
     """
     NAME = 'Join'
-    _DEFAULT_CONFIG = {'apikey': '',
+    _DEFAULT_CONFIG = {'api_key': '',
                        'device_id': '',
                        'incl_subject': 1
                        }
@@ -1949,7 +1949,7 @@ class JOIN(Notifier):
 
         deviceid_key = 'deviceId%s' % ('s' if len(self.config['device_id'].split(',')) > 1 else '')
 
-        data = {'apikey': self.config['apikey'],
+        data = {'api_key': self.config['api_key'],
                 deviceid_key: self.config['device_id'],
                 'text': body.encode("utf-8")}
 
@@ -1973,8 +1973,8 @@ class JOIN(Notifier):
             return False
 
     def get_devices(self):
-        if self.config['apikey']:
-            params = {'apikey': self.config['apikey']}
+        if self.config['api_key']:
+            params = {'api_key': self.config['api_key']}
 
             r = requests.get('https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices', params=params)
 
@@ -2004,8 +2004,8 @@ class JOIN(Notifier):
             devices = 'Enter your Join API key to load your device list.'
 
         config_option = [{'label': 'Join API Key',
-                          'value': self.config['apikey'],
-                          'name': 'join_apikey',
+                          'value': self.config['api_key'],
+                          'name': 'join_api_key',
                           'description': 'Your Join API key. Required for group notifications.',
                           'input_type': 'text',
                           'refresh': True
@@ -2150,7 +2150,7 @@ class NMA(Notifier):
     Notify My Android notifications
     """
     NAME = 'Notify My Android'
-    _DEFAULT_CONFIG = {'apikey': '',
+    _DEFAULT_CONFIG = {'api_key': '',
                        'priority': 0
                        }
 
@@ -2162,7 +2162,7 @@ class NMA(Notifier):
         batch = False
 
         p = pynma.PyNMA()
-        keys = self.config['apikey'].split(',')
+        keys = self.config['api_key'].split(',')
         p.addkey(keys)
 
         if len(keys) > 1:
@@ -2170,7 +2170,7 @@ class NMA(Notifier):
 
         response = p.push(title, subject, body, priority=self.config['priority'], batch_mode=batch)
 
-        if response[self.config['apikey']][u'code'] == u'200':
+        if response[self.config['api_key']][u'code'] == u'200':
             logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
         else:
@@ -2179,8 +2179,8 @@ class NMA(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'NotifyMyAndroid API Key',
-                          'value': self.config['apikey'],
-                          'name': 'nma_apikey',
+                          'value': self.config['api_key'],
+                          'name': 'nma_api_key',
                           'description': 'Your NotifyMyAndroid API key. Separate multiple api keys with commas.',
                           'input_type': 'text'
                           },
@@ -2409,7 +2409,7 @@ class PROWL(Notifier):
     Prowl notifications.
     """
     NAME = 'Prowl'
-    _DEFAULT_CONFIG = {'keys': '',
+    _DEFAULT_CONFIG = {'key': '',
                        'priority': 0
                        }
 
@@ -2417,7 +2417,7 @@ class PROWL(Notifier):
         if not subject or not body:
             return
 
-        data = {'apikey': self.config['keys'],
+        data = {'apikey': self.config['key'],
                 'application': 'PlexPy',
                 'event': subject.encode("utf-8"),
                 'description': body.encode("utf-8"),
@@ -2429,7 +2429,7 @@ class PROWL(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Prowl API Key',
-                          'value': self.config['keys'],
+                          'value': self.config['key'],
                           'name': 'prowl_keys',
                           'description': 'Your Prowl API key.',
                           'input_type': 'text'
@@ -2451,14 +2451,14 @@ class PUSHALOT(Notifier):
     Pushalot notifications
     """
     NAME = 'Pushalot'
-    _DEFAULT_CONFIG = {'apikey': ''
+    _DEFAULT_CONFIG = {'api_key': ''
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
         if not subject or not body:
             return
 
-        data = {'AuthorizationToken': self.config['apikey'],
+        data = {'AuthorizationToken': self.config['api_key'],
                 'Title': subject.encode('utf-8'),
                 'Body': body.encode("utf-8")}
 
@@ -2468,8 +2468,8 @@ class PUSHALOT(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushalot API Key',
-                          'value': self.config['apikey'],
-                          'name': 'pushalot_apikey',
+                          'value': self.config['api_key'],
+                          'name': 'pushalot_api_key',
                           'description': 'Your Pushalot API key.',
                           'input_type': 'text'
                           }
@@ -2483,8 +2483,8 @@ class PUSHBULLET(Notifier):
     Pushbullet notifications
     """
     NAME = 'Pushbullet'
-    _DEFAULT_CONFIG = {'apikey': '',
-                       'deviceid': '',
+    _DEFAULT_CONFIG = {'api_key': '',
+                       'device_id': '',
                        'channel_tag': ''
                        }
 
@@ -2497,21 +2497,21 @@ class PUSHBULLET(Notifier):
                 'body': body.encode("utf-8")}
 
         # Can only send to a device or channel, not both.
-        if self.config['deviceid']:
-            data['device_iden'] = self.config['deviceid']
+        if self.config['device_id']:
+            data['device_iden'] = self.config['device_id']
         elif self.config['channel_tag']:
             data['channel_tag'] = self.config['channel_tag']
 
         headers = {'Content-type': 'application/json',
-                   'Access-Token': self.config['apikey']
+                   'Access-Token': self.config['api_key']
                    }
 
         return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
 
     def get_devices(self):
-        if self.config['apikey']:
+        if self.config['api_key']:
             headers={'Content-type': "application/json",
-                     'Access-Token': self.config['apikey']
+                     'Access-Token': self.config['api_key']
                      }
 
             r = requests.get('https://api.pushbullet.com/v2/devices', headers=headers)
@@ -2532,15 +2532,15 @@ class PUSHBULLET(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushbullet API Key',
-                          'value': self.config['apikey'],
-                          'name': 'pushbullet_apikey',
+                          'value': self.config['api_key'],
+                          'name': 'pushbullet_api_key',
                           'description': 'Your Pushbullet API key.',
                           'input_type': 'text',
                           'refresh': True
                           },
                          {'label': 'Device',
-                          'value': self.config['deviceid'],
-                          'name': 'pushbullet_deviceid',
+                          'value': self.config['device_id'],
+                          'name': 'pushbullet_device_id',
                           'description': 'Set your Pushbullet device. If set, will override channel tag. ' \
                               'Leave blank to notify on all devices.',
                           'input_type': 'select',
@@ -2562,8 +2562,8 @@ class PUSHOVER(Notifier):
     Pushover notifications
     """
     NAME = 'Pushover'
-    _DEFAULT_CONFIG = {'apitoken': '',
-                       'keys': '',
+    _DEFAULT_CONFIG = {'api_token': '',
+                       'key': '',
                        'html_support': 1,
                        'priority': 0,
                        'sound': '',
@@ -2577,8 +2577,8 @@ class PUSHOVER(Notifier):
         if not subject or not body:
             return
 
-        data = {'token': self.config['apitoken'],
-                'user': self.config['keys'],
+        data = {'token': self.config['api_token'],
+                'user': self.config['key'],
                 'title': subject.encode("utf-8"),
                 'message': body.encode("utf-8"),
                 'sound': self.config['sound'],
@@ -2609,8 +2609,8 @@ class PUSHOVER(Notifier):
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data)
 
     def get_sounds(self):
-        if self.config['apitoken']:
-            params = {'token': self.config['apitoken']}
+        if self.config['api_token']:
+            params = {'token': self.config['api_token']}
 
             r = requests.get('https://api.pushover.net/1/sounds.json', params=params)
 
@@ -2629,14 +2629,14 @@ class PUSHOVER(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushover API Token',
-                          'value': self.config['apitoken'],
-                          'name': 'pushover_apitoken',
+                          'value': self.config['api_token'],
+                          'name': 'pushover_api_token',
                           'description': 'Your Pushover API token.',
                           'input_type': 'text',
                           'refresh': True
                           },
                          {'label': 'Pushover User or Group Key',
-                          'value': self.config['keys'],
+                          'value': self.config['key'],
                           'name': 'pushover_keys',
                           'description': 'Your Pushover user or group key.',
                           'input_type': 'text'
@@ -3389,10 +3389,18 @@ def upgrade_config_to_db():
                             'facebook': {'access_token': 'token',
                                          'group_id': 'group',
                                          'incl_poster': 'incl_card'},
-                            'join': {'device_id': 'deviceid'},
-                            'hipchat': {'api_url': 'url',
+                            'join': {'api_key': 'apikey',
+                                     'device_id': 'deviceid'},
+                            'hipchat': {'hook': 'url',
                                         'incl_poster': 'incl_card'},
+                            'nma': {'api_key': 'apikey'},
                             'osx': {'notify_app': 'app'},
+                            'prowl': {'key': 'keys'},
+                            'pushalot': {'api_key': 'apikey'},
+                            'pushbullet': {'api_key': 'apikey',
+                                           'device_id': 'deviceid'},
+                            'pushover': {'api_token': 'apitoken',
+                                         'key': 'keys'},
                             'scripts': {'script_folder': 'folder'},
                             'slack': {'incl_poster': 'incl_card'}
                             }

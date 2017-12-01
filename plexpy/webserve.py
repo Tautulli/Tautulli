@@ -3495,7 +3495,7 @@ class WebInterface(object):
             apikey = uuid.uuid4().hex
 
         logger.info(u"New API key generated.")
-        logger._BLACKLIST_WORDS.append(apikey)
+        logger._BLACKLIST_WORDS.add(apikey)
 
         if device == 'true':
             mobile_app.TEMP_DEVICE_TOKEN = apikey
