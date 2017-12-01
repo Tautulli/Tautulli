@@ -19,6 +19,7 @@ import os
 import random
 import shutil
 import threading
+import uuid
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -3489,7 +3490,10 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def generate_api_key(self, device=None, **kwargs):
-        apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
+        apikey = ''
+        while not apikey or apikey == plexpy.CONFIG.API_KEY or mobile_app.get_mobile_device_by_token(device_token=apikey):
+            apikey = uuid.uuid4().hex
+
         logger.info(u"New API key generated.")
         logger._BLACKLIST_WORDS.append(apikey)
 

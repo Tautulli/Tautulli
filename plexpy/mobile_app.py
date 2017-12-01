@@ -84,9 +84,6 @@ def delete_mobile_device(device_id=None):
 def blacklist_logger():
     devices = get_mobile_devices()
 
-    blacklist = []
-
-    for d in devices:
-        blacklist.append(d['device_token'])
+    blacklist = [d['device_token'] for d in devices]
 
     logger._BLACKLIST_WORDS.extend(blacklist)
