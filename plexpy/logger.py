@@ -32,7 +32,7 @@ import helpers
 # These settings are for file logging only
 FILENAME = "plexpy.log"
 FILENAME_API = "plexpy_api.log"
-FILENAME_WEBSOCKET = "plexpy_websocket.log"
+FILENAME_PLEX_WEBSOCKET = "plex_websocket.log"
 MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
 
@@ -43,7 +43,7 @@ logger = logging.getLogger("plexpy")
 # PlexPy API logger
 logger_api = logging.getLogger("plexpy_api")
 # PlexPy websocket logger
-logger_websocket = logging.getLogger("plexpy_websocket")
+logger_plex_websocket = logging.getLogger("plex_websocket")
 
 # Global queue for multiprocessing logging
 queue = None
@@ -190,7 +190,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
     # Close and remove old handlers. This is required to reinit the loggers
     # at runtime
-    for handler in logger.handlers[:] + logger_api.handlers[:] + logger_websocket.handlers[:]:
+    for handler in logger.handlers[:] + logger_api.handlers[:] + logger_plex_websocket.handlers[:]:
         # Just make sure it is cleaned up.
         if isinstance(handler, handlers.RotatingFileHandler):
             handler.close()
@@ -199,15 +199,15 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         logger.removeHandler(handler)
         logger_api.removeHandler(handler)
-        logger_websocket.removeHandler(handler)
+        logger_plex_websocket.removeHandler(handler)
 
     # Configure the logger to accept all messages
     logger.propagate = False
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger_api.propagate = False
     logger_api.setLevel(logging.DEBUG if verbose else logging.INFO)
-    logger_websocket.propagate = False
-    logger_websocket.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger_plex_websocket.propagate = False
+    logger_plex_websocket.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     # Setup file logger
     if log_dir:
@@ -230,12 +230,12 @@ def initLogger(console=False, log_dir=False, verbose=False):
         logger_api.addHandler(file_handler)
 
         # PlexPy websocket logger
-        filename = os.path.join(log_dir, FILENAME_WEBSOCKET)
+        filename = os.path.join(log_dir, FILENAME_PLEX_WEBSOCKET)
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
 
-        logger_websocket.addHandler(file_handler)
+        logger_plex_websocket.addHandler(file_handler)
 
     # Setup console logger
     if console:
@@ -250,7 +250,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Only add filters after the config file has been initialized
     # Nothing prior to initialization should contain sensitive information
     if not plexpy.DEV and plexpy.CONFIG:
-        for handler in logger.handlers + logger_api.handlers + logger_websocket.handlers:
+        for handler in logger.handlers + logger_api.handlers + logger_plex_websocket.handlers:
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
 
@@ -324,9 +324,9 @@ api_warning = logger_api.warning
 api_exception = logger_api.exception
 
 # PlexPy websocket logger
-websocket_info = logger_websocket.info
-websocket_warn = logger_websocket.warn
-websocket_error = logger_websocket.error
-websocket_debug = logger_websocket.debug
-websocket_warning = logger_websocket.warning
-websocket_exception = logger_websocket.exception
+websocket_info = logger_plex_websocket.info
+websocket_warn = logger_plex_websocket.warn
+websocket_error = logger_plex_websocket.error
+websocket_debug = logger_plex_websocket.debug
+websocket_warning = logger_plex_websocket.warning
+websocket_exception = logger_plex_websocket.exception

@@ -2309,8 +2309,8 @@ class WebInterface(object):
 
         if logfile == "plexpy_api":
             filename = logger.FILENAME_API
-        elif logfile == "plexpy_websocket":
-            filename = logger.FILENAME_WEBSOCKET
+        elif logfile == "plex_websocket":
+            filename = logger.FILENAME_PLEX_WEBSOCKET
         else:
             filename = logger.FILENAME
 
@@ -2512,8 +2512,8 @@ class WebInterface(object):
     def delete_logs(self, logfile='', **kwargs):
         if logfile == "plexpy_api":
             filename = logger.FILENAME_API
-        elif logfile == "plexpy_websocket":
-            filename = logger.FILENAME_WEBSOCKET
+        elif logfile == "plex_websocket":
+            filename = logger.FILENAME_PLEX_WEBSOCKET
         else:
             filename = logger.FILENAME
 
@@ -2554,8 +2554,8 @@ class WebInterface(object):
     def logFile(self, logfile='', **kwargs):
         if logfile == "plexpy_api":
             filename = logger.FILENAME_API
-        elif logfile == "plexpy_websocket":
-            filename = logger.FILENAME_WEBSOCKET
+        elif logfile == "plex_websocket":
+            filename = logger.FILENAME_PLEX_WEBSOCKET
         else:
             filename = logger.FILENAME
 
@@ -3782,13 +3782,13 @@ class WebInterface(object):
         """ Download the PlexPy log file. """
         if logfile == "plexpy_api":
             filename = logger.FILENAME_API
-            log = logger.logger
-        elif logfile == "plexpy_websocket":
-            filename = logger.FILENAME_WEBSOCKET
             log = logger.logger_api
+        elif logfile == "plex_websocket":
+            filename = logger.FILENAME_PLEX_WEBSOCKET
+            log = logger.logger_plex_websocket
         else:
             filename = logger.FILENAME
-            log = logger.logger_websocket
+            log = logger.logger
 
         try:
             log.flush()

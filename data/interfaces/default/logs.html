@@ -58,9 +58,9 @@
             <ul id="log_tabs" class="nav nav-pills" role="tablist">
                 <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-plexpy_log" aria-controls="tabs-plexpy_log" role="tab" data-toggle="tab">PlexPy Logs</a></li>
                 <li role="presentation"><a id="plexpy-api-logs-btn" href="#tabs-plexpy_api_log" aria-controls="tabs-plexpy_api_log" role="tab" data-toggle="tab">PlexPy API Logs</a></li>
-                <li role="presentation"><a id="plexpy-websocket-logs-btn" href="#tabs-plexpy_websocket_log" aria-controls="tabs-plexpy_websocket_log" role="tab" data-toggle="tab">PlexPy Websocket Logs</a></li>
                 <li role="presentation"><a id="plex-logs-btn" href="#tabs-plex_log" aria-controls="tabs-plex_log" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
                 <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-plex_scanner_log" aria-controls="tabs-plex_scanner_log" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
+                <li role="presentation"><a id="plexpy-websocket-logs-btn" href="#tabs-plex_websocket_log" aria-controls="tabs-plex_websocket_log" role="tab" data-toggle="tab">Plex Websocket Logs</a></li>
                 <li role="presentation"><a id="notification-logs-btn" href="#tabs-notification_log" aria-controls="tabs-notification_log" role="tab" data-toggle="tab">Notification Logs</a></li>
                 <li role="presentation"><a id="login-logs-btn" href="#tabs-login_log" aria-controls="tabs-login_log" role="tab" data-toggle="tab">Login Logs</a></li>
             </ul>
@@ -89,8 +89,8 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="tabs-plexpy_websocket_log" data-logfile="plexpy_websocket">
-                    <table class="display" id="plexpy_websocket_log_table" width="100%">
+                <div role="tabpanel" class="tab-pane" id="tabs-plex_websocket_log" data-logfile="plex_websocket">
+                    <table class="display" id="plex_websocket_log_table" width="100%">
                         <thead>
                             <tr>
                                 <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
@@ -323,8 +323,8 @@
             $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").hide();
-            loadPlexPyLogs('plexpy_websocket', selected_log_level);
-            clearSearchButton('plexpy_websocket_log_table', log_table);
+            loadPlexPyLogs('plex_websocket', selected_log_level);
+            clearSearchButton('plex_websocket_log_table', log_table);
         });
 
         $("#plex-logs-btn").click(function () {
@@ -475,7 +475,7 @@
                 if(refreshrate.value != 0)
                 {
                     timer = setInterval(function() {
-                        if ($("#tabs-plexpy_log").hasClass("active") || $("#tabs-plexpy_api_log").hasClass("active") || $("#tabs-plexpy_websocket_log").hasClass("active")) {
+                        if ($("#tabs-plexpy_log").hasClass("active") || $("#tabs-plexpy_api_log").hasClass("active") || $("#tabs-plex_websocket_log").hasClass("active")) {
                             log_table.ajax.reload();
                         } else if ($("#tabs-plex_log").hasClass("active")) {
                             plex_log_table.ajax.reload();
