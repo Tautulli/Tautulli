@@ -2433,7 +2433,7 @@ class PROWL(Notifier):
     def return_config_options(self):
         config_option = [{'label': 'Prowl API Key',
                           'value': self.config['key'],
-                          'name': 'prowl_keys',
+                          'name': 'prowl_key',
                           'description': 'Your Prowl API key.',
                           'input_type': 'text'
                           },
