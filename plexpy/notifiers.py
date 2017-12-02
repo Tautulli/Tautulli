@@ -766,17 +766,18 @@ class ANDROIDAPP(Notifier):
         else:
             device = device[0]
 
-        if kwargs.get('parameters', {}).get('media_type'):
-            pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            poster_thumb = pretty_metadata.parameters.get('poster_thumb','')
-        else:
-            poster_thumb = ''
+        pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
         plaintext_data = {'notification_id': notification_id,
-                          'subject': subject.encode("utf-8"),
-                          'body': body.encode("utf-8"),
+                          'subject': subject.encode('UTF-8'),
+                          'body': body.encode('UTF-8'),
+                          'action': action.encode('UTF-8'),
                           'priority': self.config['priority'],
-                          'poster_thumb': poster_thumb}
+                          'session_key': pretty_metadata.parameters.get('session_key',''),
+                          'session_id': pretty_metadata.parameters.get('session_id',''),
+                          'user_id': pretty_metadata.parameters.get('user_id',''),
+                          'rating_key': pretty_metadata.parameters.get('rating_key',''),
+                          'poster_thumb': pretty_metadata.parameters.get('poster_thumb','')}
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
