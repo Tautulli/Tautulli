@@ -168,7 +168,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
             
             if notify_action == 'on_stop':
                 return (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
-                    (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT)
+                    (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT) or 
                     (stream_data['media_type'] == 'episode' and progress_percent < plexpy.CONFIG.TV_WATCHED_PERCENT))
             
             elif notify_action == 'on_resume':
