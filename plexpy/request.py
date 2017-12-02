@@ -318,6 +318,9 @@ def server_message(response, return_msg=False):
             message = message[:150] + "..."
 
         if return_msg:
-            return unicode(message, 'UTF-8')
+            try:
+                return unicode(message, 'UTF-8')
+            except:
+                return message
 
         logger.debug("Server responded with message: %s", message)
