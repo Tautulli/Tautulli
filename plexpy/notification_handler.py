@@ -81,14 +81,6 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         # Check if any notification agents have notifications enabled for the action
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
-    # Check on_watched for each notifier
-    if notifiers_enabled and notify_action == 'on_watched':
-        for n, notifier in enumerate(notifiers_enabled):
-            if any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
-                   for d in get_notify_state(session=stream_data)):
-                # Already notified on_watched, remove from notifier
-                notifiers_enabled.pop(n)
-
     if notifiers_enabled and not manual_trigger:
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
@@ -312,7 +304,14 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
-    logger.debug(u"PlexPy NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
+    # Double check again if the notification has already been sent
+    if stream_data and \
+        any(d['notifier_id'] == notifier_id and d['notify_action'] == notify_action
+            for d in get_notify_state(session=stream_data)):
+        # Return if the notification has already been sent
+        return
+
+    logger.info(u"PlexPy NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
 
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
@@ -360,7 +359,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT timestamp, notify_action, agent_id '
+    result = monitor_db.select('SELECT timestamp, notify_action, notifier_id '
                                'FROM notify_log '
                                'WHERE session_key = ? '
                                'AND rating_key = ? '
@@ -371,7 +370,7 @@ def get_notify_state(session):
     for item in result:
         notify_state = {'timestamp': item['timestamp'],
                         'notify_action': item['notify_action'],
-                        'agent_id': item['agent_id']}
+                        'notifier_id': item['notifier_id']}
         notify_states.append(notify_state)
 
     return notify_states
