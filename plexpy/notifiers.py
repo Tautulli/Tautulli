@@ -1578,14 +1578,18 @@ class GROUPME(Notifier):
             data['text'] = body.encode('utf-8')
 
         if self.config['incl_poster'] and kwargs.get('parameters'):
-            parameters = kwargs['parameters']
-            poster_url = parameters.get('poster_url','')
+            pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
-            if poster_url:
+            # Retrieve the poster from Plex
+            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb',''))
+            if result and result[0]:
+                poster_content = result[0]
+            else:
+                poster_content = ''
+
+            if poster_content:
                 headers = {'X-Access-Token': self.config['access_token'],
                            'Content-Type': 'image/jpeg'}
-                poster_request = requests.get(poster_url)
-                poster_content = poster_request.content
 
                 r = requests.post('https://image.groupme.com/pictures', headers=headers, data=poster_content)
 
