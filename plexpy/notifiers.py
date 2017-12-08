@@ -58,6 +58,7 @@ import database
 import helpers
 import logger
 import mobile_app
+import pmsconnect
 import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 from plexpy.helpers import checked
