@@ -3081,20 +3081,15 @@ class TELEGRAM(Notifier):
             text = body.encode('utf-8')
 
         if self.config['incl_poster'] and kwargs.get('parameters'):
-            poster_data = {'chat_id': self.config['chat_id'],
-                           'disable_notification': True}
-
             parameters = kwargs['parameters']
             poster_url = parameters.get('poster_url','')
 
             if poster_url:
-                poster_request = requests.get(poster_url)
-                poster_content = poster_request.content
+                poster_data = {'photo': poster_url,
+                               'chat_id': self.config['chat_id'],
+                               'disable_notification': True}
 
-                files = {'photo': (poster_url, poster_content)}
-
-                r = requests.post('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
-                                  data=poster_data, files=files)
+                r = requests.post('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']), json=poster_data)
 
                 if r.status_code == 200:
                     logger.info(u"PlexPy Notifiers :: {name} poster sent.".format(name=self.NAME))
