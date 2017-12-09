@@ -13,8 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import threading
 import time
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
 
 import plexpy
 import activity_processor
@@ -25,6 +29,8 @@ import notification_handler
 import notifiers
 import pmsconnect
 
+
+ACTIVITY_SCHED = BackgroundScheduler()
 
 RECENTLY_ADDED_QUEUE = {}
 
@@ -206,6 +212,9 @@ class ActivityHandler(object):
 
             # If we already have this session in the temp table, check for state changes
             if db_session:
+                # Re-schedule the callback to reset the 5 minutes timer
+                schedule_callback(self.get_session_key(), args=[self.get_session_key()], minutes=5)
+
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
 
@@ -225,6 +234,10 @@ class ActivityHandler(object):
                             self.on_resume()
                         elif this_state == 'stopped':
                             self.on_stop()
+
+                            # Remove the callback if the stream is stopped
+                            schedule_callback(self.get_session_key(), remove_job=True)
+
                     elif this_state == 'buffering':
                         self.on_buffer()
                 # If a client doesn't register stop events (I'm looking at you PHT!) check if the ratingKey has changed
@@ -249,6 +262,10 @@ class ActivityHandler(object):
                 # We don't have this session in our table yet, start a new one.
                 if this_state != 'buffering':
                     self.on_start()
+
+                    # Schedule a callback to force stop a stale stream 5 minutes later
+                    schedule_callback(self.get_session_key(), args=[self.get_session_key()], minutes=5)
+
 
 class TimelineHandler(object):
 
@@ -439,3 +456,50 @@ def del_keys(key):
             del_keys(child_key)
     elif key in RECENTLY_ADDED_QUEUE:
         del_keys(RECENTLY_ADDED_QUEUE.pop(key))
+
+
+def schedule_callback(id, remove_job=False, args=None, **kwargs):
+    if ACTIVITY_SCHED.get_job(str(id)):
+        if remove_job:
+            ACTIVITY_SCHED.remove_job(str(id))
+        else:
+            ACTIVITY_SCHED.reschedule_job(
+                str(id), args=args, trigger=DateTrigger(
+                    run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
+    elif not remove_job:
+        ACTIVITY_SCHED.add_job(
+            force_stop_stream, args=args, id=str(id), trigger=DateTrigger(
+                run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
+    
+
+def force_stop_stream(session_key):
+    ap = activity_processor.ActivityProcessor()
+    session = ap.get_session_by_key(session_key=session_key)
+
+    success = ap.write_session_history(session=session)
+
+    if success:
+        # If session is written to the databaase successfully, remove the session from the session table
+        logger.info(u"PlexPy ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+                    % (session['session_key'], session['rating_key']))
+        ap.delete_session(session_key=session_key)
+
+    else:
+        sessions['write_attempts'] += 1
+
+        if sessions['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
+            logger.warn(u"PlexPy ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+                        "Will try again in 30 seconds. Write attempt %s."
+                        % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
+            ap.increment_write_attempts(session_key=session_key)
+
+            # Reschedule for 30 seconds later
+            schedule_callback(session_key, args=[session_key], seconds=30)
+
+        else:
+            logger.warn(u"PlexPy Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+                        "Removing session from the database. Write attempt %s."
+                        % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
+            logger.info(u"PlexPy Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+                        % (sessions['session_key'], sessions['rating_key']))
+            ap.delete_session(session_key=session_key)

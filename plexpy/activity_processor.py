@@ -405,3 +405,9 @@ class ActivityProcessor(object):
     def set_temp_stopped(self):
         stopped_time = int(time.time())
         self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
+
+    def increment_write_attempts(self, session_key=None):
+        if str(session_key).isdigit():
+            session = self.get_session_by_key(session_key=session_key)
+            self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
+                           [session['write_attempts'] + 1, session_key])

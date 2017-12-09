@@ -32,6 +32,7 @@ import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
+import activity_handler
 import activity_pinger
 import config
 import database
@@ -372,7 +373,7 @@ def initialize_scheduler():
             try:
                 SCHED.start()
             except Exception as e:
-                logger.info(e)
+                logger.error(e)
 
 
 def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
@@ -402,6 +403,9 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        # Start the scheduler for stale stream callbacks
+        activity_handler.ACTIVITY_SCHED.start()
+
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
 
