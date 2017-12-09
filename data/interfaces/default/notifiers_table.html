@@ -23,7 +23,7 @@ DOCUMENTATION :: END
         </span>
     </li>
     % endfor
-    <li class="add-notification-agent">
+    <li class="add-notification-agent" id="add-notification-agent" data-target="#add-notifier-modal" data-toggle="modal">
         <span>
             <span class="toggle-left"><i class="fa fa-lg fa-bell"></i></span> Add a new notification agent
             <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
@@ -32,11 +32,6 @@ DOCUMENTATION :: END
 </ul>
 
 <script>
-    // Load add notification agent modal
-    $(".add-notification-agent").click(function () {
-        $("#add-notifier-modal").modal('show');
-    });
-
     // Load notification agent config modal
     $(".notification-agent").click(function () {
         var notifier_id = $(this).data('id');

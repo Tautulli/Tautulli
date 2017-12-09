@@ -49,12 +49,15 @@ def get_mobile_device_by_token(device_token=None):
     return get_mobile_devices(device_token=device_token)
 
 
-def add_mobile_device(device_id=None, device_name=None, device_token=None):
+def add_mobile_device(device_id=None, device_name=None, device_token=None, friendly_name=None):
     db = database.MonitorDatabase()
 
     keys = {'device_id': device_id}
     values = {'device_name': device_name,
               'device_token': device_token}
+
+    if friendly_name:
+        values['friendly_name'] = friendly_name
 
     try:
         result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
@@ -70,12 +73,49 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None):
     return True
 
 
-def delete_mobile_device(device_id=None):
+def get_mobile_device_config(mobile_device_id=None):
+    if str(mobile_device_id).isdigit():
+        mobile_device_id = int(mobile_device_id)
+    else:
+        logger.error(u"PlexPy MobileApp :: Unable to retrieve mobile device config: invalid mobile_device_id %s." % mobile_device_id)
+        return None
+
+    db = database.MonitorDatabase()
+    result = db.select_single('SELECT * FROM mobile_devices WHERE id = ?',
+                              args=[mobile_device_id])
+
+    return result
+
+
+def set_mobile_device_config(mobile_device_id=None, **kwargs):
+    if str(mobile_device_id).isdigit():
+        mobile_device_id = int(mobile_device_id)
+    else:
+        logger.error(u"PlexPy MobileApp :: Unable to set exisiting mobile device: invalid mobile_device_id %s." % mobile_device_id)
+        return False
+
+    keys = {'id': mobile_device_id}
+    values = {}
+
+    if kwargs.get('friendly_name'):
+        values['friendly_name'] = kwargs['friendly_name']
+
+    db = database.MonitorDatabase()
+    try:
+        db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
+        logger.info(u"PlexPy MobileApp :: Updated mobile device agent: mobile_device_id %s." % mobile_device_id)
+        return True
+    except Exception as e:
+        logger.warn(u"PlexPy MobileApp :: Unable to update mobile device: %s." % e)
+        return False
+
+
+def delete_mobile_device(mobile_device_id=None):
     db = database.MonitorDatabase()
 
-    if device_id:
-        logger.debug(u"PlexPy MobileApp :: Deleting device_id %s from the database." % device_id)
-        result = db.action('DELETE FROM mobile_devices WHERE device_id = ?', args=[device_id])
+    if mobile_device_id:
+        logger.debug(u"PlexPy MobileApp :: Deleting device_id %s from the database." % mobile_device_id)
+        result = db.action('DELETE FROM mobile_devices WHERE id = ?', args=[mobile_device_id])
         return True
     else:
         return False

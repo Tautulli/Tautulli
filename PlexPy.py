@@ -94,7 +94,7 @@ def main():
         '--pidfile', help='Create a pid file (only relevant when running as a daemon)')
     parser.add_argument(
         '--nofork', action='store_true', help='Start PlexPy as a service, do not fork when restarting')
-		
+
     args = parser.parse_args()
 
     if args.verbose:

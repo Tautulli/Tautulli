@@ -9,39 +9,126 @@ Version:            0.1
 DOCUMENTATION :: END
 </%doc>
 
-% if devices_list:
 <ul class="stacked-configs list-unstyled">
     % for device in sorted(devices_list, key=lambda k: k['device_name']):
-    <li class="registered-device" data-id="${device['device_id']}" data-name="${device['device_name']}">
+    <li class="mobile-device" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
-            <span class="toggle-left mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Rename Device"><i class="fa fa-lg fa-pencil"></i></span>
-            <span class="mobile-device-name">${device['friendly_name'] or device['device_name']}</span>
-            <input type="text" class="edit-mobile-device-name hidden" value="${device['device_name']}" />
-            <span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>
+            <!--<span class="toggle-right mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Edit Device"><i class="fa fa-lg fa-pencil"></i></span>-->
+            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
+            ${device['friendly_name'] or device['device_name']} &nbsp;<span class="friendly_name">(${device['id']})</span>
+            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+            <!--<span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>-->
         </span>
     </li>
     % endfor
-</ul>
-
-<script>
-    $('.mobile-device-tooltip').tooltip();
-    $('.delete-mobile-device').tooltip();
-
-    $('.delete-mobile-device').click(function () {
-        var device_id = $(this).closest('li').data('id');
-        var device_name = $(this).closest('li').data('name');
-        var msg = 'Are you sure you want to unregister the device <strong>' + device_name + '</strong> from PlexPy?';
-        var url = 'delete_mobile_device';
-        confirmAjaxCall(url, msg, { device_id: device_id }, null, getMobileDevicesTable);
-    });
-</script>
-% else:
-<ul class="stacked-configs list-unstyled">
-    <li class="registered-device">
+    <li class="add-mobile-device" id="register-mobile-device" data-target="#api-qr-modal" data-toggle="modal">
         <span>
-            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
-            No devices registered
+            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span> Register a new device
+            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
         </span>
     </li>
 </ul>
-% endif
+
+<script>
+    // Load notification agent config modal
+    $(".mobile-device").click(function () {
+        var mobile_device_id = $(this).data('id');
+        loadMobileDeviceConfig(mobile_device_id);
+    });
+
+    getPlexPyURL = function () {
+        var deferred = $.Deferred();
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            deferred.resolve(location.href.split('/settings')[0]);
+        } else {
+            $.get('get_plexpy_url').then(function (url) {
+                deferred.resolve(url);
+            })
+        }
+        return deferred;
+    }
+
+    function checkQRAddress(url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        var hostname = parser.hostname;
+        var protocol = parser.protocol;
+
+        if (hostname === '127.0.0.1' || hostname === 'localhost') {
+            $('#api_qr_localhost').toggle(true);
+            $('#api_qr_private').toggle(false);
+        } else {
+            $('#api_qr_localhost').toggle(false);
+            isPrivateIP(hostname).then(function (valid) {
+                $('#api_qr_private').toggle((valid !== 'n/a'));
+            }, function () {
+                $('#api_qr_private').toggle(false);
+            });
+        }
+        $('#api_qr_https').toggle((protocol === 'http:'));
+    }
+
+    var verifiedDevice = false;
+    $('#register-mobile-device').click(function () {
+        verifiedDevice = false;
+
+        getPlexPyURL().then(function (url) {
+            checkQRAddress(url)
+
+            $.get('generate_api_key', { device: true }).then(function (token) {
+                $('#api_qr_address').val(url);
+                $('#api_qr_token').val(token);
+                $('#api_qr_code').empty().qrcode({
+                    text: url + '|' + token
+                });
+
+                (function poll() {
+                    setTimeout(function () {
+                        $.ajax({
+                            url: 'verify_mobile_device',
+                            type: 'GET',
+                            data: { device_token: token },
+                            success: function (data) {
+                                if (data.result === 'success') {
+                                    verifiedDevice = true;
+                                    getMobileDevicesTable();
+                                    $('#api-qr-modal').modal('hide');
+                                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000, false);
+                                }
+                            },
+                            complete: function () {
+                                if (!(verifiedDevice)) {
+                                    poll();
+                                }
+                            },
+                            timeout: 1000
+                        });
+                    }, 1000);
+                })();
+            });
+        });
+    });
+
+    $('#api_qr_address').change(function () {
+        var url = $(this).val();
+        checkQRAddress(url)
+
+        $('#api_qr_code').empty().qrcode({
+            text: url + '|' + $('#api_qr_token').val()
+        });
+    });
+
+    $('#api-qr-modal').on('hide.bs.modal', function () {
+        if (!(verifiedDevice)) {
+            $.ajax({
+                url: 'verify_mobile_device',
+                type: 'GET',
+                data: { cancel: true },
+                success: function (data) {
+                    showMsg('<i class="fa fa-times"></i> ' + data.message, false, true, 5000, false);
+                }
+            });
+        }
+        verifiedDevice = true;
+    })
+</script>

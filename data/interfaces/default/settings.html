@@ -49,7 +49,7 @@
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">PlexPy Android App</a></li>
+                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">PlexPy Android App <sup><small>Beta</small></sup></a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -1071,19 +1071,10 @@
                                 </span>
                             </p>
                         </div>
-                        <div class="form-group">
-                            <label>Register Your Device</label>
-                            <p class="help-block">Register your device to your PlexPy server by scanning a QR code.</p>
-                            <div class="btn-group" style="display: table-cell; vertical-align: middle;">
-                                <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
-                            </div>
-                            <div style="display: table-cell; vertical-align: middle;">
-                                <span style="color: #eb8600; padding-left: 10px;" id="generate_qr_msg">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
+                        <p class="form-group">
                             <label>Registered Devices</label>
-                            <p class="help-block">List of devices currently registered with the PlexPy server.</p>
+                            <p class="help-block">Register a new device, or configure an existing device by clicking the settings icon on the right.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</p>
                             <div class="row">
                                 <div id="plexpy-mobile-devices-table" class="col-md-6">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
@@ -1465,6 +1456,7 @@
         </div>
     </div>
 </div>
+<div id="mobile-device-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="mobile-device-config-modal"></div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -1535,6 +1527,18 @@
             async: true,
             complete: function(xhr, status) {
                 $("#plexpy-mobile-devices-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadMobileDeviceConfig(mobile_device_id) {
+        $.ajax({
+            url: 'get_mobile_device_config_modal',
+            data: { mobile_device_id: mobile_device_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#mobile-device-config-modal").html(xhr.responseText).modal('show');
             }
         });
     }
@@ -2075,108 +2079,12 @@ $(document).ready(function() {
 
     function apiEnabled() {
         var api_enabled = $('#api_enabled').prop('checked');
-        $('#generate_qr').prop('disabled', !(api_enabled));
-        $('#generate_qr_msg').toggle(!(api_enabled));
+        $('#app_api_msg').toggle(!(api_enabled));
     }
     apiEnabled();
     $('#api_enabled').click(function () {
         apiEnabled();
     });
-
-    getPlexPyURL = function () {
-        var deferred = $.Deferred();
-        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-            deferred.resolve(location.href.split('/settings')[0]);
-        } else {
-            $.get('get_plexpy_url').then(function (url) {
-                deferred.resolve(url);
-            })
-        }
-        return deferred;
-    }
-
-    function checkQRAddress(url) {
-        var parser = document.createElement('a');
-        parser.href = url;
-        var hostname = parser.hostname;
-        var protocol = parser.protocol;
-
-        if (hostname === '127.0.0.1' || hostname === 'localhost') {
-            $('#api_qr_localhost').toggle(true);
-            $('#api_qr_private').toggle(false);
-        } else {
-            $('#api_qr_localhost').toggle(false);
-            isPrivateIP(hostname).then(function (valid) {
-                $('#api_qr_private').toggle((valid !== 'n/a'));
-            }, function () {
-                $('#api_qr_private').toggle(false);
-            });
-        }
-        $('#api_qr_https').toggle((protocol === 'http:'));
-    }
-
-    var verifiedDevice = false;
-    $('#generate_qr').click(function () {
-        getPlexPyURL().then(function (url) {
-            checkQRAddress(url)
-
-            $.get('generate_api_key', { device: true }).then(function (token) {
-                $('#api_qr_address').val(url);
-                $('#api_qr_token').val(token);
-                $('#api_qr_code').empty().qrcode({
-                    text: url + '|' + token
-                });
-
-                (function poll(){
-                    verifiedDevice = false;
-                    setTimeout(function() {
-                        $.ajax({
-                            url: 'verify_mobile_device',
-                            type: 'GET',
-                            data: { device_token: token },
-                            success: function(data) {
-                                if (data.result === 'success') {
-                                    verifiedDevice = true;
-                                    getMobileDevicesTable();
-                                    $('#api-qr-modal').modal('hide');
-                                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000, false);
-                                }
-                            },
-                            complete: function() {
-                                if (!(verifiedDevice)) {
-                                    poll();
-                                }
-                            },
-                            timeout: 1000
-                        });
-                    }, 1000);
-                })();
-            });
-        });
-    });
-
-    $('#api_qr_address').change(function () {
-        var url = $(this).val();
-        checkQRAddress(url)
-
-        $('#api_qr_code').empty().qrcode({
-            text: url + '|' + $('#api_qr_token').val()
-        });
-    });
-
-    $('#api-qr-modal').on('hidden.bs.modal', function () {
-        if (!(verifiedDevice)) {
-            $.ajax({
-                url: 'verify_mobile_device',
-                type: 'GET',
-                data: { cancel: true },
-                success: function(data) {
-                    showMsg('<i class="fa fa-times"></i> ' + data.message, false, true, 5000, false);
-                }
-            });
-        }
-        verifiedDevice = true;
-    })
 
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');

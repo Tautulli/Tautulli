@@ -350,7 +350,7 @@ class API2:
 
         return data
 
-    def register_device(self, device_id='', device_name='', **kwargs):
+    def register_device(self, device_id='', device_name='', friendly_name='', **kwargs):
         """ Registers the PlexPy Android App for notifications.
 
             ```
@@ -359,7 +359,7 @@ class API2:
                 device_id (str):          The OneSignal device id of the PlexPy Android App
 
             Optional parameters:
-                None
+                friendly_name (str):      A friendly name to identify the mobile device
 
             Returns:
                 None
@@ -377,7 +377,8 @@ class API2:
 
         result = mobile_app.add_mobile_device(device_id=device_id,
                                               device_name=device_name,
-                                              device_token=self._api_apikey)
+                                              device_token=self._api_apikey,
+                                              friendly_name=friendly_name)
 
         if result:
             self._api_msg = 'Device registration successful.'

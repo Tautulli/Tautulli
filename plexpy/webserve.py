@@ -3066,9 +3066,9 @@ class WebInterface(object):
         result = notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **kwargs)
 
         if result:
-            return {'result': 'success', 'message': 'Added notification agent.'}
+            return {'result': 'success', 'message': 'Saved notification agent.'}
         else:
-            return {'result': 'error', 'message': 'Failed to add notification agent.'}
+            return {'result': 'error', 'message': 'Failed to save notification agent.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3277,16 +3277,49 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Device not registered.'}
 
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_mobile_device_config_modal(self, mobile_device_id=None, **kwargs):
+        result = mobile_app.get_mobile_device_config(mobile_device_id=mobile_device_id)
+
+        return serve_template(templatename="mobile_device_config.html", device=result)
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_mobile_device(self, device_id=None, **kwargs):
+    def set_mobile_device_config(self, mobile_device_id=None, **kwargs):
+        """ Configure an exisitng notificaiton agent.
+
+            ```
+            Required parameters:
+                mobile_device_id (int):        The mobile device config to update
+
+            Optional parameters:
+                friendly_name (str):           A friendly name to identify the mobile device
+
+            Returns:
+                None
+            ```
+        """
+        result = mobile_app.set_mobile_device_config(mobile_device_id=mobile_device_id, **kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Saved mobile device.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to save mobile device.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_mobile_device(self, mobile_device_id=None, **kwargs):
         """ Remove a mobile device from the database.
 
             ```
             Required parameters:
-                device_id (int):        The device to delete
+                mobile_device_id (int):        The device id to delete
 
             Optional parameters:
                 None
@@ -3295,9 +3328,9 @@ class WebInterface(object):
                 None
             ```
         """
-        result = mobile_app.delete_mobile_device(device_id=device_id)
+        result = mobile_app.delete_mobile_device(mobile_device_id=mobile_device_id)
         if result:
-            return {'result': 'success', 'message': 'Device deleted successfully.'}
+            return {'result': 'success', 'message': 'Deleted mobile device.'}
         else:
             return {'result': 'error', 'message': 'Failed to delete device.'}
 

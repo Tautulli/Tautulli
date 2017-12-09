@@ -2769,24 +2769,14 @@ a .home-platforms-list-cover-face:hover
 }
 .stacked-configs > li.new-notification-agent,
 .stacked-configs > li.notification-agent,
-.stacked-configs > li.add-notification-agent {
+.stacked-configs > li.add-notification-agent,
+.stacked-configs > li.mobile-device,
+.stacked-configs > li.add-mobile-device {
     cursor: pointer;
 }
-.stacked-configs > li.registered-device > span,
-.stacked-configs > li.registered-device > span:hover,
-.stacked-configs > li.registered-device > span:focus {
-    background-color: #282828;
-}
-.stacked-configs > li.registered-device > span > a.toggle-left,
-.stacked-configs > li.registered-device > span > span.toggle-left {
+.stacked-configs > li.mobile-device > span > a.toggle-left,
+.stacked-configs > li.mobile-device > span > span.toggle-left {
     color: #999;
-    padding-right: 8px;
-}
-.stacked-configs > li.registered-device > span > span.delete-mobile-device {
-    cursor: pointer;
-}
-.stacked-configs > li.registered-device > span > span.delete-mobile-device:hover {
-    color: #c9302c;
 }
 .accordion {
     width: 100%;
@@ -3433,7 +3423,9 @@ a:hover .overlay-refresh-image:hover {
     margin-bottom: 0;
 }
 #plexpy-notifiers-table .friendly_name,
-#notifier-config-modal span.notifier_id {
+#notifier-config-modal span.notifier_id,
+#plexpy-mobile-devices-table .friendly_name,
+#mobile-device-config-modal span.notifier_id {
     color: #777;
 }
 #notifier-config-modal .nav-tabs {
