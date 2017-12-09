@@ -70,6 +70,7 @@ def run():
     global ws_reconnect
     ws_reconnect = False
     reconnects = 0
+    ws_exception = False
 
     # Try an open the websocket connection
     while not plexpy.WS_CONNECTED and reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
@@ -95,6 +96,7 @@ def run():
         except (websocket.WebSocketException, Exception) as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             plexpy.WS_CONNECTED = False
+            ws_exception = True
             break
 
     while plexpy.WS_CONNECTED:
@@ -128,6 +130,7 @@ def run():
         except (websocket.WebSocketException, Exception) as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             plexpy.WS_CONNECTED = False
+            ws_exception = True
             break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
@@ -140,7 +143,7 @@ def run():
     if not plexpy.WS_CONNECTED and not ws_reconnect:
         logger.error(u"PlexPy WebSocket :: Connection unavailable.")
 
-        if plexpy.PLEX_SERVER_UP:
+        if not ws_exception and plexpy.PLEX_SERVER_UP:
             logger.info(u"PlexPy WebSocket :: Unable to get an internal response from the server, Plex server is down.")
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
             plexpy.PLEX_SERVER_UP = False
