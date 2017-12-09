@@ -103,7 +103,9 @@ class API2:
         self._api_profileme = kwargs.pop('profileme', None)
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
-        self._api_app = True if kwargs.pop('app') == 'true' else False
+
+        if 'app' in kwargs and kwargs.pop('app') == 'true':
+            self._api_app = True
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg:
             if self._api_apikey == plexpy.CONFIG.API_KEY or (self._api_app and self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN):
