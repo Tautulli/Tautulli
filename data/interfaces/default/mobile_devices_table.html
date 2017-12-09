@@ -17,6 +17,15 @@ DOCUMENTATION :: END
             <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
             ${device['friendly_name'] or device['device_name']} &nbsp;<span class="friendly_name">(${device['id']})</span>
             <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+            <span class="toggle-right friendly_name" id="device-last_seen-${device['id']}">
+                % if device['last_seen']:
+                <script>
+                    $("#device-last_seen-${device['id']}").text(moment("${device['last_seen']}", "X").fromNow())
+                </script>
+                % else:
+                never
+                % endif
+            </span>
             <!--<span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>-->
         </span>
     </li>

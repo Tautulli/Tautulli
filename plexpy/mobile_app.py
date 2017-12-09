@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import time
+
 import plexpy
 import database
 import helpers
@@ -119,6 +121,19 @@ def delete_mobile_device(mobile_device_id=None):
         return True
     else:
         return False
+
+
+def set_last_seen(device_token=None):
+    db = database.MonitorDatabase()
+
+    last_seen = int(time.time())
+
+    try:
+        result = db.action('UPDATE mobile_devices SET last_seen = ? WHERE device_token = ?',
+                           args=[last_seen, device_token])
+    except Exception as e:
+        logger.warn(u"PlexPy MobileApp :: Failed to set last_seen time for device: %s." % e)
+        return
 
 
 def blacklist_logger():

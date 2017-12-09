@@ -1076,7 +1076,7 @@
                             <p class="help-block">Register a new device, or configure an existing device by clicking the settings icon on the right.</p>
                             <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</p>
                             <div class="row">
-                                <div id="plexpy-mobile-devices-table" class="col-md-6">
+                                <div id="plexpy-mobile-devices-table" class="col-md-12">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
                                     <br>
                                 </div>
@@ -1429,26 +1429,28 @@
             <div class="modal-body">
                 <label>Instructions</label>
                 <p class="help-block">
-                    Scan the QR code below with the PlexPy Android app to automatically register it with the server.
+                    Scan the QR code below with the PlexPy Android app to automatically register it with the server
+                    or manually enter the into into the app settings.
                     Make sure the PlexPy Address below is correct.
                 </p>
                 <label>QR Code</label>
                 <pre id="api_qr_code" style="text-align: center"></pre>
                 <label>PlexPy Address</label>
                 <input type="text" class="form-control" id="api_qr_address">
-                <input type="hidden" class="form-control" id="api_qr_token">
                 <p class="help-block" id="api_qr_localhost" style="display: none;">
                     Note: <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
                     Please enter an internal or external IP address, or hostname or domain instead.
                 </p>
                 <p class="help-block" id="api_qr_private" style="display: none;">
                     Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
-                    Access PlexPy externally to generate the QR code for remote access.
+                    Access PlexPy via an externally address or manually enter the address above to generate the QR code for remote access.
                 </p>
                 <p class="help-block" id="api_qr_https" style="display: none;">
                     Note: This URL is not secure. Requests between the app and the server will not be encrypted.
                     Enable HTTPS to connect the app securely.
                 </p>
+                <label>Device Token</label>
+                <input type="text" class="form-control" id="api_qr_token" readonly>
             </div>
             <div class="modal-footer">
                 <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">

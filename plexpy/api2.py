@@ -89,11 +89,6 @@ class API2:
         elif 'apikey' not in kwargs:
             self._api_msg = 'Parameter apikey is required'
 
-        elif (kwargs.get('apikey', '') != plexpy.CONFIG.API_KEY and 
-              kwargs.get('apikey', '') != mobile_app.TEMP_DEVICE_TOKEN and 
-              not mobile_app.get_mobile_device_by_token(kwargs.get('apikey', ''))):
-            self._api_msg = 'Invalid apikey'
-
         elif 'cmd' not in kwargs:
             self._api_msg = 'Parameter cmd is required. Possible commands are: %s' % ', '.join(self._api_valid_methods)
 
@@ -108,18 +103,26 @@ class API2:
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
 
-        if ((self._api_apikey == plexpy.CONFIG.API_KEY or 
-             self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN or 
-             mobile_app.get_mobile_device_by_token(self._api_apikey)) and 
-            plexpy.CONFIG.API_ENABLED and self._api_cmd in self._api_valid_methods):
-            self._api_authenticated = True
-            self._api_msg = None
-            self._api_kwargs = kwargs
-        elif self._api_cmd in ('get_apikey', 'docs', 'docs_md') and plexpy.CONFIG.API_ENABLED:
-            self._api_authenticated = True
-            # Remove the old error msg
-            self._api_msg = None
-            self._api_kwargs = kwargs
+        if plexpy.CONFIG.API_ENABLED and not self._api_msg:
+            if self._api_apikey in (plexpy.CONFIG.API_KEY, mobile_app.TEMP_DEVICE_TOKEN):
+                self._api_authenticated = True
+
+            elif mobile_app.get_mobile_device_by_token(self._api_apikey):
+                mobile_app.set_last_seen(self._api_apikey)
+                self._api_authenticated = True
+
+            else:
+                self._api_msg = 'Invalid apikey'
+            
+            if self._api_authenticated and self._api_cmd in self._api_valid_methods:
+                self._api_msg = None
+                self._api_kwargs = kwargs
+
+            elif not self._api_authenticated and self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
+                self._api_authenticated = True
+                # Remove the old error msg
+                self._api_msg = None
+                self._api_kwargs = kwargs
 
         if self._api_msg:
             logger.api_debug(u'PlexPy APIv2 :: %s.' % self._api_msg)

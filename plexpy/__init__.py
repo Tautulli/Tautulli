@@ -540,7 +540,8 @@ def dbcheck():
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
+        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT, '
+        'last_seen INTEGER)'
     )
 
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
@@ -1083,6 +1084,15 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.warn(u"Failed to recreate mobile_devices table.")
         pass
+
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        c_db.execute('SELECT last_seen FROM mobile_devices')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table mobile_devices.")
+        c_db.execute(
+            'ALTER TABLE mobile_devices ADD COLUMN last_seen INTEGER'
+        )
 
     # Upgrade notifiers table from earlier versions
     try:
