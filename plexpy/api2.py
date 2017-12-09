@@ -51,6 +51,7 @@ class API2:
         self._api_result_type = 'error'
         self._api_profileme = None  # For profiling the api call
         self._api_kwargs = None  # Cleaned kwargs
+        self._api_app = False
 
     def _api_docs(self, md=False):
         """ Makes the api docs. """
@@ -102,12 +103,13 @@ class API2:
         self._api_profileme = kwargs.pop('profileme', None)
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
+        self._api_app = True if kwargs.pop('app') == 'true' else False
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg:
-            if self._api_apikey in (plexpy.CONFIG.API_KEY, mobile_app.TEMP_DEVICE_TOKEN):
+            if self._api_apikey == plexpy.CONFIG.API_KEY or (self._api_app and self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN):
                 self._api_authenticated = True
 
-            elif mobile_app.get_mobile_device_by_token(self._api_apikey):
+            elif self._api_app and mobile_app.get_mobile_device_by_token(self._api_apikey):
                 mobile_app.set_last_seen(self._api_apikey)
                 self._api_authenticated = True
 
