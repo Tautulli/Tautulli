@@ -54,34 +54,31 @@
         window.location.href = "${new_http_root}index";
     }
 
-    // Redirect to home page if page is available.
-    var checkOnline = setInterval(checkPageOffline, 1000);
+    var online = true;
 
-    function checkPageOffline() {
-        $.ajax({
-            type: 'HEAD',
-            url: 'index',
-            timeout: 1000,
-            error: function () {
-                % if signal != 'shutdown':
-                clearInterval(checkOnline);
-                setInterval(checkPageOnline, 1000);
-                % else:
-                reloadPage();
-                % endif
-            }
-        });
-    }
-    function checkPageOnline() {
-        $.ajax({
-            type: 'HEAD',
-            url: 'index',
-            timeout: 1000,
-            success: function () {
-                reloadPage();
-            }
-        });
-    }
+    (function poll() {
+        setTimeout(function () {
+            $.ajax({
+                url: 'index',
+                type: 'HEAD',
+                success: function () {
+                    if (!(online)){
+                        reloadPage();
+                    }
+                },
+                error: function () {
+                    online = false;
+                    % if signal == 'shutdown':
+                    reloadPage();
+                    % endif
+                },
+                complete: function () {
+                    poll();
+                },
+                timeout: 1000
+            });
+        }, 1000);
+    })();
 </script>
 
 </%def>
