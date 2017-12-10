@@ -2624,6 +2624,7 @@ class WebInterface(object):
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
+            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
@@ -3608,7 +3609,8 @@ class WebInterface(object):
         metadata = None
 
         config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
         }
 
         if source == 'history':

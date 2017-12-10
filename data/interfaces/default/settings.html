@@ -507,7 +507,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
+                                <p class="help-block">Current API key: <strong>${config['api_key']}</strong></p>
                             </div>
                         </div>
 
@@ -596,6 +596,18 @@
                                 <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
                             </label>
                             <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="pms_logs_folder">Plex Web URL</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/.+\/web\/index\.html$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL." required>
+                                </div>
+                                <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Optional: Manually override the Plex Web URL used for click-through links on the media info pages and notifications. Default <strong>https://app.plex.tv/desktop</strong>.
+                            </p>
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
