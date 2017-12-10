@@ -836,7 +836,17 @@
                                 Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
                             </p>
                         </div>
-                        <div class="checkbox">
+                        <div class="form-group">
+                            <label for="notify_recently_added_delay">Notification Delay</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
+                                </div>
+                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the delay (in seconds) to wait for consecutive recently added items to group together and to allow metadata to be processed before sending the notification. Minimum 60 seconds.</p>
+                        </div>
+                        <!--<div class="checkbox">
                             <label>
                                 <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span style="color: #eb8600; padding-left: 10px;">[Not working]</span>
                             </label>
@@ -844,7 +854,7 @@
                                 Enable to send another recently added notification when adding a new version of existing media.<br />
                                 Note: If multiple versions are available, PlexPy will assume the higher quality one is newer.
                             </p>
-                        </div>
+                        </div>-->
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 

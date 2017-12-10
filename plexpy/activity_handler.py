@@ -213,7 +213,8 @@ class ActivityHandler(object):
             # If we already have this session in the temp table, check for state changes
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
-                schedule_callback(self.get_session_key(), args=[self.get_session_key()], minutes=5)
+                schedule_callback('session_key-{}'.format(self.get_session_key()),
+                                  function=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
@@ -236,7 +237,7 @@ class ActivityHandler(object):
                             self.on_stop()
 
                             # Remove the callback if the stream is stopped
-                            schedule_callback(self.get_session_key(), remove_job=True)
+                            schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
 
                     elif this_state == 'buffering':
                         self.on_buffer()
@@ -264,7 +265,8 @@ class ActivityHandler(object):
                     self.on_start()
 
                     # Schedule a callback to force stop a stale stream 5 minutes later
-                    schedule_callback(self.get_session_key(), args=[self.get_session_key()], minutes=5)
+                    schedule_callback('session_key-{}'.format(self.get_session_key()),
+                                      function=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
 
 class TimelineHandler(object):
@@ -292,39 +294,6 @@ class TimelineHandler(object):
             return metadata
 
         return None
-
-    def on_created(self, rating_key, **kwargs):
-        if self.is_item():
-            logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
-            pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key)
-
-            if metadata:
-                notify = True
-
-                data_factory = datafactory.DataFactory()
-                if 'child_keys' not in kwargs:
-                    if data_factory.get_recently_added_item(rating_key):
-                        logger.debug(u"PlexPy TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
-                        notify = False
-
-                if notify:
-                    data = {'timeline_data': metadata, 'notify_action': 'on_created'}
-                    data.update(kwargs)
-                    plexpy.NOTIFY_QUEUE.put(data)
-
-                all_keys = [rating_key]
-                if 'child_keys' in kwargs:
-                    all_keys.extend(kwargs['child_keys'])
-                     
-                for key in all_keys:
-                    data_factory.set_recently_added_item(key)
-
-                logger.debug(u"Added %s items to the recently_added database table." % str(len(all_keys)))
-
-            else:
-                logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" \
-                             % str(rating_key))
 
     # This function receives events from our websocket connection
     def process(self):
@@ -374,6 +343,10 @@ class TimelineHandler(object):
                         logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s, grandparent %s) added to recently added queue."
                                      % (title, str(rating_key), str(grandparent_rating_key)))
 
+                        # Schedule a callback to clear the recently added queue
+                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), function=clear_recently_added_queue,
+                                          args=[grandparent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+
                 elif media_type in ('season', 'album'):
                     metadata = self.get_metadata()
                     if metadata:
@@ -386,12 +359,20 @@ class TimelineHandler(object):
                         logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s , parent %s) added to recently added queue."
                                      % (title, str(rating_key), str(parent_rating_key)))
 
+                        # Schedule a callback to clear the recently added queue
+                        schedule_callback('rating_key-{}'.format(parent_rating_key), function=clear_recently_added_queue,
+                                          args=[parent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+
                 else:
                     queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
                     RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
                     logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) added to recently added queue."
                                  % (title, str(rating_key)))
+
+                    # Schedule a callback to clear the recently added queue
+                    schedule_callback('rating_key-{}'.format(rating_key), function=clear_recently_added_queue,
+                                      args=[rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
@@ -401,53 +382,15 @@ class TimelineHandler(object):
                 logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata."
                              % (title, str(rating_key)))
 
-                child_keys = RECENTLY_ADDED_QUEUE[rating_key]
-
-                if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
-                    self.on_created(rating_key, child_keys=child_keys)
-
-                elif child_keys:
-                    for child_key in child_keys:
-                        grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
-
-                        if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
-                            self.on_created(child_key, child_keys=grandchild_keys)
-
-                        elif grandchild_keys:
-                            for grandchild_key in grandchild_keys:
-                                self.on_created(grandchild_key)
-
-                        else:
-                            self.on_created(child_key)
-
-                else:
-                    self.on_created(rating_key)
-
-                # Remove all keys
-                del_keys(rating_key)
-
-
-            # An episode or track is done processing (upgrade only)
-            #elif plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and \
-            #    media_type in ('episode', 'track') and section_id > 0 and \
-            #    state_type == 5 and metadata_state is None and queue_size is None and \
-            #    rating_key in RECENTLY_ADDED_QUEUE:
-                
-            #    logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata (upgrade)."
-            #                 % (title, str(rating_key)))
-
-            #    grandparent_rating_key = RECENTLY_ADDED_QUEUE[rating_key]
-            #    self.on_created(rating_key)
-
-            #    # Remove all keys
-            #    del_keys(grandparent_rating_key)
-            
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
                 if rating_key in RECENTLY_ADDED_QUEUE and not RECENTLY_ADDED_QUEUE[rating_key]:
                     logger.debug(u"PlexPy TimelineHandler :: Library item %s removed from recently added queue."
                                  % str(rating_key))
                     del_keys(rating_key)
+
+                    # Remove the callback if the item is removed
+                    schedule_callback('rating_key-{}'.format(rating_key), remove_job=True)
 
 
 def del_keys(key):
@@ -458,17 +401,17 @@ def del_keys(key):
         del_keys(RECENTLY_ADDED_QUEUE.pop(key))
 
 
-def schedule_callback(id, remove_job=False, args=None, **kwargs):
-    if ACTIVITY_SCHED.get_job(str(id)):
+def schedule_callback(id, function=None, remove_job=False, args=None, **kwargs):
+    if ACTIVITY_SCHED.get_job(id):
         if remove_job:
-            ACTIVITY_SCHED.remove_job(str(id))
+            ACTIVITY_SCHED.remove_job(id)
         else:
             ACTIVITY_SCHED.reschedule_job(
-                str(id), args=args, trigger=DateTrigger(
+                id, args=args, trigger=DateTrigger(
                     run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     elif not remove_job:
         ACTIVITY_SCHED.add_job(
-            force_stop_stream, args=args, id=str(id), trigger=DateTrigger(
+            function, args=args, id=id, trigger=DateTrigger(
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     
 
@@ -494,7 +437,8 @@ def force_stop_stream(session_key):
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
-            schedule_callback(session_key, args=[session_key], seconds=30)
+            schedule_callback('session_key={}'.format(session_key), function=force_stop_stream,
+                              args=[session_key], seconds=30)
 
         else:
             logger.warn(u"PlexPy Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
@@ -503,3 +447,62 @@ def force_stop_stream(session_key):
             logger.info(u"PlexPy Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (sessions['session_key'], sessions['rating_key']))
             ap.delete_session(session_key=session_key)
+
+
+def clear_recently_added_queue(rating_key):
+    child_keys = RECENTLY_ADDED_QUEUE[rating_key]
+
+    if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
+        on_created(rating_key, child_keys=child_keys)
+
+    elif child_keys:
+        for child_key in child_keys:
+            grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
+            
+            if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
+                on_created(child_key, child_keys=grandchild_keys)
+
+            elif grandchild_keys:
+                for grandchild_key in grandchild_keys:
+                    on_created(grandchild_key)
+
+            else:
+                on_created(child_key)
+
+    else:
+        on_created(rating_key)
+
+    # Remove all keys
+    del_keys(rating_key)
+
+
+def on_created(rating_key, **kwargs):
+    logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
+    pms_connect = pmsconnect.PmsConnect()
+    metadata = pms_connect.get_metadata_details(rating_key)
+
+    if metadata:
+        notify = True
+
+        data_factory = datafactory.DataFactory()
+        if 'child_keys' not in kwargs:
+            if data_factory.get_recently_added_item(rating_key):
+                logger.debug(u"PlexPy TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
+                notify = False
+
+        if notify:
+            data = {'timeline_data': metadata, 'notify_action': 'on_created'}
+            data.update(kwargs)
+            plexpy.NOTIFY_QUEUE.put(data)
+
+        all_keys = [rating_key]
+        if 'child_keys' in kwargs:
+            all_keys.extend(kwargs['child_keys'])
+                     
+        for key in all_keys:
+            data_factory.set_recently_added_item(key)
+
+        logger.debug(u"Added %s items to the recently_added database table." % str(len(all_keys)))
+
+    else:
+        logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))

@@ -1145,7 +1145,7 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
 
 def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
-    if media_type == 'show':
+    if media_type in ('show', 'season', 'episode'):
         media_type = 'tv'
 
     db = database.MonitorDatabase()

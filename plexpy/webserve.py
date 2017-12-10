@@ -2644,6 +2644,7 @@ class WebInterface(object):
             "notify_recently_added_upgrade": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE),
             "notify_group_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT),
             "notify_group_recently_added_parent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT),
+            "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
