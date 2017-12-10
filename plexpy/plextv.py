@@ -95,7 +95,7 @@ def get_real_pms_url():
     plexpy.CONFIG.__setattr__('PMS_URL', '')
     plexpy.CONFIG.write()
 
-    fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
+    fallback_url = 'http://{}:{}'.format(plexpy.CONFIG.PMS_IP, plexpy.CONFIG.PMS_PORT)
 
     plex_tv = PlexTV()
     result = plex_tv.get_server_urls(include_https=plexpy.CONFIG.PMS_SSL)
@@ -109,7 +109,7 @@ def get_real_pms_url():
         connections = result['connections']
 
     # Only need to retrieve PMS_URL if using SSL
-    if plexpy.CONFIG.PMS_SSL:
+    if not plexpy.CONFIG.PMS_URL_MANUAL and plexpy.CONFIG.PMS_SSL:
         if connections:
             if plexpy.CONFIG.PMS_IS_REMOTE:
                 # Get all remote connections
@@ -134,6 +134,9 @@ def get_real_pms_url():
 
     # Not using SSL, remote has no effect
     else:
+        if plexpy.CONFIG.PMS_URL_MANUAL and plexpy.CONFIG.PMS_SSL:
+            fallback_url = fallback_url.replace('http://', 'https://')
+
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
         logger.info(u"PlexPy PlexTV :: Using user-defined URL.")

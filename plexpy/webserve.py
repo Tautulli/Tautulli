@@ -2621,6 +2621,7 @@ class WebInterface(object):
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
+            "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
@@ -2679,7 +2680,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type", "week_start_monday",
+            "pms_use_bif", "pms_ssl", "pms_is_remote", "pms_url_manual", "home_stats_type", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
@@ -2730,14 +2731,15 @@ class WebInterface(object):
             kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
             kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
-            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
+            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
         if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
-            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE:
+            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE or \
+            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.

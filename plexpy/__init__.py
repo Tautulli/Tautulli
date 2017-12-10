@@ -323,7 +323,7 @@ def initialize_scheduler():
             #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
             #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
-                         hours=12, minutes=0, seconds=0)
+                         hours=12 * (not bool(CONFIG.PMS_URL_MANUAL)), minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 

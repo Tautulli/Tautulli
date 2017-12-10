@@ -591,6 +591,12 @@
                             </label>
                             <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
+                            </label>
+                            <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
+                        </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
