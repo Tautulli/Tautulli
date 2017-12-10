@@ -372,7 +372,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_sync_item(self, sync_id=None, output_format=''):
+    def get_sync_item(self, sync_id='', output_format=''):
         """
         Return sync item details.
 
@@ -405,7 +405,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_search(self, query='', track='', output_format=''):
+    def get_search(self, query='', limit='', output_format=''):
         """
         Return search results.
 
@@ -413,7 +413,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/search?query=' + urllib.quote(query.encode('utf8')) + track
+        uri = '/hubs/search?query=' + urllib.quote(query.encode('utf8')) + '&limit=' + limit
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -2086,30 +2086,20 @@ class PmsConnect(object):
         else:
             logger.error(u"PlexPy Pmsconnect :: Image proxy queried but no input received.")
 
-    def get_search_results(self, query=''):
+    def get_search_results(self, query='', limit=''):
         """
         Return processed list of search results.
 
         Output: array
         """
-        search_results = self.get_search(query=query, output_format='xml')
-        search_results_tracks = self.get_search(query=query, track='&type=10', output_format='xml')
+        search_results = self.get_search(query=query, limit=limit, output_format='xml')
 
-        xml_head = []
         try:
-            try:
-                xml_head += search_results.getElementsByTagName('MediaContainer')
-            except:
-                pass
-            try:
-                xml_head += search_results_tracks.getElementsByTagName('MediaContainer')
-            except:
-                pass
+            xml_head = search_results.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_search_result_details: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_search_result: %s." % e)
             return []
 
-        search_results_count = 0
         search_results_list = {'movie': [],
                                'show': [],
                                'season': [],
@@ -2119,62 +2109,45 @@ class PmsConnect(object):
                                'track': []
                                }
 
-        totalSize = 0
         for a in xml_head:
-            if a.getAttribute('size'):
-                totalSize += int(a.getAttribute('size'))
-        if totalSize == 0:
-            logger.debug(u"PlexPy Pmsconnect :: No search results.")
-            search_results_list = {'results_count': search_results_count,
-                                   'results_list': []
-                                  }
-            return search_results_list
+            hubs = a.getElementsByTagName('Hub')
 
-        for a in xml_head:
-            if a.getElementsByTagName('Video'):
-                result_data = a.getElementsByTagName('Video')
-                for result in result_data:
-                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
-                    metadata = self.get_metadata_details(rating_key=rating_key)
-                    if metadata['media_type'] == 'movie':
-                        search_results_list['movie'].append(metadata)
-                    elif metadata['media_type'] == 'episode':
-                        search_results_list['episode'].append(metadata)
-                    search_results_count += 1
+            for h in hubs:
+                if helpers.get_xml_attr(h, 'size') == '0' or \
+                    helpers.get_xml_attr(h, 'type') not in search_results_list.keys():
+                    continue
 
-            if a.getElementsByTagName('Directory'):
-                result_data = a.getElementsByTagName('Directory')
-                for result in result_data:
-                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
-                    metadata = self.get_metadata_details(rating_key=rating_key)
-                    if metadata['media_type'] == 'show':
-                        search_results_list['show'].append(metadata)
+                if h.getElementsByTagName('Video'):
+                    result_data = h.getElementsByTagName('Video')
+                    for result in result_data:
+                        rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                        metadata = self.get_metadata_details(rating_key=rating_key)
+                        search_results_list[metadata['media_type']].append(metadata)
 
-                        show_seasons = self.get_item_children(rating_key=metadata['rating_key'])
-                        if show_seasons['children_count'] != '0':
-                            for season in show_seasons['children_list']:
-                                if season['rating_key']:
-                                    rating_key = season['rating_key']
-                                    metadata = self.get_metadata_details(rating_key=rating_key)
-                                    search_results_list['season'].append(metadata)
-                                    search_results_count += 1
+                if h.getElementsByTagName('Directory'):
+                    result_data = h.getElementsByTagName('Directory')
+                    for result in result_data:
+                        rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                        metadata = self.get_metadata_details(rating_key=rating_key)
+                        search_results_list[metadata['media_type']].append(metadata)
 
-                    elif metadata['media_type'] == 'artist':
-                        search_results_list['artist'].append(metadata)
-                    elif metadata['media_type'] == 'album':
-                        search_results_list['album'].append(metadata)
-                    search_results_count += 1
+                        if metadata['media_type'] == 'show':
+                            show_seasons = self.get_item_children(rating_key=metadata['rating_key'])
+                            if show_seasons['children_count'] != '0':
+                                for season in show_seasons['children_list']:
+                                    if season['rating_key']:
+                                        metadata = self.get_metadata_details(rating_key=season['rating_key'])
+                                        search_results_list['season'].append(metadata)
 
-            if a.getElementsByTagName('Track'):
-                result_data = a.getElementsByTagName('Track')
-                for result in result_data:
-                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
-                    metadata = self.get_metadata_details(rating_key=rating_key)
-                    search_results_list['track'].append(metadata)
-                    search_results_count += 1
+                if h.getElementsByTagName('Track'):
+                    result_data = h.getElementsByTagName('Track')
+                    for result in result_data:
+                        rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                        metadata = self.get_metadata_details(rating_key=rating_key)
+                        search_results_list[metadata['media_type']].append(metadata)
 
-        output = {'results_count': search_results_count,
-                  'results_list': {k: v for k, v in search_results_list.iteritems()}
+        output = {'results_count': sum(len(s) for s in search_results_list.items()),
+                  'results_list': search_results_list
                   }
 
         return output

@@ -29,13 +29,16 @@
 <%def name="javascriptIncludes()">
 <script>
     $('#search_button').removeClass('btn-inactive');
-    $('#query').val("${query.replace('"','\\"')}").css({ right: '0', width: '250px' }).addClass('active');
+    $('#query').val("${query.replace('"','\\"') | n}").css({ right: '0', width: '250px' }).addClass('active');
 
     $.ajax({
         url: 'get_search_results_children',
         type: "GET",
         async: true,
-        data: {'query': "${query.replace('"','\\"')}"},
+        data: {
+            query: "${query.replace('"','\\"') | n}",
+            limit: 30
+        },
         complete: function (xhr, status) {
             $("#search-results-list").html(xhr.responseText);
         }

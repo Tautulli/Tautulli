@@ -3920,12 +3920,15 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi('search')
-    def search_results(self, query, **kwargs):
+    def search_results(self, query='', limit='', **kwargs):
         """ Get search results from the PMS.
 
             ```
             Required parameters:
                 query (str):        The query string to search for
+
+            Optional parameters:
+                limit (int):        The maximum number of items to return per media type
 
             Returns:
                 json:
@@ -3955,10 +3958,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_search_results_children(self, query, media_type=None, season_index=None, **kwargs):
+    def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query)
+        result = pms_connect.get_search_results(query=query, limit=limit)
 
         if media_type:
             result['results_list'] = {media_type: result['results_list'][media_type]}
