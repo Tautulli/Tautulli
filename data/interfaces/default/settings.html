@@ -771,41 +771,6 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
-                            <h3>3rd Party APIs</h3>
-                        </div>
-
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
-                            </label>
-                            <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
-                        </div>
-                        <div id="imgur_upload_options">
-                            <div class="form-group">
-                                <label for="imgur_client_id">Imgur Client ID</label>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
-                                    </div>
-                                </div>
-                                <p class="help-block">Enter your Imgur API client ID in order to upload posters. 
-                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
-                            </div>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="themoviedb_lookup" id="themoviedb_lookup" value="1" ${config['themoviedb_lookup']}> Lookup TheMovieDB Links
-                            </label>
-                            <p class="help-block">Enable to lookup links to TheMovieDB for movies and TV shows when available.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="tvmaze_lookup" id="tvmaze_lookup" value="1" ${config['tvmaze_lookup']}> Lookup TVmaze Links
-                            </label>
-                            <p class="help-block">Enable to lookup links to TVmaze for TV shows when available.</p>
-                        </div>
-
-                        <div class="padded-header">
                             <h3>Current Activity Notifications</h3>
                         </div>
 
@@ -873,6 +838,42 @@
                                 Note: If multiple versions are available, PlexPy will assume the higher quality one is newer.
                             </p>
                         </div>-->
+
+                        <div class="padded-header">
+                            <h3>3rd Party APIs</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
+                            </label>
+                            <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
+                        </div>
+                        <div id="imgur_upload_options">
+                            <div class="form-group">
+                                <label for="imgur_client_id">Imgur Client ID</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Imgur API client ID in order to upload posters.
+                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
+                            </div>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="themoviedb_lookup" id="themoviedb_lookup" value="1" ${config['themoviedb_lookup']}> Lookup TheMovieDB Links
+                            </label>
+                            <p class="help-block">Enable to lookup links to TheMovieDB for movies and TV shows when available.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tvmaze_lookup" id="tvmaze_lookup" value="1" ${config['tvmaze_lookup']}> Lookup TVmaze Links
+                            </label>
+                            <p class="help-block">Enable to lookup links to TVmaze for TV shows when available.</p>
+                        </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
