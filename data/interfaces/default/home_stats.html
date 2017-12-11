@@ -122,7 +122,7 @@ DOCUMENTATION :: END
                     <div class="dashboard-stats-info scoller-content">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
-                            <li class="dashboard-stats-info-item" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">

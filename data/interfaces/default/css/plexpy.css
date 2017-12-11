@@ -1101,7 +1101,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     width: 100px;
     margin-top: 25px;
     margin-right: 5px;
-     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
@@ -1123,9 +1123,28 @@ a .dashboard-activity-metadata-user-thumb:hover {
     width: 100px;
     margin-top: 25px;
     margin-right: 5px;
-     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    z-index: 1;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.dashboard-stats-library {
+    background-position: center;
+    background-size: cover;
+    height: 100px;
+    width: 100px;
+    margin-top: 25px;
+    margin-right: 5px;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
     -webkit-transition: background .2s ease-in-out;
@@ -1250,17 +1269,17 @@ a .dashboard-activity-metadata-user-thumb:hover {
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }
-.dashboard-stats-info-item:first-of-type {
+.dashboard-stats-info-item.expanded {
     padding: 5px 5px;
     line-height: 20px;
 }
-.dashboard-stats-info-item:first-of-type .sub-heading {
+.dashboard-stats-info-item.expanded .sub-heading {
     font-size: 13px;
 }
-.dashboard-stats-info-item:first-of-type .sub-value {
+.dashboard-stats-info-item.expanded .sub-value {
     font-size: 16px;
 }
-.dashboard-stats-info-item:first-of-type .sub-count {
+.dashboard-stats-info-item.expanded .sub-count {
     font-size: 16px;
 }
 .dashboard-stats-info-item:hover {
