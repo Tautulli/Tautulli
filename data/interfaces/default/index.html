@@ -709,6 +709,12 @@
         highlightAddedScrollerButton();
     });
 
+    function resetScroller() {
+        leftTotal = 0;
+        $("#recently-added-row-scroller").animate({ left: leftTotal }, 1000);
+        $("#recently-added-page-left").addClass("disabled").blur();
+    }
+
     var leftTotal = 0;
     $(".paginate").click(function (e) {
         e.preventDefault();
@@ -738,12 +744,14 @@
         selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
         $(selected_filter).closest('label').addClass('active');
         recently_added_type = $(selected_filter).val();
+        resetScroller();
         recentlyAdded(recently_added_count, recently_added_type);
     });
 
     $('#recently-added-count').change(function () {
         forceMinMax($(this));
         recently_added_count = $(this).val();
+        resetScroller();
         recentlyAdded(recently_added_count, recently_added_type);
         $.post('set_home_stats_config', { recently_added_count: recently_added_count });
     });
