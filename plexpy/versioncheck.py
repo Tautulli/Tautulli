@@ -211,7 +211,7 @@ def update():
                 logger.info('Output: ' + str(output))
 
     else:
-        tar_download_url = 'https://github.com/%s/plexpy/tarball/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_BRANCH)
+        tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH)
         update_dir = os.path.join(plexpy.PROG_DIR, 'update')
         version_path = os.path.join(plexpy.PROG_DIR, 'version.txt')
 

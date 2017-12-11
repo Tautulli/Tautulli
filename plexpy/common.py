@@ -13,11 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-Created on Aug 1, 2011
-
-@author: Michael
-'''
 import platform
 from collections import OrderedDict
 
