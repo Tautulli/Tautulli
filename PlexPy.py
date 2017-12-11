@@ -6,20 +6,20 @@
 
 # -*- coding: utf-8 -*-
 
-# This file is part of PlexPy.
+# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
@@ -43,11 +43,11 @@ signal.signal(signal.SIGTERM, plexpy.sig_handler)
 
 def main():
     """
-    PlexPy application entry point. Parses arguments, setups encoding and
+    Tautulli application entry point. Parses arguments, setups encoding and
     initializes the application.
     """
 
-    # Fixed paths to PlexPy
+    # Fixed paths to Tautulli
     if hasattr(sys, 'frozen'):
         plexpy.FULL_PATH = os.path.abspath(sys.executable)
     else:
@@ -81,9 +81,9 @@ def main():
     parser.add_argument(
         '-d', '--daemon', action='store_true', help='Run as a daemon')
     parser.add_argument(
-        '-p', '--port', type=int, help='Force PlexPy to run on a specified port')
+        '-p', '--port', type=int, help='Force Tautulli to run on a specified port')
     parser.add_argument(
-        '--dev', action='store_true', help='Start PlexPy in the development environment')
+        '--dev', action='store_true', help='Start Tautulli in the development environment')
     parser.add_argument(
         '--datadir', help='Specify a directory where to store your data files')
     parser.add_argument(
@@ -93,7 +93,7 @@ def main():
     parser.add_argument(
         '--pidfile', help='Create a pid file (only relevant when running as a daemon)')
     parser.add_argument(
-        '--nofork', action='store_true', help='Start PlexPy as a service, do not fork when restarting')
+        '--nofork', action='store_true', help='Start Tautulli as a service, do not fork when restarting')
 
     args = parser.parse_args()
 
@@ -108,7 +108,7 @@ def main():
 
     if args.dev:
         plexpy.DEV = True
-        logger.debug(u"PlexPy is running in the dev environment.")
+        logger.debug(u"Tautulli is running in the dev environment.")
 
     if args.daemon:
         if sys.platform == 'win32':
@@ -120,7 +120,7 @@ def main():
 
     if args.nofork:
         plexpy.NOFORK = True
-        logger.info("PlexPy is running as a service, it will not fork when restarted.")
+        logger.info("Tautulli is running as a service, it will not fork when restarted.")
 
     if args.pidfile:
         plexpy.PIDFILE = str(args.pidfile)

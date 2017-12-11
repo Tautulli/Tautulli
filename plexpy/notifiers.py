@@ -1,17 +1,17 @@
-﻿#  This file is part of PlexPy.
+﻿#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
 import bleach
@@ -92,7 +92,7 @@ AGENT_IDS = {'growl': 0,
 
 
 def available_notification_agents():
-    agents = [{'label': 'PlexPy Android App',
+    agents = [{'label': 'Tautulli Remote Android App',
                'name': 'androidapp',
                'id': AGENT_IDS['androidapp']
                },
@@ -200,7 +200,7 @@ def available_notification_actions():
     actions = [{'label': 'Playback Start',
                 'name': 'on_play',
                 'description': 'Trigger a notification when a stream is started.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) started playing {title}.',
                 'icon': 'fa-play',
                 'media_types': ('movie', 'episode', 'track')
@@ -208,7 +208,7 @@ def available_notification_actions():
                {'label': 'Playback Stop',
                 'name': 'on_stop',
                 'description': 'Trigger a notification when a stream is stopped.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has stopped {title}.',
                 'icon': 'fa-stop',
                 'media_types': ('movie', 'episode', 'track')
@@ -216,7 +216,7 @@ def available_notification_actions():
                {'label': 'Playback Pause',
                 'name': 'on_pause',
                 'description': 'Trigger a notification when a stream is paused.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has paused {title}.',
                 'icon': 'fa-pause',
                 'media_types': ('movie', 'episode', 'track')
@@ -224,7 +224,7 @@ def available_notification_actions():
                {'label': 'Playback Resume',
                 'name': 'on_resume',
                 'description': 'Trigger a notification when a stream is resumed.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has resumed {title}.',
                 'icon': 'fa-play',
                 'media_types': ('movie', 'episode', 'track')
@@ -232,7 +232,7 @@ def available_notification_actions():
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has watched {title}.',
                 'icon': 'fa-eye',
                 'media_types': ('movie', 'episode', 'track')
@@ -240,7 +240,7 @@ def available_notification_actions():
                {'label': 'Buffer Warning',
                 'name': 'on_buffer',
                 'description': 'Trigger a notification when a stream exceeds the specified buffer threshold.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) is buffering {title}.',
                 'icon': 'fa-spinner',
                 'media_types': ('movie', 'episode', 'track')
@@ -248,7 +248,7 @@ def available_notification_actions():
                {'label': 'User Concurrent Streams',
                 'name': 'on_concurrent',
                 'description': 'Trigger a notification when a user exceeds the concurrent stream threshold.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} has {user_streams} concurrent streams.',
                 'icon': 'fa-arrow-circle-o-right',
                 'media_types': ('movie', 'episode', 'track')
@@ -256,7 +256,7 @@ def available_notification_actions():
                {'label': 'User New Device',
                 'name': 'on_newdevice',
                 'description': 'Trigger a notification when a user streams from a new device.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{user} is streaming from a new device: {player}.',
                 'icon': 'fa-desktop',
                 'media_types': ('movie', 'episode', 'track')
@@ -264,7 +264,7 @@ def available_notification_actions():
                {'label': 'Recently Added',
                 'name': 'on_created',
                 'description': 'Trigger a notification when a media item is added to the Plex Media Server.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': '{title} was recently added to Plex.',
                 'icon': 'fa-download',
                 'media_types': ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track')
@@ -272,7 +272,7 @@ def available_notification_actions():
                {'label': 'Plex Server Down',
                 'name': 'on_intdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached internally.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': 'The Plex Media Server is down.',
                 'icon': 'fa-server',
                 'media_types': ('server',)
@@ -280,7 +280,7 @@ def available_notification_actions():
                {'label': 'Plex Server Back Up',
                 'name': 'on_intup',
                 'description': 'Trigger a notification when the Plex Media Server can be reached internally after being down.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': 'The Plex Media Server is back up.',
                 'icon': 'fa-server',
                 'media_types': ('server',)
@@ -288,7 +288,7 @@ def available_notification_actions():
                {'label': 'Plex Remote Access Down',
                 'name': 'on_extdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached externally.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': 'The Plex Media Server remote access is down.',
                 'icon': 'fa-server',
                 'media_types': ('server',)
@@ -296,7 +296,7 @@ def available_notification_actions():
                {'label': 'Plex Remote Access Back Up',
                 'name': 'on_extup',
                 'description': 'Trigger a notification when the Plex Media Server can be reached externally after being down.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': 'The Plex Media Server remote access is back up.',
                 'icon': 'fa-server',
                 'media_types': ('server',)
@@ -304,16 +304,16 @@ def available_notification_actions():
                {'label': 'Plex Update Available',
                 'name': 'on_pmsupdate',
                 'description': 'Trigger a notification when an update for the Plex Media Server is available.',
-                'subject': 'PlexPy ({server_name})',
+                'subject': 'Tautulli ({server_name})',
                 'body': 'An update is available for the Plex Media Server (version {update_version}).',
                 'icon': 'fa-refresh',
                 'media_types': ('server',)
                 },
-               {'label': 'PlexPy Update Available',
+               {'label': 'Tautulli Update Available',
                 'name': 'on_plexpyupdate',
-                'description': 'Trigger a notification when an update for the PlexPy is available.',
-                'subject': 'PlexPy ({server_name})',
-                'body': 'An update is available for PlexPy (version {plexpy_update_version}).',
+                'description': 'Trigger a notification when an update for the Tautulli is available.',
+                'subject': 'Tautulli ({server_name})',
+                'body': 'An update is available for Tautulli (version {plexpy_update_version}).',
                 'icon': 'fa-refresh',
                 'media_types': ('server',)
                 }
@@ -418,7 +418,7 @@ def delete_notifier(notifier_id=None):
     db = database.MonitorDatabase()
 
     if str(notifier_id).isdigit():
-        logger.debug(u"PlexPy Notifiers :: Deleting notifier_id %s from the database." % notifier_id)
+        logger.debug(u"Tautulli Notifiers :: Deleting notifier_id %s from the database." % notifier_id)
         result = db.action('DELETE FROM notifiers WHERE id = ?',
                                    args=[notifier_id])
         return True
@@ -430,7 +430,7 @@ def get_notifier_config(notifier_id=None):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s." % notifier_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s." % notifier_id)
         return None
 
     db = database.MonitorDatabase()
@@ -445,7 +445,7 @@ def get_notifier_config(notifier_id=None):
         notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
         notifier_config = notifier_agent.return_config_options()
     except Exception as e:
-        logger.error(u"PlexPy Notifiers :: Failed to get notifier config options: %s." % e)
+        logger.error(u"Tautulli Notifiers :: Failed to get notifier config options: %s." % e)
         return
 
     notify_actions = get_notify_actions()
@@ -470,13 +470,13 @@ def add_notifier_config(agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to add new notifier: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to add new notifier: invalid agent_id %s." % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s." % agent_id)
         return False
 
     keys = {'id': None}
@@ -499,11 +499,11 @@ def add_notifier_config(agent_id=None, **kwargs):
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         notifier_id = db.last_insert_id()
-        logger.info(u"PlexPy Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        logger.info(u"Tautulli Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         blacklist_logger()
         return notifier_id
     except Exception as e:
-        logger.warn(u"PlexPy Notifiers :: Unable to add notification agent: %s." % e)
+        logger.warn(u"Tautulli Notifiers :: Unable to add notification agent: %s." % e)
         return False
 
 
@@ -511,13 +511,13 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to set exisiting notifier: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to set exisiting notifier: invalid agent_id %s." % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s." % agent_id)
         return False
 
     notify_actions = get_notify_actions()
@@ -549,11 +549,11 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     db = database.MonitorDatabase()
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
-        logger.info(u"PlexPy Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        logger.info(u"Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         blacklist_logger()
         return True
     except Exception as e:
-        logger.warn(u"PlexPy Notifiers :: Unable to update notification agent: %s." % e)
+        logger.warn(u"Tautulli Notifiers :: Unable to update notification agent: %s." % e)
         return False
 
 
@@ -568,7 +568,7 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', n
                             notification_id=notification_id,
                             **kwargs)
     else:
-        logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
+        logger.debug(u"Tautulli Notifiers :: Notification requested but no notifier_id received.")
 
 
 def blacklist_logger():
@@ -721,7 +721,7 @@ class Notifier(object):
         response, err_msg, req_msg = request.request_response2(url, method, **kwargs)
 
         if response and not err_msg:
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
 
         else:
@@ -729,13 +729,13 @@ class Notifier(object):
             if response is not None and response.status_code >= 400 and response.status_code < 500:
                 verify_msg = " Verify you notification agent settings are correct."
 
-            logger.error(u"PlexPy Notifiers :: {name} notification failed.{}".format(verify_msg, name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed.{}".format(verify_msg, name=self.NAME))
 
             if err_msg:
-                logger.error(u"PlexPy Notifiers :: {}".format(err_msg))
+                logger.error(u"Tautulli Notifiers :: {}".format(err_msg))
 
             if req_msg:
-                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(req_msg))
+                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(req_msg))
 
             return False
 
@@ -746,9 +746,9 @@ class Notifier(object):
 
 class ANDROIDAPP(Notifier):
     """
-    PlexPy Android app notifications
+    Tautulli Remote Android app notifications
     """
-    NAME = 'PlexPy Android App'
+    NAME = 'Tautulli Remote Android App'
     _DEFAULT_CONFIG = {'device_id': '',
                        'priority': 3
                        }
@@ -762,7 +762,7 @@ class ANDROIDAPP(Notifier):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
         if not device:
-            logger.warn(u"PlexPy Notifiers :: Unable to send Android app notification: device not registered.")
+            logger.warn(u"Tautulli Notifiers :: Unable to send Android app notification: device not registered.")
             return
         else:
             device = device[0]
@@ -806,20 +806,20 @@ class ANDROIDAPP(Notifier):
 
             payload = {'app_id': self._ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
-                       'contents': {'en': 'PlexPy Notification'},
+                       'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': True,
                                 'cipher_text': base64.b64encode(encrypted_data),
                                 'nonce': base64.b64encode(nonce),
                                 'salt': base64.b64encode(salt)}
                        }
         else:
-            logger.warn(u"PlexPy Notifiers :: PyCryptodome library is missing. "
+            logger.warn(u"Tautulli Notifiers :: PyCryptodome library is missing. "
                         "Android app notifications will be sent unecrypted. "
                         "Install the library to encrypt the notifications.")
 
             payload = {'app_id': self._ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
-                       'contents': {'en': 'PlexPy Notification'},
+                       'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': False,
                                 'plain_text': plaintext_data}
                        }
@@ -837,7 +837,7 @@ class ANDROIDAPP(Notifier):
             query = 'SELECT * FROM mobile_devices'
             result = db.select(query=query)
         except Exception as e:
-            logger.warn(u"PlexPy Notifiers :: Unable to retrieve Android app devices list: %s." % e)
+            logger.warn(u"Tautulli Notifiers :: Unable to retrieve Android app devices list: %s." % e)
             return {'': ''}
 
         devices = {}
@@ -893,7 +893,7 @@ class ANDROIDAPP(Notifier):
                 'name': 'androidapp_device_id',
                 'description': 'Set your Android app device or ' \
                     '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                    'style="cursor: pointer;">register a new device</a> with PlexPy.',
+                    'style="cursor: pointer;">register a new device</a> with Tautulli.',
                 'input_type': 'select',
                 'select_options': devices
                 })
@@ -997,7 +997,7 @@ class BROWSER(Notifier):
         if not subject or not body:
             return
 
-        logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+        logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
         return True
 
     def get_notifications(self):
@@ -1280,11 +1280,11 @@ class EMAIL(Notifier):
             mailserver.sendmail(self.config['from'], recipients, msg.as_string())
             mailserver.quit()
 
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
 
         except Exception as e:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
     def return_config_options(self):
@@ -1390,7 +1390,7 @@ class FACEBOOK(Notifier):
                                  perms=['user_managed_groups','publish_actions'])
 
     def _get_credentials(self, code=''):
-        logger.info(u"PlexPy Notifiers :: Requesting access token from {name}.".format(name=self.NAME))
+        logger.info(u"Tautulli Notifiers :: Requesting access token from {name}.".format(name=self.NAME))
 
         app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
@@ -1412,7 +1412,7 @@ class FACEBOOK(Notifier):
 
             plexpy.CONFIG.FACEBOOK_TOKEN = response['access_token']
         except Exception as e:
-            logger.error(u"PlexPy Notifiers :: Error requesting {name} access token: {e}".format(name=self.NAME, e=e))
+            logger.error(u"Tautulli Notifiers :: Error requesting {name} access token: {e}".format(name=self.NAME, e=e))
             plexpy.CONFIG.FACEBOOK_TOKEN = ''
             
         # Clear out temporary config values
@@ -1428,14 +1428,14 @@ class FACEBOOK(Notifier):
 
             try:
                 api.put_object(parent_object=self.config['group_id'], connection_name='feed', **data)
-                logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+                logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
                 return True
             except Exception as e:
-                logger.error(u"PlexPy Notifiers :: Error sending {name} post: {e}".format(name=self.NAME, e=e))
+                logger.error(u"Tautulli Notifiers :: Error sending {name} post: {e}".format(name=self.NAME, e=e))
                 return False
 
         else:
-            logger.error(u"PlexPy Notifiers :: Error sending {name} post: No {name} Group ID provided.".format(name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: Error sending {name} post: No {name} Group ID provided.".format(name=self.NAME))
             return False
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -1472,19 +1472,19 @@ class FACEBOOK(Notifier):
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
                                           Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong> \
                                           for <strong>Facebook Login</strong>.<br>\
-                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
+                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>\
                                           Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
-                                          Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
+                                          Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
                                           Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>\
                                           Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>\
                                           Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
                           'input_type': 'help'
                           },
-                         {'label': 'PlexPy URL',
+                         {'label': 'Tautulli URL',
                           'value': self.config['redirect_uri'],
                           'name': 'facebook_redirect_uri',
-                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.\
+                          'description': 'Your Tautulli URL. This will tell Facebook where to redirect you after authorization.\
                                           (e.g. http://localhost:8181)',
                           'input_type': 'text'
                           },
@@ -1595,13 +1595,13 @@ class GROUPME(Notifier):
                 r = requests.post('https://image.groupme.com/pictures', headers=headers, data=poster_content)
 
                 if r.status_code == 200:
-                    logger.info(u"PlexPy Notifiers :: {name} poster sent.".format(name=self.NAME))
+                    logger.info(u"Tautulli Notifiers :: {name} poster sent.".format(name=self.NAME))
                     r_content = r.json()
                     data['attachments'] = [{'type': 'image',
                                             'url': r_content['payload']['picture_url']}]
                 else:
-                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                    logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+                    logger.error(u"Tautulli Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                     return False
 
         return self.make_request('https://api.groupme.com/v3/bots/post', json=data)
@@ -1666,7 +1666,7 @@ class GROWL(Notifier):
 
         # Register notification
         growl = gntp.notifier.GrowlNotifier(
-            applicationName='PlexPy',
+            applicationName='Tautulli',
             notifications=['New Event'],
             defaultNotifications=['New Event'],
             hostname=host,
@@ -1677,10 +1677,10 @@ class GROWL(Notifier):
         try:
             growl.register()
         except gntp.notifier.errors.NetworkError:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: network error".format(name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: network error".format(name=self.NAME))
             return False
         except gntp.notifier.errors.AuthError:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: authentication error".format(name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: authentication error".format(name=self.NAME))
             return False
 
         # Fix message
@@ -1700,10 +1700,10 @@ class GROWL(Notifier):
                 description=body,
                 icon=image
             )
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
         except gntp.notifier.errors.NetworkError:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: network error".format(name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: network error".format(name=self.NAME))
             return False
 
     def return_config_options(self):
@@ -1969,15 +1969,15 @@ class JOIN(Notifier):
         if r.status_code == 200:
             response_data = r.json()
             if response_data.get('success'):
-                logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+                logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
                 return True
             else:
                 error_msg = response_data.get('errorMessage')
-                logger.error(u"PlexPy Notifiers :: {name} notification failed: {msg}".format(name=self.NAME, msg=error_msg))
+                logger.error(u"Tautulli Notifiers :: {name} notification failed: {msg}".format(name=self.NAME, msg=error_msg))
                 return False
         else:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-            logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+            logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
             return False
 
     def get_devices(self):
@@ -1995,11 +1995,11 @@ class JOIN(Notifier):
                     return devices
                 else:
                     error_msg = response_data.get('errorMessage')
-                    logger.info(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
+                    logger.info(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
                     return {'': ''}
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2061,7 +2061,7 @@ class MQTT(Notifier):
             return
 
         if not self.config['topic']:
-            logger.error(u"PlexPy Notifiers :: MQTT topic not specified.")
+            logger.error(u"Tautulli Notifiers :: MQTT topic not specified.")
             return
 
         data = {'subject': subject.encode("utf-8"),
@@ -2166,7 +2166,7 @@ class NMA(Notifier):
         if not subject or not body:
             return
 
-        title = 'PlexPy'
+        title = 'Tautulli'
         batch = False
 
         p = pynma.PyNMA()
@@ -2179,10 +2179,10 @@ class NMA(Notifier):
         response = p.push(title, subject, body, priority=self.config['priority'], batch_mode=batch)
 
         if response[self.config['api_key']][u'code'] == u'200':
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
         else:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed.".format(name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
             return False
 
     def return_config_options(self):
@@ -2209,7 +2209,7 @@ class OSX(Notifier):
     OSX notifications
     """
     NAME = 'OSX Notify'
-    _DEFAULT_CONFIG = {'notify_app': '/Applications/PlexPy'
+    _DEFAULT_CONFIG = {'notify_app': '/Applications/Tautulli'
                        }
 
     def __init__(self, config=None):
@@ -2219,7 +2219,7 @@ class OSX(Notifier):
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
         except:
-            # logger.error(u"PlexPy Notifiers :: Cannot load OSX Notifications agent.")
+            # logger.error(u"Tautulli Notifiers :: Cannot load OSX Notifications agent.")
             pass
 
     def validate(self):
@@ -2278,13 +2278,13 @@ class OSX(Notifier):
 
             notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
             notification_center.deliverNotification_(notification)
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
             del pool
             return True
 
         except Exception as e:
-            logger.error(u"PlexPy Notifiers :: {name} failed: {e}".format(name=self.NAME, e=e))
+            logger.error(u"Tautulli Notifiers :: {name} failed: {e}".format(name=self.NAME, e=e))
             return False
 
     def return_config_options(self):
@@ -2292,7 +2292,7 @@ class OSX(Notifier):
                           'value': self.config['notify_app'],
                           'name': 'osx_notify_app',
                           'description': 'Enter the path/application name to be registered with the '
-                                         'Notification Center, default is /Applications/PlexPy.',
+                                         'Notification Center, default is /Applications/Tautulli.',
                           'input_type': 'text'
                           }
                          ]
@@ -2352,7 +2352,7 @@ class PLEX(Notifier):
             image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
 
         for host in hosts:
-            logger.info(u"PlexPy Notifiers :: Sending notification command to {name} @ {host}".format(name=self.NAME, host=host))
+            logger.info(u"Tautulli Notifiers :: Sending notification command to {name} @ {host}".format(name=self.NAME, host=host))
             try:
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
@@ -2368,10 +2368,10 @@ class PLEX(Notifier):
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+                    logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
             except Exception as e:
-                logger.error(u"PlexPy Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+                logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
                 
         return True
@@ -2426,7 +2426,7 @@ class PROWL(Notifier):
             return
 
         data = {'apikey': self.config['key'],
-                'application': 'PlexPy',
+                'application': 'Tautulli',
                 'event': subject.encode("utf-8"),
                 'description': body.encode("utf-8"),
                 'priority': self.config['priority']}
@@ -2531,8 +2531,8 @@ class PUSHBULLET(Notifier):
                 devices.update({'': ''})
                 return devices
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2628,8 +2628,8 @@ class PUSHOVER(Notifier):
                 sounds.update({'': ''})
                 return sounds
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} sounds list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} sounds list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2744,7 +2744,7 @@ class SCRIPTS(Notifier):
 
     def run_script(self, script):
         def kill_script(process):
-            logger.warn(u"PlexPy Notifiers :: Script exceeded timeout limit of %d seconds. "
+            logger.warn(u"Tautulli Notifiers :: Script exceeded timeout limit of %d seconds. "
                         "Script killed." % self.config['timeout'])
             process.kill()
             self.script_killed = True
@@ -2771,20 +2771,20 @@ class SCRIPTS(Notifier):
                 if timer: timer.cancel()
 
         except OSError as e:
-            logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
+            logger.error(u"Tautulli Notifiers :: Failed to run script: %s" % e)
             return False
 
         if error:
             err = '\n  '.join([l for l in error.splitlines()])
-            logger.error(u"PlexPy Notifiers :: Script error: \n  %s" % err)
+            logger.error(u"Tautulli Notifiers :: Script error: \n  %s" % err)
             return False
 
         if output:
             out = '\n  '.join([l for l in output.splitlines()])
-            logger.debug(u"PlexPy Notifiers :: Script returned: \n  %s" % out)
+            logger.debug(u"Tautulli Notifiers :: Script returned: \n  %s" % out)
 
         if not self.script_killed:
-            logger.info(u"PlexPy Notifiers :: Script notification sent.")
+            logger.info(u"Tautulli Notifiers :: Script notification sent.")
             return True
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -2795,22 +2795,22 @@ class SCRIPTS(Notifier):
                   action(string): 'play'
         """
         if not self.config['script_folder']:
-            logger.error(u"PlexPy Notifiers :: No script folder specified.")
+            logger.error(u"Tautulli Notifiers :: No script folder specified.")
             return
 
         script_args = kwargs.get('script_args', [])
 
-        logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s"
+        logger.debug(u"Tautulli Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
 
         script = kwargs.get('script', self.config.get('script', ''))
 
         # Don't try to run the script if the action does not have one
         if action and not script:
-            logger.debug(u"PlexPy Notifiers :: No script selected for action %s, exiting..." % action)
+            logger.debug(u"Tautulli Notifiers :: No script selected for action %s, exiting..." % action)
             return
         elif not script:
-            logger.debug(u"PlexPy Notifiers :: No script selected, exiting...")
+            logger.debug(u"Tautulli Notifiers :: No script selected, exiting...")
             return
 
         name, ext = os.path.splitext(script)
@@ -2842,8 +2842,8 @@ class SCRIPTS(Notifier):
 
         script.extend(script_args)
 
-        logger.debug(u"PlexPy Notifiers :: Full script is: %s" % script)
-        logger.debug(u"PlexPy Notifiers :: Executing script in a new thread.")
+        logger.debug(u"Tautulli Notifiers :: Full script is: %s" % script)
+        logger.debug(u"Tautulli Notifiers :: Executing script in a new thread.")
         thread = threading.Thread(target=self.run_script, args=(script,)).start()
 
         return True
@@ -3097,10 +3097,10 @@ class TELEGRAM(Notifier):
                 r = requests.post('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']), json=poster_data)
 
                 if r.status_code == 200:
-                    logger.info(u"PlexPy Notifiers :: {name} poster sent.".format(name=self.NAME))
+                    logger.info(u"Tautulli Notifiers :: {name} poster sent.".format(name=self.NAME))
                 else:
-                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                    logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
+                    logger.error(u"Tautulli Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
         data['text'] = text
 
@@ -3183,16 +3183,16 @@ class TWITTER(Notifier):
         access_token = self.config['access_token']
         access_token_secret = self.config['access_token_secret']
 
-        # logger.info(u"PlexPy Notifiers :: Sending tweet: " + message)
+        # logger.info(u"Tautulli Notifiers :: Sending tweet: " + message)
 
         api = twitter.Api(consumer_key, consumer_secret, access_token, access_token_secret)
 
         try:
             api.PostUpdate(message, media=attachment)
-            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
         except Exception as e:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -3312,7 +3312,7 @@ class XBMC(Notifier):
             image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
 
         for host in hosts:
-            logger.info(u"PlexPy Notifiers :: Sending notification command to XMBC @ " + host)
+            logger.info(u"Tautulli Notifiers :: Sending notification command to XMBC @ " + host)
             try:
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
@@ -3328,10 +3328,10 @@ class XBMC(Notifier):
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+                    logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
             except Exception as e:
-                logger.error(u"PlexPy Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+                logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
 
         return True
@@ -3373,7 +3373,7 @@ class XBMC(Notifier):
 
 
 def upgrade_config_to_db():
-    logger.info(u"PlexPy Notifiers :: Upgrading to new notification system...")
+    logger.info(u"Tautulli Notifiers :: Upgrading to new notification system...")
 
     # Set flag first in case something fails we don't want to keep re-adding the notifiers
     plexpy.CONFIG.__setattr__('UPDATE_NOTIFIERS_DB', 0)

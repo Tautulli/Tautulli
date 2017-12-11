@@ -77,17 +77,16 @@ DOCUMENTATION :: END
                 <a id="source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" target="_blank">GitHub Source</a> | 
                 <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/%s/plexpy/issues' % plexpy.CONFIG.GIT_USER)}" data-id="issue">GitHub Issues</a> |
                 <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" data-id="feature request">FeatHub Feature Requests</a> | 
-                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">PlexPy Wiki</a> |
-                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank">PlexPy FAQ</a>
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli Wiki</a> |
+                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli FAQ</a>
             </td>
         </tr>
         <tr>
             <td>Support:</td>
             <td>
-                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">Plex Forums</a> |
-                <a class="no-highlight support-modal-link" href="${anon_url('https://gitter.im/plexpy/general')}" target="_blank">PlexPy Gitter Chat</a> | 
-                <a id="best-support-link" class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/011TFFWSuNFI02EKr')}" target="_blank">/r/Plex Discord Server</a> | 
-                <a class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/36ggawe')}" target="_blank">PlexPy Discord Server</a>
+                <a class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/36ggawe')}" target="_blank">Tautulli Discord Server</a> |
+                <a class="no-highlight support-modal-link" href="${anon_url('https://www.reddit.com/r/Tautulli')}" target="_blank">Tautulli Subreddit</a> | 
+                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">Plex Forums</a>
             </td>
         </tr>
     </tbody>
@@ -99,7 +98,7 @@ DOCUMENTATION :: END
             var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
                 'The database is used to lookup IP address geolocation info.<br />' +
                 'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-                'and requires <strong>100MB</strong> of free space to install in your PlexPy directory.<br />'
+                'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />'
             var url = 'install_geoip_db';
             confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', getConfigurationTable);
         });

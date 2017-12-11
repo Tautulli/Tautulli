@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 '''
 Created on Aug 1, 2011
@@ -24,7 +24,7 @@ from collections import OrderedDict
 import version
 
 # Identify Our Application
-USER_AGENT = 'PlexPy/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
+USER_AGENT = 'Tautulli/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
              ' ' + platform.release() + ')'
 
 PLATFORM = platform.system()
@@ -148,8 +148,8 @@ SCHEDULER_LIST = ['Check GitHub for updates',
                   'Refresh libraries list',
                   'Refresh Plex server URLs',
                   'Refresh Plex server name',
-                  'Backup PlexPy database',
-                  'Backup PlexPy config'
+                  'Backup Tautulli database',
+                  'Backup Tautulli config'
                   ]
 
 DATE_TIME_FORMATS = [
@@ -234,9 +234,9 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Global',
         'parameters': [
-             {'name': 'PlexPy Version', 'type': 'str', 'value': 'plexpy_version', 'description': 'The current version of PlexPy.'},
-             {'name': 'PlexPy Branch', 'type': 'str', 'value': 'plexpy_branch', 'description': 'The current git branch of PlexPy.'},
-             {'name': 'PlexPy Commit', 'type': 'str', 'value': 'plexpy_commit', 'description': 'The current git commit hash of PlexPy.'},
+             {'name': 'Tautulli Version', 'type': 'str', 'value': 'plexpy_version', 'description': 'The current version of Tautulli.'},
+             {'name': 'Tautulli Branch', 'type': 'str', 'value': 'plexpy_branch', 'description': 'The current git branch of Tautulli.'},
+             {'name': 'Tautulli Commit', 'type': 'str', 'value': 'plexpy_commit', 'description': 'The current git commit hash of Tautulli.'},
              {'name': 'Server Name', 'type': 'str', 'value': 'server_name', 'description': 'The name of your Plex Server.'},
              {'name': 'Server Uptime', 'type': 'str', 'value': 'server_uptime', 'description': 'The uptime (in days, hours, mins, secs) of your Plex Server.'},
              {'name': 'Server Version', 'type': 'str', 'value': 'server_version', 'description': 'The current version of your Plex Server.'},
@@ -424,9 +424,9 @@ NOTIFICATION_PARAMETERS = [
          ]
      },
     {
-        'category': 'PlexPy Update Available',
+        'category': 'Tautulli Update Available',
         'parameters': [
-             {'name': 'Plexpy Update Version', 'type': 'int', 'value': 'plexpy_update_version', 'description': 'The available update version for PlexPy.'},
+             {'name': 'Plexpy Update Version', 'type': 'int', 'value': 'plexpy_update_version', 'description': 'The available update version for Tautulli.'},
              {'name': 'Plexpy Update Tar', 'type': 'int', 'value': 'plexpy_update_tar', 'description': 'The tar download URL for the available update.'},
              {'name': 'Plexpy Update Zip', 'type': 'int', 'value': 'plexpy_update_zip', 'description': 'The zip download URL for the available update.'},
              {'name': 'Plexpy Update Commit', 'type': 'int', 'value': 'plexpy_update_commit', 'description': 'The commit hash for the available update.'},

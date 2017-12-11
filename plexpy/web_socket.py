@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
@@ -75,26 +75,26 @@ def run():
     # Try an open the websocket connection
     while not plexpy.WS_CONNECTED and reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
         try:
-            logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
+            logger.info(u"Tautulli WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
             ws = create_connection(uri, header=header)
             reconnects = 0
-            logger.info(u"PlexPy WebSocket :: Ready")
+            logger.info(u"Tautulli WebSocket :: Ready")
             plexpy.WS_CONNECTED = True
 
             if not plexpy.PLEX_SERVER_UP:
-                logger.info(u"PlexPy WebSocket :: The Plex Media Server is back up.")
+                logger.info(u"Tautulli WebSocket :: The Plex Media Server is back up.")
                 plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
                 plexpy.PLEX_SERVER_UP = True
 
             plexpy.initialize_scheduler()
 
         except IOError as e:
-            logger.error(u"PlexPy WebSocket :: %s." % e)
+            logger.error(u"Tautulli WebSocket :: %s." % e)
             reconnects += 1
             time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
         except (websocket.WebSocketException, Exception) as e:
-            logger.error(u"PlexPy WebSocket :: %s." % e)
+            logger.error(u"Tautulli WebSocket :: %s." % e)
             plexpy.WS_CONNECTED = False
             ws_exception = True
             break
@@ -114,13 +114,13 @@ def run():
                 if reconnects > 1:
                     time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-                logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnection attempt %s." % reconnects)
+                logger.warn(u"Tautulli WebSocket :: Connection has closed, reconnection attempt %s." % reconnects)
                 try:
                     ws = create_connection(uri, header=header)
-                    logger.info(u"PlexPy WebSocket :: Ready")
+                    logger.info(u"Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except IOError as e:
-                    logger.info(u"PlexPy WebSocket :: %s." % e)
+                    logger.info(u"Tautulli WebSocket :: %s." % e)
 
             else:
                 ws.shutdown()
@@ -128,30 +128,30 @@ def run():
                 break
 
         except (websocket.WebSocketException, Exception) as e:
-            logger.error(u"PlexPy WebSocket :: %s." % e)
+            logger.error(u"Tautulli WebSocket :: %s." % e)
             plexpy.WS_CONNECTED = False
             ws_exception = True
             break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
         if ws_reconnect:
-            logger.info(u"PlexPy WebSocket :: Reconnecting websocket...")
+            logger.info(u"Tautulli WebSocket :: Reconnecting websocket...")
             ws.shutdown()
             plexpy.WS_CONNECTED = False
             start_thread()
     
     if not plexpy.WS_CONNECTED and not ws_reconnect:
-        logger.error(u"PlexPy WebSocket :: Connection unavailable.")
+        logger.error(u"Tautulli WebSocket :: Connection unavailable.")
 
         if not ws_exception and plexpy.PLEX_SERVER_UP:
-            logger.info(u"PlexPy WebSocket :: Unable to get an internal response from the server, Plex server is down.")
+            logger.info(u"Tautulli WebSocket :: Unable to get an internal response from the server, Plex server is down.")
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
             plexpy.PLEX_SERVER_UP = False
             on_disconnect()
 
         plexpy.initialize_scheduler()
 
-    logger.debug(u"PlexPy WebSocket :: Leaving thread.")
+    logger.debug(u"Tautulli WebSocket :: Leaving thread.")
 
 
 def receive(ws):
@@ -178,7 +178,7 @@ def process(opcode, data):
         logger.websocket_debug(data)
         info = json.loads(data)
     except Exception as e:
-        logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % e)
+        logger.warn(u"Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
         logger.debug(data)
         return False
 
@@ -192,26 +192,26 @@ def process(opcode, data):
         time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
         if not time_line:
-            logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
+            logger.debug(u"Tautulli WebSocket :: Session found but unable to get timeline data.")
             return False
 
         try:
             activity = activity_handler.ActivityHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error(u"PlexPy WebSocket :: Failed to process session data: %s." % e)
+            logger.error(u"Tautulli WebSocket :: Failed to process session data: %s." % e)
 
     if type == 'timeline':
         time_line = info.get('TimelineEntry', info.get('_children', {}))
 
         if not time_line:
-            logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
+            logger.debug(u"Tautulli WebSocket :: Timeline event found but unable to get timeline data.")
             return False
 
         try:
             activity = activity_handler.TimelineHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error(u"PlexPy WebSocket :: Failed to process timeline data: %s." % e)
+            logger.error(u"Tautulli WebSocket :: Failed to process timeline data: %s." % e)
 
     return True

@@ -49,7 +49,7 @@
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">PlexPy Android App <sup><small>Beta</small></sup></a></li>
+                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -62,14 +62,14 @@
                         </div>
                         % endif
                         <div class="padded-header">
-                            <h3>PlexPy Configuration</h3>
+                            <h3>Tautulli Configuration</h3>
                         </div>
                         <div id="plexpy-configuration-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading configuration table...</div>
                             <br>
                         </div>
                         <div class="padded-header">
-                            <h3>PlexPy Scheduled Tasks</h3>
+                            <h3>Tautulli Scheduled Tasks</h3>
                         </div>
                         <div id="plexpy-scheduler-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
@@ -157,14 +157,14 @@
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
                             </label>
-                            <p class="help-block">Check for PlexPy updates periodically.</p>
+                            <p class="help-block">Check for Tautulli updates periodically.</p>
                         </div>
                         <div id="git_update_options">
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
                                 </label>
-                                <p class="help-block">Update PlexPy automatically if an update is available.</p>
+                                <p class="help-block">Update Tautulli automatically if an update is available.</p>
                             </div>
                             <div class="form-group">
                                 <label for="git_token">GitHub API Token</label>
@@ -362,7 +362,7 @@
                             <label>
                                 <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
                             </label>
-                            <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
+                            <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -375,7 +375,7 @@
                                 <label>
                                     <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
                                 </label>
-                                <p class="help-block">Check to have PlexPy create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
+                                <p class="help-block">Check to have Tautulli create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
                             </div>
                             <div id="https_options_self-signed">
                                 <div class="form-group">
@@ -385,7 +385,7 @@
                                             <input type="text" class="form-control http-settings" id="https_domain" name="https_domain" value="${config['https_domain']}">
                                         </div>
                                     </div>
-                                    <p class="help-block">The domain names used to access PlexPy, separated by commas (,).</p>
+                                    <p class="help-block">The domain names used to access Tautulli, separated by commas (,).</p>
                                 </div>
                                 <div class="form-group">
                                     <label for="https_ip">HTTPS IPs</label>
@@ -394,7 +394,7 @@
                                             <input type="text" class="form-control http-settings" id="https_ip" name="https_ip" value="${config['https_ip']}">
                                         </div>
                                     </div>
-                                    <p class="help-block">The IP addresses used to access PlexPy, separated by commas (,).</p>
+                                    <p class="help-block">The IP addresses used to access Tautulli, separated by commas (,).</p>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -478,10 +478,10 @@
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
+                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to Tautulli
                             </label>
                             <span id="allowGuestCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Allow shared users to login to PlexPy using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
+                            <p class="help-block">Allow shared users to login to Tautulli using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
                         </div>
 
                         <div class="padded-header">
@@ -492,7 +492,7 @@
                             <label>
                                 <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
                             </label>
-                            <p class="help-block">Allow remote applications to interface with PlexPy.</p>
+                            <p class="help-block">Allow remote applications to interface with Tautulli.</p>
                         </div>
                         <div id="apioptions">
                             <div class="form-group">
@@ -525,7 +525,7 @@
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
-                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.</p>
+                            <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
                         </div>
                         <div id="pms_update_options">
                             <div class="form-group">
@@ -550,7 +550,7 @@
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
                             <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
+                            <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="form-group has-feedback" id="pms-ip-group">
@@ -583,7 +583,7 @@
                             <label>
                                 <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
                             </label>
-                            <p class="help-block">Check this if your Plex Server is not on the same local network as PlexPy.</p>
+                            <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -626,7 +626,7 @@
                                 <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">
-                                Optional: Set your Plex logs folder to use PlexPy as a log viewer. Plex logs are not needed for PlexPy to function.
+                                Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
                                 A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where PlexPy is installed.
                                 <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
                             </p>
@@ -669,13 +669,13 @@
                                 </div>
                                 <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in hours) PlexPy will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
                             </label>
-                            <p class="help-block">Refresh the users list when PlexPy starts.</p>
+                            <p class="help-block">Refresh the users list when Tautulli starts.</p>
                         </div>
 
                         <div class="padded-header">
@@ -690,13 +690,13 @@
                                 </div>
                                 <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in hours) PlexPy will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
                             </label>
-                            <p class="help-block">Refresh the libraries list when PlexPy starts.</p>
+                            <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -743,7 +743,7 @@
                                 </div>
                                 <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The value (in seconds) PlexPy should wait before triggering the next buffer warning. 0 to always trigger.</p>
+                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -776,7 +776,7 @@
                                 </div>
                                 <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The number of concurrent streams by a single user for PlexPy to trigger a notification. Minimum 2.</p>
+                            <p class="help-block">The number of concurrent streams by a single user for Tautulli to trigger a notification. Minimum 2.</p>
                         </div>
 
                         <div class="padded-header">
@@ -817,7 +817,7 @@
                             </label>
                             <p class="help-block">
                                 Enable to send another recently added notification when adding a new version of existing media.<br />
-                                Note: If multiple versions are available, PlexPy will assume the higher quality one is newer.
+                                Note: If multiple versions are available, Tautulli will assume the higher quality one is newer.
                             </p>
                         </div>-->
 
@@ -894,7 +894,7 @@
                             <label>
                                 <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
-                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -1009,7 +1009,7 @@
                                 </div>
                                 <div id="backup_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in hours) PlexPy will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
+                            <p class="help-block">The interval (in hours) Tautulli will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
                         </div>
                         <div class="form-group">
                             <label for="backup_interval">Backup Days</label>
@@ -1070,13 +1070,13 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-android_app">
 
                         <div class="padded-header">
-                            <h3>PlexPy Android App</h3>
+                            <h3>Tautulli Remote Android App</h3>
                         </div>
 
                         <div class="form-group">
                             <label>Get the App</label>
                             <p class="help-block">
-                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">PlexPy Remote</a> app on Google Play<sup>TM</sup> to access PlexPy from your Android device!<br />
+                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">Tautulli Remote</a> app on Google Play<sup>TM</sup> to access Tautulli from your Android device!<br />
                                 <span class="google-play-badge">
                                     <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
                                 </span>
@@ -1189,7 +1189,7 @@
             <div class="modal-body" id="modal-text">
                 <div>
                     <p class="help-block">
-                        This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
+                        This will attempt to fetch a new Plex.tv token for you. Tautulli does not store your username and password.
                         Note: This will not work on Internet Explorer 9 or lower.
                     </p>
                     <div class="form-group">
@@ -1421,7 +1421,7 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    You have changed settings that require PlexPy to restart.<br />Click the restart button below to restart now.
+                    You have changed settings that require Tautulli to restart.<br />Click the restart button below to restart now.
                 </div>
             </div>
             <div class="modal-footer">
@@ -1435,25 +1435,25 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Register PlexPy Android App</h4>
+                <h4 class="modal-title">Register Tautulli Android App</h4>
             </div>
             <div class="modal-body">
                 <label>Instructions</label>
                 <p class="help-block">
-                    Scan the QR code below with the PlexPy Android app to automatically register it with the server (make sure the PlexPy Address below is correct)
+                    Scan the QR code below with the Tautulli Android app to automatically register it with the server (make sure the Tautulli Address below is correct)
                     or manually enter the connection info and device token into the app settings.
                 </p>
                 <label>QR Code</label>
                 <pre id="api_qr_code" style="text-align: center"></pre>
-                <label>PlexPy Address</label>
+                <label>Tautulli Address</label>
                 <input type="text" class="form-control" id="api_qr_address">
                 <p class="help-block" id="api_qr_localhost" style="display: none;">
                     Note: <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
                     Please enter an internal or external IP address, or hostname or domain instead.
                 </p>
                 <p class="help-block" id="api_qr_private" style="display: none;">
-                    Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
-                    Access PlexPy via an externally address or manually enter the address above to generate the QR code for remote access.
+                    Note: This is a private IP address. Tautulli will not be reachable outside of your home network.
+                    Access Tautulli via an externally address or manually enter the address above to generate the QR code for remote access.
                 </p>
                 <p class="help-block" id="api_qr_https" style="display: none;">
                     Note: This URL is not secure. Requests between the app and the server will not be encrypted.
@@ -1491,8 +1491,6 @@
                 }
                 if ("${kwargs.get('support')}" == 'true') {
                     $('.support-modal-link').removeClass('no-highlight').css('color','#e9a049');
-                    $('#best-support-link').prepend('<span data-toggle="tooltip" title="Most Active"><i class="fa fa-star"></i></span>&nbsp;')
-                    $('#best-support-link span').tooltip({ container: 'body' });
                 }
             }
         });
@@ -1628,7 +1626,7 @@ $(document).ready(function() {
     initConfigCheckbox('#monitor_pms_updates');
     
     $('#menu_link_shutdown').click(function() {
-        $('#confirm-message').text("Are you sure you want to shutdown PlexPy?");
+        $('#confirm-message').text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = 'shutdown';
@@ -1636,7 +1634,7 @@ $(document).ready(function() {
     });
 
     $('#menu_link_restart').click(function() {
-        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = 'restart';
@@ -1674,31 +1672,31 @@ $(document).ready(function() {
     });
 
     $("#backup_config").click(function () {
-        var msg = 'Are you sure you want to create a backup of the PlexPy config?';
+        var msg = 'Are you sure you want to create a backup of the Tautulli config?';
         var url = 'backup_config';
         confirmAjaxCall(url, msg);
     });
 
     $("#backup_database").click(function () {
-        var msg = 'Are you sure you want to create a backup of the PlexPy database?';
+        var msg = 'Are you sure you want to create a backup of the Tautulli database?';
         var url = 'backup_db';
         confirmAjaxCall(url, msg);
     });
 
     $("#clear_cache").click(function () {
-        var msg = 'Are you sure you want to clear the PlexPy cache?';
+        var msg = 'Are you sure you want to clear the Tautulli cache?';
         var url = 'delete_cache';
         confirmAjaxCall(url, msg);
     });
 
     $("#clear_image_cache").click(function () {
-        var msg = 'Are you sure you want to clear the PlexPy image cache?';
+        var msg = 'Are you sure you want to clear the Tautulli image cache?';
         var url = 'delete_image_cache';
         confirmAjaxCall(url, msg);
     });
 
     $("#clear_logs").click(function () {
-        var msg = 'Are you sure you want to clear the PlexPy logs?';
+        var msg = 'Are you sure you want to clear the Tautulli logs?';
         var url = 'delete_logs';
         confirmAjaxCall(url, msg);
     });
@@ -1719,7 +1717,7 @@ $(document).ready(function() {
             showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
         } else {
             var msg = 'Are you sure you want to switch to the <strong>' + new_remote + '/' + new_branch + '</strong> branch?' +
-                '<br />Switching branches may cause PlexPy to become unstable.<br /><br />PlexPy will restart.';
+                '<br />Switching branches may cause Tautulli to become unstable.<br /><br />Tautulli will restart.';
             $('#confirm-message').html(msg);
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {

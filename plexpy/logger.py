@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
@@ -38,11 +38,11 @@ MAX_FILES = 5
 
 _BLACKLIST_WORDS = set()
 
-# PlexPy logger
+# Tautulli logger
 logger = logging.getLogger("plexpy")
-# PlexPy API logger
+# Tautulli API logger
 logger_api = logging.getLogger("plexpy_api")
-# PlexPy websocket logger
+# Tautulli websocket logger
 logger_plex_websocket = logging.getLogger("plex_websocket")
 
 # Global queue for multiprocessing logging
@@ -177,7 +177,7 @@ def initMultiprocessing():
 
 def initLogger(console=False, log_dir=False, verbose=False):
     """
-    Setup logging for PlexPy. It uses the logger instance with the name
+    Setup logging for Tautulli. It uses the logger instance with the name
     'plexpy'. Three log handlers are added:
 
     * RotatingFileHandler: for the file plexpy.log
@@ -185,7 +185,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     * StreamHandler: for console (if console)
 
     Console logging is only enabled if console is set to True. This method can
-    be invoked multiple times, during different stages of PlexPy.
+    be invoked multiple times, during different stages of Tautulli.
     """
 
     # Close and remove old handlers. This is required to reinit the loggers
@@ -213,7 +213,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     if log_dir:
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)-7s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
 
-        # Main PlexPy logger
+        # Main Tautulli logger
         filename = os.path.join(log_dir, FILENAME)
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
@@ -221,7 +221,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         logger.addHandler(file_handler)
 
-        # PlexPy API logger
+        # Tautulli API logger
         filename = os.path.join(log_dir, FILENAME_API)
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
@@ -229,7 +229,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         logger_api.addHandler(file_handler)
 
-        # PlexPy websocket logger
+        # Tautulli websocket logger
         filename = os.path.join(log_dir, FILENAME_PLEX_WEBSOCKET)
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
@@ -307,7 +307,7 @@ def initHooks(global_exceptions=True, thread_exceptions=True, pass_original=True
         threading.Thread.__init__ = new_init
 
 # Expose logger methods
-# Main PlexPy logger
+# Main Tautulli logger
 info = logger.info
 warn = logger.warn
 error = logger.error
@@ -315,7 +315,7 @@ debug = logger.debug
 warning = logger.warning
 exception = logger.exception
 
-# PlexPy API logger
+# Tautulli API logger
 api_info = logger_api.info
 api_warn = logger_api.warn
 api_error = logger_api.error
@@ -323,7 +323,7 @@ api_debug = logger_api.debug
 api_warning = logger_api.warning
 api_exception = logger_api.exception
 
-# PlexPy websocket logger
+# Tautulli websocket logger
 websocket_info = logger_plex_websocket.info
 websocket_warn = logger_plex_websocket.warn
 websocket_error = logger_plex_websocket.error

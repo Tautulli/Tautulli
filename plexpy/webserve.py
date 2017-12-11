@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import hashlib
 import json
@@ -192,7 +192,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_date_formats(self, **kwargs):
-        """ Get the date and time formats used by PlexPy.
+        """ Get the date and time formats used by Tautulli.
 
              ```
             Required parameters:
@@ -400,7 +400,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi("get_libraries_table")
     def get_library_list(self, **kwargs):
-        """ Get the data on the PlexPy libraries table.
+        """ Get the data on the Tautulli libraries table.
 
             ```
             Required parameters:
@@ -553,7 +553,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def edit_library(self, section_id=None, **kwargs):
-        """ Update a library section on PlexPy.
+        """ Update a library section on Tautulli.
 
             ```
             Required parameters:
@@ -664,7 +664,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
-        """ Get the data on the PlexPy media info tables.
+        """ Get the data on the Tautulli media info tables.
 
             ```
             Required parameters:
@@ -910,7 +910,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_all_library_history(self, section_id, **kwargs):
-        """ Delete all PlexPy history for a specific library.
+        """ Delete all Tautulli history for a specific library.
 
             ```
             Required parameters:
@@ -938,7 +938,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_library(self, section_id, **kwargs):
-        """ Delete a library section from PlexPy. Also erases all history for the library.
+        """ Delete a library section from Tautulli. Also erases all history for the library.
 
             ```
             Required parameters:
@@ -966,7 +966,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def undelete_library(self, section_id=None, section_name=None, **kwargs):
-        """ Restore a deleted library section to PlexPy.
+        """ Restore a deleted library section to Tautulli.
 
             ```
             Required parameters:
@@ -1066,7 +1066,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi("get_users_table")
     def get_user_list(self, **kwargs):
-        """ Get the data on PlexPy users table.
+        """ Get the data on Tautulli users table.
 
             ```
             Required parameters:
@@ -1179,7 +1179,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def edit_user(self, user_id=None, **kwargs):
-        """ Update a user on PlexPy.
+        """ Update a user on Tautulli.
 
             ```
             Required parameters:
@@ -1276,7 +1276,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_user_ips(self, user_id=None, **kwargs):
-        """ Get the data on PlexPy users IP table.
+        """ Get the data on Tautulli users IP table.
 
             ```
             Required parameters:
@@ -1342,7 +1342,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_user_logins(self, user_id=None, **kwargs):
-        """ Get the data on PlexPy user login table.
+        """ Get the data on Tautulli user login table.
 
             ```
             Required parameters:
@@ -1527,7 +1527,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_all_user_history(self, user_id, **kwargs):
-        """ Delete all PlexPy history for a specific user.
+        """ Delete all Tautulli history for a specific user.
 
             ```
             Required parameters:
@@ -1553,7 +1553,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_user(self, user_id, **kwargs):
-        """ Delete a user from PlexPy. Also erases all history for the user.
+        """ Delete a user from Tautulli. Also erases all history for the user.
 
             ```
             Required parameters:
@@ -1579,7 +1579,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def undelete_user(self, user_id=None, username=None, **kwargs):
-        """ Restore a deleted user to PlexPy.
+        """ Restore a deleted user to Tautulli.
 
             ```
             Required parameters:
@@ -1619,7 +1619,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_history(self, user=None, user_id=None, grouping=None, **kwargs):
-        """ Get the PlexPy history.
+        """ Get the Tautulli history.
 
             ```
             Required parameters:
@@ -2401,7 +2401,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_notification_log(self, **kwargs):
-        """ Get the data on the PlexPy notification logs table.
+        """ Get the data on the Tautulli notification logs table.
 
             ```
             Required parameters:
@@ -2430,7 +2430,7 @@ class WebInterface(object):
                           "rating_key": 153037,
                           "script_args": "[]",
                           "session_key": 147,
-                          "subject_text": "PlexPy (Winterfell-Server)",
+                          "subject_text": "Tautulli (Winterfell-Server)",
                           "timestamp": 1462253821,
                           "user": "DanyKhaleesi69",
                           "user_id": 8008135
@@ -2463,7 +2463,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_notification_log(self, **kwargs):
-        """ Delete the PlexPy notification logs.
+        """ Delete the Tautulli notification logs.
 
             ```
             Required paramters:
@@ -2488,7 +2488,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_login_log(self, **kwargs):
-        """ Delete the PlexPy login logs.
+        """ Delete the Tautulli login logs.
 
             ```
             Required paramters:
@@ -3128,8 +3128,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify")
-    def send_notification(self, notifier_id=None, subject='PlexPy', body='Test notification', notify_action='', **kwargs):
-        """ Send a notification using PlexPy.
+    def send_notification(self, notifier_id=None, subject='Tautulli', body='Test notification', notify_action='', **kwargs):
+        """ Send a notification using Tautulli.
 
             ```
             Required parameters:
@@ -3210,11 +3210,11 @@ class WebInterface(object):
         access_token = facebook._get_credentials(code)
 
         if access_token:
-            return "Facebook authorization successful. PlexPy can send notification to Facebook. " \
+            return "Facebook authorization successful. Tautulli can send notification to Facebook. " \
                 "Your Facebook access token is:" \
                 "<pre>{0}</pre>You may close this page.".format(access_token)
         else:
-            return "Failed to request authorization from Facebook. Check the PlexPy logs for details.<br />You may close this page."
+            return "Failed to request authorization from Facebook. Check the Tautulli logs for details.<br />You may close this page."
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3342,7 +3342,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def import_database(self, app=None, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
-        """ Import a PlexWatch or Plexivity database into PlexPy.
+        """ Import a PlexWatch or Plexivity database into Tautulli.
 
             ```
             Required parameters:
@@ -3368,7 +3368,7 @@ class WebInterface(object):
                                  kwargs={'database': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
-                return 'Import has started. Check the PlexPy logs to monitor any problems.'
+                return 'Import has started. Check the Tautulli logs to monitor any problems.'
             else:
                 return db_check_msg
         elif app.lower() == 'plexivity':
@@ -3379,7 +3379,7 @@ class WebInterface(object):
                                  kwargs={'database': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
-                return 'Import has started. Check the PlexPy logs to monitor any problems.'
+                return 'Import has started. Check the Tautulli logs to monitor any problems.'
             else:
                 return db_check_msg
         else:
@@ -3401,7 +3401,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_pms_token(self, username=None, password=None, **kwargs):
-        """ Get the user's Plex token used for PlexPy.
+        """ Get the user's Plex token used for Tautulli.
 
             ```
             Required parameters:
@@ -3412,7 +3412,7 @@ class WebInterface(object):
                 None
 
             Returns:
-                string:             The Plex token used for PlexPy
+                string:             The Plex token used for Tautulli
             ```
         """
         if not username and not password:
@@ -3431,7 +3431,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_plexpy_pms_token(self, username=None, password=None, force=False, **kwargs):
-        """ Fetch a new Plex.tv token for PlexPy """
+        """ Fetch a new Plex.tv token for Tautulli """
         if not username and not password:
             return None
 
@@ -3656,7 +3656,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi('notify_recently_added')
     def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
-        """ Send a recently added notification using PlexPy.
+        """ Send a recently added notification using Tautulli.
 
             ```
             Required parameters:
@@ -3786,7 +3786,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_config(self, **kwargs):
-        """ Download the PlexPy configuration file. """
+        """ Download the Tautulli configuration file. """
         config_file = config.FILENAME
 
         try:
@@ -3800,7 +3800,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_database(self, **kwargs):
-        """ Download the PlexPy database file. """
+        """ Download the Tautulli database file. """
         database_file = database.FILENAME
 
         try:
@@ -3817,7 +3817,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_log(self, logfile='', **kwargs):
-        """ Download the PlexPy log file. """
+        """ Download the Tautulli log file. """
         if logfile == "plexpy_api":
             filename = logger.FILENAME_API
             log = logger.logger_api
@@ -4000,7 +4000,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def update_metadata_details(self, old_rating_key, new_rating_key, media_type, **kwargs):
-        """ Update the metadata in the PlexPy database by matching rating keys.
+        """ Update the metadata in the Tautulli database by matching rating keys.
             Also updates all parents or children of the media item if it is a show/season/episode
             or artist/album/track.
 
@@ -4068,7 +4068,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_old_rating_keys(self, rating_key='', media_type='', **kwargs):
-        """ Get a list of old rating keys from the PlexPy database for all of the item's parent/children.
+        """ Get a list of old rating keys from the Tautulli database for all of the item's parent/children.
 
             ```
             Required parameters:

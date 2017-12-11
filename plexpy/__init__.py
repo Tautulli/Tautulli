@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 from Queue import Queue
@@ -170,7 +170,7 @@ def initialize(config_file):
         notifiers.blacklist_logger()
         mobile_app.blacklist_logger()
 
-        # Check if PlexPy has a uuid
+        # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
             my_uuid = generate_uuid()
             CONFIG.__setattr__('PMS_UUID', my_uuid)
@@ -182,7 +182,7 @@ def initialize(config_file):
 
         # Write current version to a file, so we know which version did work.
         # This allowes one to restore to that version. The idea is that if we
-        # arrive here, most parts of PlexPy seem to work.
+        # arrive here, most parts of Tautulli seem to work.
         if CURRENT_VERSION:
             version_lock_file = os.path.join(DATA_DIR, "version.lock")
 
@@ -309,9 +309,9 @@ def initialize_scheduler():
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
-        schedule_job(database.make_backup, 'Backup PlexPy database',
+        schedule_job(database.make_backup, 'Backup Tautulli database',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
-        schedule_job(config.make_backup, 'Backup PlexPy config',
+        schedule_job(config.make_backup, 'Backup Tautulli config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
@@ -517,7 +517,7 @@ def dbcheck():
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
 
-    # user_login table :: This table keeps record of the PlexPy guest logins
+    # user_login table :: This table keeps record of the Tautulli guest logins
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, '
@@ -1439,28 +1439,28 @@ def shutdown(restart=False, update=False, checkout=False):
     CONFIG.write()
 
     if not restart and not update and not checkout:
-        logger.info(u"PlexPy is shutting down...")
+        logger.info(u"Tautulli is shutting down...")
 
     if update:
-        logger.info(u"PlexPy is updating...")
+        logger.info(u"Tautulli is updating...")
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn(u"PlexPy failed to update: %s. Restarting." % e)
+            logger.warn(u"Tautulli failed to update: %s. Restarting." % e)
 
     if checkout:
-        logger.info(u"PlexPy is switching the git branch...")
+        logger.info(u"Tautulli is switching the git branch...")
         try:
             versioncheck.checkout_git_branch()
         except Exception as e:
-            logger.warn(u"PlexPy failed to switch git branch: %s. Restarting." % e)
+            logger.warn(u"Tautulli failed to switch git branch: %s. Restarting." % e)
 
     if CREATEPID:
         logger.info(u"Removing pidfile %s", PIDFILE)
         os.remove(PIDFILE)
 
     if restart:
-        logger.info(u"PlexPy is restarting...")
+        logger.info(u"Tautulli is restarting...")
         exe = sys.executable
         args = [exe, FULL_PATH]
         args += ARGS
@@ -1472,10 +1472,10 @@ def shutdown(restart=False, update=False, checkout=False):
         if NOFORK:
             logger.info('Running as service, not forking. Exiting...')
         elif os.name == 'nt':
-            logger.info('Restarting PlexPy with %s', args)
+            logger.info('Restarting Tautulli with %s', args)
             subprocess.Popen(args, cwd=os.getcwd())
         else:
-            logger.info('Restarting PlexPy with %s', args)
+            logger.info('Restarting Tautulli with %s', args)
             os.execv(exe, args)
 
     os._exit(0)

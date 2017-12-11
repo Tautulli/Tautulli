@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
 import threading
@@ -172,7 +172,7 @@ class ActivityProcessor(object):
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
             else:
-                logger.debug(u"PlexPy ActivityProcessor :: ratingKey %s not logged. Does not meet logging criteria. "
+                logger.debug(u"Tautulli ActivityProcessor :: ratingKey %s not logged. Does not meet logging criteria. "
                              u"Media type is '%s'" % (session['rating_key'], session['media_type']))
 
             if str(session['paused_counter']).isdigit():
@@ -184,35 +184,35 @@ class ActivityProcessor(object):
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
-                    logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
+                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(real_play_time), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             if not is_import and session['media_type'] == 'track':
                 if real_play_time < 15 and session['duration'] >= 30:
                     logging_enabled = False
-                    logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs, "
+                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs, "
                                  u"looks like it was skipped so we're not logging it" %
                                  (session['rating_key'], str(real_play_time)))
             elif is_import and import_ignore_interval:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(import_ignore_interval)):
                     logging_enabled = False
-                    logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
+                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(real_play_time), import_ignore_interval))
 
             if not is_import and not user_details['keep_history']:
                 logging_enabled = False
-                logger.debug(u"PlexPy ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
+                logger.debug(u"Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
             elif not is_import and not library_details['keep_history']:
                 logging_enabled = False
-                logger.debug(u"PlexPy ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
+                logger.debug(u"Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
             if logging_enabled:
 
                 # Fetch metadata first so we can return false if it fails
                 if not is_import:
-                    logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
+                    logger.debug(u"Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     pms_connect = pmsconnect.PmsConnect()
                     metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
                     if not metadata:
@@ -226,7 +226,7 @@ class ActivityProcessor(object):
                     ## TODO: Fix media info from imports. Temporary media info from import session.
                     media_info = session
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history table...")
                 keys = {'id': None}
                 values = {'started': session['started'],
                           'stopped': stopped,
@@ -251,7 +251,7 @@ class ActivityProcessor(object):
                           'view_offset': session['view_offset']
                           }
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history transaction...")
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
@@ -290,12 +290,12 @@ class ActivityProcessor(object):
 
                 self.db.action(query=query, args=args)
                 
-                # logger.debug(u"PlexPy ActivityProcessor :: Successfully written history item, last id for session_history is %s"
+                # logger.debug(u"Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
                 #              % last_id)
 
                 # Write the session_history_media_info table
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_media_info table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history_media_info table...")
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
                           'video_decision': session['video_decision'],
@@ -357,7 +357,7 @@ class ActivityProcessor(object):
                           'optimized_version_profile': session['optimized_version_profile']
                           }
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_media_info transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history_media_info transaction...")
                 self.db.upsert(table_name='session_history_media_info', key_dict=keys, value_dict=values)
 
                 # Write the session_history_metadata table
@@ -367,7 +367,7 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history_metadata table...")
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
                           'parent_rating_key': session['parent_rating_key'],
@@ -403,7 +403,7 @@ class ActivityProcessor(object):
                           'labels': labels
                           }
 
-                # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_metadata transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history_metadata transaction...")
                 self.db.upsert(table_name='session_history_metadata', key_dict=keys, value_dict=values)
 
             # Return true when the session is successfully written to the database

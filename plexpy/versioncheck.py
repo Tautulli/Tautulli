@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import platform
@@ -149,11 +149,11 @@ def checkGithub(auto_update=False):
 
     # See how many commits behind we are
     if not plexpy.CURRENT_VERSION:
-        logger.info('You are running an unknown version of PlexPy. Run the updater to identify your version')
+        logger.info('You are running an unknown version of Tautulli. Run the updater to identify your version')
         return plexpy.LATEST_VERSION
 
     if plexpy.LATEST_VERSION == plexpy.CURRENT_VERSION:
-        logger.info('PlexPy is up to date')
+        logger.info('Tautulli is up to date')
         return plexpy.LATEST_VERSION
 
     logger.info('Comparing currently installed version with latest GitHub version')
@@ -185,7 +185,7 @@ def checkGithub(auto_update=False):
             plexpy.shutdown(restart=True, update=True)
 
     elif plexpy.COMMITS_BEHIND == 0:
-        logger.info('PlexPy is up to date')
+        logger.info('Tautulli is up to date')
 
     return plexpy.LATEST_VERSION
 
@@ -338,5 +338,5 @@ def read_changelog(latest_only=False):
         return output
 
     except IOError as e:
-        logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
+        logger.error('Tautulli Version Checker :: Unable to open changelog file. %s' % e)
         return '<h4>Unable to open changelog file</h4>'

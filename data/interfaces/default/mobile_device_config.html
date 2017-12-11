@@ -76,7 +76,7 @@
     }
 
     $('#delete-mobile-device').click(function () {
-        var msg = 'Are you sure you want to unregister the device <strong>${device["device_name"]}</strong> from PlexPy?';
+        var msg = 'Are you sure you want to unregister the device <strong>${device["device_name"]}</strong> from Tautulli?';
         var url = 'delete_mobile_device';
         confirmAjaxCall(url, msg, { mobile_device_id: '${device["id"]}' }, null, deleteCallback);
     });

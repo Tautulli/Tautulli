@@ -56,8 +56,8 @@
     <div class='table-card-back'>
         <div>
             <ul id="log_tabs" class="nav nav-pills" role="tablist">
-                <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-plexpy_log" aria-controls="tabs-plexpy_log" role="tab" data-toggle="tab">PlexPy Logs</a></li>
-                <li role="presentation"><a id="plexpy-api-logs-btn" href="#tabs-plexpy_api_log" aria-controls="tabs-plexpy_api_log" role="tab" data-toggle="tab">PlexPy API Logs</a></li>
+                <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-plexpy_log" aria-controls="tabs-plexpy_log" role="tab" data-toggle="tab">Tautulli Logs</a></li>
+                <li role="presentation"><a id="plexpy-api-logs-btn" href="#tabs-plexpy_api_log" aria-controls="tabs-plexpy_api_log" role="tab" data-toggle="tab">Tautulli API Logs</a></li>
                 <li role="presentation"><a id="plex-logs-btn" href="#tabs-plex_log" aria-controls="tabs-plex_log" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
                 <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-plex_scanner_log" aria-controls="tabs-plex_scanner_log" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
                 <li role="presentation"><a id="plexpy-websocket-logs-btn" href="#tabs-plex_websocket_log" aria-controls="tabs-plex_websocket_log" role="tab" data-toggle="tab">Plex Websocket Logs</a></li>
@@ -386,7 +386,7 @@
         $("#clear-logs").click(function () {
             var logfile = $(".tab-pane.active").data('logfile')
 
-            $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
@@ -421,7 +421,7 @@
         });
 
         $("#clear-notify-logs").click(function () {
-            $("#confirm-message").text("Are you sure you want to clear the PlexPy notification logs?");
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli notification logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
@@ -442,7 +442,7 @@
         });
 
         $("#clear-login-logs").click(function () {
-            $("#confirm-message").text("Are you sure you want to clear the PlexPy login logs?");
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli login logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({

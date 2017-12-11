@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import arrow
 import os
@@ -117,7 +117,7 @@ _CONFIG_DEFINITIONS = {
     'CONFIG_VERSION': (int, 'Advanced', 0),
     'DO_NOT_OVERRIDE_GIT_BRANCH': (int, 'General', 0),
     'EMAIL_ENABLED': (int, 'Email', 0),
-    'EMAIL_FROM_NAME': (str, 'Email', 'PlexPy'),
+    'EMAIL_FROM_NAME': (str, 'Email', 'Tautulli'),
     'EMAIL_FROM': (str, 'Email', ''),
     'EMAIL_TO': (str, 'Email', ''),
     'EMAIL_CC': (str, 'Email', ''),
@@ -333,36 +333,36 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
-    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_START_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) started playing {title}.'),
-    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_STOP_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has stopped {title}.'),
-    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_PAUSE_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has paused {title}.'),
-    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_RESUME_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has resumed {title}.'),
-    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_BUFFER_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) is buffering {title}.'),
-    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_WATCHED_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has watched {title}.'),
-    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_CREATED_BODY_TEXT': (unicode, 'Monitoring', '{title} was recently added to Plex.'),
-    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_EXTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is down.'),
-    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_INTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is down.'),
-    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_EXTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is back up.'),
-    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_INTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is back up.'),
-    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (unicode, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
-    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_CONCURRENT_BODY_TEXT': (unicode, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
-    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (unicode, 'Monitoring', '{user} is streaming from a new device: {player}.'),
     'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
-    'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/PlexPy'),
+    'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/Tautulli'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_PLAY': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_STOP': (int, 'OSX_Notify', 0),
@@ -642,13 +642,13 @@ def make_backup(cleanup=False, scheduler=False):
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error(u"PlexPy Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.error(u"Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug(u"PlexPy Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.debug(u"Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
-        logger.warn(u"PlexPy Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.warn(u"Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return False
 
 
@@ -729,12 +729,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        logger.info(u"PlexPy Config :: Writing configuration to file")
+        logger.info(u"Tautulli Config :: Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            logger.error(u"PlexPy Config :: Error writing configuration file: %s", e)
+            logger.error(u"Tautulli Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 

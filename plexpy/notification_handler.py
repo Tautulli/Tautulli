@@ -1,17 +1,17 @@
-﻿#  This file is part of PlexPy.
+﻿#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import arrow
@@ -54,15 +54,15 @@ def process_queue():
                 else:
                     add_notifier_each(**params)
             except Exception as e:
-                logger.exception(u"PlexPy NotificationHandler :: Notification thread exception: %s" % e)
+                logger.exception(u"Tautulli NotificationHandler :: Notification thread exception: %s" % e)
                 
         queue.task_done()
 
-    logger.info(u"PlexPy NotificationHandler :: Notification thread exiting...")
+    logger.info(u"Tautulli NotificationHandler :: Notification thread exiting...")
 
 
 def start_threads(num_threads=1):
-    logger.info(u"PlexPy NotificationHandler :: Starting background notification handler ({} threads).".format(num_threads))
+    logger.info(u"Tautulli NotificationHandler :: Starting background notification handler ({} threads).".format(num_threads))
     for x in range(num_threads):
         thread = threading.Thread(target=process_queue)
         thread.daemon = True
@@ -71,7 +71,7 @@ def start_threads(num_threads=1):
 
 def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, manual_trigger=False, **kwargs):
     if not notify_action:
-        logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
+        logger.debug(u"Tautulli NotificationHandler :: Notify called but no action received.")
         return
 
     if notifier_id:
@@ -101,7 +101,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
                                                     **kwargs)
 
         if not parameters:
-            logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
+            logger.error(u"Tautulli NotificationHandler :: Failed to build notification parameters.")
             return
 
         for notifier in notifiers_enabled:
@@ -117,7 +117,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
                 data.update(kwargs)
                 plexpy.NOTIFY_QUEUE.put(data)
             else:
-                logger.debug(u"PlexPy NotificationHandler :: Custom notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
+                logger.debug(u"Tautulli NotificationHandler :: Custom notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
 
     # Add on_concurrent and on_newdevice to queue if action is on_play
     if notify_action == 'on_play':
@@ -137,11 +137,11 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         library_details = library_data.get_details(section_id=stream_data['section_id'])
 
         if not user_details['do_notify']:
-            logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' are disabled." % user_details['username'])
+            logger.debug(u"Tautulli NotificationHandler :: Notifications for user '%s' are disabled." % user_details['username'])
             return False
 
         elif not library_details['do_notify'] and notify_action not in ('on_concurrent', 'on_newdevice'):
-            logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' are disabled." % library_details['section_name'])
+            logger.debug(u"Tautulli NotificationHandler :: Notifications for library '%s' are disabled." % library_details['section_name'])
             return False
 
         if notify_action == 'on_concurrent':
@@ -184,7 +184,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         library_details = library_data.get_details(section_id=timeline_data['section_id'])
 
         if not library_details['do_notify_created']:
-            # logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
+            # logger.debug(u"Tautulli NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
             return False
 
         return True
@@ -200,7 +200,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     custom_conditions_logic = notifier_config['custom_conditions_logic']
 
     if custom_conditions_logic:
-        logger.debug(u"PlexPy NotificationHandler :: Checking custom notification conditions for notifier_id %s." % notifier_id)
+        logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s." % notifier_id)
 
         custom_conditions = json.loads(notifier_config['custom_conditions'])
         
@@ -208,7 +208,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Parse and validate the custom conditions logic
             logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
         except ValueError as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom condition logic '%s': %s."
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition logic '%s': %s."
                          % (custom_conditions_logic, e))
             return False
 
@@ -241,7 +241,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                     values = [float(v) for v in values]
             
             except Exception as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to cast condition '%s' to type '%s'."
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s' to type '%s'."
                              % (parameter, parameter_type))
                 return False
 
@@ -257,7 +257,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                     parameter_value = float(parameters[parameter])
             
             except Exception as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to cast parameter '%s' to type '%s'."
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s' to type '%s'."
                              % (parameter, parameter_type))
                 return False
 
@@ -287,17 +287,17 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 evaluated_conditions.append(any(parameter_value < c for c in values))
 
             else:
-                logger.warn(u"PlexPy NotificationHandler :: Invalid condition operator '%s'." % operator)
+                logger.warn(u"Tautulli NotificationHandler :: Invalid condition operator '%s'." % operator)
                 evaluated_conditions.append(None)
 
         # Format and evaluate the logic string
         try:
             evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
         except Exception as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
+            logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
             return False
 
-        logger.debug(u"PlexPy NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
+        logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
         return evaluated_logic
 
     return True
@@ -311,7 +311,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
         # Return if the notification has already been sent
         return
 
-    logger.info(u"PlexPy NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
+    logger.info(u"Tautulli NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
 
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
@@ -319,7 +319,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
         return
 
     if notify_action == 'test':
-        subject = kwargs.pop('subject', 'PlexPy')
+        subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
         script_args = kwargs.pop('script_args', [])
     else:
@@ -404,7 +404,7 @@ def set_notify_state(notify_action, notifier, subject, body, script_args, sessio
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
         return monitor_db.last_insert_id()
     else:
-        logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
+        logger.error(u"Tautulli NotificationHandler :: Unable to set notify state.")
 
 
 def set_notify_success(notification_id):
@@ -432,7 +432,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
-        logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
+        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
     # Get metadata for the item
@@ -445,7 +445,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     metadata = pms_connect.get_metadata_details(rating_key=rating_key)
 
     if not metadata:
-        logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
+        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return None
 
     ## TODO: Check list of media info items, currently only grabs first item
@@ -827,7 +827,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
-        logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
+        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
     available_params = {# Global paramaters
@@ -853,7 +853,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
                         'update_extra_info': pms_download_info.get('extra_info',''),
                         'update_changelog_added': pms_download_info.get('changelog_added',''),
                         'update_changelog_fixed': pms_download_info.get('changelog_fixed',''),
-                        # PlexPy update parameters
+                        # Tautulli update parameters
                         'plexpy_update_version': plexpy_download_info.get('tag_name', ''),
                         'plexpy_update_tar': plexpy_download_info.get('tarball_url', ''),
                         'plexpy_update_zip': plexpy_download_info.get('zipball_url', ''),
@@ -876,10 +876,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     # Make sure subject and body text are strings
     if not isinstance(subject, basestring):
-        logger.error(u"PlexPy NotificationHandler :: Invalid subject text. Using fallback.")
+        logger.error(u"Tautulli NotificationHandler :: Invalid subject text. Using fallback.")
         subject = default_subject
     if not isinstance(body, basestring):
-        logger.error(u"PlexPy NotificationHandler :: Invalid body text. Using fallback.")
+        logger.error(u"Tautulli NotificationHandler :: Invalid body text. Using fallback.")
         body = default_body
 
     media_type = parameters.get('media_type')
@@ -919,10 +919,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         try:
             script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in subject.split()]
         except LookupError as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
     else:
         script_args = []
@@ -930,19 +930,19 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     try:
         subject = custom_formatter.format(unicode(subject), **parameters)
     except LookupError as e:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
     except Exception as e:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
 
     try:
         body = custom_formatter.format(unicode(body), **parameters)
     except LookupError as e:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
     except Exception as e:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
 
     return subject, body, script_args
@@ -1030,7 +1030,7 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
             # Delete the cached poster
             os.remove(poster_file)
         except Exception as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
+            logger.error(u"Tautulli NotificationHandler :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
 
     return poster_info
 
@@ -1043,16 +1043,16 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
                 'WHERE rating_key = ?'
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
+        logger.warn(u"Tautulli NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
         return {}
 
     if not tvmaze_info:
         tvmaze_info = {}
 
         if thetvdb_id:
-            logger.debug(u"PlexPy NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
+            logger.debug(u"Tautulli NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
         else:
-            logger.debug(u"PlexPy NotificationHandler :: Looking up TVmaze info for imdb_id '{}'.".format(imdb_id))
+            logger.debug(u"Tautulli NotificationHandler :: Looking up TVmaze info for imdb_id '{}'.".format(imdb_id))
 
         params = {'thetvdb': thetvdb_id} if thetvdb_id else {'imdb': imdb_id}
         response, err_msg, req_msg = request.request_response2('http://api.tvmaze.com/lookup/shows', params=params)
@@ -1076,10 +1076,10 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
         else:
             if err_msg:
-                logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+                logger.error(u"Tautulli NotificationHandler :: {}".format(err_msg))
 
             if req_msg:
-                logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+                logger.debug(u"Tautulli NotificationHandler :: Request response: {}".format(req_msg))
 
     return tvmaze_info
 
@@ -1092,16 +1092,16 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
                 'WHERE rating_key = ?'
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
+        logger.warn(u"Tautulli NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
         return {}
 
     if not themoviedb_info:
         themoviedb_info = {}
 
         if thetvdb_id:
-            logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
+            logger.debug(u"Tautulli NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
         else:
-            logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for imdb_id '{}'.".format(imdb_id))
+            logger.debug(u"Tautulli NotificationHandler :: Looking up The Movie Database info for imdb_id '{}'.".format(imdb_id))
 
         params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY,
                   'external_source': 'tvdb_id' if thetvdb_id else 'imdb_id'
@@ -1138,10 +1138,10 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
         else:
             if err_msg:
-                logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+                logger.error(u"Tautulli NotificationHandler :: {}".format(err_msg))
 
             if req_msg:
-                logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+                logger.debug(u"Tautulli NotificationHandler :: Request response: {}".format(req_msg))
 
     return themoviedb_info
 
@@ -1157,7 +1157,7 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
                 'WHERE rating_key = ?'
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
+        logger.warn(u"Tautulli NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
         return {}
 
     if result:
@@ -1168,7 +1168,7 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
     themoviedb_json = {}
 
-    logger.debug(u"PlexPy NotificationHandler :: Looking up The Movie Database info for themoviedb_id '{}'.".format(themoviedb_id))
+    logger.debug(u"Tautulli NotificationHandler :: Looking up The Movie Database info for themoviedb_id '{}'.".format(themoviedb_id))
 
     params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY}
     response, err_msg, req_msg = request.request_response2('https://api.themoviedb.org/3/{}/{}'.format(media_type, themoviedb_id), params=params)
@@ -1178,10 +1178,10 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
     else:
         if err_msg:
-            logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+            logger.error(u"Tautulli NotificationHandler :: {}".format(err_msg))
 
         if req_msg:
-            logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+            logger.debug(u"Tautulli NotificationHandler :: Request response: {}".format(req_msg))
 
     return themoviedb_json
 

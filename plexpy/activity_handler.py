@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
 import threading
@@ -86,7 +86,7 @@ class ActivityHandler(object):
                 if not session:
                     return
 
-            logger.debug(u"PlexPy ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)."
+            logger.debug(u"Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)."
                          % (str(session['session_key']), str(session['user_id']), session['username'],
                             str(session['rating_key']), session['full_title']))
 
@@ -97,7 +97,7 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s stopped." % str(self.get_session_key()))
+            logger.debug(u"Tautulli ActivityHandler :: Session %s stopped." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -121,13 +121,13 @@ class ActivityHandler(object):
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table
-            logger.debug(u"PlexPy ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
+            logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
                          % (str(self.get_session_key()), str(self.get_rating_key())))
             ap.delete_session(session_key=self.get_session_key())
 
     def on_pause(self):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s paused." % str(self.get_session_key()))
+            logger.debug(u"Tautulli ActivityHandler :: Session %s paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -146,7 +146,7 @@ class ActivityHandler(object):
 
     def on_resume(self):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s resumed." % str(self.get_session_key()))
+            logger.debug(u"Tautulli ActivityHandler :: Session %s resumed." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -165,7 +165,7 @@ class ActivityHandler(object):
 
     def on_buffer(self):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s is buffering." % self.get_session_key())
+            logger.debug(u"Tautulli ActivityHandler :: Session %s is buffering." % self.get_session_key())
             ap = activity_processor.ActivityProcessor()
             db_stream = ap.get_session_by_key(session_key=self.get_session_key())
 
@@ -174,7 +174,7 @@ class ActivityHandler(object):
 
             # Get our current buffer count
             current_buffer_count = ap.get_session_buffer_count(self.get_session_key())
-            logger.debug(u"PlexPy ActivityHandler :: Session %s buffer count is %s." %
+            logger.debug(u"Tautulli ActivityHandler :: Session %s buffer count is %s." %
                          (self.get_session_key(), current_buffer_count))
 
             # Get our last triggered time
@@ -188,7 +188,7 @@ class ActivityHandler(object):
 
             time_since_last_trigger = 0
             if buffer_last_triggered:
-                logger.debug(u"PlexPy ActivityHandler :: Session %s buffer last triggered at %s." %
+                logger.debug(u"Tautulli ActivityHandler :: Session %s buffer last triggered at %s." %
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
@@ -341,7 +341,7 @@ class TimelineHandler(object):
 
                         RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
 
-                        logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s, grandparent %s) added to recently added queue."
+                        logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s, grandparent %s) added to recently added queue."
                                      % (title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
@@ -357,7 +357,7 @@ class TimelineHandler(object):
                         parent_set.add(rating_key)
                         RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s , parent %s) added to recently added queue."
+                        logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s , parent %s) added to recently added queue."
                                      % (title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
@@ -368,7 +368,7 @@ class TimelineHandler(object):
                     queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
                     RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
-                    logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) added to recently added queue."
+                    logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s) added to recently added queue."
                                  % (title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
@@ -380,13 +380,13 @@ class TimelineHandler(object):
                 state_type == 5 and metadata_state is None and queue_size is None and \
                 rating_key in RECENTLY_ADDED_QUEUE:
                 
-                logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata."
+                logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s) done processing metadata."
                              % (title, str(rating_key)))
 
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
                 if rating_key in RECENTLY_ADDED_QUEUE and not RECENTLY_ADDED_QUEUE[rating_key]:
-                    logger.debug(u"PlexPy TimelineHandler :: Library item %s removed from recently added queue."
+                    logger.debug(u"Tautulli TimelineHandler :: Library item %s removed from recently added queue."
                                  % str(rating_key))
                     del_keys(rating_key)
 
@@ -424,7 +424,7 @@ def force_stop_stream(session_key):
 
     if success:
         # If session is written to the databaase successfully, remove the session from the session table
-        logger.info(u"PlexPy ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+        logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
         ap.delete_session(session_key=session_key)
 
@@ -432,7 +432,7 @@ def force_stop_stream(session_key):
         sessions['write_attempts'] += 1
 
         if sessions['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
-            logger.warn(u"PlexPy ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+            logger.warn(u"Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Will try again in 30 seconds. Write attempt %s."
                         % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
             ap.increment_write_attempts(session_key=session_key)
@@ -442,10 +442,10 @@ def force_stop_stream(session_key):
                               args=[session_key], seconds=30)
 
         else:
-            logger.warn(u"PlexPy Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+            logger.warn(u"Tautulli Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Removing session from the database. Write attempt %s."
                         % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
-            logger.info(u"PlexPy Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+            logger.info(u"Tautulli Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (sessions['session_key'], sessions['rating_key']))
             ap.delete_session(session_key=session_key)
 
@@ -478,7 +478,7 @@ def clear_recently_added_queue(rating_key):
 
 
 def on_created(rating_key, **kwargs):
-    logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
+    logger.debug(u"Tautulli TimelineHandler :: Library item %s added to Plex." % str(rating_key))
     pms_connect = pmsconnect.PmsConnect()
     metadata = pms_connect.get_metadata_details(rating_key)
 
@@ -488,7 +488,7 @@ def on_created(rating_key, **kwargs):
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
             if data_factory.get_recently_added_item(rating_key):
-                logger.debug(u"PlexPy TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
+                logger.debug(u"Tautulli TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
                 notify = False
 
         if notify:
@@ -506,4 +506,4 @@ def on_created(rating_key, **kwargs):
         logger.debug(u"Added %s items to the recently_added database table." % str(len(all_keys)))
 
     else:
-        logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
+        logger.error(u"Tautulli TimelineHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))

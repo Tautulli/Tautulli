@@ -50,7 +50,7 @@
     % if _session['user_group'] == 'admin':
     % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
     <div id="updatebar" style="display: none;">
-        You're running an unknown version of PlexPy.<br />
+        You're running an unknown version of Tautulli.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>
     </div>
     % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
@@ -210,13 +210,13 @@ ${next.modalIncludes()}
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">PlexPy Donation</h4>
+                <h4 class="modal-title">Tautulli Donation</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-12" style="text-align: center;">
                         <h4>
-                            <strong>Thank you for supporting PlexPy!</strong>
+                            <strong>Thank you for supporting Tautulli!</strong>
                         </h4>
                         <p>
                             Please select a donation method.
@@ -236,7 +236,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
-                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=PlexPy&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
+                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
                         </a>
                     </div>
@@ -244,7 +244,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to Flattr.
                         </p>
-                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/JonnyWong16/plexpy&title=PlexPy&language=en_GB&tags=github&category=software')}" target="_blank">
+                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/JonnyWong16/plexpy&title=Tautulli&language=en_GB&tags=github&category=software')}" target="_blank">
                             <img src="images/flattr-badge-large.png" alt="Flattr">
                         </a>
                     </div>
@@ -306,7 +306,7 @@ ${next.modalIncludes()}
     }
 
     $("#nav-shutdown").click(function() {
-        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $("#confirm-message").text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "shutdown";
@@ -314,7 +314,7 @@ ${next.modalIncludes()}
     });
 
     $("#nav-restart").click(function() {
-        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "restart";
