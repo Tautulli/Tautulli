@@ -2,7 +2,7 @@
 
 PNotify.prototype.options.addclass = "stack-bottomright";
 PNotify.prototype.options.buttons.closer_hover = false;
-PNotify.prototype.options.desktop = { desktop: true, icon: 'images/favicon.png' }
+PNotify.prototype.options.desktop = { desktop: true, icon: 'images/logo.png' }
 PNotify.prototype.options.history = false;
 PNotify.prototype.options.shadow = false;
 PNotify.prototype.options.stack = { dir1: 'up', dir2: 'left', firstpos1: 25, firstpos2: 25 };

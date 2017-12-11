@@ -8,7 +8,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PlexPy - ${title}</title>
+    <title>Tautulli - ${title} | ${server_name}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -18,32 +18,55 @@
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
-    <link rel="shortcut icon" href="${http_root}images/favicon.ico">
+    ${next.headIncludes()}
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.0">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.0">
+
+    <!-- ICONS -->
+    <!-- Android >M39 icon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="${http_root}images/favicon/android-chrome-192x192.png?v=2.0.0">
+    <link rel="manifest" href="${http_root}json/Android-manifest.json?v=2.0.0">
+    <meta name="theme-color" content="#1f1f1f">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.0">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.0" color="#1f1f1f">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <!-- IE10 icon -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-TileColor" content="#1f1f1f">
+    <meta name="msapplication-TileImage" content="${http_root}images/favicon/mstile-144x144.png?v=2.0.0">
+    <meta name="msapplication-config" content="${http_root}xml/IEconfig.xml?v=2.0.0" />
 </head>
 
 <body>
 <div class="container-fluid">
     <div class="row">
-        <div class="wizard" id="some-wizard" data-title="PlexPy Setup Wizard">
+        <div class="wizard" id="some-wizard" data-title="Tautulli Setup Wizard">
             <form>
                 <div class="wizard-card" data-cardname="card1">
                     <div style="float: right;">
-                        <img src="${http_root}images/logo-plexpy.png" />
+                        <img alt="Tautulli" src="${http_root}images/logo-tautulli-50.png" />
                     </div>
                     <h3 style="line-height: 50px;">Welcome!</h3>
                     <br />
                     <div>
-                        Thanks for taking the time to try out PlexPy. Hope you find it useful.
+                        Thanks for taking the time to try out Tautulli. Hope you find it useful.
                         <br /><br />
-                        PlexPy requires a permanent internet connection to ensure a reliable experience.
+                        Tautulli requires a permanent internet connection to ensure a reliable experience.
                         <br /><br />
                         This wizard will help you get set up, to continue press Next.
                     </div>
                 </div>
                 <div class="wizard-card" data-cardname="card2">
                     <h3>Plex Authentication</h3>
-                    <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
+                    <p class="help-block">Enter your Plex.tv username and password. Tautulli does not store your username or password.</p>
                     <div class="wizard-input-section">
                         <label for="pms_username">Plex.tv Username</label>
                         <div class="row">
@@ -65,7 +88,7 @@
                 </div>
                 <div class="wizard-card" data-cardname="card3">
                     <h3>Plex Media Server</h3>
-                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
+                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure Tautulli can reach the server.</p>
                     <div class="wizard-input-section">
                         <label for="pms_ip">Plex IP or Hostname</label>
                         <div class="row">
@@ -103,7 +126,7 @@
 
                 <div class="wizard-card" data-cardname="card4">
                     <h3>Activity Logging</h3>
-                    <p class="help-block">PlexPy will keep a history of all streaming activity on your Plex server.</p>
+                    <p class="help-block">Tautulli will keep a history of all streaming activity on your Plex server.</p>
 
                     <div class="wizard-input-section">
                         <label for="logging_ignore_interval">Ignore Interval</label>
@@ -124,7 +147,7 @@
 
                 <div class="wizard-card" data-cardname="card4">
                     <h3>Notifications</h3>
-                    <p class="help-block">PlexPy can send a wide variety of notification to alert you of activity on your Plex server.</p>
+                    <p class="help-block">Tautulli can send a wide variety of notification to alert you of activity on your Plex server.</p>
                     <p class="help-block">
                         To set up a notification agent, navigate to the <strong>Settings</strong> page 
                         and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
@@ -133,7 +156,7 @@
 
                 <div class="wizard-card" data-cardname="card5">
                     <h3>Database Import</h3>
-                    <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
+                    <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into Tautulli.</p>
                     <p class="help-block">
                         To import a database, navigate to the <strong>Settings</strong> page 
                         and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
@@ -430,7 +453,7 @@
     //        cache: false,
     //        async: true,
     //        success: function(data) {
-    //            if (data === 'Import has started. Check the PlexPy logs to monitor any problems.') {
+    //            if (data === 'Import has started. Check the Tautulli logs to monitor any problems.') {
     //                $("#plexwatch-import-status").html('Started');
     //            } else {
     //                $("#plexwatch-import-status").html(data);

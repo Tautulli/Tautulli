@@ -1688,7 +1688,7 @@ class GROWL(Notifier):
 
         # Send it, including an image
         image_file = os.path.join(str(plexpy.PROG_DIR),
-            "data/interfaces/default/images/favicon.png")
+            "data/interfaces/default/images/logo.png")
 
         with open(image_file, 'rb') as f:
             image = f.read()
@@ -2349,7 +2349,7 @@ class PLEX(Notifier):
         if self.config['image']:
             image = self.config['image']
         else:
-            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/favicon.png"))
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
 
         for host in hosts:
             logger.info(u"PlexPy Notifiers :: Sending notification command to {name} @ {host}".format(name=self.NAME, host=host))
@@ -3309,7 +3309,7 @@ class XBMC(Notifier):
         if self.config['image']:
             image = self.config['image']
         else:
-            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/favicon.png"))
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
 
         for host in hosts:
             logger.info(u"PlexPy Notifiers :: Sending notification command to XMBC @ " + host)
