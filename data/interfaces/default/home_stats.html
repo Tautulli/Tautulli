@@ -126,7 +126,7 @@ DOCUMENTATION :: END
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
-                                <div class="sub-heading">${loop.index + 1}</div>
+                                <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
                                     % if top_stat['rows'][loop.index]['rating_key']:

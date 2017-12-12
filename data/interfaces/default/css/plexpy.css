@@ -1188,6 +1188,9 @@ a .dashboard-activity-metadata-user-thumb:hover {
     -webkit-flex-grow: 1;
     flex-grow: 1;
 }
+.dashboard-stats-info-title.library h4 {
+    flex-basis: 200px;
+}
 .dashboard-stats-info-title .dashboard-stats-stats-units {
     color: #aaa;
     font-size: 12px;
@@ -1197,6 +1200,9 @@ a .dashboard-activity-metadata-user-thumb:hover {
     overflow: hidden;
     white-space: nowrap;
     max-width: 125px;
+}
+.dashboard-stats-info-title .dashboard-stats-stats-units.library {
+    max-width: 200px;
 }
 .dashboard-stats-info-scroller {
     height: 120px;
@@ -1238,7 +1244,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
 .dashboard-stats-info-item:last-of-type {
     margin-bottom: 0;
 }
-.dashboard-stats-info-item .sub-heading {
+.dashboard-stats-info-item .sub-list {
     height: 100%;
     width: 15px;
     color: #aaa;
@@ -1269,6 +1275,16 @@ a .dashboard-activity-metadata-user-thumb:hover {
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }
+.dashboard-stats-info-item .sub-divider {
+    height: 100%;
+    margin-left: 10px;
+    color: #aaa;
+    font-size: 12px;
+    text-align: left;
+    text-transform: uppercase;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
 .dashboard-stats-info-item.expanded {
     padding: 5px 5px;
     line-height: 20px;
@@ -1280,6 +1296,9 @@ a .dashboard-activity-metadata-user-thumb:hover {
     font-size: 16px;
 }
 .dashboard-stats-info-item.expanded .sub-count {
+    font-size: 16px;
+}
+.dashboard-stats-info-item.expanded .sub-divider {
     font-size: 16px;
 }
 .dashboard-stats-info-item:hover {

@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+from itertools import groupby
 
 import plexpy
 import common
@@ -832,36 +833,37 @@ class DataFactory(object):
 
         library_stats = []
 
-        for id in library_cards:
-            if id.isdigit():
-                try:
-                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                            'custom_thumb_url AS custom_thumb, art, count, parent_count, child_count ' \
-                            'FROM library_sections ' \
-                            'WHERE section_id = %s ' % id
-                    result = monitor_db.select(query)
-                except Exception as e:
-                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
-                    return None
+        try:
+            query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
+                    'custom_thumb_url AS custom_thumb, art, count, parent_count, child_count ' \
+                    'FROM library_sections ' \
+                    'WHERE section_id IN (%s) ' \
+                    'ORDER BY section_type, count DESC, parent_count DESC, child_count DESC ' % ','.join(library_cards)
+            result = monitor_db.select(query)
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
+            return None
 
-                for item in result:
-                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
-                        library_thumb = item['custom_thumb']
-                    elif item['library_thumb']:
-                        library_thumb = item['library_thumb']
-                    else:
-                        library_thumb = common.DEFAULT_COVER_THUMB
+        for item in result:
+            if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
+                library_thumb = item['custom_thumb']
+            elif item['library_thumb']:
+                library_thumb = item['library_thumb']
+            else:
+                library_thumb = common.DEFAULT_COVER_THUMB
 
-                    library = {'section_id': item['section_id'],
-                               'section_name': item['section_name'],
-                               'section_type': item['section_type'],
-                               'thumb': library_thumb,
-                               'art': item['art'],
-                               'count': item['count'],
-                               'parent_count': item['parent_count'],
-                               'child_count': item['child_count']
-                               }
-                    library_stats.append(library)
+            library = {'section_id': item['section_id'],
+                       'section_name': item['section_name'],
+                       'section_type': item['section_type'],
+                       'thumb': library_thumb,
+                       'art': item['art'],
+                       'count': item['count'],
+                       'child_count': item['parent_count'],
+                       'grandchild_count': item['child_count']
+                       }
+            library_stats.append(library)
+
+        library_stats = {k: list(v) for k, v in groupby(library_stats, key=lambda x: x['section_type'])}
 
         return library_stats
 
