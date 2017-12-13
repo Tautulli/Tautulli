@@ -522,7 +522,7 @@
 
     setInterval(function(){
         $('.progress_time_offset').each(function () {
-            if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                 var view_offset = parseInt($(this).data('view_offset'));
                 var stream_duration = parseInt($(this).data('stream_duration'));
                 var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
@@ -530,7 +530,7 @@
             }
         });
         $('.progress-bar').each(function () {
-            if ($(this).data('state') === 'playing' && $(this).data('view_offset')) {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                 var view_offset = parseInt($(this).data('view_offset'));
                 var stream_duration = parseInt($(this).data('stream_duration'));
                 var progress_percent = Math.min(Math.trunc(view_offset / stream_duration * 100), 100)
@@ -576,7 +576,7 @@
         e.preventDefault();
         var session_id = $(this).data('id');
         var key = $(this).data('key');
-        var instance = $('#instance-' + key);
+        var instance = $('#activity-instance-' + key);
 
         $('#terminate-user').text(instance.find('.dashboard-activity-metadata-user').text());
         $('#terminate-title').text(instance.find('.dashboard-activity-metadata-title').text());
@@ -598,7 +598,6 @@
                 success: function (data) {
                     if (data.result === 'success') {
                         setTimeout(function() {
-                            currentActivityHeader();
                             getCurrentActivity();
                             showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
                         }, 2500);
