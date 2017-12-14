@@ -82,31 +82,38 @@ DOCUMENTATION :: END
                 <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(pms_image_proxy?img=${quote(data['art'] or data['thumb'])}&width=500&height=280&fallback=art&refresh=true&clip=true);"></div>
                 % endif
             % endif
-            % if data['channel_stream'] == '0':
-                % if data['media_type'] == 'movie':
-                <a id="poster-url-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}" class="hidden-xs">
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
-                </a>
-                % elif data['media_type'] == 'episode':
-                <a id="poster-url-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}" class="hidden-xs">
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
-                </a>
-                % elif data['media_type'] == 'track':
-                <a id="poster-url-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}" class="hidden-xs">
-                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
-                </a>
-                % elif data['media_type'] in ('photo', 'clip'):
-                <div id="poster-${sk}" class="dashboard-activity-poster hidden-xs" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
-                % else:
-                <div id="poster-${sk}" class="dashboard-activity-poster hidden-xs" style="background-image: url(images/art.png);"></div>
+            <div class="dashboard-activity-poster-container hidden-xs">
+                % if data['media_type'] == 'track':
+                <div id="poster-${sk}-bg" class="dashboard-activity-poster-blur" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                 % endif
-            % else:
-                % if data['channel_icon'].startswith('http'):
-                <div id="poster-${sk}" class="dashboard-activity-cover hidden-xs" style="background-image: url(${data['channel_icon']});"></div>
+                % if data['channel_stream'] == '0':
+                    % if data['media_type'] == 'movie':
+                    <a id="poster-url-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}">
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                    </a>
+                    % elif data['media_type'] == 'episode':
+                    <a id="poster-url-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                    </a>
+                    % elif data['media_type'] == 'track':
+                    <a id="poster-url-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}">
+                        <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    </a>
+                    % elif data['media_type'] in ('photo', 'clip'):
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                    % else:
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/art.png);"></div>
+                    % endif
                 % else:
-               <div id="poster-${sk}" class="dashboard-activity-cover hidden-xs" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    % if data['channel_icon'].startswith('http'):
+                    <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(${data['channel_icon']});"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${data['channel_icon']});"></div>
+                    % else:
+                    <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    % endif
                 % endif
-            % endif
+            </div>
             <div class="dashboard-activity-info-icon">
                 <%
                     if not _session['user_group'] == 'admin' or not data['session_id']:

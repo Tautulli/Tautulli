@@ -326,6 +326,7 @@
                             // Update cover if album changed
                             if (s.parent_rating_key != instance.data('parent_rating_key')) {
                                 $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
                                 $('#poster-url-' + key)
                                     .attr('href', 'info?rating_key=' + s.parent_rating_key)
                                     .attr('title', s.parent_title);
