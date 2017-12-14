@@ -723,6 +723,7 @@ a .users-poster-face:hover {
     z-index: 2;
 }
 .dashboard-activity-info-platform {
+    padding: 6px !important;
     background-position: center;
     background-size: cover;
     width: 50px;
@@ -3511,7 +3512,7 @@ a:hover .overlay-refresh-image:hover {
 }
 
 .svg-icon {
-    padding: 10px !important;
+    padding: 10px;
     background-origin: content-box !important;
     background-size: contain !important;
     background-repeat: no-repeat !important;
@@ -3599,7 +3600,7 @@ a:hover .overlay-refresh-image:hover {
 }
 .platform-wp {
     background-color: #68217a;
-    background-image: url(../images/platforms/wp.svg);
+    background-image: url(../images/platforms/windows.svg);
 }
 .platform-wiiu {
     background-color: #03a9f4;
