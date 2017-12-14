@@ -3511,11 +3511,11 @@ a:hover .overlay-refresh-image:hover {
 }
 
 .svg-icon {
-    padding: 10px;
-    background-origin: content-box;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
+    padding: 10px !important;
+    background-origin: content-box !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
 }
 .platform-android {
     background-color: #a4ca39;
