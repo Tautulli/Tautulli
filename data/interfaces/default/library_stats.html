@@ -37,11 +37,11 @@ DOCUMENTATION :: END
     <div class="dashboard-stats-container">
         <div class="dashboard-stats-background-overlay">
             <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&fallback=art);"></div>
-            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-library hidden-xs" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}.png&width=300&height=300&fallback=cover);"></div>
+            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
             <div class="dashboard-stats-info-container">
-                <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title library">
+                <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">
                     <h4>${headers[section_type][0]}</h4>
-                    <span class="dashboard-stats-stats-units library">${' / '.join(u for u in headers[section_type][1] if u)}</span>
+                    <span class="dashboard-stats-stats-units">${' / '.join(u for u in headers[section_type][1] if u)}</span>
                 </div>
                 <div class="dashboard-stats-info-scroller scrollbar-macosx">
                     <div class="dashboard-stats-info scoller-content">

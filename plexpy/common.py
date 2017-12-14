@@ -19,6 +19,7 @@ Created on Aug 1, 2011
 @author: Michael
 '''
 import platform
+from collections import OrderedDict
 
 import version
 
@@ -45,6 +46,39 @@ PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
 
 PMS_PLATFORM_NAME_OVERRIDES = {'MacOSX': 'Mac'
                                }
+
+PLATFORM_NAMES = {'android': 'android',
+                  'apple tv': 'atv',
+                  'chrome': 'chrome',
+                  'chromecast': 'chromecast',
+                  'dlna': 'dlna',
+                  'firefox': 'firefox',
+                  'internet explorer': 'ie',
+                  'ios': 'ios',
+                  'ipad': 'ios',
+                  'iphone': 'ios',
+                  'kodi': 'kodi',
+                  'linux': 'linux',
+                  'nexus': 'android',
+                  'microsoft edge': 'msedge',
+                  'opera': 'opera',
+                  'playstation': 'playstation',
+                  'plex home theater': 'plex',
+                  'plex media player': 'plex',
+                  'plexamp': 'plexamp',
+                  'plextogether': 'plextogether',
+                  'roku': 'roku',
+                  'safari': 'safari',
+                  'samsung': 'samsung',
+                  'tvos': 'atv',
+                  'vizio': 'opera',
+                  'windows': 'windows',
+                  'windows phone': 'wp',
+                  'wiiu': 'wiiu',
+                  'xbmc': 'xbmc',
+                  'xbox': 'xbox'
+                  }
+PLATFORM_NAMES = OrderedDict(sorted(PLATFORM_NAMES.items(), key=lambda k: k[0], reverse=True))
 
 MEDIA_FLAGS_AUDIO = {'ac.?3': 'dolby_digital',
                      'truehd': 'dolby_truehd',

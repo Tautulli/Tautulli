@@ -262,7 +262,7 @@ class Libraries(object):
 
             row = {'section_id': item['section_id'],
                    'section_name': item['section_name'],
-                   'section_type': item['section_type'].capitalize(),
+                   'section_type': item['section_type'],
                    'count': item['count'],
                    'parent_count': item['parent_count'],
                    'child_count': item['child_count'],

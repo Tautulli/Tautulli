@@ -321,7 +321,7 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
+                           'platform': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -371,7 +371,6 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -420,7 +419,6 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -470,7 +468,6 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -519,7 +516,6 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -569,7 +565,6 @@ class DataFactory(object):
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': item['id']
                            }
@@ -624,7 +619,6 @@ class DataFactory(object):
                            'users_watched': '',
                            'rating_key': '',
                            'title': '',
-                           'platform_type': '',
                            'platform': '',
                            'row_id': ''
                     }
@@ -659,13 +653,15 @@ class DataFactory(object):
 
                 for item in result:
                     # Rename Mystery platform names
-                    platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+                    platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+                    platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
 
                     row = {'platform': item['platform'],
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'last_play': item['last_watch'],
-                           'platform_type': platform_type,
+                           'platform': platform,
+                           'platform_name': platform_name,
                            'title': '',
                            'thumb': '',
                            'grandparent_thumb': '',

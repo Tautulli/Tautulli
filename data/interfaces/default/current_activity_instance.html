@@ -114,11 +114,7 @@ DOCUMENTATION :: END
                     else:
                         no_terminate = ''
                 %>
-                <div id="platform-${sk}" class="dashboard-activity-info-platform${no_terminate}" title="${data['platform']}">
-                    <script>
-                            $("#platform-${sk}").css("background-image", "url(" + getPlatformImagePath('${data['platform']}') + ")");
-                    </script>
-                </div>
+                <div id="platform-${sk}" class="dashboard-activity-info-platform${no_terminate} svg-icon platform-${data['platform_name']}" title="${data['platform']}"></div>
                 % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS and data['session_id']:
                 <div class="dashboard-activity-terminate-session" id="terminate-button-${sk}" data-key="${sk}" data-id="${data['session_id']}" data-toggle="tooltip" title="Terminate Stream">
                     <i class="fa fa-times" style="padding-top: 8px;"></i>

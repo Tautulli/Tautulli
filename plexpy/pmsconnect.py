@@ -1277,21 +1277,18 @@ class PmsConnect(object):
 
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
-                session_type = 'track'
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_type, session_)
+                    session_output = self.get_session_each(session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
-                session_type = 'video'
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_type, session_)
+                    session_output = self.get_session_each(session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
-                session_type = 'photo'
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_type, session_)
+                    session_output = self.get_session_each(session_)
                     session_list.append(session_output)
 
         session_list = sorted(session_list, key=lambda k: k['session_key'])
@@ -1302,13 +1299,12 @@ class PmsConnect(object):
 
         return output
 
-    def get_session_each(self, stream_type='', session=None):
+    def get_session_each(self, session=None):
         """
         Return selected data from current sessions.
         This function processes and validates session data
 
-        Parameters required:    stream_type { track or video }
-                                session { the session dictionary }
+        Parameters required:    session { the session dictionary }
         Output: dict
         """
 
@@ -1328,10 +1324,13 @@ class PmsConnect(object):
         if not platform and helpers.get_xml_attr(player_info, 'product') == 'DLNA':
             platform = 'DLNA'
 
+        platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
+
         player_details = {'ip_address': helpers.get_xml_attr(player_info, 'address').split('::ffff:')[-1],
                           'ip_address_public': helpers.get_xml_attr(player_info, 'remotePublicAddress').split('::ffff:')[-1],
                           'device': helpers.get_xml_attr(player_info, 'device'),
                           'platform': platform,
+                          'platform_name': platform_name,
                           'platform_version': helpers.get_xml_attr(player_info, 'platformVersion'),
                           'product': helpers.get_xml_attr(player_info, 'product'),
                           'product_version': helpers.get_xml_attr(player_info, 'version'),

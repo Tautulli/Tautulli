@@ -452,10 +452,12 @@ class Users(object):
 
         for item in result:
             # Rename Mystery platform names
-            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+            platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
 
             row = {'player_name': item['player'],
-                   'platform_type': platform_type,
+                   'platform': platform,
+                   'platform_name': platform_name,
                    'total_plays': item['player_count'],
                    'result_id': result_id
                    }

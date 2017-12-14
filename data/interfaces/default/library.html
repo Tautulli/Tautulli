@@ -60,7 +60,7 @@ DOCUMENTATION :: END
                             % if data['library_thumb'][:4] == 'http' or data['library_thumb'][:10] == 'interfaces':
                             <div class="library-info-poster-face" style="background-image: url(${data['library_thumb']});"></div>
                             % else:
-                            <div class="library-info-poster-face" style="background-image: url(pms_image_proxy?img=${data['library_thumb']}&width=80&height=80&fallback=cover);"></div>
+                            <div class="library-info-poster-face svg-icon library-${data['section_type']}"></div>
                             % endif
                             <div class="user-info-username">
                                 <span class="set-username">${data['section_name']}</span>

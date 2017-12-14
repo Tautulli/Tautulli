@@ -78,6 +78,8 @@ DOCUMENTATION :: END
             % else:
             <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);"></div>
             % endif
+            % elif stat_id == 'top_platforms':
+            <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']} no-image"></div>
             % else:
             <div id="stats-background-${stat_id}" class="dashboard-stats-background flat"></div>
             % endif
@@ -95,13 +97,9 @@ DOCUMENTATION :: END
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
             </a>
             % elif stat_id == 'top_platforms':
-            <div id="stats-thumb-${stat_id}" class="dashboard-stats-square hidden-xs">
-                <script>
-                    $("#stats-thumb-${stat_id}").css("background-image", "url(" + getPlatformImagePath("${row0['platform_type']}") + ")");
-                </script>
-            </div>
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
             % elif stat_id == 'most_concurrent':
-            <div id="stats-thumb-${stat_id}" class="dashboard-stats-square hidden-xs" style="background-image: url(images/home-stat_most-concurrent.png)"></div>
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon stats-${stat_id} transparent hidden-xs"></div>
             % endif
             <div class="dashboard-stats-info-container">
                 <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
@@ -123,7 +121,7 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
                             <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
-                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_type')}"
+                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
                                 <div class="sub-list">${loop.index + 1}</div>
@@ -145,7 +143,7 @@ DOCUMENTATION :: END
                                     ${row['friendly_name']}
                                     % endif
                                     % elif stat_id == 'top_platforms':
-                                    ${row['platform_type']}
+                                    ${row['platform']}
                                     % elif stat_id == 'most_concurrent':
                                     ${row['title']}
                                     % endif
@@ -187,7 +185,12 @@ DOCUMENTATION :: END
             $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (thumb || 'images/gravatar-default.png') + ')');
             $('#stats-thumb-url-' + stat_id).attr('href', 'user?user_id=' + $(elem).data('user_id')).prop('title', $(elem).data('friendly_name'));
         } else if (stat_id == 'top_platforms') {
-            $('#stats-thumb-' + stat_id).css('background-image', 'url(' + getPlatformImagePath($(elem).data('platform')) + ')');
+            $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
+                return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
+            }).addClass('platform-' + $(elem).data('platform'));
+            $('#stats-background-' + stat_id).removeClass(function (index, className) {
+                return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
+            }).addClass('platform-' + $(elem).data('platform'));
         } else {
             $('#stats-thumb-url-' + stat_id).attr('href', 'info?rating_key=' + $(elem).data('rating_key')).prop('title', $(elem).data('title'));
             if (art) {
