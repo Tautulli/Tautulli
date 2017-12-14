@@ -676,11 +676,12 @@ a .users-poster-face:hover {
     z-index: -1;
 }
 .dashboard-activity-poster-container {
+    background-color: #282828;
     height: 225px;
     width: 150px;
     margin-right: 5px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
@@ -698,6 +699,7 @@ a .users-poster-face:hover {
     z-index: 2;
 }
 .dashboard-activity-poster-blur {
+    background-color: #282828;
     background-position: center;
     background-size: cover;
     height: 225px;
@@ -706,7 +708,7 @@ a .users-poster-face:hover {
     transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    opacity: 0.50;
+    opacity: 0.60;
     -webkit-filter: blur(3px);
     -moz-filter: blur(3px);
     filter: blur(3px);
@@ -719,7 +721,7 @@ a .users-poster-face:hover {
     width: 150px;
     margin-top: 37.5px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
     -webkit-transition: background 1s linear;
     transition: background 1s linear;
@@ -1074,6 +1076,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     opacity: 1;
 }
 .dashboard-stats-poster-container {
+    background-color: #282828;
     height: 150px;
     width: 100px;
     margin-right: 5px;
@@ -1098,6 +1101,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     z-index: 2;
 }
 .dashboard-stats-poster-blur {
+    background-color: #282828;
     background-position: center;
     background-size: cover;
     height: 150px;
@@ -1106,7 +1110,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    opacity: 0.50;
+    opacity: 0.60;
     -webkit-filter: blur(3px);
     -moz-filter: blur(3px);
     filter: blur(3px);
