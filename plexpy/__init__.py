@@ -315,9 +315,6 @@ def initialize_scheduler():
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            # Our interval should never be less than 30 seconds
-            monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
-
             #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
             #             hours=0, minutes=0, seconds=1)
             #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
@@ -328,7 +325,7 @@ def initialize_scheduler():
                          hours=12, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
-                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
+                         hours=0, minutes=0, seconds=60 * bool(CONFIG.MONITOR_REMOTE_ACCESS))
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
