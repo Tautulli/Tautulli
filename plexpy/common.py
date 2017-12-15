@@ -128,6 +128,7 @@ VIDEO_QUALITY_PROFILES = {20000: '20 Mbps 1080p',
                           96: '0.096 Mbps',
                           64: '0.064 Mbps'
                           }
+VIDEO_QUALITY_PROFILES = OrderedDict(sorted(VIDEO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
 
 AUDIO_QUALITY_PROFILES = {512: '512 kbps',
                           320: '320 kbps',
@@ -136,6 +137,7 @@ AUDIO_QUALITY_PROFILES = {512: '512 kbps',
                           128: '128 kbps',
                           96: '96 kbps'
                           }
+AUDIO_QUALITY_PROFILES = OrderedDict(sorted(AUDIO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
 
 SCHEDULER_LIST = ['Check GitHub for updates',
                   'Check for active sessions',

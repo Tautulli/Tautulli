@@ -424,35 +424,57 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, '
         'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
-        'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
+        'ip_address TEXT, machine_id TEXT, player TEXT, product TEXT, platform TEXT, title TEXT, parent_title TEXT, '
         'grandparent_title TEXT, full_title TEXT, media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
-        'transcode_decision TEXT, width INTEGER, height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, '
-        'bitrate INTEGER, video_resolution TEXT, video_framerate TEXT, aspect_ratio TEXT, '
-        'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
+        'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
+        'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_width INTEGER, '
+        'video_framerate TEXT, aspect_ratio TEXT, '
+        'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, subtitle_codec TEXT, '
+        'stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
+        'stream_container_decision TEXT, stream_container TEXT, '
+        'stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, '
+        'stream_video_height INTEGER, stream_video_framerate TEXT, '
+        'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
+        'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
+        'transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
-        'transcode_width INTEGER, transcode_height INTEGER, buffer_count INTEGER DEFAULT 0, '
-        'buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0)'
+        'transcode_width INTEGER, transcode_height INTEGER, '
+        'optimized_version INTEGER, optimized_version_profile TEXT, synced_version INTEGER, '
+        'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0, '
+        'raw_stream_info TEXT)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, '
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, platform TEXT, machine_id TEXT, '
+        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
+        'bandwidth INTEGER, location TEXT, quality_profile TEXT, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
     )
 
     # session_history_media_info table :: This is a table which logs each session's media info
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, rating_key INTEGER, '
-        'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
-        'height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, bitrate INTEGER, video_resolution TEXT, '
-        'video_framerate TEXT, aspect_ratio TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
+        'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, '
+        'container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, video_bitrate INTEGER, video_bit_depth INTEGER, '
+        'video_codec TEXT, video_codec_level TEXT, video_width INTEGER, video_height INTEGER, video_resolution TEXT, '
+        'video_framerate TEXT, aspect_ratio TEXT, '
+        'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
-        'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER)'
+        'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, '
+        'transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, transcode_hw_decode TEXT, '
+        'transcode_hw_decode_title TEXT, transcode_hw_encode TEXT, transcode_hw_encode_title TEXT, '
+        'stream_container TEXT, stream_container_decision TEXT, stream_bitrate INTEGER, '
+        'stream_video_decision TEXT, stream_video_bitrate INTEGER, stream_video_codec TEXT, stream_video_codec_level TEXT, '
+        'stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, '
+        'stream_video_framerate TEXT, '
+        'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
+        'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, '
+        'subtitles INTEGER, synced_version INTEGER, optimized_version INTEGER, optimized_version_profile TEXT)'
     )
 
     # session_history_metadata table :: This is a table which logs each session's media metadata
@@ -772,6 +794,96 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN year INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT raw_stream_info FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN product INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN optimized_version INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN optimized_version_profile TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN synced_version INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_height INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN subtitle_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_resolution TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN quality_profile TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_container_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_container TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_height INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_framerate TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_channels INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN subtitles INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_subtitle_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_subtitle_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN raw_stream_info TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -793,6 +905,33 @@ def dbcheck():
                  WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
             'FROM session_history AS t1 ' \
             'WHERE t1.id = session_history.id) '
+        )
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT bandwidth FROM session_history')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN platform_version TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN product TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN product_version TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN profile TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN bandwidth INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN location TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN quality_profile TEXT'
         )
 
     # Upgrade session_history_metadata table from earlier versions
@@ -844,6 +983,126 @@ def dbcheck():
 		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
 			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
 			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
+        )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT subtitles FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_bit_depth INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_codec_level TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_height INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN audio_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_requested INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_full_pipeline INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode_title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode_title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_container TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_container_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec_level TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_bit_depth INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_height INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_resolution TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_framerate TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_channels INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_container TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_forced INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN subtitles INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN synced_version INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_profile TEXT'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, "p", "")'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, "SD", "sd")'
         )
 
     # Upgrade users table from earlier versions

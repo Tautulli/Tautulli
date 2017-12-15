@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import threading
 import time
 import re
@@ -69,13 +70,18 @@ class ActivityProcessor(object):
                       'width': session.get('width', ''),
                       'height': session.get('height', ''),
                       'container': session.get('container', ''),
-                      'video_codec': session.get('video_codec', ''),
-                      'audio_codec': session.get('audio_codec', ''),
                       'bitrate': session.get('bitrate', ''),
+                      'video_codec': session.get('video_codec', ''),
+                      'video_bitrate': session.get('video_bitrate', ''),
+                      'video_width': session.get('video_width', ''),
+                      'video_height': session.get('video_height', ''),
                       'video_resolution': session.get('video_resolution', ''),
                       'video_framerate': session.get('video_framerate', ''),
                       'aspect_ratio': session.get('aspect_ratio', ''),
+                      'audio_codec': session.get('audio_codec', ''),
+                      'audio_bitrate': session.get('audio_bitrate', ''),
                       'audio_channels': session.get('audio_channels', ''),
+                      'subtitle_codec': session.get('subtitle_codec', ''),
                       'transcode_protocol': session.get('transcode_protocol', ''),
                       'transcode_container': session.get('transcode_container', ''),
                       'transcode_video_codec': session.get('transcode_video_codec', ''),
@@ -83,6 +89,27 @@ class ActivityProcessor(object):
                       'transcode_audio_channels': session.get('transcode_audio_channels', ''),
                       'transcode_width': session.get('stream_video_width', ''),
                       'transcode_height': session.get('stream_video_height', ''),
+                      'optimized_version': session.get('optimized_version', ''),
+                      'optimized_version_profile': session.get('optimized_version_profile', ''),
+                      'synced_version': session.get('synced_version', ''),
+                      'stream_bitrate': session.get('stream_bitrate', ''),
+                      'stream_video_resolution': session.get('stream_video_resolution', ''),
+                      'quality_profile': session.get('quality_profile', ''),
+                      'stream_container_decision': session.get('stream_container_decision', ''),
+                      'stream_container': session.get('stream_container', ''),
+                      'stream_video_decision': session.get('stream_video_decision', ''),
+                      'stream_video_codec': session.get('stream_video_codec', ''),
+                      'stream_video_bitrate': session.get('stream_video_bitrate', ''),
+                      'stream_video_width': session.get('stream_video_width', ''),
+                      'stream_video_height': session.get('stream_video_height', ''),
+                      'stream_video_framerate': session.get('stream_video_framerate', ''),
+                      'stream_audio_decision': session.get('stream_audio_decision', ''),
+                      'stream_audio_codec': session.get('stream_audio_codec', ''),
+                      'stream_audio_bitrate': session.get('stream_audio_bitrate', ''),
+                      'stream_audio_channels': session.get('stream_audio_channels', ''),
+                      'stream_subtitle_decision': session.get('stream_subtitle_decision', ''),
+                      'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
+                      'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }
 
@@ -124,6 +151,10 @@ class ActivityProcessor(object):
 
         if session:
             logging_enabled = False
+
+            # Reload json from raw stream info
+            if 'raw_stream_info' in session:
+                session.update(json.loads(session['raw_stream_info']))
 
             if is_import:
                 if str(session['stopped']).isdigit():
@@ -196,18 +227,32 @@ class ActivityProcessor(object):
                     media_info = session
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history table...")
-                query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, ' \
-                        'grandparent_rating_key, media_type, user_id, user, ip_address, paused_counter, player, ' \
-                        'platform, machine_id, view_offset) VALUES ' \
-                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-
-                args = [session['started'], stopped, session['rating_key'], session['parent_rating_key'],
-                        session['grandparent_rating_key'], session['media_type'], session['user_id'], session['user'],
-                        session['ip_address'], session['paused_counter'], session['player'], session['platform'],
-                        session['machine_id'], session['view_offset']]
+                keys = {'id': None}
+                values = {'started': session['started'],
+                          'stopped': stopped,
+                          'rating_key': session['rating_key'],
+                          'parent_rating_key': session['parent_rating_key'],
+                          'grandparent_rating_key': session['grandparent_rating_key'],
+                          'media_type': session['media_type'],
+                          'user_id': session['user_id'],
+                          'user': session['user'],
+                          'ip_address': session['ip_address'],
+                          'paused_counter': session['paused_counter'],
+                          'player': session['player'],
+                          'product': session['product'],
+                          'product_version': session['product_version'],
+                          'platform': session['platform'],
+                          'platform_version': session['platform_version'],
+                          'profile': session['profile'],
+                          'machine_id': session['machine_id'],
+                          'bandwidth': session['bandwidth'],
+                          'location': session['location'],
+                          'quality_profile': session['quality_profile'],
+                          'view_offset': session['view_offset']
+                          }
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history transaction...")
-                self.db.action(query=query, args=args)
+                self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
                 query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history \
@@ -217,7 +262,10 @@ class ActivityProcessor(object):
 
                 result = self.db.select(query=query, args=args)
 
-                new_session = prev_session = last_id = None
+                new_session = prev_session = None
+                # Get the last insert row id
+                last_id = self.db.last_insert_id()
+
                 if len(result) > 1:
                     new_session = {'id': result[0]['id'],
                                    'rating_key': result[0]['rating_key'],
@@ -230,9 +278,6 @@ class ActivityProcessor(object):
                                     'view_offset': result[1]['view_offset'],
                                     'user_id': result[1]['user_id'],
                                     'reference_id': result[1]['reference_id']}
-                else:
-                    # Get the last insert row id
-                    last_id = self.db.last_insert_id()
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
@@ -251,24 +296,69 @@ class ActivityProcessor(object):
                 # Write the session_history_media_info table
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_media_info table...")
-                query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
-                        'duration, width, height, container, video_codec, audio_codec, bitrate, video_resolution, ' \
-                        'video_framerate, aspect_ratio, audio_channels, transcode_protocol, transcode_container, ' \
-                        'transcode_video_codec, transcode_audio_codec, transcode_audio_channels, transcode_width, ' \
-                        'transcode_height, transcode_decision) VALUES ' \
-                        '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-
-                args = [session['rating_key'], session['video_decision'], session['audio_decision'],
-                        metadata['duration'], media_info.get('width',''), media_info.get('height',''), media_info.get('container',''),
-                        media_info.get('video_codec',''), media_info.get('audio_codec',''), media_info.get('bitrate',''),
-                        media_info.get('video_resolution',''), media_info.get('video_framerate',''), media_info.get('aspect_ratio',''),
-                        media_info.get('audio_channels',''), session['transcode_protocol'], session['transcode_container'],
-                        session['transcode_video_codec'], session['transcode_audio_codec'],
-                        session['transcode_audio_channels'], session['transcode_width'], session['transcode_height'],
-                        session['transcode_decision']]
+                keys = {'id': last_id}
+                values = {'rating_key': session['rating_key'],
+                          'video_decision': session['video_decision'],
+                          'audio_decision': session['audio_decision'],
+                          'transcode_decision': session['transcode_decision'],
+                          'duration': session['duration'],
+                          'container': session['container'],
+                          'bitrate': session['bitrate'],
+                          'width': session['width'],
+                          'height': session['height'],
+                          'video_bit_depth': session['video_bit_depth'],
+                          'video_bitrate': session['video_bitrate'],
+                          'video_codec': session['video_codec'],
+                          'video_codec_level': session['video_codec_level'],
+                          'video_width': session['video_width'],
+                          'video_height': session['video_height'],
+                          'video_resolution': session['video_resolution'],
+                          'video_framerate': session['video_framerate'],
+                          'aspect_ratio': session['aspect_ratio'],
+                          'audio_codec': session['audio_codec'],
+                          'audio_bitrate': session['audio_bitrate'],
+                          'audio_channels': session['audio_channels'],
+                          'transcode_protocol': session['transcode_protocol'],
+                          'transcode_container': session['transcode_container'],
+                          'transcode_video_codec': session['transcode_video_codec'],
+                          'transcode_audio_codec': session['transcode_audio_codec'],
+                          'transcode_audio_channels': session['transcode_audio_channels'],
+                          'transcode_width': session['transcode_width'],
+                          'transcode_height': session['transcode_height'],
+                          'transcode_hw_requested': session['transcode_hw_requested'],
+                          'transcode_hw_full_pipeline': session['transcode_hw_full_pipeline'],
+                          'transcode_hw_decode': session['transcode_hw_decode'],
+                          'transcode_hw_encode': session['transcode_hw_encode'],
+                          'transcode_hw_decode_title': session['transcode_hw_decode_title'],
+                          'transcode_hw_encode_title': session['transcode_hw_encode_title'],
+                          'stream_container': session['stream_container'],
+                          'stream_container_decision': session['stream_container_decision'],
+                          'stream_bitrate': session['stream_bitrate'],
+                          'stream_video_decision': session['stream_video_decision'],
+                          'stream_video_bitrate': session['stream_video_bitrate'],
+                          'stream_video_codec': session['stream_video_codec'],
+                          'stream_video_codec_level': session['stream_video_codec_level'],
+                          'stream_video_bit_depth': session['stream_video_bit_depth'],
+                          'stream_video_height': session['stream_video_height'],
+                          'stream_video_width': session['stream_video_width'],
+                          'stream_video_resolution': session['stream_video_resolution'],
+                          'stream_video_framerate': session['stream_video_framerate'],
+                          'stream_audio_decision': session['stream_audio_decision'],
+                          'stream_audio_codec': session['stream_audio_codec'],
+                          'stream_audio_bitrate': session['stream_audio_bitrate'],
+                          'stream_audio_channels': session['stream_audio_channels'],
+                          'stream_subtitle_decision': session['stream_subtitle_decision'],
+                          'stream_subtitle_codec': session['stream_subtitle_codec'],
+                          'stream_subtitle_container': session['stream_subtitle_container'],
+                          'stream_subtitle_forced': session['stream_subtitle_forced'],
+                          'subtitles': session['subtitles'],
+                          'synced_version': session['synced_version'],
+                          'optimized_version': session['optimized_version'],
+                          'optimized_version_profile': session['optimized_version_profile']
+                          }
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_media_info transaction...")
-                self.db.action(query=query, args=args)
+                self.db.upsert(table_name='session_history_media_info', key_dict=keys, value_dict=values)
 
                 # Write the session_history_metadata table
                 directors = ";".join(metadata['directors'])
@@ -278,25 +368,43 @@ class ActivityProcessor(object):
                 labels = ";".join(metadata['labels'])
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
-                query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
-                        'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
-                        'parent_media_index, section_id, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
-                        'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, ' \
-                        'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio, labels) ' \
-                        'VALUES (last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-
-                args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
-                        session['title'], session['parent_title'], session['grandparent_title'], session['full_title'],
-                        metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
-                        metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], session['media_type'],
-                        metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
-                        metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
-                        metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres,
-                        metadata['studio'], labels]
+                keys = {'id': last_id}
+                values = {'rating_key': session['rating_key'],
+                          'parent_rating_key': session['parent_rating_key'],
+                          'grandparent_rating_key': session['grandparent_rating_key'],
+                          'title': session['title'],
+                          'parent_title': session['parent_title'],
+                          'grandparent_title': session['grandparent_title'],
+                          'full_title': session['full_title'],
+                          'media_index': metadata['media_index'],
+                          'parent_media_index': metadata['parent_media_index'],
+                          'section_id': metadata['section_id'],
+                          'thumb': metadata['thumb'],
+                          'parent_thumb': metadata['parent_thumb'],
+                          'grandparent_thumb': metadata['grandparent_thumb'],
+                          'art': metadata['art'],
+                          'media_type': session['media_type'],
+                          'year': metadata['year'],
+                          'originally_available_at': metadata['originally_available_at'],
+                          'added_at': metadata['added_at'],
+                          'updated_at': metadata['updated_at'],
+                          'last_viewed_at': metadata['last_viewed_at'],
+                          'content_rating': metadata['content_rating'],
+                          'summary': metadata['summary'],
+                          'tagline': metadata['tagline'],
+                          'rating': metadata['rating'],
+                          'duration': metadata['duration'],
+                          'guid': metadata['guid'],
+                          'directors': directors,
+                          'writers': writers,
+                          'actors': actors,
+                          'genres': genres,
+                          'studio': metadata['studio'],
+                          'labels': labels
+                          }
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_metadata transaction...")
-                self.db.action(query=query, args=args)
+                self.db.upsert(table_name='session_history_metadata', key_dict=keys, value_dict=values)
 
             # Return true when the session is successfully written to the database
             return True

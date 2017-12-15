@@ -1441,7 +1441,6 @@ class PmsConnect(object):
                 subtitle_stream_info = stream
 
         video_id = audio_id = subtitle_id = None
-        video_details = audio_details = subtitle_details = {}
         if video_stream_info:
             video_id = helpers.get_xml_attr(video_stream_info, 'id')
             video_details = {'stream_video_bitrate': helpers.get_xml_attr(video_stream_info, 'bitrate'),
@@ -1451,6 +1450,15 @@ class PmsConnect(object):
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
                              'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision') or 'direct play'
+                             }
+        else:
+            video_details = {'stream_video_bitrate': '',
+                             'stream_video_bit_depth': '',
+                             'stream_video_codec_level': '',
+                             'stream_video_ref_frames': '',
+                             'stream_video_language': '',
+                             'stream_video_language_code': '',
+                             'stream_video_decision': ''
                              }
 
         if audio_stream_info:
@@ -1463,6 +1471,15 @@ class PmsConnect(object):
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
+        else:
+            audio_details = {'stream_audio_bitrate': '',
+                             'stream_audio_bitrate_mode': '',
+                             'stream_audio_sample_rate': '',
+                             'stream_audio_channel_layout_': '',
+                             'stream_audio_language': '',
+                             'stream_audio_language_code': '',
+                             'stream_audio_decision': ''
+                             }
 
         if subtitle_stream_info:
             subtitle_id = helpers.get_xml_attr(subtitle_stream_info, 'id')
@@ -1474,6 +1491,16 @@ class PmsConnect(object):
                                 'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
                                 'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
                                 'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision')
+                                }
+        else:
+            subtitle_details = {'stream_subtitle_codec': '',
+                                'stream_subtitle_container': '',
+                                'stream_subtitle_format': '',
+                                'stream_subtitle_forced': 0,
+                                'stream_subtitle_location': '',
+                                'stream_subtitle_language': '',
+                                'stream_subtitle_language_code': '',
+                                'stream_subtitle_decision': ''
                                 }
 
         # Get the bif thumbnail
@@ -1586,15 +1613,51 @@ class PmsConnect(object):
             source_media_part_details = next((p for p in source_media_parts if p['id'] == part_id), next((p for p in source_media_parts), {}))
             source_media_part_streams = source_media_part_details.pop('streams', [])
 
+            source_video_details = {'id': '',
+                                    'type': '',
+                                    'video_codec': '',
+                                    'video_codec_level': '',
+                                    'video_bitrate': '',
+                                    'video_bit_depth': '',
+                                    'video_frame_rate': '',
+                                    'video_ref_frames': '',
+                                    'video_height': '',
+                                    'video_width': '',
+                                    'video_language': '',
+                                    'video_language_code': '',
+                                    'video_profile': ''
+                                    }
+            source_audio_details = {'id': '',
+                                    'type': '',
+                                    'audio_codec': '',
+                                    'audio_bitrate': '',
+                                    'audio_bitrate_mode': '',
+                                    'audio_channels': '',
+                                    'audio_channel_layout': '',
+                                    'audio_sample_rate': '',
+                                    'audio_language': '',
+                                    'audio_language_code': '',
+                                    'audio_profile': ''
+                                    }
+            source_subtitle_details = {'id': '',
+                                       'type': '',
+                                       'subtitle_codec': '',
+                                       'subtitle_container': '',
+                                       'subtitle_format': '',
+                                       'subtitle_forced': 0,
+                                       'subtitle_location': '',
+                                       'subtitle_language': '',
+                                       'subtitle_language_code': ''
+                                       }
             if video_id:
                 source_video_details = next((p for p in source_media_part_streams if p['id'] == video_id),
-                                            next((p for p in source_media_part_streams if p['type'] == '1'), {}))
+                                            next((p for p in source_media_part_streams if p['type'] == '1'), source_video_details))
             if audio_id:
                 source_audio_details = next((p for p in source_media_part_streams if p['id'] == audio_id),
-                                            next((p for p in source_media_part_streams if p['type'] == '2'), {}))
+                                            next((p for p in source_media_part_streams if p['type'] == '2'), source_audio_details))
             if subtitle_id:
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
-                                               next((p for p in source_media_part_streams if p['type'] == '3'), {}))
+                                               next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
