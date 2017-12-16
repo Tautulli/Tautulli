@@ -1539,7 +1539,7 @@ class PmsConnect(object):
                           'synced_version': synced_version,
                           'indexes': 1 if indexes == 'sd' else 0,
                           'bif_thumb': bif_thumb,
-                          'subtitles': 1 if subtitle_details else 0
+                          'subtitles': 1 if subtitle_id else 0
                           }
 
         # Get the source media info
