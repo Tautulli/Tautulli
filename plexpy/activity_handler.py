@@ -223,10 +223,11 @@ class ActivityHandler(object):
                 if this_key == last_key:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
-                        ap.set_session_state(session_key=self.get_session_key(),
-                                             state=this_state,
-                                             view_offset=self.timeline['viewOffset'],
-                                             stopped=int(time.time()))
+                        # Update the session in our temp session table
+                        session = self.get_live_session()
+                        if session:
+                            self.update_db_session(session=session)
+
                     # Start our state checks
                     if this_state != last_state:
                         if this_state == 'paused':
