@@ -131,7 +131,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, token=None, **kwargs):
+    def discover(self, token=None, include_cloud=True, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -161,8 +161,10 @@ class WebInterface(object):
             plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
             plexpy.CONFIG.write()
 
+        include_cloud = not (include_cloud == 'false')
+
         plex_tv = plextv.PlexTV()
-        servers = plex_tv.discover()
+        servers = plex_tv.discover(include_cloud=include_cloud)
 
         if servers:
             return servers

@@ -14,9 +14,9 @@
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
-    <link href="${http_root}css/plexpy.css" rel="stylesheet">
+    <link href="${http_root}css/plexpy.css${cache_param}" rel="stylesheet">
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
     <link rel="shortcut icon" href="${http_root}images/favicon.ico">
@@ -26,159 +26,134 @@
 <div class="container-fluid">
     <div class="row">
         <div class="wizard" id="some-wizard" data-title="PlexPy Setup Wizard">
-            <div class="wizard-card" data-cardname="card1">
-                <div style="float: right;">
-                    <img src="${http_root}images/logo-plexpy.png"/>
-                </div>
-                <h3 style="line-height: 50px;">Welcome!</h3>
-                <br/>
-                <div>
-                    Thanks for taking the time to try out PlexPy. Hope you find it useful.
-                    <br/><br/>
-                    PlexPy requires a permanent internet connection to ensure a reliable experience.
-                    <br/><br/>
-                    This wizard will help you get set up, to continue press Next.
-                </div>
-            </div>
-            <div class="wizard-card" data-cardname="card2">
-                <h3>Plex Authentication</h3>
-                <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
-                <div class="wizard-input-section">
-                    <label for="pms_username">Plex.tv Username</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
-                        </div>
+            <form>
+                <div class="wizard-card" data-cardname="card1">
+                    <div style="float: right;">
+                        <img src="${http_root}images/logo-plexpy.png" />
+                    </div>
+                    <h3 style="line-height: 50px;">Welcome!</h3>
+                    <br />
+                    <div>
+                        Thanks for taking the time to try out PlexPy. Hope you find it useful.
+                        <br /><br />
+                        PlexPy requires a permanent internet connection to ensure a reliable experience.
+                        <br /><br />
+                        This wizard will help you get set up, to continue press Next.
                     </div>
                 </div>
-                <div class="wizard-input-section">
-                    <label for="pms_password">Plex.tv Password</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
+                <div class="wizard-card" data-cardname="card2">
+                    <h3>Plex Authentication</h3>
+                    <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
+                    <div class="wizard-input-section">
+                        <label for="pms_username">Plex.tv Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
+                            </div>
                         </div>
                     </div>
+                    <div class="wizard-input-section">
+                        <label for="pms_password">Plex.tv Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
+                    <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
-                <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
-                <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
-            </div>
-            <div class="wizard-card" data-cardname="card3">
-                <h3>Plex Media Server</h3>
-                <form>
+                <div class="wizard-card" data-cardname="card3">
+                    <h3>Plex Media Server</h3>
                     <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
-                <div class="wizard-input-section">
-                    <label for="pms_ip">Plex IP or Hostname</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <select id="pms_ip" name="pms_ip"></select>
-                        </div>
-                    </div>
-                </div>
-                <div class="wizard-input-section">
-                    <label for="pms_port">Port Number</label>
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Use SSL
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1"> Remote Server
-                                </label>
+                    <div class="wizard-input-section">
+                        <label for="pms_ip">Plex IP or Hostname</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <select id="pms_ip" name="pms_ip"></select>
                             </div>
                         </div>
                     </div>
-                </div>
-                <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
-                <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
-            </div>
-
-
-            <div class="wizard-card" data-cardname="card4">
-                <h3>Monitoring</h3>
-                <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Enable Movie Logging
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Enable TV Show Logging
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Enable Music Logging
-                </div>
-                <div class="wizard-input-section">
-                    <label for="logging_ignore_interval">Ignore Interval</label>
-                    <div class="row">
-                        <div class="col-xs-4">
-                            <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
-                        </div>
-                        <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
-                    </div>
-                    <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
-                </div>
-            </div>
-            <div class="wizard-card" data-cardname="card5">
-                <h3>Notifications</h3>
-                <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent configure this in <strong>Settings -> Notification Agents</strong>
-                after you have completed this setup wizard.</p><br/>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie playback
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable notifications on TV Show playback
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable notifications on Music playback
-                </div>
-            </div>
-
-            <div class="wizard-card" data-cardname="card6">
-                <h3>Database Import</h3>
-                <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
-                <p class="help-block">
-                    When you complete this wizard navigate to the settings menu and to the Extra Settings tab. You will find an import tool there
-                    which will convert your PlexWatch/Plexivity database into a format that PlexPy can read.
-                </p>
-                <!-- Figure out best way to get friends list refreshed before adding this back
-                    You can skip this and do it later if you wish.</p>
-                <p class="help-block">Enter the path and file name where your
-                plexWatch database file is located and hit Import. The import will run in the background so you can safely finish the wizard when the
-                Import status below changes to "Started"</p>
-                <div class="wizard-input-section">
-                    <label for="db_location">Database full Path and Filename</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="text" class="form-control plexwatch-import" id="db_location" value="">
-                        </div>
-                        <div class="col-xs-4">
-                            <a class="btn btn-default btn-sm" id="plexwatch-import" style="margin-top: 4px;" href="#" role="button">Import</a>
+                    <div class="wizard-input-section">
+                        <label for="pms_port">Port Number</label>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Use SSL
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1"> Remote Server
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                    <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                    <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
-                <span>Import status: </span><strong><span id="plexwatch-import-status">Idle</span></strong>
-                -->
-                <div style="display: none;">
-                    <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
-                    <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
-                    <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
-                    <input type="checkbox" name="check_github" id="check_github" value="1" ${config['check_github']}>
-                    <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" ${config['log_blacklist']}>
-                    <input type="checkbox" name="cache_images" id="cache_images" value="1" ${config['cache_images']}>
-                    <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
-                    <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                    <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
-                    <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
+
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Activity Logging</h3>
+                    <p class="help-block">PlexPy will keep a history of all streaming activity on your Plex server.</p>
+
+                    <div class="wizard-input-section">
+                        <label for="logging_ignore_interval">Ignore Interval</label>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
+                            </div>
+                            <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
+                        </div>
+                        <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                    </div>
+
+                    <p class="help-block">
+                        Additional options to disable history logging for certain libraries or users can be found by editing them 
+                        on the <strong>Libraries</strong> or <strong>Users</strong> pages.
+                    </p>
                 </div>
-            </div>
-            <!-- Required fields but hidden -->
+
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Notifications</h3>
+                    <p class="help-block">PlexPy can send a wide variety of notification to alert you of activity on your Plex server.</p>
+                    <p class="help-block">
+                        To set up a notification agent, navigate to the <strong>Settings</strong> page 
+                        and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
+                    </p>
+                </div>
+
+                <div class="wizard-card" data-cardname="card5">
+                    <h3>Database Import</h3>
+                    <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
+                    <p class="help-block">
+                        To import a database, navigate to the <strong>Settings</strong> page 
+                        and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
+                    </p>
+
+                    <!-- Required fields but hidden -->
+                    <div style="display: none;">
+                        <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
+                        <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
+                        <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
+                        <input type="checkbox" name="check_github" id="check_github" value="1" ${config['check_github']}>
+                        <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" ${config['log_blacklist']}>
+                        <input type="checkbox" name="cache_images" id="cache_images" value="1" ${config['cache_images']}>
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
+                        <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
+                        <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
+                        <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
+                    </div>
+
+                </div>
 
             </form>
             <div class="wizard-success">
@@ -186,7 +161,7 @@
                 <br/>
                 <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
                 <br/>
-                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting 5 seconds to ensure authentication token is registered...
+                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting <span class="countdown">5</span> seconds to ensure authentication token is registered...
 
             </div>
         </div>
@@ -196,7 +171,7 @@
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/selectize.min.js"></script>
-<script src="${http_root}js/script.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
 
@@ -224,9 +199,7 @@
                 data: wizard.serialize(),
                 dataType: "json",
                 complete: function (data) {
-                    setTimeout(function(){
-                        location.reload();
-                    }, 5000);
+                    $(".countdown").countdown(function () { location.reload(); }, 5, "");
                 }
             })
         });
@@ -470,7 +443,7 @@
     function getServerOptions(token) {
         /* Set token and returns server options */
         $.ajax({
-            url: "discover/" + token,
+            url: "discover/" + token + '?include_cloud=false',
             success: function (result) {
                 $('#pms_ip').html("")
                 // Add all servers to the "combobox"

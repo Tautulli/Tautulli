@@ -638,7 +638,7 @@ class PlexTV(object):
 
         return server_times
 
-    def discover(self):
+    def discover(self, include_cloud=True):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
         clean_servers = []
@@ -661,6 +661,10 @@ class PlexTV(object):
                     if helpers.get_xml_attr(d, 'presence') == '1' and \
                         helpers.get_xml_attr(d, 'owned') == '1' and \
                         helpers.get_xml_attr(d, 'provides') == 'server':
+
+                        if not include_cloud and helpers.get_xml_attr(d, 'platform').lower() == 'cloud':
+                            continue
+
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:

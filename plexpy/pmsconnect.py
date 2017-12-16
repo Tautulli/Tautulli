@@ -93,13 +93,13 @@ def refresh_libraries():
             plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
             plexpy.CONFIG.write()
 
-        if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
-            # Start library section_id update on it's own thread
-            threading.Thread(target=libraries.update_section_ids).start()
+        #if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
+        #    # Start library section_id update on it's own thread
+        #    threading.Thread(target=libraries.update_section_ids).start()
 
-        if plexpy.CONFIG.UPDATE_LABELS == 1 or plexpy.CONFIG.UPDATE_LABELS == -1:
-            # Start library labels update on it's own thread
-            threading.Thread(target=libraries.update_labels).start()
+        #if plexpy.CONFIG.UPDATE_LABELS == 1 or plexpy.CONFIG.UPDATE_LABELS == -1:
+        #    # Start library labels update on it's own thread
+        #    threading.Thread(target=libraries.update_labels).start()
 
         logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
         return True
