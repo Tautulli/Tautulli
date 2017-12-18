@@ -8,46 +8,77 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <div id="state-change-modal" class="modal fade">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">${message}</h4>
-                        </div>
-                        <div class="modal-body" id="modal-text">
-                            <div align="center">
-                                % if message == "Shutting Down":
-                                <h3><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h3>
-                                <br/>
-                                % else:
-                                <h3><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h3>
-                                <br/>
-                                <h4>Restart in <span class="countdown"></span></h4>
-                                % endif
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <div style="float: right;"><span class="text-muted" id="rquote">${quote}</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </%def>
-<%def name="javascriptIncludes()">
-    <script>
-        // Use p.countdown as container, pass redirect, duration, and optional message
-        $(".countdown").countdown(reloadPage, ${timer}, "");
-        $('#state-change-modal').modal({
-            keyboard: false
-        })
-        // Make modal visible
-        $('#state-change-modal').modal('show')
 
-        // Redirect to home page after countdown.
-        function reloadPage() {
-            window.location.href = "${new_http_root}index";
-        }
-    </script>
+<%def name="modalIncludes()">
+<div id="state-change-modal" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">${title}</h4>
+            </div>
+            <div class="modal-body" id="modal-text">
+                <div align="center">
+                    % if message == "Shutting Down":
+                    <h3><i class="fa fa-refresh fa-spin"></i> Tautulli is ${message}.</h3>
+                    <br />
+                    % else:
+                    <h3><i class="fa fa-refresh fa-spin"></i> Tautulli is ${message}.</h3>
+                    <br />
+                    <h4>Restart in <span class="countdown"></span></h4>
+                    % endif
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="float: right;"><span class="text-muted" id="rquote">${quote}</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script>
+    // Use p.countdown as container, pass redirect, duration, and optional message
+    $(".countdown").countdown(reloadPage, ${timer}, "");
+    $('#state-change-modal').modal({
+        keyboard: false
+    })
+    // Make modal visible
+    $('#state-change-modal').modal('show')
+
+    // Redirect to home page after countdown.
+    function reloadPage() {
+        window.location.href = "${new_http_root}index";
+    }
+
+    var online = true;
+
+    (function poll() {
+        setTimeout(function () {
+            $.ajax({
+                url: 'index',
+                type: 'HEAD',
+                success: function () {
+                    if (!(online)){
+                        reloadPage();
+                    }
+                },
+                error: function () {
+                    online = false;
+                    % if signal == 'shutdown':
+                    reloadPage();
+                    % endif
+                },
+                complete: function () {
+                    poll();
+                },
+                timeout: 1000
+            });
+        }, 1000);
+    })();
+</script>
+
 </%def>

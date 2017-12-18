@@ -31,15 +31,15 @@ DOCUMENTATION :: END
         % endif
         <tr>
             <td>Configuration File:</td>
-            <td>${plexpy.CONFIG_FILE}</td>
+            <td><a class="no-highlight" href="download_config" data-toggle="tooltip" data-placement="right" title="Download Configuration">${plexpy.CONFIG_FILE}</a></td>
         </tr>
         <tr>
             <td>Database File:</td>
-            <td>${plexpy.DB_FILE}</td>
+            <td><a class="no-highlight" href="download_database" data-toggle="tooltip" data-placement="right" title="Download Database">${plexpy.DB_FILE}</a></td>
         </tr>
         <tr>
             <td>Log File:</td>
-            <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)}</a></td>
+            <td><a class="no-highlight" href="download_log" data-toggle="tooltip" data-placement="right" title="Download Log">${os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)}</a></td>
         </tr>
         <tr>
             <td>Backup Directory:</td>
@@ -77,61 +77,20 @@ DOCUMENTATION :: END
                 <a id="source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" target="_blank">GitHub Source</a> | 
                 <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/%s/plexpy/issues' % plexpy.CONFIG.GIT_USER)}" data-id="issue">GitHub Issues</a> |
                 <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" data-id="feature request">FeatHub Feature Requests</a> | 
-                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">PlexPy Wiki</a> |
-                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank">PlexPy FAQ</a>
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli Wiki</a> |
+                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli FAQ</a>
             </td>
         </tr>
         <tr>
             <td>Support:</td>
             <td>
-                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">Plex Forums</a> |
-                <a class="no-highlight support-modal-link" href="${anon_url('https://gitter.im/plexpy/general')}" target="_blank">PlexPy Gitter Chat</a> | 
-                <a id="best-support-link" class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/011TFFWSuNFI02EKr')}" target="_blank">/r/Plex Discord Server</a> | 
-                <a class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/36ggawe')}" target="_blank">PlexPy Discord Server</a>
+                <a class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/36ggawe')}" target="_blank">Tautulli Discord Server</a> |
+                <a class="no-highlight support-modal-link" href="${anon_url('https://www.reddit.com/r/Tautulli')}" target="_blank">Tautulli Subreddit</a> | 
+                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">Plex Forums</a>
             </td>
         </tr>
     </tbody>
 </table>
-
-<div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Guidelines</h4>
-            </div>
-            <div class="modal-body">
-                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
-                    <br /><br />
-                    Your post may be removed for failure to follow the guidelines.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="support-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="support-modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Support</h4>
-            </div>
-            <div class="modal-body">
-                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    <strong>Please read the <a href="#" target="_blank" id="faq-link">FAQ</a> before asking for help!</strong>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <a href="#" target="_blank" id="support-continue" class="btn btn-bright">Continue</a>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     $(document).ready(function () {
@@ -139,16 +98,16 @@ DOCUMENTATION :: END
             var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
                 'The database is used to lookup IP address geolocation info.<br />' +
                 'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-                'and requires <strong>100MB</strong> of free space to install in your PlexPy directory.<br />'
+                'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />'
             var url = 'install_geoip_db';
-            confirmAjaxCall(url, msg, 'Installing GeoLite2 database.', getConfigurationTable);
+            confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', getConfigurationTable);
         });
 
         $("#uninstall_geoip_db").click(function () {
             var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
                 'You will not be able to lookup IP address geolocation info.';
             var url = 'uninstall_geoip_db';
-            confirmAjaxCall(url, msg, 'Uninstalling GeoLite2 database.', getConfigurationTable);
+            confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', getConfigurationTable);
         });
 
         $('.guidelines-modal-link').on('click', function (e) {
@@ -168,5 +127,11 @@ DOCUMENTATION :: END
                 $('#support-modal').modal('hide');
             });
         });
+
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+
     });
 </script>

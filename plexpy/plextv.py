@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# This file is part of PlexPy.
+# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
 import json
@@ -32,7 +32,7 @@ import session
 
 
 def refresh_users():
-    logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
+    logger.info(u"Tautulli PlexTV :: Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
 
     monitor_db = database.MonitorDatabase()
@@ -81,21 +81,21 @@ def refresh_users():
 
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
-        logger.info(u"PlexPy PlexTV :: Users list refreshed.")
+        logger.info(u"Tautulli PlexTV :: Users list refreshed.")
         return True
     else:
-        logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
+        logger.warn(u"Tautulli PlexTV :: Unable to refresh users list.")
         return False
 
 
 def get_real_pms_url():
-    logger.info(u"PlexPy PlexTV :: Requesting URLs for server...")
+    logger.info(u"Tautulli PlexTV :: Requesting URLs for server...")
 
     # Reset any current PMS_URL value
     plexpy.CONFIG.__setattr__('PMS_URL', '')
     plexpy.CONFIG.write()
 
-    fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
+    fallback_url = 'http://{}:{}'.format(plexpy.CONFIG.PMS_IP, plexpy.CONFIG.PMS_PORT)
 
     plex_tv = PlexTV()
     result = plex_tv.get_server_urls(include_https=plexpy.CONFIG.PMS_SSL)
@@ -109,7 +109,7 @@ def get_real_pms_url():
         connections = result['connections']
 
     # Only need to retrieve PMS_URL if using SSL
-    if plexpy.CONFIG.PMS_SSL:
+    if not plexpy.CONFIG.PMS_URL_MANUAL and plexpy.CONFIG.PMS_SSL:
         if connections:
             if plexpy.CONFIG.PMS_IS_REMOTE:
                 # Get all remote connections
@@ -124,19 +124,22 @@ def get_real_pms_url():
                              and c['port'] == str(plexpy.CONFIG.PMS_PORT)), conns[0])
                 plexpy.CONFIG.__setattr__('PMS_URL', conn['uri'])
                 plexpy.CONFIG.write()
-                logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
+                logger.info(u"Tautulli PlexTV :: Server URL retrieved.")
 
         # get_server_urls() failed or PMS_URL not found, fallback url doesn't use SSL
         if not plexpy.CONFIG.PMS_URL:
             plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
             plexpy.CONFIG.write()
-            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value without SSL.")
+            logger.warn(u"Tautulli PlexTV :: Unable to retrieve server URLs. Using user-defined value without SSL.")
 
     # Not using SSL, remote has no effect
     else:
+        if plexpy.CONFIG.PMS_URL_MANUAL and plexpy.CONFIG.PMS_SSL:
+            fallback_url = fallback_url.replace('http://', 'https://')
+
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
-        logger.info(u"PlexPy PlexTV :: Using user-defined URL.")
+        logger.info(u"Tautulli PlexTV :: Using user-defined URL.")
 
 
 class PlexTV(object):
@@ -170,8 +173,8 @@ class PlexTV(object):
         uri = '/users/sign_in.xml'
         base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'X-Plex-Device-Name': 'PlexPy',
-                   'X-Plex-Product': 'PlexPy',
+                   'X-Plex-Device-Name': 'Tautulli',
+                   'X-Plex-Product': 'Tautulli',
                    'X-Plex-Version': plexpy.common.VERSION_NUMBER,
                    'X-Plex-Platform': plexpy.common.PLATFORM,
                    'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
@@ -199,9 +202,9 @@ class PlexTV(object):
                             'user_id': xml_head[0].getAttribute('id')
                             }
                 else:
-                    logger.warn(u"PlexPy PlexTV :: Could not get Plex authentication token.")
+                    logger.warn(u"Tautulli PlexTV :: Could not get Plex authentication token.")
             except Exception as e:
-                logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_token: %s." % e)
+                logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_token: %s." % e)
                 return None
 
             return user
@@ -210,27 +213,27 @@ class PlexTV(object):
 
     def get_plexpy_pms_token(self, force=False):
         if force:
-            logger.debug(u"PlexPy PlexTV :: Forcing refresh of Plex.tv token.")
+            logger.debug(u"Tautulli PlexTV :: Forcing refresh of Plex.tv token.")
             devices_list = self.get_devices_list()
             device_id = next((d for d in devices_list if d['device_identifier'] == plexpy.CONFIG.PMS_UUID), {}).get('device_id', None)
 
             if device_id:
-                logger.debug(u"PlexPy PlexTV :: Removing PlexPy from Plex.tv devices.")
+                logger.debug(u"Tautulli PlexTV :: Removing Tautulli from Plex.tv devices.")
                 try:
                     self.delete_plextv_device(device_id=device_id)
                 except:
-                    logger.error(u"PlexPy PlexTV :: Failed to remove PlexPy from Plex.tv devices.")
+                    logger.error(u"Tautulli PlexTV :: Failed to remove Tautulli from Plex.tv devices.")
                     return None
             else:
-                logger.warn(u"PlexPy PlexTV :: No existing PlexPy device found.")
+                logger.warn(u"Tautulli PlexTV :: No existing Tautulli device found.")
         
-        logger.info(u"PlexPy PlexTV :: Fetching a new Plex.tv token for PlexPy.")
+        logger.info(u"Tautulli PlexTV :: Fetching a new Plex.tv token for Tautulli.")
         user = self.get_token()
         if user:
             token = user['auth_token']
             plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
             plexpy.CONFIG.write()
-            logger.info(u"PlexPy PlexTV :: Updated Plex.tv token for PlexPy.")
+            logger.info(u"Tautulli PlexTV :: Updated Plex.tv token for Tautulli.")
             return token
 
 
@@ -241,7 +244,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('Server')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_token: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_token: %s." % e)
             return None
 
         for a in xml_head:
@@ -296,7 +299,7 @@ class PlexTV(object):
         return request
 
     def get_plextv_sync_lists(self, machine_id='', output_format=''):
-        uri = '/servers/' + machine_id + '/sync_lists'
+        uri = '/servers/%s/sync_lists' % machine_id
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -337,6 +340,24 @@ class PlexTV(object):
 
         return request
 
+    def delete_plextv_device_sync_lists(self, client_id='', output_format=''):
+        uri = '/devices/%s/sync_items' % client_id
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def delete_plextv_sync(self, client_id='', sync_id='', output_format=''):
+        uri = '/devices/%s/sync_items/%s' % (client_id, sync_id)
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='DELETE',
+                                                    output_format=output_format)
+
+        return request
+
     def get_full_users_list(self):
         friends_list = self.get_plextv_friends()
         own_account = self.get_plextv_user_details()
@@ -345,15 +366,15 @@ class PlexTV(object):
         try:
             xml_parse = minidom.parseString(own_account)
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account: %s" % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list own account: %s" % e)
             return []
         except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list own account.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('user')
         if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list.")
         else:
             for a in xml_head:
                 own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -375,15 +396,15 @@ class PlexTV(object):
         try:
             xml_parse = minidom.parseString(friends_list)
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list: %s" % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list friends list: %s" % e)
             return []
         except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list friends list.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('User')
         if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_full_users_list.")
         else:
             for a in xml_head:
                 friend = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -413,19 +434,20 @@ class PlexTV(object):
         try:
             xml_parse = minidom.parseString(sync_list)
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items: %s" % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_synced_items: %s" % e)
             return []
         except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_synced_items.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('SyncList')
 
         if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_synced_items.")
         else:
             for a in xml_head:
-                client_id = helpers.get_xml_attr(a, 'id')
+                sync_id = helpers.get_xml_attr(a, 'id')
+                client_id = helpers.get_xml_attr(a, 'clientIdentifier')
                 sync_device = a.getElementsByTagName('Device')
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
@@ -505,6 +527,7 @@ class PlexTV(object):
                                         "video_quality": settings_video_quality,
                                         "total_size": status_total_size,
                                         "failure": status_failure,
+                                        "client_id": client_id,
                                         "sync_id": sync_id
                                         }
 
@@ -512,12 +535,16 @@ class PlexTV(object):
 
         return session.filter_session_info(synced_items, filter_key='user_id')
 
+    def delete_sync(self, client_id, sync_id):
+        logger.info(u"Tautulli PlexTV :: Deleting sync item '%s'." % sync_id)
+        self.delete_plextv_sync(client_id=client_id, sync_id=sync_id)
+
     def get_server_urls(self, include_https=True):
 
         if plexpy.CONFIG.PMS_IDENTIFIER:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
         else:
-            logger.error(u"PlexPy PlexTV :: Unable to retrieve server identity.")
+            logger.error(u"Tautulli PlexTV :: Unable to retrieve server identity.")
             return {}
 
         plextv_resources = self.get_plextv_resources(include_https=include_https)
@@ -525,16 +552,16 @@ class PlexTV(object):
         try:
             xml_parse = minidom.parseString(plextv_resources)
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s" % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_urls: %s" % e)
             return {}
         except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls.")
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_urls.")
             return {}
 
         try:
             xml_head = xml_parse.getElementsByTagName('Device')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
             return {}
 
         # Function to get all connections for a device
@@ -580,7 +607,7 @@ class PlexTV(object):
                             plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
                             plexpy.CONFIG.write()
     
-                            logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s."
+                            logger.info(u"Tautulli PlexTV :: PMS identifier changed from %s to %s."
                                         % (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
     
                             server = get_connections(a)
@@ -598,7 +625,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('Server')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_times: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_times: %s." % e)
             return {}
 
         for a in xml_head:
@@ -611,7 +638,7 @@ class PlexTV(object):
 
         return server_times
 
-    def discover(self):
+    def discover(self, include_cloud=True):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
         clean_servers = []
@@ -619,7 +646,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Failed to get servers from plex: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Failed to get servers from plex: %s." % e)
             return []
 
         for a in xml_head:
@@ -634,6 +661,10 @@ class PlexTV(object):
                     if helpers.get_xml_attr(d, 'presence') == '1' and \
                         helpers.get_xml_attr(d, 'owned') == '1' and \
                         helpers.get_xml_attr(d, 'provides') == 'server':
+
+                        if not include_cloud and helpers.get_xml_attr(d, 'platform').lower() == 'cloud':
+                            continue
+
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:
@@ -660,16 +691,16 @@ class PlexTV(object):
         return clean_servers
 
     def get_plex_downloads(self):
-        logger.debug(u"PlexPy PlexTV :: Retrieving current server version.")
+        logger.debug(u"Tautulli PlexTV :: Retrieving current server version.")
         pmsconnect.PmsConnect().set_server_version()
 
-        logger.debug(u"PlexPy PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
+        logger.debug(u"Tautulli PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
         plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
 
         try:
             available_downloads = json.loads(plex_downloads)
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to load JSON for get_plex_updates.")
+            logger.warn(u"Tautulli PlexTV :: Unable to load JSON for get_plex_updates.")
             return {}
 
         # Get the updates for the platform
@@ -678,7 +709,7 @@ class PlexTV(object):
             available_downloads.get('nas').get(pms_platform)
 
         if not platform_downloads:
-            logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Could not match server platform: %s."
+            logger.error(u"Tautulli PlexTV :: Unable to retrieve Plex updates: Could not match server platform: %s."
                          % pms_platform)
             return {}
 
@@ -686,11 +717,11 @@ class PlexTV(object):
         v_new = helpers.cast_to_int("".join(v.zfill(4) for v in platform_downloads.get('version', '').split('-')[0].split('.')[:4]))
 
         if not v_old:
-            logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Invalid current server version: %s."
+            logger.error(u"Tautulli PlexTV :: Unable to retrieve Plex updates: Invalid current server version: %s."
                          % plexpy.CONFIG.PMS_VERSION)
             return {}
         if not v_new:
-            logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Invalid new server version: %s."
+            logger.error(u"Tautulli PlexTV :: Unable to retrieve Plex updates: Invalid new server version: %s."
                          % platform_downloads.get('version'))
             return {}
 
@@ -721,13 +752,13 @@ class PlexTV(object):
         try:
             subscription = account_data.getElementsByTagName('subscription')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_plexpass_status: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_plexpass_status: %s." % e)
             return False
 
         if subscription and helpers.get_xml_attr(subscription[0], 'active') == '1':
             return True
         else:
-            logger.debug(u"PlexPy PlexTV :: Plex Pass subscription not found.")
+            logger.debug(u"Tautulli PlexTV :: Plex Pass subscription not found.")
             plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
             plexpy.CONFIG.write()
             return False
@@ -738,7 +769,7 @@ class PlexTV(object):
         try:
             xml_head = devices.getElementsByTagName('Device')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_devices_list: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_devices_list: %s." % e)
             return []
 
         devices_list = []

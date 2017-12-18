@@ -1,5 +1,77 @@
 # Changelog
 
+## v2.0.0-beta (2017-12-18)
+
+* Monitoring:
+  * New: More detailed stream info including subtitles, bitrates, bandwidth, and quality profiles.
+  * New: Terminate sessions from the current activity (Plex Pass only).
+  * Change: Monitoring uses websockets only now.
+* Notifications:
+  * New: Completely new notification system.
+    * Allow adding multiple of the same notification agent and/or duplicating existing notification agents.
+    * Each notification agent has it's own notification triggers and notification text.
+    * Notification agents are stored in the database instead of the config file. Some notification configurations may have been lost in the transfer. Sorry.
+  * New: Discord notification agent.
+  * New: GroupMe notification agent.
+  * New: MQTT notification agent.
+  * New: More customizable info cards for Discord, Facebook, Hipchat, and Slack.
+  * New: Script notifications are configured individually per script with separate arguments for each notification action.
+  * New: Icon and duration options for Plex Home Theater and XBMC notifications.
+  * New: Notification for Tautulli updates.
+  * New: Added &lt;show&gt;, &lt;season&gt;, &lt;artist&gt;, and &lt;album&gt; notification exclusion tags.
+    * &lt;tv&gt; is renamed to &lt;episode&gt;, and &lt;music&gt; is renamed to &lt;track&gt;
+  * New: Preview notification text in the notifier settings.
+  * New: Properly group recently added notifications when adding a batch of media.
+    * The {season_num}, {episode_num}, and {track_num} parameters will be substituted with the range (e.g. 06-10)
+  * New: Option to group recently added notifications by show/artist or season/album.
+  * New: More detailed media info (video, audio, subtitle, file, etc.) notification options available.
+  * New: Added notification text modifiers to change case and slice lists.
+  * New: Custom notification conditions using parameters to filter notifications.
+  * New: Button to trigger manual recently added notifications from the info pages.
+  * New: Lookup TVMaze and TheMovieDatabase links.
+  * Remove: The shared Imgur client ID has been removed. Please enter your own client ID in the settings to continue uploading posters.
+  * Change: Notifications with a blank subject or body will no longer be sent at all.
+  * Change: Line breaks inserted automatically in Email notification text.
+  * Change: Notifications for season/episodes now use the season poster and album/track now use the album art.
+  * Change: The {action} parameter is no longer capitalized.
+  * Change: Notification success or failure added to notification logs.
+* API:
+  * New: Added check for Plex Media Server updates with the Tautulli API.
+  * New: Added show/artist and episode/track titles to the "get_history" API command.
+  * New: Added manual trigger for recently added notifications.
+  * Remove: Defunct API v1.
+  * Change: The "notify" API command now requires a notifier_id instead of an agent_id. The notifier ID can be found in the settings for each notification agent.
+  * Change: The returned json for the "get_metadata" API command is no longer nested under the "metadata" key.
+* UI:
+  * New: Updated current activity, watch statistics, and library statistics cards on the home page.
+  * New: Toggle stats and recently added categories directly on the homepage.
+  * New: Ability to delete synced items from the Synced Items page.
+  * New: Updated platform icons to a uniform style.
+  * Remove: Setting for number of top items for watch statistic cards.
+  * Change: Separate API and websocket logs.
+* Android Tautulli Remote App (beta):
+  * New: Download the Tautulli Remote app on Google Play!
+    * Link the app using a QR code in the Tautulli settings.
+  * New: Push notifications directly to the Tautulli Remote app.
+* Other:
+  * New: Option to update Tautulli automatically when an update is available.
+  * New: Option to switch the tracking git remote and branch.
+  * New: Option to change the path to your git environment variable.
+  * New: Option to use a HTTPS certificate chain.
+  * New: Option to override the Plex Web URL for click-through links.
+  * New: Separate watched percentage for movies, episodes, and tracks.
+  * New: Show changelog after updating Tautulli.
+  * New: Support for IPv6 geolocation lookup.
+  * New: Download the Tautulli configuration file or database from the settings.
+  * New: Log failed Tautulli login attempts.
+  * Fix: Modal popups not working on mobile Safari.
+  * Fix: Prevent password managers from autofilling the password in the settings.
+  * Fix: Unable to search with special characters.
+  * Remove: Some unused options have been removed from the settings page.
+  * Change: The database schema has been changed, and reverting back to PlexPy v1 will not work.
+  * Change: The dev branch has been depreciated. A master/beta/nightly system is used instead.
+
+  
 ## v1.4.25 (2017-10-02)
 
 * Fix: Tab instead of spaces preventing startup.

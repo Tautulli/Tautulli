@@ -1,3 +1,5 @@
+var syncs_to_delete = [];
+
 sync_table_options = {
     "processing": false,
     "serverSide": false,
@@ -19,6 +21,19 @@ sync_table_options = {
     "columnDefs": [
         {
             "targets": [0],
+            "data": null,
+            "createdCell": function (td, cellData, rowData, row, col) {
+                $(td).html('<div class="edit-sync-toggles">' +
+                    '<button class="btn btn-xs btn-warning delete-sync" data-id="' + rowData['sync_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
+                    '</div>');
+            },
+            "width": "7%",
+            "className": "delete-control no-wrap hidden",
+            "searchable": false,
+            "orderable": false
+        },
+        {
+            "targets": [1],
             "data": "state",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 'pending') {
@@ -31,7 +46,7 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [1],
+            "targets": [2],
             "data": "friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -47,7 +62,7 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [2],
+            "targets": [3],
             "data": "title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -61,7 +76,7 @@ sync_table_options = {
             "className": "datatable-wrap"
 },
         {
-            "targets": [3],
+            "targets": [4],
             "data": "metadata_type",
             "render": function ( data, type, full ) {
                 return data.toProperCase();
@@ -69,17 +84,17 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "platform",
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "device_name",
             "className": "no-wrap"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data": "total_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData > 0 ) {
@@ -92,22 +107,22 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [7],
+            "targets": [8],
             "data": "item_count",
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": [9],
             "data": "item_complete_count",
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data": "item_downloaded_count",
             "className": "no-wrap"
         },
         {
-            "targets": [10],
+            "targets": [11],
             "data": "item_downloaded_percent_complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['item_count'] > 0 ) {
@@ -130,3 +145,19 @@ sync_table_options = {
         showMsg(msg, false, false, 0)
     }
 }
+
+$('#sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
+    var tr = $(this).parents('tr');
+    var row = sync_table.row(tr);
+    var rowData = row.data();
+
+    var index_delete = syncs_to_delete.findIndex(x => x.client_id == rowData['client_id'] && x.sync_id == rowData['sync_id']);
+
+    if (index_delete === -1) {
+        syncs_to_delete.push({ client_id: rowData['client_id'], sync_id: rowData['sync_id'] });
+    } else {
+        syncs_to_delete.splice(index_delete, 1);
+    }
+
+    $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+});

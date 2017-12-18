@@ -1,6 +1,7 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
+<link href="${http_root}css/jquery.scrollbar.css" rel="stylesheet">
 </%def>
 
 <%def name="body()">
@@ -10,7 +11,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
-                <h3>Activity</h3>
+                <h3>Activity &nbsp;&nbsp;<small><span id="currentActivityHeader"></span></small></h3>
             </div>
             <div id="currentActivity">
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
@@ -20,9 +21,35 @@
     % elif section == 'watch_stats':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header">
-                <h3>Watch Statistics &nbsp;&nbsp;<small>Last ${config['home_stats_length']} days</small></h3>
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left">Watch Statistics</h3>
+                <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
+                    % if config['home_stats_type'] == 0:
+                    <label class="btn btn-dark active">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off" checked> Play Count
+                    </label>
+                    <label class="btn btn-dark">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off"> Play Duration
+                    </label>
+                    % else:
+                    <label class="btn btn-dark">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off"> Play Count
+                    </label>
+                    <label class="btn btn-dark active">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off" checked> Play Duration
+                    </label>
+                    % endif
+                </div>
+                <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
+                    <span class="input-group-addon btn-dark inactive">Last</span>
+                    <input type="number" class="form-control" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
+                    <span class="input-group-addon btn-dark inactive">days</span>
+                </div>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="home-stats" class="home-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
@@ -32,9 +59,14 @@
     % elif section == 'library_stats':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header" id="library-statistics-header">
-                <h3>Library Statistics &nbsp;&nbsp;<small>${config['pms_name']}</small></h3>
+            <div class="home-padded-header padded-header" id="library-statistics-header">
+                <h3 class="pull-left">Library Statistics</h3>
+                <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="library-stats" class="library-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
@@ -44,8 +76,9 @@
     % elif section == 'recently_added':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header">
-                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -12px;">
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left">Recently Added</h3>
+                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
                     <li>
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
@@ -53,11 +86,29 @@
                         <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
-                <h3>Recently Added &nbsp;&nbsp;<small>
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-movie" data-type="movie">Movies</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-season" data-type="season">TV Shows</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-album" data-type="album">Music</a></small></h3>
+                <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
+                    <label class="btn btn-dark active" id="recently-added-label-all">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="" autocomplete="off"> All
+                    </label>
+                    <label class="btn btn-dark" id="recently-added-label-movies">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
+                    </label>
+                    <label class="btn btn-dark" id="recently-added-label-tv">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
+                    </label>
+                    <label class="btn btn-dark" id="recently-added-label-music">
+                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-music" value="artist" autocomplete="off"> Music
+                    </label>
+                </div>
+                <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
+                    <input type="number" class="form-control" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="100" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 100 items" />
+                    <span class="input-group-addon btn-dark inactive">items</span>
+                </div>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
                 <br>
@@ -69,8 +120,85 @@
 </div>
 </%def>
 
+<%def name="modalIncludes()">
+
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Tautulli Updated</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+% if _session['user_group'] == 'admin':
+<div id="terminate-session-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="terminate-session-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Terminate Session</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you sure you want to terminate this session?</p>
+                <p>
+                    <strong>
+                        <span id="terminate-user"></span><br />
+                        <span id="terminate-title"></span><br />
+                        <span id="terminate-subtitle"></span>
+                    </strong>
+                </p>
+                <br />
+                <label for="terminate-message">Terminate Message</label>
+                <div class="row">
+                    <div class="col-md-8" style="float: none; margin: 0 auto;">
+                        <input type="text" class="form-control" id="terminate-message" name="terminate-message" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-terminate-session">Terminate</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade wide" id="raw-stream-info-modal" tabindex="-1" role="dialog" aria-labelledby="raw-stream-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Raw Stream Info: <strong><span id="raw-stream-info-title"></span> (<span id="raw-stream-info-user"></span>)</strong></h4>
+            </div>
+            <div class="modal-body">
+                <pre id="raw-stream-info"></pre>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+
+</%def>
+
 <%def name="javascriptIncludes()">
 <script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.scrollbar.min.js"></script>
+<script src="${http_root}js/jquery.mousewheel.min.js"></script>
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -82,20 +210,30 @@
             time_format = data.time_format;
         }
     });
+
+    function lockScroll(elem) {
+        $(elem).each(function (i, instance)  {
+            var childHeight = $(instance).children('.scoller-content').height();
+            var height = $(instance).height();
+            var scrollHeight = $(instance).get(0).scrollHeight;
+
+            if (childHeight > height) {
+                $(instance).on('mousewheel', function(e, d) {
+                    if(($(instance).scrollTop() >= (scrollHeight - height)) && d < 0 || ($(instance).scrollTop() <= 0) && d > 0) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    };
 </script>
 % if 'current_activity' in config['home_sections']:
 <script>
-    function currentActivityHeader() {
-        $.ajax({
-            url: 'get_current_activity_header',
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                $("#current-activity-header").html(xhr.responseText);
-            }
-        });
-    }
-    currentActivityHeader();
+    var defaultHandler = {
+        get: function(target, name) {
+            return target.hasOwnProperty(name) ? target[name] : 'Unknown';
+        }
+    };
 
     function getCurrentActivity() {
         $.ajax({
@@ -118,6 +256,7 @@
                 }
 
                 if (!(current_activity)) {
+                    $('#currentActivityHeader').text('');
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.</div>');
                     return
                 }
@@ -128,103 +267,232 @@
                 if (stream_count) {
                     $('#dashboard-no-activity').remove();
 
-                    sessions.forEach(function (s) {
-                        var key = s.session_key;
-                        var instance = $('#instance-' + key);
+                    // Update the header stream counts
+                    var sc_dp = current_activity.stream_count_direct_play,
+                        sc_ds = current_activity.stream_count_direct_stream,
+                        sc_tc = current_activity.stream_count_transcode;
+                    var header_count = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
+                    if (sc_dp) {
+                        header_count += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_ds) {
+                        header_count += sc_ds + ' direct stream' + (sc_ds > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_tc) {
+                        header_count += sc_tc + ' transcode' + (sc_tc > 1 ? 's' : '') + ', ';
+                    }
+                    header_count = header_count.replace(/, $/, '');
+                    header_count += ')';
+                    $('#currentActivityHeader').text(header_count);
 
-                        // create a new instance if it doesn't exist
+                    sessions.forEach(function (session) {
+                        var s = new Proxy(session, defaultHandler);
+                        var key = s.session_key;
+                        var session_id = s.session_id;
+                        var instance = $('#activity-instance-' + key);
+
+                        // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
-                            getActivityInstance(s);
+                            getActivityInstance(session);
                             return;
                         }
 
-                        // update play state
+                        // Update play state icon
                         switch (s.state) {
                             case 'playing':
-                                var overlay_state = 'State &nbsp;<strong>Playing</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-play"></i>&nbsp;';
                                 break;
                             case 'paused':
-                                var overlay_state = 'State &nbsp;<strong>Paused</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-pause"></i>&nbsp;';
                                 break;
                             case 'buffering':
-                                var overlay_state = 'State &nbsp;<strong>Buffering</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-spinner"></i>&nbsp;';
                                 break;
                             default:
-                                var overlay_state = 'State &nbsp;<strong>Unknown</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
                         }
-                        $('#overlay-play-state-' + key).html(overlay_state);
-                        $('#play-state-' + key).html(state_icon);
+                        $('#play-state-' + key).html(state_icon).attr('title', capitalizeFirstLetter(s.state));
 
-                        // if using bif indexes, update the bif thumbnail
-                        if (s.indexes) {
-                            var bif_poster = $('#bif-' + key);
-                            bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
-                            bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
-                                + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
-                            blurArtwork(key);
+                        // Switching tracks can be under the same session key, so need to update the info.
+                        if (s.media_type === 'track') {
+                            // Update if artist changed
+                            if (s.grandparent_rating_key != instance.data('grandparent_rating_key')) {
+                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&fallback=art&refresh=true)');
+                                $('#metadata-grandparent_title-' + key)
+                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('title', s.grandparent_title)
+                                    .text(s.grandparent_title);
+                            }
+                            // Update cover if album changed
+                            if (s.parent_rating_key != instance.data('parent_rating_key')) {
+                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-url-' + key)
+                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('title', s.parent_title);
+                                $('#metadata-parent_title-' + key)
+                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('title', s.parent_title)
+                                    .text(s.parent_title);
+                            }
+                            // Update cover if track changed
+                            if (s.parent_rating_key != instance.data('parent_rating_key')) {
+                                $('#metadata-title-' + key)
+                                    .attr('href', 'info?rating_key=' + s.rating_key)
+                                    .attr('title', s.title)
+                                    .text(s.title);
+                            }
                         }
 
-                        // if transcoding, update the transcode state
-                        var ts = '';
-                        if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
-                            var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
-                            ts += 'Stream &nbsp;<strong>Transcode (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
-                        } else if (s.video_decision == 'copy' || s.audio_decision == 'copy') {
-                            ts += 'Stream &nbsp;<strong>Direct Stream</strong><br>';
+                        // Update the transcode state
+                        var transcode_decision = '';
+                        if (s.transcode_decision === 'transcode') {
+                            var throttled = (s.transcode_throttled == 1) ? ' (Throttled)' : ' (Speed: ' + s.transcode_speed + ')';
+                            transcode_decision = 'Transcode' + throttled;
+                        } else if (s.transcode_decision === 'copy') {
+                            transcode_decision = 'Direct Stream';
                         } else {
-                            ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
+                            transcode_decision = 'Direct Play' + ((s.synced_version == 1) ? ' (Synced)' : '');
                         }
-                        if (s.video_decision != '' && s.media_type != 'photo') {
-                            if (s.video_decision == 'transcode') {
-                                ts += 'Video &nbsp;<strong>Transcode (' + s.transcode_video_codec + ') (' + s.transcode_width + 'x' + s.transcode_height + ')</strong><br>';
-                            } else if (s.video_decision == 'copy') {
-                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.transcode_video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
-                            } else {
-                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
-                            }
-                        }
-                        if (s.audio_decision != '') {
-                            if (s.audio_decision == 'transcode') {
-                                ts += 'Audio &nbsp;<strong>Transcode (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
-                            } else if (s.audio_decision == 'copy') {
-                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
-                            } else {
-                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec + ') (' + s.audio_channels + 'ch)</strong>';
-                            }
-                        }
-                        $('#transcode-state-' + key).html(ts);
+                        $('#transcode_decision-' + key).html(transcode_decision);
 
-                        // update the stream progress times
+                        var transcode_container = '';
+                        if (s.stream_container_decision === 'transcode') {
+                            transcode_container = 'Transcode (' + s.container.toUpperCase() + ' &rarr; ' + s.stream_container.toUpperCase() + ')';
+                        } else {
+                            transcode_container = 'Direct Play (' + s.container.toUpperCase() + ')';
+                        }
+                        $('#transcode_container-' + key).html(transcode_container);
+
+                        var video_decision = '';
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.video_decision != '') {
+                            switch (s.video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var v_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var v_res = '4k';
+                                    break;
+                                default:
+                                    var v_res = s.video_resolution + 'p'
+                            }
+                            switch (s.stream_video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var sv_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var sv_res = '4k';
+                                    break;
+                                default:
+                                    var sv_res = s.stream_video_resolution + 'p'
+                            }
+                            if (s.stream_video_decision === 'transcode') {
+                                var hw_d = '';
+                                var hw_e = '';
+                                if (s.transcode_hw_requested === 1 && s.transcode_hw_full_pipeline === 0) {
+                                    hw_d = ' (HW)';
+                                } else if (s.transcode_hw_requested === 1 && s.transcode_hw_full_pipeline === 1) {
+                                    hw_d = ' (HW)';
+                                    hw_e = ' (HW)';
+                                }
+                                video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
+                            } else if (s.stream_video_decision === 'copy') {
+                                video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
+                            } else {
+                                video_decision = 'Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')';
+                            }
+                        } else if (s.media_type === 'photo') {
+                            video_decision = 'Direct Play (' + s.width + 'x' + s.height + ')';
+                        }
+                        $('#video_decision-' + key).html(video_decision);
+
+                        var audio_decision = '';
+                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_codec) {
+                            var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
+                            var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
+                            if (s.stream_audio_decision === 'transcode') {
+                                audio_decision = 'Transcode (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' &rarr; ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                            } else if (s.stream_audio_decision === 'copy') {
+                                audio_decision = 'Direct Stream (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                            } else {
+                                audio_decision = 'Direct Play (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ')';
+                            }
+                        }
+                        $('#audio_decision-' + key).html(audio_decision);
+
+                        var subtitle_decision = 'None';
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles === 1) {
+                            if (s.stream_subtitle_decision === 'transcode') {
+                                subtitle_decision = 'Transcode (' + s.subtitle_codec.toUpperCase() + ' &rarr; ' + s.stream_subtitle_codec.toUpperCase() + ')';
+                            } else if (s.stream_subtitle_decision === 'copy') {
+                                subtitle_decision = 'Direct Stream (' + s.subtitle_codec.toUpperCase() + ')';
+                            } else if (s.stream_subtitle_decision === 'burn') {
+                                subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
+                            } else {
+                                subtitle_decision = 'Direct Play (' + s.subtitle_codec.toUpperCase() + ')';
+                            }
+                        }
+                        $('#subtitle_decision-' + key).html(subtitle_decision);
+
+                        // Update the stream quality profile and bandwidth
+                        if (s.media_type != 'photo' && s.quality_profile != 'Unknown') {
+                            var br = parseInt(s.stream_bitrate) || '';
+                            if (br) {
+                                if (br > 1000) {
+                                    br = ' (' + (br / 1000).toFixed(1) + ' Mbps)';
+                                } else {
+                                    br = ' (' + br + ' kbps)';
+                                }
+                            }
+                            $('#stream_quality-' + key).html(s.quality_profile + br);
+                        } else {
+                            $('#stream_quality-' + key).html(s.quality_profile);
+                        }
+                        $('#optimized_version-' + key).html(s.optimized_version_profile);
+
+                        if (s.media_type != 'photo' && parseInt(s.bandwidth)) {
+                            var bw = parseInt(s.bandwidth);
+                            if (bw != "Unknown") {
+                                if (bw > 1000) {
+                                    bw = (bw / 1000).toFixed(1) + ' Mbps';
+                                } else {
+                                    bw = bw + ' kbps'
+                                }
+                            }
+                            $('#stream-bandwidth-' + key).html(bw);
+                        }
+
+                        // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
-                        $('#stream-view-offset-' + key).html(millisecondsToMinutes(s.view_offset, false));
+                        $('#stream-view-offset-' + key).data('state', s.state);
+                        if ($('#stream-view-offset-' + key).data('last_view_offset') != s.view_offset) {
+                            $('#stream-view-offset-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
 
-                        // update the progress bars
-                        // percent - 3 because of 3px padding-right
-                        $('#bufferbar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
+                        // Update the progress bars, percent - 3 because of 3px padding-right
+                        $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
-                        $('#bar-' + key).width(parseInt(s.progress_percent) - 3 + '%').html(s.progress_percent + '%')
-                            .attr('data-original-title', 'Stream Progress ' + s.progress_percent + '%');
+                        $('#progress-bar-' + key).data('state', s.state);
+                        if ($('#progress-bar-' + key).data('last_view_offset') != s.view_offset) {
+                            $('#progress-bar-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
 
-
-                        // add temporary class so we know which instances are still active
+                        // Add temporary class so we know which instances are still active
                         instance.addClass('updated-temp');
                     });
 
                     // Remove finished instances
-                    var all_instances = $('div[id^=instance-]');
-                    all_instances.each(function (i, instance) {
+                    $('div[id^=activity-instance-]').each(function (i, instance) {
                         if ($(instance).hasClass('updated-temp')) {
                             $(instance).removeClass('updated-temp');
                         } else {
+                            $(instance).find('[data-toggle=tooltip]').tooltip('destroy');
                             $(instance).remove();
                         }
                     });
 
                 } else {
+                    $('#currentActivityHeader').text('');
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
                 }
             }
@@ -240,60 +508,149 @@
             data: session,
             complete: function(xhr, status) {
                 $('#currentActivity').append(xhr.responseText);
-                $('#instance-' + session.session_key).find('.dashboard-activity-poster-face').hide().fadeIn(1000);
-                $('#bufferbar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
-                $('#bar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller').scrollbar();
+                $('#activity-instance-' + session.session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 })
+                $('#terminate-button-' + session.session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
+                lockScroll('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller');
             }
         });
     }
 
     getCurrentActivity();
     setInterval(function () {
-        currentActivityHeader();
         getCurrentActivity();
-    }, 15000);
+    }, 2000);
 
-    function blurArtwork(session_key) {
-        var filterVal = $('#stream-' + session_key).is(':visible') ? 'blur(5px)' : '';
-        $($('#poster-' + session_key).find('.dashboard-activity-poster-face, .dashboard-activity-cover-face'))
-        .css('filter', filterVal).css('webkitFilter', filterVal).css('mozFilter', filterVal).css('oFilter', filterVal).css('msFilter', filterVal);
-    }
+    setInterval(function(){
+        $('.progress_time_offset').each(function () {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                var view_offset = parseInt($(this).data('view_offset'));
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
+            }
+        });
+        $('.progress-bar').each(function () {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                var view_offset = parseInt($(this).data('view_offset'));
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var progress_percent = Math.min(Math.trunc(view_offset / stream_duration * 100), 100)
+                $(this).width(progress_percent - 3 + '%').html(progress_percent + '%')
+                    .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
+                    .data('view_offset', Math.min(view_offset + 1000, stream_duration));
+            }
+        });
+    }, 1000);
 
-    // Show/Hide activity info
-    $('#currentActivity').on('click', '.btn-activity-info', function (e) {
+    $('#currentActivity').on('click', '.external_ip-modal', function () {
+        $.get('get_ip_address_details', {
+            ip_address: $(this).data('ip')
+        }).then(function (jqXHR) {
+            $("#ip-info-modal").html(jqXHR);
+        });
+    });
+
+    $('#currentActivity').on('click', '.raw-stream-info-modal', function () {
+        $.ajax({
+            url: 'get_activity',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: {
+                session_key: $(this).data('key')
+            },
+            error: function (xhr, status, error) {
+                console.log(status + ': ' + error);
+            },
+            complete: function (xhr, status) {
+                var session = $.parseJSON(xhr.responseText);
+                $('#raw-stream-info-title').text(session.full_title);
+                $('#raw-stream-info-user').text(session.friendly_name);
+                $('#raw-stream-info').text(JSON.stringify(session, Object.keys(session).sort(), 4));
+            }
+        });
+    });
+
+    % if _session['user_group'] == 'admin':
+    // Terminate session
+    $('#currentActivity').on('click', '.dashboard-activity-terminate-session', function (e) {
         e.preventDefault();
-        $($(this).attr('data-target')).toggle();
-        var key = $(this).data('id');
-        blurArtwork(key);
-    });
+        var session_id = $(this).data('id');
+        var key = $(this).data('key');
+        var instance = $('#activity-instance-' + key);
 
-    // Add hover class to dashboard-instance
-    $('#currentActivity').on('mouseover', '.dashboard-hover-container', function () {
-        $(this).closest('.dashboard-instance').addClass('hover');
+        $('#terminate-user').text(instance.find('.dashboard-activity-metadata-user').text());
+        $('#terminate-title').text(instance.find('.dashboard-activity-metadata-title').text());
+        $('#terminate-subtitle').text(instance.find('.dashboard-activity-metadata-subtitle').text());
+
+        $('#terminate-session-modal').modal();
+        $('#terminate-session-modal').one('click', '#confirm-terminate-session', function () {
+            var message = $('#terminate-message').val();
+
+            showMsg('Terminating session', true);
+
+            $.ajax({
+                url: 'terminate_session',
+                data: {
+                    session_id: session_id,
+                    message: message
+                },
+                async: true,
+                success: function (data) {
+                    if (data.result === 'success') {
+                        setTimeout(function() {
+                            getCurrentActivity();
+                            showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                        }, 2500);
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                    }
+                }
+            });
+        });
     });
-    $('#currentActivity').on('mouseleave', '.dashboard-hover-container', function () {
-        var id = $(this).closest('.dashboard-instance').data('id');
-        if (!($('#stream-' + id).is(':visible'))) {
-            $(this).closest('.dashboard-instance').removeClass('hover');
-        }
-    });
+    % endif
 </script>
 % endif
 % if 'watch_stats' in config['home_sections']:
 <script>
-    function getHomeStats(days) {
+    function getHomeStats(time_range, stats_type) {
+        showMsg("Loading watch statistics...", true, false, 0);
+
         $.ajax({
             url: 'home_stats',
             type: 'GET',
             cache: false,
             async: true,
-            data: { },
+            data: {
+                time_range: time_range,
+                stats_type: stats_type
+            },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
+                lockScroll('#home-stats .dashboard-stats-info-scroller');
             }
         });
     }
-    getHomeStats();
+
+    var time_range = $('#watched-stats-days').val();
+    var stats_type = $('input[name=watched-stats-type]:checked', '#watch-stats-toggles').val();
+    getHomeStats(time_range, stats_type);
+
+    $('input[name=watched-stats-type]').change(function () {
+        stats_type = $(this).filter(':checked').val();
+        getHomeStats(time_range, stats_type);
+        $.post('set_home_stats_config', { stats_type: stats_type });
+    });
+    $('#watched-stats-days').change(function () {
+        forceMinMax($(this));
+        time_range = $(this).val();
+        getHomeStats(time_range, stats_type);
+        $.post('set_home_stats_config', { time_range: time_range });
+    });
+
+    $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:
@@ -315,64 +672,27 @@
 % endif
 % if 'recently_added' in config['home_sections']:
 <script>
-    function recentlyAdded() {
+    function recentlyAdded(recently_added_count, recently_added_type) {
+        showMsg("Loading recently added items...", true, false, 0);
+
         $.ajax({
             url: 'get_recently_added',
-            type: "GET",
+            type: 'GET',
             async: true,
-            data: { count : 50 },
+            data: {
+                count: recently_added_count,
+                type: recently_added_type 
+            },
             complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
                 highlightAddedScrollerButton();
-                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) { $('#toggle-recently-added-movie').removeClass('disabled'); }
-                if ($('.dashboard-recent-media-instance li[data-type=season]').length) { $('#toggle-recently-added-season').removeClass('disabled'); }
-                if ($('.dashboard-recent-media-instance li[data-type=album]').length) { $('#toggle-recently-added-album').removeClass('disabled'); }
-
-                $('.toggle-recently-added-type').not('.disabled').click(function () {
-                    var scroller = $("#recently-added-row-scroller");
-                    var media_type = $(this).data('type');
-                    var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
-                    var toggle_items = $('.dashboard-recent-media-instance li[data-type=' + media_type + ']');
-                    var containerWidth = $("body").find(".container-fluid").width();
-
-                    if (margin_right == 0) {
-                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
-                            toggle_items.hide();
-
-                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
-                            scroller.width(scroller_width);
-
-                            if (scroller_width < containerWidth) {
-                                $("#recently-added-page-right").addClass("disabled").blur();
-                            } else {
-                                $("#recently-added-page-right").removeClass("disabled");
-                            }
-                        })
-                    } else {
-                        scroller.width(50 * 175);
-                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
-                            toggle_items.show();
-
-                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
-                            scroller.width(scroller_width);
-
-                            if (scroller_width < containerWidth) {
-                                $("#recently-added-page-right").addClass("disabled").blur();
-                            } else {
-                                $("#recently-added-page-right").removeClass("disabled");
-                            }
-                        })
-                    }
-
-                    leftTotal = 0;
-                    scroller.animate({ left: leftTotal }, 1000);
-                    $("#recently-added-page-left").addClass("disabled").blur();
-                    $(this).toggleClass('text-muted').blur();
-                });
             }
         });
     }
-    recentlyAdded();
+    var recently_added_count = $('#recently-added-count').val();
+    var recently_added_type = '';
+    recentlyAdded(recently_added_count, recently_added_type);
 
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");
@@ -388,6 +708,12 @@
     $(window).resize(function () {
         highlightAddedScrollerButton();
     });
+
+    function resetScroller() {
+        leftTotal = 0;
+        $("#recently-added-row-scroller").animate({ left: leftTotal }, 1000);
+        $("#recently-added-page-left").addClass("disabled").blur();
+    }
 
     var leftTotal = 0;
     $(".paginate").click(function (e) {
@@ -410,6 +736,42 @@
             $("#recently-added-page-right").addClass("disabled").blur();
         } else {
             $("#recently-added-page-right").removeClass("disabled");
+        }
+    });
+
+    $('#recently-added-toggles').on('change', function () {
+        $('#recently-added-toggles > label').removeClass('active');
+        selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
+        $(selected_filter).closest('label').addClass('active');
+        recently_added_type = $(selected_filter).val();
+        resetScroller();
+        recentlyAdded(recently_added_count, recently_added_type);
+    });
+
+    $('#recently-added-count').change(function () {
+        forceMinMax($(this));
+        recently_added_count = $(this).val();
+        resetScroller();
+        recentlyAdded(recently_added_count, recently_added_type);
+        $.post('set_home_stats_config', { recently_added_count: recently_added_count });
+    });
+
+    $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });
+</script>
+% endif
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<script>
+    $.ajax({
+        url: 'get_changelog',
+        data: {
+            latest_only: true, 
+            update_shown: true
+        },
+        cache: false,
+        async: true,
+        complete: function (xhr, status) {
+            $("#changelog-modal .modal-body").html(xhr.responseText);
+            $('#changelog-modal').modal();
         }
     });
 </script>

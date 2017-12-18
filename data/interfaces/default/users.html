@@ -40,38 +40,41 @@
                 <th align="left" id="last_player">Last Player</th>
                 <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
-                <th align="left" id="total_duration">Total Duration</th>
+                <th align="left" id="total_duration">Total Played Duration</th>
             </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
-        <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
-        </div>
-        <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-        </div>
-        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
-                    </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <ul id="users-to-delete" class="list-unstyled"></ul>
-                        <ul id="users-to-purge" class="list-unstyled"></ul>
-                        <p>This is permanent and cannot be undone!</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
-                    </div>
-                </div>
+    </div>
+</div>
+
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+</div>
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+<div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <ul id="users-to-delete" class="list-unstyled"></ul>
+                <ul id="users-to-purge" class="list-unstyled"></ul>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
             </div>
         </div>
     </div>
 </div>
-
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -116,7 +119,7 @@
                     });
 
                     if (users_to_delete.length > 0) {
-                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete the following users:</p>')
+                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete and purge all history for the following users:</p>')
                         for (var i = 0; i < users_to_delete.length; i++) {
                             $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_delete[i] + '] > input').val() + '</li>');
                         }
@@ -131,10 +134,11 @@
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < users_to_delete.length; i++) {
+                        users_to_delete.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_user',
-                                data: { user_id: users_to_delete[i] },
+                                type: 'POST',
+                                data: { user_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -142,11 +146,12 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
-                        for (var i = 0; i < users_to_purge.length; i++) {
+                        });
+                        users_to_purge.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_all_user_history',
-                                data: { user_id: users_to_purge[i] },
+                                type: 'POST',
+                                data: { user_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -154,7 +159,7 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         users_list_table.draw();
                     });
                 }

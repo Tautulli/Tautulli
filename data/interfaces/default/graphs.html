@@ -20,7 +20,7 @@
                     </select>
                 </label>
             </div>
-            <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
+            <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
                 % if config['graph_type'] == 'duration':
                 <label class="btn btn-dark">
                     <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off"> Play Count
@@ -37,15 +37,15 @@
                 </label>
                 % endif
             </div>
-            <div class="btn-group" id="days-selection">
-                <label>
-                    <input type="number" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" /> days
-                </label>
+            <div class="input-group pull-right" style="width: 1px;" id="days-selection">
+                <span class="input-group-addon btn-dark inactive">Last</span>
+                <input type="number" class="form-control" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
+                <span class="input-group-addon btn-dark inactive">days</span>
             </div>
-            <div class="btn-group" id="months-selection">
-                <label>
-                    <input type="number" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" /> months
-                </label>
+            <div class="input-group pull-right" style="width: 1px;" id="months-selection">
+                <span class="input-group-addon btn-dark inactive">Last</span>
+                <input type="number" class="form-control" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
+                <span class="input-group-addon btn-dark inactive">months</span>
 			</div>
         </div>
     </div>
@@ -245,10 +245,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
-            </div>
         </div>
     </div>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
+</div>
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
 </%def>
 
@@ -287,16 +292,17 @@
             
             $.ajax({
                 url: "history_table_modal",
-                type: 'post',
-                data:  {
+                cache: false,
+                async: true,
+                data: {
                     user_id: selected_user_id,
                     start_date: dateString,
                     media_type: media_type,
                     transcode_decision: transcode_decision
                 },
                 complete: function(xhr, status) {
-                    $('#history-modal').modal('show');
                     $("#history-modal").html(xhr.responseText);
+                    $('#history-modal').modal();
                 }
             });
         }
@@ -566,11 +572,7 @@
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab1(current_day_range, yaxis);
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_tab: current_tab.replace('#','') },
-                async: true
-            });
+            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
         })
 
         // Tab2 opened
@@ -578,11 +580,7 @@
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab2(current_day_range, yaxis);
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_tab: current_tab.replace('#','') },
-                async: true
-            });
+            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
         })
 
         // Tab3 opened
@@ -590,46 +588,28 @@
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab3(current_month_range, yaxis);
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_tab: current_tab.replace('#','') },
-                async: true
-            });
+            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
         })
 
         // Date range changed
+        $('#graph-days').tooltip({ container: 'body', placement: 'top', html: true });
         $('#graph-days').on('change', function() {
-            current_day_range = Math.round($(this).val());
-            $(this).val(current_day_range);
-            if (current_day_range < 1) {
-                $(this).val(7);
-                current_day_range = 7;
-            }
+            forceMinMax($(this));
+            current_day_range = $(this).val();
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             $('.days').html(current_day_range);
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_days: current_day_range},
-                async: true
-            });
+            $.post('set_graph_config', { graph_days: current_day_range });
         });
         
         // Month range changed
+        $('#graph-months').tooltip({ container: 'body', placement: 'top', html: true });
         $('#graph-months').on('change', function() {
-            current_month_range = Math.round($(this).val());
-            $(this).val(current_month_range);
-            if (current_month_range < 1) {
-                $(this).val(12);
-                current_month_range = 12;
-            }
+            forceMinMax($(this));
+            current_month_range = $(this).val();
             if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
             $('.months').html(current_month_range);
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_months: current_month_range},
-                async: true
-            });
+            $.post('set_graph_config', { graph_months: current_month_range });
         });
 
         // User changed
@@ -646,11 +626,7 @@
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
-            $.ajax({
-                url: 'set_graph_config',
-                data: { graph_type: yaxis},
-                async: true
-            });
+            $.post('set_graph_config', { graph_type: yaxis });
         });
 
         function setGraphFormat(type) {
