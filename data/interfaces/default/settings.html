@@ -950,15 +950,11 @@
                                     <div class="input-group git-group">
                                         <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
                                         <select class="form-control" id="git_branch" name="git_branch">
-                                            % if config['git_branch'] == 'master':
-                                            <option value="master" selected>master</option>
-                                            <option value="dev">dev</option>
-                                            % elif config['git_branch'] == 'dev':
-                                            <option value="master">master</option>
-                                            <option value="dev" selected>dev</option>
-                                            % else:
-                                            <option value="master">master</option>
-                                            <option value="dev">dev</option>
+                                            <% branches = ('master', 'beta', 'nightly') %>
+                                            % for branch in branches:
+                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
+                                            % endfor
+                                            % if config['git_branch'] not in branches:
                                             <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
                                             % endif
                                         </select>
