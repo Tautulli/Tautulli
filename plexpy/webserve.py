@@ -2722,12 +2722,18 @@ class WebInterface(object):
             del kwargs[use_config]
 
         # Check if we should refresh our data
+        first_run = False
         server_changed = False
         reschedule = False
         https_changed = False
         refresh_libraries = False
         refresh_users = False
 
+        # First run from the setup wizard
+        if kwargs.get('first_run'):
+            del kwargs['first_run']
+            first_run = True
+            
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
@@ -2796,6 +2802,10 @@ class WebInterface(object):
             pmsconnect.get_server_friendly_name()
             web_socket.reconnect()
 
+        # If first run, start websocket
+        if first_run:
+            web_socket.start_thread()
+        
         # Reconfigure scheduler if intervals changed
         if reschedule:
             plexpy.initialize_scheduler()

@@ -175,8 +175,8 @@ _CONFIG_DEFINITIONS = {
     'GIT_PATH': (str, 'General', ''),
     'GIT_REMOTE': (str, 'General', 'origin'),
     'GIT_TOKEN': (str, 'General', ''),
-    'GIT_USER': (str, 'General', 'tautulli'),
-    'GIT_REPO': (str, 'General', 'tautulli'),
+    'GIT_USER': (str, 'General', 'JonnyWong16'),
+    'GIT_REPO': (str, 'General', 'plexpy'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_MONTHS': (int, 'General', 12),
@@ -873,8 +873,3 @@ class Config(object):
             self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
 
             self.CONFIG_VERSION == 9
-
-        if self.CONFIG_VERSION == 9:
-            if self.GIT_USER.lower() == 'jonnywong16':
-                self.GIT_USER = 'tautulli'
-            self.CONFIG_VERSION = 10

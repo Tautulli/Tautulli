@@ -33,10 +33,11 @@ ws_reconnect = False
 
 
 def start_thread():
-    # Check for any existing sessions on start up
-    activity_pinger.check_active_sessions(ws_request=True)
-    # Start the websocket listener on it's own thread
-    threading.Thread(target=run).start()
+    if plexpy.CONFIG.FIRST_RUN_COMPLETE:
+        # Check for any existing sessions on start up
+        activity_pinger.check_active_sessions(ws_request=True)
+        # Start the websocket listener on it's own thread
+        threading.Thread(target=run).start()
 
 
 def on_disconnect():

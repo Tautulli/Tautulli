@@ -18,7 +18,6 @@
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
-    ${next.headIncludes()}
 
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.0">
@@ -164,6 +163,7 @@
 
                     <!-- Required fields but hidden -->
                     <div style="display: none;">
+                        <input type="checkbox" name="first_run" id="first_run" value="1" checked>
                         <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
                         <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
                         <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
