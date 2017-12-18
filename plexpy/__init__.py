@@ -430,7 +430,7 @@ def dbcheck():
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
         'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
-        'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_width INTEGER, '
+        'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, '
         'video_framerate TEXT, aspect_ratio TEXT, '
         'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, subtitle_codec TEXT, '
         'stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
