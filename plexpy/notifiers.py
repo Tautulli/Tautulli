@@ -1982,7 +1982,7 @@ class JOIN(Notifier):
 
     def get_devices(self):
         if self.config['api_key']:
-            params = {'api_key': self.config['api_key']}
+            params = {'apikey': self.config['api_key']}
 
             r = requests.get('https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices', params=params)
 
