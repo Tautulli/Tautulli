@@ -172,10 +172,18 @@ def initialize(config_file):
 
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
+            logger.debug(u"Generating UUID...")
             my_uuid = generate_uuid()
             CONFIG.__setattr__('PMS_UUID', my_uuid)
             CONFIG.write()
-
+        
+        # Check if Tautulli has an API key
+        if CONFIG.API_KEY == '':
+            logger.debug(u"Generating API key...")
+            api_key = generate_uuid()
+            CONFIG.__setattr__('API_KEY', api_key)
+            CONFIG.write()
+        
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
         CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
@@ -1491,5 +1499,4 @@ def shutdown(restart=False, update=False, checkout=False):
 
 
 def generate_uuid():
-    logger.debug(u"Generating UUID...")
     return uuid.uuid4().hex

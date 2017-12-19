@@ -3539,7 +3539,7 @@ class WebInterface(object):
     def generate_api_key(self, device=None, **kwargs):
         apikey = ''
         while not apikey or apikey == plexpy.CONFIG.API_KEY or mobile_app.get_mobile_device_by_token(device_token=apikey):
-            apikey = uuid.uuid4().hex
+            apikey = plexpy.generate_uuid()
 
         logger.info(u"New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)

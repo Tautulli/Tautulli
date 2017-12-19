@@ -66,7 +66,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
-    'API_ENABLED': (int, 'General', 0),
+    'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
     'BOXCAR_ENABLED': (int, 'Boxcar', 0),
