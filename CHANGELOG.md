@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.1-beta (2017-12-19)
+
+* Monitoring:
+  * Fix: Missing video_height database column.
+* Notifications:
+  * Fix: Join API key.
+  * Change: Temporarily disable broken browser notifications.
+* UI:
+  * Fix: Incorrect fallback image for music watch statistics.
+
+
 ## v2.0.0-beta (2017-12-18)
 
 * Monitoring:
