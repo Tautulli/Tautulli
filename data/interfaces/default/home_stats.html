@@ -86,7 +86,7 @@ DOCUMENTATION :: END
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
             <div class="dashboard-stats-poster-container hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster-blur" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&fallback=${type});"></div>
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster-blur" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % endif
                 <a id="stats-thumb-url-${stat_id}" href="info?rating_key=${row0['rating_key']}" title="${row0['title']}">
                     <% type = 'cover' if stat_id in ('top_music', 'popular_music') else 'poster' %>
