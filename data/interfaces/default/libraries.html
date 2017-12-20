@@ -8,17 +8,6 @@
 
 <%def name="body()">
 <div class='container-fluid'>
-    % if config['update_section_ids'] == 1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-exclamation-triangle"></i> Tautulli needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
-    </div>
-    % elif config['update_section_ids'] == -1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-refresh fa-spin"></i> Tautulli is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.
-        <br />
-        You may leave this page and come back later.
-    </div>
-    % endif
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-book"></i> All Libraries</span>

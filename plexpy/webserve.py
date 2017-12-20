@@ -389,11 +389,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def libraries(self, **kwargs):
-        config = {
-            "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
-        }
-
-        return serve_template(templatename="libraries.html", title="Libraries", config=config)
+        return serve_template(templatename="libraries.html", title="Libraries")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -994,19 +990,6 @@ class WebInterface(object):
                 return {'message': delete_row}
         else:
             return {'message': 'no data received'}
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def update_section_ids(self, **kwargs):
-
-        logger.debug(u"Manual database section_id update called.")
-
-        result = libraries.update_section_ids()
-
-        if result:
-            return "Updated all section_id's in database."
-        else:
-            return "Unable to update section_id's in database. See logs for details."
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
