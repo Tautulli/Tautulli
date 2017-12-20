@@ -142,8 +142,9 @@
                             <input type="hidden" name="custom_conditions" id="custom_conditions" />
 
                             <div class="form-group">
-                                <label for="custom_condition_logic">Condition Logic</label>
+                                <label for="custom_conditions_logic">Condition Logic</label>
                                 <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
+                                <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
                                 <p class="help-block">
                                     Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
                                 </p>
@@ -365,8 +366,10 @@
         $('input[type=text]').val(function(_, value) {
             return $.trim(value);
         });
-        // Reload modal to update certain fields
-        doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
+        if (validateLogic()) {
+            // Reload modal to update certain fields
+            doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
+        }
     }
 
     $('#delete-notifier-item').click(function () {
@@ -466,6 +469,107 @@
     })
     % endif
 
+    function validateLogic() {
+        const valid_tokens = /(\(|\)|and|or)/g;
+        const conditions_pattern = /{\d+}/g;
+
+        var custom_conditions = $.parseJSON($('#custom_conditions').val());
+        var custom_conditions_logic = $('#custom_conditions_logic').val();
+        var num_cond = custom_conditions.length;
+
+        var tokens = $.map(custom_conditions_logic.toLowerCase().split(valid_tokens), $.trim).filter(String);
+
+        var stack = [[]];
+        var temp;
+
+        var cond_next = true;
+        var bool_next = false;
+        var open_bracket_next = true;
+        var close_bracket_next = false;
+        var nest_and = 0;
+        var nest_nest_and = 0;
+
+        try {
+            $.each(tokens, function(i, x) {
+                if (open_bracket_next && x === '(') {
+                    stack[stack.length-1].push([]);
+                    temp = stack[stack.length-1];
+                    stack.push(temp[temp.length-1]);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                    if (nest_and) {
+                        nest_nest_and += 1
+                    }
+                } else if (close_bracket_next && x === ')') {
+                    stack.pop();
+                    if (stack.length === 0) {
+                        throw 'opening bracket is missing';
+                    }
+                    cond_next = false;
+                    bool_next = true;
+                    open_bracket_next = false;
+                    close_bracket_next = true;
+                    if (nest_and > 0 && nest_nest_and > 0 && nest_and === nest_nest_and) {
+                        stack.pop();
+                        nest_and -= 1;
+                        nest_nest_and -= 1;
+                    }
+                } else if (cond_next && x.match(conditions_pattern)) {
+                    if (isNaN(x.slice(1, -1))) {
+                        throw 'invalid condition logic'
+                    } else {
+                        var num = parseInt(x.slice(1, -1));
+                    }
+                    if (!(0 < num && num <= num_cond)) {
+                        throw 'invalid condition number in condition logic'
+                    }
+                    stack[stack.length-1].push(num);
+                    cond_next = false;
+                    bool_next = true;
+                    open_bracket_next = false;
+                    close_bracket_next = true;
+                    if (nest_and > nest_nest_and) {
+                        stack.pop();
+                        nest_and -= 1;
+                    }
+                } else if (bool_next && x === 'and' && i < tokens.length-1) {
+                    stack[stack.length-1].push([]);
+                    temp = stack[stack.length-1];
+                    stack.push(temp[temp.length-1]);
+                    temp = stack[stack.length-2];
+                    stack[stack.length-1].push(temp.splice(0, temp.length-2) + temp.splice(temp.length-2, temp.length-1));
+                    stack[stack.length-1].push(x);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                    nest_and += 1;
+                } else if (bool_next && x === 'or' && i < tokens.length-1) {
+                    stack[stack.length-1].push(x);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                } else {
+                    throw 'invalid condition logic';
+                }
+            });
+
+            if (stack.length > 1) {
+                throw 'closing bracket is missing';
+            }
+
+            $('#custom_conditions_logic_error').hide();
+            return true;
+        } catch (e) {
+            $('#custom_conditions_logic_error span').text(e);
+            $('#custom_conditions_logic_error').show();
+            showMsg('<i class="fa fa-times"></i> Failed to save notifier. Invalid condition logic.', false, true, 5000, true);
+        }
+    }
+
     $('.notifier-text-preview').click(function () {
         var action = $(this).data('action');
         var subject = $('#' + action + '_subject').val();
@@ -564,10 +668,10 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
             <h4 class="modal-title" id="notifier-config-modal-header">Error</h4>
         </div>
-        <div class="modal-body">
-            <center><strong>
+        <div class="modal-body" style="text-align: center">
+            <strong>
                 <i class="fa fa-exclamation-circle"></i> Failed to retrieve notifier configuration. Check the <a href="logs">logs</a> for more info.
-            </strong></center>
+            </strong>
         </div>
         <div class="modal-footer">
         </div>
