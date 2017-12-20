@@ -256,8 +256,13 @@
                 }
 
                 if (!(current_activity)) {
+                    % if _session['user_group'] == 'admin':
+                    var msg_settings = ' Verify your server in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+                    % else:
+                    var msg_settings = ''
+                    % endif
                     $('#currentActivityHeader').text('');
-                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.</div>');
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');
                     return
                 }
 
