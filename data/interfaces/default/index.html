@@ -298,7 +298,7 @@
 
                         // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
-                            getActivityInstance(session);
+                            getActivityInstance(key);
                             return;
                         }
 
@@ -504,19 +504,21 @@
         });
     }
 
-    function getActivityInstance(session) {
+    function getActivityInstance(session_key) {
         $.ajax({
             url: 'get_current_activity_instance',
             type: 'GET',
             cache: false,
             async: true,
-            data: session,
+            data: {
+                session_key: session_key
+            },
             complete: function(xhr, status) {
                 $('#currentActivity').append(xhr.responseText);
-                $('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller').scrollbar();
-                $('#activity-instance-' + session.session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 })
-                $('#terminate-button-' + session.session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
-                lockScroll('#activity-instance-' + session.session_key + ' .dashboard-activity-info-scroller');
+                $('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller').scrollbar();
+                $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
+                lockScroll('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller');
             }
         });
     }

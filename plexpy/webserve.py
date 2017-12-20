@@ -226,18 +226,8 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity(self, **kwargs):
 
-        try:
-            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            result = pms_connect.get_current_activity()
-
-            data_factory = datafactory.DataFactory()
-            for session in result['sessions']:
-                if not session['ip_address']:
-                    ip_address = data_factory.get_session_ip(session['session_key'])
-                    session['ip_address'] = ip_address
-
-        except:
-            return serve_template(templatename="current_activity.html", data=None)
+        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
+        result = pms_connect.get_current_activity()
 
         if result:
             return serve_template(templatename="current_activity.html", data=result)
@@ -247,45 +237,16 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_current_activity_instance(self, **kwargs):
+    def get_current_activity_instance(self, session_key=None, **kwargs):
 
-        return serve_template(templatename="current_activity_instance.html", session=kwargs)
-
-    @cherrypy.expose
-    @requireAuth()
-    def get_current_activity_header(self, **kwargs):
-
-        try:
-            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            result = pms_connect.get_current_activity()
-        except:
-            return serve_template(templatename="current_activity_header.html", data=None)
+        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
+        result = pms_connect.get_current_activity()
 
         if result:
-            data = {'stream_count': result['stream_count'],
-                    'direct_play': 0,
-                    'direct_stream': 0,
-                    'transcode': 0}
-            for s in result['sessions']:
-                if s['media_type'] == 'track':
-                    if s['audio_decision'] == 'transcode':
-                        data['transcode'] += 1
-                    elif s['audio_decision'] == 'copy':
-                        data['direct_stream'] += 1
-                    else:
-                        data['direct_play'] += 1
-                else:
-                    if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode':
-                        data['transcode'] += 1
-                    elif s['video_decision'] == 'copy' or s['audio_decision'] == 'copy':
-                        data['direct_stream'] += 1
-                    else:
-                        data['direct_play'] += 1
-
-            return serve_template(templatename="current_activity_header.html", data=data)
+            session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
+            return serve_template(templatename="current_activity_instance.html", session=session)
         else:
-            logger.warn(u"Unable to retrieve data for get_current_activity_header.")
-            return serve_template(templatename="current_activity_header.html", data=None)
+            return serve_template(templatename="current_activity_instance.html", session=None)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4464,19 +4425,13 @@ class WebInterface(object):
             result = pms_connect.get_current_activity()
 
             if result:
-                data_factory = datafactory.DataFactory()
-                for session in result['sessions']:
-                    if not session['ip_address']:
-                        ip_address = data_factory.get_session_ip(session['session_key'])
-                        session['ip_address'] = ip_address
-
                 if session_key:
                     return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
 
 
                 counts = {'stream_count_direct_play': 0,
-                        'stream_count_direct_stream': 0,
-                        'stream_count_transcode': 0}
+                          'stream_count_direct_stream': 0,
+                          'stream_count_transcode': 0}
 
                 for s in result['sessions']:
                     if s['transcode_decision'] == 'transcode':
