@@ -68,11 +68,12 @@ PLATFORM_NAMES = {'android': 'android',
                   'safari': 'safari',
                   'samsung': 'samsung',
                   'synclounge': 'synclounge',
+                  'tivo': 'tivo',
                   'tvos': 'atv',
                   'vizio': 'opera',
+                  'wiiu': 'wiiu',
                   'windows': 'windows',
                   'windows phone': 'wp',
-                  'wiiu': 'wiiu',
                   'xbmc': 'xbmc',
                   'xbox': 'xbox'
                   }

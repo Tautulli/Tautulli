@@ -899,15 +899,15 @@ a .users-poster-face:hover {
     height: 249px;
 }
 .dashboard-activity-container:hover .dashboard-activity-progress {
-	height: 14px; 
+	height: 14px;
 }
-.dashboard-activity-container:hover .progress-bar { 
+.dashboard-activity-container:hover .progress-bar {
     color: rgba(255, 255, 255, 1);
     background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
-.dashboard-activity-container:hover .buffer-bar { 
+.dashboard-activity-container:hover .buffer-bar {
     color: rgba(255, 255, 255, 1);
     background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
@@ -3155,8 +3155,8 @@ pre::-webkit-scrollbar-thumb {
     background-color: rgba(0,0,0,.15);
 }
 
-@media only screen 
-  and (min-device-width: 300px) 
+@media only screen
+  and (min-device-width: 300px)
   and (max-device-width: 450px) {
     .home-platforms-instance {
         width: calc(100% - 20px);
@@ -3578,6 +3578,10 @@ a:hover .overlay-refresh-image:hover {
     background-color: #10a4e8;
     background-image: url(../images/platforms/chromecast.svg);
 }
+.platform-default {
+    background-color: #e5a00d;
+    background-image: url(../images/platforms/default.svg);
+}
 .platform-dlna {
     background-color: #0cb14b;
     background-image: url(../images/platforms/dlna.svg);
@@ -3585,6 +3589,10 @@ a:hover .overlay-refresh-image:hover {
 .platform-firefox {
     background-color: #e67817;
     background-image: url(../images/platforms/firefox.svg);
+}
+.platform-gtv {
+    background-color: #008bcf;
+    background-image: url(../images/platforms/gtv.svg);
 }
 .platform-ie {
     background-color: #00599e;
@@ -3601,6 +3609,10 @@ a:hover .overlay-refresh-image:hover {
 .platform-linux {
     background-color: #1793d0;
     background-image: url(../images/platforms/linux.svg);
+}
+.platform-macos {
+    background-color: #858487;
+    background-image: url(../images/platforms/macos.svg);
 }
 .platform-msedge {
     background-color: #0078d7;
@@ -3622,10 +3634,6 @@ a:hover .overlay-refresh-image:hover {
     background-color: #e5a00d;
     background-image: url(../images/platforms/plexamp.svg);
 }
-.platform-plextogether {
-    background-color: #151924;
-    background-image: url(../images/platforms/plextogether.svg);
-}
 .platform-roku {
     background-color: #6d3c97;
     background-image: url(../images/platforms/roku.svg);
@@ -3638,6 +3646,18 @@ a:hover .overlay-refresh-image:hover {
     background-color: #034ea2;
     background-image: url(../images/platforms/samsung.svg);
 }
+.platform-synclounge {
+    background-color: #151924;
+    background-image: url(../images/platforms/synclounge.svg);
+}
+.platform-tivo {
+    background-color: #00a7e1;
+    background-image: url(../images/platforms/tivo.svg);
+}
+.platform-wiiu {
+    background-color: #03a9f4;
+    background-image: url(../images/platforms/wiiu.svg);
+}
 .platform-windows {
     background-color: #2fc0f5;
     background-image: url(../images/platforms/windows.svg);
@@ -3646,10 +3666,6 @@ a:hover .overlay-refresh-image:hover {
     background-color: #68217a;
     background-image: url(../images/platforms/windows.svg);
 }
-.platform-wiiu {
-    background-color: #03a9f4;
-    background-image: url(../images/platforms/wiiu.svg);
-}
 .platform-xbmc {
     background-color: #3b4872;
     background-image: url(../images/platforms/xbmc.svg);
@@ -3657,10 +3673,6 @@ a:hover .overlay-refresh-image:hover {
 .platform-xbox {
     background-color: #107c10;
     background-image: url(../images/platforms/xbox.svg);
-}
-.platform-default {
-    background-color: #e5a00d;
-    background-image: url(../images/platforms/default.svg);
 }
 .library-movie {
     background-image: url(../images/libraries/movie.svg);
