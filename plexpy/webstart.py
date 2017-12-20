@@ -159,28 +159,6 @@ def initialize(options):
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
-        '/json': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/json",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
-        },
-        '/xml': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/xml",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
-        },
         '/cache': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
@@ -205,7 +183,7 @@ def initialize(options):
         #},
         '/favicon.ico': {
             'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico')),
+            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon/favicon.ico')),
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,
