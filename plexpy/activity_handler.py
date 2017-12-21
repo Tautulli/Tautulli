@@ -484,6 +484,11 @@ def on_created(rating_key, **kwargs):
 
     if metadata:
         notify = True
+        now = int(time.time())
+
+        if helpers.cast_to_int(metadata['updated_at']) < now - 86400:  # Updated more than 24 hours ago
+            logger.debug(u"Tautulli TimelineHandler :: Library item %s updated more than 24 hours ago. Not notifying." % str(rating_key))
+            notify = False
 
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
