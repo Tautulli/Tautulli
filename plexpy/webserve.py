@@ -98,9 +98,6 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def welcome(self, **kwargs):
         config = {
-            "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
-            "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
-            "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
@@ -108,16 +105,7 @@ class WebInterface(object):
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
-            "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
-            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
-            "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
-            "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
-            "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
-            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
-            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
-            "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
-            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES)
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
