@@ -170,7 +170,6 @@ class WebInterface(object):
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
             "pms_name": plexpy.CONFIG.PMS_NAME,
-            "pms_use_bif": plexpy.CONFIG.PMS_USE_BIF,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
         }
         return serve_template(templatename="index.html", title="Home", config=config)
@@ -2556,7 +2555,6 @@ class WebInterface(object):
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
-            "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
@@ -2614,7 +2612,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_use_bif", "pms_ssl", "pms_is_remote", "pms_url_manual", "home_stats_type", "week_start_monday",
+            "pms_ssl", "pms_is_remote", "pms_url_manual", "home_stats_type", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
