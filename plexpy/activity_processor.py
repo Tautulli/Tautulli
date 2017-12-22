@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections import defaultdict
 import json
 import threading
 import time
@@ -153,8 +154,10 @@ class ActivityProcessor(object):
             logging_enabled = False
 
             # Reload json from raw stream info
-            if 'raw_stream_info' in session:
+            if session.get('raw_stream_info'):
                 session.update(json.loads(session['raw_stream_info']))
+
+            session = defaultdict(str, session)
 
             if is_import:
                 if str(session['stopped']).isdigit():
