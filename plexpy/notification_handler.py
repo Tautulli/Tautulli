@@ -453,17 +453,20 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if 'media_info' in metadata and len(metadata['media_info']) > 0:
         media_info = metadata['media_info'][0]
         if 'parts' in media_info and len(media_info['parts']) > 0:
-            media_part_info = media_info['parts'][0]
+            media_part_info = media_info.pop('parts')[0]
 
     stream_video = stream_audio = stream_subtitle = False
     if 'streams' in media_part_info:
-        for stream in media_part_info['streams']:
+        for stream in media_part_info.pop('streams'):
             if not stream_video and stream['type'] == '1':
                 media_part_info.update(stream)
+                stream_video = True
             if not stream_audio and stream['type'] == '2':
                 media_part_info.update(stream)
+                stream_audio = True
             if not stream_subtitle and stream['type'] == '3':
                 media_part_info.update(stream)
+                stream_subtitle = True
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
@@ -766,32 +769,32 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                         'container': session.get('container', media_info.get('container','')),
                         'bitrate': session.get('bitrate', media_info.get('bitrate','')),
                         'aspect_ratio': session.get('aspect_ratio', media_info.get('aspect_ratio','')),
-                        'video_codec': session.get('video_codec', media_info.get('video_codec','')),
-                        'video_codec_level': session.get('video_codec_level', media_info.get('video_codec_level','')),
-                        'video_bitrate': session.get('video_bitrate', media_info.get('video_bitrate','')),
-                        'video_bit_depth': session.get('video_bit_depth', media_info.get('video_bit_depth','')),
+                        'video_codec': session.get('video_codec', media_part_info.get('video_codec','')),
+                        'video_codec_level': session.get('video_codec_level', media_part_info.get('video_codec_level','')),
+                        'video_bitrate': session.get('video_bitrate', media_part_info.get('video_bitrate','')),
+                        'video_bit_depth': session.get('video_bit_depth', media_part_info.get('video_bit_depth','')),
                         'video_framerate': session.get('video_framerate', media_info.get('video_framerate','')),
-                        'video_ref_frames': session.get('video_ref_frames', media_info.get('video_ref_frames','')),
+                        'video_ref_frames': session.get('video_ref_frames', media_part_info.get('video_ref_frames','')),
                         'video_resolution': session.get('video_resolution', media_info.get('video_resolution','')),
                         'video_height': session.get('height', media_info.get('height','')),
                         'video_width': session.get('width', media_info.get('width','')),
-                        'video_language': session.get('video_language', media_info.get('video_language','')),
-                        'video_language_code': session.get('video_language_code', media_info.get('video_language_code','')),
-                        'audio_bitrate': session.get('audio_bitrate', media_info.get('audio_bitrate','')),
-                        'audio_bitrate_mode': session.get('audio_bitrate_mode', media_info.get('audio_bitrate_mode','')),
-                        'audio_codec': session.get('audio_codec', media_info.get('audio_codec','')),
-                        'audio_channels': session.get('audio_channels', media_info.get('audio_channels','')),
-                        'audio_channel_layout': session.get('audio_channel_layout', media_info.get('audio_channel_layout','')),
-                        'audio_sample_rate': session.get('audio_sample_rate', media_info.get('audio_sample_rate','')),
-                        'audio_language': session.get('audio_language', media_info.get('audio_language','')),
-                        'audio_language_code': session.get('audio_language_code', media_info.get('audio_language_code','')),
-                        'subtitle_codec': session.get('subtitle_codec', media_info.get('subtitle_codec','')),
-                        'subtitle_container': session.get('subtitle_container', media_info.get('subtitle_container','')),
-                        'subtitle_format': session.get('subtitle_format', media_info.get('subtitle_format','')),
-                        'subtitle_forced': session.get('subtitle_forced', media_info.get('subtitle_forced','')),
-                        'subtitle_location': session.get('subtitle_location', media_info.get('subtitle_location','')),
-                        'subtitle_language': session.get('subtitle_language', media_info.get('subtitle_language','')),
-                        'subtitle_language_code': session.get('subtitle_language_code', media_info.get('subtitle_language_code','')),
+                        'video_language': session.get('video_language', media_part_info.get('video_language','')),
+                        'video_language_code': session.get('video_language_code', media_part_info.get('video_language_code','')),
+                        'audio_bitrate': session.get('audio_bitrate', media_part_info.get('audio_bitrate','')),
+                        'audio_bitrate_mode': session.get('audio_bitrate_mode', media_part_info.get('audio_bitrate_mode','')),
+                        'audio_codec': session.get('audio_codec', media_part_info.get('audio_codec','')),
+                        'audio_channels': session.get('audio_channels', media_part_info.get('audio_channels','')),
+                        'audio_channel_layout': session.get('audio_channel_layout', media_part_info.get('audio_channel_layout','')),
+                        'audio_sample_rate': session.get('audio_sample_rate', media_part_info.get('audio_sample_rate','')),
+                        'audio_language': session.get('audio_language', media_part_info.get('audio_language','')),
+                        'audio_language_code': session.get('audio_language_code', media_part_info.get('audio_language_code','')),
+                        'subtitle_codec': session.get('subtitle_codec', media_part_info.get('subtitle_codec','')),
+                        'subtitle_container': session.get('subtitle_container', media_part_info.get('subtitle_container','')),
+                        'subtitle_format': session.get('subtitle_format', media_part_info.get('subtitle_format','')),
+                        'subtitle_forced': session.get('subtitle_forced', media_part_info.get('subtitle_forced','')),
+                        'subtitle_location': session.get('subtitle_location', media_part_info.get('subtitle_location','')),
+                        'subtitle_language': session.get('subtitle_language', media_part_info.get('subtitle_language','')),
+                        'subtitle_language_code': session.get('subtitle_language_code', media_part_info.get('subtitle_language_code','')),
                         'file': media_part_info.get('file',''),
                         'file_size': helpers.humanFileSize(media_part_info.get('file_size','')),
                         'indexes': media_part_info.get('indexes',''),
