@@ -2526,6 +2526,7 @@ class WebInterface(object):
             "http_port": plexpy.CONFIG.HTTP_PORT,
             "http_password": http_password,
             "http_root": plexpy.CONFIG.HTTP_ROOT,
+            "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
@@ -2617,7 +2618,7 @@ class WebInterface(object):
             "notify_consecutive", "notify_upload_posters", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access", "cache_images", "http_basic_auth", "notify_concurrent_by_ip",
+            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup"
         ]

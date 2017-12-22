@@ -863,7 +863,6 @@ class Config(object):
             self.NOTIFY_GROUP_RECENTLY_ADDED_PARENT = self.NOTIFY_GROUP_RECENTLY_ADDED
 
             self.MONITORING_USE_WEBSOCKET = 1
-            self.HTTP_PROXY = 1
 
             self.CONFIG_VERSION = 8
 
