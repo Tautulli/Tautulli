@@ -416,6 +416,7 @@ class Libraries(object):
                        'parent_rating_key': item['parent_rating_key'],
                        'grandparent_rating_key': item['grandparent_rating_key'],
                        'title': item['title'],
+                       'sort_title': item['sort_title'] or item['title'],
                        'year': item['year'],
                        'media_index': item['media_index'],
                        'parent_media_index': item['parent_media_index'],
@@ -483,12 +484,12 @@ class Libraries(object):
         filtered_count = len(results)
 
         # Sort results
-        results = sorted(results, key=lambda k: k['title'])
+        results = sorted(results, key=lambda k: k['sort_title'])
         sort_order = json_data['order']
         for order in reversed(sort_order):
             sort_key = json_data['columns'][int(order['column'])]['data']
             reverse = True if order['dir'] == 'desc' else False
-            if rating_key and sort_key == 'title':
+            if rating_key and sort_key == 'sort_title':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k['media_index']), reverse=reverse)
             elif sort_key == 'file_size' or sort_key == 'bitrate':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key]), reverse=reverse)
