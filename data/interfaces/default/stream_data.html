@@ -98,14 +98,14 @@ DOCUMENTATION :: END
                     <tr>
                         <td>Optimized Version</td>
                         <td>-</td>
-                        <td>${data['optimized_version_profile']}</td>
+                        <td>${data['optimized_version_profile']}<br>(${data['optimized_version_title']})</td>
                     </tr>
                     % endif
                     % if data['synced_version'] == 1:
                     <tr>
                         <td>Synced Version</td>
                         <td>-</td>
-                        <td>yes</td>
+                        <td>${data['synced_version_profile']}</td>
                     </tr>
                     % endif
                 </tbody>

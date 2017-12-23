@@ -162,7 +162,15 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Optimized</div>
                                 <div class="sub-value" id="optimized_version-${sk}">
-                                    ${data['optimized_version_profile']}
+                                    ${data['optimized_version_profile']} (${data['optimized_version_title']})
+                                </div>
+                            </li>
+                            % endif
+                            % if data['synced_version'] == 1:
+                            <li class="dashboard-activity-info-item">
+                                <div class="sub-heading">Synced</div>
+                                <div class="sub-value" id="synced_version-${sk}">
+                                    ${data['synced_version_profile']}
                                 </div>
                             </li>
                             % endif
@@ -185,7 +193,7 @@ DOCUMENTATION :: END
                                     % elif data['transcode_decision'] == 'copy':
                                     Direct Stream
                                     % else:
-                                    Direct Play ${'(Synced)' if data['synced_version'] == 1 else ''}
+                                    Direct Play
                                     % endif
                                 </div>
                             </li>
@@ -250,7 +258,7 @@ DOCUMENTATION :: END
                                         % elif data['stream_subtitle_decision'] == 'burn':
                                         Burn (${data['subtitle_codec'].upper()})
                                         % else:
-                                        Direct Play (${data['subtitle_codec'].upper()})
+                                        Direct Play (${data['stream_subtitle_codec'].upper() if data['synced_version'] else data['subtitle_codec'].upper()})
                                         % endif
                                     % else:
                                     None

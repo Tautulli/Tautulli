@@ -872,8 +872,10 @@ class DataFactory(object):
             user_cond = 'AND %s.user_id = %s ' % (table, session.get_session_user_id())
 
         if row_id:
-            query = 'SELECT bitrate, video_resolution, optimized_version, optimized_version_profile, synced_version, ' \
-                    'container, video_codec, video_Bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+            query = 'SELECT bitrate, video_resolution, ' \
+                    'optimized_version, optimized_version_profile, optimized_version_title, ' \
+                    'synced_version, synced_version_profile, ' \
+                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
                     'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
@@ -887,8 +889,10 @@ class DataFactory(object):
                     'WHERE session_history_media_info.id = ? %s' % user_cond
             result = monitor_db.select(query, args=[row_id])
         elif session_key:
-            query = 'SELECT bitrate, video_resolution, optimized_version, optimized_version_profile, synced_version, ' \
-                    'container, video_codec, video_Bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+            query = 'SELECT bitrate, video_resolution, ' \
+                    'optimized_version, optimized_version_profile, optimized_version_title, ' \
+                    'synced_version, synced_version_profile, ' \
+                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
                     'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
@@ -909,7 +913,9 @@ class DataFactory(object):
                              'video_resolution': item['video_resolution'],
                              'optimized_version': item['optimized_version'],
                              'optimized_version_profile': item['optimized_version_profile'],
+                             'optimized_version_title': item['optimized_version_title'],
                              'synced_version': item['synced_version'],
+                             'synced_version_profile': item['synced_version_profile'],
                              'container': item['container'],
                              'video_codec': item['video_codec'],
                              'video_bitrate': item['video_bitrate'],

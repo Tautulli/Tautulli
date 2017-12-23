@@ -2195,7 +2195,7 @@ class WebInterface(object):
             machine_id = plexpy.CONFIG.PMS_IDENTIFIER
 
         plex_tv = plextv.PlexTV()
-        result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
+        result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
 
         if result:
             output = {"data": result}
@@ -4560,7 +4560,7 @@ class WebInterface(object):
             ```
         """
         plex_tv = plextv.PlexTV()
-        result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
+        result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
 
         if result:
             return result

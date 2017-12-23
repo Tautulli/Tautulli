@@ -90,9 +90,11 @@ class ActivityProcessor(object):
                       'transcode_audio_channels': session.get('transcode_audio_channels', ''),
                       'transcode_width': session.get('stream_video_width', ''),
                       'transcode_height': session.get('stream_video_height', ''),
+                      'synced_version': session.get('synced_version', ''),
+                      'synced_version_profile': session.get('synced_version_profile', ''),
                       'optimized_version': session.get('optimized_version', ''),
                       'optimized_version_profile': session.get('optimized_version_profile', ''),
-                      'synced_version': session.get('synced_version', ''),
+                      'optimized_version_title': session.get('optimized_version_title', ''),
                       'stream_bitrate': session.get('stream_bitrate', ''),
                       'stream_video_resolution': session.get('stream_video_resolution', ''),
                       'quality_profile': session.get('quality_profile', ''),
@@ -110,6 +112,7 @@ class ActivityProcessor(object):
                       'stream_audio_channels': session.get('stream_audio_channels', ''),
                       'stream_subtitle_decision': session.get('stream_subtitle_decision', ''),
                       'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
+                      'subtitles': session.get('subtitles', ''),
                       'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }
@@ -356,6 +359,8 @@ class ActivityProcessor(object):
                           'stream_subtitle_forced': session['stream_subtitle_forced'],
                           'subtitles': session['subtitles'],
                           'synced_version': session['synced_version'],
+                          'synced_version_profile': session['synced_version_profile'],
+                          'synced_version_title': session['synced_version_title'],
                           'optimized_version': session['optimized_version'],
                           'optimized_version_profile': session['optimized_version_profile']
                           }

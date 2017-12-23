@@ -425,7 +425,7 @@ class PlexTV(object):
 
         return users_list
 
-    def get_synced_items(self, machine_id=None, user_id=None):
+    def get_synced_items(self, machine_id=None, client_id_filter=None, user_id_filter=None, rating_key_filter=None):
         sync_list = self.get_plextv_sync_lists(machine_id)
         user_data = users.Users()
 
@@ -446,9 +446,15 @@ class PlexTV(object):
             logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_synced_items.")
         else:
             for a in xml_head:
-                sync_id = helpers.get_xml_attr(a, 'id')
                 client_id = helpers.get_xml_attr(a, 'clientIdentifier')
+
+                # Filter by client_id
+                if client_id_filter and client_id_filter != client_id:
+                    continue
+
+                sync_id = helpers.get_xml_attr(a, 'id')
                 sync_device = a.getElementsByTagName('Device')
+
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
                     try:
@@ -467,12 +473,23 @@ class PlexTV(object):
                     device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
 
                 # Filter by user_id
-                if user_id and user_id != device_user_id:
+                if user_id_filter and user_id_filter != device_user_id:
                     continue
 
                 for synced in a.getElementsByTagName('SyncItems'):
                     sync_item = synced.getElementsByTagName('SyncItem')
                     for item in sync_item:
+
+                        for location in item.getElementsByTagName('Location'):
+                            clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
+
+                        rating_key = next((clean_uri[(idx + 1) % len(clean_uri)]
+                                           for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
+
+                        # Filter by rating_key
+                        if rating_key_filter and rating_key_filter != rating_key:
+                            continue
+
                         sync_id = helpers.get_xml_attr(item, 'id')
                         sync_version = helpers.get_xml_attr(item, 'version')
                         sync_root_title = helpers.get_xml_attr(item, 'rootTitle')
@@ -500,12 +517,6 @@ class PlexTV(object):
                             settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
                             settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
                             settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
-
-                        for location in item.getElementsByTagName('Location'):
-                            clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
-
-                        rating_key = next((clean_uri[(idx + 1) % len(clean_uri)] 
-                                           for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                         sync_details = {"device_name": helpers.sanitize(device_name),
                                         "platform": helpers.sanitize(device_platform),

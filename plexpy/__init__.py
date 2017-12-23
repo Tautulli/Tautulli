@@ -450,7 +450,8 @@ def dbcheck():
         'transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, '
-        'optimized_version INTEGER, optimized_version_profile TEXT, synced_version INTEGER, '
+        'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
+        'synced_version INTEGER, synced_version_profile TEXT, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0, '
         'raw_stream_info TEXT)'
     )
@@ -482,7 +483,8 @@ def dbcheck():
         'stream_video_framerate TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
         'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, '
-        'subtitles INTEGER, subtitle_codec TEXT, synced_version INTEGER, optimized_version INTEGER, optimized_version_profile TEXT)'
+        'subtitles INTEGER, subtitle_codec TEXT, synced_version INTEGER, synced_version_profile TEXT, '
+        'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT)'
     )
 
     # session_history_metadata table :: This is a table which logs each session's media metadata
@@ -894,19 +896,32 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
+        c_db.execute('SELECT video_height FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_height INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
         c_db.execute('SELECT subtitles FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN subtitles INTEGER'
         )
+
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT video_height FROM sessions')
+        c_db.execute('SELECT synced_version_profile FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_height INTEGER'
+            'ALTER TABLE sessions ADD COLUMN synced_version_profile TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN optimized_version_title TEXT'
         )
 
     # Upgrade session_history table from earlier versions
@@ -1137,6 +1152,18 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             'ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT '
+        )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT synced_version_profile FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT '
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT '
         )
 
     # Upgrade users table from earlier versions

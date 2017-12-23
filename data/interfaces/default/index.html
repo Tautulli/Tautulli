@@ -257,7 +257,7 @@
 
                 if (!(current_activity)) {
                     % if _session['user_group'] == 'admin':
-                    var msg_settings = ' Verify your server in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+                    var msg_settings = ' Verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
                     % else:
                     var msg_settings = ''
                     % endif
@@ -357,7 +357,7 @@
                         } else if (s.transcode_decision === 'copy') {
                             transcode_decision = 'Direct Stream';
                         } else {
-                            transcode_decision = 'Direct Play' + ((s.synced_version == 1) ? ' (Synced)' : '');
+                            transcode_decision = 'Direct Play';
                         }
                         $('#transcode_decision-' + key).html(transcode_decision);
 
@@ -434,7 +434,7 @@
                             } else if (s.stream_subtitle_decision === 'burn') {
                                 subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
                             } else {
-                                subtitle_decision = 'Direct Play (' + s.subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Direct Play (' + ((s.synced_version == '1') ? s.stream_subtitle_codec.toUpperCase() : s.subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
@@ -453,7 +453,8 @@
                         } else {
                             $('#stream_quality-' + key).html(s.quality_profile);
                         }
-                        $('#optimized_version-' + key).html(s.optimized_version_profile);
+                        $('#optimized_version-' + key).html(s.optimized_version_profile + ' (' + s.optimized_version_title + ')');
+                        $('#synced_quality_profile-' + key).html(s.synced_quality_profile);
 
                         if (s.media_type != 'photo' && parseInt(s.bandwidth)) {
                             var bw = parseInt(s.bandwidth);
