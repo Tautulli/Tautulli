@@ -446,7 +446,7 @@ def dbcheck():
         'stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, '
         'stream_video_height INTEGER, stream_video_framerate TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
-        'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
+        'subtitles INTEGER, stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
         'transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, '
@@ -482,7 +482,7 @@ def dbcheck():
         'stream_video_framerate TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
         'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, '
-        'subtitles INTEGER, synced_version INTEGER, optimized_version INTEGER, optimized_version_profile TEXT)'
+        'subtitles INTEGER, subtitle_codec TEXT, synced_version INTEGER, optimized_version INTEGER, optimized_version_profile TEXT)'
     )
 
     # session_history_metadata table :: This is a table which logs each session's media metadata
@@ -894,6 +894,14 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
+        c_db.execute('SELECT subtitles FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN subtitles INTEGER'
+        )
+    # Upgrade sessions table from earlier versions
+    try:
         c_db.execute('SELECT video_height FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
@@ -1120,6 +1128,15 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, "SD", "sd")'
+        )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT subtitle_codec FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT '
         )
 
     # Upgrade users table from earlier versions
