@@ -872,9 +872,14 @@ class DataFactory(object):
             user_cond = 'AND %s.user_id = %s ' % (table, session.get_session_user_id())
 
         if row_id:
-            query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
-                    'video_codec, audio_codec, audio_channels, video_decision, transcode_video_codec, transcode_height, ' \
-                    'transcode_width, audio_decision, transcode_audio_codec, transcode_audio_channels, transcode_container, ' \
+            query = 'SELECT bitrate, video_resolution, optimized_version, optimized_version_profile, synced_version, ' \
+                    'container, video_codec, video_Bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+                    'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
+                    'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
+                    'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
+                    'stream_video_framerate, ' \
+                    'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
+                    'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'session_history_metadata.media_type, title, grandparent_title ' \
                     'FROM session_history_media_info ' \
                     'JOIN session_history ON session_history_media_info.id = session_history.id ' \
@@ -882,9 +887,14 @@ class DataFactory(object):
                     'WHERE session_history_media_info.id = ? %s' % user_cond
             result = monitor_db.select(query, args=[row_id])
         elif session_key:
-            query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
-                    'video_codec, audio_codec, audio_channels, video_decision, transcode_video_codec, transcode_height, ' \
-                    'transcode_width, audio_decision, transcode_audio_codec, transcode_audio_channels, transcode_container, ' \
+            query = 'SELECT bitrate, video_resolution, optimized_version, optimized_version_profile, synced_version, ' \
+                    'container, video_codec, video_Bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+                    'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
+                    'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
+                    'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
+                    'stream_video_framerate, ' \
+                    'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
+                    'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'media_type, title, grandparent_title ' \
                     'FROM sessions ' \
                     'WHERE session_key = ? %s' % user_cond
@@ -895,24 +905,40 @@ class DataFactory(object):
         stream_output = {}
 
         for item in result:
-            stream_output = {'container': item['container'],
-                             'bitrate': item['bitrate'],
+            stream_output = {'bitrate': item['bitrate'],
                              'video_resolution': item['video_resolution'],
-                             'width': item['width'],
-                             'height': item['height'],
-                             'aspect_ratio': item['aspect_ratio'],
-                             'video_framerate': item['video_framerate'],
+                             'optimized_version': item['optimized_version'],
+                             'optimized_version_profile': item['optimized_version_profile'],
+                             'synced_version': item['synced_version'],
+                             'container': item['container'],
                              'video_codec': item['video_codec'],
+                             'video_bitrate': item['video_bitrate'],
+                             'video_width': item['video_width'],
+                             'video_height': item['video_height'],
+                             'video_framerate': item['video_framerate'],
+                             'aspect_ratio': item['aspect_ratio'],
                              'audio_codec': item['audio_codec'],
+                             'audio_bitrate': item['audio_bitrate'],
                              'audio_channels': item['audio_channels'],
-                             'transcode_video_dec': item['video_decision'],
-                             'transcode_video_codec': item['transcode_video_codec'],
-                             'transcode_height': item['transcode_height'],
-                             'transcode_width': item['transcode_width'],
-                             'transcode_audio_dec': item['audio_decision'],
-                             'transcode_audio_codec': item['transcode_audio_codec'],
-                             'transcode_audio_channels': item['transcode_audio_channels'],
-                             'transcode_container': item['transcode_container'],
+                             'subtitle_codec': item['subtitle_codec'],
+                             'stream_bitrate': item['stream_bitrate'],
+                             'stream_video_resolution': item['stream_video_resolution'],
+                             'quality_profile': item['quality_profile'],
+                             'stream_container_decision': item['stream_container_decision'],
+                             'stream_container': item['stream_container'],
+                             'stream_video_decision': item['stream_video_decision'],
+                             'stream_video_codec': item['stream_video_codec'],
+                             'stream_video_bitrate': item['stream_video_bitrate'],
+                             'stream_video_width': item['stream_video_width'],
+                             'stream_video_height': item['stream_video_height'],
+                             'stream_video_framerate': item['stream_video_framerate'],
+                             'stream_audio_decision': item['stream_audio_decision'],
+                             'stream_audio_codec': item['stream_audio_codec'],
+                             'stream_audio_bitrate': item['stream_audio_bitrate'],
+                             'stream_audio_channels': item['stream_audio_channels'],
+                             'subtitles': item['subtitles'],
+                             'stream_subtitle_decision': item['stream_subtitle_decision'],
+                             'stream_subtitle_codec': item['stream_subtitle_codec'],
                              'media_type': item['media_type'],
                              'title': item['title'],
                              'grandparent_title': item['grandparent_title']
