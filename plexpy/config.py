@@ -871,4 +871,4 @@ class Config(object):
             self.TV_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
             self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
 
-            self.CONFIG_VERSION == 9
+            self.CONFIG_VERSION = 9
