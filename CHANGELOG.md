@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.0.2-beta (2017-12-XX)
+
+* Monitoring:
+  * Fix: Websocket connection fails to start with existing streams when upgrading to v2.
+  * Fix: Long request URI for refreshing current activity on the homepage.
+  * Fix: Missing subtitle database columns.
+  * Fix: Details for synced and optimized versions reporting incorrectly.
+* Notifications:
+  * Fix: Recently added notifications sending for previously added items. It is now limited to past 24 hours only.
+  * Fix: Source video/audio/subtitle parameters showing up as blank.
+  * Change: Validate condition logic when saving a notification agent.
+* API:
+  * Change: API is enabled by default on new installs.
+* UI:
+  * New: Add logo svg files. (Thanks @Fish2)
+  * New: Updated stream info modal.
+  * Change: Media info tables sort by sort title instead of title.
+* Other:
+  * Fix: Updating library IDs message on libraries page.
+  * Fix: Wtched percentage settings not saving after restart.
+  * Remove: Video Preview Thumbnails setting no longer used.
+  * Change: Add back HTTP Proxy setting under the Web Interface settings tab.
+  * Change: "Group Table and Watch Statistics History" and "Current Activity in History Tables" enabled by default on new installs.
+
+
 ## v2.0.1-beta (2017-12-19)
 
 * Monitoring:
