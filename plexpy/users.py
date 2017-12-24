@@ -23,7 +23,65 @@ import datatables
 import helpers
 import logger
 import plextv
+import pmsconnect
 import session
+
+
+def refresh_users():
+    logger.info(u"Tautulli Users :: Requesting users list refresh...")
+    result = plextv.PlexTV().get_full_users_list()
+
+    monitor_db = database.MonitorDatabase()
+    user_data = Users()
+
+    if result:
+        for item in result:
+
+            shared_libraries = ''
+            user_tokens = user_data.get_tokens(user_id=item['user_id'])
+            if user_tokens and user_tokens['server_token']:
+                pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
+                library_details = pms_connect.get_server_children()
+
+                if library_details:
+                    shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+                else:
+                    shared_libraries = ''
+
+            control_value_dict = {"user_id": item['user_id']}
+            new_value_dict = {"username": item['username'],
+                              "thumb": item['thumb'],
+                              "email": item['email'],
+                              "is_home_user": item['is_home_user'],
+                              "is_allow_sync": item['is_allow_sync'],
+                              "is_restricted": item['is_restricted'],
+                              "shared_libraries": shared_libraries,
+                              "filter_all": item['filter_all'],
+                              "filter_movies": item['filter_movies'],
+                              "filter_tv": item['filter_tv'],
+                              "filter_music": item['filter_music'],
+                              "filter_photos": item['filter_photos']
+                              }
+
+            # Check if we've set a custom avatar if so don't overwrite it.
+            if item['user_id']:
+                avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
+                                                'FROM users WHERE user_id = ?',
+                                                [item['user_id']])
+                if avatar_urls:
+                    if not avatar_urls[0]['custom_avatar_url'] or \
+                            avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
+                        new_value_dict['custom_avatar_url'] = item['thumb']
+                else:
+                    new_value_dict['custom_avatar_url'] = item['thumb']
+
+            monitor_db.upsert('users', new_value_dict, control_value_dict)
+
+        logger.info(u"Tautulli Users :: Users list refreshed.")
+        return True
+    else:
+        logger.warn(u"Tautulli Users :: Unable to refresh users list.")
+        return False
 
 
 class Users(object):
@@ -360,7 +418,7 @@ class Users(object):
             logger.warn(u"Tautulli Users :: Unable to retrieve user %s from database. Requesting user list refresh."
                         % user_id if user_id else user)
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
-            plextv.refresh_users()
+            refresh_users()
 
             user_details = get_user_details(user_id=user_id, user=user)
 

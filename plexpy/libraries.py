@@ -27,6 +27,66 @@ import pmsconnect
 import session
 
 
+def refresh_libraries():
+    logger.info(u"Tautulli Libraries :: Requesting libraries list refresh...")
+
+    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    if not server_id:
+        logger.error(u"Tautulli Libraries :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
+        return
+
+    library_sections = pmsconnect.PmsConnect().get_library_details()
+
+    if library_sections:
+        monitor_db = database.MonitorDatabase()
+
+        library_keys = []
+        new_keys = []
+
+        for section in library_sections:
+            section_keys = {'server_id': server_id,
+                            'section_id': section['section_id']}
+            section_values = {'server_id': server_id,
+                              'section_id': section['section_id'],
+                              'section_name': section['section_name'],
+                              'section_type': section['section_type'],
+                              'thumb': section['thumb'],
+                              'art': section['art'],
+                              'count': section['count'],
+                              'parent_count': section.get('parent_count', None),
+                              'child_count': section.get('child_count', None),
+                              }
+
+            result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+
+            library_keys.append(section['section_id'])
+
+            if result == 'insert':
+                new_keys.append(section['section_id'])
+
+        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
+            plexpy.CONFIG.write()
+        else:
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.write()
+
+        #if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
+        #    # Start library section_id update on it's own thread
+        #    threading.Thread(target=libraries.update_section_ids).start()
+
+        #if plexpy.CONFIG.UPDATE_LABELS == 1 or plexpy.CONFIG.UPDATE_LABELS == -1:
+        #    # Start library labels update on it's own thread
+        #    threading.Thread(target=libraries.update_labels).start()
+
+        logger.info(u"Tautulli Libraries :: Libraries list refreshed.")
+        return True
+    else:
+        logger.warn(u"Tautulli Libraries :: Unable to refresh libraries list.")
+        return False
+
+
 def update_section_ids():
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 
@@ -965,7 +1025,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         # Refresh the PMS_URL to make sure the server_id is updated
-        plextv.get_real_pms_url()
+        plextv.get_server_resources()
 
         server_id = plexpy.CONFIG.PMS_IDENTIFIER
 

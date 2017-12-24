@@ -36,12 +36,14 @@ import activity_handler
 import activity_pinger
 import config
 import database
+import libraries
 import logger
 import mobile_app
 import notification_handler
 import notifiers
 import plextv
 import pmsconnect
+import users
 import versioncheck
 import plexpy.config
 
@@ -213,16 +215,15 @@ def initialize(config_file):
 
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
-            plextv.get_real_pms_url()
-            pmsconnect.get_server_friendly_name()
+            plextv.get_server_resources()
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
-            plextv.refresh_users()
+            users.refresh_users()
 
         # Refresh the libraries list on startup
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
-            pmsconnect.refresh_libraries()
+            libraries.refresh_libraries()
 
         # Store the original umask
         UMASK = os.umask(0)
@@ -323,14 +324,8 @@ def initialize_scheduler():
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-            #             hours=0, minutes=0, seconds=1)
-            #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-            #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+            schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
                          hours=12 * (not bool(CONFIG.PMS_URL_MANUAL)), minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
-                         hours=12, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
                          hours=0, minutes=0, seconds=60 * bool(CONFIG.MONITOR_REMOTE_ACCESS))
@@ -341,9 +336,9 @@ def initialize_scheduler():
             user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
             library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
 
-            schedule_job(plextv.refresh_users, 'Refresh users list',
+            schedule_job(users.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
-            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+            schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_response, 'Check server response',
@@ -351,9 +346,7 @@ def initialize_scheduler():
 
         else:
             # Cancel all jobs
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
-                         hours=0, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+            schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
                          hours=0, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
@@ -361,9 +354,9 @@ def initialize_scheduler():
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=0, minutes=0, seconds=0)
 
-            schedule_job(plextv.refresh_users, 'Refresh users list',
+            schedule_job(users.refresh_users, 'Refresh users list',
                          hours=0, minutes=0, seconds=0)
-            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+            schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=0, minutes=0, seconds=0)
 
             # Schedule job to reconnect websocket

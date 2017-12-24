@@ -278,7 +278,6 @@ def check_server_response():
 
 
 def check_server_access():
-
     with monitor_lock:
         pms_connect = pmsconnect.PmsConnect()
         server_response = pms_connect.get_server_response()
@@ -287,7 +286,7 @@ def check_server_access():
 
         # Check for remote access
         if server_response:
-        
+
             mapping_state = server_response['mapping_state']
             mapping_error = server_response['mapping_error']
 

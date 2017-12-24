@@ -16,10 +16,8 @@
 import hashlib
 import json
 import os
-import random
 import shutil
 import threading
-import uuid
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -119,7 +117,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, token=None, include_cloud=True, **kwargs):
+    def discover(self, token=None, include_cloud=True, all_servers=False, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -150,12 +148,14 @@ class WebInterface(object):
             plexpy.CONFIG.write()
 
         include_cloud = not (include_cloud == 'false')
+        all_servers = all_servers == 'true'
 
         plex_tv = plextv.PlexTV()
-        servers = plex_tv.discover(include_cloud=include_cloud)
+        servers_list = plex_tv.discover(include_cloud=include_cloud,
+                                        all_servers=all_servers)
 
-        if servers:
-            return servers
+        if servers_list:
+            return servers_list
 
 
     ##### Home #####
@@ -170,6 +170,7 @@ class WebInterface(object):
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
             "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
         }
         return serve_template(templatename="index.html", title="Home", config=config)
@@ -452,7 +453,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
         """ Refresh the libraries list on it's own thread. """
-        threading.Thread(target=pmsconnect.refresh_libraries).start()
+        threading.Thread(target=libraries.refresh_libraries).start()
         logger.info(u"Manual libraries list refresh requested.")
         return True
 
@@ -1074,7 +1075,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
         """ Refresh the users list on it's own thread. """
-        threading.Thread(target=plextv.refresh_users).start()
+        threading.Thread(target=users.refresh_users).start()
         logger.info(u"Manual users list refresh requested.")
         return True
 
@@ -2559,6 +2560,8 @@ class WebInterface(object):
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
+            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
+            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
@@ -2576,7 +2579,6 @@ class WebInterface(object):
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
-            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
             "notify_upload_posters": checked(plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS),
             "notify_recently_added_upgrade": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE),
@@ -2733,8 +2735,7 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:
-            plextv.get_real_pms_url()
-            pmsconnect.get_server_friendly_name()
+            plextv.get_server_resources()
             web_socket.reconnect()
 
         # If first run, start websocket
@@ -2751,11 +2752,11 @@ class WebInterface(object):
 
         # Refresh users table if our server IP changes.
         if refresh_libraries:
-            threading.Thread(target=pmsconnect.refresh_libraries).start()
+            threading.Thread(target=libraries.refresh_libraries).start()
 
         # Refresh users table if our server IP changes.
         if refresh_users:
-            threading.Thread(target=plextv.refresh_users).start()
+            threading.Thread(target=users.refresh_users).start()
 
         return {'result': 'success', 'message': 'Settings saved.'}
 
@@ -3425,16 +3426,15 @@ class WebInterface(object):
             # Fallback to checking /identity endpoint is server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                request_handler = http_handler.HTTPHandler(host=hostname,
-                                                           port=port,
-                                                           token=None)
+                scheme = 'https' if ssl else 'http'
+                url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
                 uri = '/identity'
+
+                request_handler = http_handler.HTTPHandler(urls=url,
+                                                           ssl_verify=False)
                 request = request_handler.make_request(uri=uri,
-                                                       proto='http',
                                                        request_type='GET',
-                                                       output_format='xml',
-                                                       no_token=True,
-                                                       timeout=10)
+                                                       output_format='xml')
                 if request:
                     xml_head = request.getElementsByTagName('MediaContainer')[0]
                     identifier = xml_head.getAttribute('machineIdentifier')

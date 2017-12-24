@@ -27,9 +27,8 @@ from hashing_passwords import check_hash
 
 import plexpy
 import logger
-import plextv
 from plexpy.database import MonitorDatabase
-from plexpy.users import Users
+from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
 
 
@@ -72,7 +71,7 @@ def user_login(username=None, password=None):
 
                 if result:
                     # Refresh the users list to make sure we have all the correct permissions.
-                    plextv.refresh_users()
+                    users.refresh_users()
                     # Successful login
                     return True
                 else:

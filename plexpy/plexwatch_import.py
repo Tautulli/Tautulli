@@ -22,7 +22,6 @@ import activity_processor
 import database
 import helpers
 import logger
-import plextv
 import users
 
 
@@ -275,7 +274,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     # Get the latest friends list so we can pull user id's
     try:
-        plextv.refresh_users()
+        users.refresh_users()
     except:
         logger.debug(u"Tautulli Importer :: Unable to refresh the users list. Aborting import.")
         return None

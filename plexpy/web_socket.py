@@ -42,6 +42,7 @@ def start_thread():
 
 def on_disconnect():
     activity_processor.ActivityProcessor().set_temp_stopped()
+    plexpy.initialize_scheduler()
 
 
 def reconnect():
@@ -148,9 +149,8 @@ def run():
             logger.info(u"Tautulli WebSocket :: Unable to get an internal response from the server, Plex server is down.")
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
             plexpy.PLEX_SERVER_UP = False
-            on_disconnect()
 
-        plexpy.initialize_scheduler()
+        on_disconnect()
 
     logger.debug(u"Tautulli WebSocket :: Leaving thread.")
 
