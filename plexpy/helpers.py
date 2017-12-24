@@ -768,13 +768,13 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
 
     # Build json data
     json_data = {"draw": 1,
-                    "columns": columns,
-                    "order": [{"column": order_column,
+                 "columns": columns,
+                 "order": [{"column": order_column,
                             "dir": kwargs.pop("order_dir", "desc")}],
-                    "start": int(kwargs.pop("start", 0)),
-                    "length": int(kwargs.pop("length", 25)),
-                    "search": {"value": kwargs.pop("search", "")}
-                    }
+                 "start": int(kwargs.pop("start", 0)),
+                 "length": int(kwargs.pop("length", 25)),
+                 "search": {"value": kwargs.pop("search", "")}
+                 }
     return json.dumps(json_data)
 
 def humanFileSize(bytes, si=False):

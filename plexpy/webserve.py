@@ -665,9 +665,13 @@ class WebInterface(object):
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
+            # Alias 'title' to 'sort_title'
+            if kwargs.get('order_column') == 'title':
+                kwargs['order_column'] == 'sort_title'
+                
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),
-                          ("title", True, True),
+                          ("sort_title", True, True),
                           ("container", True, True),
                           ("bitrate", True, True),
                           ("video_codec", True, True),
@@ -678,7 +682,7 @@ class WebInterface(object):
                           ("file_size", True, False),
                           ("last_played", True, False),
                           ("play_count", True, False)]
-            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "title")
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
 
         if refresh == 'true':
             refresh = True
