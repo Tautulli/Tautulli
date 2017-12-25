@@ -360,9 +360,9 @@ class ActivityProcessor(object):
                           'subtitles': session['subtitles'],
                           'synced_version': session['synced_version'],
                           'synced_version_profile': session['synced_version_profile'],
-                          'synced_version_title': session['synced_version_title'],
                           'optimized_version': session['optimized_version'],
-                          'optimized_version_profile': session['optimized_version_profile']
+                          'optimized_version_profile': session['optimized_version_profile'],
+                          'optimized_version_title': session['optimized_version_title']
                           }
 
                 # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history_media_info transaction...")
