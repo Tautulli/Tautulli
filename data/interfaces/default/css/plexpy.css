@@ -3699,3 +3699,74 @@ a:hover .overlay-refresh-image:hover {
 .no-image {
     background-image: none !important;
 }
+
+#info-modal .stream-info-item {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    width: 100%;
+    margin-bottom: 5px;
+}
+#info-modal .stream-info-item .sub-heading {
+    height: 100%;
+    width: 75px;
+    color: #aaa;
+    font-size: 10px;
+    text-align: right;
+    text-transform: uppercase;
+    line-height: 14px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+#info-modal .stream-info-item .sub-value {
+    color: #fff;
+    font-weight: bold;
+    margin-left: 10px;
+    text-align: left;
+    line-height: 14px;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+}
+.stream-info {
+    width: 100%;
+    margin-top: 10px;
+    background-color: #282828;
+    table-layout: fixed;
+}
+.stream-info .heading {
+    color: #F9AA03;
+    text-transform: uppercase;
+    font-size: 15px;
+    font-weight: bold !important;
+}
+.stream-info th:first-child {
+    width: 125px;
+    height: 30px;
+    color: #fff;
+    font-size: 12px;
+    text-align: right;
+    text-transform: uppercase;
+}
+.stream-info th:not(:first-child) {
+    text-align: center;
+    font-weight: normal;
+}
+.stream-info td {
+    height: 25px;
+}
+.stream-info td:first-child {
+    color: #aaa;
+    font-size: 10px;
+    text-align: right;
+    text-transform: uppercase;
+}
+.stream-info td:not(:first-child) {
+    text-align: center;
+}
+.stream-info tr:nth-child(odd) td {
+    background-color: rgba(255,255,255,0.035);
+}
+.stream-info tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.010);
+}
