@@ -1,6 +1,17 @@
 # Changelog
 
-## v2.0.2-beta (2017-12-XX)
+## v2.0.3-beta (2017-12-25)
+
+* Monitoring:
+  * Fix: Missing sync ID error causing logging to crash.
+  * Fix: Incorrect optimized version title column name causing logging to crash.
+* Notifications:
+  * Fix: Report correct beta version for Tautulli update notifications.
+* UI:
+  * Fix: Missing CSS for stream info modal.
+
+
+## v2.0.2-beta (2017-12-24)
 
 * Monitoring:
   * Fix: Websocket connection fails to start with existing streams when upgrading to v2.
