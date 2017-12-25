@@ -175,10 +175,20 @@ def checkGithub(auto_update=False):
     if plexpy.COMMITS_BEHIND > 0:
         logger.info('New version is available. You are %s commits behind' % plexpy.COMMITS_BEHIND)
 
-        url = 'https://api.github.com/repos/%s/plexpy/releases/latest' % plexpy.CONFIG.GIT_USER
-        release = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+        url = 'https://api.github.com/repos/%s/plexpy/releases' % plexpy.CONFIG.GIT_USER
+        releases = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+
+        if plexpy.CONFIG.GIT_BRANCH == 'master':
+            release = next((r for r in releases if not r['prerelease']), releases[0])
+        elif plexpy.CONFIG.GIT_BRANCH == 'beta':
+            release = next((r for r in releases if r['prerelease'] and '-beta' in r['tag_name']), releases[0])
+        elif plexpy.CONFIG.GIT_BRANCH == 'nightly':
+            release = next((r for r in releases if r['prerelease'] and '-nightly' in r['tag_name']), releases[0])
+        else:
+            release = releases[0]
+
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
-                                    'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
+                                 'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
         if auto_update:
             logger.info('Running automatic update.')
