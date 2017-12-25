@@ -1434,6 +1434,7 @@ class PmsConnect(object):
             transcode_decision = 'direct play'
     
         # Determine if a synced version is being played
+        sync_id = None
         if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') \
             and helpers.get_xml_attr(session, 'ratingKey').isdigit() and transcode_decision == 'direct play':
             plex_tv = plextv.PlexTV()
@@ -1448,8 +1449,6 @@ class PmsConnect(object):
                     synced_session_data = synced_xml_head[0].getElementsByTagName('Track')[0]
                 elif synced_xml_head[0].getElementsByTagName('Video'):
                     synced_session_data = synced_xml_head[0].getElementsByTagName('Video')[0]
-        else:
-            sync_id = None
 
         # Figure out which version is being played
         if sync_id:
