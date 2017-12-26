@@ -20,9 +20,8 @@ from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
 from urlparse import urljoin
 
-from requests import certs as certifi
+import certifi
 from requests.packages import urllib3
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import plexpy
 import helpers
@@ -108,7 +107,7 @@ class HTTPHandler(object):
         if self.ssl_verify:
             session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         else:
-            urllib3.disable_warnings(InsecureRequestWarning)
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             session = urllib3.PoolManager()
         part = partial(self._http_requests_urllib3, session=session)
 
