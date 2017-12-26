@@ -31,7 +31,7 @@ _codes = {
     306: ('switch_proxy',),
     307: ('temporary_redirect', 'temporary_moved', 'temporary'),
     308: ('permanent_redirect',
-          'resume_incomplete', 'resume',), # These 2 to be removed in 3.0
+          'resume_incomplete', 'resume',),  # These 2 to be removed in 3.0
 
     # Client Error.
     400: ('bad_request', 'bad'),
@@ -87,5 +87,5 @@ codes = LookupDict(name='status_codes')
 for code, titles in _codes.items():
     for title in titles:
         setattr(codes, title, code)
-        if not title.startswith('\\'):
+        if not title.startswith(('\\', '/')):
             setattr(codes, title.upper(), code)
