@@ -21,7 +21,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 from urlparse import urljoin
 
 import certifi
-from requests.packages import urllib3
+import urllib3
 
 import plexpy
 import helpers
