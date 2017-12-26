@@ -20,7 +20,7 @@ from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
 from urlparse import urljoin
 
-import certifi
+from requests import certs as certifi
 from requests.packages import urllib3
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
