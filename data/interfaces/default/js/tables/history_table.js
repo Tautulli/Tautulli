@@ -59,6 +59,8 @@ history_table_options = {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Paused"><i class="fa fa-pause fa-fw"></i></span>';
                     } else if (rowData['state'] === 'buffering') {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Buffering"><i class="fa fa-spinner fa-fw"></i></span>';
+                    } else if (rowData['state'] === 'stopped') {
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Stopped"><i class="fa fa-stop fa-fw"></i></span>';
                     }
                     $(td).html('<div><div style="float: left;">' + state + '&nbsp;' + date + '</div></div>');
                 } else if (rowData['group_count'] > 1) {
@@ -203,7 +205,7 @@ history_table_options = {
             "targets": [9],
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === null || rowData['state'] != null) {
+                if (cellData === null || rowData['state'] != "stopped") {
                     $(td).html('n/a');
                 } else {
                     $(td).html(moment(cellData,"X").format(time_format));
