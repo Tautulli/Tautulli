@@ -63,7 +63,7 @@ def get_server_resources(return_presence=False):
     if result:
         connections = result.pop('connections', [])
         server.update(result)
-        presence = server.pop('server_presence', 0)
+        presence = server.pop('pms_presence', 0)
     else:
         connections = []
         presence = 0
