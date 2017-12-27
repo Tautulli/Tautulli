@@ -38,7 +38,7 @@ DOCUMENTATION :: END
 <%!
     import re
 
-    from plexpy import common
+    from plexpy import common, notifiers
 
     # Get audio codec file
     def af(codec):
@@ -68,6 +68,7 @@ DOCUMENTATION :: END
 
 <%def name="body()">
 % if data:
+<% media_info = data['media_info'][0] if data['media_info'] else {} %>
 <div class="container-fluid">
     <div class="row">
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
@@ -115,9 +116,9 @@ DOCUMENTATION :: END
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
-                        <a href="https://app.plex.tv/desktop#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View in Plex Web">
+                        <a href="${config['pms_web_url'] or 'https://app.plex.tv/desktop'}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View in Plex Web">
                         % else:
-                        <a href="https://app.plex.tv/desktop#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View in Plex Web">
+                        <a href="${config['pms_web_url'] or 'https://app.plex.tv/desktop'}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View in Plex Web">
                         % endif
                             % if data['media_type'] == 'episode':
                             <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);">
@@ -150,7 +151,7 @@ DOCUMENTATION :: END
                         </a>
                     </div>
                     <div class="summary-content-title">
-                        % if data['media_type'] == 'movie' or data['media_type'] == 'show' or data['media_type'] == 'artist':
+                        % if data['media_type'] in ('movie', 'show', 'artist'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
@@ -185,19 +186,19 @@ DOCUMENTATION :: END
                     % else:
                     <div class="summary-content-padding hidden-xs hidden-sm">
                     % endif
-                        % if data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track':
+                        % if data['media_type'] in ('movie', 'episode', 'track'):
                         <div class="summary-content-media-info-wrapper">
-                            % if data['media_type'] != 'track' and data['video_codec']:
-                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="${http_root}images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
+                            % if data['media_type'] != 'track' and media_info['video_codec']:
+                            <img class="summary-content-media-flag" title="${media_info['video_codec']}" src="${http_root}images/media_flags/video_codec/${media_info['video_codec'] | vf}.png" />
                             % endif
-                            % if data['media_type'] != 'track' and data['video_resolution']:
-                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${data['video_resolution']}.png" />
+                            % if data['media_type'] != 'track' and media_info['video_resolution']:
+                            <img class="summary-content-media-flag" title="${media_info['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${media_info['video_resolution']}.png" />
                             % endif
-                            % if data['audio_codec']:
-                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
+                            % if media_info['audio_codec']:
+                            <img class="summary-content-media-flag" title="${media_info['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${media_info['audio_codec'] | af}.png" />
                             % endif
-                            % if data['audio_channels']:
-                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${data['audio_channels']}.png" />
+                            % if media_info['audio_channels']:
+                            <img class="summary-content-media-flag" title="${media_info['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${media_info['audio_channels']}.png" />
                             % endif
                         </div>
                         % endif
@@ -377,13 +378,23 @@ DOCUMENTATION :: END
                                 % else:
                                 <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
                                 % endif
-                                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster">
+                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-imgur-poster"
+                                            data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}">
                                         <i class="fa fa-picture-o"></i> Reset Imgur Poster
                                     </button>
                                 </span>
                             </div>
                             % endif
+                            <div class="btn-group">
+                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
+                                        data-id="${data['rating_key']}">
+                                    <i class="fa fa-bell"></i> Recently Added Notification
+                                </button>
+                            </div>
                             % endif
+                            <div class="btn-group">
+                                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
+                            </div>
                             <div class="btn-group colvis-button-bar"></div>
                         </div>
                     </div>
@@ -392,7 +403,7 @@ DOCUMENTATION :: END
                             <thead>
                                 <tr>
                                     <th align="left" id="delete">Delete</th>
-                                    <th align="left" id="time">Time</th>
+                                    <th align="left" id="date">Date</th>
                                     <th align="left" id="friendly_name">User</th>
                                     <th align="left" id="ip_address">IP Address</th>
                                     <th align="left" id="platform">Platform</th>
@@ -408,34 +419,89 @@ DOCUMENTATION :: END
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal">
-                    </div>
-                    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-                    </div>
-                    <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
-                                </div>
-                                <div class="modal-body" style="text-align: center;">
-                                    <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
-                                    <p>This is permanent and cannot be undone!</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 % endif
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+</div>
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+<div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="send-recently-added-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="send-recently-added-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Recently Added Notification</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Send a recently added notification for the following:</p>
+                <p>
+                    <strong>
+                        % if data['media_type'] == 'movie':
+                        ${data['title']}<br />${data['year']}
+                        % elif data['media_type'] == 'show':
+                        ${data['title']}
+                        % elif data['media_type'] == 'season':
+                        ${data['parent_title']}<br />S${data['media_index']}
+                        % elif data['media_type'] == 'episode':
+                        ${data['grandparent_title']}<br />${data['title']}<br />S${data['parent_media_index']} &middot; E${data['media_index']}
+                        % elif data['media_type'] == 'artist':
+                        ${data['title']}
+                        % elif data['media_type'] == 'album':
+                        ${data['parent_title']}<br />${data['title']}
+                        % elif data['media_type'] == 'track':
+                        ${data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
+                        % endif
+                    </strong>
+                </p>
+                <br />
+                <label for="send-notification-notifier">Select the Notification Agent</label>
+                <div class="row">
+                    <div class="col-md-8" style="float: none; margin: 0 auto;">
+                        <select class="form-control" id="send-notification-notifier" name="send-notification-notifier" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                            <option value="">All Enabled Recently Added Notification Agents</option>
+                            % for notifier in sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'], k['friendly_name'], k['id'])):
+                            % if notifier['friendly_name']:
+                            <option value="${notifier['id']}"> ${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                            % else:
+                            <option value="${notifier['id']}"> ${notifier['agent_label']} (${notifier['id']})</option>
+                            % endif
+                            % endfor
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-bright btn-ok" data-dismiss="modal" id="confirm-send-notification">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -446,8 +512,8 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 
 % if data:
-<script src="${http_root}js/tables/history_table.js"></script>
-% if data['media_type'] == 'show' or data['media_type'] == 'artist':
+<script src="${http_root}js/tables/history_table.js${cache_param}"></script>
+% if data['media_type'] in ('show', 'artist'):
 <script>
     function get_history() {
         history_table_options.ajax = {
@@ -463,7 +529,7 @@ DOCUMENTATION :: END
         }
     }
 </script>
-% elif data['media_type'] == 'season' or data['media_type'] == 'album':
+% elif data['media_type'] in ('season', 'album'):
 <script>
     function get_history() {
         history_table_options.ajax = {
@@ -479,7 +545,7 @@ DOCUMENTATION :: END
         }
     }
 </script>
-% elif data['media_type'] == 'episode' or data['media_type'] == 'track' or data['media_type'] == 'movie':
+% elif data['media_type'] in ('movie', 'episode', 'track'):
 <script>
     function get_history() {
         history_table_options.ajax = {
@@ -513,17 +579,18 @@ DOCUMENTATION :: END
                     $('#deleteCount').text(history_to_delete.length);
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_delete.length; i++) {
+                        history_to_delete.forEach(function (row, idx) {
                             $.ajax({
                                 url: 'delete_history_rows',
-                                data: { row_id: history_to_delete[i] },
+                                type: 'POST',
+                                data: { row_id: row },
                                 async: true,
                                 success: function (data) {
                                     var msg = "History deleted";
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         history_table.draw();
                     });
                 }
@@ -542,14 +609,42 @@ DOCUMENTATION :: END
             }
         });
     });
+
+    $("#refresh-history-list").click(function () {
+        history_table.draw();
+    });
+
+    // Send recently added notification
+    $('#send-recently-added-notification').on('click', function () {
+        var rating_key = $(this).data('id');
+
+        $('#send-recently-added-modal').modal();
+        $('#send-recently-added-modal').one('click', '#confirm-send-notification', function () {
+            $.ajax({
+                url: 'send_manual_on_created',
+                data: {
+                    rating_key: rating_key,
+                    notifier_id: $('#send-notification-notifier option:selected').val()
+                    },
+                async: true,
+                success: function (data) {
+                    if (data.result === 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                    }
+                }
+            });
+        });
+    });
 </script>
-% if data['media_type'] == 'show' or data['media_type'] == 'season' or data['media_type'] == 'artist' or data['media_type'] == 'album':
+% if data['media_type'] in ('show', 'season', 'artist', 'album'):
 <script>
     $.ajax({
         url: 'get_item_children',
         type: 'GET',
         async: true,
-        data: { rating_key : ${data['rating_key']} },
+        data: { rating_key : "${data['rating_key']}" },
         complete: function(xhr, status) {
         $("#children-list").html(xhr.responseText); }
     });
@@ -566,26 +661,22 @@ DOCUMENTATION :: END
         html: true,
         container: 'body',
         trigger: 'hover',
-        placement: 'left',
+        placement: 'top',
         template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
         content: function () {
             return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
         }
     });
 
-    $('#delete-imgur-poster').on('click', function() {
-        $.ajax({
-            url: 'delete_poster_url',
-            type: 'POST',
-            async: true,
-            data: { poster_url : "${data['poster_url']}" },
-            success: function (data) {
-                var msg = '<i class="fa fa-check"></i>&nbsp; Imgur poster reset';
-                showMsg(msg, false, true, 2000);
-                $('.imgur-poster-tooltip').popover('destroy');
-                $('#delete-imgur-poster').closest('span').remove();
-            }
-        });
+    $('#delete-imgur-poster').on('click', function () {
+        var msg = 'Are you sure you want to reset the Imgur poster for <strong>${data["poster_title"]}</strong>?';
+        var url = 'delete_poster_url';
+        var data = { rating_key: $(this).data('id') }
+        var callback = function () {
+            $('.imgur-poster-tooltip').popover('destroy');
+            $('#delete-imgur-poster').closest('span').remove();
+        }
+        confirmAjaxCall(url, msg, data, false, callback);
     });
 </script>
 % endif

@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
@@ -31,13 +31,19 @@ import helpers
 
 # These settings are for file logging only
 FILENAME = "plexpy.log"
+FILENAME_API = "plexpy_api.log"
+FILENAME_PLEX_WEBSOCKET = "plex_websocket.log"
 MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
 
-_BLACKLIST_WORDS = []
+_BLACKLIST_WORDS = set()
 
-# PlexPy logger
+# Tautulli logger
 logger = logging.getLogger("plexpy")
+# Tautulli API logger
+logger_api = logging.getLogger("plexpy_api")
+# Tautulli websocket logger
+logger_plex_websocket = logging.getLogger("plex_websocket")
 
 # Global queue for multiprocessing logging
 queue = None
@@ -92,14 +98,14 @@ class PublicIPFilter(logging.Filter):
             # Currently only checking for ipv4 addresses
             ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', record.msg)
             for ip in ipv4:
-                if helpers.is_ip_public(ip):
+                if helpers.is_public_ip(ip):
                     record.msg = record.msg.replace(ip, ip.partition('.')[0] + '.***.***.***')
 
             args = []
             for arg in record.args:
                 ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', arg) if isinstance(arg, basestring) else []
                 for ip in ipv4:
-                    if helpers.is_ip_public(ip):
+                    if helpers.is_public_ip(ip):
                         arg = arg.replace(ip, ip.partition('.')[0] + '.***.***.***')
                 args.append(arg)
             record.args = tuple(args)
@@ -171,7 +177,7 @@ def initMultiprocessing():
 
 def initLogger(console=False, log_dir=False, verbose=False):
     """
-    Setup logging for PlexPy. It uses the logger instance with the name
+    Setup logging for Tautulli. It uses the logger instance with the name
     'plexpy'. Three log handlers are added:
 
     * RotatingFileHandler: for the file plexpy.log
@@ -179,12 +185,12 @@ def initLogger(console=False, log_dir=False, verbose=False):
     * StreamHandler: for console (if console)
 
     Console logging is only enabled if console is set to True. This method can
-    be invoked multiple times, during different stages of PlexPy.
+    be invoked multiple times, during different stages of Tautulli.
     """
 
     # Close and remove old handlers. This is required to reinit the loggers
     # at runtime
-    for handler in logger.handlers[:]:
+    for handler in logger.handlers[:] + logger_api.handlers[:] + logger_plex_websocket.handlers[:]:
         # Just make sure it is cleaned up.
         if isinstance(handler, handlers.RotatingFileHandler):
             handler.close()
@@ -192,21 +198,44 @@ def initLogger(console=False, log_dir=False, verbose=False):
             handler.flush()
 
         logger.removeHandler(handler)
+        logger_api.removeHandler(handler)
+        logger_plex_websocket.removeHandler(handler)
 
     # Configure the logger to accept all messages
     logger.propagate = False
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger_api.propagate = False
+    logger_api.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger_plex_websocket.propagate = False
+    logger_plex_websocket.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     # Setup file logger
     if log_dir:
-        filename = os.path.join(log_dir, FILENAME)
-
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)-7s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
+
+        # Main Tautulli logger
+        filename = os.path.join(log_dir, FILENAME)
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
 
         logger.addHandler(file_handler)
+
+        # Tautulli API logger
+        filename = os.path.join(log_dir, FILENAME_API)
+        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(file_formatter)
+
+        logger_api.addHandler(file_handler)
+
+        # Tautulli websocket logger
+        filename = os.path.join(log_dir, FILENAME_PLEX_WEBSOCKET)
+        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(file_formatter)
+
+        logger_plex_websocket.addHandler(file_handler)
 
     # Setup console logger
     if console:
@@ -221,7 +250,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Only add filters after the config file has been initialized
     # Nothing prior to initialization should contain sensitive information
     if not plexpy.DEV and plexpy.CONFIG:
-        for handler in logger.handlers:
+        for handler in logger.handlers + logger_api.handlers + logger_plex_websocket.handlers:
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
 
@@ -278,9 +307,26 @@ def initHooks(global_exceptions=True, thread_exceptions=True, pass_original=True
         threading.Thread.__init__ = new_init
 
 # Expose logger methods
+# Main Tautulli logger
 info = logger.info
 warn = logger.warn
 error = logger.error
 debug = logger.debug
 warning = logger.warning
 exception = logger.exception
+
+# Tautulli API logger
+api_info = logger_api.info
+api_warn = logger_api.warn
+api_error = logger_api.error
+api_debug = logger_api.debug
+api_warning = logger_api.warning
+api_exception = logger_api.exception
+
+# Tautulli websocket logger
+websocket_info = logger_plex_websocket.info
+websocket_warn = logger_plex_websocket.warn
+websocket_error = logger_plex_websocket.error
+websocket_debug = logger_plex_websocket.debug
+websocket_warning = logger_plex_websocket.warning
+websocket_exception = logger_plex_websocket.exception

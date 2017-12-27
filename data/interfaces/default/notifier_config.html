@@ -1,0 +1,680 @@
+<%!
+    from plexpy import helpers, notifiers
+    available_notification_actions = notifiers.available_notification_actions()
+%>
+% if notifier:
+<link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
+<link href="${http_root}css/selectize.min.css" rel="stylesheet" />
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="notifier-config-modal-header">${notifier['agent_label']} Settings &nbsp;<small><span class="notifier_id">(Notifier ID: ${notifier['id']})</span></small></h4>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <ul class="nav nav-tabs list-unstyled" role="tablist">
+                        <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
+                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Triggers</a></li>
+                        <li role="presentation"><a href="#tabs-notify_conditions" aria-controls="tabs-notify_conditions" role="tab" data-toggle="tab">Conditions</a></li>
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">${'Arguments' if notifier['agent_name'] == 'scripts' else 'Text'}</a></li>
+                        <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
+                    </ul>
+                </div>
+                <form action="set_notifier_config" method="post" class="form" id="set_notifier_config" data-parsley-validate>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="tabs-config">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <input type="hidden" id="notifier_id" name="notifier_id" value="${notifier['id']}" />
+                                    <input type="hidden" id="agent_id" name="agent_id" value="${notifier['agent_id']}" />
+                                    % for item in notifier['config_options']:
+                                    % if item['input_type'] == 'help':
+                                    <div class="form-group">
+                                        <label>${item['label']}</label>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'text' or item['input_type'] == 'password':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                % if item['name'] == 'osx_notify_app':
+                                                <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
+                                                % endif
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'number':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'button':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'checkbox':
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
+                                        </label>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                        <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                    </div>
+                                    % elif item['input_type'] == 'select':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    % for key, value in sorted(item['select_options'].iteritems()):
+                                                    % if key == item['value']:
+                                                    <option value="${key}" selected>${value}</option>
+                                                    % else:
+                                                    <option value="${key}">${value}</option>
+                                                    % endif
+                                                    % endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % endif
+                                    % endfor
+                                </div>
+                                <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                                    <div class="form-group">
+                                        <label for="friendly_name">Description</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">Optional: Enter a description to help identify this agent in the notification agents list.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_triggers">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Notification Triggers</label>
+                                    <p class="help-block">
+                                        Select items that will trigger a notification for this ${notifier['agent_label']} notifiation agent.
+                                    </p>
+                                    % for action in available_notification_actions:
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${helpers.checked(notifier['actions'][action['name']])}> Notify on ${action['label']}
+                                        </label>
+                                        <p class="help-block">${action['description'] | n}</p>
+                                        <input type="hidden" id="${action['name']}" name="${action['name']}" value="${notifier['actions'][action['name']]}">
+                                    </div>
+                                    % endfor
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
+                            <label>Notification Conditions</label>
+                            <p class="help-block">
+                                Add custom notification conditions.
+                                <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
+                            </p>
+                            <p class="help-block">
+                                Note: Conditions are checked after the notification trigger and the notification will only be sent if the condition logic is satisfied.
+                            </p>
+                            <div id="condition-widget"></div>
+                            <input type="hidden" name="custom_conditions" id="custom_conditions" />
+
+                            <div class="form-group">
+                                <label for="custom_conditions_logic">Condition Logic</label>
+                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
+                                <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
+                                <p class="help-block">
+                                    Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                </p>
+                                <p class="help-block">
+                                    Note: Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.
+                                    For order of operations, <span class="inline-pre">and</span> is evaluated before <span class="inline-pre">or</span>.
+                                </p>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_text">
+                            <label>Notification Text</label>
+                            <p class="help-block">
+                                % if notifier['agent_name'] == 'scripts':
+                                Set the custom arguments passed to the script for each type of notification.
+                                % else:
+                                Set the custom formatted text for each type of notification.
+                                % endif
+                                <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
+                            </p>
+                            <p class="help-block">
+                                You can also add text modifiers to change the case or slice parameters with a list of items.
+                                <a href="#notify-text-modifiers-modal" data-toggle="modal">Click here</a> to view usage information.
+                            </p>
+                            <p class="help-block">
+                                You can also add tags to exclude certain text depending on the media type.
+                                <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
+                            </p>
+                            <br />
+                            <ul id="accordion-notify_text" class="accordion list-unstyled">
+                                % if notifier['agent_name'] == 'scripts':
+                                % for action in available_notification_actions:
+                                <li>
+                                    <div class="link"><i class="fa ${action['icon']} fa-fw"></i>&nbsp;${action['label']}<i class="fa fa-chevron-down"></i></div>
+                                    <ul class="submenu">
+                                        <li>
+                                            <div class="form-group">
+                                                <label for="${action['name']}_subject">Script Arguments</label>
+                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" data-parsley-trigger="change" required>
+                                                <p class="help-block">Set custom arguments passed to the script.</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Arguments">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                % endfor
+                                % else:
+                                % for action in available_notification_actions:
+                                <li>
+                                    <div class="link"><i class="fa ${action['icon']} fa-fw"></i>&nbsp;${action['label']}<i class="fa fa-chevron-down"></i></div>
+                                    <ul class="submenu">
+                                        <li>
+                                            <div class="form-group">
+                                                <label for="${action['name']}_subject">Subject Line</label>
+                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" data-parsley-trigger="change" required>
+                                                <p class="help-block">Set a custom subject line.</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="${action['name']}_body">Message Body</label>
+                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
+                                                <p class="help-block">Set a custom body.</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Text">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                % endfor
+                                % endif
+                            </ul>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-test_notifications">
+                            <label>Test Notifications</label>
+                            <p class="help-block">
+                                Test if ${notifier['agent_label']} notifications are working. Check the <a href="logs">logs</a> for troubleshooting.
+                            </p>
+                            <p class="help-block">
+                                Note: Test with the real values since parameters will not be substituted. 
+                                (i.e. Use <span class="inline-pre">"Game of Thrones"</span> not <span class="inline-pre">{title}</span>)
+                            </p>
+                            % if notifier['agent_name'] == 'scripts':
+                            <div class="form-group">
+                                <label for="test_script">Script</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <select class="form-control" id="test_script" name="test_script">
+                                            % for key, value in sorted(notifier['config_options'][2]['select_options'].iteritems()):
+                                            <option value="${key}">${value}</option>
+                                            % endfor
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="help-block">Choose the script to test.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="test_script_args">Script Arguments</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
+                                    </div>
+                                </div>
+                                <p class="help-block">Set custom arguments passed to the script.</p>
+                            </div>
+                            % else:
+                            <div class="form-group">
+                                <label for="test_subject">Subject Line</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <input class="form-control" type="text" id="test_subject" name="test_subject" value="Tautulli">
+                                    </div>
+                                </div>
+                                <p class="help-block">Set a custom subject line.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="test_body">Message Body</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <input class="form-control" type="text" id="test_body" name="test_body" value="Test notification">
+                                    </div>
+                                </div>
+                                <p class="help-block">Set a custom body.</p>
+                            </div>
+                            % endif
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${notifier['agent_label']}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="button" id="delete-notifier-item" class="btn btn-danger btn-edit" style="float:left;" value="Delete">
+            <input type="button" id="duplicate-notifier-item" class="btn btn-dark btn-edit" style="float:left;" value="Duplicate">
+            <input type="button" id="save-notifier-item" class="btn btn-bright" value="Save">
+        </div>
+    </div>
+</div>
+
+<script src="${http_root}js/filterer.jquery.js"></script>
+<script>
+
+    $('#notifier-config-modal').unbind('hidden.bs.modal');
+
+    // Need this for setting conditions since conditions contain the character "
+    $('#custom_conditions').val('${notifier['custom_conditions'] | n}')
+
+    $('#condition-widget').filterer({
+        parameters: ${parameters | n},
+        conditions: ${notifier["custom_conditions"] | n},
+        updateConditions: function(newConditions){
+            $('#custom_conditions').val(JSON.stringify(newConditions));
+        }
+    })
+    
+    function reloadModal() {
+        $.ajax({
+            url: 'get_notifier_config_modal',
+            data: { notifier_id: '${notifier["id"]}' },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $('#notifier-config-modal').html(xhr.responseText);
+            }
+        });
+    }
+
+    function saveCallback(jqXHR) {
+        if (jqXHR) {
+            var result = $.parseJSON(jqXHR.responseText);
+            var msg = result.message;
+            if (result.result == 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+            }
+        }
+
+        getNotifiersTable();
+    }
+
+    function deleteCallback() {
+        $('#notifier-config-modal').modal('hide');
+        getNotifiersTable();
+    }
+
+    function duplicateCallback(result) {
+        // Set new notifier id
+        $('#notifier_id').val(result.notifier_id);
+        // Clear friendly name
+        $('#friendly_name').val("");
+        // Uncheck all triggers
+        $('#tabs-notify_triggers input[id^=on_]').val(0);
+
+        saveNotifier();
+
+        $('#notifier-config-modal').on('hidden.bs.modal', function () {
+            loadNotifierConfig(result.notifier_id);
+        });
+        $('#notifier-config-modal').modal('hide');
+    }
+
+    function saveNotifier() {
+        // Trim all text inputs before saving
+        $('input[type=text]').val(function(_, value) {
+            return $.trim(value);
+        });
+        if (validateLogic()) {
+            // Reload modal to update certain fields
+            doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
+        }
+    }
+
+    $('#delete-notifier-item').click(function () {
+        var msg = 'Are you sure you want to delete this <strong>${notifier["agent_label"]}</strong> notification agent?';
+        var url = 'delete_notifier';
+        confirmAjaxCall(url, msg, { notifier_id: '${notifier["id"]}' }, null, deleteCallback);
+    });
+
+    $('#duplicate-notifier-item').click(function() {
+        var msg = 'Are you sure you want to duplicate this <strong>${notifier["agent_label"]}</strong> notification agent?';
+        var url = 'add_notifier_config';
+        confirmAjaxCall(url, msg, { agent_id: "${notifier['agent_id']}" }, null, duplicateCallback);
+    });
+
+    $('#save-notifier-item').click(function () {
+        saveNotifier();
+    });
+
+    % if notifier['agent_name'] == 'facebook':
+    function disableFacebookRequest() {
+        if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebook_facebookStep1').prop('disabled', false); }
+        else { $('#facebook_facebookStep1').prop('disabled', true); }
+    }
+    disableFacebookRequest();
+    $('#facebook_app_id, #facebook_app_secret').on('change', function () {
+        disableFacebookRequest();
+    });
+
+    $('#facebook_facebookStep1').click(function () {
+        // Remove trailing '/' from Facebook redirect URI
+        if ($('#facebook_redirect_uri') && $('#facebook_redirect_uri').val().endsWith('/')) {
+            $('#facebook_redirect_uri').val($('#facebook_redirect_uri').val().slice(0, -1));
+        }
+
+        $.ajax({
+            url: 'facebookStep1',
+            data: {
+                app_id: $('#facebook_app_id').val(),
+                app_secret: $('#facebook_app_secret').val(),
+                redirect_uri: $('#facebook_redirect_uri').val(),
+            },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.msg;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    window.open(result.url);
+
+                    (function retrieve_token(){
+                        facebook_token = null;
+                        setTimeout(function() {
+                            $.ajax({
+                                url: 'facebook_retrieve_token',
+                                type: 'GET',
+                                success: function(data) {
+                                    if (data.result === 'success') {
+                                        facebook_token = true;
+                                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                                        $('#facebook_access_token').val(data.access_token);
+                                    } else if (data.result === 'error') {
+                                        facebook_token = false;
+                                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                                    }
+                                },
+                                complete: function() {
+                                    if (facebook_token === null) {
+                                        retrieve_token();
+                                    }
+                                },
+                                timeout: 1000
+                            });
+                        }, 1000);
+                    })();
+
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
+            }
+        });
+    });
+
+    $('#notifier-config-modal').on('hidden.bs.modal', function () {
+        facebook_token = false;
+    })
+
+    % elif notifier['agent_name'] == 'browser':
+    $('#browser_allow_browser').click(function () {
+        PNotify.desktop.permission();
+    })
+
+    % elif notifier['agent_name'] == 'osx':
+    $('#osxnotifyregister').click(function () {
+        var osx_notify_app = $('#osx_notify_app').val();
+        $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
+    })
+    % endif
+
+    function validateLogic() {
+        const valid_tokens = /(\(|\)|and|or)/g;
+        const conditions_pattern = /{\d+}/g;
+
+        var custom_conditions = $.parseJSON($('#custom_conditions').val());
+        var custom_conditions_logic = $('#custom_conditions_logic').val();
+        var num_cond = custom_conditions.length;
+
+        var tokens = $.map(custom_conditions_logic.toLowerCase().split(valid_tokens), $.trim).filter(String);
+
+        var stack = [[]];
+        var temp;
+
+        var cond_next = true;
+        var bool_next = false;
+        var open_bracket_next = true;
+        var close_bracket_next = false;
+        var nest_and = 0;
+        var nest_nest_and = 0;
+
+        try {
+            $.each(tokens, function(i, x) {
+                if (open_bracket_next && x === '(') {
+                    stack[stack.length-1].push([]);
+                    temp = stack[stack.length-1];
+                    stack.push(temp[temp.length-1]);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                    if (nest_and) {
+                        nest_nest_and += 1
+                    }
+                } else if (close_bracket_next && x === ')') {
+                    stack.pop();
+                    if (stack.length === 0) {
+                        throw 'opening bracket is missing';
+                    }
+                    cond_next = false;
+                    bool_next = true;
+                    open_bracket_next = false;
+                    close_bracket_next = true;
+                    if (nest_and > 0 && nest_nest_and > 0 && nest_and === nest_nest_and) {
+                        stack.pop();
+                        nest_and -= 1;
+                        nest_nest_and -= 1;
+                    }
+                } else if (cond_next && x.match(conditions_pattern)) {
+                    if (isNaN(x.slice(1, -1))) {
+                        throw 'invalid condition logic'
+                    } else {
+                        var num = parseInt(x.slice(1, -1));
+                    }
+                    if (!(0 < num && num <= num_cond)) {
+                        throw 'invalid condition number in condition logic'
+                    }
+                    stack[stack.length-1].push(num);
+                    cond_next = false;
+                    bool_next = true;
+                    open_bracket_next = false;
+                    close_bracket_next = true;
+                    if (nest_and > nest_nest_and) {
+                        stack.pop();
+                        nest_and -= 1;
+                    }
+                } else if (bool_next && x === 'and' && i < tokens.length-1) {
+                    stack[stack.length-1].push([]);
+                    temp = stack[stack.length-1];
+                    stack.push(temp[temp.length-1]);
+                    temp = stack[stack.length-2];
+                    stack[stack.length-1].push(temp.splice(0, temp.length-2) + temp.splice(temp.length-2, temp.length-1));
+                    stack[stack.length-1].push(x);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                    nest_and += 1;
+                } else if (bool_next && x === 'or' && i < tokens.length-1) {
+                    stack[stack.length-1].push(x);
+                    cond_next = true;
+                    bool_next = false;
+                    open_bracket_next = true;
+                    close_bracket_next = false;
+                } else {
+                    throw 'invalid condition logic';
+                }
+            });
+
+            if (stack.length > 1) {
+                throw 'closing bracket is missing';
+            }
+
+            $('#custom_conditions_logic_error').hide();
+            return true;
+        } catch (e) {
+            $('#custom_conditions_logic_error span').text(e);
+            $('#custom_conditions_logic_error').show();
+            showMsg('<i class="fa fa-times"></i> Failed to save notifier. Invalid condition logic.', false, true, 5000, true);
+        }
+    }
+
+    $('.notifier-text-preview').click(function () {
+        var action = $(this).data('action');
+        var subject = $('#' + action + '_subject').val();
+        var body = $('#' + action + '_body').val();
+
+        $.ajax({
+            url: 'get_notify_text_preview',
+            data: {
+                notify_action: action,
+                subject: subject,
+                body: body,
+                agent_id: "${notifier['agent_id']}",
+                agent_name: "${notifier['agent_name']}"
+            },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-text-preview-modal").html(xhr.responseText).modal('show');
+            }
+        });
+    });
+
+    $('#test_notifier').click(function () {
+        doAjaxCall('set_notifier_config', $(this), 'tabs', true, false, sendTestNotification);
+    });
+
+    function sendTestNotification() {
+        if ('${notifier["agent_name"]}' != 'browser') {
+            $.ajax({
+                url: 'send_notification',
+                data: {
+                    notifier_id: '${notifier["id"]}',
+                    subject: $('#test_subject').val(),
+                    body: $('#test_body').val(),
+                    script: $('#test_script').val(),
+                    script_args: $('#test_script_args').val(),
+                    notify_action: 'test'
+                },
+                cache: false,
+                async: true,
+                complete: function (xhr, status) {
+                    if (xhr.responseText.indexOf('sent') > -1) {
+                        msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000);
+                    } else {
+                        msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000, true);
+                    }
+                }
+            });
+        } else {
+            if ($('#browser_auto_hide_delay').val() == "0") {
+                PNotify.prototype.options.hide = false;
+            } else {
+                PNotify.prototype.options.hide = true;
+                PNotify.prototype.options.delay = $('#browser_auto_hide_delay').val() * 1000;
+            }
+            var notification = new PNotify({
+                title: $('#test_subject').val(),
+                text: $('#test_body').val()
+            });
+        }
+    }
+
+    $("${', '.join(['#' + c['name'] for c in notifier['config_options'] if c.get('refresh')])}").on('change', function () {
+        // Reload modal to update certain fields
+        doAjaxCall('set_notifier_config', $(this), 'tabs', true, false, reloadModal);
+        return false;
+    });
+
+    // Never send checkbox values directly, always substitute value in hidden input.
+    $('.checkboxes').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+
+    var accordion_session = new Accordion($('#accordion-notify_text'), false);
+
+    // auto resizing textarea for custom notification message body
+    $('textarea[data-autoresize]').each(function () {
+        var offset = this.offsetHeight - this.clientHeight;
+        var resizeTextarea = function (el) {
+            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
+</script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="notifier-config-modal-header">Error</h4>
+        </div>
+        <div class="modal-body" style="text-align: center">
+            <strong>
+                <i class="fa fa-exclamation-circle"></i> Failed to retrieve notifier configuration. Check the <a href="logs">logs</a> for more info.
+            </strong>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif

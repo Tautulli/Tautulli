@@ -24,70 +24,64 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data:
-<ul class="list-unstyled">
-    % for library in data:
-    <div class="home-platforms-instance">
-        <li>
-            <div class="home-platforms-instance-info">
-                <div class="home-platforms-instance-name">
-                    <h4>
-                        <a href="library?section_id=${library['section_id']}" title="${library['section_name']}">${library['section_name']}</a>
-                    </h4>
+<%
+    types = ('movie', 'show', 'artist', 'photo')
+    headers = {'movie': ('Movie Libraries', ('Movies', '', '')),
+               'show': ('TV Show Libraries', ('Shows', 'Seasons', 'Episodes')),
+               'artist': ('Music Libraries', ('Artists', 'Albums', 'Tracks')),
+               'photo': ('Photo Libraries', ('Albums', '', 'Photos'))}
+%>
+% for section_type in types:
+% if section_type in data:
+<div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
+    <div class="dashboard-stats-container">
+        <div class="dashboard-stats-background-overlay">
+            <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&fallback=art);"></div>
+            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
+            <div class="dashboard-stats-info-container">
+                <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">
+                    <h4>${headers[section_type][0]}</h4>
+                    <span class="dashboard-stats-stats-units">${' / '.join(u for u in headers[section_type][1] if u)}</span>
                 </div>
-                % if library['section_type'] == 'movie':
-                <div class="home-platforms-instance-playcount">
-                    <h5>All Movies</h5>
-                    <h3>${library['count']}</h3>
-                    <p> items</p>
+                <div class="dashboard-stats-info-scroller scrollbar-macosx">
+                    <div class="dashboard-stats-info scoller-content">
+                        <ul class="list-unstyled dashboard-stats-info-list">
+                            % for section in data[section_type]:
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}">
+                                <div class="sub-list">${loop.index + 1}</div>
+                                <div class="sub-value">
+                                    <a href="library?section_id=${section['section_id']}" title="${section['section_name']}">
+                                        ${section['section_name']}
+                                    </a>
+                                </div>
+                                % if headers[section_type][1][0]:
+                                <div class="sub-count">
+                                    ${section['count']}
+                                </div>
+                                % endif
+                                % if headers[section_type][1][1]:
+                                <div class="sub-divider"> / </div>
+                                <div class="sub-count">
+                                    ${section['child_count']}
+                                </div>
+                                % endif
+                                % if headers[section_type][1][2]:
+                                <div class="sub-divider"> / </div>
+                                <div class="sub-count">
+                                    ${section['grandchild_count']}
+                                </div>
+                                % endif
+                            </li>
+                            % endfor
+                        </ul>
+                    </div>
                 </div>
-                % elif library['section_type'] == 'show':
-                <div class="home-platforms-instance-playcount">
-                    <h5>All Shows</h5>
-                    <h3>${library['count']}</h3>
-                    <p> items</p>
-                </div>
-                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
-                    <h5>All Episodes</h5>
-                    <h3>${library['child_count']}</h3>
-                    <p> items</p>
-                </div>
-                % elif library['section_type'] == 'artist':
-                <div class="home-platforms-instance-playcount">
-                    <h5>All Artists</h5>
-                    <h3>${library['count']}</h3>
-                    <p> items</p>
-                </div>
-                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
-                    <h5>All Albums</h5>
-                    <h3>${library['parent_count']}</h3>
-                    <p> items</p>
-                </div>
-                % elif library['section_type'] == 'photo':
-                <div class="home-platforms-instance-playcount">
-                    <h5>All Albums</h5>
-                    <h3>${library['count']}</h3>
-                    <p> items</p>
-                </div>
-                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
-                    <h5>All Photos</h5>
-                    <h3>${library['child_count']}</h3>
-                    <p> items</p>
-                </div>
-                % endif
             </div>
-            % if library['thumb'].startswith("http"):
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-library-thumb" style="background-image: url(${library['thumb']});"></div>
-            </div>
-            % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-library-thumb" style="background-image: url(pms_image_proxy?img=${library['thumb']}&width=300&height=300&fallback=cover);"></div>
-            </div>
-            % endif
-        </li>
+        </div>
     </div>
-    % endfor
-</ul>
+</div>
+% endif
+% endfor
 % else:
 <div class="text-muted">No stats to show.</div><br>
 % endif

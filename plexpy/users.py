@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import httpagentparser
 import time
@@ -44,6 +44,9 @@ class Users(object):
 
         if session.get_session_user_id():
             custom_where.append(['users.user_id', session.get_session_user_id()])
+
+        if kwargs.get('user_id'):
+            custom_where.append(['users.user_id', kwargs.get('user_id')])
 
         columns = ['users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
@@ -90,7 +93,7 @@ class Users(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_list: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_list: %s." % e)
             return default_return
 
         users = query['result']
@@ -201,7 +204,7 @@ class Users(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_unique_ips: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
             return default_return
 
         results = query['result']
@@ -261,7 +264,7 @@ class Users(object):
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
-                logger.warn(u"PlexPy Users :: Unable to execute database query for set_config: %s." % e)
+                logger.warn(u"Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, user_id=None, user=None, email=None):
         default_return = {'user_id': 0,
@@ -310,7 +313,7 @@ class Users(object):
                 else:
                     result = []
             except Exception as e:
-                logger.warn(u"PlexPy Users :: Unable to execute database query for get_details: %s." % e)
+                logger.warn(u"Tautulli Users :: Unable to execute database query for get_details: %s." % e)
                 result = []
 
             user_details = {}
@@ -354,7 +357,7 @@ class Users(object):
             return user_details
 
         else:
-            logger.warn(u"PlexPy Users :: Unable to retrieve user %s from database. Requesting user list refresh."
+            logger.warn(u"Tautulli Users :: Unable to retrieve user %s from database. Requesting user list refresh."
                         % user_id if user_id else user)
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             plextv.refresh_users()
@@ -365,7 +368,7 @@ class Users(object):
                 return user_details
 
             else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve user %s from database. Returning 'Local' user."
+                logger.warn(u"Tautulli Users :: Unable to retrieve user %s from database. Returning 'Local' user."
                             % user_id if user_id else user)
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
@@ -404,7 +407,7 @@ class Users(object):
                     else:
                         result = []
             except Exception as e:
-                logger.warn(u"PlexPy Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.warn(u"Tautulli Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
                 result = []
 
             for item in result:
@@ -444,15 +447,17 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_player_stats: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_player_stats: %s." % e)
             result = []
 
         for item in result:
             # Rename Mystery platform names
-            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
+            platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
 
             row = {'player_name': item['player'],
-                   'platform_type': platform_type,
+                   'platform': platform,
+                   'platform_name': platform_name,
                    'total_plays': item['player_count'],
                    'result_id': result_id
                    }
@@ -487,7 +492,7 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_recently_watched: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_recently_watched: %s." % e)
             result = []
 
         for row in result:
@@ -522,7 +527,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                logger.info(u"PlexPy Users :: Deleting all history for user id %s from database." % user_id)
+                logger.info(u"Tautulli Users :: Deleting all history for user id %s from database." % user_id)
                 session_history_media_info_del = \
                     monitor_db.action('DELETE FROM '
                                       'session_history_media_info '
@@ -546,7 +551,7 @@ class Users(object):
             else:
                 return 'Unable to delete items. Input user_id not valid.'
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for delete_all_history: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for delete_all_history: %s." % e)
 
     def delete(self, user_id=None):
         monitor_db = database.MonitorDatabase()
@@ -554,7 +559,7 @@ class Users(object):
         try:
             if str(user_id).isdigit():
                 self.delete_all_history(user_id)
-                logger.info(u"PlexPy Users :: Deleting user with id %s from database." % user_id)
+                logger.info(u"Tautulli Users :: Deleting user with id %s from database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
@@ -563,21 +568,21 @@ class Users(object):
             else:
                 return 'Unable to delete user, user_id not valid.'
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for delete: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for delete: %s." % e)
 
     def undelete(self, user_id=None, username=None):
         monitor_db = database.MonitorDatabase()
 
         try:
             if user_id and str(user_id).isdigit():
-                logger.info(u"PlexPy Users :: Re-adding user with id %s to database." % user_id)
+                logger.info(u"Tautulli Users :: Re-adding user with id %s to database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
 
                 return 'Re-added user with id %s.' % user_id
             elif username:
-                logger.info(u"PlexPy Users :: Re-adding user with username %s to database." % username)
+                logger.info(u"Tautulli Users :: Re-adding user with username %s to database." % username)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
@@ -586,7 +591,7 @@ class Users(object):
             else:
                 return 'Unable to re-add user, user_id or username not valid.'
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for undelete: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
     # Keep method for PlexWatch/Plexivity import
     def get_user_id(self, user=None):
@@ -620,7 +625,7 @@ class Users(object):
 
             result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_user_names: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
             return None
         
         return session.friendly_name_to_username(result)
@@ -657,7 +662,7 @@ class Users(object):
                     'WHERE user_id = ?'
             result = monitor_db.select_single(query, args=[user_id])
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_filters: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
             result = {}
 
         filters_list = {}
@@ -675,7 +680,7 @@ class Users(object):
 
         return filters_list
 
-    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None):
+    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None, success=0):
 
         if user_id is None or str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
@@ -687,12 +692,13 @@ class Users(object):
                       'user_group': user_group,
                       'ip_address': ip_address,
                       'host': host,
-                      'user_agent': user_agent}
+                      'user_agent': user_agent,
+                      'success': success}
 
             try:
                 monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
             except Exception as e:
-                logger.warn(u"PlexPy Users :: Unable to execute database query for set_login_log: %s." % e)
+                logger.warn(u"Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
 
     def get_datatables_user_login(self, user_id=None, kwargs=None):
         default_return = {'recordsFiltered': 0,
@@ -711,13 +717,14 @@ class Users(object):
         else:
             custom_where = [['user_login.user_id', user_id]] if user_id else []
 
-        columns = ['user_login.user_id',
+        columns = ['user_login.timestamp',
+                   'user_login.user_id',
                    'user_login.user',
                    'user_login.user_group',
                    'user_login.ip_address',
                    'user_login.host',
                    'user_login.user_agent',
-                   'user_login.timestamp',
+                   'user_login.success',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name'
                    ]
@@ -732,7 +739,7 @@ class Users(object):
                                           join_evals=[['user_login.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
             return default_return
 
         results = query['result']
@@ -741,14 +748,15 @@ class Users(object):
         for item in results:
             (os, browser) = httpagentparser.simple_detect(item['user_agent'])
 
-            row = {'user_id': item['user_id'],
+            row = {'timestamp': item['timestamp'],
+                   'user_id': item['user_id'],
                    'user_group': item['user_group'],
                    'ip_address': item['ip_address'],
                    'host': item['host'],
                    'user_agent': item['user_agent'],
                    'os': os,
                    'browser': browser,
-                   'timestamp': item['timestamp'],
+                   'success': item['success'],
                    'friendly_name': item['friendly_name'] or item['user']
                    }
 
@@ -766,10 +774,10 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            logger.info(u"PlexPy Users :: Clearing login logs from database.")
+            logger.info(u"Tautulli Users :: Clearing login logs from database.")
             monitor_db.action('DELETE FROM user_login')
             monitor_db.action('VACUUM')
             return True
         except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for delete_login_log: %s." % e)
+            logger.warn(u"Tautulli Users :: Unable to execute database query for delete_login_log: %s." % e)
             return False

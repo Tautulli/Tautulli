@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
@@ -66,7 +66,7 @@ def user_login(username=None, password=None):
             # Register the new user / update the access tokens.
             monitor_db = MonitorDatabase()
             try:
-                logger.debug(u"PlexPy WebAuth :: Regestering tokens for user '%s' in the database." % username)
+                logger.debug(u"Tautulli WebAuth :: Regestering tokens for user '%s' in the database." % username)
                 result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
                                             [user_token, server_token, user_id])
 
@@ -76,16 +76,16 @@ def user_login(username=None, password=None):
                     # Successful login
                     return True
                 else:
-                    logger.warn(u"PlexPy WebAuth :: Unable to register user '%s' in database." % username)
+                    logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database." % username)
                     return None
             except Exception as e:
-                logger.warn(u"PlexPy WebAuth :: Unable to register user '%s' in database: %s." % (username, e))
+                logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database: %s." % (username, e))
                 return None
         else:
-            logger.warn(u"PlexPy WebAuth :: Unable to retrieve Plex.tv server token for user '%s'." % username)
+            logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'." % username)
             return None
     else:
-        logger.warn(u"PlexPy WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
+        logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
     return None
@@ -190,14 +190,29 @@ class AuthController(object):
                                user_group=user_group,
                                ip_address=ip_address,
                                host=host,
-                               user_agent=user_agent)
+                               user_agent=user_agent,
+                               success=1)
 
-        logger.debug(u"PlexPy WebAuth :: %s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
+        logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli." % (user_group.capitalize(), username))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"PlexPy WebAuth :: %s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
+        logger.debug(u"Tautulli WebAuth :: %s User '%s' logged out of Tautulli." % (user_group.capitalize(), username))
     
+    def on_login_failed(self, username):
+        """Called on failed login"""
+
+        # Save login attempt to the database
+        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
+        host = cherrypy.request.headers.get('Origin')
+        user_agent = cherrypy.request.headers.get('User-Agent')
+
+        Users().set_user_login(user=username,
+                               ip_address=ip_address,
+                               host=host,
+                               user_agent=user_agent,
+                               success=0)
+
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
         return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
@@ -240,10 +255,12 @@ class AuthController(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':
-            logger.debug(u"PlexPy WebAuth :: Invalid admin login attempt from '%s'." % username)
+            self.on_login_failed(username)
+            logger.debug(u"Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
-            logger.debug(u"PlexPy WebAuth :: Invalid login attempt from '%s'." % username)
+            self.on_login_failed(username)
+            logger.debug(u"Tautulli WebAuth :: Invalid login attempt from '%s'." % username)
             return self.get_loginform(username, u"Incorrect username/email or password.")
     
     @cherrypy.expose

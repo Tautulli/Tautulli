@@ -1,8 +1,8 @@
-# PlexPy
+# Tautulli
 
-[![Discord](https://img.shields.io/badge/Discord-PlexPy-738bd7.svg?style=flat-square)](https://discord.gg/36ggawe)
-[![Gitter](https://img.shields.io/badge/Gitter-PlexPy-ed1965.svg?style=flat-square)](https://gitter.im/plexpy/general)
-[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-PlexPy-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
+[![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://discord.gg/36ggawe)
+[![Reddit](https://img.shields.io/badge/Reddit-Tautulli-FF5700.svg?style=flat-square)](https://www.reddit.com/r/Tautulli/)
+[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
 
 A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
@@ -27,13 +27,13 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Preview
 
-* [Full preview gallery on Imgur](https://imgur.com/a/RwQPM)
+* [Full preview gallery on our website](http://tautulli.com)
 
-![PlexPy Homepage](https://i.imgur.com/0D0uFJg.jpg)
+![Tautulli Homepage](http://tautulli.com/images/screenshots/activity.png?v=2)
 
 ## Installation and Support
 
-* [Installation Guides](https://github.com/JonnyWong16/plexpy/wiki/Installation) shows you how to install PlexPy.
+* [Installation Guides](https://github.com/JonnyWong16/plexpy/wiki/Installation) shows you how to install Tautulli.
 * [FAQs](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)) in the wiki can help you with common problems.
 
 **Support** the project by implementing new features, solving support tickets and provide bug fixes.
@@ -49,7 +49,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 - Checking the [Wiki](https://github.com/JonnyWong16/plexpy/wiki) for 
 [ [Installation] ](https://github.com/JonnyWong16/plexpy/wiki/Installation) and 
 [ [FAQs] ](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
-- For basic questions try asking on [Gitter](https://gitter.im/plexpy/general) or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
+- For basic questions try asking on [Discord](https://discord.gg/36ggawe), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
 
 ##### If nothing has worked:
 

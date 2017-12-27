@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# This file is part of PlexPy.
+# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
@@ -64,7 +64,7 @@ class HTTPHandler(object):
                 if not self.ssl_verify and hasattr(ssl, '_create_unverified_context'):
                     context = ssl._create_unverified_context()
                     handler = HTTPSConnection(host=self.host, port=self.port, timeout=timeout, context=context)
-                    logger.warn(u"PlexPy HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")
+                    logger.warn(u"Tautulli HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")
                 else:
                     handler = HTTPSConnection(host=self.host, port=self.port, timeout=timeout)
             else:
