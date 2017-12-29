@@ -559,7 +559,7 @@
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
-                        <div class="form-group has-feedback" id="pms-ip-group">
+                        <div class="form-group has-feedback" id="pms_ip_group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
                                 <div class="col-md-6">
@@ -569,7 +569,7 @@
                                             <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
                                         </span>
                                     </div>
-                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none; right: 110px;"></span>
+                                    <span class="form-control-feedback" id="pms_verify" aria-hidden="true" style="display: none; right: 110px;"></span>
                                 </div>
                                 <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -607,7 +607,12 @@
                             <label for="pms_logs_folder">Plex Web URL</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/.+\/web\/index\.html$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL." required>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL.">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -1580,6 +1585,17 @@ $(document).ready(function() {
         }
     }
 
+    function preSaveChecks(_callback) {
+        if ($("#pms_identifier").val() == "") {
+            verifyServer();
+        }
+        verifyPMSWebURL();
+
+        if (_callback) {
+            _callback();
+        }
+    }
+
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
         if (serverChanged || authChanged || httpChanged || directoryChanged) {
@@ -1609,11 +1625,7 @@ $(document).ready(function() {
     }
 
     $('.save-button').click(function() {
-        if ($("#pms_identifier").val() == "") {
-            verifyServer(function () { saveSettings() });
-        } else {
-            saveSettings();
-        }
+        preSaveChecks(function () { saveSettings() });
     });
 
     initConfigCheckbox('#api_enabled');
@@ -1758,43 +1770,45 @@ $(document).ready(function() {
         var pms_identifier = $("#pms_identifier").val();
         var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
         var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
+
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
-            $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
-            $('#pms-verify').fadeIn('fast');
+            $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
             $.ajax({
                 url: 'get_server_id',
-                data : { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
+                data: {
+                    hostname: pms_ip,
+                    port: pms_port,
+                    identifier: pms_identifier,
+                    ssl: pms_ssl,
+                    remote: pms_is_remote
+                },
                 cache: true,
                 async: true,
                 timeout: 10000,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    $("#pms-verify").html('<i class="fa fa-close"></i>');
-                    $('#pms-verify').fadeIn('fast');
-                    $("#pms-ip-group").addClass("has-error");
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+                    $("#pms_ip_group").addClass("has-error");
                 },
                 success: function (json) {
                     var machine_identifier = json;
                     if (machine_identifier) {
                         $("#pms_identifier").val(machine_identifier);
-                        $("#pms-verify").html('<i class="fa fa-check"></i>');
-                        $('#pms-verify').fadeIn('fast');
-                        $("#pms-ip-group").removeClass("has-error");
+                        $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
+                        $("#pms_ip_group").removeClass("has-error");
 
                         if (_callback) {
                             _callback();
                         }
                     } else {
-                        $("#pms-verify").html('<i class="fa fa-close"></i>');
-                        $('#pms-verify').fadeIn('fast');
-                        $("#pms-ip-group").addClass("has-error");
+                        $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+                        $("#pms_ip_group").addClass("has-error");
                         showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
                     }
                 }
             });
         } else {
-            $("#pms-verify").html('<i class="fa fa-close"></i>');
-            $('#pms-verify').fadeIn('fast');
-            $("#pms-ip-group").addClass("has-error");
+            $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+            $("#pms_ip_group").addClass("has-error");
             showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
         }
     }
@@ -1804,11 +1818,21 @@ $(document).ready(function() {
         verifyServer();
     });
 
+    function verifyPMSWebURL() {
+        var pms_web_url = $.trim($("#pms_web_url").val());
+        $("#pms_web_url").val(pms_web_url || 'https://app.plex.tv/desktop');
+    }
+
+    $('#test_pms_web_button').on('click', function(){
+        var pms_web_url = $.trim($("#pms_web_url").val());
+        window.open(pms_web_url, '_blank');
+    });
+
     // Plex.tv auth token fetch
     $("#get-pms-auth-token").click(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
-        var pms_username = $("#pms_username").val().trim();
-        var pms_password = $("#pms_password").val().trim();
+        var pms_username = $.trim($("#pms_username").val());
+        var pms_password = $.trim($("#pms_password").val());
         if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
                 type: 'GET',
