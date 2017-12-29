@@ -1,0 +1,99 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           info_collection_list.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+children_type           Returns the type of children in the array.
+children_count          Returns the number of episodes in the array.
+children_list           Returns an array of episodes.
+
+data['children_list'] :: Usable paramaters
+
+== Global keys ==
+rating_key              Returns the unique identifier for the media item.
+media_index             Returns the episode number.
+title                   Returns the name of the episode.
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+parent_thumb            Returns the location of the item's parent thumbnail. Use with pms_image_proxy.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+<%
+    types = ('movie', 'show', 'artist', 'album')
+    headers = {'movie': 'Movies',
+               'show': 'TV Shows',
+               'season': 'Seasons',
+               'episode': 'Episodes',
+               'artist': 'Artists',
+               'album': 'Albums',
+               'track': 'Tracks',
+               }
+%>
+% for media_type in types:
+% if data['results_list'][media_type]:
+<div class="col-md-12">
+    <div class="table-card-header">
+        <div class="header-bar">
+            <span>${headers[media_type]} in <strong>${title}</strong> collection</span>
+        </div>
+    </div>
+    <div class="table-card-back">
+        <div id="children-list" class="children-list">
+            <div class="item-children-wrapper">
+                <ul class="item-children-instance list-unstyled">
+                    % for child in data['results_list'][media_type]:
+                    <li>
+                        <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
+                            <div class="item-children-poster">
+                                % if media_type in ('artist', 'album'):
+                                <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
+                                % else:
+                                <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                % endif
+                                % if _session['user_group'] == 'admin':
+                                <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                % endif
+                            </div>
+                        </a>
+                        % if media_type == 'artist':
+                        <div class="item-children-instance-text-wrapper cover-item">
+                            <h3>
+                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                            </h3>
+                        </div>
+                        % elif media_type == 'album':
+                        <div class="item-children-instance-text-wrapper cover-item">
+                            <h3>
+                                 <a href="info?rating_key=${child['parent_rating_key']}" title="${child['parent_title']}">${child['parent_title']}</a>
+                            </h3>
+                            <h3>
+                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                            </h3>
+                        </div>
+                        % else:
+                        <div class="item-children-instance-text-wrapper poster-item">
+                            <h3>
+                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                            </h3>
+                            <h3 class="text-muted">${child['year']}</h3>
+                        </div>
+                        % endif
+                    </li>
+                    % endfor
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+% endfor
+% endif

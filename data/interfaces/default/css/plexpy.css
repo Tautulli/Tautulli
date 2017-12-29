@@ -1808,7 +1808,8 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     margin-left: 2px;
     color: #999;
 }
-#children-list, #search-results-list {
+.children-list,
+.search-results-list {
     position: relative;
     z-index: 0;
 }
@@ -1874,15 +1875,15 @@ a:hover .item-children-poster {
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     z-index: -2;
 }
-.item-children-poster-face.season-poster {
+.item-children-poster-face.poster-item {
     width: 150px;
     height: 225px;
 }
-.item-children-poster-face.episode-poster {
+.item-children-poster-face.episode-item {
     width: 250px;
     height: 140px;
 }
-.item-children-poster-face.album-poster {
+.item-children-poster-face.cover-item {
     width: 150px;
     height: 150px;
 }
@@ -1915,14 +1916,12 @@ a:hover .item-children-poster {
     margin-bottom: 20px;
     clear: both;
 }
-.item-children-instance-text-wrapper.season-item {
+.item-children-instance-text-wrapper.poster-item,
+.item-children-instance-text-wrapper.cover-item {
     width: 150px;
 }
 .item-children-instance-text-wrapper.episode-item {
     width: 250px;
-}
-.item-children-instance-text-wrapper.album-item {
-    width: 150px;
 }
 .item-children-instance-text-wrapper h3 {
     width: 100%;

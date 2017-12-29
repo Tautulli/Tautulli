@@ -3588,13 +3588,25 @@ class WebInterface(object):
     def get_item_children(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children(rating_key)
+        result = pms_connect.get_item_children(rating_key=rating_key)
 
         if result:
             return serve_template(templatename="info_children_list.html", data=result, title="Children List")
         else:
             logger.warn(u"Unable to retrieve data for get_item_children.")
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
+
+    @cherrypy.expose
+    @requireAuth()
+    def get_item_children_related(self, rating_key='', title='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_item_children_related(rating_key=rating_key)
+
+        if result:
+            return serve_template(templatename="info_collection_list.html", data=result, title=title)
+        else:
+            return serve_template(templatename="info_collection_list.html", data=None, title=title)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

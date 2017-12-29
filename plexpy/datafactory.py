@@ -1104,7 +1104,7 @@ class DataFactory(object):
         if str(rating_key).isdigit():
             poster_key = rating_key
         elif metadata:
-            if metadata['media_type'] in ('movie', 'show', 'artist'):
+            if metadata['media_type'] in ('movie', 'show', 'artist', 'collection'):
                 poster_key = metadata['rating_key']
             elif metadata['media_type'] in ('season', 'album'):
                 poster_key = metadata['rating_key']

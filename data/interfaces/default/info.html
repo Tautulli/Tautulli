@@ -80,7 +80,7 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
-                        % if data['media_type'] == 'movie':
+                        % if data['media_type'] in ('movie', 'collection'):
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'show':
@@ -151,7 +151,7 @@ DOCUMENTATION :: END
                         </a>
                     </div>
                     <div class="summary-content-title">
-                        % if data['media_type'] in ('movie', 'show', 'artist'):
+                        % if data['media_type'] in ('movie', 'show', 'artist', 'collection'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
@@ -175,7 +175,7 @@ DOCUMENTATION :: END
                 <div class="col-md-9">
                     % if data['media_type'] == 'movie':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 305px;">
-                    % elif data['media_type'] == 'show' or data['media_type'] == 'season':
+                    % elif data['media_type'] in ('show', 'season', 'collection'):
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
                     % elif data['media_type'] == 'episode':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 70px;">
@@ -235,6 +235,8 @@ DOCUMENTATION :: END
                                 Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
                                 % elif data['media_type'] == 'album' or data['media_type'] == 'track':
                                 Released <strong> ${data['year']}</strong>
+                                % elif data['media_type'] == 'collection':
+                                Year <strong> ${data['min_year']} - ${data['max_year']}</strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -308,51 +310,65 @@ DOCUMENTATION :: END
                 </div>
                 % if data['media_type'] == 'show':
                 <div class="col-md-12">
-                    <div class='table-card-header'>
+                    <div class="table-card-header">
                         <div class="header-bar">
                             <span>Season List for <strong>${data['title']}</strong></span>
                         </div>
                     </div>
-                    <div class='table-card-back'>
-                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading season list...</div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading season list...</div>
                     </div>
                 </div>
                 % elif data['media_type'] == 'season':
                 <div class="col-md-12">
-                    <div class='table-card-header'>
+                    <div class="table-card-header">
                         <div class="header-bar">
                             <span>Episode List for <strong>${data['title']}</strong></span>
                         </div>
                     </div>
-                    <div class='table-card-back'>
-                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading episode list...</div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading episode list...</div>
                     </div>
                 </div>
                 % elif data['media_type'] == 'artist':
                 <div class="col-md-12">
-                    <div class='table-card-header'>
+                    <div class="table-card-header">
                         <div class="header-bar">
                             <span>Album List for <strong>${data['title']}</strong></span>
                         </div>
                     </div>
-                    <div class='table-card-back'>
-                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading album list...</div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading album list...</div>
                     </div>
                 </div>
                 % elif data['media_type'] == 'album':
                 <div class="col-md-12">
-                    <div class='table-card-header'>
+                    <div class="table-card-header">
                         <div class="header-bar">
                             <span>Track List for <strong>${data['title']}</strong></span>
                         </div>
                     </div>
-                    <div class='table-card-back'>
-                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading track list...</div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading track list...</div>
                     </div>
                 </div>
-                % endif
+                % elif data['media_type'] == 'collection':
                 <div class="col-md-12">
-                    <div class='table-card-header'>
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span>Movies in <strong>${data['title']}</strong> collection</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading movies list...</div>
+                    </div>
+                </div>
+                <div id="collection-related-list-container" style="display: none;">
+                </div>
+                % endif
+                % if data['media_type'] != 'collection':
+                <div class="col-md-12">
+                    <div class="table-card-header">
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
                         </div>
@@ -420,6 +436,7 @@ DOCUMENTATION :: END
                         </table>
                     </div>
                 </div>
+                % endif
             </div>
         </div>
     </div>
@@ -562,6 +579,7 @@ DOCUMENTATION :: END
     }
 </script>
 % endif
+% if data['media_type'] != 'collection':
 <script>
     $(document).ready(function () {
         get_history();
@@ -638,7 +656,8 @@ DOCUMENTATION :: END
         });
     });
 </script>
-% if data['media_type'] in ('show', 'season', 'artist', 'album'):
+% endif
+% if data['media_type'] in ('show', 'season', 'artist', 'album', 'collection'):
 <script>
     $.ajax({
         url: 'get_item_children',
@@ -646,7 +665,24 @@ DOCUMENTATION :: END
         async: true,
         data: { rating_key : "${data['rating_key']}" },
         complete: function(xhr, status) {
-        $("#children-list").html(xhr.responseText); }
+            $("#children-list").html(xhr.responseText);
+        }
+    });
+</script>
+% endif
+% if data['media_type'] == 'collection':
+<script>
+    $.ajax({
+        url: 'get_item_children_related',
+        type: 'GET',
+        async: true,
+        data: {
+            rating_key : "${data['rating_key']}",
+            title: "${data['title']}"
+        },
+        complete: function(xhr, status) {
+            $("#collection-related-list-container").html(xhr.responseText).show();
+        }
     });
 </script>
 % endif
