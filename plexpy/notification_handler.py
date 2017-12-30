@@ -16,6 +16,7 @@
 
 import arrow
 import bleach
+from collections import Counter
 from itertools import groupby
 import json
 from operator import itemgetter
@@ -145,10 +146,17 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
             return False
 
         if notify_action == 'on_concurrent':
-            ap = activity_processor.ActivityProcessor()
-            user_sessions = ap.get_sessions(user_id=stream_data['user_id'],
-                                            ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
-            return len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_current_activity()
+
+            user_sessions = []
+            if result:
+                user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
+
+            if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
+                return len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+            else:
+                return len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
         elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
