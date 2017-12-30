@@ -176,7 +176,7 @@ def checkGithub(auto_update=False):
         logger.info('New version is available. You are %s commits behind' % plexpy.COMMITS_BEHIND)
 
         url = 'https://api.github.com/repos/%s/plexpy/releases' % plexpy.CONFIG.GIT_USER
-        releases = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+        releases = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == list)
 
         if plexpy.CONFIG.GIT_BRANCH == 'master':
             release = next((r for r in releases if not r['prerelease']), releases[0])
