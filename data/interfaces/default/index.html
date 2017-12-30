@@ -235,7 +235,12 @@
         }
     };
 
+    var create_instances = [];
+    var activity_ready = true;
+
     function getCurrentActivity() {
+        activity_ready = false;
+
         $.ajax({
             url: 'get_activity',
             type: 'GET',
@@ -298,6 +303,7 @@
 
                         // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
+                            create_instances.push(key);
                             getActivityInstance(key);
                             return;
                         }
@@ -501,6 +507,8 @@
                     $('#currentActivityHeader').text('');
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
                 }
+
+                activity_ready = true;
             }
         });
     }
@@ -520,13 +528,20 @@
                 $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
                 $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
                 lockScroll('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller');
+
+                var index = create_instances.indexOf(session_key);
+                if (index > -1) {
+                    create_instances.splice(index, 1);
+                }
             }
         });
     }
 
     getCurrentActivity();
     setInterval(function () {
-        getCurrentActivity();
+        if (!(create_instances.length) && activity_ready) {
+            getCurrentActivity();
+        }
     }, 2000);
 
     setInterval(function(){
