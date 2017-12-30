@@ -13,6 +13,18 @@ a:focus {
     text-decoration: none;
     outline: none;
 }
+a.svg {
+  position: relative;
+  display: inline-block;
+}
+a.svg:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
 select, .react-selectize.bootstrap3.root-node .react-selectize-control {
     margin: 5px 0 5px 0;
     border: 2px solid #444;
