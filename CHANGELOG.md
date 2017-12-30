@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.4-beta (2017-12-29)
+
+* Monitoring:
+  * Fix: Current activity cards duplicating on the homepage.
+* Notifications:
+  * Fix: Concurrent stream notifications being sent when there is an incorrect number of streams.
+* UI:
+  * New: Info pages for collections.
+  * New: Button to test Plex Web URL override.
+  * Fix: Library and User pages return to the correct tab when pressing back.
+
+
 ## v2.0.3-beta (2017-12-25)
 
 * Monitoring:
