@@ -71,7 +71,7 @@ def user_login(username=None, password=None):
 
                 if result:
                     # Refresh the users list to make sure we have all the correct permissions.
-                    users.refresh_users()
+                    refresh_users()
                     # Successful login
                     return True
                 else:
@@ -243,7 +243,6 @@ class AuthController(object):
 
             expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
 
-            cherrypy.session.regenerate()
             cherrypy.request.login = username
             cherrypy.session[SESSION_KEY] = {'user_id': user_id,
                                              'user': username,

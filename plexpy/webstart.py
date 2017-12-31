@@ -69,14 +69,14 @@ def initialize(options):
     if options['http_password']:
         logger.info(u"Tautulli WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
         if options['http_basic_auth']:
-            auth_enabled = session_enabled = False
+            session_enabled = auth_enabled = False
             basic_auth_enabled = True
         else:
-            options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
+            options_dict['tools.sessions.on'] = session_enabled = auth_enabled = True
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
-        auth_enabled = session_enabled = basic_auth_enabled = False
+        session_enabled = auth_enabled = basic_auth_enabled = False
 
     if options['http_root'].strip('/'):
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
@@ -93,9 +93,12 @@ def initialize(options):
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
-            'tools.auth.on': auth_enabled,
             'tools.sessions.on': session_enabled,
+            'tools.session.name': 'my_session_id',
+            'tools.sessions.storage_type': 'file',
+            'tools.sessions.storage_path': plexpy.CONFIG.CACHE_DIR,
             'tools.sessions.timeout': 30 * 24 * 60,  # 30 days
+            'tools.auth.on': auth_enabled,
             'tools.auth_basic.on': basic_auth_enabled,
             'tools.auth_basic.realm': 'Tautulli web server',
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
@@ -112,8 +115,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/images': {
             'tools.staticdir.on': True,
@@ -123,8 +126,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/css': {
             'tools.staticdir.on': True,
@@ -134,8 +137,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/fonts': {
             'tools.staticdir.on': True,
@@ -145,8 +148,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/js': {
             'tools.staticdir.on': True,
@@ -156,8 +159,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/cache': {
             'tools.staticdir.on': True,
@@ -167,8 +170,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         #'/pms_image_proxy': {
         #    'tools.staticdir.on': True,
@@ -189,8 +192,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         }
     }
 
