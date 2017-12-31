@@ -1963,7 +1963,7 @@ class JOIN(Notifier):
 
         deviceid_key = 'deviceId%s' % ('s' if len(self.config['device_id'].split(',')) > 1 else '')
 
-        data = {'api_key': self.config['api_key'],
+        data = {'apikey': self.config['api_key'],
                 deviceid_key: self.config['device_id'],
                 'text': body.encode("utf-8")}
 
