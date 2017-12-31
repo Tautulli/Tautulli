@@ -1411,8 +1411,7 @@ class PmsConnect(object):
         if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') \
             and helpers.get_xml_attr(session, 'ratingKey').isdigit() and transcode_decision == 'direct play':
             plex_tv = plextv.PlexTV()
-            synced_items = plex_tv.get_synced_items(machine_id=plexpy.CONFIG.PMS_IDENTIFIER,
-                                                    client_id_filter=player_details['machine_id'],
+            synced_items = plex_tv.get_synced_items(client_id_filter=player_details['machine_id'],
                                                     rating_key_filter=rating_key)
             if synced_items:
                 sync_id = synced_items[0]['sync_id']

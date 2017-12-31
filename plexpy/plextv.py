@@ -370,7 +370,12 @@ class PlexTV(object):
 
         return users_list
 
-    def get_synced_items(self, machine_id=None, client_id_filter=None, user_id_filter=None, rating_key_filter=None):
+    def get_synced_items(self, machine_id=None, client_id_filter=None, user_id_filter=None,
+                         rating_key_filter=None, sync_id_filter=None):
+
+        if machine_id is None:
+            machine_id = plexpy.CONFIG.PMS_IDENTIFIER
+
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
         user_data = users.Users()
 
@@ -386,10 +391,10 @@ class PlexTV(object):
             client_id = helpers.get_xml_attr(a, 'clientIdentifier')
 
             # Filter by client_id
-            if client_id_filter and client_id_filter != client_id:
+            if client_id_filter and str(client_id_filter) != client_id:
                 continue
 
-            sync_id = helpers.get_xml_attr(a, 'id')
+            sync_list_id = helpers.get_xml_attr(a, 'id')
             sync_device = a.getElementsByTagName('Device')
 
             for device in sync_device:
@@ -410,7 +415,7 @@ class PlexTV(object):
                 device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
 
             # Filter by user_id
-            if user_id_filter and user_id_filter != device_user_id:
+            if user_id_filter and str(user_id_filter) != device_user_id:
                 continue
 
             for synced in a.getElementsByTagName('SyncItems'):
@@ -424,10 +429,15 @@ class PlexTV(object):
                                        for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                     # Filter by rating_key
-                    if rating_key_filter and rating_key_filter != rating_key:
+                    if rating_key_filter and str(rating_key_filter) != rating_key:
                         continue
 
                     sync_id = helpers.get_xml_attr(item, 'id')
+
+                    # Filter by sync_id
+                    if sync_id_filter and str(sync_id_filter) != sync_id:
+                        continue
+
                     sync_version = helpers.get_xml_attr(item, 'version')
                     sync_root_title = helpers.get_xml_attr(item, 'rootTitle')
                     sync_title = helpers.get_xml_attr(item, 'title')
@@ -457,11 +467,11 @@ class PlexTV(object):
 
                     sync_details = {"device_name": helpers.sanitize(device_name),
                                     "platform": helpers.sanitize(device_platform),
-                                    "username": helpers.sanitize(device_username),
-                                    "friendly_name": helpers.sanitize(device_friendly_name),
                                     "user_id": device_user_id,
+                                    "user": helpers.sanitize(device_friendly_name),
+                                    "username": helpers.sanitize(device_username),
                                     "root_title": helpers.sanitize(sync_root_title),
-                                    "title": helpers.sanitize(sync_title),
+                                    "sync_title": helpers.sanitize(sync_title),
                                     "metadata_type": sync_metadata_type,
                                     "content_type": sync_content_type,
                                     "rating_key": rating_key,

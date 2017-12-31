@@ -47,7 +47,7 @@ sync_table_options = {
         },
         {
             "targets": [2],
-            "data": "friendly_name",
+            "data": "user",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['user_id']) {
@@ -63,7 +63,7 @@ sync_table_options = {
         },
         {
             "targets": [3],
-            "data": "title",
+            "data": "sync_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['metadata_type'] !== '') {
