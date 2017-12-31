@@ -2783,12 +2783,12 @@ class SCRIPTS(Notifier):
             return False
 
         if error:
-            err = '\n  '.join([l for l in error.splitlines()])
+            err = '\n  '.join([helpers.sanitize(l) for l in error.splitlines()])
             logger.error(u"Tautulli Notifiers :: Script error: \n  %s" % err)
             return False
 
         if output:
-            out = '\n  '.join([l for l in output.splitlines()])
+            out = '\n  '.join([helpers.sanitize(l) for l in output.splitlines()])
             logger.debug(u"Tautulli Notifiers :: Script returned: \n  %s" % out)
 
         if not self.script_killed:
