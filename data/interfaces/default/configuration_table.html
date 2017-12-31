@@ -74,11 +74,11 @@ DOCUMENTATION :: END
         <tr>
             <td class="top-line">Resources:</td>
             <td class="top-line">
-                <a id="source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" target="_blank">GitHub Source</a> | 
+                <a class="no-highlight" href="${anon_url('http://tautulli.com')}" target="_blank">Tautulli Website</a> |
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" target="_blank">GitHub Source</a> |
                 <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/%s/plexpy/issues' % plexpy.CONFIG.GIT_USER)}" data-id="issue">GitHub Issues</a> |
-                <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" data-id="feature request">FeatHub Feature Requests</a> | 
-                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli Wiki</a> |
-                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank">Tautulli FAQ</a>
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/plexpy/wiki' % plexpy.CONFIG.GIT_USER)}" target="_blank">GitHub Wiki &amp; FAQ</a> |
+                <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/plexpy' % plexpy.CONFIG.GIT_USER)}" data-id="feature request">FeatHub Feature Requests</a> |
             </td>
         </tr>
         <tr>
@@ -112,7 +112,6 @@ DOCUMENTATION :: END
 
         $('.guidelines-modal-link').on('click', function (e) {
             e.preventDefault();
-            $('#guidelines-link').attr('href', $('#source-link').attr('href'));
             $('#guidelines-type').text($(this).data('id'))
             $('#guidelines-modal').modal();
             $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
@@ -121,7 +120,6 @@ DOCUMENTATION :: END
         });
         $('.support-modal-link').on('click', function (e) {
             e.preventDefault();
-            $('#faq-link').attr('href', $('#faq-source-link').attr('href'));
             $('#support-modal').modal();
             $('#support-continue').attr('href', $(this).attr('href')).on('click', function () {
                 $('#support-modal').modal('hide');
