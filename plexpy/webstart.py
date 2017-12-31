@@ -94,7 +94,7 @@ def initialize(options):
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
             'tools.sessions.on': session_enabled,
-            'tools.session.name': 'my_session_id',
+            'tools.session.name': 'tautulli_session_id-' + plexpy.CONFIG.PMS_UUID,
             'tools.sessions.storage_type': 'file',
             'tools.sessions.storage_path': plexpy.CONFIG.CACHE_DIR,
             'tools.sessions.timeout': 30 * 24 * 60,  # 30 days
