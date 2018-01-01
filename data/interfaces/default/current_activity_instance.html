@@ -301,7 +301,7 @@ DOCUMENTATION :: END
                                                 bw = str(bw) + ' kbps'
                                     %>
                                     <span id="stream-bandwidth-${sk}">${bw}</span>
-                                    <span id="streaming-brain-${sk}" data-toggle="tooltip" title="Streaming Brain Estimate"><i class="fa fa-info-circle"></i></span>
+                                    <span id="streaming-brain-${sk}" data-toggle="tooltip" title="Streaming Brain Estimate (Required Bandwidth)"><i class="fa fa-info-circle"></i></span>
                                     % elif data['synced_version'] == 1 or data['channel_stream'] == 1:
                                     <span id="stream-bandwidth-${sk}">None</span>
                                     % else:

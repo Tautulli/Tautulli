@@ -11,7 +11,15 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
-                <h3>Activity &nbsp;&nbsp;<small><span id="currentActivityHeader"></span></small></h3>
+                <h3><span id="sessions-shortcut">Activity</span> &nbsp;&nbsp;
+                    <small>
+                        <span id="currentActivityHeader" style="display: none;">
+                            Streams: <span id="currentActivityHeader-streams"></span> |
+                            Bandwidth: <span id="currentActivityHeader-bandwidth"></span>
+                            <span id="currentActivityHeader-bandwidth-tooltip" data-toggle="tooltip" title="Streaming Brain Estimate (Required Bandwidth)"><i class="fa fa-info-circle"></i></span>
+                        </span>
+                    </small>
+                </h3>
             </div>
             <div id="currentActivity">
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
@@ -238,6 +246,8 @@
     var create_instances = [];
     var activity_ready = true;
 
+     $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
+
     function getCurrentActivity() {
         activity_ready = false;
 
@@ -266,7 +276,7 @@
                     % else:
                     var msg_settings = ''
                     % endif
-                    $('#currentActivityHeader').text('');
+                    $('#currentActivityHeader').hide();
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');
                     return
                 }
@@ -280,20 +290,25 @@
                     // Update the header stream counts
                     var sc_dp = current_activity.stream_count_direct_play,
                         sc_ds = current_activity.stream_count_direct_stream,
-                        sc_tc = current_activity.stream_count_transcode;
-                    var header_count = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
+                        sc_tc = current_activity.stream_count_transcode,
+                        total_bw = current_activity.total_bandwidth;
+                    var streams_header = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
                     if (sc_dp) {
-                        header_count += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
+                        streams_header += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
                     }
                     if (sc_ds) {
-                        header_count += sc_ds + ' direct stream' + (sc_ds > 1 ? 's' : '') + ', ';
+                        streams_header += sc_ds + ' direct stream' + (sc_ds > 1 ? 's' : '') + ', ';
                     }
                     if (sc_tc) {
-                        header_count += sc_tc + ' transcode' + (sc_tc > 1 ? 's' : '') + ', ';
+                        streams_header += sc_tc + ' transcode' + (sc_tc > 1 ? 's' : '') + ', ';
                     }
-                    header_count = header_count.replace(/, $/, '');
-                    header_count += ')';
-                    $('#currentActivityHeader').text(header_count);
+                    streams_header = streams_header.replace(/, $/, '') + ')';
+                    $('#currentActivityHeader-streams').text(streams_header);
+
+                    var bandwidth_header = (total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps');
+                    $('#currentActivityHeader-bandwidth').text(bandwidth_header);
+
+                    $('#currentActivityHeader').show();
 
                     sessions.forEach(function (session) {
                         var s = new Proxy(session, defaultHandler);
@@ -504,7 +519,7 @@
                     });
 
                 } else {
-                    $('#currentActivityHeader').text('');
+                    $('#currentActivityHeader').hide();
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
                 }
 

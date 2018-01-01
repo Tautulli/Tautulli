@@ -4434,7 +4434,8 @@ class WebInterface(object):
 
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,
-                          'stream_count_transcode': 0}
+                          'stream_count_transcode': 0,
+                          'total_bandwidth': 0}
 
                 for s in result['sessions']:
                     if s['transcode_decision'] == 'transcode':
@@ -4443,6 +4444,8 @@ class WebInterface(object):
                         counts['stream_count_direct_stream'] += 1
                     else:
                         counts['stream_count_direct_play'] += 1
+
+                    counts['total_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
 
                 result.update(counts)
 
