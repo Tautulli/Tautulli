@@ -121,18 +121,19 @@ class PlexTV(object):
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
-        if not self.token:
-            # Check if we should use the admin token, or the guest server token
-            if session.get_session_user_id():
-                user_data = users.Users()
-                user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
-                self.token = user_tokens['server_token']
-            else:
-                self.token = plexpy.CONFIG.PMS_TOKEN
+        if self.username is None and self.password is None:
+            if not self.token:
+                # Check if we should use the admin token, or the guest server token
+                if session.get_session_user_id():
+                    user_data = users.Users()
+                    user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
+                    self.token = user_tokens['server_token']
+                else:
+                    self.token = plexpy.CONFIG.PMS_TOKEN
 
-        if not self.token:
-            logger.error(u"Tautulli PlexTV :: PlexTV called, but no token provided.")
-            return
+            if not self.token:
+                logger.error(u"Tautulli PlexTV :: PlexTV called, but no token provided.")
+                return
 
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,
@@ -606,7 +607,8 @@ class PlexTV(object):
                         helpers.get_xml_attr(d, 'owned') == '1' and \
                         helpers.get_xml_attr(d, 'provides') == 'server':
 
-                        if not include_cloud and helpers.get_xml_attr(d, 'platform').lower() == 'cloud':
+                        is_cloud = (helpers.get_xml_attr(d, 'platform').lower() == 'cloud')
+                        if not include_cloud and is_cloud:
                             continue
 
                         connections = d.getElementsByTagName('Connection')
@@ -623,7 +625,7 @@ class PlexTV(object):
                                     helpers.get_xml_attr(c, 'local') == '0':
                                     continue
 
-                            server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
+                            server = {'httpsRequired': '1' if is_cloud else helpers.get_xml_attr(d, 'httpsRequired'),
                                       'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
                                       'label': helpers.get_xml_attr(d, 'name'),
                                       'ip': helpers.get_xml_attr(c, 'address'),

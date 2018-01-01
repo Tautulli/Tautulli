@@ -148,7 +148,7 @@ class WebInterface(object):
             plexpy.CONFIG.write()
 
         include_cloud = not (include_cloud == 'false')
-        all_servers = all_servers == 'true'
+        all_servers = (all_servers == 'true')
 
         plex_tv = plextv.PlexTV()
         servers_list = plex_tv.discover(include_cloud=include_cloud,

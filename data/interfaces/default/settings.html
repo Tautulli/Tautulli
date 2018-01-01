@@ -528,9 +528,16 @@
                         </div>
 
                         <div class="checkbox">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" disabled> Monitor Plex Updates
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
+                            % endif
                             <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
                         </div>
                         <div id="pms_update_options">
@@ -552,10 +559,17 @@
                             </div>
                         </div>
                         <div class="checkbox">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" disabled> Monitor Plex Remote Access
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
                             <label>
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
                             <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            % endif
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
@@ -598,9 +612,16 @@
                             <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
                         <div class="checkbox">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" disabled> Manual Connection
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
                             <label>
                                 <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
                             </label>
+                            % endif
                             <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
                         </div>
                         <div class="form-group">

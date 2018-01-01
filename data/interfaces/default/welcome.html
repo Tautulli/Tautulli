@@ -51,7 +51,7 @@
             <form>
                 <div class="wizard-card" data-cardname="card1">
                     <div style="float: right;">
-                        <img alt="Tautulli" src="${http_root}images/logo-tautulli-50.png" />
+                        <object data="${http_root}images/logo-tautulli.svg" type="image/svg+xml" style="height: 45px;"></object>
                     </div>
                     <h3 style="line-height: 50px;">Welcome!</h3>
                     <br />
@@ -469,9 +469,9 @@
     function getServerOptions(token) {
         /* Set token and returns server options */
         $.ajax({
-            url: "discover/" + token + '?include_cloud=false',
+            url: "discover/" + token,
             success: function (result) {
-                $('#pms_ip').html("")
+                $('#pms_ip').html("");
                 // Add all servers to the "combobox"
                 $select_pms[0].selectize.addOption(result);
             }
