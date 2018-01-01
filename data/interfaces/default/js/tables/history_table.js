@@ -205,7 +205,7 @@ history_table_options = {
             "targets": [9],
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === null || rowData['state'] != "stopped") {
+                if (cellData === null || (rowData['state'] != null && rowData['state'] != "stopped")) {
                     $(td).html('n/a');
                 } else {
                     $(td).html(moment(cellData,"X").format(time_format));
