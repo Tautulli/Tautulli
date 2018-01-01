@@ -195,7 +195,6 @@ class PmsConnect(object):
         """
         uri = '/hubs/metadata/' + rating_key + '/related'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
