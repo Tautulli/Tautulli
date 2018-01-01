@@ -149,17 +149,17 @@ class HTTPHandler(object):
             logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
             return None
 
-    def  _http_format_output(self, response_content, response_headers):
+    def _http_format_output(self, response_content, response_headers):
         """Formats the request response to the desired type"""
         try:
             if self.output_format == 'text':
                 output = response_content.decode('utf-8', 'ignore')
             if self.output_format == 'dict':
-                output = helpers.convert_xml_to_dict(response_content.decode('utf-8', 'ignore'))
+                output = helpers.convert_xml_to_dict(response_content)
             elif self.output_format == 'json':
-                output = helpers.convert_xml_to_json(response_content.decode('utf-8', 'ignore'))
+                output = helpers.convert_xml_to_json(response_content)
             elif self.output_format == 'xml':
-                output = helpers.parse_xml(response_content.decode('utf-8', 'ignore'))
+                output = helpers.parse_xml(response_content)
             else:
                 output = response_content
 
