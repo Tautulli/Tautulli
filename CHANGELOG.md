@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.0.6-beta (2017-12-31)
+
+* Monitoring:
+  * New: Beta Plex Cloud support.
+  * Fix: Update paused time while still paused.
+* UI:
+  * Fix: Stopped time showing as "n/a" on history table.
+
+
 ## v2.0.5-beta (2017-12-31)
 
 * Monitoring:
