@@ -264,6 +264,12 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to terminate session.'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def return_sessions_url(self, **kwargs):
+        return plexpy.CONFIG.PMS_URL + '/status/sessions?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+
+    @cherrypy.expose
     @requireAuth()
     def home_stats(self, time_range=30, stats_type=0, stats_count=10, **kwargs):
         data_factory = datafactory.DataFactory()

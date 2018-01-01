@@ -207,6 +207,7 @@
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
 <script src="${http_root}js/jquery.mousewheel.min.js"></script>
+<script src="${http_root}js/jquery.tripleclick.min.js"></script>
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -645,6 +646,12 @@
                     }
                 }
             });
+        });
+    });
+
+    $('#sessions-shortcut').on('tripleclick', function () {
+        $.getJSON('return_sessions_url', function(sessions_url) {
+           window.open(sessions_url, '_blank');
         });
     });
     % endif
