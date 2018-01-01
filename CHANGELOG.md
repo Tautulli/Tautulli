@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.0.5-beta (2017-12-31)
+
+* Monitoring:
+  * Fix: IPv6 addresses overflowing on the activity cards.
+* Notifications:
+  * Fix: Error sending Join notifications.
+* UI:
+  * New: Added total required bandwidth in the activity header.
+  * Fix: Failing to retrieve releases from GitHub.
+* Other:
+  * Fix: CherryPy SSL connection warning. (Thanks @felixbuenemann)
+  * Fix: Sanitize script output in logs.
+  * Change: Login sessions persists across server restarts.
+
+
 ## v2.0.4-beta (2017-12-29)
 
 * Monitoring:
