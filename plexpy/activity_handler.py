@@ -125,9 +125,10 @@ class ActivityHandler(object):
                          % (str(self.get_session_key()), str(self.get_rating_key())))
             ap.delete_session(session_key=self.get_session_key())
 
-    def on_pause(self):
+    def on_pause(self, still_paused=False):
         if self.is_valid_session():
-            logger.debug(u"Tautulli ActivityHandler :: Session %s paused." % str(self.get_session_key()))
+            if not still_paused:
+                logger.debug(u"Tautulli ActivityHandler :: Session %s paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -142,7 +143,8 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_pause'})
+            if not still_paused:
+                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_pause'})
 
     def on_resume(self):
         if self.is_valid_session():
@@ -242,6 +244,11 @@ class ActivityHandler(object):
 
                     elif this_state == 'buffering':
                         self.on_buffer()
+
+                    elif this_state == 'paused':
+                        # Update the session last_paused timestamp
+                        self.on_pause(still_paused=True)
+
                 # If a client doesn't register stop events (I'm looking at you PHT!) check if the ratingKey has changed
                 else:
                     # Manually stop and start

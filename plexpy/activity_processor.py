@@ -446,7 +446,7 @@ class ActivityProcessor(object):
             if state:
                 values['state'] = state
 
-            for k,v in kwargs.iteritems():
+            for k, v in kwargs.iteritems():
                 values[k] = v
 
             keys = {'session_key': session_key}
@@ -460,7 +460,7 @@ class ActivityProcessor(object):
         if str(session_key).isdigit():
             self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
 
-    def set_session_last_paused(self, session_key=None, timestamp=None):
+    def set_session_last_paused(self, session_key=None, timestamp=None ):
         if str(session_key).isdigit():
             result = self.db.select('SELECT last_paused, paused_counter '
                                     'FROM sessions '
@@ -469,15 +469,14 @@ class ActivityProcessor(object):
             paused_counter = None
             for session in result:
                 if session['last_paused']:
-                    paused_offset = int(time.time()) - int(session['last_paused'])
+                    paused_offset = timestamp - int(session['last_paused'])
                     if session['paused_counter']:
                         paused_counter = int(session['paused_counter']) + int(paused_offset)
                     else:
                         paused_counter = int(paused_offset)
 
-            values = {'state': 'playing',
-                      'last_paused': timestamp
-                      }
+            values = {'last_paused': timestamp}
+
             if paused_counter:
                 values['paused_counter'] = paused_counter
 
