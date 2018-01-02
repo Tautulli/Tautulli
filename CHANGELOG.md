@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.0.7-beta (2018-01-01)
+
+* Monitoring:
+  * Fix: Incorrect LAN/WAN location on activity cards.
+  * Fix: Paused time not recording correctly.
+* Other:
+  * Fix: Failed to retrieve synced items when there are special characters in the title.
+
+
 ## v2.0.6-beta (2017-12-31)
 
 * Monitoring:
@@ -17,8 +26,8 @@
   * Fix: Error sending Join notifications.
 * UI:
   * New: Added total required bandwidth in the activity header.
-  * Fix: Failing to retrieve releases from GitHub.
 * Other:
+  * Fix: Failing to retrieve releases from GitHub.
   * Fix: CherryPy SSL connection warning. (Thanks @felixbuenemann)
   * Fix: Sanitize script output in logs.
   * Change: Login sessions persists across server restarts.
