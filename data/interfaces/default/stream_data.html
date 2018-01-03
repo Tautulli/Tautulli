@@ -39,7 +39,7 @@ DOCUMENTATION :: END
 
 % if data:
 <%
-    import plexpy
+    from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES
 %>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -85,8 +85,8 @@ DOCUMENTATION :: END
                     % if data['media_type'] != 'track':
                     <tr>
                         <td>Resolution</td>
-                        <td>${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])}</td>
-                        <td>${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])}</td>
+                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])}</td>
+                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])}</td>
                     </tr>
                     % endif
                     <tr>
@@ -124,8 +124,8 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Container</td>
-                        <td>${data['stream_container']}</td>
-                        <td>${data['container']}</td>
+                        <td>${data['stream_container'].upper()}</td>
+                        <td>${data['container'].upper()}</td>
                     </tr>
                 </tbody>
             </table>
@@ -144,8 +144,8 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_video_codec']}</td>
-                        <td>${data['video_codec']}</td>
+                        <td>${data['stream_video_codec'].upper()} ${'(HW)' if data['transcode_hw_encoding'] else ''}</td>
+                        <td>${data['video_codec'].upper()} ${'(HW)' if data['transcode_hw_decoding'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Bitrate</td>
@@ -189,8 +189,8 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_audio_codec']}</td>
-                        <td>${data['audio_codec']}</td>
+                        <td>${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())}</td>
+                        <td>${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())}</td>
                     </tr>
                     <tr>
                         <td>Bitrate</td>
@@ -219,8 +219,8 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_subtitle_codec']}</td>
-                        <td>${data['subtitle_codec']}</td>
+                        <td>${data['stream_subtitle_codec'].upper()}</td>
+                        <td>${data['subtitle_codec'].upper()}</td>
                     </tr>
                 </tbody>
             </table>

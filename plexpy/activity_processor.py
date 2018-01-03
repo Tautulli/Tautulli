@@ -58,7 +58,7 @@ class ActivityProcessor(object):
                       'grandparent_thumb': session.get('grandparent_thumb', ''),
                       'year': session.get('year', ''),
                       'friendly_name': session.get('friendly_name', ''),
-                      #'ip_address': session.get('ip_address', ''),
+                      'ip_address': session.get('ip_address', ''),
                       'player': session.get('player', ''),
                       'platform': session.get('platform', ''),
                       'parent_rating_key': session.get('parent_rating_key', ''),
@@ -90,6 +90,8 @@ class ActivityProcessor(object):
                       'transcode_audio_channels': session.get('transcode_audio_channels', ''),
                       'transcode_width': session.get('stream_video_width', ''),
                       'transcode_height': session.get('stream_video_height', ''),
+                      'transcode_hw_decoding': session.get('transcode_hw_decoding', ''),
+                      'transcode_hw_encoding': session.get('transcode_hw_encoding', ''),
                       'synced_version': session.get('synced_version', ''),
                       'synced_version_profile': session.get('synced_version_profile', ''),
                       'optimized_version': session.get('optimized_version', ''),
@@ -117,10 +119,6 @@ class ActivityProcessor(object):
                       'stopped': int(time.time())
                       }
 
-            # Add ip_address back into values
-            if session['ip_address']:
-                values.update({'ip_address': session.get('ip_address', 'N/A')})
-
             keys = {'session_key': session.get('session_key', ''),
                     'rating_key': session.get('rating_key', '')}
 
@@ -129,7 +127,6 @@ class ActivityProcessor(object):
             if result == 'insert':
                 # Check if any notification agents have notifications enabled
                 if notify:
-                    values.update({'ip_address': session.get('ip_address', 'N/A')})
                     plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.
@@ -324,6 +321,7 @@ class ActivityProcessor(object):
                           'audio_codec': session['audio_codec'],
                           'audio_bitrate': session['audio_bitrate'],
                           'audio_channels': session['audio_channels'],
+                          'subtitle_codec': session['subtitle_codec'],
                           'transcode_protocol': session['transcode_protocol'],
                           'transcode_container': session['transcode_container'],
                           'transcode_video_codec': session['transcode_video_codec'],
@@ -333,9 +331,11 @@ class ActivityProcessor(object):
                           'transcode_height': session['transcode_height'],
                           'transcode_hw_requested': session['transcode_hw_requested'],
                           'transcode_hw_full_pipeline': session['transcode_hw_full_pipeline'],
+                          'transcode_hw_decoding': session['transcode_hw_decoding'],
                           'transcode_hw_decode': session['transcode_hw_decode'],
-                          'transcode_hw_encode': session['transcode_hw_encode'],
                           'transcode_hw_decode_title': session['transcode_hw_decode_title'],
+                          'transcode_hw_encoding': session['transcode_hw_encoding'],
+                          'transcode_hw_encode': session['transcode_hw_encode'],
                           'transcode_hw_encode_title': session['transcode_hw_encode_title'],
                           'stream_container': session['stream_container'],
                           'stream_container_decision': session['stream_container_decision'],

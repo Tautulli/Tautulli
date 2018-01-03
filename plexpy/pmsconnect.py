@@ -1102,7 +1102,7 @@ class PmsConnect(object):
                                             'subtitle_codec': helpers.get_xml_attr(stream, 'codec'),
                                             'subtitle_container': helpers.get_xml_attr(stream, 'container'),
                                             'subtitle_format': helpers.get_xml_attr(stream, 'format'),
-                                            'subtitle_forced': 1 if helpers.get_xml_attr(stream, 'forced') == '1' else 0,
+                                            'subtitle_forced': int(helpers.get_xml_attr(stream, 'forced') == '1'),
                                             'subtitle_location': 'external' if helpers.get_xml_attr(stream, 'key') else 'embedded',
                                             'subtitle_language': helpers.get_xml_attr(stream, 'language'),
                                             'subtitle_language_code': helpers.get_xml_attr(stream, 'languageCode')
@@ -1111,7 +1111,7 @@ class PmsConnect(object):
                     parts.append({'id': helpers.get_xml_attr(part, 'id'),
                                   'file': helpers.get_xml_attr(part, 'file'),
                                   'file_size': helpers.get_xml_attr(part, 'size'),
-                                  'indexes': 1 if helpers.get_xml_attr(part, 'indexes') == 'sd' else 0,
+                                  'indexes': int(helpers.get_xml_attr(part, 'indexes') == 'sd'),
                                   'streams': streams
                                   })
 
@@ -1131,7 +1131,7 @@ class PmsConnect(object):
                                'audio_channels': audio_channels,
                                'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
-                               'optimized_version': 1 if helpers.get_xml_attr(media, 'proxyType') == '42' else 0,
+                               'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
                                'parts': parts
                                })
         
@@ -1352,7 +1352,7 @@ class PmsConnect(object):
             transcode_speed = helpers.get_xml_attr(transcode_info, 'speed')
 
             transcode_details = {'transcode_key': helpers.get_xml_attr(transcode_info, 'key'),
-                                 'transcode_throttled': 1 if helpers.get_xml_attr(transcode_info, 'throttled') == '1' else 0,
+                                 'transcode_throttled': int(helpers.get_xml_attr(transcode_info, 'throttled') == '1'),
                                  'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
                                  'transcode_audio_channels': helpers.get_xml_attr(transcode_info, 'audioChannels'),
@@ -1362,12 +1362,12 @@ class PmsConnect(object):
                                  'transcode_height': helpers.get_xml_attr(transcode_info, 'height'),  # Blank but keep backwards compatibility
                                  'transcode_container': helpers.get_xml_attr(transcode_info, 'container'),
                                  'transcode_protocol': helpers.get_xml_attr(transcode_info, 'protocol'),
-                                 'transcode_hw_requested': 1 if helpers.get_xml_attr(transcode_info, 'transcodeHwRequested') == '1' else 0,
+                                 'transcode_hw_requested': int(helpers.get_xml_attr(transcode_info, 'transcodeHwRequested') == '1'),
                                  'transcode_hw_decode': helpers.get_xml_attr(transcode_info, 'transcodeHwDecoding'),
                                  'transcode_hw_decode_title': helpers.get_xml_attr(transcode_info, 'transcodeHwDecodingTitle'),
                                  'transcode_hw_encode': helpers.get_xml_attr(transcode_info, 'transcodeHwEncoding'),
                                  'transcode_hw_encode_title': helpers.get_xml_attr(transcode_info, 'transcodeHwEncodingTitle'),
-                                 'transcode_hw_full_pipeline': 1 if helpers.get_xml_attr(transcode_info, 'transcodeHwFullPipeline') == '1' else 0,
+                                 'transcode_hw_full_pipeline': int(helpers.get_xml_attr(transcode_info, 'transcodeHwFullPipeline') == '1'),
                                  'audio_decision': helpers.get_xml_attr(transcode_info, 'audioDecision'),
                                  'video_decision': helpers.get_xml_attr(transcode_info, 'videoDecision'),
                                  'subtitle_decision': helpers.get_xml_attr(transcode_info, 'subtitleDecision'),
@@ -1396,6 +1396,10 @@ class PmsConnect(object):
                                  'subtitle_decision': '',
                                  'throttled': '0'  # Keep for backwards compatibility
                                  }
+
+        # Check HW decoding/encoding
+        transcode_details['transcode_hw_decoding'] = int(transcode_details['transcode_hw_decode'].lower() in common.HW_DECODERS)
+        transcode_details['transcode_hw_encoding'] = int(transcode_details['transcode_hw_encode'].lower() in common.HW_ENCODERS)
 
         # Generate a combined transcode decision value
         if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
@@ -1489,7 +1493,7 @@ class PmsConnect(object):
             subtitle_details = {'stream_subtitle_codec': helpers.get_xml_attr(subtitle_stream_info, 'codec'),
                                 'stream_subtitle_container': helpers.get_xml_attr(subtitle_stream_info, 'container'),
                                 'stream_subtitle_format': helpers.get_xml_attr(subtitle_stream_info, 'format'),
-                                'stream_subtitle_forced': 1 if helpers.get_xml_attr(subtitle_stream_info, 'forced') == '1' else 0,
+                                'stream_subtitle_forced': int(helpers.get_xml_attr(subtitle_stream_info, 'forced') == '1'),
                                 'stream_subtitle_location': helpers.get_xml_attr(subtitle_stream_info, 'location'),
                                 'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
                                 'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
@@ -1537,10 +1541,10 @@ class PmsConnect(object):
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
                           'stream_container_decision': 'direct play' if sync_id else helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
                           'transcode_decision': transcode_decision,
-                          'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
+                          'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
                           'synced_version': 1 if sync_id else 0,
-                          'indexes': 1 if indexes == 'sd' else 0,
+                          'indexes': int(indexes == 'sd'),
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_id and subtitle_selected else 0
                           }

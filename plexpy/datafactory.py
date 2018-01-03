@@ -882,6 +882,7 @@ class DataFactory(object):
                     'stream_video_framerate, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
+                    'transcode_hw_decoding, transcode_hw_encoding, ' \
                     'session_history_metadata.media_type, title, grandparent_title ' \
                     'FROM session_history_media_info ' \
                     'JOIN session_history ON session_history_media_info.id = session_history.id ' \
@@ -899,6 +900,7 @@ class DataFactory(object):
                     'stream_video_framerate, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
+                    'transcode_hw_decoding, transcode_hw_encoding, ' \
                     'media_type, title, grandparent_title ' \
                     'FROM sessions ' \
                     'WHERE session_key = ? %s' % user_cond
@@ -945,6 +947,8 @@ class DataFactory(object):
                              'subtitles': item['subtitles'],
                              'stream_subtitle_decision': item['stream_subtitle_decision'],
                              'stream_subtitle_codec': item['stream_subtitle_codec'],
+                             'transcode_hw_decoding': item['transcode_hw_decoding'],
+                             'transcode_hw_encoding': item['transcode_hw_encoding'],
                              'media_type': item['media_type'],
                              'title': item['title'],
                              'grandparent_title': item['grandparent_title']

@@ -436,12 +436,12 @@ def force_stop_stream(session_key):
         ap.delete_session(session_key=session_key)
 
     else:
-        sessions['write_attempts'] += 1
+        session['write_attempts'] += 1
 
-        if sessions['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
+        if session['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
             logger.warn(u"Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Will try again in 30 seconds. Write attempt %s."
-                        % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
+                        % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
@@ -451,9 +451,9 @@ def force_stop_stream(session_key):
         else:
             logger.warn(u"Tautulli Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Removing session from the database. Write attempt %s."
-                        % (sessions['session_key'], sessions['rating_key'], str(sessions['write_attempts'])))
+                        % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
             logger.info(u"Tautulli Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
-                        % (sessions['session_key'], sessions['rating_key']))
+                        % (session['session_key'], session['rating_key']))
             ap.delete_session(session_key=session_key)
 
 

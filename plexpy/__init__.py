@@ -443,6 +443,7 @@ def dbcheck():
         'transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, '
+        'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0, '
@@ -468,8 +469,9 @@ def dbcheck():
         'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
         'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, '
-        'transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, transcode_hw_decode TEXT, '
-        'transcode_hw_decode_title TEXT, transcode_hw_encode TEXT, transcode_hw_encode_title TEXT, '
+        'transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, '
+        'transcode_hw_decode TEXT, transcode_hw_decode_title TEXT, transcode_hw_decoding INTEGER, '
+        'transcode_hw_encode TEXT, transcode_hw_encode_title TEXT, transcode_hw_encoding INTEGER, '
         'stream_container TEXT, stream_container_decision TEXT, stream_bitrate INTEGER, '
         'stream_video_decision TEXT, stream_video_bitrate INTEGER, stream_video_codec TEXT, stream_video_codec_level TEXT, '
         'stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, '
@@ -917,6 +919,18 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN optimized_version_title TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT transcode_hw_decoding FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_hw_decoding INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_hw_encoding INTEGER'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1158,6 +1172,22 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT '
         )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT transcode_hw_decoding FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER '
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encoding INTEGER '
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL '
+        )
+
 
     # Upgrade users table from earlier versions
     try:

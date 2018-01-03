@@ -135,6 +135,9 @@ AUDIO_QUALITY_PROFILES = {512: '512 kbps',
                           }
 AUDIO_QUALITY_PROFILES = OrderedDict(sorted(AUDIO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
 
+HW_DECODERS = ['dxva2', 'videotoolbox', 'mediacodecndk', 'vaapi']
+HW_ENCODERS = ['qsv', 'nvenc', 'mf', 'videotoolbox', 'mediacodecndk', 'vaapi', 'nvenc']
+
 SCHEDULER_LIST = ['Check GitHub for updates',
                   'Check for active sessions',
                   'Check for recently added items',
