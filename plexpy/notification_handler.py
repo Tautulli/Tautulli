@@ -16,7 +16,7 @@
 
 import arrow
 import bleach
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import groupby
 import json
 from operator import itemgetter
@@ -449,17 +449,16 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     elif timeline:
         rating_key = timeline['rating_key']
 
-    pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key=rating_key)
-
-    if not metadata:
-        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
-        return None
+    notify_params = defaultdict(str)
+    if session:
+        notify_params.update(session)
+    if timeline:
+        notify_params.update(timeline)
 
     ## TODO: Check list of media info items, currently only grabs first item
     media_info = media_part_info = {}
-    if 'media_info' in metadata and len(metadata['media_info']) > 0:
-        media_info = metadata['media_info'][0]
+    if 'media_info' in notify_params and len(notify_params['media_info']) > 0:
+        media_info = notify_params['media_info'][0]
         if 'parts' in media_info and len(media_info['parts']) > 0:
             media_part_info = media_info.pop('parts')[0]
 
@@ -476,11 +475,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                 media_part_info.update(stream)
                 stream_subtitle = True
 
+    notify_params.update(media_info)
+    notify_params.update(media_part_info)
+
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
-        child_metadata.append(pms_connect.get_metadata_details(rating_key=key))
+        child_metadata.append(pmsconnect.PmsConnect().get_metadata_details(rating_key=key))
     for key in kwargs.pop('grandchild_keys', []):
-        grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key))
+        grandchild_metadata.append(pmsconnect.PmsConnect().get_metadata_details(rating_key=key))
 
     # Session values
     session = session or {}
@@ -507,102 +509,102 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         stream_duration = 0
 
     view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', 0))
-    duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
+    duration = helpers.convert_milliseconds_to_minutes(notify_params['duration'])
     remaining_duration = duration - view_offset
 
     # Build Plex URL
-    metadata['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}'.format(
+    notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fnotify_params%2F{rating_key}'.format(
         web_url=plexpy.CONFIG.PMS_WEB_URL,
         pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
         rating_key=rating_key)
 
     # Get media IDs from guid and build URLs
-    if 'imdb://' in metadata['guid']:
-        metadata['imdb_id'] = metadata['guid'].split('imdb://')[1].split('?')[0]
-        metadata['imdb_url'] = 'https://www.imdb.com/title/' + metadata['imdb_id']
-        metadata['trakt_url'] = 'https://trakt.tv/search/imdb/' + metadata['imdb_id']
+    if 'imdb://' in notify_params['guid']:
+        notify_params['imdb_id'] = notify_params['guid'].split('imdb://')[1].split('?')[0]
+        notify_params['imdb_url'] = 'https://www.imdb.com/title/' + notify_params['imdb_id']
+        notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
-    if 'thetvdb://' in metadata['guid']:
-        metadata['thetvdb_id'] = metadata['guid'].split('thetvdb://')[1].split('/')[0]
-        metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + metadata['thetvdb_id']
-        metadata['trakt_url'] = 'https://trakt.tv/search/tvdb/' + metadata['thetvdb_id'] + '?id_type=show'
+    if 'thetvdb://' in notify_params['guid']:
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0]
+        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
-    elif 'thetvdbdvdorder://' in metadata['guid']:
-        metadata['thetvdb_id'] = metadata['guid'].split('thetvdbdvdorder://')[1].split('/')[0]
-        metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + metadata['thetvdb_id']
-        metadata['trakt_url'] = 'https://trakt.tv/search/tvdb/' + metadata['thetvdb_id'] + '?id_type=show'
+    elif 'thetvdbdvdorder://' in notify_params['guid']:
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0]
+        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
-    if 'themoviedb://' in metadata['guid']:
-        if metadata['media_type'] == 'movie':
-            metadata['themoviedb_id'] = metadata['guid'].split('themoviedb://')[1].split('?')[0]
-            metadata['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + metadata['themoviedb_id']
-            metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=movie'
+    if 'themoviedb://' in notify_params['guid']:
+        if notify_params['media_type'] == 'movie':
+            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('?')[0]
+            notify_params['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + notify_params['themoviedb_id']
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=movie'
 
-        elif metadata['media_type'] in ('show', 'season', 'episode'):
-            metadata['themoviedb_id'] = metadata['guid'].split('themoviedb://')[1].split('/')[0]
-            metadata['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + metadata['themoviedb_id']
-            metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=show'
+        elif notify_params['media_type'] in ('show', 'season', 'episode'):
+            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0]
+            notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
 
-    if 'lastfm://' in metadata['guid']:
-        metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
-        metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
+    if 'lastfm://' in notify_params['guid']:
+        notify_params['lastfm_id'] = notify_params['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
+        notify_params['lastfm_url'] = 'https://www.last.fm/music/' + notify_params['lastfm_id']
 
     # Get TheMovieDB info
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP:
-        if metadata.get('themoviedb_id'):
+        if notify_params.get('themoviedb_id'):
             themoveidb_json = get_themoviedb_info(rating_key=rating_key,
-                                                  media_type=metadata['media_type'],
-                                                  themoviedb_id=metadata['themoviedb_id'])
+                                                  media_type=notify_params['media_type'],
+                                                  themoviedb_id=notify_params['themoviedb_id'])
 
             if themoveidb_json.get('imdb_id'):
-                metadata['imdb_id'] = themoveidb_json['imdb_id']
-                metadata['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
+                notify_params['imdb_id'] = themoveidb_json['imdb_id']
+                notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
-        elif metadata.get('thetvdb_id') or metadata.get('imdb_id'):
+        elif notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
             themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
-                                                      thetvdb_id=metadata.get('thetvdb_id'),
-                                                      imdb_id=metadata.get('imdb_id'))
-            metadata.update(themoviedb_info)
+                                                      thetvdb_id=notify_params.get('thetvdb_id'),
+                                                      imdb_id=notify_params.get('imdb_id'))
+            notify_params.update(themoviedb_info)
 
     # Get TVmaze info (for tv shows only)
     if plexpy.CONFIG.TVMAZE_LOOKUP:
-        if metadata['media_type'] in ('show', 'season', 'episode') and (metadata.get('thetvdb_id') or metadata.get('imdb_id')):
+        if notify_params['media_type'] in ('show', 'season', 'episode') and (notify_params.get('thetvdb_id') or notify_params.get('imdb_id')):
             tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
-                                              thetvdb_id=metadata.get('thetvdb_id'),
-                                              imdb_id=metadata.get('imdb_id'))
-            metadata.update(tvmaze_info)
+                                              thetvdb_id=notify_params.get('thetvdb_id'),
+                                              imdb_id=notify_params.get('imdb_id'))
+            notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
-                metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+                notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
             if tvmaze_info.get('imdb_id'):
-                metadata['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
+                notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
 
-    if metadata['media_type'] in ('movie', 'show', 'artist'):
-        poster_thumb = metadata['thumb']
-        poster_key = metadata['rating_key']
-        poster_title = metadata['title']
-    elif metadata['media_type'] in ('season', 'album'):
-        poster_thumb = metadata['thumb'] or metadata['parent_thumb']
-        poster_key = metadata['rating_key']
-        poster_title = '%s - %s' % (metadata['parent_title'],
-                                    metadata['title'])
-    elif metadata['media_type'] in ('episode', 'track'):
-        poster_thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
-        poster_key = metadata['parent_rating_key']
-        poster_title = '%s - %s' % (metadata['grandparent_title'],
-                                    metadata['parent_title'])
+    if notify_params['media_type'] in ('movie', 'show', 'artist'):
+        poster_thumb = notify_params['thumb']
+        poster_key = notify_params['rating_key']
+        poster_title = notify_params['title']
+    elif notify_params['media_type'] in ('season', 'album'):
+        poster_thumb = notify_params['thumb'] or notify_params['parent_thumb']
+        poster_key = notify_params['rating_key']
+        poster_title = '%s - %s' % (notify_params['parent_title'],
+                                    notify_params['title'])
+    elif notify_params['media_type'] in ('episode', 'track'):
+        poster_thumb = notify_params['parent_thumb'] or notify_params['grandparent_thumb']
+        poster_key = notify_params['parent_rating_key']
+        poster_title = '%s - %s' % (notify_params['grandparent_title'],
+                                    notify_params['parent_title'])
     else:
         poster_thumb = ''
 
     if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
         poster_info = get_poster_info(poster_thumb=poster_thumb, poster_key=poster_key, poster_title=poster_title)
-        metadata.update(poster_info)
+        notify_params.update(poster_info)
 
     if ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT)
-        and metadata['media_type'] in ('show', 'artist')):
-        show_name = metadata['title']
+        and notify_params['media_type'] in ('show', 'artist')):
+        show_name = notify_params['title']
         episode_name = ''
-        artist_name = metadata['title']
+        artist_name = notify_params['title']
         album_name = ''
         track_name = ''
 
@@ -614,14 +616,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         track_num, track_num00 = '', ''
 
     elif ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT)
-          and metadata['media_type'] in ('season', 'album')):
-        show_name = metadata['parent_title']
+          and notify_params['media_type'] in ('season', 'album')):
+        show_name = notify_params['parent_title']
         episode_name = ''
-        artist_name = metadata['parent_title']
-        album_name = metadata['title']
+        artist_name = notify_params['parent_title']
+        album_name = notify_params['title']
         track_name = ''
-        season_num = metadata['media_index'].zfill(1)
-        season_num00 = metadata['media_index'].zfill(2)
+        season_num = notify_params['media_index'].zfill(1)
+        season_num00 = notify_params['media_index'].zfill(2)
 
         num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
                                         for d in child_metadata if d['parent_rating_key'] == rating_key])
@@ -629,195 +631,196 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         track_num, track_num00 = num, num00
 
     else:
-        show_name = metadata['grandparent_title']
-        episode_name = metadata['title']
-        artist_name = metadata['grandparent_title']
-        album_name = metadata['parent_title']
-        track_name = metadata['title']
-        season_num = metadata['parent_media_index'].zfill(1)
-        season_num00 = metadata['parent_media_index'].zfill(2)
-        episode_num = metadata['media_index'].zfill(1)
-        episode_num00 = metadata['media_index'].zfill(2)
-        track_num = metadata['media_index'].zfill(1)
-        track_num00 = metadata['media_index'].zfill(2)
+        show_name = notify_params['grandparent_title']
+        episode_name = notify_params['title']
+        artist_name = notify_params['grandparent_title']
+        album_name = notify_params['parent_title']
+        track_name = notify_params['title']
+        season_num = notify_params['parent_media_index'].zfill(1)
+        season_num00 = notify_params['parent_media_index'].zfill(2)
+        episode_num = notify_params['media_index'].zfill(1)
+        episode_num00 = notify_params['media_index'].zfill(2)
+        track_num = notify_params['media_index'].zfill(1)
+        track_num00 = notify_params['media_index'].zfill(2)
 
-    available_params = {# Global paramaters
-                        'plexpy_version': common.VERSION_NUMBER,
-                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-                        'plexpy_commit': plexpy.CURRENT_VERSION,
-                        'server_name': server_name,
-                        'server_uptime': server_uptime,
-                        'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1],
-                        'datestamp': arrow.now().format(date_format),
-                        'timestamp': arrow.now().format(time_format),
-                        # Stream parameters
-                        'streams': stream_count,
-                        'user_streams': user_stream_count,
-                        'user': session.get('friendly_name',''),
-                        'username': session.get('user',''),
-                        'device': session.get('device',''),
-                        'platform': session.get('platform',''),
-                        'product': session.get('product',''),
-                        'player': session.get('player',''),
-                        'ip_address': session.get('ip_address','N/A'),
-                        'stream_duration': stream_duration,
-                        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
-                        'remaining_duration': remaining_duration,
-                        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
-                        'progress_duration': view_offset,
-                        'progress_time': arrow.get(view_offset * 60).format(duration_format),
-                        'progress_percent': helpers.get_percent(view_offset, duration),
-                        'transcode_decision': transcode_decision,
-                        'video_decision': session.get('video_decision',''),
-                        'audio_decision': session.get('audio_decision',''),
-                        'subtitle_decision': session.get('subtitle_decision',''),
-                        'quality_profile': session.get('quality_profile',''),
-                        'optimized_version': session.get('optimized_version',''),
-                        'optimized_version_profile': session.get('optimized_version_profile',''),
-                        'synced_version': session.get('synced_version', ''),
-                        'stream_local': session.get('local', ''),
-                        'stream_location': session.get('location', ''),
-                        'stream_bandwidth': session.get('bandwidth', ''),
-                        'stream_container': session.get('stream_container', ''),
-                        'stream_bitrate': session.get('stream_bitrate', ''),
-                        'stream_aspect_ratio': session.get('stream_aspect_ratio', ''),
-                        'stream_video_codec': session.get('stream_video_codec', ''),
-                        'stream_video_codec_level': session.get('stream_video_codec_level', ''),
-                        'stream_video_bitrate': session.get('stream_video_bitrate', ''),
-                        'stream_video_bit_depth': session.get('stream_video_bit_depth', ''),
-                        'stream_video_framerate': session.get('stream_video_framerate', ''),
-                        'stream_video_ref_frames': session.get('stream_video_ref_frames', ''),
-                        'stream_video_resolution': session.get('stream_video_resolution', ''),
-                        'stream_video_height': session.get('stream_video_height', ''),
-                        'stream_video_width': session.get('stream_video_width', ''),
-                        'stream_video_language': session.get('stream_video_language', ''),
-                        'stream_video_language_code': session.get('stream_video_language_code', ''),
-                        'stream_audio_bitrate': session.get('stream_audio_bitrate', ''),
-                        'stream_audio_bitrate_mode': session.get('stream_audio_bitrate_mode', ''),
-                        'stream_audio_codec': session.get('stream_audio_codec', ''),
-                        'stream_audio_channels': session.get('stream_audio_channels', ''),
-                        'stream_audio_channel_layout': session.get('stream_audio_channel_layout', ''),
-                        'stream_audio_sample_rate': session.get('stream_audio_sample_rate', ''),
-                        'stream_audio_language': session.get('stream_audio_language', ''),
-                        'stream_audio_language_code': session.get('stream_audio_language_code', ''),
-                        'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
-                        'stream_subtitle_container': session.get('stream_subtitle_container', ''),
-                        'stream_subtitle_format': session.get('stream_subtitle_format', ''),
-                        'stream_subtitle_forced': session.get('stream_subtitle_forced', ''),
-                        'stream_subtitle_language': session.get('stream_subtitle_language', ''),
-                        'stream_subtitle_language_code': session.get('stream_subtitle_language_code', ''),
-                        'stream_subtitle_location': session.get('stream_subtitle_location', ''),
-                        'transcode_container': session.get('transcode_container',''),
-                        'transcode_video_codec': session.get('transcode_video_codec',''),
-                        'transcode_video_width': session.get('transcode_width',''),
-                        'transcode_video_height': session.get('transcode_height',''),
-                        'transcode_audio_codec': session.get('transcode_audio_codec',''),
-                        'transcode_audio_channels': session.get('transcode_audio_channels',''),
-                        'transcode_hw_requested': session.get('transcode_hw_requested',''),
-                        'transcode_hw_decoding': session.get('transcode_hw_decoding',''),
-                        'transcode_hw_decode_codec': session.get('transcode_hw_decode',''),
-                        'transcode_hw_decode_title': session.get('transcode_hw_decode_title',''),
-                        'transcode_hw_encoding': session.get('transcode_hw_encoding',''),
-                        'transcode_hw_encode_codec': session.get('transcode_hw_encode',''),
-                        'transcode_hw_encode_title': session.get('transcode_hw_encode_title',''),
-                        'transcode_hw_full_pipeline': session.get('transcode_hw_full_pipeline',''),
-                        'session_key': session.get('session_key',''),
-                        'transcode_key': session.get('transcode_key',''),
-                        'session_id': session.get('session_id',''),
-                        'user_id': session.get('user_id',''),
-                        'machine_id': session.get('machine_id',''),
-                        # Source metadata parameters
-                        'media_type': metadata['media_type'],
-                        'title': metadata['full_title'],
-                        'library_name': metadata['library_name'],
-                        'show_name': show_name,
-                        'episode_name': episode_name,
-                        'artist_name': artist_name,
-                        'album_name': album_name,
-                        'track_name': track_name,
-                        'season_num': season_num,
-                        'season_num00': season_num00,
-                        'episode_num': episode_num,
-                        'episode_num00': episode_num00,
-                        'track_num': track_num,
-                        'track_num00': track_num00,
-                        'year': metadata['year'],
-                        'release_date': arrow.get(metadata['originally_available_at']).format(date_format)
-                            if metadata['originally_available_at'] else '',
-                        'air_date': arrow.get(metadata['originally_available_at']).format(date_format)
-                            if metadata['originally_available_at'] else '',
-                        'added_date': arrow.get(metadata['added_at']).format(date_format)
-                            if metadata['added_at'] else '',
-                        'updated_date': arrow.get(metadata['updated_at']).format(date_format)
-                            if metadata['updated_at'] else '',
-                        'last_viewed_date': arrow.get(metadata['last_viewed_at']).format(date_format)
-                            if metadata['last_viewed_at'] else '',
-                        'studio': metadata['studio'],
-                        'content_rating': metadata['content_rating'],
-                        'directors': ', '.join(metadata['directors']),
-                        'writers': ', '.join(metadata['writers']),
-                        'actors': ', '.join(metadata['actors']),
-                        'genres': ', '.join(metadata['genres']),
-                        'summary': metadata['summary'],
-                        'tagline': metadata['tagline'],
-                        'rating': metadata['rating'],
-                        'audience_rating': helpers.get_percent(metadata['audience_rating'], 10) or '',
-                        'duration': duration,
-                        'poster_title': metadata.get('poster_title',''),
-                        'poster_url': metadata.get('poster_url',''),
-                        'plex_url': metadata.get('plex_url',''),
-                        'imdb_id': metadata.get('imdb_id',''),
-                        'imdb_url': metadata.get('imdb_url',''),
-                        'thetvdb_id': metadata.get('thetvdb_id',''),
-                        'thetvdb_url': metadata.get('thetvdb_url',''),
-                        'themoviedb_id': metadata.get('themoviedb_id',''),
-                        'themoviedb_url': metadata.get('themoviedb_url',''),
-                        'tvmaze_id': metadata.get('tvmaze_id',''),
-                        'tvmaze_url': metadata.get('tvmaze_url',''),
-                        'lastfm_url': metadata.get('lastfm_url',''),
-                        'trakt_url': metadata.get('trakt_url',''),
-                        'container': session.get('container', media_info.get('container','')),
-                        'bitrate': session.get('bitrate', media_info.get('bitrate','')),
-                        'aspect_ratio': session.get('aspect_ratio', media_info.get('aspect_ratio','')),
-                        'video_codec': session.get('video_codec', media_part_info.get('video_codec','')),
-                        'video_codec_level': session.get('video_codec_level', media_part_info.get('video_codec_level','')),
-                        'video_bitrate': session.get('video_bitrate', media_part_info.get('video_bitrate','')),
-                        'video_bit_depth': session.get('video_bit_depth', media_part_info.get('video_bit_depth','')),
-                        'video_framerate': session.get('video_framerate', media_info.get('video_framerate','')),
-                        'video_ref_frames': session.get('video_ref_frames', media_part_info.get('video_ref_frames','')),
-                        'video_resolution': session.get('video_resolution', media_info.get('video_resolution','')),
-                        'video_height': session.get('height', media_info.get('height','')),
-                        'video_width': session.get('width', media_info.get('width','')),
-                        'video_language': session.get('video_language', media_part_info.get('video_language','')),
-                        'video_language_code': session.get('video_language_code', media_part_info.get('video_language_code','')),
-                        'audio_bitrate': session.get('audio_bitrate', media_part_info.get('audio_bitrate','')),
-                        'audio_bitrate_mode': session.get('audio_bitrate_mode', media_part_info.get('audio_bitrate_mode','')),
-                        'audio_codec': session.get('audio_codec', media_part_info.get('audio_codec','')),
-                        'audio_channels': session.get('audio_channels', media_part_info.get('audio_channels','')),
-                        'audio_channel_layout': session.get('audio_channel_layout', media_part_info.get('audio_channel_layout','')),
-                        'audio_sample_rate': session.get('audio_sample_rate', media_part_info.get('audio_sample_rate','')),
-                        'audio_language': session.get('audio_language', media_part_info.get('audio_language','')),
-                        'audio_language_code': session.get('audio_language_code', media_part_info.get('audio_language_code','')),
-                        'subtitle_codec': session.get('subtitle_codec', media_part_info.get('subtitle_codec','')),
-                        'subtitle_container': session.get('subtitle_container', media_part_info.get('subtitle_container','')),
-                        'subtitle_format': session.get('subtitle_format', media_part_info.get('subtitle_format','')),
-                        'subtitle_forced': session.get('subtitle_forced', media_part_info.get('subtitle_forced','')),
-                        'subtitle_location': session.get('subtitle_location', media_part_info.get('subtitle_location','')),
-                        'subtitle_language': session.get('subtitle_language', media_part_info.get('subtitle_language','')),
-                        'subtitle_language_code': session.get('subtitle_language_code', media_part_info.get('subtitle_language_code','')),
-                        'file': media_part_info.get('file',''),
-                        'file_size': helpers.humanFileSize(media_part_info.get('file_size','')),
-                        'indexes': media_part_info.get('indexes',''),
-                        'section_id': metadata['section_id'],
-                        'rating_key': metadata['rating_key'],
-                        'parent_rating_key': metadata['parent_rating_key'],
-                        'grandparent_rating_key': metadata['grandparent_rating_key'],
-                        'thumb': metadata['thumb'],
-                        'parent_thumb': metadata['parent_thumb'],
-                        'grandparent_thumb': metadata['grandparent_thumb'],
-                        'poster_thumb': poster_thumb
-                        }
+    available_params = {
+        # Global paramaters
+        'plexpy_version': common.VERSION_NUMBER,
+        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+        'plexpy_commit': plexpy.CURRENT_VERSION,
+        'server_name': server_name,
+        'server_uptime': server_uptime,
+        'server_version': server_times.get('version', ''),
+        'action': notify_action.split('on_')[-1],
+        'datestamp': arrow.now().format(date_format),
+        'timestamp': arrow.now().format(time_format),
+        # Stream parameters
+        'streams': stream_count,
+        'user_streams': user_stream_count,
+        'user': notify_params['friendly_name'],
+        'username': notify_params['user'],
+        'device': notify_params['device'],
+        'platform': notify_params['platform'],
+        'product': notify_params['product'],
+        'player': notify_params['player'],
+        'ip_address': notify_params.get('ip_address', 'N/A'),
+        'stream_duration': stream_duration,
+        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
+        'remaining_duration': remaining_duration,
+        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
+        'progress_duration': view_offset,
+        'progress_time': arrow.get(view_offset * 60).format(duration_format),
+        'progress_percent': helpers.get_percent(view_offset, duration),
+        'transcode_decision': transcode_decision,
+        'video_decision': notify_params['video_decision'],
+        'audio_decision': notify_params['audio_decision'],
+        'subtitle_decision': notify_params['subtitle_decision'],
+        'quality_profile': notify_params['quality_profile'],
+        'optimized_version': notify_params['optimized_version'],
+        'optimized_version_profile': notify_params['optimized_version_profile'],
+        'synced_version': notify_params['synced_version'],
+        'stream_local': notify_params['local'],
+        'stream_location': notify_params['location'],
+        'stream_bandwidth': notify_params['bandwidth'],
+        'stream_container': notify_params['stream_container'],
+        'stream_bitrate': notify_params['stream_bitrate'],
+        'stream_aspect_ratio': notify_params['stream_aspect_ratio'],
+        'stream_video_codec': notify_params['stream_video_codec'],
+        'stream_video_codec_level': notify_params['stream_video_codec_level'],
+        'stream_video_bitrate': notify_params['stream_video_bitrate'],
+        'stream_video_bit_depth': notify_params['stream_video_bit_depth'],
+        'stream_video_framerate': notify_params['stream_video_framerate'],
+        'stream_video_ref_frames': notify_params['stream_video_ref_frames'],
+        'stream_video_resolution': notify_params['stream_video_resolution'],
+        'stream_video_height': notify_params['stream_video_height'],
+        'stream_video_width': notify_params['stream_video_width'],
+        'stream_video_language': notify_params['stream_video_language'],
+        'stream_video_language_code': notify_params['stream_video_language_code'],
+        'stream_audio_bitrate': notify_params['stream_audio_bitrate'],
+        'stream_audio_bitrate_mode': notify_params['stream_audio_bitrate_mode'],
+        'stream_audio_codec': notify_params['stream_audio_codec'],
+        'stream_audio_channels': notify_params['stream_audio_channels'],
+        'stream_audio_channel_layout': notify_params['stream_audio_channel_layout'],
+        'stream_audio_sample_rate': notify_params['stream_audio_sample_rate'],
+        'stream_audio_language': notify_params['stream_audio_language'],
+        'stream_audio_language_code': notify_params['stream_audio_language_code'],
+        'stream_subtitle_codec': notify_params['stream_subtitle_codec'],
+        'stream_subtitle_container': notify_params['stream_subtitle_container'],
+        'stream_subtitle_format': notify_params['stream_subtitle_format'],
+        'stream_subtitle_forced': notify_params['stream_subtitle_forced'],
+        'stream_subtitle_language': notify_params['stream_subtitle_language'],
+        'stream_subtitle_language_code': notify_params['stream_subtitle_language_code'],
+        'stream_subtitle_location': notify_params['stream_subtitle_location'],
+        'transcode_container': notify_params['transcode_container'],
+        'transcode_video_codec': notify_params['transcode_video_codec'],
+        'transcode_video_width': notify_params['transcode_width'],
+        'transcode_video_height': notify_params['transcode_height'],
+        'transcode_audio_codec': notify_params['transcode_audio_codec'],
+        'transcode_audio_channels': notify_params['transcode_audio_channels'],
+        'transcode_hw_requested': notify_params['transcode_hw_requested'],
+        'transcode_hw_decoding': notify_params['transcode_hw_decoding'],
+        'transcode_hw_decode_codec': notify_params['transcode_hw_decode'],
+        'transcode_hw_decode_title': notify_params['transcode_hw_decode_title'],
+        'transcode_hw_encoding': notify_params['transcode_hw_encoding'],
+        'transcode_hw_encode_codec': notify_params['transcode_hw_encode'],
+        'transcode_hw_encode_title': notify_params['transcode_hw_encode_title'],
+        'transcode_hw_full_pipeline': notify_params['transcode_hw_full_pipeline'],
+        'session_key': notify_params['session_key'],
+        'transcode_key': notify_params['transcode_key'],
+        'session_id': notify_params['session_id'],
+        'user_id': notify_params['user_id'],
+        'machine_id': notify_params['machine_id'],
+        # Source metadata parameters
+        'media_type': notify_params['media_type'],
+        'title': notify_params['full_title'],
+        'library_name': notify_params['library_name'],
+        'show_name': show_name,
+        'episode_name': episode_name,
+        'artist_name': artist_name,
+        'album_name': album_name,
+        'track_name': track_name,
+        'season_num': season_num,
+        'season_num00': season_num00,
+        'episode_num': episode_num,
+        'episode_num00': episode_num00,
+        'track_num': track_num,
+        'track_num00': track_num00,
+        'year': notify_params['year'],
+        'release_date': arrow.get(notify_params['originally_available_at']).format(date_format)
+            if notify_params['originally_available_at'] else '',
+        'air_date': arrow.get(notify_params['originally_available_at']).format(date_format)
+            if notify_params['originally_available_at'] else '',
+        'added_date': arrow.get(notify_params['added_at']).format(date_format)
+            if notify_params['added_at'] else '',
+        'updated_date': arrow.get(notify_params['updated_at']).format(date_format)
+            if notify_params['updated_at'] else '',
+        'last_viewed_date': arrow.get(notify_params['last_viewed_at']).format(date_format)
+            if notify_params['last_viewed_at'] else '',
+        'studio': notify_params['studio'],
+        'content_rating': notify_params['content_rating'],
+        'directors': ', '.join(notify_params['directors']),
+        'writers': ', '.join(notify_params['writers']),
+        'actors': ', '.join(notify_params['actors']),
+        'genres': ', '.join(notify_params['genres']),
+        'summary': notify_params['summary'],
+        'tagline': notify_params['tagline'],
+        'rating': notify_params['rating'],
+        'audience_rating': helpers.get_percent(notify_params['audience_rating'], 10) or '',
+        'duration': duration,
+        'poster_title': notify_params['poster_title'],
+        'poster_url': notify_params['poster_url'],
+        'plex_url': notify_params['plex_url'],
+        'imdb_id': notify_params['imdb_id'],
+        'imdb_url': notify_params['imdb_url'],
+        'thetvdb_id': notify_params['thetvdb_id'],
+        'thetvdb_url': notify_params['thetvdb_url'],
+        'themoviedb_id': notify_params['themoviedb_id'],
+        'themoviedb_url': notify_params['themoviedb_url'],
+        'tvmaze_id': notify_params['tvmaze_id'],
+        'tvmaze_url': notify_params['tvmaze_url'],
+        'lastfm_url': notify_params['lastfm_url'],
+        'trakt_url': notify_params['trakt_url'],
+        'container': notify_params['container'],
+        'bitrate': notify_params['bitrate'],
+        'aspect_ratio': notify_params['aspect_ratio'],
+        'video_codec': notify_params['video_codec'],
+        'video_codec_level': notify_params['video_codec_level'],
+        'video_bitrate': notify_params['video_bitrate'],
+        'video_bit_depth': notify_params['video_bit_depth'],
+        'video_framerate': notify_params['video_framerate'],
+        'video_ref_frames': notify_params['video_ref_frames'],
+        'video_resolution': notify_params['video_resolution'],
+        'video_height': notify_params['height'],
+        'video_width': notify_params['width'],
+        'video_language': notify_params['video_language'],
+        'video_language_code': notify_params['video_language_code'],
+        'audio_bitrate': notify_params['audio_bitrate'],
+        'audio_bitrate_mode': notify_params['audio_bitrate_mode'],
+        'audio_codec': notify_params['audio_codec'],
+        'audio_channels': notify_params['audio_channels'],
+        'audio_channel_layout': notify_params['audio_channel_layout'],
+        'audio_sample_rate': notify_params['audio_sample_rate'],
+        'audio_language': notify_params['audio_language'],
+        'audio_language_code': notify_params['audio_language_code'],
+        'subtitle_codec': notify_params['subtitle_codec'],
+        'subtitle_container': notify_params['subtitle_container'],
+        'subtitle_format': notify_params['subtitle_format'],
+        'subtitle_forced': notify_params['subtitle_forced'],
+        'subtitle_location': notify_params['subtitle_location'],
+        'subtitle_language': notify_params['subtitle_language'],
+        'subtitle_language_code': notify_params['subtitle_language_code'],
+        'file': notify_params['file'],
+        'file_size': helpers.humanFileSize(notify_params['file_size']),
+        'indexes': notify_params['indexes'],
+        'section_id': notify_params['section_id'],
+        'rating_key': notify_params['rating_key'],
+        'parent_rating_key': notify_params['parent_rating_key'],
+        'grandparent_rating_key': notify_params['grandparent_rating_key'],
+        'thumb': notify_params['thumb'],
+        'parent_thumb': notify_params['parent_thumb'],
+        'grandparent_thumb': notify_params['grandparent_thumb'],
+        'poster_thumb': poster_thumb
+        }
 
     return available_params
 
@@ -834,8 +837,8 @@ def build_server_notify_params(notify_action=None, **kwargs):
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    pms_download_info = kwargs.pop('pms_download_info', {})
-    plexpy_download_info = kwargs.pop('plexpy_download_info', {})
+    pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
+    plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
 
     if server_times:
         updated_at = server_times['updated_at']
@@ -844,37 +847,38 @@ def build_server_notify_params(notify_action=None, **kwargs):
         logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    available_params = {# Global paramaters
-                        'plexpy_version': common.VERSION_NUMBER,
-                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-                        'plexpy_commit': plexpy.CURRENT_VERSION,
-                        'server_name': server_name,
-                        'server_uptime': server_uptime,
-                        'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1],
-                        'datestamp': arrow.now().format(date_format),
-                        'timestamp': arrow.now().format(time_format),
-                        # Plex Media Server update parameters
-                        'update_version': pms_download_info.get('version',''),
-                        'update_url': pms_download_info.get('download_url',''),
-                        'update_release_date': arrow.get(pms_download_info.get('release_date','')).format(date_format)
-                            if pms_download_info.get('release_date','') else '',
-                        'update_channel': 'Plex Pass' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
-                        'update_platform': pms_download_info.get('platform',''),
-                        'update_distro': pms_download_info.get('distro',''),
-                        'update_distro_build': pms_download_info.get('build',''),
-                        'update_requirements': pms_download_info.get('requirements',''),
-                        'update_extra_info': pms_download_info.get('extra_info',''),
-                        'update_changelog_added': pms_download_info.get('changelog_added',''),
-                        'update_changelog_fixed': pms_download_info.get('changelog_fixed',''),
-                        # Tautulli update parameters
-                        'plexpy_update_version': plexpy_download_info.get('tag_name', ''),
-                        'plexpy_update_tar': plexpy_download_info.get('tarball_url', ''),
-                        'plexpy_update_zip': plexpy_download_info.get('zipball_url', ''),
-                        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
-                        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
-                        'plexpy_update_changelog': plexpy_download_info.get('body', '')
-                        }
+    available_params = {
+        # Global paramaters
+        'plexpy_version': common.VERSION_NUMBER,
+        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+        'plexpy_commit': plexpy.CURRENT_VERSION,
+        'server_name': server_name,
+        'server_uptime': server_uptime,
+        'server_version': server_times.get('version', ''),
+        'action': notify_action.split('on_')[-1],
+        'datestamp': arrow.now().format(date_format),
+        'timestamp': arrow.now().format(time_format),
+        # Plex Media Server update parameters
+        'update_version': pms_download_info['version'],
+        'update_url': pms_download_info['download_url'],
+        'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
+            if pms_download_info['release_date'] else '',
+        'update_channel': 'Beta' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
+        'update_platform': pms_download_info['platform'],
+        'update_distro': pms_download_info['distro'],
+        'update_distro_build': pms_download_info['build'],
+        'update_requirements': pms_download_info['requirements'],
+        'update_extra_info': pms_download_info['extra_info'],
+        'update_changelog_added': pms_download_info['changelog_added'],
+        'update_changelog_fixed': pms_download_info['changelog_fixed'],
+        # Tautulli update parameters
+        'plexpy_update_version': plexpy_download_info['tag_name'],
+        'plexpy_update_tar': plexpy_download_info['tarball_url'],
+        'plexpy_update_zip': plexpy_download_info['zipball_url'],
+        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
+        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
+        'plexpy_update_changelog': plexpy_download_info['body']
+        }
 
     return available_params
 
