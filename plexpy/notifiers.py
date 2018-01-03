@@ -1064,11 +1064,16 @@ class DISCORD(Notifier):
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
+        if not subject and not body:
             return
 
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            if subject and body:
+                text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            elif subject and not body:
+                text = subject.encode('utf-8')
+            elif not subject and body:
+                text = body.encode("utf-8")
         else:
             text = body.encode("utf-8")
 
@@ -1441,11 +1446,16 @@ class FACEBOOK(Notifier):
             return False
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
+        if not subject and not body:
             return
 
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            if subject and body:
+                text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            elif subject and not body:
+                text = subject.encode('utf-8')
+            elif not subject and body:
+                text = body.encode("utf-8")
         else:
             text = body.encode("utf-8")
 
@@ -2908,11 +2918,16 @@ class SLACK(Notifier):
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
+        if not subject and not body:
             return
 
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            if subject and body:
+                text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            elif subject and not body:
+                text = subject.encode('utf-8')
+            elif not subject and body:
+                text = body.encode("utf-8")
         else:
             text = body.encode("utf-8")
 
