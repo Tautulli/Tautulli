@@ -13,6 +13,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import os
+import time
 import urllib
 
 import plexpy
@@ -519,7 +522,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id=''):
+    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None):
         """
         Return processed and validated metadata list for requested item.
 
@@ -527,18 +530,32 @@ class PmsConnect(object):
 
         Output: array
         """
+        metadata = {}
+
+        if cache_key:
+            in_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+            try:
+                with open(in_file_path, 'r') as inFile:
+                    metadata = json.load(inFile)
+            except IOError as e:
+                pass
+
+            if metadata:
+                _cache_time = metadata.pop('_cache_time', 0)
+                # Return cached metadata if less than 30 minutes ago
+                if int(time.time()) - _cache_time <= 1800:
+                    return metadata
+
         if rating_key:
-            metadata = self.get_metadata(str(rating_key), output_format='xml')
+            metadata_xml = self.get_metadata(str(rating_key), output_format='xml')
         elif sync_id:
-            metadata = self.get_sync_item(str(sync_id), output_format='xml')
+            metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
 
         try:
-            xml_head = metadata.getElementsByTagName('MediaContainer')
+            xml_head = metadata_xml.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_metadata_details: %s." % e)
             return {}
-
-        metadata = {}
 
         for a in xml_head:
             if a.getAttribute('size'):
@@ -1138,6 +1155,17 @@ class PmsConnect(object):
             metadata['media_info'] = medias
 
         if metadata:
+            metadata['_cache_time'] = int(time.time())
+
+            if cache_key:
+                out_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+                try:
+                    with open(out_file_path, 'w') as outFile:
+                        json.dump(metadata, outFile)
+                except IOError as e:
+                    logger.error(u"Tautulli Pmsconnect :: Unable to create cache file for metadata (sessionKey %s): %s"
+                                 % (cache_key, e))
+
             return metadata
         else:
             return {}
@@ -1299,6 +1327,7 @@ class PmsConnect(object):
         # Get the source media type
         media_type = helpers.get_xml_attr(session, 'type')
         rating_key = helpers.get_xml_attr(session, 'ratingKey')
+        session_key = helpers.get_xml_attr(session, 'sessionKey')
 
         # Get the user details
         user_info = session.getElementsByTagName('User')[0]
@@ -1613,9 +1642,9 @@ class PmsConnect(object):
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
             if sync_id:
-                metadata_details = self.get_metadata_details(sync_id=sync_id)
+                metadata_details = self.get_metadata_details(sync_id=sync_id, cache_key=session_key)
             else:
-                metadata_details = self.get_metadata_details(rating_key=rating_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key, cache_key=session_key)
 
             # Get the media info, fallback to first item if match id is not found
             source_medias = metadata_details.pop('media_info', [])
@@ -1728,7 +1757,7 @@ class PmsConnect(object):
             optimized_version_profile = ''
 
         # Entire session output (single dict for backwards compatibility)
-        session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+        session_output = {'session_key': session_key,
                           'media_type': media_type,
                           'view_offset': view_offset,
                           'progress_percent': str(helpers.get_percent(view_offset, stream_details['stream_duration'])),

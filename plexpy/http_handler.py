@@ -154,7 +154,7 @@ class HTTPHandler(object):
         try:
             if self.output_format == 'text':
                 output = response_content.decode('utf-8', 'ignore')
-            if self.output_format == 'dict':
+            elif self.output_format == 'dict':
                 output = helpers.convert_xml_to_dict(response_content)
             elif self.output_format == 'json':
                 output = helpers.convert_xml_to_json(response_content)

@@ -14,7 +14,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import threading
+import os
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -26,7 +26,6 @@ import datafactory
 import helpers
 import logger
 import notification_handler
-import notifiers
 import pmsconnect
 
 
@@ -75,9 +74,12 @@ class ActivityHandler(object):
         monitor_proc.write_session(session=session, notify=False)
 
     def on_start(self):
-        if self.is_valid_session() and self.get_live_session():
+        if self.is_valid_session():
             session = self.get_live_session()
-            
+
+            if not session:
+                return
+
             # Some DLNA clients create a new session temporarily when browsing the library
             # Wait and get session again to make sure it is an actual session
             if session['platform'] == 'DLNA':
@@ -124,6 +126,7 @@ class ActivityHandler(object):
             logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
                          % (str(self.get_session_key()), str(self.get_rating_key())))
             ap.delete_session(session_key=self.get_session_key())
+            delete_metadata_cache(self.get_session_key())
 
     def on_pause(self, still_paused=False):
         if self.is_valid_session():
@@ -449,12 +452,13 @@ def force_stop_stream(session_key):
                               args=[session_key], seconds=30)
 
         else:
-            logger.warn(u"Tautulli Monitor :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+            logger.warn(u"Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Removing session from the database. Write attempt %s."
                         % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
-            logger.info(u"Tautulli Monitor :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+            logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (session['session_key'], session['rating_key']))
             ap.delete_session(session_key=session_key)
+            delete_metadata_cache(session_key)
 
 
 def clear_recently_added_queue(rating_key):
@@ -519,3 +523,11 @@ def on_created(rating_key, **kwargs):
 
     else:
         logger.error(u"Tautulli TimelineHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
+
+
+def delete_metadata_cache(session_key):
+    try:
+        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % session_key))
+    except IOError as e:
+        logger.error(u"Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
+                     % (session_key, e))
