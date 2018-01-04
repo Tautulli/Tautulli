@@ -155,10 +155,18 @@ DATE_TIME_FORMATS = [
     {
         'category': 'Year',
         'parameters': [
+            {'value': 'YYYY', 'description': 'Numeric, four digits', 'example': '1999, 2003'},
+            {'value': 'YY', 'description': 'Numeric, two digits', 'example': '99, 03'}
+        ]
+     },
+    {
+        'category': 'Month',
+        'parameters': [
             {'value': 'MMMM', 'description': 'Textual, full', 'example': 'January-December'},
             {'value': 'MMM', 'description': 'Textual, three letters', 'example': 'Jan-Dec'},
-            {'value': 'MM', 'description': 'Numeric, with leading zeros', 'example': '42747'},
-            {'value': 'M', 'description': 'Numeric, without leading zeros', 'example': '42747'},
+            {'value': 'MM', 'description': 'Numeric, with leading zeros', 'example': '01-12'},
+            {'value': 'M', 'description': 'Numeric, without leading zeros', 'example': '1-12'},
+            {'value': 'Mo', 'description': 'Numeric, with suffix', 'example': '1st, 2nd ... 12th'},
         ]
      },
     {
@@ -166,14 +174,15 @@ DATE_TIME_FORMATS = [
         'parameters': [
             {'value': 'DDDD', 'description': 'Numeric, with leading zeros', 'example': '001-365'},
             {'value': 'DDD', 'description': 'Numeric, without leading zeros', 'example': '1-365'},
+            {'value': 'DDDo', 'description': 'Numeric, with suffix', 'example': '1st, 2nd, ... 365th'},
         ]
      },
     {
         'category': 'Day of the Month',
         'parameters': [
-            {'value': 'DD', 'description': 'Numeric, with leading zeros', 'example': '42766'},
-            {'value': 'D', 'description': 'Numeric, without leading zeros', 'example': '42766'},
-            {'value': 'Do', 'description': 'Numeric, with suffix', 'example': 'E.g. 1st, 2nd ... 31st.'},
+            {'value': 'DD', 'description': 'Numeric, with leading zeros', 'example': '01-31'},
+            {'value': 'D', 'description': 'Numeric, without leading zeros', 'example': '1-31'},
+            {'value': 'Do', 'description': 'Numeric, with suffix', 'example': '1st, 2nd ... 31st'},
         ]
      },
     {
@@ -181,7 +190,9 @@ DATE_TIME_FORMATS = [
         'parameters': [
             {'value': 'dddd', 'description': 'Textual, full', 'example': 'Sunday-Saturday'},
             {'value': 'ddd', 'description': 'Textual, three letters', 'example': 'Sun-Sat'},
+            {'value': 'dd', 'description': 'Textual, two letters', 'example': 'Su-Sa'},
             {'value': 'd', 'description': 'Numeric', 'example': '0-6'},
+            {'value': 'do', 'description': 'Numeric, with suffix', 'example': '0th, 1st ... 6th'},
         ]
      },
     {
@@ -189,8 +200,8 @@ DATE_TIME_FORMATS = [
         'parameters': [
             {'value': 'HH', 'description': '24-hour, with leading zeros', 'example': '00-23'},
             {'value': 'H', 'description': '24-hour, without leading zeros', 'example': '0-23'},
-            {'value': 'hh', 'description': '12-hour, with leading zeros', 'example': '42747'},
-            {'value': 'h', 'description': '12-hour, without leading zeros', 'example': '42747'},
+            {'value': 'hh', 'description': '12-hour, with leading zeros', 'example': '01-12'},
+            {'value': 'h', 'description': '12-hour, without leading zeros', 'example': '1-12'},
         ]
      },
     {
@@ -217,8 +228,8 @@ DATE_TIME_FORMATS = [
     {
         'category': 'Timezone',
         'parameters': [
-            {'value': 'ZZ', 'description': 'UTC offset', 'example': 'E.g. +0100, -0700'},
-            {'value': 'Z', 'description': 'UTC offset', 'example': 'E.g. +01:00, -07:00'},
+            {'value': 'ZZ', 'description': 'UTC offset', 'example': '+0100, -0700'},
+            {'value': 'Z', 'description': 'UTC offset', 'example': '+01:00, -07:00'},
         ]
      },
     {
