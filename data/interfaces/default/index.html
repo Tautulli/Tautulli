@@ -325,25 +325,26 @@
                         }
 
                         // Update play state icon
+                        var state_icon = '';
                         switch (s.state) {
                             case 'playing':
-                                var state_icon = '<i class="fa fa-fw fa-play"></i>&nbsp;';
+                                state_icon = '<i class="fa fa-fw fa-play"></i>&nbsp;';
                                 break;
                             case 'paused':
-                                var state_icon = '<i class="fa fa-fw fa-pause"></i>&nbsp;';
+                                state_icon = '<i class="fa fa-fw fa-pause"></i>&nbsp;';
                                 break;
                             case 'buffering':
-                                var state_icon = '<i class="fa fa-fw fa-spinner"></i>&nbsp;';
+                                state_icon = '<i class="fa fa-fw fa-spinner"></i>&nbsp;';
                                 break;
                             default:
-                                var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
+                                state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
                         }
                         $('#play-state-' + key).html(state_icon).attr('title', capitalizeFirstLetter(s.state));
 
                         // Switching tracks can be under the same session key, so need to update the info.
                         if (s.media_type === 'track') {
                             // Update if artist changed
-                            if (s.grandparent_rating_key != instance.data('grandparent_rating_key')) {
+                            if (s.grandparent_rating_key !== instance.data('grandparent_rating_key')) {
                                 $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&fallback=art&refresh=true)');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
@@ -351,7 +352,7 @@
                                     .text(s.grandparent_title);
                             }
                             // Update cover if album changed
-                            if (s.parent_rating_key != instance.data('parent_rating_key')) {
+                            if (s.parent_rating_key !== instance.data('parent_rating_key')) {
                                 $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
                                 $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
                                 $('#poster-url-' + key)
@@ -363,7 +364,7 @@
                                     .text(s.parent_title);
                             }
                             // Update cover if track changed
-                            if (s.parent_rating_key != instance.data('parent_rating_key')) {
+                            if (s.parent_rating_key !== instance.data('parent_rating_key')) {
                                 $('#metadata-title-' + key)
                                     .attr('href', 'info?rating_key=' + s.rating_key)
                                     .attr('title', s.title)
@@ -374,7 +375,7 @@
                         // Update the transcode state
                         var transcode_decision = '';
                         if (s.transcode_decision === 'transcode') {
-                            var throttled = (s.transcode_throttled == 1) ? ' (Throttled)' : ' (Speed: ' + s.transcode_speed + ')';
+                            var throttled = (s.transcode_throttled === 1) ? ' (Throttled)' : ' (Speed: ' + s.transcode_speed + ')';
                             transcode_decision = 'Transcode' + throttled;
                         } else if (s.transcode_decision === 'copy') {
                             transcode_decision = 'Direct Stream';
@@ -392,36 +393,32 @@
                         $('#transcode_container-' + key).html(transcode_container);
 
                         var video_decision = '';
-                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.video_decision != '') {
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.video_decision !== '') {
+                            var v_res= '';
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
-                                    var v_res = 'SD';
+                                    v_res = 'SD';
                                     break;
                                 case '4k':
-                                    var v_res = '4k';
+                                    v_res = '4k';
                                     break;
                                 default:
-                                    var v_res = s.video_resolution + 'p'
+                                    v_res = s.video_resolution + 'p'
                             }
+                            var sv_res = '';
                             switch (s.stream_video_resolution.toLowerCase()) {
                                 case 'sd':
-                                    var sv_res = 'SD';
+                                    sv_res = 'SD';
                                     break;
                                 case '4k':
-                                    var sv_res = '4k';
+                                    sv_res = '4k';
                                     break;
                                 default:
-                                    var sv_res = s.stream_video_resolution + 'p'
+                                    sv_res = s.stream_video_resolution + 'p'
                             }
                             if (s.stream_video_decision === 'transcode') {
-                                var hw_d = '';
-                                var hw_e = '';
-                                if (s.transcode_hw_requested === 1 && s.transcode_hw_full_pipeline === 0) {
-                                    hw_d = ' (HW)';
-                                } else if (s.transcode_hw_requested === 1 && s.transcode_hw_full_pipeline === 1) {
-                                    hw_d = ' (HW)';
-                                    hw_e = ' (HW)';
-                                }
+                                var hw_d = (s.transcode_hw_decoding === 1) ? ' (HW)' : '';
+                                var hw_e = (s.transcode_hw_encoding === 1) ? ' (HW)' : '';
                                 video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
                             } else if (s.stream_video_decision === 'copy') {
                                 video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
@@ -434,7 +431,7 @@
                         $('#video_decision-' + key).html(video_decision);
 
                         var audio_decision = '';
-                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_codec) {
+                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_decision) {
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
@@ -456,13 +453,13 @@
                             } else if (s.stream_subtitle_decision === 'burn') {
                                 subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
                             } else {
-                                subtitle_decision = 'Direct Play (' + ((s.synced_version == '1') ? s.stream_subtitle_codec.toUpperCase() : s.subtitle_codec.toUpperCase()) + ')';
+                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? s.stream_subtitle_codec.toUpperCase() : s.subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
 
                         // Update the stream quality profile and bandwidth
-                        if (s.media_type != 'photo' && s.quality_profile != 'Unknown') {
+                        if (s.media_type !== 'photo' && s.quality_profile !== 'Unknown') {
                             var br = parseInt(s.stream_bitrate) || '';
                             if (br) {
                                 if (br > 1000) {
@@ -478,9 +475,9 @@
                         $('#optimized_version-' + key).html(s.optimized_version_profile + ' (' + s.optimized_version_title + ')');
                         $('#synced_quality_profile-' + key).html(s.synced_quality_profile);
 
-                        if (s.media_type != 'photo' && parseInt(s.bandwidth)) {
+                        if (s.media_type !== 'photo' && parseInt(s.bandwidth)) {
                             var bw = parseInt(s.bandwidth);
-                            if (bw != "Unknown") {
+                            if (bw !== "Unknown") {
                                 if (bw > 1000) {
                                     bw = (bw / 1000).toFixed(1) + ' Mbps';
                                 } else {
@@ -492,17 +489,19 @@
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
-                        $('#stream-view-offset-' + key).data('state', s.state);
-                        if ($('#stream-view-offset-' + key).data('last_view_offset') != s.view_offset) {
-                            $('#stream-view-offset-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        var stream_view_offset = $('#stream-view-offset-' + key);
+                        stream_view_offset.data('state', s.state);
+                        if (stream_view_offset.data('last_view_offset') !== s.view_offset) {
+                            stream_view_offset.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
                         }
 
                         // Update the progress bars, percent - 3 because of 3px padding-right
                         $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
-                        $('#progress-bar-' + key).data('state', s.state);
-                        if ($('#progress-bar-' + key).data('last_view_offset') != s.view_offset) {
-                            $('#progress-bar-' + key).data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        var progress_bar = $('#progress-bar-' + key);
+                        progress_bar.data('state', s.state);
+                        if (progress_bar.data('last_view_offset') !== s.view_offset) {
+                            progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
                         }
 
                         // Add temporary class so we know which instances are still active
@@ -771,13 +770,13 @@
         leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
         scroller.animate({ left: leftTotal }, 250);
 
-        if (leftTotal == 0) {
+        if (leftTotal === 0) {
             $("#recently-added-page-left").addClass("disabled").blur();
         } else {
             $("#recently-added-page-left").removeClass("disabled");
         }
 
-        if (leftTotal == leftMax) {
+        if (leftTotal === leftMax) {
             $("#recently-added-page-right").addClass("disabled").blur();
         } else {
             $("#recently-added-page-right").removeClass("disabled");
