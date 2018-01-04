@@ -32,133 +32,159 @@ DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
 
-MEDIA_TYPE_HEADERS = {'movie': 'Movies',
-                      'show': 'TV Shows',
-                      'season': 'Seasons',
-                      'episode': 'Episodes',
-                      'artist': 'Artists',
-                      'album': 'Albums',
-                      'track': 'Tracks',
-                      }
+MEDIA_TYPE_HEADERS = {
+    'movie': 'Movies',
+    'show': 'TV Shows',
+    'season': 'Seasons',
+    'episode': 'Episodes',
+    'artist': 'Artists',
+    'album': 'Albums',
+    'track': 'Tracks',
+}
 
-PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
-                           'Mystery 3': 'Playstation 3',
-                           'Mystery 4': 'Playstation 4',
-                           'Mystery 5': 'Xbox 360',
-                           'WebMAF': 'Playstation 4'
-                           }
+PLATFORM_NAME_OVERRIDES = {
+    'Konvergo': 'Plex Media Player',
+    'Mystery 3': 'Playstation 3',
+    'Mystery 4': 'Playstation 4',
+    'Mystery 5': 'Xbox 360',
+    'WebMAF': 'Playstation 4'
+}
 
-PMS_PLATFORM_NAME_OVERRIDES = {'MacOSX': 'Mac'
-                               }
+PMS_PLATFORM_NAME_OVERRIDES = {
+    'MacOSX': 'Mac'
+}
 
-PLATFORM_NAMES = {'android': 'android',
-                  'apple tv': 'atv',
-                  'chrome': 'chrome',
-                  'chromecast': 'chromecast',
-                  'dlna': 'dlna',
-                  'firefox': 'firefox',
-                  'internet explorer': 'ie',
-                  'ios': 'ios',
-                  'ipad': 'ios',
-                  'iphone': 'ios',
-                  'kodi': 'kodi',
-                  'linux': 'linux',
-                  'nexus': 'android',
-                  'macos': 'macos',
-                  'microsoft edge': 'msedge',
-                  'opera': 'opera',
-                  'osx': 'macos',
-                  'playstation': 'playstation',
-                  'plex home theater': 'plex',
-                  'plex media player': 'plex',
-                  'plexamp': 'plexamp',
-                  'plextogether': 'synclounge',
-                  'roku': 'roku',
-                  'safari': 'safari',
-                  'samsung': 'samsung',
-                  'synclounge': 'synclounge',
-                  'tivo': 'tivo',
-                  'tvos': 'atv',
-                  'vizio': 'opera',
-                  'wiiu': 'wiiu',
-                  'windows': 'windows',
-                  'windows phone': 'wp',
-                  'xbmc': 'xbmc',
-                  'xbox': 'xbox'
-                  }
+PLATFORM_NAMES = {
+    'android': 'android',
+    'apple tv': 'atv',
+    'chrome': 'chrome',
+    'chromecast': 'chromecast',
+    'dlna': 'dlna',
+    'firefox': 'firefox',
+    'internet explorer': 'ie',
+    'ios': 'ios',
+    'ipad': 'ios',
+    'iphone': 'ios',
+    'kodi': 'kodi',
+    'linux': 'linux',
+    'nexus': 'android',
+    'macos': 'macos',
+    'microsoft edge': 'msedge',
+    'opera': 'opera',
+    'osx': 'macos',
+    'playstation': 'playstation',
+    'plex home theater': 'plex',
+    'plex media player': 'plex',
+    'plexamp': 'plexamp',
+    'plextogether': 'synclounge',
+    'roku': 'roku',
+    'safari': 'safari',
+    'samsung': 'samsung',
+    'synclounge': 'synclounge',
+    'tivo': 'tivo',
+    'tvos': 'atv',
+    'vizio': 'opera',
+    'wiiu': 'wiiu',
+    'windows': 'windows',
+    'windows phone': 'wp',
+    'xbmc': 'xbmc',
+    'xbox': 'xbox'
+}
 PLATFORM_NAMES = OrderedDict(sorted(PLATFORM_NAMES.items(), key=lambda k: k[0], reverse=True))
 
-MEDIA_FLAGS_AUDIO = {'ac.?3': 'dolby_digital',
-                     'truehd': 'dolby_truehd',
-                     '(dca|dta)': 'dts',
-                     'dts(hd_|-hd|-)?ma': 'dca-ma',
-                     'vorbis': 'ogg'
-                     }
-MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
-                     'wmv(1|2)': 'wmv',
-                     'wmv3': 'wmvhd'
-                     }
+MEDIA_FLAGS_AUDIO = {
+    'ac.?3': 'dolby_digital',
+    'truehd': 'dolby_truehd',
+    '(dca|dta)': 'dts',
+    'dts(hd_|-hd|-)?ma': 'dca-ma',
+    'vorbis': 'ogg'
+}
+MEDIA_FLAGS_VIDEO = {
+    'avc1': 'h264',
+    'wmv(1|2)': 'wmv',
+    'wmv3': 'wmvhd'
+}
 
-AUDIO_CODEC_OVERRIDES = {'truehd': 'TrueHD'}
+AUDIO_CODEC_OVERRIDES = {
+    'truehd': 'TrueHD'
+}
 
-VIDEO_RESOLUTION_OVERRIDES = {'sd': 'SD',
-                              '480': '480p',
-                              '540': '540p',
-                              '576': '576p',
-                              '720': '720p',
-                              '1080': '1080p',
-                              '4k': '4k'
-                              }
+VIDEO_RESOLUTION_OVERRIDES = {
+    'sd': 'SD',
+    '480': '480p',
+    '540': '540p',
+    '576': '576p',
+    '720': '720p',
+    '1080': '1080p',
+    '4k': '4k'
+}
 
-AUDIO_CHANNELS = {'1': 'Mono',
-                  '2': 'Stereo',
-                  '3': '2.1',
-                  '4': '3.1',
-                  '6': '5.1',
-                  '7': '6.1',
-                  '8': '7.1'
-                  }
+AUDIO_CHANNELS = {
+    '1': 'Mono',
+    '2': 'Stereo',
+    '3': '2.1',
+    '4': '3.1',
+    '6': '5.1',
+    '7': '6.1',
+    '8': '7.1'
+}
 
-VIDEO_QUALITY_PROFILES = {20000: '20 Mbps 1080p',
-                          12000: '12 Mbps 1080p',
-                          10000: '10 Mbps 1080p',
-                          8000: '8 Mbps 1080p',
-                          4000: '4 Mbps 720p',
-                          3000: '3 Mbps 720p',
-                          2000: '2 Mbps 720p',
-                          1500: '1.5 Mbps 480p',
-                          720: '0.7 Mbps 328p',
-                          320: '0.3 Mbps 240p',
-                          208: '0.2 Mbps 160p',
-                          96: '0.096 Mbps',
-                          64: '0.064 Mbps'
-                          }
+VIDEO_QUALITY_PROFILES = {
+    20000: '20 Mbps 1080p',
+    12000: '12 Mbps 1080p',
+    10000: '10 Mbps 1080p',
+    8000: '8 Mbps 1080p',
+    4000: '4 Mbps 720p',
+    3000: '3 Mbps 720p',
+    2000: '2 Mbps 720p',
+    1500: '1.5 Mbps 480p',
+    720: '0.7 Mbps 328p',
+    320: '0.3 Mbps 240p',
+    208: '0.2 Mbps 160p',
+    96: '0.096 Mbps',
+    64: '0.064 Mbps'
+}
 VIDEO_QUALITY_PROFILES = OrderedDict(sorted(VIDEO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
 
-AUDIO_QUALITY_PROFILES = {512: '512 kbps',
-                          320: '320 kbps',
-                          256: '256 kbps',
-                          192: '192 kbps',
-                          128: '128 kbps',
-                          96: '96 kbps'
-                          }
+AUDIO_QUALITY_PROFILES = {
+    512: '512 kbps',
+    320: '320 kbps',
+    256: '256 kbps',
+    192: '192 kbps',
+    128: '128 kbps',
+    96: '96 kbps'
+}
 AUDIO_QUALITY_PROFILES = OrderedDict(sorted(AUDIO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
 
-HW_DECODERS = ['dxva2', 'videotoolbox', 'mediacodecndk', 'vaapi']
-HW_ENCODERS = ['qsv', 'nvenc', 'mf', 'videotoolbox', 'mediacodecndk', 'vaapi', 'nvenc']
+HW_DECODERS = [
+    'dxva2',
+    'videotoolbox',
+    'mediacodecndk',
+    'vaapi'
+]
+HW_ENCODERS = [
+    'qsv',
+    'nvenc',
+    'mf',
+    'videotoolbox',
+    'mediacodecndk',
+    'vaapi',
+    'nvenc'
+]
 
-SCHEDULER_LIST = ['Check GitHub for updates',
-                  'Check for active sessions',
-                  'Check for recently added items',
-                  'Check for Plex updates',
-                  'Check for Plex remote access',
-                  'Check server response',
-                  'Refresh users list',
-                  'Refresh libraries list',
-                  'Refresh Plex server URLs',
-                  'Backup Tautulli database',
-                  'Backup Tautulli config'
-                  ]
+SCHEDULER_LIST = [
+    'Check GitHub for updates',
+    'Check for active sessions',
+    'Check for recently added items',
+    'Check for Plex updates',
+    'Check for Plex remote access',
+    'Check server response',
+    'Refresh users list',
+    'Refresh libraries list',
+    'Refresh Plex server URLs',
+    'Backup Tautulli database',
+    'Backup Tautulli config'
+]
 
 DATE_TIME_FORMATS = [
     {
@@ -247,7 +273,7 @@ DATE_TIME_FORMATS = [
             {'value': 'X', 'description': 'Unix timestamp', 'example': 'E.g. 1456887825'},
         ]
      },
-    ]
+]
 
 NOTIFICATION_PARAMETERS = [
     {
@@ -459,4 +485,4 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Plexpy Update Changelog', 'type': 'int', 'value': 'plexpy_update_changelog', 'description': 'The changelog for the available update.'},
         ]
      },
-    ]
+]
