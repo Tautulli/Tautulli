@@ -622,8 +622,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         artist_name = notify_params['parent_title']
         album_name = notify_params['title']
         track_name = ''
-        season_num = notify_params['media_index'].zfill(1)
-        season_num00 = notify_params['media_index'].zfill(2)
+        season_num = str(notify_params['media_index']).zfill(1)
+        season_num00 = str(notify_params['media_index']).zfill(2)
 
         num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
                                         for d in child_metadata if d['parent_rating_key'] == rating_key])
@@ -636,12 +636,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         artist_name = notify_params['grandparent_title']
         album_name = notify_params['parent_title']
         track_name = notify_params['title']
-        season_num = notify_params['parent_media_index'].zfill(1)
-        season_num00 = notify_params['parent_media_index'].zfill(2)
-        episode_num = notify_params['media_index'].zfill(1)
-        episode_num00 = notify_params['media_index'].zfill(2)
-        track_num = notify_params['media_index'].zfill(1)
-        track_num00 = notify_params['media_index'].zfill(2)
+        season_num = str(notify_params['parent_media_index']).zfill(1)
+        season_num00 = str(notify_params['parent_media_index']).zfill(2)
+        episode_num = str(notify_params['media_index']).zfill(1)
+        episode_num00 = str(notify_params['media_index']).zfill(2)
+        track_num = str(notify_params['media_index']).zfill(1)
+        track_num00 = str(notify_params['media_index']).zfill(2)
 
     available_params = {
         # Global paramaters
@@ -651,7 +651,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'server_name': server_name,
         'server_uptime': server_uptime,
         'server_version': server_times.get('version', ''),
-        'action': notify_action.split('on_')[-1],
+        'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
         # Stream parameters
@@ -855,7 +855,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'server_name': server_name,
         'server_uptime': server_uptime,
         'server_version': server_times.get('version', ''),
-        'action': notify_action.split('on_')[-1],
+        'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
         # Plex Media Server update parameters
