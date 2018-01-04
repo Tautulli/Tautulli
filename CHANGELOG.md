@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.9-beta (2018-01-03)
+
+* Notifications:
+  * Fix: Notifications failing due to incorrect season/episode number types.
+
+  
 ## v2.0.8-beta (2018-01-03)
 
 * Monitoring:
