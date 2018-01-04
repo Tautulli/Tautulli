@@ -135,15 +135,15 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled dashboard-activity-info-list">
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Product</div>
-                                <div class="sub-value">${data['product']}</div>
+                                <div class="sub-value platform-right">${data['product']}</div>
                             </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Player</div>
-                                <div class="sub-value">${data['player']}</div>
+                                <div class="sub-value platform-right">${data['player']}</div>
                             </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Quality</div>
-                                <div class="sub-value" id="stream_quality-${sk}">
+                                <div class="sub-value platform-right" id="stream_quality-${sk}">
                                     % if data['media_type'] != 'photo' and data['quality_profile'] != 'Unknown':
                                     <%
                                         br = helpers.cast_to_int(data['stream_bitrate']) or ''
@@ -268,7 +268,7 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled dashboard-activity-info-list">
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Location</div>
-                                <div class="sub-value">
+                                <div class="sub-value time-right">
                                     % if data['ip_address'] != 'N/A':
                                     ${data['location'].upper()}: <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
                                     <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
@@ -288,7 +288,7 @@ DOCUMENTATION :: END
                             </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Bandwidth</div>
-                                <div class="sub-value">
+                                <div class="sub-value time-right">
                                     % if data['media_type'] != 'photo' and helpers.cast_to_int(data['bandwidth']):
                                     <%
                                         bw = helpers.cast_to_int(data['bandwidth'])

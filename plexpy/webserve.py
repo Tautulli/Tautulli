@@ -4437,7 +4437,6 @@ class WebInterface(object):
                 if session_key:
                     return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
 
-
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,
                           'stream_count_transcode': 0,

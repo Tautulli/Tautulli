@@ -844,6 +844,18 @@ a .users-poster-face:hover {
     -webkit-flex-grow: 1;
     flex-grow: 1;
 }
+.dashboard-activity-info-item .sub-value.platform-right {
+    margin-right: 55px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.dashboard-activity-info-item .sub-value.time-right {
+    margin-right: 60px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
 .dashboard-activity-info-item .sub-value .ip-container {
     display: inline-flex;
 }
