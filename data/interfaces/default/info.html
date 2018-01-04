@@ -38,20 +38,21 @@ DOCUMENTATION :: END
 <%!
     import re
 
-    from plexpy import common, notifiers
+    from plexpy import notifiers
+    from plexpy.common import MEDIA_TYPE_HEADERS, MEDIA_FLAGS_AUDIO, MEDIA_FLAGS_VIDEO
 
     # Get audio codec file
     def af(codec):
-        for pattern, file in common.MEDIA_FLAGS_AUDIO.iteritems():
+        for pattern, file_type in MEDIA_FLAGS_AUDIO.iteritems():
             if re.match(pattern, codec):
-                return file
+                return file_type
         return codec
 
     # Get audio codec file
     def vf(codec):
-        for pattern, file in common.MEDIA_FLAGS_VIDEO.iteritems():
+        for pattern, file_type in MEDIA_FLAGS_VIDEO.iteritems():
             if re.match(pattern, codec):
-                return file
+                return file_type
         return codec
 
     def br(text):
@@ -356,7 +357,7 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
-                            <span>Movies in <strong>${data['title']}</strong> collection</span>
+                            <span>${MEDIA_TYPE_HEADERS[data['sub_media_type']]} in <strong>${data['title']}</strong> collection</span>
                         </div>
                     </div>
                     <div class="table-card-back">

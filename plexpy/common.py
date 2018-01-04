@@ -32,6 +32,15 @@ DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
 
+MEDIA_TYPE_HEADERS = {'movie': 'Movies',
+                      'show': 'TV Shows',
+                      'season': 'Seasons',
+                      'episode': 'Episodes',
+                      'artist': 'Artists',
+                      'album': 'Albums',
+                      'track': 'Tracks',
+                      }
+
 PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
                            'Mystery 3': 'Playstation 3',
                            'Mystery 4': 'Playstation 4',

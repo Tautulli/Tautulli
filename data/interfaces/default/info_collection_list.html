@@ -28,22 +28,15 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
+    from plexpy.common import MEDIA_TYPE_HEADERS
     types = ('movie', 'show', 'artist', 'album')
-    headers = {'movie': 'Movies',
-               'show': 'TV Shows',
-               'season': 'Seasons',
-               'episode': 'Episodes',
-               'artist': 'Artists',
-               'album': 'Albums',
-               'track': 'Tracks',
-               }
 %>
 % for media_type in types:
 % if data['results_list'][media_type]:
 <div class="col-md-12">
     <div class="table-card-header">
         <div class="header-bar">
-            <span>${headers[media_type]} in <strong>${title}</strong> collection</span>
+            <span>${MEDIA_TYPE_HEADERS[media_type]} in <strong>${title}</strong> collection</span>
         </div>
     </div>
     <div class="table-card-back">
