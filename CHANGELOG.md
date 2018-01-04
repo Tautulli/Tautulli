@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.0.8-beta (2018-01-03)
+
+* Monitoring:
+  * Fix: Fix HW transcoding indicator on activity cards.
+  * Fix: Fix long product/player names hidden behind platform icon on activity cards.
+* Notifications:
+  * Fix: Notifications failing due to some missing notification parameters.
+
+
 ## v2.0.7-beta (2018-01-01)
 
 * Monitoring:
