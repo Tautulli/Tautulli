@@ -1,16 +1,26 @@
 # Changelog
 
+## v2.0.10-beta (2018-01-04)
+
+* Monitoring:
+  * Fix: HW transcoding indicator on activity cards incorrect after refreshing.
+* Notifications:
+  * Remove: Notification toggles from library and user settings. Use custom conditions to filter out notifications instead.
+* UI:
+  * Fix: Incorrect examples for some date format options. Also added a few missing date format options. (Thanks @Tommatheussen)
+
+
 ## v2.0.9-beta (2018-01-03)
 
 * Notifications:
   * Fix: Notifications failing due to incorrect season/episode number types.
 
-  
+
 ## v2.0.8-beta (2018-01-03)
 
 * Monitoring:
-  * Fix: Fix HW transcoding indicator on activity cards.
-  * Fix: Fix long product/player names hidden behind platform icon on activity cards.
+  * Fix: Incorrect HW transcoding indicator on activity cards.
+  * Fix: Long product/player names hidden behind platform icon on activity cards.
 * Notifications:
   * Fix: Notifications failing due to some missing notification parameters.
 
