@@ -451,7 +451,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     notify_params = defaultdict(str)
     if session:
+        # Reload json from raw stream info
+        if session.get('raw_stream_info'):
+            session.update(json.loads(session['raw_stream_info']))
         notify_params.update(session)
+
     if timeline:
         notify_params.update(timeline)
 
