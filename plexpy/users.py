@@ -21,9 +21,9 @@ import common
 import database
 import datatables
 import helpers
+import libraries
 import logger
 import plextv
-import pmsconnect
 import session
 
 
@@ -38,6 +38,9 @@ def refresh_users():
 
             if item.get('shared_libraries'):
                 item['shared_libraries'] = ';'.join(item['shared_libraries'])
+            elif item.get('server_token'):
+                libs = libraries.Libraries().get_sections()
+                item['shared_libraries'] = ';'.join([str(l['section_id']) for l in libs])
 
             keys_dict = {"user_id": item.pop('user_id')}
 
