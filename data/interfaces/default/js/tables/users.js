@@ -45,7 +45,6 @@ users_list_table_options = {
                 $(td).html('<div class="edit-user-toggles">' + 
                     '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
@@ -284,12 +283,8 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    var do_notify = 0;
     var keep_history = 0;
     var allow_guest = 0;
-    if ($('#do_notify-' + rowData['user_id']).is(':checked')) {
-        do_notify = 1;
-    }
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
     }
@@ -304,7 +299,6 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
         data: {
             user_id: rowData['user_id'],
             friendly_name: friendly_name,
-            do_notify: do_notify,
             keep_history: keep_history,
             allow_guest: allow_guest,
             thumb: rowData['user_thumb']

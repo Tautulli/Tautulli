@@ -49,21 +49,9 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${helpers.checked(data['do_notify'])}> Enable notifications
-                    </label>
-                    <p class="help-block">Uncheck this if you do not want to receive notifications for this library's activity.</p>
-                </div>
-                <div class="checkbox">
-                    <label>
                         <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this library's activity.</p>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="do_notify_created" name="do_notify_created" value="1" ${helpers.checked(data['do_notify_created'])}> Enable recently added notifications
-                    </label>
-                    <p class="help-block">Uncheck this if you do not want to receive recently added notifications for this library.</p>
                 </div>
                 % if data['section_id']:
                 <div class="form-group">
@@ -85,15 +73,7 @@ DOCUMENTATION :: END
     // Save library options
     $("#save_library").on('click', function () {
         var custom_thumb = $("#custom_thumb_url").val();
-        var do_notify = 0;
-        var do_notify_created = 0;
         var keep_history = 0;
-        if ($("#do_notify").is(":checked")) {
-            do_notify = 1;
-        }
-        if ($("#do_notify_created").is(":checked")) {
-            do_notify_created = 1;
-        }
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
         }
@@ -103,8 +83,6 @@ DOCUMENTATION :: END
             data: {
                 section_id: '${data["section_id"]}',
                 custom_thumb: custom_thumb,
-                do_notify: do_notify,
-                do_notify_created: do_notify_created,
                 keep_history: keep_history
             },
             cache: false,

@@ -58,12 +58,6 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${helpers.checked(data['do_notify'])}> Enable notifications
-                    </label>
-                    <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
-                </div>
-                <div class="checkbox">
-                    <label>
                         <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
@@ -95,12 +89,8 @@ DOCUMENTATION :: END
     $("#save_user").on('click', function () {
         var friendly_name = $("input#friendly_name").val();
         var custom_thumb = $("#custom_avatar_url").val();
-        var do_notify = 0;
         var keep_history = 0;
         var allow_guest = 0;
-        if ($("#do_notify").is(":checked")) {
-            do_notify = 1;
-        }
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
         }
@@ -114,7 +104,6 @@ DOCUMENTATION :: END
                 user_id: '${data["user_id"]}',
                 friendly_name: friendly_name,
                 custom_thumb: custom_thumb,
-                do_notify: do_notify,
                 keep_history: keep_history,
                 allow_guest: allow_guest
             },
