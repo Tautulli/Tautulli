@@ -266,6 +266,14 @@ class PlexTV(object):
 
         return request
 
+    def get_plextv_shared_servers(self, machine_id='', output_format=''):
+        uri = '/api/servers/%s/shared_servers' % machine_id
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_plextv_sync_lists(self, machine_id='', output_format=''):
         uri = '/servers/%s/sync_lists' % machine_id
         request = self.request_handler.make_request(uri=uri,
@@ -329,15 +337,18 @@ class PlexTV(object):
         return request
 
     def get_full_users_list(self):
-        friends_list = self.get_plextv_friends(output_format='xml')
         own_account = self.get_plextv_user_details(output_format='xml')
+        friends_list = self.get_plextv_friends(output_format='xml')
+        shared_servers = self.get_plextv_shared_servers(machine_id=plexpy.CONFIG.PMS_IDENTIFIER,
+                                                        output_format='xml')
+
         users_list = []
 
         try:
             xml_head = own_account.getElementsByTagName('user')
         except Exception as e:
             logger.warn(u"Tautulli PlexTV :: Unable to parse own account XML for get_full_users_list: %s." % e)
-            return {}
+            return []
 
         for a in xml_head:
             own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -346,13 +357,16 @@ class PlexTV(object):
                            "email": helpers.get_xml_attr(a, 'email'),
                            "is_home_user": helpers.get_xml_attr(a, 'home'),
                            "is_admin": 1,
-                           "is_allow_sync": None,
+                           "is_allow_sync": 1,
                            "is_restricted": helpers.get_xml_attr(a, 'restricted'),
                            "filter_all": helpers.get_xml_attr(a, 'filterAll'),
                            "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
                            "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
                            "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                           "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                           "filter_photos": helpers.get_xml_attr(a, 'filterPhotos'),
+                           "user_token": helpers.get_xml_attr(a, 'authToken'),
+                           "server_token": helpers.get_xml_attr(a, 'authToken'),
+                           "shared_libraries": None,
                            }
 
             users_list.append(own_details)
@@ -361,7 +375,7 @@ class PlexTV(object):
             xml_head = friends_list.getElementsByTagName('User')
         except Exception as e:
             logger.warn(u"Tautulli PlexTV :: Unable to parse friends list XML for get_full_users_list: %s." % e)
-            return {}
+            return []
 
         for a in xml_head:
             friend = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -380,6 +394,28 @@ class PlexTV(object):
                       }
 
             users_list.append(friend)
+
+        try:
+            xml_head = shared_servers.getElementsByTagName('SharedServer')
+        except Exception as e:
+            logger.warn(u"Tautulli PlexTV :: Unable to parse shared server list XML for get_full_users_list: %s." % e)
+            return []
+
+        user_map = {}
+        for a in xml_head:
+            user_id = helpers.get_xml_attr(a, 'userID')
+            server_token = helpers.get_xml_attr(a, 'accessToken')
+
+            sections = a.getElementsByTagName('Section')
+            shared_libraries = [helpers.get_xml_attr(s, 'key')
+                                for s in sections if helpers.get_xml_attr(s, 'shared') == '1']
+
+            user_map[user_id] = {'server_token': server_token,
+                                 'shared_libraries': shared_libraries}
+
+        for u in users_list:
+            d = user_map.get(u['user_id'], {})
+            u.update(d)
 
         return users_list
 
