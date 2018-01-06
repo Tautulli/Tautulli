@@ -954,6 +954,7 @@ class DataFactory(object):
                              'grandparent_title': item['grandparent_title']
                              }
 
+        stream_output = {k: v or '' for k, v in stream_output.iteritems()}
         return stream_output
 
     def get_metadata_details(self, rating_key):

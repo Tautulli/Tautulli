@@ -1189,6 +1189,27 @@ def dbcheck():
         )
 
 
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        result = c_db.execute('SELECT stream_container FROM session_history_media_info '
+                              'WHERE stream_container IS NULL').fetchall()
+        if len(result) > 0:
+            logger.debug(u"Altering database. Removing NULL values from session_history_media_info table.")
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_container = "" WHERE stream_container IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_video_codec = "" WHERE stream_video_codec IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_audio_codec = "" WHERE stream_audio_codec IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_subtitle_codec = "" WHERE stream_subtitle_codec IS NULL '
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to remove NULL values from session_history_media_info table.")
+
     # Upgrade users table from earlier versions
     try:
         c_db.execute('SELECT do_notify FROM users')
@@ -1370,8 +1391,8 @@ def dbcheck():
 
     # Upgrade library_sections table from earlier versions (remove duplicated libraries)
     try:
-        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""')
-        if result.rowcount > 0:
+        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""').fetchall()
+        if len(result) > 0:
             logger.debug(u"Altering database. Removing duplicate libraries from library_sections table.")
             c_db.execute(
                 'DELETE FROM library_sections WHERE server_id = ""'
