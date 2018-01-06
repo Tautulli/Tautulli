@@ -96,7 +96,8 @@ def check_credentials(username, password, admin_login='0'):
     if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
         username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
         return True, u'admin'
-    elif username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+    elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+        username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
         return True, u'admin'
     elif not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS and user_login(username, password):
         return True, u'guest'
