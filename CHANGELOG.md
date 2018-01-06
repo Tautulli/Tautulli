@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.0.11-beta (2018-01-05)
+
+* Notifications:
+  * Fix: Some notification parameters showing up blank.
+* UI:
+  * Fix: Stream data showing up as "None" for pre-v2 history.
+* Other:
+  * Fix: Ability to login using the hashed password.
+
+
 ## v2.0.10-beta (2018-01-04)
 
 * Monitoring:
