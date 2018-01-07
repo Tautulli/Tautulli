@@ -292,7 +292,9 @@
                     var sc_dp = current_activity.stream_count_direct_play,
                         sc_ds = current_activity.stream_count_direct_stream,
                         sc_tc = current_activity.stream_count_transcode,
-                        total_bw = current_activity.total_bandwidth;
+                        total_bw = current_activity.total_bandwidth,
+                        lan_bw = current_activity.lan_bandwidth,
+                        wan_bw = current_activity.wan_bandwidth;
                     var streams_header = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
                     if (sc_dp) {
                         streams_header += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
@@ -306,7 +308,14 @@
                     streams_header = streams_header.replace(/, $/, '') + ')';
                     $('#currentActivityHeader-streams').text(streams_header);
 
-                    var bandwidth_header = (total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps');
+                    var bandwidth_header = ((total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps')) + ' (';
+                    if (lan_bw) {
+                        bandwidth_header += 'LAN: ' + ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps')) + ', ';
+                    }
+                    if (wan_bw) {
+                        bandwidth_header += 'WAN: ' + ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps')) + ', ';
+                    }
+                    bandwidth_header = bandwidth_header.replace(/, $/, '') + ')';
                     $('#currentActivityHeader-bandwidth').text(bandwidth_header);
 
                     $('#currentActivityHeader').show();
