@@ -332,7 +332,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     if not notifier_config:
         return
 
-    if notify_action == 'test':
+    if notify_action in ('test', 'api'):
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
         script_args = kwargs.pop('script_args', [])
@@ -350,8 +350,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
     # Set the notification state in the db
     notification_id = set_notify_state(session=stream_data or timeline_data,
-                                       notify_action=notify_action,
                                        notifier=notifier_config,
+                                       notify_action=notify_action,
                                        subject=subject,
                                        body=body,
                                        script_args=script_args)
@@ -390,9 +390,9 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, notifier, subject, body, script_args, session=None):
+def set_notify_state(notifier, notify_action, subject='', body='', script_args='', session=None):
 
-    if notify_action and notifier:
+    if notifier and notify_action:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}

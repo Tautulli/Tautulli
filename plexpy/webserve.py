@@ -3079,7 +3079,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi("notify")
     def send_notification(self, notifier_id=None, subject='Tautulli', body='Test notification', notify_action='', **kwargs):
         """ Send a notification using Tautulli.
 
