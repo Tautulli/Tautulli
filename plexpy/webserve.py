@@ -5475,7 +5475,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi("notify")
+    @addtoapi("notify_newsletter")
     def send_newsletter(self, newsletter_id=None, test=False, **kwargs):
         """ Send a newsletter using Tautulli.
 

@@ -867,8 +867,11 @@
                                                                 <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">${show['title']}</a></h4>
                                                             </div>
                                                             <div class="card-info-tagline">
+                                                                % if show['season_count'] > 1:
+                                                                    ${show['season_count']} seasons /
+                                                                % endif
                                                                 <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
-                                                                ${total_show_episodes} new episode${'s' if total_show_episodes > 1 else ''}
+                                                                ${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}
                                                             </div>
                                                             <div class="card-info-episode">
                                                                 % for i, season in enumerate(show['season'][:8]):
