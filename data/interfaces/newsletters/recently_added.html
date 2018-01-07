@@ -260,12 +260,18 @@
                 font-size: 20px !important;
             }
             table[class=body] h2 .count-units {
-                font-size: 16px !important;
+                font-size: 14px !important;
             }
             table[class=body] h2 .sub-header,
             table[class=body] h2 .sub-header-count {
                 float: left !important;
                 width: 100% !important;
+            }
+            table[class=body] h2 .sub-header {
+                margin-left: -14px !important;
+            }
+            table[class=body] h2 img.section_type {
+                height: 20px !important;
             }
 
             table[class=body] p,
@@ -309,6 +315,10 @@
                 max-width: 100% !important;
                 width: auto !important;
             }
+
+            .header {
+                background-position: center !important;
+            }
         }
 
         /* -------------------------------------
@@ -351,9 +361,9 @@
             HEADER
         ------------------------------------- */
         .header {
-            background: url(images/logo-tautulli-newsletter.png) center;
+            background: url(images/logo-tautulli-newsletter.png) no-repeat;
+            background-position: calc(50% - 20px) 50%;
             background-size: contain;
-            background-repeat: no-repeat;
             width: 100%;
             height: 100px;
         }
@@ -524,6 +534,7 @@
             height: 225px;
             width: 150px;
             z-index: 2;
+            position: relative;
         }
         .card-cover-container {
             background-color: #282828;
@@ -543,6 +554,39 @@
             height: 150px;
             width: 150px;
             z-index: 2;
+            position: relative;
+        }
+        .card-poster-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .card-poster-overlay span {
+            display: block;
+            height: 55px;
+            background: url(images/plex-logo-light-small.png) center no-repeat;
+            background-size: 75px;
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .card-poster-overlay span:before {
+            display: block;
+            content: "VIEW ON";
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 300;
+            text-align: center;
+        }
+        .card-poster .card-poster-overlay span {
+            margin-top: 85px;
+        }
+        .card-cover .card-poster-overlay span {
+            margin-top: 47.5px;
         }
         .card-info-container {
             height: 225px;
@@ -575,7 +619,7 @@
         .card-info-title {
             padding: 5px;
             line-height: 20px;
-            border-bottom: 1px solid rgba(255,255,255,.1);
+            border-bottom: 1px solid rgba(255, 255, 255, .1);
         }
         .card-info-title h4 {
             margin: 0;
@@ -649,11 +693,14 @@
             color: #E9A049;
             overflow: hidden;
         }
-        a:hover .card-poster,
-        a:hover .card-cover {
+        a:hover .card-poster-overlay {
             -webkit-box-shadow: inset 0 0 0 2px #e9a049;
             -moz-box-shadow: inset 0 0 0 2px #e9a049;
             box-shadow: inset 0 0 0 2px #e9a049;
+        }
+        a:hover .card-poster-overlay,
+        a:hover .card-poster-overlay span {
+            opacity: 1;
         }
         .badge {
             display: inline-block;
@@ -666,7 +713,7 @@
             text-align: center;
             white-space: nowrap;
             vertical-align: middle;
-            background-color: rgba(0, 0, 0, .15);
+            background-color: rgba(0, 0, 0, .25);
             border-radius: 2px;
         }
 
@@ -720,14 +767,16 @@
                                                 <div class="card-background-overlay">
                                                     <div class="card-background" style="background-image: url(pms_image_proxy?img=${movie['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
                                                     <div class="card-poster-container hidden-xs">
-                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}">
-                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${movie['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
+                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${movie['thumb']}&width=300&height=450&fallback=poster&refresh=true);">
+                                                                <div class="card-poster-overlay"><span></span></div>
+                                                            </div>
                                                         </a>
                                                     </div>
                                                     <div class="card-info-container">
                                                         <div class="card-info">
                                                             <div class="card-info-title">
-                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}">${movie['title']}</a></h4>
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a></h4>
                                                             </div>
                                                             % if movie['tagline']:
                                                             <div class="card-info-tagline">
@@ -735,7 +784,7 @@
                                                             </div>
                                                             % endif
                                                             <div class="card-info-summary">
-                                                                ${movie['summary'][:425] + (movie['summary'][425:] and '...')}
+                                                                ${movie['summary'][:410] + (movie['summary'][410:] and '...')}
                                                             </div>
                                                             <div class="card-info-footer">
                                                                 % if movie['year']:
@@ -806,28 +855,34 @@
                                                                 link_rating_key = show['rating_key']
                                                                 link_title = show['title']
                                                         %>
-                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}">
-                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${show['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
+                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${show['thumb']}&width=300&height=450&fallback=poster&refresh=true);">
+                                                                <div class="card-poster-overlay"><span></span></div>
+                                                            </div>
                                                         </a>
                                                     </div>
                                                     <div class="card-info-container">
                                                         <div class="card-info">
                                                             <div class="card-info-title">
-                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}">${show['title']}</a></h4>
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">${show['title']}</a></h4>
                                                             </div>
                                                             <div class="card-info-tagline">
                                                                 <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
                                                                 ${total_show_episodes} new episode${'s' if total_show_episodes > 1 else ''}
                                                             </div>
                                                             <div class="card-info-episode">
-                                                                % for season in show['season']:
-                                                                    Season ${season['media_index']} -
+                                                                % for i, season in enumerate(show['season'][:8]):
+                                                                    Season ${season['media_index']} &middot;
                                                                     % if season['episode_count'] == 1:
                                                                         Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
                                                                     % else:
                                                                         Episodes ${season['episode_range']}
                                                                     % endif
-                                                                    <br>
+                                                                    % if i < min(show['season_count'], 7):
+                                                                        <br>
+                                                                    % elif i == 7 and show['season_count'] > 8:
+                                                                        ...plus ${show['season_count'] - 8} more seasons!
+                                                                    % endif
                                                                 % endfor
                                                             </div>
                                                             <div class="card-info-summary-episode">
@@ -907,22 +962,25 @@
                                                 <div class="card-background-overlay">
                                                     <div class="card-background-album" style="background-image: url(pms_image_proxy?img=${album['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
                                                     <div class="card-cover-container hidden-xs">
-                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}">
-                                                            <div class="card-cover" style="background-image: url(pms_image_proxy?img=${album['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
+                                                            <div class="card-cover" style="background-image: url(pms_image_proxy?img=${album['thumb']}&width=300&height=450&fallback=poster&refresh=true);">
+                                                                <div class="card-poster-overlay"><span></span></div>
+                                                            </div>
                                                         </a>
                                                     </div>
                                                     <div class="card-info-container-album">
                                                         <div class="card-info-album">
                                                             <div class="card-info-title">
-                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}">${album['title']}</a></h4>
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a></h4>
                                                             </div>
                                                             <div class="card-info-tagline">
-                                                                ${artist['title']} - ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}
+                                                                ${artist['title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}
                                                             </div>
-                                                            <% album['summary'] = """Adventure Time follows two best friends: Finn (a 12-year old boy) and Jake (a wise 28-year-old dog with magical powers), and the surreal adventures undertaken by the duo as they traverse the mystical Land of Ooo. A world built for adventure, Ooo is filled to the brim with various landscapes for the """ %>
+                                                            % if artist['title'].lower() != 'various artists':
                                                             <div class="card-info-summary-album">
-                                                                ${album['summary'][:155] + (album['summary'][155:] and '...')}
+                                                                ${album['summary'][:150] + (album['summary'][150:] and '...')}
                                                             </div>
+                                                            % endif
                                                             <div class="card-info-footer">
                                                                 % if album['year']:
                                                                 <span class="badge">${album['year']}</span>

@@ -889,7 +889,7 @@ class PmsConnect(object):
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
-                        'summary': artist_details['summary'],
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary') or artist_details['summary'],
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'audience_rating': helpers.get_xml_attr(metadata_main, 'audienceRating'),

@@ -348,7 +348,7 @@ class RecentlyAdded(Newsletter):
                 children = pms_connect.get_item_children(show_rating_key, get_grandchildren=True)
                 filtered_children = [i for i in children['children_list']
                                      if helpers.cast_to_int(i['added_at']) > self.start_time]
-                filtered_children.sort(key=lambda x: x['parent_media_index'])
+                filtered_children.sort(key=lambda x: int(x['parent_media_index']))
 
                 seasons = []
                 for k, v in groupby(filtered_children, key=lambda x: x['parent_media_index']):
