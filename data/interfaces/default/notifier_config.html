@@ -132,11 +132,8 @@
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
                             <label>Notification Conditions</label>
                             <p class="help-block">
-                                Add custom notification conditions.
+                                Add custom conditions to filter out notifications.
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
-                            </p>
-                            <p class="help-block">
-                                Note: Conditions are checked after the notification trigger and the notification will only be sent if the condition logic is satisfied.
                             </p>
                             <div id="condition-widget"></div>
                             <input type="hidden" name="custom_conditions" id="custom_conditions" />
@@ -146,7 +143,8 @@
                                 <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
                                 <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
                                 <p class="help-block">
-                                    Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                    Optional: Enter custom logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                    Leave blank for implicit <span class="inline-pre">and</span> between all conditions.
                                 </p>
                                 <p class="help-block">
                                     Note: Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.

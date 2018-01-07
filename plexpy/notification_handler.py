@@ -206,19 +206,21 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     custom_conditions_logic = notifier_config['custom_conditions_logic']
+    custom_conditions = json.loads(notifier_config['custom_conditions']) or []
 
-    if custom_conditions_logic:
-        logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s." % notifier_id)
+    if custom_conditions_logic or any(c for c in custom_conditions if c['value']):
+        logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s."
+                     % notifier_id)
 
-        custom_conditions = json.loads(notifier_config['custom_conditions'])
-        
-        try:
-            # Parse and validate the custom conditions logic
-            logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
-        except ValueError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition logic '%s': %s."
-                         % (custom_conditions_logic, e))
-            return False
+        logic_groups = None
+        if custom_conditions_logic:
+            try:
+                # Parse and validate the custom conditions logic
+                logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition logic '%s': %s."
+                             % (custom_conditions_logic, e))
+                return False
 
         evaluated_conditions = [None]  # Set condition {0} to None
 
@@ -227,10 +229,11 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             operator = condition['operator']
             values = condition['value']
             parameter_type = condition['type']
+            parameter_value = parameters.get(parameter, "")
 
-            # Set blank conditions to None
+            # Set blank conditions to True (skip)
             if not parameter or not operator or not values:
-                evaluated_conditions.append(None)
+                evaluated_conditions.append(True)
                 continue
 
             # Make sure the condition values is in a list
@@ -248,25 +251,25 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 elif parameter_type == 'float':
                     values = [float(v) for v in values]
             
-            except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s' to type '%s'."
-                             % (parameter, parameter_type))
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s', values '%s', to type '%s'."
+                             % (parameter, values, parameter_type))
                 return False
 
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = unicode(parameters[parameter]).lower()
+                    parameter_value = unicode(parameter_value).lower()
 
                 elif parameter_type == 'int':
-                    parameter_value = int(parameters[parameter])
+                    parameter_value = int(parameter_value)
 
                 elif parameter_type == 'float':
-                    parameter_value = float(parameters[parameter])
+                    parameter_value = float(parameter_value)
             
-            except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s' to type '%s'."
-                             % (parameter, parameter_type))
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s', value '%s', to type '%s'."
+                             % (parameter, parameter_value, parameter_type))
                 return False
 
             # Check each condition
@@ -298,12 +301,15 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 logger.warn(u"Tautulli NotificationHandler :: Invalid condition operator '%s'." % operator)
                 evaluated_conditions.append(None)
 
-        # Format and evaluate the logic string
-        try:
-            evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
-        except Exception as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
-            return False
+        if logic_groups:
+            # Format and evaluate the logic string
+            try:
+                evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
+                return False
+        else:
+            evaluated_logic = all(evaluated_conditions[1:])
 
         logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
         return evaluated_logic
