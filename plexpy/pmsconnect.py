@@ -543,7 +543,7 @@ class PmsConnect(object):
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
                 # Return cached metadata if less than 30 minutes ago
-                if int(time.time()) - _cache_time <= 1800:
+                if int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
         if rating_key:

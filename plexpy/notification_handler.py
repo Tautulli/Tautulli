@@ -266,7 +266,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
                 elif parameter_type == 'float':
                     parameter_value = float(parameter_value)
-            
+
             except ValueError as e:
                 logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s', value '%s', to type '%s'."
                              % (parameter, parameter_value, parameter_type))

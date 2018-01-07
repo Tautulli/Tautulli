@@ -289,6 +289,7 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
+    'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_START': (int, 'Monitoring', 1),
