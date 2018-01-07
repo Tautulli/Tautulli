@@ -517,7 +517,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     remaining_duration = duration - view_offset
 
     # Build Plex URL
-    notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fnotify_params%2F{rating_key}'.format(
+    notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}'.format(
         web_url=plexpy.CONFIG.PMS_WEB_URL,
         pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
         rating_key=rating_key)
