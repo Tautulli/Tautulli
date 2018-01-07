@@ -139,6 +139,22 @@ class PmsConnect(object):
 
         return request
 
+    def get_metadata_grandchildren(self, rating_key='', output_format=''):
+        """
+        Return metadata for graandchildren of the request item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/library/metadata/' + rating_key + '/grandchildren'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_recently_added(self, start='0', count='0', output_format=''):
         """
         Return list of recently added items.
@@ -165,22 +181,6 @@ class PmsConnect(object):
         Output: array
         """
         uri = '/library/sections/%s/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s' % (section_id, start, count)
-        request = self.request_handler.make_request(uri=uri,
-                                                    request_type='GET',
-                                                    output_format=output_format)
-
-        return request
-
-    def get_children_list(self, rating_key='', output_format=''):
-        """
-        Return list of children in requested library item.
-
-        Parameters required:    rating_key { ratingKey of parent }
-        Optional parameters:    output_format { dict, json }
-
-        Output: array
-        """
-        uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -470,59 +470,86 @@ class PmsConnect(object):
                     output = {'recently_added': []}
                     return output
 
+            recents_main = []
             if a.getElementsByTagName('Directory'):
-                recents_main = a.getElementsByTagName('Directory')
-                for item in recents_main:
-                    recent_items = {'media_type': helpers.get_xml_attr(item, 'type'),
-                                    'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
-                                    'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
-                                    'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
-                                    'title': helpers.get_xml_attr(item, 'title'),
-                                    'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
-                                    'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
-                                    'sort_title': helpers.get_xml_attr(item, 'titleSort'),
-                                    'media_index': helpers.get_xml_attr(item, 'index'),
-                                    'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
-                                    'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
-                                    'year': helpers.get_xml_attr(item, 'year'),
-                                    'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                    'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
-                                    'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
-                                    'added_at': helpers.get_xml_attr(item, 'addedAt'),
-                                    'child_count': helpers.get_xml_attr(item, 'childCount')
-                                    }
-                    recents_list.append(recent_items)
-
+                recents_main += a.getElementsByTagName('Directory')
             if a.getElementsByTagName('Video'):
-                recents_main = a.getElementsByTagName('Video')
-                for item in recents_main:
-                    recent_items = {'media_type': helpers.get_xml_attr(item, 'type'),
-                                    'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
-                                    'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
-                                    'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
-                                    'title': helpers.get_xml_attr(item, 'title'),
-                                    'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
-                                    'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
-                                    'sort_title': helpers.get_xml_attr(item, 'titleSort'),
-                                    'media_index': helpers.get_xml_attr(item, 'index'),
-                                    'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
-                                    'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
-                                    'year': helpers.get_xml_attr(item, 'year'),
-                                    'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                    'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
-                                    'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
-                                    'added_at': helpers.get_xml_attr(item, 'addedAt'),
-                                    'child_count': helpers.get_xml_attr(item, 'childCount')
-                                    }
-                    recents_list.append(recent_items)
+                recents_main += a.getElementsByTagName('Video')
+
+            for m in recents_main:
+                directors = []
+                writers = []
+                actors = []
+                genres = []
+                labels = []
+
+                if m.getElementsByTagName('Director'):
+                    for director in m.getElementsByTagName('Director'):
+                        directors.append(helpers.get_xml_attr(director, 'tag'))
+
+                if m.getElementsByTagName('Writer'):
+                    for writer in m.getElementsByTagName('Writer'):
+                        writers.append(helpers.get_xml_attr(writer, 'tag'))
+
+                if m.getElementsByTagName('Role'):
+                    for actor in m.getElementsByTagName('Role'):
+                        actors.append(helpers.get_xml_attr(actor, 'tag'))
+
+                if m.getElementsByTagName('Genre'):
+                    for genre in m.getElementsByTagName('Genre'):
+                        genres.append(helpers.get_xml_attr(genre, 'tag'))
+
+                if m.getElementsByTagName('Label'):
+                    for label in m.getElementsByTagName('Label'):
+                        labels.append(helpers.get_xml_attr(label, 'tag'))
+
+                recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
+                               'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
+                               'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
+                               'rating_key': helpers.get_xml_attr(m, 'ratingKey'),
+                               'parent_rating_key': helpers.get_xml_attr(m, 'parentRatingKey'),
+                               'grandparent_rating_key': helpers.get_xml_attr(m, 'grandparentRatingKey'),
+                               'title': helpers.get_xml_attr(m, 'title'),
+                               'parent_title': helpers.get_xml_attr(m, 'parentTitle'),
+                               'grandparent_title': helpers.get_xml_attr(m, 'grandparentTitle'),
+                               'sort_title': helpers.get_xml_attr(m, 'titleSort'),
+                               'media_index': helpers.get_xml_attr(m, 'index'),
+                               'parent_media_index': helpers.get_xml_attr(m, 'parentIndex'),
+                               'studio': helpers.get_xml_attr(m, 'studio'),
+                               'content_rating': helpers.get_xml_attr(m, 'contentRating'),
+                               'summary': helpers.get_xml_attr(m, 'summary'),
+                               'tagline': helpers.get_xml_attr(m, 'tagline'),
+                               'rating': helpers.get_xml_attr(m, 'rating'),
+                               'audience_rating': helpers.get_xml_attr(m, 'audienceRating'),
+                               'user_rating': helpers.get_xml_attr(m, 'userRating'),
+                               'duration': helpers.get_xml_attr(m, 'duration'),
+                               'year': helpers.get_xml_attr(m, 'year'),
+                               'thumb': helpers.get_xml_attr(m, 'thumb'),
+                               'parent_thumb': helpers.get_xml_attr(m, 'parentThumb'),
+                               'grandparent_thumb': helpers.get_xml_attr(m, 'grandparentThumb'),
+                               'art': helpers.get_xml_attr(m, 'art'),
+                               'banner': helpers.get_xml_attr(m, 'banner'),
+                               'originally_available_at': helpers.get_xml_attr(m, 'originallyAvailableAt'),
+                               'added_at': helpers.get_xml_attr(m, 'addedAt'),
+                               'updated_at': helpers.get_xml_attr(m, 'updatedAt'),
+                               'last_viewed_at': helpers.get_xml_attr(m, 'lastViewedAt'),
+                               'guid': helpers.get_xml_attr(m, 'guid'),
+                               'directors': directors,
+                               'writers': writers,
+                               'actors': actors,
+                               'genres': genres,
+                               'labels': labels,
+                               'full_title': helpers.get_xml_attr(m, 'title'),
+                               'child_count': helpers.get_xml_attr(m, 'childCount')
+                               }
+
+                recents_list.append(recent_item)
 
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None):
+    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None, media_info=True):
         """
         Return processed and validated metadata list for requested item.
 
@@ -662,7 +689,8 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'show':
@@ -708,7 +736,8 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'season':
@@ -752,7 +781,8 @@ class PmsConnect(object):
                         'labels': show_details['labels'],
                         'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                        helpers.get_xml_attr(metadata_main, 'title'))
+                                                        helpers.get_xml_attr(metadata_main, 'title')),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'episode':
@@ -796,7 +826,8 @@ class PmsConnect(object):
                         'labels': show_details['labels'],
                         'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
-                                                        helpers.get_xml_attr(metadata_main, 'title'))
+                                                        helpers.get_xml_attr(metadata_main, 'title')),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'artist':
@@ -837,7 +868,8 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'album':
@@ -881,7 +913,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                        helpers.get_xml_attr(metadata_main, 'title'))
+                                                        helpers.get_xml_attr(metadata_main, 'title')),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'track':
@@ -925,7 +958,8 @@ class PmsConnect(object):
                         'labels': album_details['labels'],
                         'collections': album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
-                                                        helpers.get_xml_attr(metadata_main, 'title'))
+                                                        helpers.get_xml_attr(metadata_main, 'title')),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'photo_album':
@@ -966,7 +1000,8 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'photo':
@@ -1010,7 +1045,8 @@ class PmsConnect(object):
                         'labels': photo_album_details['labels'],
                         'collections': photo_album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                        helpers.get_xml_attr(metadata_main, 'title'))
+                                                        helpers.get_xml_attr(metadata_main, 'title')),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'collection':
@@ -1055,7 +1091,8 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
 
         elif metadata_type == 'clip':
@@ -1102,7 +1139,7 @@ class PmsConnect(object):
         else:
             return {}
 
-        if metadata:
+        if metadata and media_info:
             medias = []
             media_items = metadata_main.getElementsByTagName('Media')
             for media in media_items:
@@ -1873,18 +1910,21 @@ class PmsConnect(object):
         else:
             return False
 
-    def get_item_children(self, rating_key=''):
+    def get_item_children(self, rating_key='', get_grandchildren=False):
         """
         Return processed and validated children list.
 
         Output: array
         """
-        children_data = self.get_children_list(rating_key, output_format='xml')
+        if get_grandchildren:
+            children_data = self.get_metadata_grandchildren(rating_key, output_format='xml')
+        else:
+            children_data = self.get_metadata_children(rating_key, output_format='xml')
 
         try:
             xml_head = children_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_children_list: %s." % e)
+            logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_item_children: %s." % e)
             return []
 
         children_list = []
@@ -1907,21 +1947,72 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 result_data = a.getElementsByTagName('Track')
 
-            section_id = helpers.get_xml_attr(a, 'librarySectionID')
-
             if result_data:
-                for result in result_data:
-                    children_output = {'section_id': section_id,
-                                       'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
-                                       'parent_rating_key': helpers.get_xml_attr(result, 'parentRatingKey'),
-                                       'media_index': helpers.get_xml_attr(result, 'index'),
-                                       'title': helpers.get_xml_attr(result, 'title'),
-                                       'parent_title': helpers.get_xml_attr(result, 'parentTitle'),
-                                       'year': helpers.get_xml_attr(result, 'year'),
-                                       'thumb': helpers.get_xml_attr(result, 'thumb'),
-                                       'parent_thumb': helpers.get_xml_attr(a, 'thumb'),
-                                       'duration': helpers.get_xml_attr(result, 'duration')
-                                      }
+                for m in result_data:
+                    directors = []
+                    writers = []
+                    actors = []
+                    genres = []
+                    labels = []
+
+                    if m.getElementsByTagName('Director'):
+                        for director in m.getElementsByTagName('Director'):
+                            directors.append(helpers.get_xml_attr(director, 'tag'))
+
+                    if m.getElementsByTagName('Writer'):
+                        for writer in m.getElementsByTagName('Writer'):
+                            writers.append(helpers.get_xml_attr(writer, 'tag'))
+
+                    if m.getElementsByTagName('Role'):
+                        for actor in m.getElementsByTagName('Role'):
+                            actors.append(helpers.get_xml_attr(actor, 'tag'))
+
+                    if m.getElementsByTagName('Genre'):
+                        for genre in m.getElementsByTagName('Genre'):
+                            genres.append(helpers.get_xml_attr(genre, 'tag'))
+
+                    if m.getElementsByTagName('Label'):
+                        for label in m.getElementsByTagName('Label'):
+                            labels.append(helpers.get_xml_attr(label, 'tag'))
+
+                    children_output = {'media_type': helpers.get_xml_attr(m, 'type'),
+                                       'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
+                                       'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
+                                       'rating_key': helpers.get_xml_attr(m, 'ratingKey'),
+                                       'parent_rating_key': helpers.get_xml_attr(m, 'parentRatingKey'),
+                                       'grandparent_rating_key': helpers.get_xml_attr(m, 'grandparentRatingKey'),
+                                       'title': helpers.get_xml_attr(m, 'title'),
+                                       'parent_title': helpers.get_xml_attr(m, 'parentTitle'),
+                                       'grandparent_title': helpers.get_xml_attr(m, 'grandparentTitle'),
+                                       'sort_title': helpers.get_xml_attr(m, 'titleSort'),
+                                       'media_index': helpers.get_xml_attr(m, 'index'),
+                                       'parent_media_index': helpers.get_xml_attr(m, 'parentIndex'),
+                                       'studio': helpers.get_xml_attr(m, 'studio'),
+                                       'content_rating': helpers.get_xml_attr(m, 'contentRating'),
+                                       'summary': helpers.get_xml_attr(m, 'summary'),
+                                       'tagline': helpers.get_xml_attr(m, 'tagline'),
+                                       'rating': helpers.get_xml_attr(m, 'rating'),
+                                       'audience_rating': helpers.get_xml_attr(m, 'audienceRating'),
+                                       'user_rating': helpers.get_xml_attr(m, 'userRating'),
+                                       'duration': helpers.get_xml_attr(m, 'duration'),
+                                       'year': helpers.get_xml_attr(m, 'year'),
+                                       'thumb': helpers.get_xml_attr(m, 'thumb'),
+                                       'parent_thumb': helpers.get_xml_attr(m, 'parentThumb'),
+                                       'grandparent_thumb': helpers.get_xml_attr(m, 'grandparentThumb'),
+                                       'art': helpers.get_xml_attr(m, 'art'),
+                                       'banner': helpers.get_xml_attr(m, 'banner'),
+                                       'originally_available_at': helpers.get_xml_attr(m, 'originallyAvailableAt'),
+                                       'added_at': helpers.get_xml_attr(m, 'addedAt'),
+                                       'updated_at': helpers.get_xml_attr(m, 'updatedAt'),
+                                       'last_viewed_at': helpers.get_xml_attr(m, 'lastViewedAt'),
+                                       'guid': helpers.get_xml_attr(m, 'guid'),
+                                       'directors': directors,
+                                       'writers': writers,
+                                       'actors': actors,
+                                       'genres': genres,
+                                       'labels': labels,
+                                       'full_title': helpers.get_xml_attr(m, 'title')
+                                       }
                     children_list.append(children_output)
 
         output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
@@ -2157,7 +2248,7 @@ class PmsConnect(object):
         if str(section_id).isdigit():
             library_data = self.get_library_list(str(section_id), list_type, count, sort_type, label_key, output_format='xml')
         elif str(rating_key).isdigit():
-            library_data = self.get_children_list(str(rating_key), output_format='xml')
+            library_data = self.get_metadata_children(str(rating_key), output_format='xml')
         else:
             logger.warn(u"Tautulli Pmsconnect :: get_library_children called by invalid section_id or rating_key provided.")
             return []

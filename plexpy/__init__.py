@@ -620,6 +620,14 @@ def dbcheck():
         'custom_conditions TEXT, custom_conditions_logic TEXT)'
     )
 
+    # newsletters table :: This table keeps record of the newsletter settings
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
+        'friendly_name TEXT, newsletter_config TEXT, '
+        'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
+    )
+
     # poster_urls table :: This table keeps record of the notification poster urls
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '

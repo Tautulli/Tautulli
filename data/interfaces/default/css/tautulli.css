@@ -2973,6 +2973,9 @@ a .home-platforms-list-cover-face:hover
 .stacked-configs > li.new-notification-agent,
 .stacked-configs > li.notification-agent,
 .stacked-configs > li.add-notification-agent,
+.stacked-configs > li.new-newsletter-agent,
+.stacked-configs > li.newsletter-agent,
+.stacked-configs > li.add-newsletter-agent,
 .stacked-configs > li.mobile-device,
 .stacked-configs > li.add-mobile-device {
     cursor: pointer;
@@ -3657,37 +3660,57 @@ a:hover .overlay-refresh-image:hover {
 }
 #plexpy-notifiers-table .friendly_name,
 #notifier-config-modal span.notifier_id,
+#plexpy-newsletters-table .friendly_name,
+#newsletter-config-modal span.newsletter_id,
 #plexpy-mobile-devices-table .friendly_name,
 #mobile-device-config-modal span.notifier_id {
     color: #777;
 }
-#notifier-config-modal .nav-tabs {
+#notifier-config-modal .nav-tabs,
+#newsletter-config-modal .nav-tabs {
     margin-bottom: 10px;
     padding-left: 15px;
     border-bottom: 1px solid #444;
 }
-#notifier-config-modal .nav-tabs > li {
+#notifier-config-modal .nav-tabs > li,
+#newsletter-config-modal .nav-tabs > li {
     margin: 0 0 -1px 0;
 }
-#notifier-config-modal .nav-tabs > li > a {
+#notifier-config-modal .nav-tabs > li > a,
+#newsletter-config-modal .nav-tabs > li > a {
     padding: 5px 10px;
     color: #737373;
 }
-#notifier-config-modal .nav-tabs > li > a:hover {
+#notifier-config-modal .nav-tabs > li > a:hover,
+#newsletter-config-modal .nav-tabs > li > a:hover {
     border-color: #444;
     background: #222;
 }
 #notifier-config-modal .nav-tabs > li.active > a,
 #notifier-config-modal .nav-tabs > li.active > a:hover,
-#notifier-config-modal .nav-tabs > li.active > a:focus {
+#notifier-config-modal .nav-tabs > li.active > a:focus,
+#newsletter-config-modal .nav-tabs > li.active > a,
+#newsletter-config-modal .nav-tabs > li.active > a:hover,
+#newsletter-config-modal .nav-tabs > li.active > a:focus {
     color: #fff;
     background: #222;
 }
 #notifier-config-modal .nav-tabs > li.active > a,
 #notifier-config-modal .nav-tabs > li.active > a:hover,
-#notifier-config-modal .nav-tabs > li.active > a:focus {
+#notifier-config-modal .nav-tabs > li.active > a:focus,
+#newsletter-config-modal .nav-tabs > li.active > a,
+#newsletter-config-modal .nav-tabs > li.active > a:hover,
+#newsletter-config-modal .nav-tabs > li.active > a:focus {
     border: 1px solid #444;
     border-bottom-color: transparent;
+}
+#newsletter-config-modal #cron-widget select.cron-select {
+    width: initial;
+    display: inline;
+}
+#newsletter-config-modal #cron-widget select.cron-select[name=cron-period] option[value=minute],
+#newsletter-config-modal #cron-widget select.cron-select[name=cron-period] option[value=hour] {
+    display: none;
 }
 .git-group input.form-control {
     width: 50%;

@@ -338,7 +338,7 @@ def get_agent_class(agent_id=None, config=None):
         agent_id = int(agent_id)
 
         if agent_id == 0:
-            return GROWL(config=config,)
+            return GROWL(config=config)
         elif agent_id == 1:
             return PROWL(config=config)
         elif agent_id == 2:
@@ -419,8 +419,8 @@ def get_notifiers(notifier_id=None, notify_action=None):
 
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
-                               % (', '.join(notify_actions), where), args=args)
-
+                       % (', '.join(notify_actions), where), args=args)
+    
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
@@ -431,9 +431,9 @@ def delete_notifier(notifier_id=None):
     db = database.MonitorDatabase()
 
     if str(notifier_id).isdigit():
-        logger.debug(u"Tautulli Notifiers :: Deleting notifier_id %s from the database." % notifier_id)
-        result = db.action('DELETE FROM notifiers WHERE id = ?',
-                                   args=[notifier_id])
+        logger.debug(u"Tautulli Notifiers :: Deleting notifier_id %s from the database."
+                     % notifier_id)
+        result = db.action('DELETE FROM notifiers WHERE id = ?', args=[notifier_id])
         return True
     else:
         return False
@@ -443,12 +443,13 @@ def get_notifier_config(notifier_id=None):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
-        logger.error(u"Tautulli Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s." % notifier_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s."
+                     % notifier_id)
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM notifiers WHERE id = ?',
-                                      args=[notifier_id])
+    result = db.select_single('SELECT * FROM notifiers WHERE id = ?', args=[notifier_id])
+
     if not result:
         return None
 
@@ -490,13 +491,15 @@ def add_notifier_config(agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Notifiers :: Unable to add new notifier: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to add new notifier: invalid agent_id %s."
+                     % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s."
+                     % agent_id)
         return False
 
     keys = {'id': None}
@@ -521,7 +524,8 @@ def add_notifier_config(agent_id=None, **kwargs):
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         notifier_id = db.last_insert_id()
-        logger.info(u"Tautulli Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        logger.info(u"Tautulli Notifiers :: Added new notification agent: %s (notifier_id %s)."
+                    % (agent['label'], notifier_id))
         blacklist_logger()
         return notifier_id
     except Exception as e:
@@ -533,13 +537,15 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Notifiers :: Unable to set exisiting notifier: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to set exisiting notifier: invalid agent_id %s."
+                     % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s." % agent_id)
+        logger.error(u"Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s."
+                     % agent_id)
         return False
 
     notify_actions = get_notify_actions()
@@ -571,7 +577,8 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     db = database.MonitorDatabase()
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
-        logger.info(u"Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        logger.info(u"Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)."
+                    % (agent['label'], notifier_id))
         blacklist_logger()
 
         if agent['name'] == 'browser':
@@ -743,6 +750,7 @@ class Notifier(object):
     _DEFAULT_CONFIG = {}
 
     def __init__(self, config=None):
+        self.config = {}
         self.set_config(config)
 
     def set_config(self, config=None):

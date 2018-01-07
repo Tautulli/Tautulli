@@ -966,3 +966,11 @@ def get_plexpy_url(hostname=None):
         root = ''
 
     return scheme + '://' + hostname + port + root
+
+def momentjs_to_arrow(format, duration=False):
+    invalid_formats = ['Mo', 'DDDo', 'do']
+    if duration:
+        invalid_formats += ['A', 'a']
+    for f in invalid_formats:
+        format = format.replace(f, '')
+    return format

@@ -448,9 +448,9 @@ def set_notify_success(notification_id):
 
 def build_media_notify_params(notify_action=None, session=None, timeline=None, manual_trigger=False, **kwargs):
     # Get time formats
-    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
-    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
-    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('a','').replace('A','')
+    date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
+    time_format = helpers.momentjs_to_arrow(plexpy.CONFIG.TIME_FORMAT)
+    duration_format = helpers.momentjs_to_arrow(plexpy.CONFIG.TIME_FORMAT, duration=True)
 
     # Get metadata for the item
     if session:

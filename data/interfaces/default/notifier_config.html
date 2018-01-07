@@ -7,8 +7,6 @@
     sorted(user_emails, key=lambda u: u['user'])
 %>
 % if notifier:
-<link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
-<link href="${http_root}css/selectize.min.css" rel="stylesheet" />
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -167,7 +165,7 @@
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
                             </p>
                             <div id="condition-widget"></div>
-                            <input type="hidden" name="custom_conditions" id="custom_conditions" />
+                            <input type="hidden" id="custom_conditions" name="custom_conditions" />
 
                             <div class="form-group">
                                 <label for="custom_conditions_logic">Condition Logic</label>
@@ -425,7 +423,7 @@
     $('#duplicate-notifier-item').click(function() {
         var msg = 'Are you sure you want to duplicate this <strong>${notifier["agent_label"]}</strong> notification agent?';
         var url = 'add_notifier_config';
-        confirmAjaxCall(url, msg, { agent_id: "${notifier['agent_id']}" }, null, duplicateCallback);
+        confirmAjaxCall(url, msg, { agent_id: '${notifier["agent_id"]}' }, null, duplicateCallback);
     });
 
     $('#save-notifier-item').click(function () {
@@ -767,10 +765,10 @@
                 async: true,
                 complete: function (xhr, status) {
                     if (xhr.responseText.indexOf('sent') > -1) {
-                        msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                        var msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
                         showMsg(msg, false, true, 2000);
                     } else {
-                        msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
+                        var msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
                         showMsg(msg, false, true, 2000, true);
                     }
                 }

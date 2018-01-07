@@ -1,0 +1,978 @@
+﻿% if recently_added:
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Tautulli ${title} Newsletter</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400" rel="stylesheet">
+    <style>
+        /* -------------------------------------
+            GLOBAL RESETS
+        ------------------------------------- */
+        img {
+            border: none;
+            -ms-interpolation-mode: bicubic;
+            max-width: 100%;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        table {
+            border-collapse: separate;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            width: 100%;
+        }
+
+        table td {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            vertical-align: top;
+        }
+
+        /* -------------------------------------
+            BODY & CONTAINER
+        ------------------------------------- */
+
+        .body {
+            width: 100%;
+        }
+
+        /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
+        .container {
+            display: block;
+            margin: 0 auto !important;
+            /* makes it centered */
+            max-width: 1046px;
+            padding: 10px;
+            width: 1046px;
+        }
+
+        /* This should also be a block element, so that it will fill 100% of the .container */
+        .content {
+            box-sizing: border-box;
+            display: block;
+            margin: 0 auto;
+            max-width: 1046px;
+            padding: 10px;
+        }
+
+        /* -------------------------------------
+            HEADER, FOOTER, MAIN
+        ------------------------------------- */
+        .main {
+            background: #282A2D;
+            border-radius: 3px;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .wrapper {
+            box-sizing: border-box;
+            padding: 10px 5px;
+        }
+
+        .content-block {
+            padding-bottom: 10px;
+            padding-top: 10px;
+        }
+
+        .footer {
+            clear: both;
+            margin-top: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer td,
+        .footer p,
+        .footer span,
+        .footer a {
+            color: #282A2D;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* -------------------------------------
+            TYPOGRAPHY
+        ------------------------------------- */
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: #ffffff;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 400;
+            margin: 0;
+            margin-bottom: 30px;
+        }
+
+        p,
+        ul,
+        ol {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            margin: 0;
+            margin-bottom: 15px;
+        }
+
+        p li,
+        ul li,
+        ol li {
+            list-style-position: inside;
+            margin-left: 5px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        /* -------------------------------------
+            BUTTONS
+        ------------------------------------- */
+        .btn {
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .btn > tbody > tr > td {
+            padding-bottom: 15px;
+        }
+
+        .btn table {
+            width: auto;
+        }
+
+        .btn table td {
+            background-color: #ffffff;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .btn a {
+            background-color: #ffffff;
+            border: solid 1px #3498db;
+            border-radius: 5px;
+            box-sizing: border-box;
+            color: #3498db;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0;
+            padding: 12px 25px;
+            text-decoration: none;
+            text-transform: capitalize;
+        }
+
+        .btn-primary table td {
+            background-color: #3498db;
+        }
+
+        .btn-primary a {
+            background-color: #3498db;
+            border-color: #3498db;
+            color: #ffffff;
+        }
+
+        /* -------------------------------------
+            OTHER STYLES THAT MIGHT BE USEFUL
+        ------------------------------------- */
+        .last {
+            margin-bottom: 0;
+        }
+
+        .first {
+            margin-top: 0;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        .align-left {
+            text-align: left;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .mt0 {
+            margin-top: 0;
+        }
+
+        .mb0 {
+            margin-bottom: 0;
+        }
+
+        .preheader {
+            color: transparent;
+            display: none;
+            height: 0;
+            max-height: 0;
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            mso-hide: all;
+            visibility: hidden;
+            width: 0;
+        }
+
+        .powered-by a {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            border-bottom: 1px solid #f6f6f6;
+            margin: 20px 0;
+        }
+
+        /* -------------------------------------
+            RESPONSIVE AND MOBILE FRIENDLY STYLES
+        ------------------------------------- */
+        @media only screen and (max-width: 620px) {
+            table[class=body] h1 {
+                font-size: 28px !important;
+                margin-bottom: 10px !important;
+            }
+            table[class=body] .dates {
+                font-size: 16px !important;
+            }
+            table[class=body] h2 {
+                font-size: 20px !important;
+            }
+            table[class=body] h2 .count-units {
+                font-size: 16px !important;
+            }
+            table[class=body] h2 .sub-header,
+            table[class=body] h2 .sub-header-count {
+                float: left !important;
+                width: 100% !important;
+            }
+
+            table[class=body] p,
+            table[class=body] ul,
+            table[class=body] ol,
+            table[class=body] td,
+            table[class=body] a {
+                font-size: 16px !important;
+            }
+
+            table[class=body] .wrapper,
+            table[class=body] .article {
+                padding: 10px !important;
+            }
+
+            table[class=body] .content {
+                padding: 0 !important;
+            }
+
+            table[class=body] .container {
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
+            table[class=body] .main {
+                border-left-width: 0 !important;
+                border-radius: 0 !important;
+                border-right-width: 0 !important;
+            }
+
+            table[class=body] .btn table {
+                width: 100% !important;
+            }
+
+            table[class=body] .btn a {
+                width: 100% !important;
+            }
+
+            table[class=body] .img-responsive {
+                height: auto !important;
+                max-width: 100% !important;
+                width: auto !important;
+            }
+        }
+
+        /* -------------------------------------
+            PRESERVE THESE STYLES IN THE HEAD
+        ------------------------------------- */
+        @media all {
+            .ExternalClass {
+                width: 100%;
+            }
+
+            .ExternalClass,
+            .ExternalClass p,
+            .ExternalClass span,
+            .ExternalClass font,
+            .ExternalClass td,
+            .ExternalClass div {
+                line-height: 100%;
+            }
+
+            .apple-link a {
+                color: inherit !important;
+                font-family: inherit !important;
+                font-size: inherit !important;
+                font-weight: inherit !important;
+                line-height: inherit !important;
+                text-decoration: none !important;
+            }
+
+            .btn-primary table td:hover {
+                background-color: #34495e !important;
+            }
+
+            .btn-primary a:hover {
+                background-color: #34495e !important;
+                border-color: #34495e !important;
+            }
+        }
+
+        /* -------------------------------------
+            HEADER
+        ------------------------------------- */
+        .header {
+            background: url(images/logo-tautulli-newsletter.png) center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 100px;
+        }
+        .dates {
+            font-size: 20px;
+            text-align: center;
+        }
+        /* -------------------------------------
+            MEDIA SECTIONS
+        ------------------------------------- */
+        h2 {
+            font-size: 30px;
+            font-weight: 300;
+            margin: 20px 10px 0 10px;
+            text-align: center;
+        }
+        h2:before {
+            border-top: 1px solid #E5A00D;
+            content: "";
+            display: block;
+            top: -20px;
+            position: relative;
+            width: 200px;
+            margin: 0 auto;
+        }
+
+        h3 {
+            font-size: 25px;
+            font-weight: 300;
+            margin: 0 0 10px 0;
+        }
+
+        img.section_type {
+            height: 30px;
+            vertical-align: middle;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .count {
+            color: #E9A049;
+            font-weight: bold;
+        }
+        .count-units {
+            color: #aaaaaa;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+        .section-top-info-container .top-title {
+            font-size: 17px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .section-top-info-container .star-rating {
+            display: inline-block;
+            position: relative;
+            margin: 0 auto;
+            font-size: 20px;
+            width: 84px;
+            height: 25px;
+        }
+        .section-top-info-container .star-rating .star-rating-empty {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #999999;
+        }
+        .section-top-info-container .star-rating .star-rating-full {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #E9A049;
+            overflow: hidden;
+        }
+
+        /* -------------------------------------
+            MEDIA CARDS
+        ------------------------------------- */
+        .card-instance {
+            float: left;
+            position: relative;
+            height: 235px;
+            min-width: 350px;
+            max-width: 500px;
+            margin: 3px;
+        }
+        .card-instance-album {
+            float: left;
+            position: relative;
+            height: 160px;
+            min-width: 350px;
+            max-width: 500px;
+            margin: 3px;
+        }
+        .card-container {
+            height: 235px;
+            width: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .card-container-album {
+            height: 160px;
+            width: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .card-background-overlay {
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-wrap: nowrap;
+            flex-wrap: nowrap;
+            padding: 5px;
+            overflow: hidden;
+            -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+        }
+        .card-background {
+            background-color: #282828;
+            background-position: center;
+            background-size: cover;
+            height: 235px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: 0.40;
+            -webkit-filter: blur(3px);
+            filter: blur(3px);
+            z-index: 0;
+        }
+        .card-background-album {
+            background-color: #282828;
+            background-position: center;
+            background-size: cover;
+            height: 160px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: 0.40;
+            -webkit-filter: blur(3px);
+            filter: blur(3px);
+            z-index: 0;
+        }
+        .card-poster-container {
+            background-color: #282828;
+            height: 225px;
+            width: 150px;
+            margin-right: 5px;
+            -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            -moz-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            -webkit-flex-shrink: 0;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        .card-poster {
+            background-position: center;
+            background-size: cover;
+            height: 225px;
+            width: 150px;
+            z-index: 2;
+        }
+        .card-cover-container {
+            background-color: #282828;
+            height: 150px;
+            width: 150px;
+            margin-right: 5px;
+            -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            -moz-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+            -webkit-flex-shrink: 0;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        .card-cover {
+            background-position: center;
+            background-size: cover;
+            height: 150px;
+            width: 150px;
+            z-index: 2;
+        }
+        .card-info-container {
+            height: 225px;
+            width: 385px;
+            overflow: hidden;
+            -webkit-flex-grow: 1;
+            flex-grow: 1;
+            z-index: 1;
+        }
+        .card-info-container-album {
+            height: 150px;
+            width: 385px;
+            overflow: hidden;
+            -webkit-flex-grow: 1;
+            flex-grow: 1;
+            z-index: 1;
+        }
+        .card-info {
+            height: 225px;
+            width: 100%;
+            font-size: 12px;
+            position: relative;
+        }
+        .card-info-album {
+            height: 150px;
+            width: 100%;
+            font-size: 12px;
+            position: relative;
+        }
+        .card-info-title {
+            padding: 5px;
+            line-height: 20px;
+            border-bottom: 1px solid rgba(255,255,255,.1);
+        }
+        .card-info-title h4 {
+            margin: 0;
+            font-size: 15px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .card-info-title h4 a {
+            text-decoration: none;
+            color: #ffffff;
+        }
+        .card-info-title h4 a:hover {
+            text-decoration: none;
+            color: #E9A049;
+        }
+        .card-info-tagline {
+            padding: 5px;
+            font-style: italic;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .card-info-episode {
+            padding: 5px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .card-info-summary {
+            padding: 5px;
+            overflow: hidden;
+            max-height: 130px;
+        }
+        .card-info-summary-episode {
+            padding: 5px;
+            overflow: hidden;
+            max-height: 95px;
+        }
+        .card-info-summary-album {
+            padding: 5px;
+            overflow: hidden;
+            max-height: 55px;
+        }
+        .card-info-footer {
+            align-items: baseline;
+            position: absolute;
+            bottom: 0;
+            padding: 5px;
+            width: 325px;
+        }
+        .card-info-footer span.star-rating {
+            margin-right: 0;
+            height: 19px;
+            width: 58px;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 14px;
+        }
+        .card-info-footer span.star-rating .star-rating-empty {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #aaaaaa;
+        }
+        .card-info-footer span.star-rating .star-rating-full {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #E9A049;
+            overflow: hidden;
+        }
+        a:hover .card-poster,
+        a:hover .card-cover {
+            -webkit-box-shadow: inset 0 0 0 2px #e9a049;
+            -moz-box-shadow: inset 0 0 0 2px #e9a049;
+            box-shadow: inset 0 0 0 2px #e9a049;
+        }
+        .badge {
+            display: inline-block;
+            min-width: 10px;
+            padding: 3px 7px;
+            font-size: 11px;
+            font-style: normal;
+            line-height: 1;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            background-color: rgba(0, 0, 0, .15);
+            border-radius: 2px;
+        }
+
+    </style>
+</head>
+<body class="">
+<table border="0" cellpadding="0" cellspacing="0" class="body">
+    <tr>
+        <td class="container">
+            <div class="content">
+
+                <!-- START CENTERED WHITE CONTAINER -->
+                <span class="preheader">This is preheader text. Some clients will show this text as a preview.</span>
+
+                <table class="main">
+
+                    <!-- START MAIN CONTENT AREA -->
+                    <tr>
+                        <td class="wrapper newsletter-header">
+                            <div class="header"></div>
+                            <div class="dates">${start_date} - ${end_date}</div>
+                        </td>
+                    </tr>
+                    % if recently_added.get('movie'):
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <h2>
+                                            <span class="sub-header">
+                                                <img src="images/libraries/movie.svg" class="section_type"/> Recently Added Movies:
+                                            </span>
+                                            <span class="sub-header-count">
+                                                <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
+                                            </span>
+                                        </h2>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        % for movie in recently_added['movie']:
+                                        <div class="card-instance" style="${'clear: both; float: none; margin: 3px auto; top: 3px;' if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0 else ''}">
+                                            <div class="card-container">
+                                                <div class="card-background-overlay">
+                                                    <div class="card-background" style="background-image: url(pms_image_proxy?img=${movie['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
+                                                    <div class="card-poster-container hidden-xs">
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}">
+                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${movie['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        </a>
+                                                    </div>
+                                                    <div class="card-info-container">
+                                                        <div class="card-info">
+                                                            <div class="card-info-title">
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}">${movie['title']}</a></h4>
+                                                            </div>
+                                                            % if movie['tagline']:
+                                                            <div class="card-info-tagline">
+                                                                ${movie['tagline']}
+                                                            </div>
+                                                            % endif
+                                                            <div class="card-info-summary">
+                                                                ${movie['summary'][:425] + (movie['summary'][425:] and '...')}
+                                                            </div>
+                                                            <div class="card-info-footer">
+                                                                % if movie['year']:
+                                                                <span class="badge">${movie['year']}</span>
+                                                                % endif
+                                                                % if movie['content_rating']:
+                                                                <span class="badge">${movie['content_rating']}</span>
+                                                                % endif
+                                                                % if movie['duration']:
+                                                                <span class="badge">${int(int(movie['duration'])/60000)} mins</span>
+                                                                % endif
+                                                                % if movie['rating']:
+                                                                <span class="star-rating">
+                                                                    <span class="star-rating-empty">&#9734;&#9734;&#9734;&#9734;&#9734;</span>
+                                                                    <span class="star-rating-full" style="width: ${float(movie['rating'])/0.1}%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                                                                </span>
+                                                                % endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        % endfor
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    % if recently_added.get('show'):
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <h2>
+                                            <span class="sub-header">
+                                                <img src="images/libraries/show.svg" class="section_type"/> Recently Added TV Shows:
+                                            </span>
+                                            <span class="sub-header-count">
+                                                <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
+                                                <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
+                                                <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total > 1 else ''}</span>
+                                            </span>
+                                        </h2>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        % for show in recently_added['show']:
+                                        <div class="card-instance" style="${'clear: both; float: none; margin: 3px auto; top: 3px;' if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0 else ''}">
+                                            <div class="card-container">
+                                                <div class="card-background-overlay">
+                                                    <div class="card-background" style="background-image: url(pms_image_proxy?img=${show['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
+                                                    <div class="card-poster-container hidden-xs">
+                                                        <%
+                                                            if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
+                                                                link_rating_key = show['season'][0]['episode'][0]['rating_key']
+                                                                link_title = show['title'] + " - " + show['season'][0]['episode'][0]['title']
+                                                            else:
+                                                                link_rating_key = show['rating_key']
+                                                                link_title = show['title']
+                                                        %>
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}">
+                                                            <div class="card-poster" style="background-image: url(pms_image_proxy?img=${show['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        </a>
+                                                    </div>
+                                                    <div class="card-info-container">
+                                                        <div class="card-info">
+                                                            <div class="card-info-title">
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}">${show['title']}</a></h4>
+                                                            </div>
+                                                            <div class="card-info-tagline">
+                                                                <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
+                                                                ${total_show_episodes} new episode${'s' if total_show_episodes > 1 else ''}
+                                                            </div>
+                                                            <div class="card-info-episode">
+                                                                % for season in show['season']:
+                                                                    Season ${season['media_index']} -
+                                                                    % if season['episode_count'] == 1:
+                                                                        Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
+                                                                    % else:
+                                                                        Episodes ${season['episode_range']}
+                                                                    % endif
+                                                                    <br>
+                                                                % endfor
+                                                            </div>
+                                                            <div class="card-info-summary-episode">
+                                                                % if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
+                                                                ${show['season'][0]['episode'][0]['summary'][:330] + (show['season'][0]['episode'][0]['summary'][330:] and '...')}
+                                                                % else:
+                                                                <% length = max(0, 300 - 50 * (show['season_count'] - 1)) %>
+                                                                    % if length:
+                                                                    ${show['summary'][:length] + (show['summary'][length:] and '...')}
+                                                                    % endif
+                                                                % endif
+                                                            </div>
+                                                            <div class="card-info-footer">
+                                                                % if show['studio']:
+                                                                <span class="badge">${show['studio']}</span>
+                                                                % endif
+                                                                % if show['year']:
+                                                                <span class="badge">${show['year']}</span>
+                                                                % endif
+                                                                % if show['content_rating']:
+                                                                <span class="badge">${show['content_rating']}</span>
+                                                                % endif
+                                                                % if show['duration']:
+                                                                <span class="badge">${int(int(show['duration'])/60000)} mins</span>
+                                                                % endif
+                                                                % if show['rating']:
+                                                                <span class="star-rating">
+                                                                    <span class="star-rating-empty">&#9734;&#9734;&#9734;&#9734;&#9734;</span>
+                                                                    <span class="star-rating-full" style="width: ${float(show['rating'])/0.1}%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                                                                </span>
+                                                                % endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        % endfor
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    % if recently_added.get('artist'):
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <h2>
+                                            <span class="sub-header">
+                                                <img src="images/libraries/artist.svg" class="section_type"/> Recently Added Music:
+                                            </span>
+                                            <span class="sub-header-count">
+                                                <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
+                                                <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
+                                                <span class="count">${total_albums}</span> <span class="count-units">album${'s' if total > 1 else ''}</span>
+                                            </span>
+                                        </h2>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="wrapper">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <% album_count = 0 %>
+                                        % for artist in recently_added['artist']:
+                                        % for album in artist['album']:
+                                        <% album_count += 1 %>
+                                        <div class="card-instance-album" style="${'clear: both; float: none; margin: 3px auto; top: 3px;' if album_count == total_albums and album_count % 2 == 1 else ''}">
+                                            <div class="card-container-album">
+                                                <div class="card-background-overlay">
+                                                    <div class="card-background-album" style="background-image: url(pms_image_proxy?img=${album['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
+                                                    <div class="card-cover-container hidden-xs">
+                                                        <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}">
+                                                            <div class="card-cover" style="background-image: url(pms_image_proxy?img=${album['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                                                        </a>
+                                                    </div>
+                                                    <div class="card-info-container-album">
+                                                        <div class="card-info-album">
+                                                            <div class="card-info-title">
+                                                                <h4><a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}">${album['title']}</a></h4>
+                                                            </div>
+                                                            <div class="card-info-tagline">
+                                                                ${artist['title']} - ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}
+                                                            </div>
+                                                            <% album['summary'] = """Adventure Time follows two best friends: Finn (a 12-year old boy) and Jake (a wise 28-year-old dog with magical powers), and the surreal adventures undertaken by the duo as they traverse the mystical Land of Ooo. A world built for adventure, Ooo is filled to the brim with various landscapes for the """ %>
+                                                            <div class="card-info-summary-album">
+                                                                ${album['summary'][:155] + (album['summary'][155:] and '...')}
+                                                            </div>
+                                                            <div class="card-info-footer">
+                                                                % if album['year']:
+                                                                <span class="badge">${album['year']}</span>
+                                                                % endif
+                                                                % if album['genres']:
+                                                                % for genre in album['genres'][:2]:
+                                                                <span class="badge">${genre}</span>
+                                                                % endfor
+                                                                % endif
+                                                                % if album['rating']:
+                                                                <span class="star-rating">
+                                                                    <span class="star-rating-empty">&#9734;&#9734;&#9734;&#9734;&#9734;</span>
+                                                                    <span class="star-rating-full" style="width: ${float(album['rating'])/0.1}%">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                                                                </span>
+                                                                % endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        % endfor
+                                        % endfor
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+
+                    <!-- END MAIN CONTENT AREA -->
+                </table>
+
+                <!-- START FOOTER -->
+                <div class="footer">
+                    <table border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="content-block powered-by">
+                                Newsletter generated by <a href="http://tautulli.com/">Tautulli</a>.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <!-- END FOOTER -->
+
+                <!-- END CENTERED WHITE CONTAINER -->
+            </div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+% endif

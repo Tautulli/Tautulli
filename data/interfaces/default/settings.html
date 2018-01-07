@@ -4,10 +4,11 @@
     import sys
 
     import plexpy
-    from plexpy import common, notifiers
+    from plexpy import common, notifiers, newsletters
     from plexpy.helpers import anon_url, checked
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'])
+    available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -51,6 +52,7 @@
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
@@ -977,6 +979,23 @@
 
                     </div>
 
+                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
+
+                        <div class="padded-header">
+                            <h3>Newsletter Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
+                        </p>
+                        <br />
+                        <div id="plexpy-newsletters-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-import_backups">
 
                         <div class="padded-header">
@@ -1246,7 +1265,36 @@
         </div>
     </div>
 </div>
+<div id="add-newsletter-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-newsletter-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add a Newsletter Agent</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ul class="stacked-configs list-unstyled">
+                                % for agent in available_newsletter_agents:
+                                <li class="new-newsletter-agent" data-id="${agent['id']}">
+                                    <span>${agent['label']}</span>
+                                </li>
+                                % endfor
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
 <div id="notifier-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notifier-config-modal"></div>
+<div id="newsletter-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="newsletter-config-modal"></div>
 <div id="notify-text-sub-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -1536,6 +1584,29 @@
         });
     }
 
+    function getNewslettersTable() {
+        $.ajax({
+            url: 'get_newsletters_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-newsletters-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadNewsletterConfig(newsletter_id) {
+        $.ajax({
+            url: 'get_newsletter_config_modal',
+            data: { newsletter_id: newsletter_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#newsletter-config-modal").html(xhr.responseText).modal('show');
+            }
+        });
+    }
+
     function getMobileDevicesTable() {
         $.ajax({
             url: 'get_mobile_devices_table',
@@ -1608,6 +1679,7 @@ $(document).ready(function() {
         getConfigurationTable();
         getSchedulerTable();
         getNotifiersTable();
+        getNewslettersTable();
         getMobileDevicesTable();
         loadUpdateDistros();
         settingsChanged = false;
@@ -1691,6 +1763,7 @@ $(document).ready(function() {
     getConfigurationTable();
     getSchedulerTable();
     getNotifiersTable();
+    getNewslettersTable();
     getMobileDevicesTable();
 
     $('#changelog-modal-link').on('click', function (e) {
@@ -2300,6 +2373,28 @@ $(document).ready(function() {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
                 }
                 getNotifiersTable();
+            }
+        });
+    });
+
+    // Add a new newsletter agent
+    $('.new-newsletter-agent').click(function () {
+        $.ajax({
+            url: 'add_newsletter_config',
+            data: { agent_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                $('#add-newsletter-modal').modal('hide');
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    loadNewsletterConfig(result.newsletter_id);
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
+                getNewslettersTable();
             }
         });
     });

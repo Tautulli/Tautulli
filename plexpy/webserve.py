@@ -39,6 +39,7 @@ import http_handler
 import libraries
 import log_reader
 import logger
+import newsletters
 import mobile_app
 import notification_handler
 import notifiers
@@ -5285,3 +5286,238 @@ class WebInterface(object):
     @requireAuth()
     def get_plexpy_url(self, **kwargs):
         return helpers.get_plexpy_url()
+
+    @cherrypy.expose
+    @requireAuth()
+    def newsletter(self, **kwargs):
+        news_letter = newsletters.Newsletter()
+
+        config = {
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
+        }
+
+        return serve_template(templatename="newsletter_template.html",
+                              title="Newsletter",
+                              recently_added=news_letter.recently_added,
+                              start_date=news_letter.start_date,
+                              end_date=news_letter.end_date,
+                              config=config)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    def newsletter_raw(self, **kwargs):
+        news_letter = newsletters.Newsletter()
+
+        if news_letter.recently_added:
+            return news_letter.recently_added
+        else:
+            return None
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_newsletters(self, **kwargs):
+        """ Get a list of configured newsletters.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"id": 1,
+                      "agent_id": 13,
+                      "agent_name": "recently_added",
+                      "agent_label": "Recently Added",
+                      "friendly_name": "",
+                      "cron": "0 0 * * 1",
+                      "active": 1
+                      }
+                     ]
+            ```
+        """
+        result = newsletters.get_newsletters()
+        return result
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_newsletters_table(self, **kwargs):
+        result = newsletters.get_newsletters()
+        return serve_template(templatename="newsletters_table.html", newsletters_list=result)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_newsletter(self, newsletter_id=None, **kwargs):
+        """ Remove a newsletter from the database.
+
+            ```
+            Required parameters:
+                newsletter_id (int):        The newsletter to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = newsletters.delete_newsletter(newsletter_id=newsletter_id)
+        if result:
+            return {'result': 'success', 'message': 'Newsletter deleted successfully.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete newsletter.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_newsletter_config(self, newsletter_id=None, **kwargs):
+        """ Get the configuration for an existing notification agent.
+
+            ```
+            Required parameters:
+                newsletter_id (int):        The newsletter config to retrieve
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"id": 1,
+                     "agent_id": 13,
+                     "agent_name": "recently_added",
+                     "agent_label": "Recently Added",
+                     "friendly_name": "",
+                     "cron": "0 0 * * 1",
+                     "active": 1
+                     "config": {"last_days": 7,
+                                "incl_movies": 1,
+                                "incl_shows": 1,
+                                "incl_artists": 1,
+                                },
+                     "config_options": [{...}, ...]
+                     }
+            ```
+        """
+        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+        return result
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_newsletter_config_modal(self, newsletter_id=None, **kwargs):
+        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+        return serve_template(templatename="newsletter_config.html", newsletter=result)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def add_newsletter_config(self, agent_id=None, **kwargs):
+        """ Add a new notification agent.
+
+            ```
+            Required parameters:
+                agent_id (int):           The newsletter type to add
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = newsletters.add_newsletter_config(agent_id=agent_id, **kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Added newsletter.', 'newsletter_id': result}
+        else:
+            return {'result': 'error', 'message': 'Failed to add newsletter.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def set_newsletter_config(self, newsletter_id=None, agent_id=None, **kwargs):
+        """ Configure an exisitng notificaiton agent.
+
+            ```
+            Required parameters:
+                newsletter_id (int):            The newsletter config to update
+                agent_id (int):       The newsletter type of the newsletter
+
+            Optional parameters:
+                Pass all the config options for the agent with the agent prefix:
+                    e.g. For Recently Added: recently_added_last_days
+                                             recently_added_incl_movies
+                                             recently_added_incl_shows
+                                             recently_added_incl_artists
+
+            Returns:
+                None
+            ```
+        """
+        result = newsletters.set_newsletter_config(newsletter_id=newsletter_id,
+                                                   agent_id=agent_id,
+                                                   **kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Saved newsletter.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to save newsletter.'}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi("notify")
+    def send_newsletter(self, newsletter_id=None, test=False, **kwargs):
+        """ Send a newsletter using Tautulli.
+
+            ```
+            Required parameters:
+                newsletter_id (int):      The ID number of the newsletter
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
+        test = 'test ' if test else ''
+
+        if newsletter_id:
+            newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+
+            if newsletter:
+                logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_name']))
+                if newsletter_handler.send(newsletter_id=newsletter_id,
+                                           **kwargs):
+                    return "Newsletter sent."
+                else:
+                    return "Newsletter failed."
+            else:
+                logger.debug(u"Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
+                return "Invalid newsletter id %s." % newsletter_id
+        else:
+            logger.debug(u"Unable to send %snotification, no newsletter_id received." % test)
+            return "No newsletter id received."
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def preview_newsletter(self, newsletter_id=None, **kwargs):
+        if newsletter_id:
+            newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+            newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'], config=newsletter['config'])
+            if newsletter_agent:
+                return newsletter_agent.preview()
+
+        return
