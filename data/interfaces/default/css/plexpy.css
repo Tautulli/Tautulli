@@ -3722,7 +3722,11 @@ a:hover .overlay-refresh-image:hover {
 .no-image {
     background-image: none !important;
 }
-
+#info-modal .stream-info-current {
+    color: #aaa;
+    text-align: center;
+    padding-bottom: 10px;
+}
 #info-modal .stream-info-item {
     display: flex;
     flex-direction: row;

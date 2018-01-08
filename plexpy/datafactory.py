@@ -951,7 +951,8 @@ class DataFactory(object):
                              'transcode_hw_encoding': item['transcode_hw_encoding'],
                              'media_type': item['media_type'],
                              'title': item['title'],
-                             'grandparent_title': item['grandparent_title']
+                             'grandparent_title': item['grandparent_title'],
+                             'current_session': 1 if session_key else 0
                              }
 
         stream_output = {k: v or '' for k, v in stream_output.iteritems()}

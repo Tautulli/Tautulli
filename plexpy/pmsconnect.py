@@ -542,7 +542,7 @@ class PmsConnect(object):
 
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
-                # Return cached metadata if less than 30 minutes ago
+                # Return cached metadata if less than METADATA_CACHE_SECONDS ago
                 if int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
@@ -1155,9 +1155,9 @@ class PmsConnect(object):
             metadata['media_info'] = medias
 
         if metadata:
-            metadata['_cache_time'] = int(time.time())
-
             if cache_key:
+                metadata['_cache_time'] = int(time.time())
+
                 out_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
                 try:
                     with open(out_file_path, 'w') as outFile:

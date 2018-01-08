@@ -54,6 +54,11 @@ DOCUMENTATION :: END
             </h4>
         </div>
         <div class="modal-body">
+            % if data['current_session']:
+            <div class="col-sm-12 text-muted stream-info-current">
+                <i class="fa fa-exclamation-circle"></i> Current session. Updated stream details below may be delayed.
+            </div>
+            % endif
             <table class="stream-info" style="margin-top: 0;">
                 <thead>
                     <tr>
