@@ -190,7 +190,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
                          for k in kwargs.keys() if k.startswith(config_prefix)}
 
     email_notifier = kwargs.pop('email_notifier', 0)
-    email_config = {k[len(config_prefix):]: kwargs.pop(k)
+    email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in kwargs.keys() if k.startswith(email_config_prefix)}
 
     agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config)
