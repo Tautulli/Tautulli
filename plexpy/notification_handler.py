@@ -947,7 +947,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         try:
             script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in subject.split()]
         except LookupError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
@@ -958,7 +958,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     try:
         subject = custom_formatter.format(unicode(subject), **parameters)
     except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
     except Exception as e:
         logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
@@ -967,7 +967,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     try:
         body = custom_formatter.format(unicode(body), **parameters)
     except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
     except Exception as e:
         logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
