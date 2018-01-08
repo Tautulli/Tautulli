@@ -32,6 +32,7 @@ import logger
 import notification_handler
 import pmsconnect
 import request
+from notifiers import get_notifiers, EMAIL
 
 
 AGENT_IDS = {
@@ -51,14 +52,14 @@ def available_newsletter_agents():
     return agents
 
 
-def get_agent_class(agent_id=None, config=None):
+def get_agent_class(agent_id=None, config=None, email_config=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
         if agent_id == 0:
-            return RecentlyAdded(config=config)
+            return RecentlyAdded(config=config, email_config=email_config)
         else:
-            return Newsletter(config=config)
+            return Newsletter(config=config, email_config=email_config)
     else:
         return None
 
@@ -113,14 +114,29 @@ def get_newsletter_config(newsletter_id=None):
 
     try:
         config = json.loads(result.pop('newsletter_config') or '{}')
-        newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config)
+        email_config = json.loads(result.pop('email_config') or '{}')
+        newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config)
         newsletter_config = newsletter_agent.return_config_options()
+        newsletter_email_config = newsletter_agent.return_email_config_options()
     except Exception as e:
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
+    notifiers = []
+    for n in get_notifiers():
+        if n['agent_name'] == 'email':
+            notifiers.append({
+                'id': n['id'],
+                'agent_label': n['agent_label'],
+                'friendly_name': n['friendly_name']
+            })
+    sorted(notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
+    email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + notifiers
+
     result['config'] = config
     result['config_options'] = newsletter_config
+    result['email_config_options'] = newsletter_email_config
+    result['email_notifiers'] = email_notifiers
 
     return result
 
@@ -140,12 +156,15 @@ def add_newsletter_config(agent_id=None, **kwargs):
                      % agent_id)
         return False
 
+    agent_class = get_agent_class(agent_id=agent['id'])
+
     keys = {'id': None}
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': '',
-              'newsletter_config': json.dumps(get_agent_class(agent_id=agent['id']).config)
+              'newsletter_config': json.dumps(agent_class.config),
+              'email_config': json.dumps(agent_class.email_config)
               }
 
     db = database.MonitorDatabase()
@@ -176,17 +195,25 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         return False
 
     config_prefix = agent['name'] + '_'
+    email_config_prefix = 'email_'
 
     newsletter_config = {k[len(config_prefix):]: kwargs.pop(k)
                          for k in kwargs.keys() if k.startswith(config_prefix)}
-    newsletter_config = get_agent_class(agent['id']).set_config(config=newsletter_config)
+
+    email_notifier = kwargs.pop('email_notifier', 0)
+    email_config = {k[len(config_prefix):]: kwargs.pop(k)
+                    for k in kwargs.keys() if k.startswith(email_config_prefix)}
+
+    agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config)
 
     keys = {'id': newsletter_id}
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': kwargs.get('friendly_name', ''),
-              'newsletter_config': json.dumps(newsletter_config),
+              'newsletter_config': json.dumps(agent_class.config),
+              'email_config': json.dumps(agent_class.email_config),
+              'email_notifier': email_notifier,
               'cron': kwargs.get('cron'),
               'active': kwargs.get('active')
               }
@@ -206,7 +233,8 @@ def send_newsletter(newsletter_id=None, newsletter_log_id=None, **kwargs):
     newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
     if newsletter_config:
         agent = get_agent_class(agent_id=newsletter_config['agent_id'],
-                                config=newsletter_config['config'])
+                                config=newsletter_config['config'],
+                                email_config=newsletter_config['email_config'])
         return agent.send(newsletter_log_id=newsletter_log_id, **kwargs)
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
@@ -228,21 +256,21 @@ def serve_template(templatename, **kwargs):
 class Newsletter(object):
     NAME = ''
     _DEFAULT_CONFIG = {}
+    _DEFAULT_EMAIL_CONFIG = EMAIL._DEFAULT_CONFIG
 
-    def __init__(self, config=None):
-        self.config = {}
-        self.set_config(config)
+    def __init__(self, config=None, email_config=None):
+        self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
+        self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
 
-    def set_config(self, config=None):
-        self.config = self._validate_config(config)
-        return self.config
+    def set_config(self, config=None, default=None):
+        return self._validate_config(config=config, default=default)
 
-    def _validate_config(self, config=None):
+    def _validate_config(self, config=None, default=None):
         if config is None:
-            return self._DEFAULT_CONFIG
+            return default
 
         new_config = {}
-        for k, v in self._DEFAULT_CONFIG.iteritems():
+        for k, v in default.iteritems():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             else:
@@ -282,6 +310,9 @@ class Newsletter(object):
         config_options = []
         return config_options
 
+    def return_email_config_options(self):
+        return EMAIL(self.email_config).return_config_options()
+
 
 class RecentlyAdded(Newsletter):
     """
@@ -295,8 +326,8 @@ class RecentlyAdded(Newsletter):
                        }
     _TEMPLATE = 'recently_added.html'
 
-    def __init__(self, config=None):
-        super(RecentlyAdded, self).__init__(config)
+    def __init__(self, config=None, email_config=None):
+        super(RecentlyAdded, self).__init__(config=config, email_config=email_config)
 
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 

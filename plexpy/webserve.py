@@ -5403,7 +5403,9 @@ class WebInterface(object):
                                 "incl_shows": 1,
                                 "incl_artists": 1,
                                 },
-                     "config_options": [{...}, ...]
+                     "config_options": [{...}, ...],
+                     "email_config_options": [{...}, ...],
+                     "email_notifier": 0
                      }
             ```
         """

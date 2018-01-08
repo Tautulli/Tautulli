@@ -502,6 +502,8 @@ def add_notifier_config(agent_id=None, **kwargs):
                      % agent_id)
         return False
 
+    agent_class = get_agent_class(agent_id=agent['id'])
+
     keys = {'id': None}
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
@@ -511,6 +513,7 @@ def add_notifier_config(agent_id=None, **kwargs):
               'custom_conditions': json.dumps(DEFAULT_CUSTOM_CONDITIONS),
               'custom_conditions_logic': ''
               }
+
     if agent['name'] == 'scripts':
         for a in available_notification_actions():
             values[a['name'] + '_subject'] = ''
@@ -559,7 +562,8 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
                  for k in kwargs.keys() if k.startswith(notify_actions) and k.endswith('_body')}
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in kwargs.keys() if k.startswith(config_prefix)}
-    notifier_config = get_agent_class(agent['id']).set_config(config=notifier_config)
+
+    agent_class = get_agent_class(agent_id=agent['id'], config=notifier_config)
 
     keys = {'id': notifier_id}
     values = {'agent_id': agent['id'],
@@ -750,19 +754,17 @@ class Notifier(object):
     _DEFAULT_CONFIG = {}
 
     def __init__(self, config=None):
-        self.config = {}
-        self.set_config(config)
+        self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
 
-    def set_config(self, config=None):
-        self.config = self._validate_config(config)
-        return self.config
+    def set_config(self, config=None, default=None):
+        return self._validate_config(config=config, default=default)
 
-    def _validate_config(self, config=None):
+    def _validate_config(self, config=None, default=None):
         if config is None:
-            return self._DEFAULT_CONFIG
+            return default
 
         new_config = {}
-        for k, v in self._DEFAULT_CONFIG.iteritems():
+        for k, v in default.iteritems():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             else:
@@ -2332,7 +2334,7 @@ class OSX(Notifier):
                        }
 
     def __init__(self, config=None):
-        self.set_config(config)
+        super(OSX, self).__init__(config=config)
 
         try:
             self.objc = __import__("objc")
@@ -2925,7 +2927,8 @@ class SCRIPTS(Notifier):
                        }
 
     def __init__(self, config=None):
-        self.set_config(config)
+        super(SCRIPTS, self).__init__(config=config)
+
         self.script_exts = {'.bat': '',
                             '.cmd': '',
                             '.exe': '',
