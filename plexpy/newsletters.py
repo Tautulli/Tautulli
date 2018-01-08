@@ -33,7 +33,7 @@ import logger
 import notification_handler
 import pmsconnect
 import request
-from notifiers import get_notifiers, EMAIL
+from notifiers import EMAIL
 
 
 AGENT_IDS = {
@@ -123,21 +123,9 @@ def get_newsletter_config(newsletter_id=None):
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
-    notifiers = []
-    for n in get_notifiers():
-        if n['agent_name'] == 'email':
-            notifiers.append({
-                'id': n['id'],
-                'agent_label': n['agent_label'],
-                'friendly_name': n['friendly_name']
-            })
-    sorted(notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
-    email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + notifiers
-
     result['config'] = config
     result['config_options'] = newsletter_config
     result['email_config_options'] = newsletter_email_config
-    result['email_notifiers'] = email_notifiers
 
     return result
 
@@ -321,12 +309,17 @@ class RecentlyAdded(Newsletter):
     """
     NAME = 'Recently Added'
     _DEFAULT_CONFIG = {'last_days': 7,
-                       'excl_libraries': ''
+                       'incl_libraries': None
                        }
     _TEMPLATE = 'recently_added.html'
 
     def __init__(self, config=None, email_config=None):
         super(RecentlyAdded, self).__init__(config=config, email_config=email_config)
+
+        if self.config['incl_libraries'] is None:
+            self.config['incl_libraries'] = []
+        elif not isinstance(self.config['incl_libraries'], list):
+            self.config['incl_libraries'] = [self.config['incl_libraries']]
 
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
@@ -363,8 +356,8 @@ class RecentlyAdded(Newsletter):
         if media_type == 'movie':
             movie_list = []
             for item in recently_added:
-                # Filter out excluded libraries
-                if item['section_id'] in self.config['excl_libraries']:
+                # Filter included libraries
+                if item['section_id'] not in self.config['incl_libraries']:
                     continue
 
                 movie_list.append(item)
@@ -375,8 +368,8 @@ class RecentlyAdded(Newsletter):
             shows_list = []
             show_rating_keys = []
             for item in recently_added:
-                # Filter out excluded libraries
-                if item['section_id'] in self.config['excl_libraries']:
+                # Filter included libraries
+                if item['section_id'] not in self.config['incl_libraries']:
                     continue
 
                 if item['media_type'] == 'show':
@@ -422,8 +415,8 @@ class RecentlyAdded(Newsletter):
             artists_list = []
             artist_rating_keys = []
             for item in recently_added:
-                # Filter out excluded libraries
-                if item['section_id'] in self.config['excl_libraries']:
+                # Filter included libraries
+                if item['section_id'] not in self.config['incl_libraries']:
                     continue
 
                 if item['media_type'] == 'artist':
@@ -459,9 +452,11 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def get_recently_added(self):
-        self.recently_added['movie'] = self._get_recently_added('movie')
-        self.recently_added['show'] = self._get_recently_added('show')
-        self.recently_added['artist'] = self._get_recently_added('artist')
+        media_types = {s['section_type'] for s in self._get_sections()
+                       if str(s['section_id']) in self.config['incl_libraries']}
+
+        for media_type in media_types:
+            self.recently_added[media_type] = self._get_recently_added(media_type)
 
         return self.recently_added
 
@@ -478,89 +473,19 @@ class RecentlyAdded(Newsletter):
         )
 
     def send(self, **kwargs):
-        if not subject or not body:
-            return
+        self.get_recently_added()
 
-        if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
-        else:
-            text = body.encode("utf-8")
-
-        data = {'content': text}
-        if self.config['username']:
-            data['username'] = self.config['username']
-        if self.config['avatar_url']:
-            data['avatar_url'] = self.config['avatar_url']
-        if self.config['tts']:
-            data['tts'] = True
-
-        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
-            # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['parameters'])
-
-            if pretty_metadata.media_type == 'movie':
-                provider = self.config['movie_provider']
-            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
-                provider = self.config['tv_provider']
-            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
-                provider = self.config['music_provider']
-            else:
-                provider = None
-
-            poster_url = pretty_metadata.get_poster_url()
-            provider_name = pretty_metadata.get_provider_name(provider)
-            provider_link = pretty_metadata.get_provider_link(provider)
-            title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
-            description = pretty_metadata.get_description()
-            plex_url = pretty_metadata.get_plex_url()
-
-            # Build Discord post attachment
-            attachment = {'title': title
-                          }
-
-            if self.config['color']:
-                hex_match = re.match(r'^#([0-9a-fA-F]{3}){1,2}$', self.config['color'])
-                if hex_match:
-                    hex = hex_match.group(0).lstrip('#')
-                    hex = ''.join(h * 2 for h in hex) if len(hex) == 3 else hex
-                    attachment['color'] = helpers.hex_to_int(hex)
-
-            if self.config['incl_thumbnail']:
-                attachment['thumbnail'] = {'url': poster_url}
-            else:
-                attachment['image'] = {'url': poster_url}
-
-            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
-                attachment['description'] = description
-
-            fields = []
-            if provider_link:
-                attachment['url'] = provider_link
-                fields.append({'name': 'View Details',
-                               'value': '[%s](%s)' % (provider_name, provider_link.encode('utf-8')),
-                               'inline': True})
-            if self.config['incl_pmslink']:
-                fields.append({'name': 'View Details',
-                               'value': '[Plex Web](%s)' % plex_url.encode('utf-8'),
-                               'inline': True})
-            if fields:
-                attachment['fields'] = fields
-
-            data['embeds'] = [attachment]
-
-        headers = {'Content-type': 'application/json'}
-        params = {'wait': True}
-
-        return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
+        return
 
     def _get_sections(self):
-        sections_list = libraries.Libraries().get_sections()
+        return libraries.Libraries().get_sections()
 
-        section_options = {'': ''}
-        for l in sections_list:
-            section_options[l['section_id']] = l['section_name']
-
-        return section_options
+    def _get_sections_options(self):
+        sections = {'': ''}
+        for s in self._get_sections():
+            if s['section_type'] != 'photo':
+                sections[s['section_id']] = s['section_name']
+        return sections
 
     def return_config_options(self):
         config_option = [{'label': 'Number of Days',
@@ -569,14 +494,12 @@ class RecentlyAdded(Newsletter):
                           'description': 'The past number of days to include in the newsletter.',
                           'input_type': 'number'
                           },
-                         {'label': 'Exclude Libraries',
-                          'value': json.dumps(self.config['excl_libraries']),
-                          'description': 'Select the libraries to exclude from the newsletter.'
-                                         'Leave blank to include all libraries in the newsletter.',
-                          'name': 'recently_added_excl_libraries',
+                         {'label': 'Included Libraries',
+                          'value': json.dumps(self.config['incl_libraries']),
+                          'description': 'Select the libraries to include in the newsletter.',
+                          'name': 'recently_added_incl_libraries',
                           'input_type': 'select',
-                          'select_options': self._get_sections(),
-                          'multiple': True
+                          'select_options': self._get_sections_options()
                           }
                          ]
 

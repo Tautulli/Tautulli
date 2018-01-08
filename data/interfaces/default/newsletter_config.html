@@ -1,7 +1,11 @@
-<%!
-    from plexpy import helpers
-%>
 % if newsletter:
+<%!
+    from plexpy import helpers, notifiers
+
+    email_notifiers = [n for n in notifiers.get_notifiers() if n['agent_name'] == 'email']
+    sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
+    email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
+%>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -91,7 +95,7 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-8">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}" ${'multiple' if item.get('multiple') else ''}>
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
                                                     <option value="${key}" selected>${value}</option>
@@ -128,14 +132,14 @@
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <select class="form-control" id="email_notifier" name="email_notifier">
-                                                    % for item in newsletter['email_notifiers']:
-                                                    <% selected = 'selected' if item['id'] == newsletter['email_notifier'] else '' %>
-                                                    % if item['friendly_name']:
-                                                    <option value="${item['id']}" ${selected}>${item['agent_label']} (${item['id']} - ${item['friendly_name']})</option>
-                                                    % elif item['id']:
-                                                    <option value="${item['id']}" ${selected}>${item['agent_label']} (${item['id']})</option>
+                                                    % for notifier in email_notifiers:
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_notifier'] else '' %>
+                                                    % if notifier['friendly_name']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                    % elif notifier['id']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
                                                     % else:
-                                                    <option value="${item['id']}" ${selected}>${item['agent_label']}</option>
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
                                                     % endif
                                                     % endfor
                                                 </select>
@@ -262,12 +266,12 @@
         }
     }); // apply cron with default options
 
-    var $excl_libraries = $('#recently_added_excl_libraries').selectize({
+    var $incl_libraries = $('#recently_added_incl_libraries').selectize({
         plugins: ['remove_button'],
         maxItems: null
     });
-    var excl_libraries = $excl_libraries[0].selectize;
-    excl_libraries.setValue(${next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_excl_libraries'), []) | n});
+    var incl_libraries = $incl_libraries[0].selectize;
+    incl_libraries.setValue(${next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_incl_libraries'), []) | n});
 
     $('#email_notifier').change(function () {
         if ($(this).val() === "0") {

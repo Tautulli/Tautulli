@@ -443,9 +443,9 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"section_id": 1, "section_name": "Movies"},
-                     {"section_id": 7, "section_name": "Music"},
-                     {"section_id": 2, "section_name": "TV Shows"},
+                    [{"section_id": 1, "section_name": "Movies", "section_type": "movie"},
+                     {"section_id": 7, "section_name": "Music", "section_type": "artist"},
+                     {"section_id": 2, "section_name": "TV Shows", "section_type": "show"},
                      {...}
                      ]
             ```

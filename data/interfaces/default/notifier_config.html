@@ -1,3 +1,4 @@
+% if notifier:
 <%!
     import json
     from plexpy import helpers, notifiers, users
@@ -6,7 +7,6 @@
     user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
     sorted(user_emails, key=lambda u: u['user'])
 %>
-% if notifier:
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">

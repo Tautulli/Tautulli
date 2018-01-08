@@ -125,8 +125,10 @@ div.form-control .selectize-input {
     padding-bottom: 2px !important;
     transition: background-color .3s;
 }
-.react-selectize.root-node .simple-value span {
+.react-selectize.root-node .simple-value span,
+.selectize-control.multi .selectize-input > div {
     padding-bottom: 2px !important;
+    padding-left: 5px !important;
 }
 .react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .value-wrapper:not(:first-child):before {
     content: "or";

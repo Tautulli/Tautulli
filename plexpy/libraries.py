@@ -911,7 +911,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT section_id, section_name FROM library_sections WHERE deleted_section = 0'
+            query = 'SELECT section_id, section_name, section_type FROM library_sections WHERE deleted_section = 0'
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
@@ -920,7 +920,8 @@ class Libraries(object):
         libraries = []
         for item in result:
             library = {'section_id': item['section_id'],
-                       'section_name': item['section_name']
+                       'section_name': item['section_name'],
+                       'section_type': item['section_type']
                        }
             libraries.append(library)
 
