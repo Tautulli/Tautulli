@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.12-beta (2018-01-07)
+
+* Notifications:
+  * Fix: Incorrect Plex URL parameter value.
+  * Change: Custom condition logic is now optional. An implicit "and" is applied between all conditions if the logic is blank.
+* UI:
+  * New: Added separate required LAN/WAN bandwidth in the activity header.
+* API:
+  * Fix: Notify API command not sending notifications.
+
+
 ## v2.0.11-beta (2018-01-05)
 
 * Notifications:
