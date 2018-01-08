@@ -17,7 +17,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
-                        <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
+                        <li role="presentation" class="active"><a href="#tabs-notifier_config" aria-controls="tabs-notifier_config" role="tab" data-toggle="tab">Configuration</a></li>
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_conditions" aria-controls="tabs-notify_conditions" role="tab" data-toggle="tab">Conditions</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">${'Arguments' if notifier['agent_name'] == 'scripts' else 'Text'}</a></li>
@@ -26,7 +26,7 @@
                 </div>
                 <form action="set_notifier_config" method="post" class="form" id="set_notifier_config" data-parsley-validate>
                     <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="tabs-config">
+                        <div role="tabpanel" class="tab-pane active" id="tabs-notifier_config">
                             <div class="row">
                                 <div class="col-md-12">
                                     <input type="hidden" id="notifier_id" name="notifier_id" value="${notifier['id']}" />

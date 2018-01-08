@@ -12,14 +12,14 @@
             <div class="container-fluid">
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
-                        <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
+                        <li role="presentation" class="active"><a href="#tabs-newsletter_config" aria-controls="tabs-newsletter_config" role="tab" data-toggle="tab">Configuration</a></li>
                         <li role="presentation"><a href="#tabs-email_config" aria-controls="tabs-email_config" role="tab" data-toggle="tab">Email Configuration</a></li>
                         <li role="presentation"><a href="#tabs-test_newsletter" aria-controls="tabs-test_newsletter" role="tab" data-toggle="tab">Test Newsletter</a></li>
                     </ul>
                 </div>
                 <form action="set_newsletter_config" method="post" class="form" id="set_newsletter_config" data-parsley-validate>
                     <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="tabs-config">
+                        <div role="tabpanel" class="tab-pane active" id="tabs-newsletter_config">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="checkbox" style="margin-bottom: 20px;">
@@ -91,7 +91,7 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-8">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}" ${'multiple' if item.get('multiple') else ''}>
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
                                                     <option value="${key}" selected>${value}</option>
@@ -261,6 +261,13 @@
             $("#cron_value").val($(this).cron("value"));
         }
     }); // apply cron with default options
+
+    var $excl_libraries = $('#recently_added_excl_libraries').selectize({
+        plugins: ['remove_button'],
+        maxItems: null
+    });
+    var excl_libraries = $excl_libraries[0].selectize;
+    excl_libraries.setValue(${next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_excl_libraries'), []) | n});
 
     $('#email_notifier').change(function () {
         if ($(this).val() === "0") {

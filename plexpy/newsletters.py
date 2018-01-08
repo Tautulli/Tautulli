@@ -28,6 +28,7 @@ import time
 import plexpy
 import database
 import helpers
+import libraries
 import logger
 import notification_handler
 import pmsconnect
@@ -320,9 +321,7 @@ class RecentlyAdded(Newsletter):
     """
     NAME = 'Recently Added'
     _DEFAULT_CONFIG = {'last_days': 7,
-                       'incl_movies': 1,
-                       'incl_shows': 1,
-                       'incl_artists': 1
+                       'excl_libraries': ''
                        }
     _TEMPLATE = 'recently_added.html'
 
@@ -361,10 +360,25 @@ class RecentlyAdded(Newsletter):
 
             recently_added.extend(filtered_items)
 
+        if media_type == 'movie':
+            movie_list = []
+            for item in recently_added:
+                # Filter out excluded libraries
+                if item['section_id'] in self.config['excl_libraries']:
+                    continue
+
+                movie_list.append(item)
+
+            recently_added = movie_list
+
         if media_type == 'show':
             shows_list = []
             show_rating_keys = []
             for item in recently_added:
+                # Filter out excluded libraries
+                if item['section_id'] in self.config['excl_libraries']:
+                    continue
+
                 if item['media_type'] == 'show':
                     show_rating_key = item['rating_key']
                 elif item['media_type'] == 'season':
@@ -408,6 +422,10 @@ class RecentlyAdded(Newsletter):
             artists_list = []
             artist_rating_keys = []
             for item in recently_added:
+                # Filter out excluded libraries
+                if item['section_id'] in self.config['excl_libraries']:
+                    continue
+
                 if item['media_type'] == 'artist':
                     artist_rating_key = item['rating_key']
                 elif item['media_type'] == 'album':
@@ -441,12 +459,9 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def get_recently_added(self):
-        if self.config['incl_movies']:
-            self.recently_added['movie'] = self._get_recently_added('movie')
-        if self.config['incl_shows']:
-            self.recently_added['show'] = self._get_recently_added('show')
-        if self.config['incl_artists']:
-            self.recently_added['artist'] = self._get_recently_added('artist')
+        self.recently_added['movie'] = self._get_recently_added('movie')
+        self.recently_added['show'] = self._get_recently_added('show')
+        self.recently_added['artist'] = self._get_recently_added('artist')
 
         return self.recently_added
 
@@ -538,6 +553,15 @@ class RecentlyAdded(Newsletter):
 
         return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
 
+    def _get_sections(self):
+        sections_list = libraries.Libraries().get_sections()
+
+        section_options = {'': ''}
+        for l in sections_list:
+            section_options[l['section_id']] = l['section_name']
+
+        return section_options
+
     def return_config_options(self):
         config_option = [{'label': 'Number of Days',
                           'value': self.config['last_days'],
@@ -545,23 +569,14 @@ class RecentlyAdded(Newsletter):
                           'description': 'The past number of days to include in the newsletter.',
                           'input_type': 'number'
                           },
-                         {'label': 'Include Movies',
-                          'value': self.config['incl_movies'],
-                          'description': 'Include recently added movies in the newsletter.',
-                          'name': 'recently_added_incl_movies',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include TV Shows',
-                          'value': self.config['incl_shows'],
-                          'description': 'Include recently added TV shows in the newsletter.',
-                          'name': 'recently_added_incl_shows',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Music',
-                          'value': self.config['incl_artists'],
-                          'description': 'Include recently added music in the newsletter.',
-                          'name': 'recently_added_incl_artists',
-                          'input_type': 'checkbox'
+                         {'label': 'Exclude Libraries',
+                          'value': json.dumps(self.config['excl_libraries']),
+                          'description': 'Select the libraries to exclude from the newsletter.'
+                                         'Leave blank to include all libraries in the newsletter.',
+                          'name': 'recently_added_excl_libraries',
+                          'input_type': 'select',
+                          'select_options': self._get_sections(),
+                          'multiple': True
                           }
                          ]
 
