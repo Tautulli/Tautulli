@@ -3155,9 +3155,9 @@ class WebInterface(object):
 
         if notifier_id:
             notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
-            
+
             if notifier:
-                logger.debug(u"Sending %s%s notification." % (test, notifier['agent_name']))
+                logger.debug(u"Sending %s%s notification." % (test, notifier['agent_label']))
                 if notification_handler.notify(notifier_id=notifier_id,
                                                notify_action=notify_action,
                                                subject=subject,
@@ -5500,9 +5500,8 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_name']))
-                if newsletter_handler.send(newsletter_id=newsletter_id,
-                                           **kwargs):
+                logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_label']))
+                if newsletters.send_newsletter(newsletter_id=newsletter_id):
                     return "Newsletter sent."
                 else:
                     return "Newsletter failed."

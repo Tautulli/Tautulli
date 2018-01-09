@@ -133,7 +133,7 @@
                                             <div class="col-md-8">
                                                 <select class="form-control" id="email_notifier" name="email_notifier">
                                                     % for notifier in email_notifiers:
-                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_notifier'] else '' %>
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier'] else '' %>
                                                     % if notifier['friendly_name']:
                                                     <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
                                                     % elif notifier['id']:
@@ -147,8 +147,21 @@
                                         </div>
                                         <p class="help-block">Use an exisiting Email notification agent or enter a new configuration below.</p>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="email_subject">Email Subject</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <input type="text" class="form-control" id="email_subject" name="email_subject" value="${newsletter['email_config']['subject']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Optional: Enter a subject line for the email. Leave blank for default.
+                                            <br>
+                                            Note: You may include <span class="inline-pre">{start_date}</span> and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444; ${'display: none;' if newsletter['email_notifier'] else ''}">
+                                <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444; ${'display: none;' if newsletter['email_config']['notifier'] else ''}">
                                     % for item in newsletter['email_config_options']:
                                     % if item['input_type'] == 'help':
                                     <div class="form-group">

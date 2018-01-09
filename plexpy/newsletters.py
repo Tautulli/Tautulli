@@ -15,14 +15,10 @@
 
 import arrow
 import json
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import email.utils
 from itertools import groupby
 from mako.lookup import TemplateLookup
 from mako import exceptions
 import os
-import re
 import time
 
 import plexpy
@@ -32,8 +28,7 @@ import libraries
 import logger
 import notification_handler
 import pmsconnect
-import request
-from notifiers import EMAIL
+from notifiers import send_notification, EMAIL
 
 
 AGENT_IDS = {
@@ -114,8 +109,8 @@ def get_newsletter_config(newsletter_id=None):
         return None
 
     try:
-        config = json.loads(result.pop('newsletter_config') or '{}')
-        email_config = json.loads(result.pop('email_config') or '{}')
+        config = json.loads(result.pop('newsletter_config', '{}'))
+        email_config = json.loads(result.pop('email_config', '{}'))
         newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config)
         newsletter_config = newsletter_agent.return_config_options()
         newsletter_email_config = newsletter_agent.return_email_config_options()
@@ -124,6 +119,7 @@ def get_newsletter_config(newsletter_id=None):
         return
 
     result['config'] = config
+    result['email_config'] = email_config
     result['config_options'] = newsletter_config
     result['email_config_options'] = newsletter_email_config
 
@@ -188,8 +184,6 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
 
     newsletter_config = {k[len(config_prefix):]: kwargs.pop(k)
                          for k in kwargs.keys() if k.startswith(config_prefix)}
-
-    email_notifier = kwargs.pop('email_notifier', 0)
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in kwargs.keys() if k.startswith(email_config_prefix)}
 
@@ -202,7 +196,6 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
               'friendly_name': kwargs.get('friendly_name', ''),
               'newsletter_config': json.dumps(agent_class.config),
               'email_config': json.dumps(agent_class.email_config),
-              'email_notifier': email_notifier,
               'cron': kwargs.get('cron'),
               'active': kwargs.get('active')
               }
@@ -245,11 +238,17 @@ def serve_template(templatename, **kwargs):
 class Newsletter(object):
     NAME = ''
     _DEFAULT_CONFIG = {}
-    _DEFAULT_EMAIL_CONFIG = EMAIL._DEFAULT_CONFIG
 
     def __init__(self, config=None, email_config=None):
+        self._default_email_config = EMAIL().return_default_config()
+        self._default_email_config['from_name'] = 'Tautulli Newsletter'
+        self._default_email_config['notifier'] = 0
+        self._default_email_config['subject'] = 'Tautulli Newsletter'
+
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
-        self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
+        self.email_config = self.set_config(config=email_config, default=self._default_email_config)
+
+        self.parameters = {}
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -267,33 +266,59 @@ class Newsletter(object):
 
         return new_config
 
-    def preview(self, **kwargs):
+    def _render_template(self, **kwargs):
+        return serve_template(
+            templatename=self._TEMPLATE,
+            title=self.NAME,
+            parameters=self.parameters,
+            **kwargs
+        )
+
+    def _format_subject(self, subject):
+        subject = subject or self._default_email_config['subject']
+
+        try:
+            subject = unicode(subject).format(**self.parameters)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
+            subject = unicode(self._default_email_config['subject']).format(**self.parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            subject = unicode(self._default_email_config['subject']).format(**self.parameters)
+
+        return subject
+
+    def retrieve_data(self):
         pass
+
+    def generate_newsletter(self):
+        pass
+
+    def preview(self):
+        self.retrieve_data()
+        return self.generate_newsletter()
 
     def send(self, **kwargs):
-        pass
+        self.retrieve_data()
 
-    def make_request(self, url, method='POST', **kwargs):
-        response, err_msg, req_msg = request.request_response2(url, method, **kwargs)
+        subject = self._format_subject(self.email_config['subject'])
+        newsletter = self.generate_newsletter()
 
-        if response and not err_msg:
-            logger.info(u"Tautulli Newsletters :: {name} notification sent.".format(name=self.NAME))
-            return True
+        if self.email_config['notifier']:
+            return send_notification(
+                notifier_id=self.email_config['notifier'],
+                subject=subject,
+                body=newsletter
+            )
 
         else:
-            verify_msg = ""
-            if response is not None and response.status_code >= 400 and response.status_code < 500:
-                verify_msg = " Verify you notification newsletter agent settings are correct."
-
-            logger.error(u"Tautulli Newsletters :: {name} notification failed.{}".format(verify_msg, name=self.NAME))
-
-            if err_msg:
-                logger.error(u"Tautulli Newsletters :: {}".format(err_msg))
-
-            if req_msg:
-                logger.debug(u"Tautulli Newsletters :: Request response: {}".format(req_msg))
-
-            return False
+            email = EMAIL(config=self.email_config)
+            return email.notify(
+                subject=subject,
+                body=newsletter
+            )
 
     def return_config_options(self):
         config_options = []
@@ -321,12 +346,17 @@ class RecentlyAdded(Newsletter):
         elif not isinstance(self.config['incl_libraries'], list):
             self.config['incl_libraries'] = [self.config['incl_libraries']]
 
+        self._default_email_config['subject'] = 'Recently Added to Plex! ({end_date})'
+
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
         self.end_time = int(time.time())
         self.start_time = self.end_time - self.config['last_days']*24*60*60
         self.end_date = arrow.get(self.end_time).format(date_format)
         self.start_date = arrow.get(self.start_time).format(date_format)
+
+        self.parameters = {'start_date': self.start_date,
+                           'end_date': self.end_date}
 
         self.plexpy_config = {
             'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
@@ -451,31 +481,21 @@ class RecentlyAdded(Newsletter):
 
         return recently_added
 
-    def get_recently_added(self):
+    def retrieve_data(self):
         media_types = {s['section_type'] for s in self._get_sections()
                        if str(s['section_id']) in self.config['incl_libraries']}
 
         for media_type in media_types:
-            self.recently_added[media_type] = self._get_recently_added(media_type)
+            if media_type not in self.recently_added:
+                self.recently_added[media_type] = self._get_recently_added(media_type)
 
         return self.recently_added
 
-    def preview(self, **kwargs):
-        self.get_recently_added()
-
-        return serve_template(
-            templatename=self._TEMPLATE,
-            title=self.NAME,
+    def generate_newsletter(self):
+        return self._render_template(
             recently_added=self.recently_added,
-            start_date=self.start_date,
-            end_date=self.end_date,
             plexpy_config=self.plexpy_config
         )
-
-    def send(self, **kwargs):
-        self.get_recently_added()
-
-        return
 
     def _get_sections(self):
         return libraries.Libraries().get_sections()

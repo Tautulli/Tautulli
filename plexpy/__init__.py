@@ -624,7 +624,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
-        'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, email_notifier INTEGER DEFAULT 0, '
+        'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
         'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
     )
 

@@ -454,7 +454,7 @@ def get_notifier_config(notifier_id=None):
         return None
 
     try:
-        config = json.loads(result.pop('notifier_config') or '{}')
+        config = json.loads(result.pop('notifier_config', '{}'))
         notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
         notifier_config = notifier_agent.return_config_options()
     except Exception as e:
@@ -771,6 +771,9 @@ class Notifier(object):
                 new_config[k] = config.get(k, v)
 
         return new_config
+
+    def return_default_config(self):
+        return self._DEFAULT_CONFIG
 
     def notify(self, subject='', body='', action='', **kwargs):
         if self.NAME != 'Script':
@@ -1271,7 +1274,7 @@ class EMAIL(Notifier):
     Email notifications
     """
     NAME = 'Email'
-    _DEFAULT_CONFIG = {'from_name': '',
+    _DEFAULT_CONFIG = {'from_name': 'Tautulli',
                        'from': '',
                        'to': '',
                        'cc': '',
