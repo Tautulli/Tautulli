@@ -175,17 +175,21 @@ def initialize(config_file):
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
             logger.debug(u"Generating UUID...")
-            my_uuid = generate_uuid()
-            CONFIG.__setattr__('PMS_UUID', my_uuid)
+            CONFIG.PMS_UUID = generate_uuid()
             CONFIG.write()
-        
+
         # Check if Tautulli has an API key
         if CONFIG.API_KEY == '':
             logger.debug(u"Generating API key...")
-            api_key = generate_uuid()
-            CONFIG.__setattr__('API_KEY', api_key)
+            CONFIG.API_KEY = generate_uuid()
             CONFIG.write()
-        
+
+        # Check if Tautulli has a jwt_secret
+        if CONFIG.JWT_SECRET == '' or not CONFIG.JWT_SECRET:
+            logger.debug(u"Generating JWT secret...")
+            CONFIG.JWT_SECRET = generate_uuid()
+            CONFIG.write()
+
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
         CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()

@@ -138,7 +138,7 @@
                             <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
                             <li role="separator" class="divider"></li>
                             % endif
-                            % if _session['expiry']:
+                            % if _session['exp']:
                             <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Sign Out</a></li>
                             % endif
                         </ul>
@@ -161,7 +161,7 @@ ${next.modalIncludes()}
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="${http_root}auth/login" method="post">
+            <form id="login-form">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
                     <h4 class="modal-title">Admin Login</h4>
@@ -190,7 +190,8 @@ ${next.modalIncludes()}
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                    <span id="incorrect-login" style="padding-right: 25px; display: none;">Incorrect username or password.</span>
+                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
                 </div>
                 <input type="hidden" id="admin_login" name="admin_login" value="1" />
             </form>
@@ -386,6 +387,29 @@ ${next.modalIncludes()}
     $('#admin-login-modal').on('shown.bs.modal', function () {
         $('#admin-login-modal #username').focus()
     })
+
+    $('#login-form').submit(function(event) {
+        event.preventDefault();
+        $('#sign-in').prop('disabled', true).html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        $.ajax({
+            url: '${http_root}auth/signin',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            statusCode: {
+                200: function() {
+                   window.location = "${http_root}";
+                },
+                401: function() {
+                   $('#incorrect-login').show();
+                   $('#username').focus();
+                }
+            },
+            complete: function() {
+                $('#sign-in').prop('disabled', false).html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+            }
+        });
+    });
     % endif
 </script>
 ${next.javascriptIncludes()}

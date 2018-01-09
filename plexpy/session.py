@@ -23,16 +23,15 @@ def get_session_info():
     """
     Returns the session info for the user session
     """
-    from plexpy.webauth import SESSION_KEY
-
     _session = {'user_id': None,
                 'user': None,
                 'user_group': 'admin',
-                'expiry': None}
-    try:
-        return cherrypy.session.get(SESSION_KEY, _session)
-    except AttributeError as e:
-        return _session
+                'exp': None}
+
+    if isinstance(cherrypy.request.login, dict):
+        return cherrypy.request.login
+
+    return _session
 
 def get_session_user():
     """

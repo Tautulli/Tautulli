@@ -18,12 +18,12 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
-from cgi import escape
 from datetime import datetime, timedelta
 import re
 
 import cherrypy
 from hashing_passwords import check_hash
+import jwt
 
 import plexpy
 import logger
@@ -32,7 +32,9 @@ from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
 
 
-SESSION_KEY = '_cp_username'
+JWT_ALGORITHM = 'HS256'
+JWT_COOKIE_NAME = 'tautulli_token_'
+
 
 def user_login(username=None, password=None):
     if not username or not password:
@@ -89,38 +91,58 @@ def user_login(username=None, password=None):
 
     return None
 
+
 def check_credentials(username, password, admin_login='0'):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
     if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-        username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
+            username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
         return True, u'admin'
     elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-        username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+            username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
         return True, u'admin'
     elif not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS and user_login(username, password):
         return True, u'guest'
     else:
         return False, None
-    
+
+
+def check_jwt_token():
+    jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+    jwt_token = cherrypy.request.cookie.get(jwt_cookie)
+
+    if jwt_token:
+        try:
+            payload = jwt.decode(
+                jwt_token.value, plexpy.CONFIG.JWT_SECRET, leeway=timedelta(seconds=10), algorithms=[JWT_ALGORITHM]
+            )
+        except (jwt.DecodeError, jwt.ExpiredSignatureError):
+            return None
+
+        return payload
+
+
 def check_auth(*args, **kwargs):
     """A tool that looks in config for 'auth.require'. If found and it
     is not None, a login is required and the entry is evaluated as a list of
     conditions that the user must fulfill"""
     conditions = cherrypy.request.config.get('auth.require', None)
     if conditions is not None:
-        _session = cherrypy.session.get(SESSION_KEY)
+        payload = check_jwt_token()
 
-        if _session and (_session['user'] and _session['expiry']) and _session['expiry'] > datetime.now():
-            cherrypy.request.login = _session['user']
+        if payload:
+            cherrypy.request.login = payload
+
             for condition in conditions:
                 # A condition is just a callable that returns true or false
                 if not condition():
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
         else:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
-    
+
+
 def requireAuth(*conditions):
     """A decorator that appends conditions to the auth.require config
     variable."""
@@ -144,11 +166,13 @@ def requireAuth(*conditions):
 def member_of(groupname):
     def check():
         # replace with actual check if <username> is in <groupname>
-        return cherrypy.request.login == plexpy.CONFIG.HTTP_USERNAME and groupname == 'admin'
+        return cherrypy.request.login['user'] == plexpy.CONFIG.HTTP_USERNAME and groupname == 'admin'
     return check
 
+
 def name_is(reqd_username):
-    return lambda: reqd_username == cherrypy.request.login
+    return lambda: reqd_username == cherrypy.request.login['user']
+
 
 # These might be handy
 
@@ -160,6 +184,7 @@ def any_of(*conditions):
                 return True
         return False
     return check
+
 
 # By default all conditions are required, but this might still be
 # needed if you want to use it inside of an any_of(...) condition
@@ -176,7 +201,12 @@ def all_of(*conditions):
 # Controller to provide login and logout actions
 
 class AuthController(object):
-    
+
+    def check_auth_enabled(self):
+        if not plexpy.CONFIG.HTTP_BASIC_AUTH and plexpy.CONFIG.HTTP_PASSWORD:
+            return
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
     def on_login(self, user_id, username, user_group):
         """Called on successful login"""
 
@@ -197,7 +227,7 @@ class AuthController(object):
     
     def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"Tautulli WebAuth :: %s User '%s' logged out of Tautulli." % (user_group.capitalize(), username))
+        logger.debug(u"Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
     
     def on_login_failed(self, username):
         """Called on failed login"""
@@ -213,25 +243,48 @@ class AuthController(object):
                                user_agent=user_agent,
                                success=0)
 
-    def get_loginform(self, username="", msg=""):
+    def get_loginform(self):
         from plexpy.webserve import serve_template
-        return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
+        return serve_template(templatename="login.html", title="Login")
     
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
 
     @cherrypy.expose
-    def login(self, username=None, password=None, remember_me='0', admin_login='0'):
-        if not cherrypy.config.get('tools.sessions.on'):
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+    def login(self):
+        self.check_auth_enabled()
 
-        if not username and not password:
-            return self.get_loginform()
-        
-        (vaild_login, user_group) = check_credentials(username, password, admin_login)
+        return self.get_loginform()
 
-        if vaild_login:
+    @cherrypy.expose
+    def logout(self):
+        self.check_auth_enabled()
+
+        payload = check_jwt_token()
+        if payload:
+            self.on_logout(payload['user'], payload['user_group'])
+
+        jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+        cherrypy.response.cookie[jwt_cookie] = 'expire'
+        cherrypy.response.cookie[jwt_cookie]['expires'] = 0
+        cherrypy.response.cookie[jwt_cookie]['path'] = '/'
+
+        cherrypy.request.login = None
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def signin(self, username=None, password=None, remember_me='0', admin_login='0'):
+        if cherrypy.request.method != 'POST':
+            cherrypy.response.status = 405
+            return {'status': 'error', 'message': 'Sign in using POST.'}
+
+        error_message = {'status': 'error', 'message': 'Incorrect username or password.'}
+
+        valid_login, user_group = check_credentials(username, password, admin_login)
+
+        if valid_login:
             if user_group == 'guest':
                 if re.match(r"[^@]+@[^@]+\.[^@]+", username):
                     user_details = Users().get_details(email=username)
@@ -242,35 +295,37 @@ class AuthController(object):
             else:
                 user_id = None
 
-            expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
+            time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)
+            expiry = datetime.utcnow() + time_delta
 
-            cherrypy.request.login = username
-            cherrypy.session[SESSION_KEY] = {'user_id': user_id,
-                                             'user': username,
-                                             'user_group': user_group,
-                                             'expiry': expiry}
+            payload = {
+                'user_id': user_id,
+                'user': username,
+                'user_group': user_group,
+                'exp': expiry
+            }
+
+            jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM)
 
             self.on_login(user_id, username, user_group)
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
+            jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+            cherrypy.response.cookie[jwt_cookie] = jwt_token
+            cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
+            cherrypy.response.cookie[jwt_cookie]['path'] = '/'
+
+            cherrypy.request.login = payload
+            cherrypy.response.status = 200
+            return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
 
         elif admin_login == '1':
             self.on_login_failed(username)
             logger.debug(u"Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+            cherrypy.response.status = 401
+            return error_message
+
         else:
             self.on_login_failed(username)
             logger.debug(u"Tautulli WebAuth :: Invalid login attempt from '%s'." % username)
-            return self.get_loginform(username, u"Incorrect username/email or password.")
-    
-    @cherrypy.expose
-    def logout(self):
-        if not cherrypy.config.get('tools.sessions.on'):
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
-
-        _session = cherrypy.session.get(SESSION_KEY)
-        cherrypy.session[SESSION_KEY] = None
-
-        if _session and _session['user']:
-            cherrypy.request.login = None
-            self.on_logout(_session['user'], _session['user_group'])
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
+            cherrypy.response.status = 401
+            return error_message

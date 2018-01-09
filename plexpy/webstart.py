@@ -35,7 +35,8 @@ def initialize(options):
     if enable_https:
         # If either the HTTPS certificate or key do not exist, try to make self-signed ones.
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
-            (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
+                (not (https_cert and os.path.exists(https_cert)) or
+                 not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
                 logger.warn(u"Tautulli WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
@@ -67,16 +68,17 @@ def initialize(options):
         protocol = "http"
 
     if options['http_password']:
-        logger.info(u"Tautulli WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
+        logger.info(u"Tautulli WebStart :: Web server authentication is enabled, username is '%s'",
+                    options['http_username'])
         if options['http_basic_auth']:
-            session_enabled = auth_enabled = False
+            auth_enabled = False
             basic_auth_enabled = True
         else:
-            options_dict['tools.sessions.on'] = session_enabled = auth_enabled = True
+            auth_enabled = True
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
-        session_enabled = auth_enabled = basic_auth_enabled = False
+        auth_enabled = basic_auth_enabled = False
 
     if options['http_root'].strip('/'):
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
@@ -93,11 +95,6 @@ def initialize(options):
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
-            'tools.sessions.on': session_enabled,
-            'tools.session.name': 'tautulli_session_id-' + plexpy.CONFIG.PMS_UUID,
-            'tools.sessions.storage_type': 'file',
-            'tools.sessions.storage_path': plexpy.CONFIG.CACHE_DIR,
-            'tools.sessions.timeout': 30 * 24 * 60,  # 30 days
             'tools.auth.on': auth_enabled,
             'tools.auth_basic.on': basic_auth_enabled,
             'tools.auth_basic.realm': 'Tautulli web server',
