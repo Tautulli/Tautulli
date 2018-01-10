@@ -1,6 +1,10 @@
 <%!
-    from plexpy import helpers, notifiers
+    import json
+    from plexpy import helpers, notifiers, users
     available_notification_actions = notifiers.available_notification_actions()
+
+    user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
+    sorted(user_emails, key=lambda u: u['user'])
 %>
 % if notifier:
 <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
@@ -39,7 +43,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
                                                 % if item['name'] == 'osx_notify_app':
                                                 <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
@@ -62,7 +66,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                                             </div>
                                         </div>
@@ -80,7 +84,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
@@ -101,7 +105,7 @@
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
                                             </div>
                                         </div>
@@ -185,7 +189,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
-                                                    <div class="col-md-8">
+                                                    <div class="col-md-12">
                                                         <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Arguments">
                                                     </div>
                                                 </div>
@@ -212,7 +216,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
-                                                    <div class="col-md-8">
+                                                    <div class="col-md-12">
                                                         <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Text">
                                                     </div>
                                                 </div>
@@ -278,7 +282,7 @@
                             % endif
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-12">
                                         <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${notifier['agent_label']}">
                                     </div>
                                 </div>
@@ -465,6 +469,70 @@
         var osx_notify_app = $('#osx_notify_app').val();
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     })
+
+    % elif notifier['agent_name'] == 'email':
+    var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
+                      '(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)';
+    var $email_selectors = $('#email_to, #email_cc, #email_bcc').selectize({
+        plugins: ['remove_button'],
+        persist: false,
+        maxItems: null,
+        valueField: 'email',
+        labelField: 'user',
+        searchField: ['user', 'email'],
+        options: ${json.dumps(user_emails) | n},
+        render: {
+            item: function(item, escape) {
+                return '<div>' +
+                    (item.user ? '<span class="user">' + escape(item.user) + '</span>' : '') +
+                    (item.email ? '<span class="email">' + escape(item.email) + '</span>' : '') +
+                '</div>';
+            },
+            option: function(item, escape) {
+                var label = item.user || item.email;
+                var caption = item.user ? item.email : null;
+                return '<div>' +
+                    escape(label) +
+                    (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                '</div>';
+            }
+        },
+        createFilter: function(input) {
+            var match, regex;
+
+            // email@address.com
+            regex = new RegExp('^' + REGEX_EMAIL + '$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[0]);
+
+            // user <email@address.com>
+            regex = new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[2]);
+
+            return false;
+        },
+        create: function(input) {
+            if ((new RegExp('^' + REGEX_EMAIL + '$', 'i')).test(input)) {
+                return {email: input};
+            }
+            var match = input.match(new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i'));
+            if (match) {
+                return {
+                    email : match[2],
+                    user  : $.trim(match[1])
+                };
+            }
+            alert('Invalid email address.');
+            return false;
+        }
+    });
+    var email_to = $email_selectors[0].selectize;
+    var email_cc = $email_selectors[1].selectize;
+    var email_bcc = $email_selectors[2].selectize;
+    email_to.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_to'), [])) | n});
+    email_cc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_cc'), [])) | n});
+    email_bcc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_bcc'), [])) | n});
     % endif
 
     function validateLogic() {

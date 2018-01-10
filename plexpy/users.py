@@ -580,6 +580,27 @@ class Users(object):
 
         return recently_watched
 
+    def get_users(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT user_id, username, friendly_name, email FROM users WHERE deleted_user = 0'
+            result = monitor_db.select(query=query)
+        except Exception as e:
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_users: %s." % e)
+            return None
+
+        users = []
+        for item in result:
+            user = {'user_id': item['user_id'],
+                    'username': item['username'],
+                    'friendly_name': item['friendly_name'],
+                    'email': item['email']
+                    }
+            users.append(user)
+
+        return users
+
     def delete_all_history(self, user_id=None):
         monitor_db = database.MonitorDatabase()
 

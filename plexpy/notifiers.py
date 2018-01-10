@@ -60,6 +60,7 @@ import logger
 import mobile_app
 import pmsconnect
 import request
+import users
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
@@ -1245,6 +1246,16 @@ class EMAIL(Notifier):
                        'html_support': 1
                        }
 
+    def __init__(self, config=None):
+        super(EMAIL, self).__init__(config=config)
+
+        if not isinstance(self.config['to'], list):
+            self.config['to'] = [x.strip() for x in self.config['to'].split(';')]
+        if not isinstance(self.config['cc'], list):
+            self.config['cc'] = [x.strip() for x in self.config['cc'].split(';')]
+        if not isinstance(self.config['bcc'], list):
+            self.config['bcc'] = [x.strip() for x in self.config['bcc'].split(';')]
+
     def notify(self, subject='', body='', action='', **kwargs):
         if not subject or not body:
             return
@@ -1259,13 +1270,10 @@ class EMAIL(Notifier):
 
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
-        msg['To'] = self.config['to']
-        msg['CC'] = self.config['cc']
+        msg['To'] = ','.join(self.config['to'])
+        msg['CC'] = ','.join(self.config['cc'])
 
-        recipients = [x.strip() for x in self.config['to'].split(';')] \
-                   + [x.strip() for x in self.config['cc'].split(';')] \
-                   + [x.strip() for x in self.config['bcc'].split(';')]
-        recipients = filter(None, recipients)
+        recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
         try:
             mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
@@ -1289,6 +1297,8 @@ class EMAIL(Notifier):
             return False
 
     def return_config_options(self):
+        user_emails = {}  # User selection set with selectize options
+
         config_option = [{'label': 'From Name',
                           'value': self.config['from_name'],
                           'name': 'email_from_name',
@@ -1304,20 +1314,23 @@ class EMAIL(Notifier):
                          {'label': 'To',
                           'value': self.config['to'],
                           'name': 'email_to',
-                          'description': 'The email address(es) of the recipients, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) of the recipients.',
+                          'input_type': 'select',
+                          'select_options': user_emails
                           },
                          {'label': 'CC',
                           'value': self.config['cc'],
                           'name': 'email_cc',
-                          'description': 'The email address(es) to CC, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) to CC.',
+                          'input_type': 'select',
+                          'select_options': user_emails
                           },
                          {'label': 'BCC',
                           'value': self.config['bcc'],
                           'name': 'email_bcc',
-                          'description': 'The email address(es) to BCC, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) to BCC.',
+                          'input_type': 'select',
+                          'select_options': user_emails
                           },
                          {'label': 'SMTP Server',
                           'value': self.config['smtp_server'],

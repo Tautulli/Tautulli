@@ -79,6 +79,13 @@ select.form-control {
     padding: 1px 2px;
     transition: background-color .3s;
 }
+.selectize-control.form-control .selectize-input {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    padding-left: 5px;
+}
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #fff !important;
 }
@@ -95,7 +102,7 @@ select.form-control {
 .react-selectize.root-node .simple-value span {
     padding-bottom: 2px !important;
 }
-.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input{
+.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input {
     padding-top: 3px !important;
     padding-bottom: 3px !important;
 }
@@ -110,13 +117,35 @@ select.form-control:focus,
 }
 .react-selectize.root-node.open .simple-value,
 .selectize-control.multi .selectize-input.focus > div,
-.selectize-control.multi .selectize-input > div.active{
+.selectize-control.multi .selectize-input > div.active {
     background: #efefef !important;
     color: #333333 !important;
     transition: background-color .3s;
 }
 .react-selectize.root-node.open .react-selectize-control .react-selectize-toggle-button path {
     fill: #999 !important;
+}
+.selectize-control .selectize-input > div .email {
+    opacity: 0.8;
+    font-size: 12px;
+}
+.selectize-control .selectize-input > div .user + .email {
+    margin-left: 5px;
+}
+.selectize-control .selectize-input > div .email:before {
+    content: '<';
+    opacity: 0.8;
+    font-size: 12px;
+}
+.selectize-control .selectize-input > div .email:after {
+    content: '>';
+    opacity: 0.8;
+    font-size: 12px;
+}
+.selectize-control .selectize-dropdown .caption {
+    font-size: 12px;
+    display: block;
+    color: #a0a0a0;
 }
 select.form-control option {
     color: #555;
