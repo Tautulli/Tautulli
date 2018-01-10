@@ -238,17 +238,18 @@ def serve_template(templatename, **kwargs):
 class Newsletter(object):
     NAME = ''
     _DEFAULT_CONFIG = {}
+    _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
+    _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
+    _DEFAULT_EMAIL_CONFIG['notifier'] = 0
+    _DEFAULT_EMAIL_CONFIG['subject'] = 'Tautulli Newsletter'
+    _TEMPLATE = ''
 
     def __init__(self, config=None, email_config=None):
-        self._default_email_config = EMAIL().return_default_config()
-        self._default_email_config['from_name'] = 'Tautulli Newsletter'
-        self._default_email_config['notifier'] = 0
-        self._default_email_config['subject'] = 'Tautulli Newsletter'
-
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
-        self.email_config = self.set_config(config=email_config, default=self._default_email_config)
+        self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
 
-        self.parameters = {}
+        self.parameters = {'server_name': plexpy.CONFIG.PMS_NAME}
+        self.is_preview = False
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -346,7 +347,7 @@ class RecentlyAdded(Newsletter):
         elif not isinstance(self.config['incl_libraries'], list):
             self.config['incl_libraries'] = [self.config['incl_libraries']]
 
-        self._default_email_config['subject'] = 'Recently Added to Plex! ({end_date})'
+        self._DEFAULT_EMAIL_CONFIG['subject'] = 'Recently Added to Plex! ({end_date})'
 
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
@@ -355,8 +356,8 @@ class RecentlyAdded(Newsletter):
         self.end_date = arrow.get(self.end_time).format(date_format)
         self.start_date = arrow.get(self.start_time).format(date_format)
 
-        self.parameters = {'start_date': self.start_date,
-                           'end_date': self.end_date}
+        self.parameters['start_date'] = self.start_date
+        self.parameters['end_date'] = self.end_date
 
         self.plexpy_config = {
             'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
@@ -515,7 +516,7 @@ class RecentlyAdded(Newsletter):
                           'input_type': 'number'
                           },
                          {'label': 'Included Libraries',
-                          'value': json.dumps(self.config['incl_libraries']),
+                          'value': self.config['incl_libraries'],
                           'description': 'Select the libraries to include in the newsletter.',
                           'name': 'recently_added_incl_libraries',
                           'input_type': 'select',

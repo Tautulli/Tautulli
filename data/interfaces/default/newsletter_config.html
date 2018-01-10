@@ -1,10 +1,14 @@
 % if newsletter:
 <%!
-    from plexpy import helpers, notifiers
+    import json
+    from plexpy import helpers, notifiers, users
 
     email_notifiers = [n for n in notifiers.get_notifiers() if n['agent_name'] == 'email']
     sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
     email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
+
+    user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
+    sorted(user_emails, key=lambda u: u['user'])
 %>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -56,7 +60,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
                                             </div>
                                         </div>
@@ -76,7 +80,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                                             </div>
                                         </div>
@@ -94,7 +98,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
@@ -115,7 +119,7 @@
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${newsletter['friendly_name']}" size="30">
                                             </div>
                                         </div>
@@ -130,7 +134,7 @@
                                     <div class="form-group">
                                         <label for="email_notifier">Email Notification Agent</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <select class="form-control" id="email_notifier" name="email_notifier">
                                                     % for notifier in email_notifiers:
                                                     <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier'] else '' %>
@@ -145,19 +149,19 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <p class="help-block">Use an exisiting Email notification agent or enter a new configuration below.</p>
+                                        <p class="help-block">Use an existing Email notification agent or enter a new configuration below.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="email_subject">Email Subject</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="text" class="form-control" id="email_subject" name="email_subject" value="${newsletter['email_config']['subject']}" size="30">
                                             </div>
                                         </div>
                                         <p class="help-block">
                                             Optional: Enter a subject line for the email. Leave blank for default.
                                             <br>
-                                            Note: You may include <span class="inline-pre">{start_date}</span> and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
+                                            Note: You may include <span class="inline-pre">{server_name}</span>, <span class="inline-pre">{start_date}</span>, and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
                                         </p>
                                     </div>
                                 </div>
@@ -172,7 +176,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
                                             </div>
                                         </div>
@@ -192,7 +196,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                                             </div>
                                         </div>
@@ -210,7 +214,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
@@ -237,7 +241,7 @@
                             </p>
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-12">
                                         <input type="button" class="btn btn-bright" id="preview_newsletter" name="preview_newsletter" value="Preview ${newsletter['agent_label']} Newsletter">
                                     </div>
                                 </div>
@@ -248,7 +252,7 @@
                             </p>
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-12">
                                         <input type="button" class="btn btn-bright" id="test_newsletter" name="test_newsletter" value="Test ${newsletter['agent_label']} Newsletter">
                                     </div>
                                 </div>
@@ -284,7 +288,7 @@
         maxItems: null
     });
     var incl_libraries = $incl_libraries[0].selectize;
-    incl_libraries.setValue(${next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_incl_libraries'), []) | n});
+    incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_incl_libraries'), [])) | n});
 
     $('#email_notifier').change(function () {
         if ($(this).val() === "0") {
@@ -293,6 +297,69 @@
             $('#newsletter-email-config').hide();
         }
     });
+
+    var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
+                      '(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)';
+    var $email_selectors = $('#email_to, #email_cc, #email_bcc').selectize({
+        plugins: ['remove_button'],
+        persist: false,
+        maxItems: null,
+        valueField: 'email',
+        labelField: 'user',
+        searchField: ['user', 'email'],
+        options: ${json.dumps(user_emails) | n},
+        render: {
+            item: function(item, escape) {
+                return '<div>' +
+                    (item.user ? '<span class="user">' + escape(item.user) + '</span>' : '') +
+                    (item.email ? '<span class="email">' + escape(item.email) + '</span>' : '') +
+                '</div>';
+            },
+            option: function(item, escape) {
+                var label = item.user || item.email;
+                var caption = item.user ? item.email : null;
+                return '<div>' +
+                    escape(label) +
+                    (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                '</div>';
+            }
+        },
+        createFilter: function(input) {
+            var match, regex;
+
+            // email@address.com
+            regex = new RegExp('^' + REGEX_EMAIL + '$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[0]);
+
+            // user <email@address.com>
+            regex = new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[2]);
+
+            return false;
+        },
+        create: function(input) {
+            if ((new RegExp('^' + REGEX_EMAIL + '$', 'i')).test(input)) {
+                return {email: input};
+            }
+            var match = input.match(new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i'));
+            if (match) {
+                return {
+                    email : match[2],
+                    user  : $.trim(match[1])
+                };
+            }
+            alert('Invalid email address.');
+            return false;
+        }
+    });
+    var email_to = $email_selectors[0].selectize;
+    var email_cc = $email_selectors[1].selectize;
+    var email_bcc = $email_selectors[2].selectize;
+    email_to.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_to'), [])) | n});
+    email_cc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_cc'), [])) | n});
+    email_bcc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_bcc'), [])) | n});
 
     function reloadModal() {
         $.ajax({
