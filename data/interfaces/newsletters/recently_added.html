@@ -7,474 +7,6 @@
     <title>Tautulli ${title} Newsletter</title>
     <style>
         /* -------------------------------------
-            GLOBAL RESETS
-        ------------------------------------- */
-        img {
-            border: none;
-            -ms-interpolation-mode: bicubic;
-            max-width: 100%;
-        }
-
-        body {
-            font-family: sans-serif;
-            -webkit-font-smoothing: antialiased;
-            font-size: 14px;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-            -ms-text-size-adjust: 100%;
-            -webkit-text-size-adjust: 100%;
-        }
-
-        table {
-            border-collapse: separate;
-            mso-table-lspace: 0pt;
-            mso-table-rspace: 0pt;
-            width: 100%;
-        }
-
-        table td {
-            font-family: sans-serif;
-            font-size: 14px;
-            vertical-align: top;
-        }
-
-        /* -------------------------------------
-            BODY & CONTAINER
-        ------------------------------------- */
-
-        .body {
-            width: 100%;
-        }
-
-        /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
-        .container {
-            display: block;
-            margin: 0 auto !important;
-            /* makes it centered */
-            max-width: 1046px;
-            padding: 10px;
-            width: 1046px;
-        }
-
-        /* This should also be a block element, so that it will fill 100% of the .container */
-        .content {
-            box-sizing: border-box;
-            display: block;
-            margin: 0 auto;
-            max-width: 1046px;
-            padding: 10px;
-        }
-
-        /* -------------------------------------
-            HEADER, FOOTER, MAIN
-        ------------------------------------- */
-        .main {
-            background: #282A2D;
-            border-radius: 3px;
-            width: 100%;
-            color: #ffffff;
-        }
-
-        .wrapper {
-            box-sizing: border-box;
-            padding: 5px;
-            overflow: auto;
-        }
-
-        .content-block {
-            padding-bottom: 10px;
-            padding-top: 10px;
-        }
-
-        .footer {
-            clear: both;
-            margin-top: 10px;
-            text-align: center;
-            width: 100%;
-            font-size: 12px;
-        }
-        .footer-bar {
-            margin-left: auto;
-            margin-right: auto;
-            width: 200px;
-            border-top: 1px solid #E5A00D;
-        }
-
-        .footer td,
-        .footer p,
-        .footer span,
-        .footer a {
-            color: #fff;
-            font-size: 12px;
-            text-align: center;
-        }
-
-        /* -------------------------------------
-            TYPOGRAPHY
-        ------------------------------------- */
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: #ffffff;
-            font-family: sans-serif;
-            font-weight: 400;
-            margin: 0;
-        }
-
-        p,
-        ul,
-        ol {
-            font-family: sans-serif;
-            font-size: 14px;
-            font-weight: 400;
-            margin: 0;
-            margin-bottom: 15px;
-        }
-
-        p li,
-        ul li,
-        ol li {
-            list-style-position: inside;
-            margin-left: 5px;
-        }
-
-        a {
-            color: #3498db;
-            text-decoration: underline;
-        }
-
-        /* -------------------------------------
-            BUTTONS
-        ------------------------------------- */
-        .btn {
-            box-sizing: border-box;
-            width: 100%;
-        }
-
-        .btn > tbody > tr > td {
-            padding-bottom: 15px;
-        }
-
-        .btn table {
-            width: auto;
-        }
-
-        .btn table td {
-            background-color: #ffffff;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        .btn a {
-            background-color: #ffffff;
-            border: solid 1px #3498db;
-            border-radius: 5px;
-            box-sizing: border-box;
-            color: #3498db;
-            cursor: pointer;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: bold;
-            margin: 0;
-            padding: 12px 25px;
-            text-decoration: none;
-            text-transform: capitalize;
-        }
-
-        .btn-primary table td {
-            background-color: #3498db;
-        }
-
-        .btn-primary a {
-            background-color: #3498db;
-            border-color: #3498db;
-            color: #ffffff;
-        }
-
-        /* -------------------------------------
-            OTHER STYLES THAT MIGHT BE USEFUL
-        ------------------------------------- */
-        .last {
-            margin-bottom: 0;
-        }
-
-        .first {
-            margin-top: 0;
-        }
-
-        .align-center {
-            text-align: center;
-        }
-
-        .align-right {
-            text-align: right;
-        }
-
-        .align-left {
-            text-align: left;
-        }
-
-        .clear {
-            clear: both;
-        }
-
-        .mt0 {
-            margin-top: 0;
-        }
-
-        .mb0 {
-            margin-bottom: 0;
-        }
-        .mb5 {
-            margin-bottom: 5px;
-        }
-
-        .nowrap {
-            white-space: nowrap;
-        }
-
-        .preheader {
-            color: transparent;
-            display: none;
-            height: 0;
-            max-height: 0;
-            max-width: 0;
-            opacity: 0;
-            overflow: hidden;
-            mso-hide: all;
-            visibility: hidden;
-            width: 0;
-        }
-
-        .powered-by a {
-            text-decoration: underline;
-        }
-
-        /* -------------------------------------
-            HEADER
-        ------------------------------------- */
-        .header {
-            background: url(https://i.imgur.com/oqMQJxp.png) no-repeat;
-            background-position: calc(50% - 20px) 50%;
-            background-size: contain;
-            width: 100%;
-            height: 100px;
-        }
-        .dates {
-            font-size: 20px;
-            text-align: center;
-        }
-        /* -------------------------------------
-            MEDIA SECTIONS
-        ------------------------------------- */
-        h2 {
-            font-size: 30px;
-            font-weight: 300;
-            margin: 20px 10px 0 10px;
-            text-align: center;
-        }
-
-        h3 {
-            font-size: 25px;
-            font-weight: 300;
-            margin: 0 0 10px 0;
-        }
-
-        img.sub-header-icon {
-            height: 30px;
-            vertical-align: middle;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-        .sub-header > div {
-            margin-left: auto;
-            margin-right: auto;
-            font-size: 30px;
-            text-align: center;
-        }
-        .sub-header-bar {
-            width: 200px;
-            border-top: 1px solid #E5A00D;
-            margin-bottom: 15px;
-        }
-        .sub-header-title {
-            font-weight: lighter;
-        }
-        .sub-header-count .count {
-            color: #E9A049;
-        }
-        .sub-header-count .count-units {
-            color: #aaaaaa;
-            font-size: 20px;
-            text-transform: uppercase;
-        }
-        /* -------------------------------------
-            MEDIA CARDS
-        ------------------------------------- */
-        .card-instance {
-            float: left;
-            width: 500px;
-            margin: 3px;
-            border: 1px solid rgba(255,255,255,.1);
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-            font-size: 12px;
-            overflow: hidden;
-            position: relative;
-        }
-        .card-instance.movie,
-        .card-instance.show {
-            height: 235px;
-        }
-        .card-instance.album {
-            height: 160px;
-        }
-        .card-instance.odd {
-            float: none !important;
-            margin: 3px auto !important;
-        }
-        .card-background {
-            background-color: #3F4245;
-            background-position: center;
-            background-size: cover;
-            width: 100%;
-            height: 100%;
-        }
-        .card-background-preview {
-            background-color: #3F4245;
-            background-position: center;
-            background-size: cover;
-            opacity: 0.40;
-            -webkit-filter: blur(3px);
-            filter: blur(3px);
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 0;
-        }
-        .card-poster-container {
-            width: 150px;
-            margin: 3px;
-            border: 1px solid rgba(255,255,255,.1);
-            float: left;
-            position: relative;
-            z-index: 1;
-        }
-        .card-instance.movie .card-poster-container,
-        .card-instance.show .card-poster-container{
-            height: 225px;
-        }
-        .card-instance.album .card-poster-container {
-            height: 150px;
-        }
-        .card-poster {
-            background-color: #3F4245;
-            background-position: center;
-            background-size: cover;
-            height: 100%;
-            width: 100%;
-        }
-        .card-poster-overlay {
-            background: rgba(0, 0, 0, 0.75) url(http://tautulli.com/images/plex-logo-reversed-flat-transparent.png) center no-repeat;
-            background-size: 80px;
-            width: 100%;
-            height: 100%;
-            border: 3px solid #E9A049;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-            display: none;
-        }
-        .card-info-container {
-            margin: 4px;
-            width: 332px;
-            float: left;
-            position: relative;
-            z-index: 1;
-        }
-        .card-instance.movie .card-info-container,
-        .card-instance.show .card-info-container{
-            height: 225px;
-        }
-        .card-instance.album .card-info-container {
-            height: 150px;
-        }
-        .card-info-container > div {
-            padding: 5px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-        .card-info-title {
-            border-bottom: 1px solid rgba(255, 255, 255, .1);
-            line-height: 20px;
-            font-size: 15px;
-        }
-        .card-info-title a {
-            text-decoration: none;
-            color: #ffffff;
-        }
-        .card-info-body > div {
-            color: #ffffff;
-            font-size: 12px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-        .card-instance.movie .card-info-body,
-        .card-instance.show .card-info-body {
-            min-height: 157px;
-        }
-        .card-instance.album .card-info-body {
-            min-height: 82px;
-        }
-        .card-info-footer {
-            font-size: 10px;
-        }
-        .card-info-footer .star-rating {
-            width: 60px;
-            font-size: 14px;
-            line-height: 17px;
-            float: right;
-        }
-        .star-rating-full {
-            color: #E9A049;
-            direction: ltr;
-            padding: 0;
-            overflow: hidden;
-            float: left;
-        }
-        .star-rating-empty {
-            color: #aaaaaa;
-            direction: rtl;
-            padding: 0;
-            overflow: hidden;
-            float: left;
-        }
-        .star-rating span {
-            display: inline-block;
-            text-align: center;
-            width: 12px;
-        }
-        .badge {
-            display: inline-block;
-            min-width: 10px;
-            padding: 3px 7px;
-            font-size: 11px;
-            font-style: normal;
-            line-height: 1;
-            color: #fff;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
-            background-color: rgba(0, 0, 0, .25);
-            border-radius: 2px;
-        }
-
-        /* -------------------------------------
             RESPONSIVE AND MOBILE FRIENDLY STYLES
         ------------------------------------- */
         @media only screen and (max-width: 620px) {
@@ -593,7 +125,7 @@
                                         <img src="http://tautulli.com/images/libraries/movie.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <span class="count" style="color: #E9A049;">${len(recently_added['movie'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
+                                        <span class="count" style="color: #E5A00D;">${len(recently_added['movie'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
                                     </div>
                                 </div>
                             </div>
@@ -607,7 +139,7 @@
                                     % if PILLOW:
                                     % if preview:
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.40;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
                                     % else:
                                     <div class="card-background" style="background-image: url(${movie['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
@@ -617,7 +149,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: rgba(0, 0, 0, 0.75) url(http://tautulli.com/images/plex-logo-reversed-flat-transparent.png) center no-repeat;background-size: 80px;width: 100%;height: 100%;border: 3px solid #E9A049;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;display: none;"></div>
+                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -647,7 +179,7 @@
                                                 % endif
                                                 % if movie['rating']:
                                                 <span class="star-rating" style="width: 60px;font-size: 14px;line-height: 17px;float: right;">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(movie['rating'])/0.1}%;white-space: nowrap;color: #E9A049;direction: ltr;padding: 0;overflow: hidden;float: left;">
+                                                    <div class="star-rating-full nowrap" style="width: ${float(movie['rating'])/0.1}%;white-space: nowrap;color: #E5A00D;direction: ltr;padding: 0;overflow: hidden;float: left;">
                                                         <span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span>
                                                     </div>
                                                     <div class="star-rating-empty" style="width: ${100-float(movie['rating'])/0.1}%;color: #aaaaaa;direction: rtl;padding: 0;overflow: hidden;float: left;">
@@ -670,9 +202,9 @@
                                         <img src="http://tautulli.com/images/libraries/show.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <span class="count" style="color: #E9A049;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
+                                        <span class="count" style="color: #E5A00D;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
                                         <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
-                                        <span class="count" style="color: #E9A049;">${total_episodes}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">episode${'s' if total > 1 else ''}</span>
+                                        <span class="count" style="color: #E5A00D;">${total_episodes}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">episode${'s' if total > 1 else ''}</span>
                                     </div>
                                 </div>
                             </div>
@@ -694,7 +226,7 @@
                                     % if PILLOW:
                                     % if preview:
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.40;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
                                     % else:
                                     <div class="card-background" style="background-image: url(${show['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
@@ -704,7 +236,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: rgba(0, 0, 0, 0.75) url(http://tautulli.com/images/plex-logo-reversed-flat-transparent.png) center no-repeat;background-size: 80px;width: 100%;height: 100%;border: 3px solid #E9A049;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;display: none;"></div>
+                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -761,7 +293,7 @@
                                                 % endif
                                                 % if show['rating']:
                                                 <span class="star-rating" style="width: 60px;font-size: 14px;line-height: 17px;float: right;">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(show['rating'])/0.1}%;white-space: nowrap;color: #E9A049;direction: ltr;padding: 0;overflow: hidden;float: left;">
+                                                    <div class="star-rating-full nowrap" style="width: ${float(show['rating'])/0.1}%;white-space: nowrap;color: #E5A00D;direction: ltr;padding: 0;overflow: hidden;float: left;">
                                                         <span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span>
                                                     </div>
                                                     <div class="star-rating-empty" style="width: ${100-float(show['rating'])/0.1}%;color: #aaaaaa;direction: rtl;padding: 0;overflow: hidden;float: left;">
@@ -784,9 +316,9 @@
                                         <img src="http://tautulli.com/images/libraries/artist.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <span class="count" style="color: #E9A049;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
+                                        <span class="count" style="color: #E5A00D;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
                                         <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
-                                        <span class="count" style="color: #E9A049;">${total_albums}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">album${'s' if total > 1 else ''}</span>
+                                        <span class="count" style="color: #E5A00D;">${total_albums}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">album${'s' if total > 1 else ''}</span>
                                     </div>
                                 </div>
                             </div>
@@ -803,7 +335,7 @@
                                     % if PILLOW:
                                     % if preview:
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.40;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
                                     % else:
                                     <div class="card-background" style="background-image: url(${album['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
@@ -813,7 +345,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
                                             <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: rgba(0, 0, 0, 0.75) url(http://tautulli.com/images/plex-logo-reversed-flat-transparent.png) center no-repeat;background-size: 80px;width: 100%;height: 100%;border: 3px solid #E9A049;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;display: none;"></div>
+                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -842,7 +374,7 @@
                                                 % endif
                                                 % if album['rating']:
                                                 <span class="star-rating" style="width: 60px;font-size: 14px;line-height: 17px;float: right;">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(album['rating'])/0.1}%;white-space: nowrap;color: #E9A049;direction: ltr;padding: 0;overflow: hidden;float: left;">
+                                                    <div class="star-rating-full nowrap" style="width: ${float(album['rating'])/0.1}%;white-space: nowrap;color: #E5A00D;direction: ltr;padding: 0;overflow: hidden;float: left;">
                                                         <span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span><span style="display: inline-block;text-align: center;width: 12px;">&#9733;</span>
                                                     </div>
                                                     <div class="star-rating-empty" style="width: ${100-float(album['rating'])/0.1}%;color: #aaaaaa;direction: rtl;padding: 0;overflow: hidden;float: left;">
