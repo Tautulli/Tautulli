@@ -5514,11 +5514,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def preview_newsletter(self, newsletter_id=None, **kwargs):
+    def preview_newsletter(self, newsletter_id=None, master=False, **kwargs):
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
             newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'], config=newsletter['config'])
             if newsletter_agent:
-                return newsletter_agent.preview()
+                return newsletter_agent.preview(master=master)
 
         return

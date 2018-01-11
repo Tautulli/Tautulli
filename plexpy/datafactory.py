@@ -1106,7 +1106,7 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_info(self, rating_key='', metadata=None):
+    def get_poster_info(self, rating_key='', metadata=None, art=False):
         monitor_db = database.MonitorDatabase()
 
         poster_key = ''
@@ -1124,25 +1124,39 @@ class DataFactory(object):
 
         if poster_key:
             try:
-                query = 'SELECT poster_title, poster_url FROM poster_urls ' \
-                        'WHERE rating_key = ?'
+                if art:
+                    query = 'SELECT art_title, art_url, blur_art_url FROM art_urls ' \
+                            'WHERE rating_key = ?'
+                else:
+                    query = 'SELECT poster_title, poster_url FROM poster_urls ' \
+                            'WHERE rating_key = ?'
                 poster_info = monitor_db.select_single(query, args=[poster_key])
             except Exception as e:
                 logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
 
         return poster_info
 
-    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash=''):
+    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash='', art=False, blur=False):
         monitor_db = database.MonitorDatabase()
 
         if str(rating_key).isdigit():
             keys = {'rating_key': int(rating_key)}
 
-            values = {'poster_title': poster_title,
-                      'poster_url': poster_url,
-                      'delete_hash': delete_hash}
+            if art:
+                table = 'art_urls'
+                values = {'art_title': poster_title,
+                          'delete_hash': delete_hash}
+                if blur:
+                    values['blur_art_url'] = poster_url
+                else:
+                    values['art_url'] = poster_url
+            else:
+                table = 'poster_urls'
+                values = {'poster_title': poster_title,
+                          'poster_url': poster_url,
+                          'delete_hash': delete_hash}
 
-            monitor_db.upsert(table_name='poster_urls', key_dict=keys, value_dict=values)
+            monitor_db.upsert(table_name=table, key_dict=keys, value_dict=values)
 
     def delete_poster_url(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

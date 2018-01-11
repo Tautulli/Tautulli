@@ -750,6 +750,7 @@
     });
 
     function sendTestNotification() {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sending Notification', false);
         if ('${notifier["agent_name"]}' !== 'browser') {
             $.ajax({
                 url: 'send_notification',

@@ -2436,15 +2436,17 @@ class PmsConnect(object):
         Output: array
         """
 
+        width = width or '1000'
+        height = height or '1500'
+
         if img:
             if clip:
                 params = {'url': '%s&%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
             else:
                 params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
 
-            if width.isdigit() and height.isdigit():
-                params['width'] = width
-                params['height'] = height
+            params['width'] = width
+            params['height'] = height
 
             uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
             result = self.request_handler.make_request(uri=uri,

@@ -22,12 +22,14 @@ import os
 import time
 
 import plexpy
+import common
 import database
 import helpers
 import libraries
 import logger
 import notification_handler
 import pmsconnect
+from notification_handler import PILLOW, get_poster_info
 from notifiers import send_notification, EMAIL
 
 
@@ -242,6 +244,7 @@ class Newsletter(object):
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier'] = 0
     _DEFAULT_EMAIL_CONFIG['subject'] = 'Tautulli Newsletter'
+    _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
     def __init__(self, config=None, email_config=None):
@@ -250,6 +253,7 @@ class Newsletter(object):
 
         self.parameters = {'server_name': plexpy.CONFIG.PMS_NAME}
         self.is_preview = False
+        self.master_template = False
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -268,26 +272,31 @@ class Newsletter(object):
         return new_config
 
     def _render_template(self, **kwargs):
+        if self.master_template:
+            template = self._TEMPLATE_MASTER
+        else:
+            template = self._TEMPLATE
+
         return serve_template(
-            templatename=self._TEMPLATE,
+            templatename=template,
             title=self.NAME,
             parameters=self.parameters,
             **kwargs
         )
 
     def _format_subject(self, subject):
-        subject = subject or self._default_email_config['subject']
+        subject = subject or self._DEFAULT_EMAIL_CONFIG['subject']
 
         try:
             subject = unicode(subject).format(**self.parameters)
         except LookupError as e:
             logger.error(
                 u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
-            subject = unicode(self._default_email_config['subject']).format(**self.parameters)
+            subject = unicode(self._DEFAULT_EMAIL_CONFIG['subject']).format(**self.parameters)
         except Exception as e:
             logger.error(
                 u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
-            subject = unicode(self._default_email_config['subject']).format(**self.parameters)
+            subject = unicode(self._DEFAULT_EMAIL_CONFIG['subject']).format(**self.parameters)
 
         return subject
 
@@ -297,7 +306,10 @@ class Newsletter(object):
     def generate_newsletter(self):
         pass
 
-    def preview(self):
+    def preview(self, master=False):
+        self.is_preview = True
+        if master:
+            self.master_template = True
         self.retrieve_data()
         return self.generate_newsletter()
 
@@ -337,6 +349,7 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_CONFIG = {'last_days': 7,
                        'incl_libraries': None
                        }
+    _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 
     def __init__(self, config=None, email_config=None):
@@ -490,12 +503,38 @@ class RecentlyAdded(Newsletter):
             if media_type not in self.recently_added:
                 self.recently_added[media_type] = self._get_recently_added(media_type)
 
+        if not self.is_preview:
+            # Upload posters and art to Imgur
+            movies = self.recently_added.get('movie', [])
+            shows = self.recently_added.get('show', [])
+            artists = self.recently_added.get('artist', [])
+            albums = [a for artist in artists for a in artist['album']]
+
+            for item in movies + shows + albums:
+                poster_info = get_poster_info(poster_thumb=item['thumb'],
+                                              poster_key=item['rating_key'],
+                                              poster_title=item['title'])
+                if poster_info:
+                    item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
+
+                art_info = {}
+                if PILLOW:
+                    art_info = get_poster_info(poster_thumb=item['art'],
+                                               poster_key=item['rating_key'],
+                                               poster_title=item['title'],
+                                               art=True,
+                                               width='500',
+                                               height='280',
+                                               blur=True)
+                item['art_url'] = art_info.get('blur_art_url', '')
+
         return self.recently_added
 
     def generate_newsletter(self):
         return self._render_template(
             recently_added=self.recently_added,
-            plexpy_config=self.plexpy_config
+            plexpy_config=self.plexpy_config,
+            preview=self.is_preview
         )
 
     def _get_sections(self):

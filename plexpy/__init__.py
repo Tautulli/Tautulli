@@ -634,6 +634,12 @@ def dbcheck():
         'rating_key INTEGER, poster_title TEXT, poster_url TEXT, delete_hash TEXT)'
     )
 
+    # art_urls table :: This table keeps record of the notification art urls
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS art_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'rating_key INTEGER, art_title TEXT, art_url TEXT, blur_art_url TEXT)'
+    )
+
     # recently_added table :: This table keeps record of recently added items
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, '

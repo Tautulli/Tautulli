@@ -26,6 +26,12 @@ from string import Formatter
 import threading
 import time
 
+try:
+    from PIL import Image, ImageFilter
+    PILLOW = True
+except ImportError:
+    PILLOW = False
+
 import plexpy
 import activity_processor
 import common
@@ -1065,45 +1071,76 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_poster_info(poster_thumb, poster_key, poster_title):
+def get_poster_info(poster_thumb='', poster_key='', poster_title='', art=False, width='', height='', blur=False):
+    default_poster_info = {'poster_title': '', 'poster_url': ''}
+    default_art_info = {'art_title': '', 'art_url': ''}
+
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
-    poster_info = data_factory.get_poster_info(rating_key=poster_key)
+    poster_info = data_factory.get_poster_info(rating_key=poster_key, art=art)
 
     # If no previous poster info
     if not poster_info and poster_thumb:
         try:
             thread_name = str(threading.current_thread().ident)
-            poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
+            poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-image-%s.jpg' % thread_name)
 
             # Retrieve the poster from Plex and cache to file
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_image(img=poster_thumb)
+            result = pms_connect.get_image(img=poster_thumb, width=width, height=height)
             if result and result[0]:
                 with open(poster_file, 'wb') as f:
                     f.write(result[0])
             else:
                 raise Exception(u'PMS image request failed')
 
+            if blur and PILLOW:
+                img = Image.open(poster_file)
+                img = img.convert("RGBA")
+                img = img.filter(ImageFilter.GaussianBlur(3))  # 3px blur
+                img.putalpha(102)  # 40% opacity
+
+                # Save as a png
+                poster_file_blur = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-image-%s.png' % thread_name)
+                img.save(poster_file_blur)
+
             # Upload poster_thumb to Imgur and get link
-            poster_url, delete_hash = helpers.upload_to_imgur(poster_file, poster_title)
+            if blur:
+                poster_url, delete_hash = helpers.uploadToImgur(poster_file_blur, poster_title)
+            else:
+                poster_url, delete_hash = helpers.uploadToImgur(poster_file, poster_title)
 
             if poster_url:
                 # Create poster info
-                poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
+                if art:
+                    poster_info = {'art_title': poster_title}
+                    if blur:
+                        poster_info['blur_art_url'] = poster_url
+                    else:
+                        poster_info['art_url'] = poster_url
+                else:
+                    poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
 
                 # Save the poster url in the database
                 data_factory.set_poster_url(rating_key=poster_key,
                                             poster_title=poster_title,
                                             poster_url=poster_url,
-                                            delete_hash=delete_hash)
+                                            delete_hash=delete_hash,
+                                            art=art,
+                                            blur=blur)
 
             # Delete the cached poster
             os.remove(poster_file)
+            if blur:
+                os.remove(poster_file_blur)
         except Exception as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
+            logger.error(u"Tautulli NotificationHandler :: Unable to retrieve poster for rating_key %s: %s."
+                         % (poster_key, e))
 
-    return poster_info
+    if art:
+        return poster_info or default_art_info
+    else:
+        return poster_info or default_poster_info
 
 
 def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):

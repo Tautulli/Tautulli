@@ -443,6 +443,7 @@
     }
 
     function sendTestNewsletter() {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Generating Newsletter', false);
         $.ajax({
             url: 'send_newsletter',
             data: {
