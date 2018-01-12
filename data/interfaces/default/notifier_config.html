@@ -755,7 +755,7 @@
             $.ajax({
                 url: 'send_notification',
                 data: {
-                    notifier_id: '${notifier["id"]}',
+                    notifier_id: $('#notifier_id').val(),
                     subject: $('#test_subject').val(),
                     body: $('#test_body').val(),
                     script: $('#test_script').val(),

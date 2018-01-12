@@ -39,6 +39,7 @@ import http_handler
 import libraries
 import log_reader
 import logger
+import newsletter_handler
 import newsletters
 import mobile_app
 import notification_handler
@@ -5478,7 +5479,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify_newsletter")
-    def send_newsletter(self, newsletter_id=None, test=False, **kwargs):
+    def send_newsletter(self, newsletter_id=None, subject='Tautulli Newsletter', notify_action='', **kwargs):
         """ Send a newsletter using Tautulli.
 
             ```
@@ -5494,14 +5495,17 @@ class WebInterface(object):
         """
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
-        test = 'test ' if test else ''
+        test = 'test ' if notify_action == 'test' else ''
 
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
                 logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_label']))
-                if newsletters.send_newsletter(newsletter_id=newsletter_id):
+                if newsletter_handler.notify(newsletter_id=newsletter_id,
+                                             notify_action=notify_action,
+                                             subject=subject,
+                                             **kwargs):
                     return "Newsletter sent."
                 else:
                     return "Newsletter failed."
@@ -5518,7 +5522,10 @@ class WebInterface(object):
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
             newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'], config=newsletter['config'])
+
             if newsletter_agent:
                 return newsletter_agent.preview(master=master)
 
-        return
+            return "Invalid newsletter id %s" % newsletter_id
+
+        return "Missing newsletter_id parameter"

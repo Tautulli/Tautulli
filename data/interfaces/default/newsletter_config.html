@@ -439,7 +439,7 @@
     });
 
     function previewNewsletter() {
-        window.open('preview_newsletter?newsletter_id=${newsletter["id"]}');
+        window.open('preview_newsletter?newsletter_id=' + $('#newsletter_id').val());
     }
 
     function sendTestNewsletter() {
@@ -447,8 +447,9 @@
         $.ajax({
             url: 'send_newsletter',
             data: {
-                newsletter_id: '${newsletter["id"]}',
-                test: true
+                newsletter_id: $('#newsletter_id').val(),
+                subject: $('#email_subject').val(),
+                notify_action: 'test'
             },
             cache: false,
             async: true,

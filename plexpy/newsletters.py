@@ -50,6 +50,19 @@ def available_newsletter_agents():
     return agents
 
 
+def available_notification_actions():
+    actions = [{'label': 'Schedule',
+                'name': 'on_cron',
+                'description': 'Trigger a notification on a certain schedule.',
+                'subject': 'Tautulli Newsletter',
+                'icon': 'fa-calendar',
+                'media_types': ('newsletter',)
+                }
+               ]
+
+    return actions
+
+
 def get_agent_class(agent_id=None, config=None, email_config=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
@@ -213,13 +226,15 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_newsletter(newsletter_id=None, newsletter_log_id=None, **kwargs):
+def send_newsletter(newsletter_id=None, subject=None, notify_action='', newsletter_log_id=None, **kwargs):
     newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
     if newsletter_config:
         agent = get_agent_class(agent_id=newsletter_config['agent_id'],
                                 config=newsletter_config['config'],
                                 email_config=newsletter_config['email_config'])
-        return agent.send(newsletter_log_id=newsletter_log_id, **kwargs)
+        return agent.send(subject=subject,
+                          action=notify_action.split('on_')[-1],
+                          newsletter_log_id=newsletter_log_id, **kwargs)
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
@@ -284,7 +299,7 @@ class Newsletter(object):
             **kwargs
         )
 
-    def _format_subject(self, subject):
+    def format_subject(self, subject):
         subject = subject or self._DEFAULT_EMAIL_CONFIG['subject']
 
         try:
@@ -313,10 +328,10 @@ class Newsletter(object):
         self.retrieve_data()
         return self.generate_newsletter()
 
-    def send(self, **kwargs):
+    def send(self, subject='', **kwargs):
         self.retrieve_data()
 
-        subject = self._format_subject(self.email_config['subject'])
+        subject = self.format_subject(subject or self.email_config['subject'])
         newsletter = self.generate_newsletter()
 
         if self.email_config['notifier']:

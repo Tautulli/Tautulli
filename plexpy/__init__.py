@@ -426,7 +426,7 @@ def initialize_scheduler():
                 logger.error(e)
 
 
-def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
+def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):
     """
     Start scheduled job if starting or restarting plexpy.
     Reschedule job if Interval Settings have changed.
@@ -444,7 +444,7 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
                 hours=hours, minutes=minutes, seconds=seconds), args=args)
             logger.info(u"Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
-        SCHED.add_job(function, id=name, trigger=IntervalTrigger(
+        SCHED.add_job(func, id=name, trigger=IntervalTrigger(
             hours=hours, minutes=minutes, seconds=seconds), args=args)
         logger.info(u"Scheduled background task: %s", name)
 
@@ -574,14 +574,6 @@ def dbcheck():
         'filter_music TEXT, filter_photos TEXT)'
     )
 
-    # notify_log table :: This is a table which logs notifications sent
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
-        'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0)'
-    )
-
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -620,12 +612,27 @@ def dbcheck():
         'custom_conditions TEXT, custom_conditions_logic TEXT)'
     )
 
+    # notify_log table :: This is a table which logs notifications sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
+        'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+        'subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0)'
+    )
+
     # newsletters table :: This table keeps record of the newsletter settings
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
         'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
         'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
+    )
+
+    # newsletter_log table :: This is a table which logs newsletters sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
+        'newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+        'subject_text TEXT, success INTEGER DEFAULT 0)'
     )
 
     # poster_urls table :: This table keeps record of the notification poster urls
