@@ -99,6 +99,7 @@
             margin-right: auto;
             width: 200px;
             border-top: 1px solid #E5A00D;
+            margin-top: 25px;
         }
 
         .footer td,
@@ -297,7 +298,8 @@
         .sub-header-bar {
             width: 200px;
             border-top: 1px solid #E5A00D;
-            margin-bottom: 15px;
+            margin-top: 25px;
+            margin-bottom: 25px;
         }
         .sub-header-title {
             font-weight: lighter;
@@ -640,7 +642,7 @@
                                                 <span class="badge">${int(int(movie['duration'])/60000)} mins</span>
                                                 % endif
                                                 % if movie['rating']:
-                                                <span class="star-rating">
+                                                <span class="star-rating" title="${int(float(movie['rating'])/0.1)}%">
                                                     <div class="star-rating-full nowrap" style="width: ${float(movie['rating'])/0.1}%">
                                                         <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
                                                     </div>
@@ -754,7 +756,7 @@
                                                 <span class="badge">${int(int(show['duration'])/60000)} mins</span>
                                                 % endif
                                                 % if show['rating']:
-                                                <span class="star-rating">
+                                                <span class="star-rating" title="${int(float(show['rating'])/0.1)}%">
                                                     <div class="star-rating-full nowrap" style="width: ${float(show['rating'])/0.1}%">
                                                         <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
                                                     </div>
@@ -835,7 +837,7 @@
                                                 % endfor
                                                 % endif
                                                 % if album['rating']:
-                                                <span class="star-rating">
+                                                <span class="star-rating" title="${int(float(album['rating'])/0.1)}%">
                                                     <div class="star-rating-full nowrap" style="width: ${float(album['rating'])/0.1}%">
                                                         <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
                                                     </div>
