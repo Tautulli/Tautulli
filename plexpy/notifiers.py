@@ -1178,7 +1178,8 @@ class DISCORD(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -1202,16 +1203,16 @@ class DISCORD(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'discord_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1361,7 +1362,7 @@ class EMAIL(Notifier):
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
                           'name': 'email_html_support',
-                          'description': 'Style your messages using  HTML tags. '
+                          'description': 'Style your messages using HTML tags. '
                                          'Line breaks (&lt;br&gt;) will be inserted automatically.',
                           'input_type': 'checkbox'
                           }
@@ -1475,17 +1476,17 @@ class FACEBOOK(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
-                                          Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
-                                          Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong> \
-                                          for <strong>Facebook Login</strong>.<br>\
-                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>\
-                                          Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
-                                          Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>\
-                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>\
-                                          Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>\
-                                          Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank">'
+                                         'Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>'
+                                         'Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong>'
+                                         'for <strong>Facebook Login</strong>.<br>'
+                                         'Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>'
+                                         'Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>'
+                                         'Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>'
+                                         'Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>'
+                                         'Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>'
+                                         'Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>'
+                                         'Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
                           'input_type': 'help'
                           },
                          {'label': 'Tautulli URL',
@@ -1534,22 +1535,23 @@ class FACEBOOK(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'facebook_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'facebook_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1854,6 +1856,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'hipchat_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.<br>'
                                          'Note: This will change the notification type to HTML and emoticons will no longer work.',
                           'input_type': 'checkbox'
                           },
@@ -1872,16 +1875,16 @@ class HIPCHAT(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'hipchat_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'hipchat_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2064,22 +2067,23 @@ class JOIN(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'join_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'join_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                           3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'join_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                           3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2712,16 +2716,16 @@ class PUSHOVER(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'pushover_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'pushover_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3047,7 +3051,8 @@ class SLACK(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'slack_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -3071,16 +3076,16 @@ class SLACK(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'slack_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'slack_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3172,7 +3177,8 @@ class TELEGRAM(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'telegram_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Enable HTML Support',
@@ -3240,12 +3246,12 @@ class TWITTER(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank"> \
-                                          Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>\
-                                          Step 2: Go to <strong>Keys and Access Tokens</strong> and click \
-                                          <strong>Create my access token</strong>.<br>\
-                                          Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, \
-                                          <strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank">'
+                                         'Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>'
+                                         'Step 2: Go to <strong>Keys and Access Tokens</strong> and click '
+                                         '<strong>Create my access token</strong>.<br>'
+                                         'Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, '
+                                         '<strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'Twitter Consumer Key',
@@ -3281,7 +3287,8 @@ class TWITTER(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'twitter_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           }
                          ]
