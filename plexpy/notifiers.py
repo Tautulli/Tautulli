@@ -715,6 +715,17 @@ class Notifier(object):
         return new_config
 
     def notify(self, subject='', body='', action='', **kwargs):
+        if self.NAME != 'Script':
+            if not subject and self.config.get('incl_subject', True):
+                logger.error(u"Tautulli Notifiers :: %s notification subject cannot be blank." % self.NAME)
+                return
+            elif not body:
+                logger.error(u"Tautulli Notifiers :: %s notification body cannot be blank." % self.NAME)
+                return
+
+        return self.agent_notify(subject=subject, body=body, action=action, **kwargs)
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         pass
 
     def make_request(self, url, method='POST', **kwargs):
@@ -755,10 +766,7 @@ class ANDROIDAPP(Notifier):
 
     _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
-    def notify(self, subject='', body='', action='', notification_id=None, **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
         if not device:
@@ -919,10 +927,7 @@ class BOXCAR(Notifier):
                        'sound': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'user_credentials': self.config['token'],
                 'notification[title]': subject.encode('utf-8'),
                 'notification[long_message]': body.encode('utf-8'),
@@ -993,10 +998,7 @@ class BROWSER(Notifier):
                        'auto_hide_delay': 5
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
         return True
 
@@ -1063,10 +1065,7 @@ class DISCORD(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -1256,10 +1255,7 @@ class EMAIL(Notifier):
         if not isinstance(self.config['bcc'], list):
             self.config['bcc'] = [x.strip() for x in self.config['bcc'].split(';')]
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['html_support']:
             body = body.replace('\n', '<br />')
             msg = MIMEMultipart('alternative')
@@ -1428,7 +1424,7 @@ class FACEBOOK(Notifier):
         except Exception as e:
             logger.error(u"Tautulli Notifiers :: Error requesting {name} access token: {e}".format(name=self.NAME, e=e))
             plexpy.CONFIG.FACEBOOK_TOKEN = ''
-            
+
         # Clear out temporary config values
         plexpy.CONFIG.FACEBOOK_APP_ID = ''
         plexpy.CONFIG.FACEBOOK_APP_SECRET = ''
@@ -1452,10 +1448,7 @@ class FACEBOOK(Notifier):
             logger.error(u"Tautulli Notifiers :: Error sending {name} post: No {name} Group ID provided.".format(name=self.NAME))
             return False
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -1475,7 +1468,7 @@ class FACEBOOK(Notifier):
                 provider = self.config['music_provider']
             else:
                 provider = None
-            
+
             data['link'] = pretty_metadata.get_provider_link(provider)
 
         return self._post_facebook(**data)
@@ -1583,10 +1576,7 @@ class GROUPME(Notifier):
                        'incl_poster': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'bot_id': self.config['bot_id']}
 
         if self.config['incl_subject']:
@@ -1661,10 +1651,7 @@ class GROWL(Notifier):
                        'password': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         # Split host and port
         if self.config['host'] == "":
             host, port = "localhost", 23053
@@ -1757,10 +1744,7 @@ class HIPCHAT(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'notify': 'false'}
 
         text = body.encode('utf-8')
@@ -1922,10 +1906,7 @@ class IFTTT(Notifier):
                        'event': 'plexpy'
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         event = unicode(self.config['event']).format(action=action)
 
         data = {'value1': subject.encode("utf-8"),
@@ -1980,10 +1961,7 @@ class JOIN(Notifier):
         if not isinstance(self.config['device_names'], list):
             self.config['device_names'] = [x.strip() for x in self.config['device_names'].split(',')]
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['api_key'],
                 'deviceNames': ','.join(self.config['device_names']),
                 'text': body.encode("utf-8")}
@@ -2133,10 +2111,7 @@ class MQTT(Notifier):
                        'keep_alive': 60
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if not self.config['topic']:
             logger.error(u"Tautulli Notifiers :: MQTT topic not specified.")
             return
@@ -2239,10 +2214,7 @@ class NMA(Notifier):
                        'priority': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         title = 'Tautulli'
         batch = False
 
@@ -2319,7 +2291,7 @@ class OSX(Notifier):
     def _swizzled_bundleIdentifier(self, original, swizzled):
         return 'ade.plexpy.osxnotify'
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def agent_notify(self, subject='', body='', action='', **kwargs):
 
         subtitle = kwargs.get('subtitle', '')
         sound = kwargs.get('sound', '')
@@ -2412,10 +2384,7 @@ class PLEX(Notifier):
         if response:
             return response[0]['result']
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
         if self.config['display_time'] > 0:
@@ -2450,7 +2419,7 @@ class PLEX(Notifier):
             except Exception as e:
                 logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
-                
+
         return True
 
     def return_config_options(self):
@@ -2498,16 +2467,13 @@ class PROWL(Notifier):
                        'priority': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['key'],
                 'application': 'Tautulli',
                 'event': subject.encode("utf-8"),
                 'description': body.encode("utf-8"),
                 'priority': self.config['priority']}
-        
+
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
         return self.make_request('https://api.prowlapp.com/publicapi/add', headers=headers, data=data)
@@ -2539,10 +2505,7 @@ class PUSHALOT(Notifier):
     _DEFAULT_CONFIG = {'api_key': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'AuthorizationToken': self.config['api_key'],
                 'Title': subject.encode('utf-8'),
                 'Body': body.encode("utf-8")}
@@ -2573,10 +2536,7 @@ class PUSHBULLET(Notifier):
                        'channel_tag': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'type': 'note',
                 'title': subject.encode("utf-8"),
                 'body': body.encode("utf-8")}
@@ -2658,10 +2618,7 @@ class PUSHOVER(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'token': self.config['api_token'],
                 'user': self.config['key'],
                 'title': subject.encode("utf-8"),
@@ -2866,7 +2823,7 @@ class SCRIPTS(Notifier):
             logger.info(u"Tautulli Notifiers :: Script notification sent.")
             return True
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         """
             Args:
                   subject(string, optional): Subject text,
@@ -2978,10 +2935,7 @@ class SLACK(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -3155,10 +3109,7 @@ class TELEGRAM(Notifier):
                        'incl_poster': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not body or not subject:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'chat_id': self.config['chat_id']}
 
         if self.config['incl_subject']:
@@ -3276,10 +3227,7 @@ class TWITTER(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         poster_url = ''
         if self.config['incl_poster'] and kwargs.get('parameters'):
             parameters = kwargs['parameters']
@@ -3376,10 +3324,7 @@ class XBMC(Notifier):
         if response:
             return response[0]['result']
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
         if self.config['display_time'] > 0:
