@@ -474,11 +474,19 @@
                                data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
                         <div class="checkbox">
                             <label>
+                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
+                            </label>
+                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
                                 <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
                             </label>
                             <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
                         </div>
 
+                        <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
                         <div class="padded-header">
                             <h3>Guest Access</h3>
@@ -1777,6 +1785,7 @@ $(document).ready(function() {
 
     $( ".auth-settings" ).change(function() {
         authChanged = true;
+        $("#auth_changed").prop('checked', true);
     });
 
     $( ".directory-settings" ).change(function() {
@@ -2016,6 +2025,26 @@ $(document).ready(function() {
         }
     });
 
+    function allowPlexAdminCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#http_plex_admin").attr("disabled", true);
+            $("#http_plex_admin").attr("checked", false);
+            $("#allowPlexCheck").html("Plex admin login cannot be enabled with basic authentication.");
+        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#http_plex_admin").attr("disabled", true);
+            $("#http_plex_admin").attr("checked", false);
+            $("#allowPlexCheck").html("You must set an admin username and password above to allow Plex admin login.");
+        } else {
+            $("#http_plex_admin").attr("disabled", false);
+            $("#allowPlexCheck").html("");
+        }
+    }
+    allowPlexAdminCheck();
+
+    $('#http_username, #http_password, #http_basic_auth').change(function () {
+        allowPlexAdminCheck();
+    });
+
     function allowGuestAccessCheck () {
         if ($("#http_basic_auth").is(":checked")) {
             $("#allow_guest_access").attr("disabled", true);
@@ -2024,7 +2053,7 @@ $(document).ready(function() {
         } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
             $("#allow_guest_access").attr("disabled", true);
             $("#allow_guest_access").attr("checked", false);
-            $("#allowGuestCheck").html("You must set an admin password above to allow guest access.");
+            $("#allowGuestCheck").html("You must set an admin username and password above to allow guest access.");
         } else {
             $("#allow_guest_access").attr("disabled", false);
             $("#allowGuestCheck").html("");

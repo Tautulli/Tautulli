@@ -68,8 +68,12 @@ def initialize(options):
         protocol = "http"
 
     if options['http_password']:
-        logger.info(u"Tautulli WebStart :: Web server authentication is enabled, username is '%s'",
-                    options['http_username'])
+        login_allowed = ["Tautulli admin (username is '%s')" % options['http_username']]
+        if plexpy.CONFIG.HTTP_PLEX_ADMIN:
+            login_allowed.append("Plex admin")
+
+        logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s allowed", ' and '.join(login_allowed))
+
         if options['http_basic_auth']:
             auth_enabled = False
             basic_auth_enabled = True

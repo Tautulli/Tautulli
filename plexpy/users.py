@@ -52,6 +52,7 @@ def refresh_users():
             new_value_dict = {"username": item['username'],
                               "thumb": item['thumb'],
                               "email": item['email'],
+                              "is_admin": item['is_admin'],
                               "is_home_user": item['is_home_user'],
                               "is_allow_sync": item['is_allow_sync'],
                               "is_restricted": item['is_restricted'],
@@ -330,6 +331,7 @@ class Users(object):
                           'friendly_name': 'Local',
                           'user_thumb': common.DEFAULT_USER_THUMB,
                           'email': '',
+                          'is_admin': '',
                           'is_home_user': 0,
                           'is_allow_sync': 0,
                           'is_restricted': 0,
@@ -349,21 +351,21 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE email = ? COLLATE NOCASE '
@@ -398,6 +400,7 @@ class Users(object):
                                     'friendly_name': friendly_name,
                                     'user_thumb': user_thumb,
                                     'email': item['email'],
+                                    'is_admin': item['is_admin'],
                                     'is_home_user': item['is_home_user'],
                                     'is_allow_sync': item['is_allow_sync'],
                                     'is_restricted': item['is_restricted'],

@@ -331,18 +331,19 @@ class PlexTV(object):
 
         for a in xml_head:
             own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
-                            "username": helpers.get_xml_attr(a, 'username'),
-                            "thumb": helpers.get_xml_attr(a, 'thumb'),
-                            "email": helpers.get_xml_attr(a, 'email'),
-                            "is_home_user": helpers.get_xml_attr(a, 'home'),
-                            "is_allow_sync": None,
-                            "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                            "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                            "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                            "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                            "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                            "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                            }
+                           "username": helpers.get_xml_attr(a, 'username'),
+                           "thumb": helpers.get_xml_attr(a, 'thumb'),
+                           "email": helpers.get_xml_attr(a, 'email'),
+                           "is_home_user": helpers.get_xml_attr(a, 'home'),
+                           "is_admin": 1,
+                           "is_allow_sync": None,
+                           "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                           "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                           "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                           "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                           "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                           "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                           }
 
             users_list.append(own_details)
 
@@ -354,18 +355,19 @@ class PlexTV(object):
 
         for a in xml_head:
             friend = {"user_id": helpers.get_xml_attr(a, 'id'),
-                        "username": helpers.get_xml_attr(a, 'title'),
-                        "thumb": helpers.get_xml_attr(a, 'thumb'),
-                        "email": helpers.get_xml_attr(a, 'email'),
-                        "is_home_user": helpers.get_xml_attr(a, 'home'),
-                        "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
-                        "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                        "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                        "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                        "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                        "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                        "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                        }
+                      "username": helpers.get_xml_attr(a, 'title'),
+                      "thumb": helpers.get_xml_attr(a, 'thumb'),
+                      "email": helpers.get_xml_attr(a, 'email'),
+                      "is_admin": 0,
+                      "is_home_user": helpers.get_xml_attr(a, 'home'),
+                      "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
+                      "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                      "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                      "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                      "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                      "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                      "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                      }
 
             users_list.append(friend)
 

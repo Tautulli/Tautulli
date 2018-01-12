@@ -54,8 +54,15 @@ def user_login(username=None, password=None):
         if user_id != str(user_details['user_id']):
             # The user is not in the database.
             return None
+        elif plexpy.CONFIG.HTTP_PLEX_ADMIN and user_details['is_admin']:
+            # Plex admin login
+            return 'admin'
         elif not user_details['allow_guest'] or user_details['deleted_user']:
             # Guest access is disabled or the user is deleted.
+            return None
+
+        # Stop here if guest access is not enabled
+        if not plexpy.CONFIG.ALLOW_GUEST_ACCESS:
             return None
 
         # The user is in the database, and guest access is enabled, so try to retrieve a server token.
@@ -75,7 +82,7 @@ def user_login(username=None, password=None):
                     # Refresh the users list to make sure we have all the correct permissions.
                     refresh_users()
                     # Successful login
-                    return True
+                    return 'guest'
                 else:
                     logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database." % username)
                     return None
@@ -96,16 +103,20 @@ def check_credentials(username, password, admin_login='0'):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
-    if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-            username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-        return True, u'admin'
-    elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-            username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
-        return True, u'admin'
-    elif not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS and user_login(username, password):
-        return True, u'guest'
-    else:
-        return False, None
+    if plexpy.CONFIG.HTTP_PASSWORD:
+        if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+                username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
+            return True, 'admin'
+        elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+                username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+            return True, 'admin'
+
+    if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
+        plex_login = user_login(username, password)
+        if plex_login is not None:
+            return True, plex_login
+
+    return False, None
 
 
 def check_jwt_token():
@@ -163,15 +174,12 @@ def requireAuth(*conditions):
 #
 # Define those at will however suits the application.
 
-def member_of(groupname):
-    def check():
-        # replace with actual check if <username> is in <groupname>
-        return cherrypy.request.login['user'] == plexpy.CONFIG.HTTP_USERNAME and groupname == 'admin'
-    return check
+def member_of(user_group):
+    return cherrypy.request.login['user_group'] == user_group
 
 
-def name_is(reqd_username):
-    return lambda: reqd_username == cherrypy.request.login['user']
+def name_is(user_name):
+    return cherrypy.request.login['user'] == user_name
 
 
 # These might be handy

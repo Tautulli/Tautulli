@@ -2538,6 +2538,7 @@ class WebInterface(object):
             "http_password": http_password,
             "http_root": plexpy.CONFIG.HTTP_ROOT,
             "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
+            "http_plex_admin": checked(plexpy.CONFIG.HTTP_PLEX_ADMIN),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
@@ -2632,7 +2633,7 @@ class WebInterface(object):
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
-            "themoviedb_lookup", "tvmaze_lookup"
+            "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -2673,8 +2674,7 @@ class WebInterface(object):
         refresh_users = False
 
         # First run from the setup wizard
-        if kwargs.get('first_run'):
-            del kwargs['first_run']
+        if kwargs.pop('first_run', None):
             first_run = True
             
         # If we change any monitoring settings, make sure we reschedule tasks.
@@ -2728,11 +2728,14 @@ class WebInterface(object):
                 refresh_libraries = True
 
         # If we change the server, make sure we grab the new url and refresh libraries and users lists.
-        if kwargs.get('server_changed'):
-            del kwargs['server_changed']
+        if kwargs.pop('server_changed', None):
             server_changed = True
             refresh_users = True
             refresh_libraries = True
+
+        # If we change the authentication settings, make sure we refresh the users lists.
+        if kwargs.pop('auth_changed', None):
+            refresh_users = True
 
         plexpy.CONFIG.process_kwargs(kwargs)
 

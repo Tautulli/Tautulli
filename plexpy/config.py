@@ -225,6 +225,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PROXY': (int, 'General', 0),
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
+    'HTTP_PLEX_ADMIN': (int, 'General', 0),
     'HIPCHAT_URL': (str, 'Hipchat', ''),
     'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),

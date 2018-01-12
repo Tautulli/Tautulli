@@ -502,7 +502,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
         'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
@@ -1287,6 +1287,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE users ADD COLUMN filter_photos TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT is_admin FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0'
         )
 
     # Upgrade notify_log table from earlier versions
