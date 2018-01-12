@@ -624,9 +624,9 @@ class PrettyMetadata(object):
         poster_url = self.parameters['poster_url']
         if not poster_url:
             if self.media_type in ('artist', 'album', 'track'):
-                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
+                poster_url = 'http://tautulli.com/images/cover.png'
             else:
-                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
+                poster_url = 'http://tautulli.com/images/poster.png'
         return poster_url
 
     def get_provider_name(self, provider):
@@ -1965,22 +1965,52 @@ class JOIN(Notifier):
     """
     NAME = 'Join'
     _DEFAULT_CONFIG = {'api_key': '',
-                       'device_id': '',
-                       'incl_subject': 1
+                       'device_names': '',
+                       'priority': 2,
+                       'incl_subject': 1,
+                       'incl_poster': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
+
+    def __init__(self, config=None):
+        super(JOIN, self).__init__(config=config)
+
+        if not isinstance(self.config['device_names'], list):
+            self.config['device_names'] = [x.strip() for x in self.config['device_names'].split(',')]
 
     def notify(self, subject='', body='', action='', **kwargs):
         if not subject or not body:
             return
 
-        deviceid_key = 'deviceId%s' % ('s' if len(self.config['device_id'].split(',')) > 1 else '')
-
         data = {'apikey': self.config['api_key'],
-                deviceid_key: self.config['device_id'],
+                'deviceNames': ','.join(self.config['device_names']),
                 'text': body.encode("utf-8")}
 
         if self.config['incl_subject']:
             data['title'] = subject.encode("utf-8")
+
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            poster_url = pretty_metadata.get_poster_url()
+            if poster_url and self.config['incl_poster']:
+                data['icon'] = poster_url
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
+            provider_link = pretty_metadata.get_provider_link(provider)
+            if provider_link:
+                data['url'] = provider_link
 
         r = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush', params=data)
 
@@ -1999,6 +2029,9 @@ class JOIN(Notifier):
             return False
 
     def get_devices(self):
+        devices = {d: d for d in self.config['device_names']}
+        devices.update({'': ''})
+
         if self.config['api_key']:
             params = {'apikey': self.config['api_key']}
 
@@ -2007,28 +2040,22 @@ class JOIN(Notifier):
             if r.status_code == 200:
                 response_data = r.json()
                 if response_data.get('success'):
-                    devices = response_data.get('records', [])
-                    devices = {d['deviceId']: d['deviceName'] for d in devices}
-                    devices.update({'': ''})
+                    response_devices = response_data.get('records', [])
+                    devices.update({d['deviceName']: d['deviceName'] for d in response_devices})
                     return devices
                 else:
                     error_msg = response_data.get('errorMessage')
                     logger.info(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
-                    return {'': ''}
+                    return devices
             else:
                 logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                 logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                return {'': ''}
+                return devices
 
         else:
-            return {'': ''}
+            return devices
 
     def return_config_options(self):
-        devices = '<br>'.join(['%s: <span class="inline-pre">%s</span>'
-                               % (v, k) for k, v in self.get_devices().iteritems() if k])
-        if not devices:
-            devices = 'Enter your Join API key to load your device list.'
-
         config_option = [{'label': 'Join API Key',
                           'value': self.config['api_key'],
                           'name': 'join_api_key',
@@ -2036,22 +2063,54 @@ class JOIN(Notifier):
                           'input_type': 'text',
                           'refresh': True
                           },
-                         {'label': 'Device ID(s) or Group ID',
-                          'value': self.config['device_id'],
-                          'name': 'join_device_id',
-                          'description': 'Set your Join device ID or group ID. ' \
-                              'Separate multiple devices with commas (,).',
-                          'input_type': 'text',
+                         {'label': 'Device Name(s)',
+                          'value': self.config['device_names'],
+                          'name': 'join_device_names',
+                          'description': 'Select your Join device(s).',
+                          'input_type': 'select',
+                          'select_options': self.get_devices()
                           },
-                         {'label': 'Your Devices IDs',
-                          'description': devices,
-                          'input_type': 'help'
+                         {'label': 'Priority',
+                          'value': self.config['priority'],
+                          'name': 'join_priority',
+                          'description': 'Set the notification priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
                           'name': 'join_incl_subject',
                           'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'join_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'join_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
+                                           3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'join_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
+                                           3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'join_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 

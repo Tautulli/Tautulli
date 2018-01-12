@@ -136,7 +136,7 @@
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
                             <label>Notification Conditions</label>
                             <p class="help-block">
-                                By default, all notifications will be sent if there are no conditions. Add custom conditions to only <strong>allow</strong> certain notifications.
+                                Add custom conditions to only <strong>allow certain notifications</strong>. By default, all notifications will be sent if there are no conditions.
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
                             </p>
                             <div id="condition-widget"></div>
@@ -533,6 +533,16 @@
     email_to.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_to'), [])) | n});
     email_cc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_cc'), [])) | n});
     email_bcc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_bcc'), [])) | n});
+
+    % elif notifier['agent_name'] == 'join':
+    var $join_device_names = $('#join_device_names').selectize({
+        plugins: ['remove_button'],
+        maxItems: null,
+        create: true
+    });
+    var join_device_names = $join_device_names[0].selectize;
+    console.log(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
+    join_device_names.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
     % endif
 
     function validateLogic() {

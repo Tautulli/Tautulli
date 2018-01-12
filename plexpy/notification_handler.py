@@ -535,7 +535,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
     if 'thetvdb://' in notify_params['guid']:
-        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0]
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
