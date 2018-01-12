@@ -175,11 +175,11 @@ def requireAuth(*conditions):
 # Define those at will however suits the application.
 
 def member_of(user_group):
-    return cherrypy.request.login['user_group'] == user_group
+    return lambda: cherrypy.request.login and cherrypy.request.login['user_group'] == user_group
 
 
 def name_is(user_name):
-    return cherrypy.request.login['user'] == user_name
+    return lambda: cherrypy.request.login and cherrypy.request.login['user'] == user_name
 
 
 # These might be handy
