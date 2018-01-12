@@ -500,14 +500,16 @@ def on_created(rating_key, **kwargs):
         notify = True
         now = int(time.time())
 
-        if helpers.cast_to_int(metadata['updated_at']) < now - 86400:  # Updated more than 24 hours ago
-            logger.debug(u"Tautulli TimelineHandler :: Library item %s updated more than 24 hours ago. Not notifying." % str(rating_key))
+        if helpers.cast_to_int(metadata['added_at']) < now - 86400:  # Updated more than 24 hours ago
+            logger.debug(u"Tautulli TimelineHandler :: Library item %s added more than 24 hours ago. Not notifying."
+                         % str(rating_key))
             notify = False
 
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
             if data_factory.get_recently_added_item(rating_key):
-                logger.debug(u"Tautulli TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
+                logger.debug(u"Tautulli TimelineHandler :: Library item %s added already. Not notifying again."
+                             % str(rating_key))
                 notify = False
 
         if notify:
