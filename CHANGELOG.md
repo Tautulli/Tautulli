@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.13-beta (2018-01-13)
+
+* Notifications:
+  * New: Added dropdown selection for email addresses of shared users.
+  * New: Added more notification options for Join.
+  * Change: Show "OR" between custom condition values.
+* Other:
+  * New: Use JSON Web Tokens for authentication. Login now works with SSO applications.
+  * New: Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.
+
+
 ## v2.0.12-beta (2018-01-07)
 
 * Notifications:
