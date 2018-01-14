@@ -235,6 +235,9 @@
         .nowrap {
             white-space: nowrap;
         }
+        .clear {
+            clear: both;
+        }
 
         .preheader {
             color: transparent;
@@ -596,6 +599,7 @@
                             <div class="wrapper">
                                 % for movie in recently_added['movie']:
                                 % if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
+                                <div class="clear"></div>
                                 <div class="card-instance movie odd">
                                 % else:
                                 <div class="card-instance movie">
@@ -683,6 +687,7 @@
                                         link_title = show['title']
                                 %>
                                 % if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
+                                <div class="clear"></div>
                                 <div class="card-instance show odd">
                                 % else:
                                 <div class="card-instance show">
@@ -792,6 +797,7 @@
                                 % for album in artist['album']:
                                 <% album_count += 1 %>
                                 % if album_count == total_albums and album_count % 2 == 1:
+                                <div class="clear"></div>
                                 <div class="card-instance album odd">
                                 % else:
                                 <div class="card-instance album">

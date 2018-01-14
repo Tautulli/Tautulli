@@ -235,6 +235,9 @@
         .nowrap {
             white-space: nowrap;
         }
+        .clear {
+            clear: both;
+        }
 
         .preheader {
             color: transparent;
@@ -596,6 +599,7 @@
                             <div class="wrapper" style="box-sizing: border-box;padding: 5px;overflow: auto;">
                                 % for movie in recently_added['movie']:
                                 % if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
+                                <div class="clear" style="clear: both;"></div>
                                 <div class="card-instance movie odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                 % else:
                                 <div class="card-instance movie" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
@@ -683,6 +687,7 @@
                                         link_title = show['title']
                                 %>
                                 % if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
+                                <div class="clear" style="clear: both;"></div>
                                 <div class="card-instance show odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                 % else:
                                 <div class="card-instance show" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
@@ -792,6 +797,7 @@
                                 % for album in artist['album']:
                                 <% album_count += 1 %>
                                 % if album_count == total_albums and album_count % 2 == 1:
+                                <div class="clear" style="clear: both;"></div>
                                 <div class="card-instance album odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
                                 % else:
                                 <div class="card-instance album" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
