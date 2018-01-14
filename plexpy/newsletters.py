@@ -556,10 +556,17 @@ class RecentlyAdded(Newsletter):
         return libraries.Libraries().get_sections()
 
     def _get_sections_options(self):
-        sections = {'': ''}
-        for s in self._get_sections():
+        library_types = {'movie': 'Movie Libraries',
+                         'show': 'TV Show Libraries',
+                         'artist': 'Music Libraries'}
+        sections = {}
+        for s in sorted(self._get_sections(), key=lambda x: x['section_name']):
             if s['section_type'] != 'photo':
-                sections[s['section_id']] = s['section_name']
+                library_type = library_types[s['section_type']]
+                group = sections.get(library_type, [])
+                group.append({'value': s['section_id'],
+                              'text': s['section_name']})
+                sections[library_type] = group
         return sections
 
     def return_config_options(self):
@@ -573,7 +580,7 @@ class RecentlyAdded(Newsletter):
                           'value': self.config['incl_libraries'],
                           'description': 'Select the libraries to include in the newsletter.',
                           'name': 'recently_added_incl_libraries',
-                          'input_type': 'select',
+                          'input_type': 'selectize',
                           'select_options': self._get_sections_options()
                           }
                          ]

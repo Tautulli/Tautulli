@@ -1,14 +1,11 @@
 % if newsletter:
 <%!
     import json
-    from plexpy import helpers, notifiers, users
+    from plexpy import helpers, notifiers
 
     email_notifiers = [n for n in notifiers.get_notifiers() if n['agent_name'] == 'email']
     sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
     email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
-
-    user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
-    sorted(user_emails, key=lambda u: u['user'])
 %>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -107,6 +104,33 @@
                                                     <option value="${key}">${value}</option>
                                                     % endif
                                                     % endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'selectize':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    <option value="select-all">Select All</option>
+                                                    <option value="remove-all">Remove All</option>
+                                                    % if isinstance(item['select_options'], dict):
+                                                    % for section, options in item['select_options'].iteritems():
+                                                    <optgroup label="${section}">
+                                                        % for option in options:
+                                                            <option value="${option['value']}">${option['text']}</option>
+                                                        % endfor
+                                                    </optgroup>
+                                                    % endfor
+                                                    % else:
+                                                    <option value="border-all"></option>
+                                                    % for option in item['select_options']:
+                                                        <option value="${option['value']}">${option['text']}</option>
+                                                    % endfor
+                                                    % endif
                                                 </select>
                                             </div>
                                         </div>
@@ -228,6 +252,33 @@
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
                                     </div>
+                                    % elif item['input_type'] == 'selectize':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    <option value="select-all">Select All</option>
+                                                    <option value="remove-all">Remove All</option>
+                                                    % if isinstance(item['select_options'], dict):
+                                                    % for section, options in item['select_options'].iteritems():
+                                                    <optgroup label="${section}">
+                                                        % for option in options:
+                                                            <option value="${option['value']}">${option['text']}</option>
+                                                        % endfor
+                                                    </optgroup>
+                                                    % endfor
+                                                    % else:
+                                                    <option value="border-all"></option>
+                                                    % for option in item['select_options']:
+                                                        <option value="${option['value']}">${option['text']}</option>
+                                                    % endfor
+                                                    % endif
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
                                     % endif
                                     % endfor
                                     <input type="hidden" id="email_html_support" name="email_html_support" value="1">
@@ -285,7 +336,27 @@
 
     var $incl_libraries = $('#recently_added_incl_libraries').selectize({
         plugins: ['remove_button'],
-        maxItems: null
+        maxItems: null,
+        render: {
+            option: function(item) {
+                if (item.value.endsWith('-all')) {
+                    return '<div class="' + item.value + '">' + item.text + '</div>'
+                }
+                return '<div>' + item.text + '</div>';
+            }
+        },
+        onItemAdd: function(value) {
+            if (value === 'select-all') {
+                var all_keys = $.map(this.options, function(option){
+                    return option.value.endsWith('-all') ? null : option.value;
+                });
+                this.setValue(all_keys);
+            } else if (value === 'remove-all') {
+                this.clear();
+                this.refreshOptions();
+                this.positionDropdown();
+            }
+        }
     });
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_incl_libraries'), [])) | n});
@@ -304,24 +375,35 @@
         plugins: ['remove_button'],
         persist: false,
         maxItems: null,
-        valueField: 'email',
-        labelField: 'user',
-        searchField: ['user', 'email'],
-        options: ${json.dumps(user_emails) | n},
         render: {
             item: function(item, escape) {
                 return '<div>' +
-                    (item.user ? '<span class="user">' + escape(item.user) + '</span>' : '') +
-                    (item.email ? '<span class="email">' + escape(item.email) + '</span>' : '') +
+                    (item.text ? '<span class="item-text">' + escape(item.text) + '</span>' : '') +
+                    (item.value ? '<span class="item-value">' + escape(item.value) + '</span>' : '') +
                 '</div>';
             },
             option: function(item, escape) {
-                var label = item.user || item.email;
-                var caption = item.user ? item.email : null;
+                var label = item.text || item.value;
+                var caption = item.text ? item.value : null;
+                if (item.value.endsWith('-all')) {
+                    return '<div class="' + item.value + '">' + escape(label) + '</div>'
+                }
                 return '<div>' +
                     escape(label) +
                     (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
                 '</div>';
+            }
+        },
+        onItemAdd: function(value) {
+            if (value === 'select-all') {
+                var all_keys = $.map(this.options, function(option){
+                    return option.value.endsWith('-all') ? null : option.value;
+                });
+                this.setValue(all_keys);
+            } else if (value === 'remove-all') {
+                this.clear();
+                this.refreshOptions();
+                this.positionDropdown();
             }
         },
         createFilter: function(input) {
@@ -341,16 +423,15 @@
         },
         create: function(input) {
             if ((new RegExp('^' + REGEX_EMAIL + '$', 'i')).test(input)) {
-                return {email: input};
+                return {value: input};
             }
             var match = input.match(new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i'));
             if (match) {
                 return {
-                    email : match[2],
-                    user  : $.trim(match[1])
+                    value : match[2],
+                    text  : $.trim(match[1])
                 };
             }
-            alert('Invalid email address.');
             return false;
         }
     });
