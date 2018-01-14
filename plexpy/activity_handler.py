@@ -121,13 +121,19 @@ class ActivityHandler(object):
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
-            monitor_proc.write_session_history(session=db_session)
+            success = monitor_proc.write_session_history(session=db_session)
 
-            # Remove the session from our temp session table
-            logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
-                         % (str(self.get_session_key()), str(self.get_rating_key())))
-            ap.delete_session(session_key=self.get_session_key())
-            delete_metadata_cache(self.get_session_key())
+            if success:
+                schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
+
+                # Remove the session from our temp session table
+                logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
+                             % (str(self.get_session_key()), str(self.get_rating_key())))
+                ap.delete_session(session_key=self.get_session_key())
+                delete_metadata_cache(self.get_session_key())
+            else:
+                schedule_callback('session_key-{}'.format(self.get_session_key()), func=force_stop_stream,
+                                  args=[self.get_session_key()], seconds=30)
 
     def on_pause(self, still_paused=False):
         if self.is_valid_session():
@@ -244,9 +250,6 @@ class ActivityHandler(object):
                             self.on_resume()
                         elif this_state == 'stopped':
                             self.on_stop()
-
-                            # Remove the callback if the stream is stopped
-                            schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
 
                     elif this_state == 'buffering':
                         self.on_buffer()
@@ -440,6 +443,7 @@ def force_stop_stream(session_key):
         logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
         ap.delete_session(session_key=session_key)
+        delete_metadata_cache(session_key)
 
     else:
         session['write_attempts'] += 1
@@ -451,7 +455,7 @@ def force_stop_stream(session_key):
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
-            schedule_callback('session_key={}'.format(session_key), function=force_stop_stream,
+            schedule_callback('session_key-{}'.format(session_key), function=force_stop_stream,
                               args=[session_key], seconds=30)
 
         else:
