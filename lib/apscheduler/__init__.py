@@ -1,5 +1,10 @@
-version_info = (3, 0, 1)
-version = '3.0.1'
-release = '3.0.1'
+from pkg_resources import get_distribution, DistributionNotFound
 
-__version__ = release  # PEP 396
+try:
+    release = get_distribution('APScheduler').version.split('-')[0]
+except DistributionNotFound:
+    release = '3.5.0'
+
+version_info = tuple(int(x) if x.isdigit() else x for x in release.split('.'))
+version = __version__ = '.'.join(str(x) for x in version_info[:3])
+del get_distribution, DistributionNotFound

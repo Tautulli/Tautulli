@@ -4,13 +4,15 @@ from tzlocal import get_localzone
 import six
 
 from apscheduler.triggers.base import BaseTrigger
-from apscheduler.triggers.cron.fields import BaseField, WeekField, DayOfMonthField, DayOfWeekField, DEFAULT_VALUES
+from apscheduler.triggers.cron.fields import (
+    BaseField, MonthField, WeekField, DayOfMonthField, DayOfWeekField, DEFAULT_VALUES)
 from apscheduler.util import datetime_ceil, convert_to_datetime, datetime_repr, astimezone
 
 
 class CronTrigger(BaseTrigger):
     """
-    Triggers when current time matches all specified time constraints, similarly to how the UNIX cron scheduler works.
+    Triggers when current time matches all specified time constraints,
+    similarly to how the UNIX cron scheduler works.
 
     :param int|str year: 4-digit year
     :param int|str month: month (1-12)
@@ -22,8 +24,9 @@ class CronTrigger(BaseTrigger):
     :param int|str second: second (0-59)
     :param datetime|str start_date: earliest possible date/time to trigger on (inclusive)
     :param datetime|str end_date: latest possible date/time to trigger on (inclusive)
-    :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations
-                                         (defaults to scheduler timezone)
+    :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (defaults
+        to scheduler timezone)
+    :param int|None jitter: advance or delay the job execution by ``jitter`` seconds at most.
 
     .. note:: The first weekday is always **monday**.
     """
@@ -31,7 +34,7 @@ class CronTrigger(BaseTrigger):
     FIELD_NAMES = ('year', 'month', 'day', 'week', 'day_of_week', 'hour', 'minute', 'second')
     FIELDS_MAP = {
         'year': BaseField,
-        'month': BaseField,
+        'month': MonthField,
         'week': WeekField,
         'day': DayOfMonthField,
         'day_of_week': DayOfWeekField,
@@ -40,21 +43,24 @@ class CronTrigger(BaseTrigger):
         'second': BaseField
     }
 
-    __slots__ = 'timezone', 'start_date', 'end_date', 'fields'
+    __slots__ = 'timezone', 'start_date', 'end_date', 'fields', 'jitter'
 
-    def __init__(self, year=None, month=None, day=None, week=None, day_of_week=None, hour=None, minute=None,
-                 second=None, start_date=None, end_date=None, timezone=None):
+    def __init__(self, year=None, month=None, day=None, week=None, day_of_week=None, hour=None,
+                 minute=None, second=None, start_date=None, end_date=None, timezone=None,
+                 jitter=None):
         if timezone:
             self.timezone = astimezone(timezone)
-        elif start_date and start_date.tzinfo:
+        elif isinstance(start_date, datetime) and start_date.tzinfo:
             self.timezone = start_date.tzinfo
-        elif end_date and end_date.tzinfo:
+        elif isinstance(end_date, datetime) and end_date.tzinfo:
             self.timezone = end_date.tzinfo
         else:
             self.timezone = get_localzone()
 
         self.start_date = convert_to_datetime(start_date, self.timezone, 'start_date')
         self.end_date = convert_to_datetime(end_date, self.timezone, 'end_date')
+
+        self.jitter = jitter
 
         values = dict((key, value) for (key, value) in six.iteritems(locals())
                       if key in self.FIELD_NAMES and value is not None)
@@ -76,13 +82,35 @@ class CronTrigger(BaseTrigger):
             field = field_class(field_name, exprs, is_default)
             self.fields.append(field)
 
+    @classmethod
+    def from_crontab(cls, expr, timezone=None):
+        """
+        Create a :class:`~CronTrigger` from a standard crontab expression.
+
+        See https://en.wikipedia.org/wiki/Cron for more information on the format accepted here.
+
+        :param expr: minute, hour, day of month, month, day of week
+        :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (
+            defaults to scheduler timezone)
+        :return: a :class:`~CronTrigger` instance
+
+        """
+        values = expr.split()
+        if len(values) != 5:
+            raise ValueError('Wrong number of fields; got {}, expected 5'.format(len(values)))
+
+        return cls(minute=values[0], hour=values[1], day=values[2], month=values[3],
+                   day_of_week=values[4], timezone=timezone)
+
     def _increment_field_value(self, dateval, fieldnum):
         """
-        Increments the designated field and resets all less significant fields to their minimum values.
+        Increments the designated field and resets all less significant fields to their minimum
+        values.
 
         :type dateval: datetime
         :type fieldnum: int
-        :return: a tuple containing the new date, and the number of the field that was actually incremented
+        :return: a tuple containing the new date, and the number of the field that was actually
+            incremented
         :rtype: tuple
         """
 
@@ -128,12 +156,13 @@ class CronTrigger(BaseTrigger):
                 else:
                     values[field.name] = new_value
 
-        difference = datetime(**values) - dateval.replace(tzinfo=None)
-        return self.timezone.normalize(dateval + difference)
+        return self.timezone.localize(datetime(**values))
 
     def get_next_fire_time(self, previous_fire_time, now):
         if previous_fire_time:
-            start_date = max(now, previous_fire_time + timedelta(microseconds=1))
+            start_date = min(now, previous_fire_time + timedelta(microseconds=1))
+            if start_date == previous_fire_time:
+                start_date += timedelta(microseconds=1)
         else:
             start_date = max(now, self.start_date) if self.start_date else now
 
@@ -163,7 +192,35 @@ class CronTrigger(BaseTrigger):
                 return None
 
         if fieldnum >= 0:
+            if self.jitter is not None:
+                next_date = self._apply_jitter(next_date, self.jitter, now)
             return next_date
+
+    def __getstate__(self):
+        return {
+            'version': 2,
+            'timezone': self.timezone,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'fields': self.fields,
+            'jitter': self.jitter,
+        }
+
+    def __setstate__(self, state):
+        # This is for compatibility with APScheduler 3.0.x
+        if isinstance(state, tuple):
+            state = state[1]
+
+        if state.get('version', 1) > 2:
+            raise ValueError(
+                'Got serialized data for version %s of %s, but only versions up to 2 can be '
+                'handled' % (state['version'], self.__class__.__name__))
+
+        self.timezone = state['timezone']
+        self.start_date = state['start_date']
+        self.end_date = state['end_date']
+        self.fields = state['fields']
+        self.jitter = state.get('jitter')
 
     def __str__(self):
         options = ["%s='%s'" % (f.name, f) for f in self.fields if not f.is_default]
@@ -172,5 +229,11 @@ class CronTrigger(BaseTrigger):
     def __repr__(self):
         options = ["%s='%s'" % (f.name, f) for f in self.fields if not f.is_default]
         if self.start_date:
-            options.append("start_date='%s'" % datetime_repr(self.start_date))
-        return '<%s (%s)>' % (self.__class__.__name__, ', '.join(options))
+            options.append("start_date=%r" % datetime_repr(self.start_date))
+        if self.end_date:
+            options.append("end_date=%r" % datetime_repr(self.end_date))
+        if self.jitter:
+            options.append('jitter=%s' % self.jitter)
+
+        return "<%s (%s, timezone='%s')>" % (
+            self.__class__.__name__, ', '.join(options), self.timezone)

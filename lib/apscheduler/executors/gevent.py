@@ -21,9 +21,10 @@ class GeventExecutor(BaseExecutor):
         def callback(greenlet):
             try:
                 events = greenlet.get()
-            except:
+            except BaseException:
                 self._run_job_error(job.id, *sys.exc_info()[1:])
             else:
                 self._run_job_success(job.id, events)
 
-        gevent.spawn(run_job, job, job._jobstore_alias, run_times, self._logger.name).link(callback)
+        gevent.spawn(run_job, job, job._jobstore_alias, run_times, self._logger.name).\
+            link(callback)

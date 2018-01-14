@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import warnings
 
 from apscheduler.jobstores.base import BaseJobStore, JobLookupError, ConflictingIdError
 from apscheduler.util import maybe_ref, datetime_to_utc_timestamp, utc_timestamp_to_datetime
@@ -19,16 +20,18 @@ except ImportError:  # pragma: nocover
 
 class MongoDBJobStore(BaseJobStore):
     """
-    Stores jobs in a MongoDB database. Any leftover keyword arguments are directly passed to pymongo's `MongoClient
+    Stores jobs in a MongoDB database. Any leftover keyword arguments are directly passed to
+    pymongo's `MongoClient
     <http://api.mongodb.org/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`_.
 
     Plugin alias: ``mongodb``
 
     :param str database: database to store jobs in
     :param str collection: collection to store jobs in
-    :param client: a :class:`~pymongo.mongo_client.MongoClient` instance to use instead of providing connection
-                   arguments
-    :param int pickle_protocol: pickle protocol level to use (for serialization), defaults to the highest available
+    :param client: a :class:`~pymongo.mongo_client.MongoClient` instance to use instead of
+        providing connection arguments
+    :param int pickle_protocol: pickle protocol level to use (for serialization), defaults to the
+        highest available
     """
 
     def __init__(self, database='apscheduler', collection='jobs', client=None,
@@ -42,13 +45,22 @@ class MongoDBJobStore(BaseJobStore):
             raise ValueError('The "collection" parameter must not be empty')
 
         if client:
-            self.connection = maybe_ref(client)
+            self.client = maybe_ref(client)
         else:
             connect_args.setdefault('w', 1)
-            self.connection = MongoClient(**connect_args)
+            self.client = MongoClient(**connect_args)
 
-        self.collection = self.connection[database][collection]
+        self.collection = self.client[database][collection]
+
+    def start(self, scheduler, alias):
+        super(MongoDBJobStore, self).start(scheduler, alias)
         self.collection.ensure_index('next_run_time', sparse=True)
+
+    @property
+    def connection(self):
+        warnings.warn('The "connection" member is deprecated -- use "client" instead',
+                      DeprecationWarning)
+        return self.client
 
     def lookup_job(self, job_id):
         document = self.collection.find_one(job_id, ['job_state'])
@@ -59,12 +71,15 @@ class MongoDBJobStore(BaseJobStore):
         return self._get_jobs({'next_run_time': {'$lte': timestamp}})
 
     def get_next_run_time(self):
-        document = self.collection.find_one({'next_run_time': {'$ne': None}}, fields=['next_run_time'],
+        document = self.collection.find_one({'next_run_time': {'$ne': None}},
+                                            projection=['next_run_time'],
                                             sort=[('next_run_time', ASCENDING)])
         return utc_timestamp_to_datetime(document['next_run_time']) if document else None
 
     def get_all_jobs(self):
-        return self._get_jobs({})
+        jobs = self._get_jobs({})
+        self._fix_paused_jobs_sorting(jobs)
+        return jobs
 
     def add_job(self, job):
         try:
@@ -83,7 +98,7 @@ class MongoDBJobStore(BaseJobStore):
         }
         result = self.collection.update({'_id': job.id}, {'$set': changes})
         if result and result['n'] == 0:
-            raise JobLookupError(id)
+            raise JobLookupError(job.id)
 
     def remove_job(self, job_id):
         result = self.collection.remove(job_id)
@@ -94,7 +109,7 @@ class MongoDBJobStore(BaseJobStore):
         self.collection.remove()
 
     def shutdown(self):
-        self.connection.disconnect()
+        self.client.close()
 
     def _reconstitute_job(self, job_state):
         job_state = pickle.loads(job_state)
@@ -107,11 +122,13 @@ class MongoDBJobStore(BaseJobStore):
     def _get_jobs(self, conditions):
         jobs = []
         failed_job_ids = []
-        for document in self.collection.find(conditions, ['_id', 'job_state'], sort=[('next_run_time', ASCENDING)]):
+        for document in self.collection.find(conditions, ['_id', 'job_state'],
+                                             sort=[('next_run_time', ASCENDING)]):
             try:
                 jobs.append(self._reconstitute_job(document['job_state']))
-            except:
-                self._logger.exception('Unable to restore job "%s" -- removing it', document['_id'])
+            except BaseException:
+                self._logger.exception('Unable to restore job "%s" -- removing it',
+                                       document['_id'])
                 failed_job_ids.append(document['_id'])
 
         # Remove all the jobs we failed to restore
@@ -121,4 +138,4 @@ class MongoDBJobStore(BaseJobStore):
         return jobs
 
     def __repr__(self):
-        return '<%s (client=%s)>' % (self.__class__.__name__, self.connection)
+        return '<%s (client=%s)>' % (self.__class__.__name__, self.client)

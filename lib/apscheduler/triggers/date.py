@@ -14,14 +14,35 @@ class DateTrigger(BaseTrigger):
     :param datetime.tzinfo|str timezone: time zone for ``run_date`` if it doesn't have one already
     """
 
-    __slots__ = 'timezone', 'run_date'
+    __slots__ = 'run_date'
 
     def __init__(self, run_date=None, timezone=None):
         timezone = astimezone(timezone) or get_localzone()
-        self.run_date = convert_to_datetime(run_date or datetime.now(), timezone, 'run_date')
+        if run_date is not None:
+            self.run_date = convert_to_datetime(run_date, timezone, 'run_date')
+        else:
+            self.run_date = datetime.now(timezone)
 
     def get_next_fire_time(self, previous_fire_time, now):
         return self.run_date if previous_fire_time is None else None
+
+    def __getstate__(self):
+        return {
+            'version': 1,
+            'run_date': self.run_date
+        }
+
+    def __setstate__(self, state):
+        # This is for compatibility with APScheduler 3.0.x
+        if isinstance(state, tuple):
+            state = state[1]
+
+        if state.get('version', 1) > 1:
+            raise ValueError(
+                'Got serialized data for version %s of %s, but only version 1 can be handled' %
+                (state['version'], self.__class__.__name__))
+
+        self.run_date = state['run_date']
 
     def __str__(self):
         return 'date[%s]' % datetime_repr(self.run_date)
