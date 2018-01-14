@@ -131,19 +131,19 @@ select.form-control:focus,
 .react-selectize.root-node.open .react-selectize-control .react-selectize-toggle-button path {
     fill: #999 !important;
 }
-.selectize-control .selectize-input > div .email {
+.selectize-control .selectize-input > div .item-value {
     opacity: 0.8;
     font-size: 12px;
 }
-.selectize-control .selectize-input > div .user + .email {
+.selectize-control .selectize-input > div .item-text + .item-value {
     margin-left: 5px;
 }
-.selectize-control .selectize-input > div .email:before {
+.selectize-control .selectize-input > div .item-value:before {
     content: '<';
     opacity: 0.8;
     font-size: 12px;
 }
-.selectize-control .selectize-input > div .email:after {
+.selectize-control .selectize-input > div .item-value:after {
     content: '>';
     opacity: 0.8;
     font-size: 12px;
@@ -152,6 +152,25 @@ select.form-control:focus,
     font-size: 12px;
     display: block;
     color: #a0a0a0;
+}
+.selectize-control .selectize-dropdown .select-all,
+.selectize-control .selectize-dropdown .remove-all {
+    font-weight: bold;
+}
+.selectize-control .selectize-dropdown .border-all {
+    pointer-events: none;
+    display: block;
+    height: 1px;
+    margin: 9px -12px 9px -12px;
+    padding: 0 !important;
+    overflow: hidden;
+    background-color: #e5e5e5;
+}
+.selectize-control .selectize-dropdown .border-all:last-child {
+    display: none;
+}
+.selectize-dropdown .optgroup-header {
+    font-weight: bold;
 }
 select.form-control option {
     color: #555;

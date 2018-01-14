@@ -1293,8 +1293,28 @@ class EMAIL(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
+    def get_user_emails(self):
+        emails = {u['email']: u['friendly_name'] for u in users.Users().get_users() if u['email']}
+
+        user_emails_to = {v: '' for v in self.config['to']}
+        user_emails_cc = {v: '' for v in self.config['cc']}
+        user_emails_bcc = {v: '' for v in self.config['bcc']}
+
+        user_emails_to.update(emails)
+        user_emails_cc.update(emails)
+        user_emails_bcc.update(emails)
+
+        user_emails_to = [{'value': k, 'text': v}
+                          for k, v in sorted(user_emails_to.iteritems(), key=lambda x: x[1].lower())]
+        user_emails_cc = [{'value': k, 'text': v}
+                          for k, v in sorted(user_emails_cc.iteritems(), key=lambda x: x[1].lower())]
+        user_emails_bcc = [{'value': k, 'text': v}
+                           for k, v in sorted(user_emails_bcc.iteritems(), key=lambda x: x[1].lower())]
+
+        return user_emails_to, user_emails_cc, user_emails_bcc
+
     def return_config_options(self):
-        user_emails = {}  # User selection set with selectize options
+        user_emails_to, user_emails_cc, user_emails_bcc = self.get_user_emails()
 
         config_option = [{'label': 'From Name',
                           'value': self.config['from_name'],
@@ -1312,22 +1332,22 @@ class EMAIL(Notifier):
                           'value': self.config['to'],
                           'name': 'email_to',
                           'description': 'The email address(es) of the recipients.',
-                          'input_type': 'select',
-                          'select_options': user_emails
+                          'input_type': 'selectize',
+                          'select_options': user_emails_to
                           },
                          {'label': 'CC',
                           'value': self.config['cc'],
                           'name': 'email_cc',
                           'description': 'The email address(es) to CC.',
-                          'input_type': 'select',
-                          'select_options': user_emails
+                          'input_type': 'selectize',
+                          'select_options': user_emails_cc
                           },
                          {'label': 'BCC',
                           'value': self.config['bcc'],
                           'name': 'email_bcc',
                           'description': 'The email address(es) to BCC.',
-                          'input_type': 'select',
-                          'select_options': user_emails
+                          'input_type': 'selectize',
+                          'select_options': user_emails_bcc
                           },
                          {'label': 'SMTP Server',
                           'value': self.config['smtp_server'],

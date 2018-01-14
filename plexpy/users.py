@@ -597,7 +597,7 @@ class Users(object):
         for item in result:
             user = {'user_id': item['user_id'],
                     'username': item['username'],
-                    'friendly_name': item['friendly_name'],
+                    'friendly_name': item['friendly_name'] or item['username'],
                     'email': item['email']
                     }
             users.append(user)
