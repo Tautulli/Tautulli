@@ -1304,12 +1304,9 @@ class EMAIL(Notifier):
         user_emails_cc.update(emails)
         user_emails_bcc.update(emails)
 
-        user_emails_to = [{'value': k, 'text': v}
-                          for k, v in sorted(user_emails_to.iteritems(), key=lambda x: x[1].lower())]
-        user_emails_cc = [{'value': k, 'text': v}
-                          for k, v in sorted(user_emails_cc.iteritems(), key=lambda x: x[1].lower())]
-        user_emails_bcc = [{'value': k, 'text': v}
-                           for k, v in sorted(user_emails_bcc.iteritems(), key=lambda x: x[1].lower())]
+        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.iteritems()]
+        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.iteritems()]
+        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.iteritems()]
 
         return user_emails_to, user_emails_cc, user_emails_bcc
 
