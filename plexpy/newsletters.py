@@ -27,6 +27,7 @@ import database
 import helpers
 import libraries
 import logger
+import newsletter_handler
 import notification_handler
 import pmsconnect
 from notification_handler import PILLOW, get_poster_info
@@ -92,7 +93,7 @@ def get_newsletters(newsletter_id=None):
 
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, '
-                       'friendly_name, active FROM newsletters %s' % where, args=args)
+                       'friendly_name, cron, active FROM newsletters %s' % where, args=args)
 
     return result
 
@@ -220,6 +221,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
         logger.info(u"Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
+        newsletter_handler.schedule_newsletters(newsletter_id=newsletter_id)
         return True
     except Exception as e:
         logger.warn(u"Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)

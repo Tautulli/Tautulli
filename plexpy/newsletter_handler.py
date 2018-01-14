@@ -27,16 +27,50 @@ import newsletters
 NEWSLETTER_SCHED = BackgroundScheduler()
 
 
-def schedule_newsletter(newsletter_id, func=None, remove_job=False, args=None, **kwargs):
-    if NEWSLETTER_SCHED.get_job(newsletter_id):
+def schedule_newsletters(newsletter_id=None):
+    with plexpy.SCHED_LOCK:
+
+        # Check if scheduler should be started
+        start_jobs = not len(NEWSLETTER_SCHED.get_jobs())
+
+        newsletters_list = newsletters.get_newsletters(newsletter_id=newsletter_id)
+
+        for newsletter in newsletters_list:
+            newsletter_job_name = '{} ({})'.format(newsletter['agent_label'],
+                                                   newsletter['friendly_name'] or newsletter['id'])
+
+            if newsletter['active']:
+                keys = ['minute', 'hour', 'day', 'month', 'day_of_week']
+                values = newsletter['cron'].split()
+                cron = {k: v for k, v in zip(keys, values)}
+
+                schedule_newsletter_job('newsletter-{}'.format(newsletter['id']), name=newsletter_job_name,
+                                        func=notify, args=[newsletter['id'], 'on_cron'], cron=newsletter['cron'])
+            else:
+                schedule_newsletter_job('newsletter-{}'.format(newsletter['id']), name=newsletter_job_name,
+                                        remove_job=True)
+
+        # Start scheduler
+        if start_jobs and len(NEWSLETTER_SCHED.get_jobs()):
+            try:
+                NEWSLETTER_SCHED.start()
+            except Exception as e:
+                logger.error(e)
+
+
+def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=False, args=None, cron=None):
+    if NEWSLETTER_SCHED.get_job(newsletter_job_id):
         if remove_job:
-            NEWSLETTER_SCHED.remove_job(newsletter_id)
+            NEWSLETTER_SCHED.remove_job(newsletter_job_id)
+            logger.info(u"Tautulli NewsletterHandler :: Removed newsletter schedule: %s" % newsletter_job_id)
         else:
             NEWSLETTER_SCHED.reschedule_job(
-                newsletter_id, args=args, trigger=CronTrigger(**kwargs))
+                newsletter_job_id, args=args, trigger=CronTrigger().from_crontab(cron))
+            logger.info(u"Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
     elif not remove_job:
         NEWSLETTER_SCHED.add_job(
-            func, args=args, id=newsletter_id, trigger=CronTrigger(**kwargs))
+            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron))
+        logger.info(u"Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
 
 
 def notify(newsletter_id=None, notify_action=None, **kwargs):
@@ -51,7 +85,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         subject_string = kwargs.pop('subject', 'Tautulli Newsletter')
     else:
         # Get the subject string
-        subject_string = newsletter_config['subject']
+        subject_string = newsletter_config['email_config']['subject']
 
     newsletter_agent = newsletters.get_agent_class(agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],

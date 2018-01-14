@@ -1098,7 +1098,7 @@ def get_poster_info(poster_thumb='', poster_key='', poster_title='', art=False, 
                 img = Image.open(poster_file)
                 img = img.convert("RGBA")
                 img = img.filter(ImageFilter.GaussianBlur(3))  # 3px blur
-                img.putalpha(102)  # 40% opacity
+                img.putalpha(64)  # 40% opacity
 
                 # Save as a png
                 poster_file_blur = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-image-%s.png' % thread_name)

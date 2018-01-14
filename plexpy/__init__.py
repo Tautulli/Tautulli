@@ -41,6 +41,7 @@ import database
 import libraries
 import logger
 import mobile_app
+import newsletter_handler
 import notification_handler
 import notifiers
 import plextv
@@ -475,6 +476,9 @@ def start():
                 analytics_event(category='system', action='update')
 
             analytics_event(category='system', action='start')
+
+        # Schedule newsletters
+        newsletter_handler.schedule_newsletters()
 
         _STARTED = True
 
