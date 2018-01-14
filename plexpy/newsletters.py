@@ -236,7 +236,8 @@ def send_newsletter(newsletter_id=None, subject=None, notify_action='', newslett
                                 email_config=newsletter_config['email_config'])
         return agent.send(subject=subject,
                           action=notify_action.split('on_')[-1],
-                          newsletter_log_id=newsletter_log_id, **kwargs)
+                          newsletter_log_id=newsletter_log_id,
+                          **kwargs)
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
@@ -270,7 +271,8 @@ class Newsletter(object):
 
         self.parameters = {'server_name': plexpy.CONFIG.PMS_NAME}
         self.is_preview = False
-        self.master_template = False
+
+        self.data = {}
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -288,18 +290,61 @@ class Newsletter(object):
 
         return new_config
 
-    def _render_template(self, **kwargs):
-        if self.master_template:
+    def retrieve_data(self):
+        pass
+
+    def _has_data(self):
+        return False
+
+    def raw_data(self, preview=False):
+        if preview:
+            self.is_preview = True
+
+        self.retrieve_data()
+        return {'title': self.NAME,
+                'parameters': self.parameters,
+                'data': self.data}
+
+    def generate_newsletter(self, preview=False, master=False):
+        if preview:
+            self.is_preview = True
+
+        if master:
             template = self._TEMPLATE_MASTER
         else:
             template = self._TEMPLATE
+
+        self.retrieve_data()
 
         return serve_template(
             templatename=template,
             title=self.NAME,
             parameters=self.parameters,
-            **kwargs
+            data=self.data,
+            preview=self.is_preview
         )
+
+    def send(self, subject='', **kwargs):
+        subject = self.format_subject(subject or self.email_config['subject'])
+        newsletter = self.generate_newsletter()
+
+        if not self._has_data():
+            logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
+            return False
+
+        if self.email_config['notifier']:
+            return send_notification(
+                notifier_id=self.email_config['notifier'],
+                subject=subject,
+                body=newsletter
+            )
+
+        else:
+            email = EMAIL(config=self.email_config)
+            return email.notify(
+                subject=subject,
+                body=newsletter
+            )
 
     def format_subject(self, subject):
         subject = subject or self._DEFAULT_EMAIL_CONFIG['subject']
@@ -316,39 +361,6 @@ class Newsletter(object):
             subject = unicode(self._DEFAULT_EMAIL_CONFIG['subject']).format(**self.parameters)
 
         return subject
-
-    def retrieve_data(self):
-        pass
-
-    def generate_newsletter(self):
-        pass
-
-    def preview(self, master=False):
-        self.is_preview = True
-        if master:
-            self.master_template = True
-        self.retrieve_data()
-        return self.generate_newsletter()
-
-    def send(self, subject='', **kwargs):
-        self.retrieve_data()
-
-        subject = self.format_subject(subject or self.email_config['subject'])
-        newsletter = self.generate_newsletter()
-
-        if self.email_config['notifier']:
-            return send_notification(
-                notifier_id=self.email_config['notifier'],
-                subject=subject,
-                body=newsletter
-            )
-
-        else:
-            email = EMAIL(config=self.email_config)
-            return email.notify(
-                subject=subject,
-                body=newsletter
-            )
 
     def return_config_options(self):
         config_options = []
@@ -388,13 +400,8 @@ class RecentlyAdded(Newsletter):
 
         self.parameters['start_date'] = self.start_date
         self.parameters['end_date'] = self.end_date
-
-        self.plexpy_config = {
-            'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
-            'pms_web_url': plexpy.CONFIG.PMS_WEB_URL
-        }
-
-        self.recently_added = {}
+        self.parameters['pms_identifier'] = plexpy.CONFIG.PMS_IDENTIFIER
+        self.parameters['pms_web_url'] = plexpy.CONFIG.PMS_WEB_URL
 
     def _get_recently_added(self, media_type=None):
         pms_connect = pmsconnect.PmsConnect()
@@ -516,15 +523,16 @@ class RecentlyAdded(Newsletter):
         media_types = {s['section_type'] for s in self._get_sections()
                        if str(s['section_id']) in self.config['incl_libraries']}
 
+        recently_added = {}
         for media_type in media_types:
-            if media_type not in self.recently_added:
-                self.recently_added[media_type] = self._get_recently_added(media_type)
+            if media_type not in recently_added:
+                recently_added[media_type] = self._get_recently_added(media_type)
 
         if not self.is_preview:
             # Upload posters and art to Imgur
-            movies = self.recently_added.get('movie', [])
-            shows = self.recently_added.get('show', [])
-            artists = self.recently_added.get('artist', [])
+            movies = recently_added.get('movie', [])
+            shows = recently_added.get('show', [])
+            artists = recently_added.get('artist', [])
             albums = [a for artist in artists for a in artist['album']]
 
             for item in movies + shows + albums:
@@ -545,14 +553,19 @@ class RecentlyAdded(Newsletter):
                                                blur=True)
                 item['art_url'] = art_info.get('blur_art_url', '')
 
-        return self.recently_added
+        self.data['recently_added'] = recently_added
 
-    def generate_newsletter(self):
-        return self._render_template(
-            recently_added=self.recently_added,
-            plexpy_config=self.plexpy_config,
-            preview=self.is_preview
-        )
+        return self.data
+
+    def _has_data(self):
+        recently_added = self.data.get('recently_added')
+        if recently_added and \
+                recently_added.get('movie') or \
+                recently_added.get('show') or \
+                recently_added.get('artist'):
+            return True
+
+        return False
 
     def _get_sections(self):
         return libraries.Libraries().get_sections()

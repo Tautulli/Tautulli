@@ -1,4 +1,8 @@
-﻿<% from plexpy.notification_handler import PILLOW %>
+﻿% if data:
+<%
+    from plexpy.notification_handler import PILLOW
+    recently_added = data['recently_added']
+%>
 <!doctype html>
 <html>
 <head>
@@ -615,7 +619,7 @@
                                     <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']})">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
@@ -623,7 +627,7 @@
                                         </div>
                                         <div class="card-info-container">
                                             <div class="card-info-title nowrap">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
                                             </div>
                                             <div class="card-info-body">
                                                 % if movie['tagline']:
@@ -703,7 +707,7 @@
                                     <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
@@ -711,7 +715,7 @@
                                         </div>
                                         <div class="card-info-container">
                                             <div class="card-info-title nowrap">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">${show['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">${show['title']}</a>
                                             </div>
                                             <div class="card-info-body">
                                                 <div class="nowrap mb5">
@@ -813,7 +817,7 @@
                                     <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
@@ -821,7 +825,7 @@
                                         </div>
                                         <div class="card-info-container">
                                             <div class="card-info-title nowrap">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
                                             </div>
                                             <div class="card-info-body">
                                                 <div class="nowrap mb5">
@@ -883,3 +887,4 @@
 </table>
 </body>
 </html>
+% endif

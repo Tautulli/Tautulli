@@ -522,7 +522,7 @@
 
     function previewNewsletter() {
         showMsg('<i class="fa fa-check"></i>&nbsp; Check pop-up blocker if no response.', false, true, 2000);
-        window.open('preview_newsletter?newsletter_id=' + $('#newsletter_id').val());
+        window.open('newsletter?newsletter_id=' + $('#newsletter_id').val() + '&preview=true');
     }
 
     function sendTestNewsletter() {

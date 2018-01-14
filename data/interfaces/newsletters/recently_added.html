@@ -1,4 +1,8 @@
-﻿<% from plexpy.notification_handler import PILLOW %>
+﻿% if data:
+<%
+    from plexpy.notification_handler import PILLOW
+    recently_added = data['recently_added']
+%>
 <!doctype html>
 <html>
 <head>
@@ -615,7 +619,7 @@
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
@@ -623,7 +627,7 @@
                                         </div>
                                         <div class="card-info-container" style="margin: 4px;width: 332px;float: left;position: relative;z-index: 1;height: 225px;">
                                             <div class="card-info-title nowrap" style="white-space: nowrap;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 20px;font-size: 15px;padding: 5px;text-overflow: ellipsis;overflow: hidden;">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${movie['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${movie['title']}</a>
                                             </div>
                                             <div class="card-info-body" style="padding: 5px;text-overflow: ellipsis;overflow: hidden;min-height: 157px;">
                                                 % if movie['tagline']:
@@ -703,7 +707,7 @@
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
@@ -711,7 +715,7 @@
                                         </div>
                                         <div class="card-info-container" style="margin: 4px;width: 332px;float: left;position: relative;z-index: 1;height: 225px;">
                                             <div class="card-info-title nowrap" style="white-space: nowrap;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 20px;font-size: 15px;padding: 5px;text-overflow: ellipsis;overflow: hidden;">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #ffffff;text-decoration: none;">${show['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #ffffff;text-decoration: none;">${show['title']}</a>
                                             </div>
                                             <div class="card-info-body" style="padding: 5px;text-overflow: ellipsis;overflow: hidden;min-height: 157px;">
                                                 <div class="nowrap mb5" style="margin-bottom: 5px;white-space: nowrap;color: #ffffff;font-size: 12px;text-overflow: ellipsis;overflow: hidden;">
@@ -813,7 +817,7 @@
                                     <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
-                                            <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
+                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
@@ -821,7 +825,7 @@
                                         </div>
                                         <div class="card-info-container" style="margin: 4px;width: 332px;float: left;position: relative;z-index: 1;height: 150px;">
                                             <div class="card-info-title nowrap" style="white-space: nowrap;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 20px;font-size: 15px;padding: 5px;text-overflow: ellipsis;overflow: hidden;">
-                                                <a href="${plexpy_config['pms_web_url']}#!/server/${plexpy_config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${album['title']}</a>
+                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${album['title']}</a>
                                             </div>
                                             <div class="card-info-body" style="padding: 5px;text-overflow: ellipsis;overflow: hidden;min-height: 82px;">
                                                 <div class="nowrap mb5" style="margin-bottom: 5px;white-space: nowrap;color: #ffffff;font-size: 12px;text-overflow: ellipsis;overflow: hidden;">
@@ -883,3 +887,4 @@
 </table>
 </body>
 </html>
+% endif

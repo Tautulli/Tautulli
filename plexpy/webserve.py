@@ -5289,34 +5289,6 @@ class WebInterface(object):
         return helpers.get_plexpy_url()
 
     @cherrypy.expose
-    @requireAuth()
-    def newsletter(self, **kwargs):
-        news_letter = newsletters.Newsletter()
-
-        config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
-        }
-
-        return serve_template(templatename="newsletter_template.html",
-                              title="Newsletter",
-                              recently_added=news_letter.recently_added,
-                              start_date=news_letter.start_date,
-                              end_date=news_letter.end_date,
-                              config=config)
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth()
-    def newsletter_raw(self, **kwargs):
-        news_letter = newsletters.Newsletter()
-
-        if news_letter.recently_added:
-            return news_letter.recently_added
-        else:
-            return None
-
-    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -5518,13 +5490,18 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def preview_newsletter(self, newsletter_id=None, master=False, **kwargs):
+    def newsletter(self, newsletter_id=None, preview=False, master=False, raw=False, **kwargs):
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
             newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'], config=newsletter['config'])
 
             if newsletter_agent:
-                return newsletter_agent.preview(master=master)
+                preview = (preview == 'true')
+
+                if raw:
+                    return json.dumps(newsletter_agent.raw_data(preview=preview))
+
+                return newsletter_agent.generate_newsletter(preview=preview, master=master)
 
             return "Invalid newsletter id %s" % newsletter_id
 
