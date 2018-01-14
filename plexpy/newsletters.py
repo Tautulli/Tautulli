@@ -560,7 +560,7 @@ class RecentlyAdded(Newsletter):
                          'show': 'TV Show Libraries',
                          'artist': 'Music Libraries'}
         sections = {}
-        for s in sorted(self._get_sections(), key=lambda x: x['section_name']):
+        for s in self._get_sections():
             if s['section_type'] != 'photo':
                 library_type = library_types[s['section_type']]
                 group = sections.get(library_type, [])

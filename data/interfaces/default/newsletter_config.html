@@ -120,14 +120,14 @@
                                                     % if isinstance(item['select_options'], dict):
                                                     % for section, options in item['select_options'].iteritems():
                                                     <optgroup label="${section}">
-                                                        % for option in options:
+                                                        % for option in sorted(options, key=lambda x: x['text'].lower()):
                                                             <option value="${option['value']}">${option['text']}</option>
                                                         % endfor
                                                     </optgroup>
                                                     % endfor
                                                     % else:
                                                     <option value="border-all"></option>
-                                                    % for option in item['select_options']:
+                                                    % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
                                                         <option value="${option['value']}">${option['text']}</option>
                                                     % endfor
                                                     % endif
@@ -263,14 +263,14 @@
                                                     % if isinstance(item['select_options'], dict):
                                                     % for section, options in item['select_options'].iteritems():
                                                     <optgroup label="${section}">
-                                                        % for option in options:
+                                                        % for option in sorted(options, key=lambda x: x['text'].lower()):
                                                             <option value="${option['value']}">${option['text']}</option>
                                                         % endfor
                                                     </optgroup>
                                                     % endfor
                                                     % else:
                                                     <option value="border-all"></option>
-                                                    % for option in item['select_options']:
+                                                    % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
                                                         <option value="${option['value']}">${option['text']}</option>
                                                     % endfor
                                                     % endif
