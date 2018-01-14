@@ -31,8 +31,7 @@ def schedule_newsletters(newsletter_id=None):
     newsletters_list = newsletters.get_newsletters(newsletter_id=newsletter_id)
 
     for newsletter in newsletters_list:
-        newsletter_job_name = '{} ({})'.format(newsletter['agent_label'],
-                                               newsletter['friendly_name'] or newsletter['id'])
+        newsletter_job_name = '{} (newsletter_id {})'.format(newsletter['agent_label'], newsletter['id'])
 
         if newsletter['active']:
             schedule_newsletter_job('newsletter-{}'.format(newsletter['id']), name=newsletter_job_name,
