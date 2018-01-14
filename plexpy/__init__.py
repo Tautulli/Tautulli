@@ -478,6 +478,7 @@ def start():
             analytics_event(category='system', action='start')
 
         # Schedule newsletters
+        newsletter_handler.NEWSLETTER_SCHED.start()
         newsletter_handler.schedule_newsletters()
 
         _STARTED = True

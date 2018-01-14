@@ -587,4 +587,19 @@ class RecentlyAdded(Newsletter):
                           }
                          ]
 
+        if not PILLOW:
+            pillow_message = {
+                'label': 'Background Art',
+                'description': 'The Pillow library is missing. '
+                               'Background art on the newsletter media cards will not be included.<br>'
+                               'Install the Pillow library to add background art. '
+                               'Instructions can be found in the '
+                               '<a href="' + helpers.anon_url('https://github.com/%s/plexpy/wiki/'
+                                                              'Frequently-Asked-Questions-(FAQ)#notifications-pillow'
+                                                              % plexpy.CONFIG.GIT_USER) + '" target="_blank">FAQ</a>.',
+                'name': 'recently_added_pillow',
+                'input_type': 'help'
+                }
+            config_option.insert(0, pillow_message)
+
         return config_option

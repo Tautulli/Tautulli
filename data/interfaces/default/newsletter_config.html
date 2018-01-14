@@ -2,6 +2,7 @@
 <%!
     import json
     from plexpy import helpers, notifiers
+    from plexpy.notification_handler import PILLOW
 
     email_notifiers = [n for n in notifiers.get_notifiers() if n['agent_name'] == 'email']
     sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
