@@ -523,10 +523,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     remaining_duration = duration - view_offset
 
     # Build Plex URL
+    if notify_params['media_type'] == 'track':
+        plex_web_rating_key = notify_params['parent_rating_key']
+    else:
+        plex_web_rating_key = notify_params['rating_key']
+
     notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}'.format(
         web_url=plexpy.CONFIG.PMS_WEB_URL,
         pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
-        rating_key=rating_key)
+        rating_key=plex_web_rating_key)
 
     # Get media IDs from guid and build URLs
     if 'imdb://' in notify_params['guid']:
