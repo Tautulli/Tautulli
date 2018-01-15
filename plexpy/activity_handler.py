@@ -327,6 +327,7 @@ class TimelineHandler(object):
                            9: 'album',
                            10: 'track'}
 
+            identifier = self.timeline.get('identifier')
             state_type = self.timeline.get('state')
             media_type = media_types.get(self.timeline.get('type'))
             section_id = self.timeline.get('sectionID', 0)
@@ -334,6 +335,10 @@ class TimelineHandler(object):
             metadata_state = self.timeline.get('metadataState')
             media_state = self.timeline.get('mediaState')
             queue_size = self.timeline.get('queueSize')
+
+            # Return if it is not a library event (i.e. DVR EPG event)
+            if identifier != 'com.plexapp.plugins.library':
+                return
 
             # Add a new media item to the recently added queue
             if media_type and section_id > 0 and \
