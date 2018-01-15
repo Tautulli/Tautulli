@@ -4457,7 +4457,7 @@ class WebInterface(object):
                     counts['total_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
                     if s['location'] == 'lan':
                         counts['lan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
-                    elif s['location'] == 'wan':
+                    else:
                         counts['wan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
 
                 result.update(counts)
