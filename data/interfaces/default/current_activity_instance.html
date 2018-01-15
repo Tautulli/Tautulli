@@ -202,7 +202,7 @@ DOCUMENTATION :: END
                                 <div class="sub-heading">Container</div>
                                 <div class="sub-value" id="transcode_container-${sk}">
                                     % if data.get('stream_container_decision') == 'transcode':
-                                    Transcode (${data['container'].upper()} &rarr; ${data['stream_container'].upper()})
+                                    Transcode (${data['container'].upper()} <i class="fa fa-long-arrow-right"></i> ${data['stream_container'].upper()})
                                     % else:
                                     Direct Play (${data['container'].upper()})
                                     % endif
@@ -218,7 +218,7 @@ DOCUMENTATION :: END
                                             hw_d = ' (HW)' if data['transcode_hw_decoding'] else ''
                                             hw_e = ' (HW)' if data['transcode_hw_encoding'] else ''
                                         %>
-                                        Transcode (${data['video_codec'].upper()}${hw_d} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()}${hw_e} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
+                                        Transcode (${data['video_codec'].upper()}${hw_d} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
                                         % elif data.get('stream_video_decision') == 'copy':
                                         Direct Stream (${data['stream_video_codec'].upper()} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
                                         % else:
@@ -235,7 +235,7 @@ DOCUMENTATION :: END
                                 <div class="sub-heading">Audio</div>
                                 <div class="sub-value" id="audio_decision-${sk}">
                                     % if data.get('stream_audio_decision') == 'transcode':
-                                    Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} &rarr; ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                    Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
                                     % elif data.get('stream_audio_decision') == 'copy':
                                     Direct Stream (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
                                     % else:
@@ -250,7 +250,7 @@ DOCUMENTATION :: END
                                 <div class="sub-value" id="subtitle_decision-${sk}">
                                     % if data['subtitles'] == 1:
                                         % if data['stream_subtitle_decision'] == 'transcode':
-                                        Transcode (${data['subtitle_codec'].upper()} &rarr; ${data['stream_subtitle_codec'].upper()})
+                                        Transcode (${data['subtitle_codec'].upper()} <i class="fa fa-long-arrow-right"></i> ${data['stream_subtitle_codec'].upper()})
                                         % elif data['stream_subtitle_decision'] == 'copy':
                                         Direct Stream (${data['subtitle_codec'].upper()})
                                         % elif data['stream_subtitle_decision'] == 'burn':
