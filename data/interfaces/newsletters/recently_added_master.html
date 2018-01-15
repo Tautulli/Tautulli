@@ -56,9 +56,9 @@
             display: block;
             margin: 0 auto !important;
             /* makes it centered */
-            max-width: 1046px;
+            max-width: 1042px;
             padding: 10px;
-            width: 1046px;
+            width: 1042px;
         }
 
         /* This should also be a block element, so that it will fill 100% of the .container */
@@ -66,7 +66,7 @@
             box-sizing: border-box;
             display: block;
             margin: 0 auto;
-            max-width: 1046px;
+            max-width: 1042px;
             padding: 10px;
         }
 
@@ -270,7 +270,12 @@
             width: 100%;
             height: 100px;
         }
+        .server-name {
+            font-size: 30px;
+            text-align: center;
+        }
         .dates {
+            color: #aaaaaa;
             font-size: 20px;
             text-align: center;
         }
@@ -305,7 +310,7 @@
         .sub-header-bar {
             width: 200px;
             border-top: 1px solid #E5A00D;
-            margin-top: 25px;
+            margin-top: 15px;
             margin-bottom: 25px;
         }
         .sub-header-title {
@@ -490,8 +495,11 @@
                 margin-bottom: 10px !important;
             }
 
+            table[class=body] .server-name {
+                font-size: 20px !important;
+            }
             table[class=body] .dates {
-                font-size: 16px !important;
+                font-size: 14px !important;
             }
             table[class=body] .sub-header > div {
                 font-size: 20px !important;
@@ -583,6 +591,7 @@
                     <tr>
                         <td class="wrapper newsletter-header">
                             <div class="header"></div>
+                            <div class="server-name">${parameters['server_name']}</div>
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>

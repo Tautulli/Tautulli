@@ -389,7 +389,7 @@ class RecentlyAdded(Newsletter):
         elif not isinstance(self.config['incl_libraries'], list):
             self.config['incl_libraries'] = [self.config['incl_libraries']]
 
-        self._DEFAULT_EMAIL_CONFIG['subject'] = 'Recently Added to Plex! ({end_date})'
+        self._DEFAULT_EMAIL_CONFIG['subject'] = 'Recently Added to Plex ({server_name})! ({end_date})'
 
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
