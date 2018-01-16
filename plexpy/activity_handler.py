@@ -121,15 +121,15 @@ class ActivityHandler(object):
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
-            success = monitor_proc.write_session_history(session=db_session)
+            row_id = monitor_proc.write_session_history(session=db_session)
 
-            if success:
+            if row_id:
                 schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
 
                 # Remove the session from our temp session table
                 logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
                              % (str(self.get_session_key()), str(self.get_rating_key())))
-                ap.delete_session(session_key=self.get_session_key())
+                ap.delete_session(row_id=row_id)
                 delete_metadata_cache(self.get_session_key())
             else:
                 schedule_callback('session_key-{}'.format(self.get_session_key()), func=force_stop_stream,
@@ -441,13 +441,13 @@ def force_stop_stream(session_key):
     ap = activity_processor.ActivityProcessor()
     session = ap.get_session_by_key(session_key=session_key)
 
-    success = ap.write_session_history(session=session)
+    row_id = ap.write_session_history(session=session)
 
-    if success:
+    if row_id:
         # If session is written to the databaase successfully, remove the session from the session table
         logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
-        ap.delete_session(session_key=session_key)
+        ap.delete_session(row_id=row_id)
         delete_metadata_cache(session_key)
 
     else:
