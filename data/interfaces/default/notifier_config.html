@@ -333,7 +333,7 @@
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     // Need this for setting conditions since conditions contain the character "
-    $('#custom_conditions').val('${notifier["custom_conditions"] | n}');
+    $('#custom_conditions').val(${json.dumps(notifier["custom_conditions"]) | n});
 
     $('#condition-widget').filterer({
         parameters: ${parameters | n},
