@@ -410,6 +410,7 @@ def start():
 
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
+        notifiers.check_browser_enabled()
 
         _STARTED = True
 

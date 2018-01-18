@@ -3126,8 +3126,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_browser_notifications(self, **kwargs):
-        browser = notifiers.BROWSER()
-        result = browser.get_notifications()
+        result = notifiers.get_browser_notifications()
 
         if result:
             notifications = result['notifications']

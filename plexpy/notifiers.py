@@ -64,6 +64,9 @@ import users
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
+BROWSER_NOTIFIERS = {}
+
+
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
@@ -551,6 +554,10 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info(u"Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         blacklist_logger()
+
+        if agent['name'] == 'browser':
+            check_browser_enabled()
+
         return True
     except Exception as e:
         logger.warn(u"Tautulli Notifiers :: Unable to update notification agent: %s." % e)
@@ -994,40 +1001,15 @@ class BROWSER(Notifier):
     Browser notifications
     """
     NAME = 'Browser'
-    _DEFAULT_CONFIG = {'enabled': 0,
-                       'auto_hide_delay': 5
+    _DEFAULT_CONFIG = {'auto_hide_delay': 5
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
         return True
 
-    def get_notifications(self):
-        if not self.config['enabled']:
-            return
-
-        db = database.MonitorDatabase()
-        result = db.select('SELECT subject_text, body_text FROM notify_log '
-                                   'WHERE agent_id = 17 AND timestamp >= ? ',
-                                   args=[time.time() - 3])
-
-        notifications = []
-        for item in result:
-            notification = {'subject_text': item['subject_text'],
-                            'body_text': item['body_text'],
-                            'delay': self.config['auto_hide_delay']}
-            notifications.append(notification)
-
-        return {'notifications': notifications}
-
     def return_config_options(self):
-        config_option = [{'label': 'Enable Browser Notifications',
-                          'value': self.config['enabled'],
-                          'name': 'browser_enabled',
-                          'description': 'Enable to display desktop notifications from your browser.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Allow Notifications',
+        config_option = [{'label': 'Allow Notifications',
                           'value': 'Allow Notifications',
                           'name': 'browser_allow_browser',
                           'description': 'Click to allow browser notifications. You must click this button for each browser.',
@@ -3544,3 +3526,27 @@ def upgrade_config_to_db():
                 notifier_id = add_notifier_config(agent_id=agent_id)
                 set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **notifier_config)
 
+
+def check_browser_enabled():
+    global BROWSER_NOTIFIERS
+    BROWSER_NOTIFIERS = {}
+    for n in get_notifiers():
+        if n['agent_id'] == 17 and n['active']:
+            notifier_config = get_notifier_config(n['id'])
+            BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']
+
+
+def get_browser_notifications():
+    db = database.MonitorDatabase()
+    result = db.select('SELECT notifier_id, subject_text, body_text FROM notify_log '
+                       'WHERE agent_id = 17 AND timestamp >= ? ',
+                       args=[time.time() - 5])
+
+    notifications = []
+    for item in result:
+        notification = {'subject_text': item['subject_text'],
+                        'body_text': item['body_text'],
+                        'delay': BROWSER_NOTIFIERS.get(item['notifier_id'], 5)}
+        notifications.append(notification)
+
+    return {'notifications': notifications}

@@ -2,6 +2,7 @@
     import plexpy
     from plexpy import version
     from plexpy.helpers import anon_url
+    from plexpy.notifiers import BROWSER_NOTIFIERS
 %>
 <!doctype html>
 
@@ -283,6 +284,9 @@ ${next.modalIncludes()}
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
+% if _session['user_group'] == 'admin' and BROWSER_NOTIFIERS:
+<script src="${http_root}js/ajaxNotifications.js"></script>
+% endif
 <script>
     % if _session['user_group'] == 'admin':
     $('#updateDismiss').click(function() {

@@ -333,7 +333,7 @@
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     // Need this for setting conditions since conditions contain the character "
-    $('#custom_conditions').val('${notifier['custom_conditions'] | n}')
+    $('#custom_conditions').val('${notifier["custom_conditions"] | n}');
 
     $('#condition-widget').filterer({
         parameters: ${parameters | n},
@@ -341,7 +341,7 @@
         updateConditions: function(newConditions){
             $('#custom_conditions').val(JSON.stringify(newConditions));
         }
-    })
+    });
     
     function reloadModal() {
         $.ajax({
@@ -359,7 +359,7 @@
         if (jqXHR) {
             var result = $.parseJSON(jqXHR.responseText);
             var msg = result.message;
-            if (result.result == 'success') {
+            if (result.result === 'success') {
                 showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
             } else {
                 showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
@@ -419,7 +419,7 @@
 
     % if notifier['agent_name'] == 'facebook':
     function disableFacebookRequest() {
-        if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebook_facebookStep1').prop('disabled', false); }
+        if ($('#facebook_app_id').val() !== '' && $('#facebook_app_secret').val() !== '') { $('#facebook_facebookStep1').prop('disabled', false); }
         else { $('#facebook_facebookStep1').prop('disabled', true); }
     }
     disableFacebookRequest();
@@ -433,19 +433,20 @@
             $('#facebook_redirect_uri').val($('#facebook_redirect_uri').val().slice(0, -1));
         }
 
+        var facebook_token;
         $.ajax({
             url: 'facebookStep1',
             data: {
                 app_id: $('#facebook_app_id').val(),
                 app_secret: $('#facebook_app_secret').val(),
-                redirect_uri: $('#facebook_redirect_uri').val(),
+                redirect_uri: $('#facebook_redirect_uri').val()
             },
             cache: false,
             async: true,
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.msg;
-                if (result.result == 'success') {
+                if (result.result === 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                     window.open(result.url);
 
@@ -484,18 +485,18 @@
 
     $('#notifier-config-modal').on('hidden.bs.modal', function () {
         facebook_token = false;
-    })
+    });
 
     % elif notifier['agent_name'] == 'browser':
     $('#browser_allow_browser').click(function () {
         PNotify.desktop.permission();
-    })
+    });
 
     % elif notifier['agent_name'] == 'osx':
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
-    })
+    });
 
     % elif notifier['agent_name'] == 'email':
     var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
@@ -578,7 +579,6 @@
         create: true
     });
     var join_device_names = $join_device_names[0].selectize;
-    console.log(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
     join_device_names.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
     % endif
 
@@ -710,7 +710,7 @@
     });
 
     function sendTestNotification() {
-        if ('${notifier["agent_name"]}' != 'browser') {
+        if ('${notifier["agent_name"]}' !== 'browser') {
             $.ajax({
                 url: 'send_notification',
                 data: {
@@ -734,7 +734,7 @@
                 }
             });
         } else {
-            if ($('#browser_auto_hide_delay').val() == "0") {
+            if ($('#browser_auto_hide_delay').val() === "0") {
                 PNotify.prototype.options.hide = false;
             } else {
                 PNotify.prototype.options.hide = true;
