@@ -220,7 +220,7 @@ object {
 }
 .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
     background-color: #2f2f2f;
-    border-color: none;
+    border-color: unset;
 }
 .dropdown-menu {
   background-color: #282828;
@@ -988,7 +988,6 @@ a .users-poster-face:hover {
     background-image: -o-linear-gradient(top, #fbb450, #f89406);
     background-image: linear-gradient(to bottom, #fbb450, #f89406);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
     position: absolute;
     height: 100%;
     max-width: 100%;
@@ -1743,7 +1742,6 @@ a:hover .dashboard-recent-media-cover {
     background-image: -moz-linear-gradient(top,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-image: linear-gradient(to bottom,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#b3000000', endColorstr='#e6000000', GradientType=0);
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;

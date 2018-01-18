@@ -321,7 +321,7 @@
                     $('#currentActivityHeader').show();
 
                     sessions.forEach(function (session) {
-                        var s = new Proxy(session, defaultHandler);
+                        var s = (typeof Proxy === "function") ? new Proxy(session, defaultHandler) : session;
                         var key = s.session_key;
                         var session_id = s.session_id;
                         var instance = $('#activity-instance-' + key);
