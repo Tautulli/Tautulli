@@ -537,7 +537,7 @@ class PmsConnect(object):
             try:
                 with open(in_file_path, 'r') as inFile:
                     metadata = json.load(inFile)
-            except IOError as e:
+            except (IOError, ValueError) as e:
                 pass
 
             if metadata:
@@ -1162,7 +1162,7 @@ class PmsConnect(object):
                 try:
                     with open(out_file_path, 'w') as outFile:
                         json.dump(metadata, outFile)
-                except IOError as e:
+                except (IOError, ValueError) as e:
                     logger.error(u"Tautulli Pmsconnect :: Unable to create cache file for metadata (sessionKey %s): %s"
                                  % (cache_key, e))
 
