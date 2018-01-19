@@ -1701,6 +1701,7 @@ class Email(object):
         msg['From'] = email.utils.formataddr((self.from_name, self.email_from))
         msg['To'] = self.email_to
         msg['CC'] = self.email_cc
+        msg['Date'] = email.utils.formatdate(time.time(), localtime=True)
 
 
         recipients = [x.strip() for x in self.email_to.split(';')] \
