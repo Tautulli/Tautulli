@@ -477,12 +477,12 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Tautulli Update Available',
         'parameters': [
-             {'name': 'Plexpy Update Version', 'type': 'int', 'value': 'plexpy_update_version', 'description': 'The available update version for Tautulli.'},
-             {'name': 'Plexpy Update Tar', 'type': 'int', 'value': 'plexpy_update_tar', 'description': 'The tar download URL for the available update.'},
-             {'name': 'Plexpy Update Zip', 'type': 'int', 'value': 'plexpy_update_zip', 'description': 'The zip download URL for the available update.'},
-             {'name': 'Plexpy Update Commit', 'type': 'int', 'value': 'plexpy_update_commit', 'description': 'The commit hash for the available update.'},
-             {'name': 'Plexpy Update Behind', 'type': 'int', 'value': 'plexpy_update_behind', 'description': 'The number of commits behind for the available update.'},
-             {'name': 'Plexpy Update Changelog', 'type': 'int', 'value': 'plexpy_update_changelog', 'description': 'The changelog for the available update.'},
+             {'name': 'Tautulli Update Version', 'type': 'int', 'value': 'tautulli_update_version', 'description': 'The available update version for Tautulli.'},
+             {'name': 'Tautulli Update Tar', 'type': 'int', 'value': 'tautulli_update_tar', 'description': 'The tar download URL for the available update.'},
+             {'name': 'Tautulli Update Zip', 'type': 'int', 'value': 'tautulli_update_zip', 'description': 'The zip download URL for the available update.'},
+             {'name': 'Tautulli Update Commit', 'type': 'int', 'value': 'tautulli_update_commit', 'description': 'The commit hash for the available update.'},
+             {'name': 'Tautulli Update Behind', 'type': 'int', 'value': 'tautulli_update_behind', 'description': 'The number of commits behind for the available update.'},
+             {'name': 'Tautulli Update Changelog', 'type': 'int', 'value': 'tautulli_update_changelog', 'description': 'The changelog for the available update.'},
         ]
      },
 ]
