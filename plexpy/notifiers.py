@@ -1240,13 +1240,13 @@ class EMAIL(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['html_support']:
-            body = body.replace('\n', '<br />')
             msg = MIMEMultipart('alternative')
             msg.attach(MIMEText(bleach.clean(body, strip=True), 'plain', 'utf-8'))
             msg.attach(MIMEText(body, 'html', 'utf-8'))
         else:
             msg = MIMEText(body, 'plain', 'utf-8')
 
+        msg['Date'] = email.utils.formatdate(localtime=True)
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
         msg['To'] = ','.join(self.config['to'])
