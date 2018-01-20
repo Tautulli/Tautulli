@@ -385,8 +385,9 @@
 
         $("#clear-logs").click(function () {
             var logfile = $(".tab-pane.active").data('logfile')
+            var title = $("#log_tabs li.active a").text()
 
-            $("#confirm-message").text("Are you sure you want to clear the Tautulli logs?");
+            $("#confirm-message").text("Are you sure you want to clear the " + title + "?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
@@ -421,7 +422,7 @@
         });
 
         $("#clear-notify-logs").click(function () {
-            $("#confirm-message").text("Are you sure you want to clear the Tautulli notification logs?");
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli Notification Logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
@@ -442,7 +443,7 @@
         });
 
         $("#clear-login-logs").click(function () {
-            $("#confirm-message").text("Are you sure you want to clear the Tautulli login logs?");
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli Login Logs?");
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
