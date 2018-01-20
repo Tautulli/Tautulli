@@ -2612,7 +2612,8 @@ class WebInterface(object):
             "tv_watched_percent": plexpy.CONFIG.TV_WATCHED_PERCENT,
             "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
             "themoviedb_lookup": checked(plexpy.CONFIG.THEMOVIEDB_LOOKUP),
-            "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP)
+            "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
+            "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)

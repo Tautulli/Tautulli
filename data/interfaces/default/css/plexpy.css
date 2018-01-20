@@ -2122,6 +2122,18 @@ a:hover .item-children-poster {
     top: 5px;
     left: 12px;
 }
+#menu_link_show_advanced_settings.active {
+  color: #fff;
+  background-color: #cc7b19;
+}
+.advanced-setting {
+    display: none;
+}
+div.checkbox.advanced-setting,
+div.form-group.advanced-setting {
+    border-left: 1px solid #e5a00d;
+    padding-left: 10px;
+}
 .user-info-wrapper {
 }
 .user-info-poster-face {
