@@ -176,6 +176,7 @@ def process(opcode, data):
         return False
 
     try:
+        logger.websocket_debug(data)
         info = json.loads(data)
     except Exception as e:
         logger.warn(u"Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
@@ -189,7 +190,6 @@ def process(opcode, data):
         return False
 
     if type == 'playing':
-        logger.websocket_debug(data)
         time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
         if not time_line:
@@ -203,7 +203,6 @@ def process(opcode, data):
             logger.error(u"Tautulli WebSocket :: Failed to process session data: %s." % e)
 
     if type == 'timeline':
-        logger.websocket_debug(data)
         time_line = info.get('TimelineEntry', info.get('_children', {}))
 
         if not time_line:

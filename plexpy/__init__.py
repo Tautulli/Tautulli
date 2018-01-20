@@ -1587,6 +1587,7 @@ def upgrade():
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
+    activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
 
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
@@ -1617,22 +1618,34 @@ def shutdown(restart=False, update=False, checkout=False):
 
     if restart:
         logger.info(u"Tautulli is restarting...")
+
         exe = sys.executable
         args = [exe, FULL_PATH]
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']
 
-        # os.execv fails with spaced names on Windows
-        # https://bugs.python.org/issue19066
+        # Separate out logger so we can shutdown logger after
         if NOFORK:
             logger.info('Running as service, not forking. Exiting...')
         elif os.name == 'nt':
             logger.info('Restarting Tautulli with %s', args)
-            subprocess.Popen(args, cwd=os.getcwd())
         else:
             logger.info('Restarting Tautulli with %s', args)
+
+        logger.shutdown()
+
+        # os.execv fails with spaced names on Windows
+        # https://bugs.python.org/issue19066
+        if NOFORK:
+            pass
+        elif os.name == 'nt':
+            subprocess.Popen(args, cwd=os.getcwd())
+        else:
             os.execv(exe, args)
+
+    else:
+        logger.shutdown()
 
     os._exit(0)
 
