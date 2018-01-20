@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.0.14-beta (2018-01-20)
+
+* Monitoring:
+  * Change: Added "Cellular" bandwidth to "WAN" in activity header.
+* Notifications:
+  * Fix: Plex Web URL for tracks now go to the album page.
+  * Fix: Recently added notifications being sent for the entire library when DVR EPG data was refreshed.
+  * Fix: Notifier settings not loading with an apostrophe in the custom condition values.
+  * Fix: Custom email addresses not being saved when closing the notifier settings.
+  * Change: Re-enabled Browser notifications.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+  * Change: Emails no longer automatically insert HTML line breaks.
+  * Change: "Date" header added to email notifications.
+* UI:
+  * Change: Show all changelogs since the previous version when updating.
+
+
 ## v2.0.13-beta (2018-01-13)
 
 * Notifications:
