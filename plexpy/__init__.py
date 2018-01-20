@@ -34,7 +34,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 import activity_handler
 import activity_pinger
-import config
+import common
 import database
 import libraries
 import logger
@@ -42,7 +42,6 @@ import mobile_app
 import notification_handler
 import notifiers
 import plextv
-import pmsconnect
 import users
 import versioncheck
 import plexpy.config
@@ -83,6 +82,7 @@ INSTALL_TYPE = None
 CURRENT_VERSION = None
 LATEST_VERSION = None
 COMMITS_BEHIND = None
+PREV_RELEASE = None
 
 UMASK = None
 
@@ -102,7 +102,9 @@ def initialize(config_file):
         global _INITIALIZED
         global CURRENT_VERSION
         global LATEST_VERSION
+        global PREV_RELEASE
         global UMASK
+
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
 
@@ -190,6 +192,17 @@ def initialize(config_file):
             CONFIG.JWT_SECRET = generate_uuid()
             CONFIG.write()
 
+        # Get the previous version from the file
+        version_lock_file = os.path.join(DATA_DIR, "version.lock")
+        prev_version = None
+        if os.path.isfile(version_lock_file):
+            try:
+                with open(version_lock_file, "r") as fp:
+                    prev_version = fp.read()
+            except IOError as e:
+                logger.error(u"Unable to read previous version from file '%s': %s" %
+                             (version_lock_file, e))
+
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
         CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
@@ -198,8 +211,6 @@ def initialize(config_file):
         # This allowes one to restore to that version. The idea is that if we
         # arrive here, most parts of Tautulli seem to work.
         if CURRENT_VERSION:
-            version_lock_file = os.path.join(DATA_DIR, "version.lock")
-
             try:
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
@@ -216,6 +227,32 @@ def initialize(config_file):
                 LATEST_VERSION = CURRENT_VERSION
         else:
             LATEST_VERSION = CURRENT_VERSION
+
+        # Get the previous release from the file
+        release_file = os.path.join(DATA_DIR, "release.lock")
+        PREV_RELEASE = common.VERSION_NUMBER
+        if os.path.isfile(release_file):
+            try:
+                with open(release_file, "r") as fp:
+                    PREV_RELEASE = fp.read()
+            except IOError as e:
+                logger.error(u"Unable to read previous release from file '%s': %s" %
+                             (release_file, e))
+        elif prev_version == 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca':  # Commit hash for v1.4.25
+            PREV_RELEASE = 'v1.4.25'
+
+        # Check if the release was updated
+        if common.VERSION_NUMBER != PREV_RELEASE:
+            CONFIG.UPDATE_SHOW_CHANGELOG = 1
+            CONFIG.write()
+
+        # Write current release version to file for update checking
+        try:
+            with open(release_file, "w") as fp:
+                fp.write(common.VERSION_NUMBER)
+        except IOError as e:
+            logger.error(u"Unable to write current release to file '%s': %s" %
+                         (release_file, e))
 
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:

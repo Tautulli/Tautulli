@@ -298,14 +298,14 @@ def checkout_git_branch():
                 logger.info('Output: ' + str(output))
 
 
-def read_changelog(latest_only=False):
+def read_changelog(latest_only=False, since_prev_release=False):
     changelog_file = os.path.join(plexpy.PROG_DIR, 'CHANGELOG.md')
 
     if not os.path.isfile(changelog_file):
         return '<h4>Missing changelog file</h4>'
 
     try:
-        output = ''
+        output = ['']
         prev_level = 0
 
         latest_version_found = False
@@ -329,27 +329,34 @@ def read_changelog(latest_only=False):
                         break
                     elif latest_only:
                         latest_version_found = True
+                    # Add a space to the end of the release to match tags
+                    elif since_prev_release and str(plexpy.PREV_RELEASE) + ' ' in header_text:
+                        break
 
-                    output += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
+                    output[-1] += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
 
                 elif line_list_match:
                     line_level = len(line_list_match.group(1)) / 2
                     line_text = line_list_match.group(2)
 
                     if line_level > prev_level:
-                        output += '<ul>' * (line_level - prev_level) + '<li>' + line_text + '</li>'
+                        output[-1] += '<ul>' * (line_level - prev_level) + '<li>' + line_text + '</li>'
                     elif line_level < prev_level:
-                        output += '</ul>' * (prev_level - line_level) + '<li>' + line_text + '</li>'
+                        output[-1] += '</ul>' * (prev_level - line_level) + '<li>' + line_text + '</li>'
                     else:
-                        output += '<li>' + line_text + '</li>'
+                        output[-1] += '<li>' + line_text + '</li>'
 
                     prev_level = line_level
 
                 elif line.strip() == '' and prev_level:
-                    output += '</ul>' * (prev_level)
+                    output[-1] += '</ul>' * (prev_level)
+                    output.append('')
                     prev_level = 0
 
-        return output
+        if since_prev_release:
+            output.reverse()
+
+        return ''.join(output)
 
     except IOError as e:
         logger.error('Tautulli Version Checker :: Unable to open changelog file. %s' % e)

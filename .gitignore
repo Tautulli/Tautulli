@@ -12,6 +12,7 @@
 *.db*
 *.db-journal
 *.ini
+release.lock
 version.lock
 logs/*
 cache/*

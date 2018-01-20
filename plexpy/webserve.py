@@ -3545,13 +3545,20 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def get_changelog(self, latest_only=False, update_shown=False, **kwargs):
-        latest_only = True if latest_only == 'true' else False
+    def get_changelog(self, latest_only=False, since_prev_release=False, update_shown=False, **kwargs):
+        latest_only = (latest_only == 'true')
+        since_prev_release = (since_prev_release == 'true')
+
+        if since_prev_release and plexpy.PREV_RELEASE == common.VERSION_NUMBER:
+            latest_only = True
+            since_prev_release = False
+
         # Set update changelog shown status
         if update_shown == 'true':
             plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
             plexpy.CONFIG.write()
-        return versioncheck.read_changelog(latest_only=latest_only)
+
+        return versioncheck.read_changelog(latest_only=latest_only, since_prev_release=since_prev_release)
 
     ##### Info #####
 
