@@ -54,7 +54,7 @@ class ActivityHandler(object):
 
     def get_rating_key(self):
         if self.is_valid_session():
-            return int(self.timeline['ratingKey'])
+            return self.timeline['ratingKey']
 
         return None
 
@@ -65,6 +65,10 @@ class ActivityHandler(object):
         if session_list:
             for session in session_list['sessions']:
                 if int(session['session_key']) == self.get_session_key():
+                    # Live sessions don't have rating keys in sessions
+                    # Get it from the websocket data
+                    if not session['rating_key']:
+                        session['rating_key'] = self.get_rating_key()
                     return session
 
         return None
