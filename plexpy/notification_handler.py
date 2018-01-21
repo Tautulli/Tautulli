@@ -777,6 +777,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'writers': ', '.join(notify_params['writers']),
         'actors': ', '.join(notify_params['actors']),
         'genres': ', '.join(notify_params['genres']),
+        'labels': ', '.join(notify_params['labels']),
+        'collections': ', '.join(notify_params['collections']),
         'summary': notify_params['summary'],
         'tagline': notify_params['tagline'],
         'rating': notify_params['rating'],

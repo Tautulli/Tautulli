@@ -588,6 +588,7 @@ class PmsConnect(object):
         actors = []
         genres = []
         labels = []
+        collections = []
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
@@ -608,6 +609,10 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Label'):
             for label in metadata_main.getElementsByTagName('Label'):
                 labels.append(helpers.get_xml_attr(label, 'tag'))
+
+        if metadata_main.getElementsByTagName('Collection'):
+            for collection in metadata_main.getElementsByTagName('Collection'):
+                collections.append(helpers.get_xml_attr(collection, 'tag'))
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -646,6 +651,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -686,6 +692,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -728,6 +735,7 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
+                        'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -771,6 +779,7 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
+                        'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -812,6 +821,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -854,6 +864,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -897,6 +908,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': album_details['genres'],
                         'labels': album_details['labels'],
+                        'collections': album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -938,6 +950,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -980,6 +993,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': photo_album_details['genres'],
                         'labels': photo_album_details['labels'],
+                        'collections': photo_album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -1025,6 +1039,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -1065,6 +1080,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
