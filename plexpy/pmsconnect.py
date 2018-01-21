@@ -1602,6 +1602,7 @@ class PmsConnect(object):
             channel_stream = 1
 
             clip_media = session.getElementsByTagName('Media')[0]
+            clip_part = clip_media.getElementsByTagName('Part')[0]
             audio_channels = helpers.get_xml_attr(clip_media, 'audioChannels')
             metadata_details = {'media_type': media_type,
                                 'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
@@ -1640,7 +1641,8 @@ class PmsConnect(object):
                                 'genres': [],
                                 'labels': [],
                                 'full_title': helpers.get_xml_attr(session, 'title'),
-                                'container': helpers.get_xml_attr(clip_media, 'container'),
+                                'container': helpers.get_xml_attr(clip_media, 'container') \
+                                             or helpers.get_xml_attr(clip_part, 'container'),
                                 'height': helpers.get_xml_attr(clip_media, 'height'),
                                 'width': helpers.get_xml_attr(clip_media, 'width'),
                                 'video_codec': helpers.get_xml_attr(clip_media, 'videoCodec'),
@@ -1649,7 +1651,8 @@ class PmsConnect(object):
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
-                                'channel_title': helpers.get_xml_attr(session, 'sourceTitle')
+                                'channel_title': helpers.get_xml_attr(session, 'sourceTitle'),
+                                'live': int(helpers.get_xml_attr(session, 'live') == '1')
                                 }
         else:
             channel_stream = 0
@@ -1714,6 +1717,21 @@ class PmsConnect(object):
             if subtitle_id:
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
+
+        # Overrides for live sessions
+        if metadata_details.get('live') and transcode_decision == 'transcode':
+            stream_details['stream_container_decision'] = 'transcode'
+            stream_details['stream_container'] = transcode_details['transcode_container']
+
+            video_details['stream_video_decision'] = transcode_details['video_decision']
+            stream_details['stream_video_codec'] = transcode_details['transcode_video_codec']
+            stream_details['stream_video_resolution'] = metadata_details['video_resolution']
+
+            audio_details['stream_audio_decision'] = transcode_details['audio_decision']
+            stream_details['stream_audio_codec'] = transcode_details['transcode_audio_codec']
+            stream_details['stream_audio_channels'] = transcode_details['transcode_audio_channels']
+            stream_details['stream_audio_channel_layout'] = common.AUDIO_CHANNELS.get(
+                transcode_details['transcode_audio_channels'], transcode_details['transcode_audio_channels'])
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
