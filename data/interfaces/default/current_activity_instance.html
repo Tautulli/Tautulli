@@ -312,7 +312,7 @@ DOCUMENTATION :: END
                 </div>
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
-                    % if data['live']:
+                    % if data['live'] == 1:
                     Live
                     % elif data['view_offset']:
                     ETA:
