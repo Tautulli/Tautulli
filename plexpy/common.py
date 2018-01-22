@@ -174,11 +174,11 @@ HW_ENCODERS = [
 
 SCHEDULER_LIST = [
     'Check GitHub for updates',
+    'Check for server response',
     'Check for active sessions',
     'Check for recently added items',
     'Check for Plex updates',
     'Check for Plex remote access',
-    'Check server response',
     'Refresh users list',
     'Refresh libraries list',
     'Refresh Plex server URLs',

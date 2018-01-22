@@ -382,7 +382,7 @@ def initialize_scheduler():
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
-            schedule_job(activity_pinger.check_server_response, 'Check server response',
+            schedule_job(activity_pinger.check_server_response, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
 
         else:
@@ -404,7 +404,7 @@ def initialize_scheduler():
             response_seconds = CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS * CONFIG.WEBSOCKET_CONNECTION_TIMEOUT
             response_seconds = 60 if response_seconds < 60 else response_seconds
 
-            schedule_job(activity_pinger.check_server_response, 'Check server response',
+            schedule_job(activity_pinger.check_server_response, 'Check for server response',
                          hours=0, minutes=0, seconds=response_seconds)
 
         # Start scheduler
