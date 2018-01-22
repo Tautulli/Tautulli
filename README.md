@@ -1,6 +1,6 @@
 # Tautulli
 
-[![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://discord.gg/36ggawe)
+[![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://discord.gg/tQcWEUp)
 [![Reddit](https://img.shields.io/badge/Reddit-Tautulli-FF5700.svg?style=flat-square)](https://www.reddit.com/r/Tautulli/)
 [![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
 
@@ -49,7 +49,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 - Checking the [Wiki](https://github.com/JonnyWong16/plexpy/wiki) for 
 [ [Installation] ](https://github.com/JonnyWong16/plexpy/wiki/Installation) and 
 [ [FAQs] ](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
-- For basic questions try asking on [Discord](https://discord.gg/36ggawe), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
+- For basic questions try asking on [Discord](https://discord.gg/tQcWEUp), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
 
 ##### If nothing has worked:
 
