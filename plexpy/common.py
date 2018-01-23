@@ -279,16 +279,22 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Global',
         'parameters': [
-             {'name': 'Tautulli Version', 'type': 'str', 'value': 'plexpy_version', 'description': 'The current version of Tautulli.'},
-             {'name': 'Tautulli Branch', 'type': 'str', 'value': 'plexpy_branch', 'description': 'The current git branch of Tautulli.'},
-             {'name': 'Tautulli Commit', 'type': 'str', 'value': 'plexpy_commit', 'description': 'The current git commit hash of Tautulli.'},
+             {'name': 'Tautulli Version', 'type': 'str', 'value': 'tautulli_version', 'description': 'The current version of Tautulli.'},
+             {'name': 'Tautulli Remote', 'type': 'str', 'value': 'tautulli_remote', 'description': 'The current git remote of Tautulli.'},
+             {'name': 'Tautulli Branch', 'type': 'str', 'value': 'tautulli_branch', 'description': 'The current git branch of Tautulli.'},
+             {'name': 'Tautulli Commit', 'type': 'str', 'value': 'tautulli_commit', 'description': 'The current git commit hash of Tautulli.'},
              {'name': 'Server Name', 'type': 'str', 'value': 'server_name', 'description': 'The name of your Plex Server.'},
-             {'name': 'Server Uptime', 'type': 'str', 'value': 'server_uptime', 'description': 'The uptime (in days, hours, mins, secs) of your Plex Server.'},
+             {'name': 'Server IP', 'type': 'str', 'value': 'server_ip', 'description': 'The connection IP address for your Plex Server.'},
+             {'name': 'Server Port', 'type': 'int', 'value': 'server_port', 'description': 'The connection port for your Plex Server.'},
+             {'name': 'Server URL', 'type': 'str', 'value': 'server_url', 'description': 'The connection URL for your Plex Server.'},
+             {'name': 'Server Platform', 'type': 'str', 'value': 'server_platform', 'description': 'The platform of your Plex Server.'},
              {'name': 'Server Version', 'type': 'str', 'value': 'server_version', 'description': 'The current version of your Plex Server.'},
+             {'name': 'Server ID', 'type': 'str', 'value': 'server_machine_id', 'description': 'The unique identifier for your Plex Server.'},
              {'name': 'Action', 'type': 'str', 'value': 'action', 'description': 'The action that triggered the notification.'},
-             {'name': 'Datestamp', 'type': 'int', 'value': 'datestamp', 'description': 'The date (in date format) the notification was triggered.'},
-             {'name': 'Timestamp', 'type': 'int', 'value': 'timestamp', 'description': 'The time (in time format) the notification was triggered.'},
-         ]
+             {'name': 'Datestamp', 'type': 'str', 'value': 'datestamp', 'description': 'The date (in date format) when the notification was triggered.'},
+             {'name': 'Timestamp', 'type': 'str', 'value': 'timestamp', 'description': 'The time (in time format) when the notification was triggered.'},
+             {'name': 'Unix Time', 'type': 'int', 'value': 'unixtime', 'description': 'The unix timestamp when the notification was triggered.'},
+        ]
      },
     {
         'category': 'Stream Details',

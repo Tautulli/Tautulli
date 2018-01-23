@@ -435,20 +435,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
     duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('a','').replace('A','')
 
-    # Get the server name
-    server_name = plexpy.CONFIG.PMS_NAME
-
-    # Get the server uptime
-    plex_tv = plextv.PlexTV()
-    server_times = plex_tv.get_server_times()
-
-    if server_times:
-        updated_at = server_times['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
-    else:
-        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
-        server_uptime = 'N/A'
-
     # Get metadata for the item
     if session:
         rating_key = session['rating_key']
@@ -660,15 +646,21 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     available_params = {
         # Global paramaters
-        'plexpy_version': common.VERSION_NUMBER,
-        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-        'plexpy_commit': plexpy.CURRENT_VERSION,
-        'server_name': server_name,
-        'server_uptime': server_uptime,
-        'server_version': server_times.get('version', ''),
+        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
+        'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
+        'tautulli_commit': plexpy.CURRENT_VERSION,
+        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_ip': plexpy.CONFIG.PMS_IP,
+        'server_port': plexpy.CONFIG.PMS_PORT,
+        'server_url': plexpy.CONFIG.PMS_URL,
+        'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
+        'server_platform': plexpy.CONFIG.PMS_PLATFORM,
+        'server_version': plexpy.CONFIG.PMS_VERSION,
         'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
+        'unixtime': int(time.time()),
         # Stream parameters
         'streams': stream_count,
         'user_streams': user_stream_count,
@@ -847,34 +839,26 @@ def build_server_notify_params(notify_action=None, **kwargs):
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
 
-    # Get the server name
-    server_name = plexpy.CONFIG.PMS_NAME
-
-    # Get the server uptime
-    plex_tv = plextv.PlexTV()
-    server_times = plex_tv.get_server_times()
-
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
 
-    if server_times:
-        updated_at = server_times['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
-    else:
-        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
-        server_uptime = 'N/A'
-
     available_params = {
         # Global paramaters
-        'plexpy_version': common.VERSION_NUMBER,
-        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-        'plexpy_commit': plexpy.CURRENT_VERSION,
-        'server_name': server_name,
-        'server_uptime': server_uptime,
-        'server_version': server_times.get('version', ''),
+        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
+        'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
+        'tautulli_commit': plexpy.CURRENT_VERSION,
+        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_ip': plexpy.CONFIG.PMS_IP,
+        'server_port': plexpy.CONFIG.PMS_PORT,
+        'server_url': plexpy.CONFIG.PMS_URL,
+        'server_platform': plexpy.CONFIG.PMS_PLATFORM,
+        'server_version': plexpy.CONFIG.PMS_VERSION,
+        'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
         'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
+        'unixtime': int(time.time()),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
@@ -889,12 +873,12 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'update_changelog_added': pms_download_info['changelog_added'],
         'update_changelog_fixed': pms_download_info['changelog_fixed'],
         # Tautulli update parameters
-        'plexpy_update_version': plexpy_download_info['tag_name'],
-        'plexpy_update_tar': plexpy_download_info['tarball_url'],
-        'plexpy_update_zip': plexpy_download_info['zipball_url'],
-        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
-        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
-        'plexpy_update_changelog': plexpy_download_info['body']
+        'tautulli_update_version': plexpy_download_info['tag_name'],
+        'tautulli_update_tar': plexpy_download_info['tarball_url'],
+        'tautulli_update_zip': plexpy_download_info['zipball_url'],
+        'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),
+        'tautulli_update_behind': kwargs.pop('plexpy_update_behind', ''),
+        'tautulli_update_changelog': plexpy_download_info['body']
         }
 
     return available_params
