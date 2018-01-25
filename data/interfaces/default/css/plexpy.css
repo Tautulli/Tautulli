@@ -1759,6 +1759,18 @@ a:hover .dashboard-recent-media-cover {
     opacity: 0;
     transition: opacity .3s;
 }
+.summary-poster-face-overlay span:before {
+    content: "View On";
+    color: #999;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    display: block;
+    position: absolute;
+    top: calc(50% - 34px);
+    width: 100%;
+}
 a:hover .summary-poster-face .summary-poster-face-overlay,
 a:hover .summary-poster-face-episode .summary-poster-face-overlay,
 a:hover .summary-poster-face-track .summary-poster-face-overlay,
