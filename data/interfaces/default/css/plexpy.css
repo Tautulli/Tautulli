@@ -706,8 +706,8 @@ a .users-poster-face:hover {
     height: 290px;
     min-width: 350px;
     max-width: 500px;
-    margin-right: 20px;
-    margin-bottom: 20px;
+    margin-right: 25px;
+    margin-bottom: 25px;
 }
 .dashboard-activity-container {
     height: 240px;
@@ -1124,8 +1124,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     height: 160px;
     min-width: 350px;
     max-width: 500px;
-    margin-right: 20px;
-    margin-bottom: 20px;
+    margin-right: 25px;
+    margin-bottom: 25px;
 }
 .dashboard-stats-container {
     height: 160px;
