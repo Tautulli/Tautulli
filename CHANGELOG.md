@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.15-beta (2018-01-27)
+
+* Monitoring:
+  * Fix: Live TV sessions not being stopped in History.
+  * Fix: Stream location showing as "unknown" on the activity cards.
+  * New: Improved Live TV details on the activity cards.
+* Notifications:
+  * New: Added labels and collections to notification parameters.
+  * New: Added more server details to notification parameters.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+
+
 ## v2.0.14-beta (2018-01-20)
 
 * Monitoring:
