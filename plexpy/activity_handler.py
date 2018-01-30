@@ -230,7 +230,7 @@ class ActivityHandler(object):
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
                 schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                  function=force_stop_stream, args=[self.get_session_key()], minutes=5)
+                                  func=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
@@ -287,7 +287,7 @@ class ActivityHandler(object):
 
                     # Schedule a callback to force stop a stale stream 5 minutes later
                     schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                      function=force_stop_stream, args=[self.get_session_key()], minutes=5)
+                                      func=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
 
 class TimelineHandler(object):
@@ -370,7 +370,7 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), function=clear_recently_added_queue,
+                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), func=clear_recently_added_queue,
                                           args=[grandparent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 elif media_type in ('season', 'album'):
@@ -386,7 +386,7 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(parent_rating_key), function=clear_recently_added_queue,
+                        schedule_callback('rating_key-{}'.format(parent_rating_key), func=clear_recently_added_queue,
                                           args=[parent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 else:
@@ -397,7 +397,7 @@ class TimelineHandler(object):
                                  % (title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
-                    schedule_callback('rating_key-{}'.format(rating_key), function=clear_recently_added_queue,
+                    schedule_callback('rating_key-{}'.format(rating_key), func=clear_recently_added_queue,
                                       args=[rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
@@ -427,7 +427,7 @@ def del_keys(key):
         del_keys(RECENTLY_ADDED_QUEUE.pop(key))
 
 
-def schedule_callback(id, function=None, remove_job=False, args=None, **kwargs):
+def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
     if ACTIVITY_SCHED.get_job(id):
         if remove_job:
             ACTIVITY_SCHED.remove_job(id)
@@ -437,7 +437,7 @@ def schedule_callback(id, function=None, remove_job=False, args=None, **kwargs):
                     run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     elif not remove_job:
         ACTIVITY_SCHED.add_job(
-            function, args=args, id=id, trigger=DateTrigger(
+            func, args=args, id=id, trigger=DateTrigger(
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     
 
@@ -464,7 +464,7 @@ def force_stop_stream(session_key):
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
-            schedule_callback('session_key-{}'.format(session_key), function=force_stop_stream,
+            schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
                               args=[session_key], seconds=30)
 
         else:
