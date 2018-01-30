@@ -104,7 +104,8 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            logger.debug(u"Tautulli ActivityHandler :: Session %s stopped." % str(self.get_session_key()))
+            logger.debug(u"Tautulli ActivityHandler :: Session %s %sstopped."
+                         % (str(self.get_session_key()), 'force ' if force_stop else ''))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
