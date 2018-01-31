@@ -839,6 +839,8 @@ def build_server_notify_params(notify_action=None, **kwargs):
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
 
+    update_channel = pmsconnect.PmsConnect().get_server_update_channel()
+
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
 
@@ -864,7 +866,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'update_url': pms_download_info['download_url'],
         'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
             if pms_download_info['release_date'] else '',
-        'update_channel': 'Beta' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
+        'update_channel': 'Beta' if update_channel == 'beta' else 'Public',
         'update_platform': pms_download_info['platform'],
         'update_distro': pms_download_info['distro'],
         'update_distro_build': pms_download_info['build'],

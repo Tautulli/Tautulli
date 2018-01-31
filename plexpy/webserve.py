@@ -2798,12 +2798,16 @@ class WebInterface(object):
     def get_server_update_params(self, **kwargs):
         plex_tv = plextv.PlexTV()
         plexpass = plex_tv.get_plexpass_status()
+
+        update_channel = pmsconnect.PmsConnect().get_server_update_channel()
+
         return {'plexpass': plexpass,
                 'pms_platform': common.PMS_PLATFORM_NAME_OVERRIDES.get(
                     plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
                 'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
-                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
+                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD,
+                'plex_update_channel': 'plexpass' if update_channel == 'beta' else 'public'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

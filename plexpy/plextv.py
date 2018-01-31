@@ -648,10 +648,14 @@ class PlexTV(object):
 
     def get_plex_downloads(self):
         logger.debug(u"Tautulli PlexTV :: Retrieving current server version.")
-        pmsconnect.PmsConnect().set_server_version()
 
-        logger.debug(u"Tautulli PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
-        plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
+        pms_connect = pmsconnect.PmsConnect()
+        pms_connect.set_server_version()
+
+        update_channel = pms_connect.get_server_update_channel()
+
+        logger.debug(u"Tautulli PlexTV :: Plex update channel is %s." % update_channel)
+        plex_downloads = self.get_plextv_downloads(plexpass=(update_channel == 'beta'))
 
         try:
             available_downloads = json.loads(plex_downloads)

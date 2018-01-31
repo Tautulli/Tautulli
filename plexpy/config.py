@@ -61,7 +61,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_PLEXPASS': (int, 'PMS', 0),
     'PMS_PLATFORM': (str, 'PMS', ''),
     'PMS_VERSION': (str, 'PMS', ''),
-    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'public'),
+    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'plex'),
     'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
@@ -876,3 +876,9 @@ class Config(object):
             self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
 
             self.CONFIG_VERSION = 9
+
+        if self.CONFIG_VERSION == 9:
+            if self.PMS_UPDATE_CHANNEL == 'plexpass':
+                self.PMS_UPDATE_CHANNEL = 'beta'
+
+            self.CONFIG_VERSION = 10

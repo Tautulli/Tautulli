@@ -2587,3 +2587,14 @@ class PmsConnect(object):
 
         plexpy.CONFIG.__setattr__('PMS_VERSION', version)
         plexpy.CONFIG.write()
+
+    def get_server_update_channel(self):
+        if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plex':
+            update_channel_value = self.get_server_pref('ButlerUpdateChannel')
+
+            if update_channel_value == '8':
+                return 'beta'
+            else:
+                return 'public'
+
+        return plexpy.CONFIG.PMS_UPDATE_CHANNEL

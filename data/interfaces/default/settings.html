@@ -553,9 +553,10 @@
                         <div id="pms_update_options">
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <label for="pms_update_channel">Update Channel</label>
                                         <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                            <option value="plex">Use Server Setting</option>
                                             <option value="public">Public</option>
                                         </select>
                                     </div>
@@ -2104,32 +2105,41 @@ $(document).ready(function() {
             var update_channel = update_params.pms_update_channel;
             var update_distro = update_params.pms_update_distro;
             var update_distro_build = update_params.pms_update_distro_build;
+            var plex_update_channel = update_params.plex_update_channel;
 
-            $("#pms_update_channel option[value='plexpass']").remove();
+            $('#pms_update_channel option[value=beta]').remove();
             if (plexpass) {
-                var selected = (update_channel == 'plexpass') ? true : false;
+                var selected = (update_channel == 'beta') ? true : false;
                 $('#pms_update_channel')
                     .append($('<option></option>')
-                    .text('Plex Pass')
-                    .val('plexpass')
+                    .text('Beta')
+                    .val('beta')
                     .prop('selected', selected));
             }
 
-            $.getJSON('https://plex.tv/api/downloads/1.json?channel=' + update_channel, function (downloads) {
-                platform_downloads = downloads.computer[platform] || downloads.nas[platform];
-                if (platform_downloads) {
-                    $("#pms_update_distro_build option").remove();
-                    $.each(platform_downloads.releases, function (index, item) {
-                        var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
-                        var selected = (item.distro == update_distro && item.build == update_distro_build) ? true : false;
-                        $('#pms_update_distro_build')
-                            .append($('<option></option>')
-                            .text(label)
-                            .val(item.build)
-                            .attr('data-distro', item.distro)
-                            .prop('selected', selected));
-                    })
-                    $('#pms_update_distro').val($("#pms_update_distro_build option:selected").data('distro'))
+            $.ajax({
+                url: 'https://plex.tv/api/downloads/1.json?channel=' + plex_update_channel,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
+                },
+                success: function (downloads) {
+                    var platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+                    if (platform_downloads) {
+                        $("#pms_update_distro_build option").remove();
+                        $.each(platform_downloads.releases, function (index, item) {
+                            var label = (platform_downloads.releases.length === 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                            var selected = (item.distro === update_distro && item.build === update_distro_build) ? true : false;
+                            $('#pms_update_distro_build')
+                                    .append($('<option></option>')
+                                            .text(label)
+                                            .val(item.build)
+                                            .attr('data-distro', item.distro)
+                                            .prop('selected', selected));
+                        });
+                        $('#pms_update_distro').val($('#pms_update_distro_build option:selected').data('distro'))
+                    }
                 }
             });
         });
