@@ -379,6 +379,11 @@ class PlexTV(object):
         if machine_id is None:
             machine_id = plexpy.CONFIG.PMS_IDENTIFIER
 
+        if isinstance(rating_key_filter, list):
+            rating_key_filter = [str(k) for k in rating_key_filter]
+        else:
+            rating_key_filter = [str(rating_key_filter)]
+
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
         user_data = users.Users()
 
@@ -432,7 +437,7 @@ class PlexTV(object):
                                        for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                     # Filter by rating_key
-                    if rating_key_filter and str(rating_key_filter) != rating_key:
+                    if rating_key_filter and rating_key not in rating_key_filter:
                         continue
 
                     sync_id = helpers.get_xml_attr(item, 'id')
@@ -461,12 +466,13 @@ class PlexTV(object):
                             status_item_downloaded_count, status_item_count)
 
                     for settings in item.getElementsByTagName('MediaSettings'):
-                        settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
-                        settings_music_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
-                        settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
-                        settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
+                        settings_video_bitrate = helpers.get_xml_attr(settings, 'maxVideoBitrate')
                         settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
                         settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
+                        settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
+                        settings_audio_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
+                        settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
+                        settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
 
                     sync_details = {"device_name": helpers.sanitize(device_name),
                                     "platform": helpers.sanitize(device_platform),
@@ -483,7 +489,8 @@ class PlexTV(object):
                                     "item_complete_count": status_item_complete_count,
                                     "item_downloaded_count": status_item_downloaded_count,
                                     "item_downloaded_percent_complete": status_item_download_percent_complete,
-                                    "music_bitrate": settings_music_bitrate,
+                                    "video_bitrate": settings_video_bitrate,
+                                    "audio_bitrate": settings_audio_bitrate,
                                     "photo_quality": settings_photo_quality,
                                     "video_quality": settings_video_quality,
                                     "total_size": status_total_size,

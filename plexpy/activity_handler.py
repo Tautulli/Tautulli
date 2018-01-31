@@ -449,7 +449,7 @@ def force_stop_stream(session_key):
     row_id = ap.write_session_history(session=session)
 
     if row_id:
-        # If session is written to the databaase successfully, remove the session from the session table
+        # If session is written to the database successfully, remove the session from the session table
         logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
         ap.delete_session(row_id=row_id)
