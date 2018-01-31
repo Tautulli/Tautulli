@@ -127,7 +127,7 @@ class ActivityProcessor(object):
             if result == 'insert':
                 # Check if any notification agents have notifications enabled
                 if notify:
-                    plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_play'})
+                    plexpy.NOTIFY_QUEUE.put({'stream_data': values.copy(), 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.
                 started = int(time.time())

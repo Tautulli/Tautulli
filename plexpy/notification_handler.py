@@ -122,8 +122,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 
     # Add on_concurrent and on_newdevice to queue if action is on_play
     if notify_action == 'on_play':
-        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_concurrent'})
-        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_newdevice'})
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data.copy(), 'notify_action': 'on_concurrent'})
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data.copy(), 'notify_action': 'on_newdevice'})
 
 
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
