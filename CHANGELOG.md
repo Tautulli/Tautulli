@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.0.16-beta (2018-01-30)
+
+* Monitoring:
+  * Fix: Timestamp sometimes showing as "0:60" on the activity cards.
+  * Fix: Incorrect session information being shown for playback of synced content.
+  * Fix: Sessions not being stopped when "Playback Stopped" notifications were enabled.
+* UI:
+  * Fix: Stream resolution showing up as "unknown" on the graphs.
+  * New: Added user filter to the Synced Items table.
+* Other:
+  * New: Option to use the Plex server update channel when checking for updates.
+
+
 ## v2.0.15-beta (2018-01-27)
 
 * Monitoring:
