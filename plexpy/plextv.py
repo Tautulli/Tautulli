@@ -376,17 +376,17 @@ class PlexTV(object):
     def get_synced_items(self, machine_id=None, client_id_filter=None, user_id_filter=None,
                          rating_key_filter=None, sync_id_filter=None):
 
-        if machine_id is None:
+        if not machine_id:
             machine_id = plexpy.CONFIG.PMS_IDENTIFIER
 
         if isinstance(rating_key_filter, list):
             rating_key_filter = [str(k) for k in rating_key_filter]
-        elif rating_key_filter is not None:
+        elif rating_key_filter:
             rating_key_filter = [str(rating_key_filter)]
 
         if isinstance(user_id_filter, list):
             user_id_filter = [str(k) for k in user_id_filter]
-        elif user_id_filter is not None:
+        elif user_id_filter:
             user_id_filter = [str(user_id_filter)]
 
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
