@@ -384,6 +384,11 @@ class PlexTV(object):
         elif rating_key_filter is not None:
             rating_key_filter = [str(rating_key_filter)]
 
+        if isinstance(user_id_filter, list):
+            user_id_filter = [str(k) for k in user_id_filter]
+        elif user_id_filter is not None:
+            user_id_filter = [str(user_id_filter)]
+
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
         user_data = users.Users()
 
@@ -423,7 +428,7 @@ class PlexTV(object):
                 device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
 
             # Filter by user_id
-            if user_id_filter and str(user_id_filter) != device_user_id:
+            if user_id_filter and device_user_id not in user_id_filter:
                 continue
 
             for synced in a.getElementsByTagName('SyncItems'):

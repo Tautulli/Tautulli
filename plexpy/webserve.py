@@ -2201,9 +2201,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
-
-        if not machine_id:
-            machine_id = plexpy.CONFIG.PMS_IDENTIFIER
+        if user_id == 'null':
+            user_id = None
 
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
