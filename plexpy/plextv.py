@@ -381,7 +381,7 @@ class PlexTV(object):
 
         if isinstance(rating_key_filter, list):
             rating_key_filter = [str(k) for k in rating_key_filter]
-        else:
+        elif rating_key_filter is not None:
             rating_key_filter = [str(rating_key_filter)]
 
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
