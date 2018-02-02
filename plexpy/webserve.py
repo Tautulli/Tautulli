@@ -3201,6 +3201,16 @@ class WebInterface(object):
         return msg
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def zapier_test_hook(self, zapier_hook='', **kwargs):
+        success = notifiers.ZAPIER(config={'hook': zapier_hook})._test_hook()
+        if success:
+            return {'result': 'success', 'msg': 'Test Zapier webhook sent.'}
+        else:
+            return {'result': 'error', 'msg': 'Failed to send test Zapier webhook.'}
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     def set_notification_config(self, **kwargs):
 

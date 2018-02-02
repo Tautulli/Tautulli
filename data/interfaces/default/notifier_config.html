@@ -580,6 +580,18 @@
     });
     var join_device_names = $join_device_names[0].selectize;
     join_device_names.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
+
+    % elif notifier['agent_name'] == 'zapier':
+    $('#zapier_test_hook').click(function () {
+        $.get('zapier_test_hook', { 'zapier_hook': $('#zapier_hook').val() }, function (data) {
+            if (data.result === 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + data.msg, false, true, 5000);
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + data.msg, false, true, 5000, true);
+            }
+        });
+    });
+
     % endif
 
     function validateLogic() {
