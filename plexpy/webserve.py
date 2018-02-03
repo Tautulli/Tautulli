@@ -674,7 +674,7 @@ class WebInterface(object):
         if not kwargs.get('json_data'):
             # Alias 'title' to 'sort_title'
             if kwargs.get('order_column') == 'title':
-                kwargs['order_column'] == 'sort_title'
+                kwargs['order_column'] = 'sort_title'
                 
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),

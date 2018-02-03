@@ -544,19 +544,19 @@ class Libraries(object):
         filtered_count = len(results)
 
         # Sort results
-        results = sorted(results, key=lambda k: k['sort_title'])
+        results = sorted(results, key=lambda k: k['sort_title'].lower())
         sort_order = json_data['order']
         for order in reversed(sort_order):
             sort_key = json_data['columns'][int(order['column'])]['data']
             reverse = True if order['dir'] == 'desc' else False
             if rating_key and sort_key == 'sort_title':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k['media_index']), reverse=reverse)
-            elif sort_key == 'file_size' or sort_key == 'bitrate':
+            elif sort_key in ('file_size', 'bitrate', 'added_at', 'last_played', 'play_count'):
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key]), reverse=reverse)
             elif sort_key == 'video_resolution':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key].replace('4k', '2160p').rstrip('p')), reverse=reverse)
             else:
-                results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
+                results = sorted(results, key=lambda k: k[sort_key].lower(), reverse=reverse)
 
         total_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
 
