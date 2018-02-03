@@ -533,7 +533,7 @@ class PmsConnect(object):
         metadata = {}
 
         if cache_key:
-            in_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+            in_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % cache_key)
             try:
                 with open(in_file_path, 'r') as inFile:
                     metadata = json.load(inFile)
@@ -1179,7 +1179,7 @@ class PmsConnect(object):
             if cache_key:
                 metadata['_cache_time'] = int(time.time())
 
-                out_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+                out_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % cache_key)
                 try:
                     with open(out_file_path, 'w') as outFile:
                         json.dump(metadata, outFile)
