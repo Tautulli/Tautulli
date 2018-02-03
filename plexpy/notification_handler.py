@@ -980,8 +980,8 @@ def strip_tag(data, agent_id=None):
                      'font': ['color']}
         return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
-    elif agent_id == 10:
-        # Don't remove tags for email
+    elif agent_id in (10, 14, 20):
+        # Don't remove tags for Email, Slack, and Discord
         return data
 
     elif agent_id == 13:
