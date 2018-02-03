@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.17-beta (2018-02-03)
+
+* Notifications:
+  * Fix: Unable to use @ mentions tags for Discord and Slack.
+  * New: Added Zapier notification agent.
+* API:
+  * Fix: get_synced_items returning no results.
+  * Fix: get_library_media_info returning incorrect media type for photo albums.
+  * Fix: get_library_media_info not being able to sort by title.
+
+
 ## v2.0.16-beta (2018-01-30)
 
 * Monitoring:
