@@ -582,7 +582,7 @@ class PmsConnect(object):
                 metadata_main = metadata_main_list[0]
 
             metadata_type = helpers.get_xml_attr(metadata_main, 'type')
-            if metadata_type == 'photo':
+            if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
                 metadata_type = 'photo_album'
 
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
@@ -2175,8 +2175,12 @@ class PmsConnect(object):
                 item_main += a.getElementsByTagName('Photo')
 
             for item in item_main:
+                media_type = helpers.get_xml_attr(item, 'type')
+                if item.nodeName == 'Directory' and media_type == 'photo':
+                    media_type = 'photo_album'
+
                 item_info = {'section_id': helpers.get_xml_attr(a, 'librarySectionID'),
-                             'media_type': helpers.get_xml_attr(item, 'type'),
+                             'media_type': media_type,
                              'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                              'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
                              'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
