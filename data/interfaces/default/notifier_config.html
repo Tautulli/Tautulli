@@ -342,7 +342,22 @@
             $('#custom_conditions').val(JSON.stringify(newConditions));
         }
     });
+
+    function setNegativeOperator(select) {
+       if (select.val() === 'does not contain' || select.val() === 'is not') {
+           select.closest('.form-group').find('.react-selectize-search-field-and-selected-values').addClass('negative-operator');
+       } else {
+           select.closest('.form-group').find('.react-selectize-search-field-and-selected-values').removeClass('negative-operator');
+       }
+    }
     
+    $('#condition-widget select[name=operator]').each(function () {
+        setNegativeOperator($(this));
+    });
+    $('#condition-widget').on('change', 'select[name=operator]', function () {
+        setNegativeOperator($(this));
+    });
+
     function reloadModal() {
         $.ajax({
             url: 'get_notifier_config_modal',

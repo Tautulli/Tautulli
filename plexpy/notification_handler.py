@@ -277,13 +277,13 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 evaluated_conditions.append(any(c in parameter_value for c in values))
 
             elif operator == 'does not contain':
-                evaluated_conditions.append(any(c not in parameter_value for c in values))
+                evaluated_conditions.append(all(c not in parameter_value for c in values))
 
             elif operator == 'is':
                 evaluated_conditions.append(any(parameter_value == c for c in values))
 
             elif operator == 'is not':
-                evaluated_conditions.append(any(parameter_value != c for c in values))
+                evaluated_conditions.append(all(parameter_value != c for c in values))
 
             elif operator == 'begins with':
                 evaluated_conditions.append(parameter_value.startswith(tuple(values)))
