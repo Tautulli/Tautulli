@@ -103,7 +103,7 @@ def check_credentials(username, password, admin_login='0'):
         return True, u'guest'
     else:
         return False, None
-    
+
 def check_auth(*args, **kwargs):
     """A tool that looks in config for 'auth.require'. If found and it
     is not None, a login is required and the entry is evaluated as a list of
@@ -120,7 +120,7 @@ def check_auth(*args, **kwargs):
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
-    
+
 def requireAuth(*conditions):
     """A decorator that appends conditions to the auth.require config
     variable."""
@@ -172,18 +172,33 @@ def all_of(*conditions):
         return True
     return check
 
+# Helper class for useful keys within an HTTP request header
+class HeaderHelper(object):
+    @staticmethod
+    def ip_address():
+        """ Return IP address via X-Forwarded-For / Remote-Addr """
+        return cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
+    @staticmethod
+    def host():
+        """ Return Host via Origin """
+        return cherrypy.request.headers.get('Origin')
+    @staticmethod
+    def user_agent():
+        """ Return User Agent via User-Agent """
+        return cherrypy.request.headers.get('User-Agent')
+
 
 # Controller to provide login and logout actions
 
 class AuthController(object):
-    
+
     def on_login(self, user_id, username, user_group):
         """Called on successful login"""
 
         # Save login to the database
-        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = cherrypy.request.headers.get('Origin')
-        user_agent = cherrypy.request.headers.get('User-Agent')
+        ip_address = HeaderHelper.ip_address()
+        host = HeaderHelper.host()
+        user_agent = HeaderHelper.user_agent()
 
         Users().set_user_login(user_id=user_id,
                                user=username,
@@ -192,16 +207,16 @@ class AuthController(object):
                                host=host,
                                user_agent=user_agent)
 
-        logger.debug(u"PlexPy WebAuth :: %s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
-    
+        logger.debug(u"PlexPy WebAuth :: %s user '%s' logged into PlexPy from '%s'." % (user_group.capitalize(), username, ip_address))
+
     def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"PlexPy WebAuth :: %s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
-    
+        logger.debug(u"PlexPy WebAuth :: %s User '%s' logged out of PlexPy from '%s'." % (user_group.capitalize(), username, HeaderHelper.ip_address()))
+
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
         return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
-    
+
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
@@ -213,7 +228,7 @@ class AuthController(object):
 
         if not username and not password:
             return self.get_loginform()
-        
+
         (vaild_login, user_group) = check_credentials(username, password, admin_login)
 
         if vaild_login:
@@ -240,12 +255,12 @@ class AuthController(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':
-            logger.debug(u"PlexPy WebAuth :: Invalid admin login attempt from '%s'." % username)
+            logger.debug(u"PlexPy WebAuth :: Invalid admin login attempt for user '%s' from '%s'." % (username, HeaderHelper.ip_address()))
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
-            logger.debug(u"PlexPy WebAuth :: Invalid login attempt from '%s'." % username)
+            logger.debug(u"PlexPy WebAuth :: Invalid login attempt for user '%s' from '%s'." % (username, HeaderHelper.ip_address()))
             return self.get_loginform(username, u"Incorrect username/email or password.")
-    
+
     @cherrypy.expose
     def logout(self):
         if not cherrypy.config.get('tools.sessions.on'):
