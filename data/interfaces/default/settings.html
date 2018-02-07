@@ -1344,13 +1344,22 @@
             </div>
             <div class="modal-body">
                 <div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            Note: Tags separate the <em>media type</em> that triggered the notifications (i.e. a complete show added to Plex vs. a single episode added to Plex).
+                            They <em>do not</em> separate the notification parameters (i.e. <span class="inline-pre">{show_name}</span> vs. <span class="inline-pre">{episode_name}</span>.
+                        </p>
+                        <p class="help-block">
+                            Note: Nesting tags inside each other is not supported.
+                        </p>
+                    </div>
                     <div>
                         <h4>Movie Tag</h4>
                     </div>
                     <div style="padding-bottom: 10px;">
                         <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media item is a movie.</p>
                         <p><strong style="color: #fff;">Example:</strong></p>
-                        <pre>{title} &lt;movie&gt;({year})&lt;/movie&gt; was recently added to Plex</pre>
+                        <pre>{title}&lt;movie&gt;({year})&lt;/movie&gt; was recently added to Plex</pre>
                     </div>
                     <div>
                         <h4>Show / Season / Episode Tags</h4>
