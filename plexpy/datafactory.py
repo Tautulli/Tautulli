@@ -1128,14 +1128,15 @@ class DataFactory(object):
 
         return poster_info
 
-    def set_poster_url(self, rating_key='', poster_title='', poster_url=''):
+    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash=''):
         monitor_db = database.MonitorDatabase()
 
         if str(rating_key).isdigit():
             keys = {'rating_key': int(rating_key)}
 
             values = {'poster_title': poster_title,
-                      'poster_url': poster_url}
+                      'poster_url': poster_url,
+                      'delete_hash': delete_hash}
 
             monitor_db.upsert(table_name='poster_urls', key_dict=keys, value_dict=values)
 
@@ -1143,7 +1144,14 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            logger.info(u"Tautulli DataFactory :: Deleting poster_url for rating_key %s from the database." % rating_key)
+            poster_info = monitor_db.select_single('SELECT poster_title, delete_hash '
+                                                   'FROM poster_urls WHERE rating_key = ?',
+                                                   [rating_key])
+            if poster_info['delete_hash']:
+                helpers.delete_from_imgur(poster_info['delete_hash'], poster_info['poster_title'])
+
+            logger.info(u"Tautulli DataFactory :: Deleting poster_url for '%s' (rating_key %s) from the database."
+                        % (poster_info['poster_title'], rating_key))
             result = monitor_db.action('DELETE FROM poster_urls WHERE rating_key = ?', [rating_key])
             return True if result else False
 

@@ -607,7 +607,7 @@ def dbcheck():
     # poster_urls table :: This table keeps record of the notification poster urls
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
+        'rating_key INTEGER, poster_title TEXT, poster_url TEXT, delete_hash TEXT)'
     )
 
     # recently_added table :: This table keeps record of recently added items
@@ -1570,6 +1570,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table user_login.")
         c_db.execute(
             'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
+        )
+
+    # Upgrade poster_urls table from earlier versions
+    try:
+        c_db.execute('SELECT delete_hash FROM poster_urls')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table poster_urls.")
+        c_db.execute(
+            'ALTER TABLE poster_urls ADD COLUMN delete_hash TEXT'
         )
 
     # Add "Local" user to database as default unauthenticated user.

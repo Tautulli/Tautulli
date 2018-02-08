@@ -1039,14 +1039,17 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
                 raise Exception(u'PMS image request failed')
 
             # Upload poster_thumb to Imgur and get link
-            poster_url = helpers.uploadToImgur(poster_file, poster_title)
+            poster_url, delete_hash = helpers.upload_to_imgur(poster_file, poster_title)
 
             if poster_url:
                 # Create poster info
                 poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
 
                 # Save the poster url in the database
-                data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
+                data_factory.set_poster_url(rating_key=poster_key,
+                                            poster_title=poster_title,
+                                            poster_url=poster_url,
+                                            delete_hash=delete_hash)
 
             # Delete the cached poster
             os.remove(poster_file)

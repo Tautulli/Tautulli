@@ -397,7 +397,7 @@ DOCUMENTATION :: END
                                 % endif
                                     <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-imgur-poster"
                                             data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}">
-                                        <i class="fa fa-picture-o"></i> Reset Imgur Poster
+                                        <i class="fa fa-picture-o"></i> Delete Imgur Poster
                                     </button>
                                 </span>
                             </div>
@@ -706,13 +706,14 @@ DOCUMENTATION :: END
     });
 
     $('#delete-imgur-poster').on('click', function () {
-        var msg = 'Are you sure you want to reset the Imgur poster for <strong>${data["poster_title"]}</strong>?';
-        var url = 'delete_poster_url';
-        var data = { rating_key: $(this).data('id') }
+        var msg = 'Are you sure you want to delete the Imgur poster for <strong>${data["poster_title"]}</strong>?<br><br>' +
+                  'All previous links to this image will no longer work.';
+        var url = 'delete_imgur_poster';
+        var data = { rating_key: $(this).data('id') };
         var callback = function () {
             $('.imgur-poster-tooltip').popover('destroy');
             $('#delete-imgur-poster').closest('span').remove();
-        }
+        };
         confirmAjaxCall(url, msg, data, false, callback);
     });
 </script>

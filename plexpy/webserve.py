@@ -3882,7 +3882,8 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_poster_url(self, rating_key='', **kwargs):
+    @addtoapi()
+    def delete_imgur_poster(self, rating_key='', **kwargs):
 
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_poster_url(rating_key=rating_key)
