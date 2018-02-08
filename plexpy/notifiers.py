@@ -321,7 +321,7 @@ def available_notification_actions():
                 'name': 'on_plexpyupdate',
                 'description': 'Trigger a notification when an update for the Tautulli is available.',
                 'subject': 'Tautulli ({server_name})',
-                'body': 'An update is available for Tautulli (version {plexpy_update_version}).',
+                'body': 'An update is available for Tautulli (version {tautulli_update_version}).',
                 'icon': 'fa-refresh',
                 'media_types': ('server',)
                 }
