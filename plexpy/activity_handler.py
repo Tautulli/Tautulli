@@ -279,6 +279,7 @@ class ActivityHandler(object):
                         db_session['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
                         db_session['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
                         and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                        logger.debug(u"Tautulli ActivityHandler :: Session %s watched." % str(self.get_session_key()))
                         plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_watched'})
 
             else:

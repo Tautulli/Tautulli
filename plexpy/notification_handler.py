@@ -82,11 +82,18 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         # Check if any notification agents have notifications enabled for the action
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
+    # Check if the watched notifications has already been sent
+    if stream_data and notify_action == 'on_watched':
+        watched_notifiers = [d['notifier_id'] for d in get_notify_state(session=stream_data)]
+        notifiers_enabled = [n for n in notifiers_enabled if n['id'] not in watched_notifiers]
+
     if notifiers_enabled and not manual_trigger:
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
                                        stream_data=stream_data,
                                        timeline_data=timeline_data)
+    else:
+        conditions = True
 
     if notifiers_enabled and (manual_trigger or conditions):
         if stream_data or timeline_data:
@@ -318,13 +325,6 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
-    # Double check again if the notification has already been sent
-    if stream_data and \
-        any(d['notifier_id'] == notifier_id and d['notify_action'] == notify_action
-            for d in get_notify_state(session=stream_data)):
-        # Return if the notification has already been sent
-        return
-
     logger.info(u"Tautulli NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
 
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
