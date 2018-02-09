@@ -1,0 +1,42 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title} | ${server_name}</title>
+    <link href="${http_root}css/plexpy.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+<div id="loader" class="newsletter-loader-container">
+    <div class="newsletter-loader-message">
+        <i class="fa fa-refresh fa-spin"></i>&nbsp; Generating Newsletter
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script>
+$(document).ready(function () {
+    var frame = $('<iframe></iframe>', {
+        src: 'real_newsletter?newsletter_id=${newsletter_id}&preview=${preview}&master=${master}&raw=${raw}',
+        frameborder: '0',
+        style: 'display: none; height: 100vh; width: 100vw;'
+    });
+    frame.on('load', function (e) {
+        $(e.target).fadeIn();
+        $('#loader').fadeOut();
+    });
+    $('body').append(frame)
+});
+</script>
+
+</body>
+</html>

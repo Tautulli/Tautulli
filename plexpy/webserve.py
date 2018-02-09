@@ -5491,18 +5491,32 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def newsletter(self, newsletter_id=None, preview=False, master=False, raw=False, **kwargs):
+        return serve_template(templatename="newsletter_preview.html",
+                              title="Newsletter",
+                              newsletter_id=newsletter_id,
+                              preview=preview,
+                              master=master,
+                              raw=raw)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def real_newsletter(self, newsletter_id=None, preview=False, master=False, raw=False, **kwargs):
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
-            newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'], config=newsletter['config'])
 
-            if newsletter_agent:
+            if newsletter:
+                newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'],
+                                                               config=newsletter['config'])
                 preview = (preview == 'true')
+                master = (master == 'true')
+                raw = (raw == 'true')
 
                 if raw:
+                    cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
                     return json.dumps(newsletter_agent.raw_data(preview=preview))
 
                 return newsletter_agent.generate_newsletter(preview=preview, master=master)
 
-            return "Invalid newsletter id %s" % newsletter_id
+            return "Invalid Newsletter ID #%s" % newsletter_id
 
         return "Missing newsletter_id parameter"
