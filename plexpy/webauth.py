@@ -220,7 +220,7 @@ class AuthController(object):
 
         # Save login to the database
         ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = cherrypy.request.headers.get('Origin')
+        host = cherrypy.request.headers.get('Host', cherrypy.request.headers.get('Origin'))
         user_agent = cherrypy.request.headers.get('User-Agent')
 
         Users().set_user_login(user_id=user_id,
