@@ -67,8 +67,15 @@ DOCUMENTATION :: END
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES
     import plexpy
 %>
-<% data = defaultdict(lambda: 'Unknown', **session) %>
-<% sk = data['session_key'] %>
+<%
+    data = defaultdict(lambda: 'Unknown', **session)
+    sk = data['session_key']
+
+    href = 'info?rating_key={}'.format(data['rating_key']) if data['rating_key'] else '#'
+    parent_href = 'info?rating_key={}'.format(data['parent_rating_key']) if data['parent_rating_key'] else '#'
+    grandparent_href = 'info?rating_key={}'.format(data['grandparent_rating_key']) if data['grandparent_rating_key'] else '#'
+    user_href = 'user?user_id={}'.format(data['user_id']) if data['user_id'] else '#'
+%>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
@@ -89,15 +96,15 @@ DOCUMENTATION :: END
                 % endif
                 % if data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}">
+                    <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'episode':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">
+                    <a id="poster-url-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'track':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}">
+                    <a id="poster-url-${sk}" href="${parent_href}" title="${data['parent_title']}">
                         <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
@@ -352,13 +359,9 @@ DOCUMENTATION :: END
         </div>
     </div>
     <div class="dashboard-activity-metadata-wrapper">
-        % if data['user_id']:
-        <a href="user?user_id=${data['user_id']}" title="${data['friendly_name']}">
+        <a href="${user_href}" title="${data['friendly_name']}">
             <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
         </a>
-        % else:
-        <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
-        % endif
         <div class="dashboard-activity-metadata-title-container">
             <div id="play-state-${sk}" class="dashboard-activity-metadata-play_state-icon" title="${data['state'].capitalize()}">
                 % if data['state'] == 'playing':
@@ -371,21 +374,21 @@ DOCUMENTATION :: END
             </div>
             <div class="dashboard-activity-metadata-title">
                 % if data['channel_stream'] == 0:
-                % if data['media_type'] == 'movie':
-                <a href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'episode':
-                <a href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
-                - <a href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'track':
-                <a id="metadata-grandparent_title-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
-                - <a id="metadata-title-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'photo':
-                <span title="${data['parent_title']}">${data['parent_title']}</span>
-                % elif data['media_type'] == 'clip':
-                <span title="${data['title']}">${data['title']}</span>
-                % else:
-                <span title="${data['title']}">${data['title']}</span>
-                % endif
+                    % if data['media_type'] == 'movie':
+                    <a href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'episode':
+                    <a href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
+                    - <a href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'track':
+                    <a id="metadata-grandparent_title-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
+                    - <a id="metadata-title-${sk}" href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'photo':
+                    <span title="${data['parent_title']}">${data['parent_title']}</span>
+                    % elif data['media_type'] == 'clip':
+                    <span title="${data['title']}">${data['title']}</span>
+                    % else:
+                    <span title="${data['title']}">${data['title']}</span>
+                    % endif
                 % elif data['media_type'] == 'episode' and data['grandparent_title']:
                 <span title="${data['grandparent_title']}">${data['grandparent_title']}</span>
                 - <span title="${data['title']}">${data['title']}</span>
@@ -425,10 +428,10 @@ DOCUMENTATION :: END
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
-                    <a href="info?rating_key=${data['parent_rating_key']}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
-                    &middot; <a href="info?rating_key=${data['rating_key']}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
+                    <a href="${parent_href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
+                    &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % elif data['media_type'] == 'track':
-                    <a id="metadata-parent_title-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
+                    <a id="metadata-parent_title-${sk}" href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
                     % elif data['media_type'] == 'photo':
                     <span title="${data['title']}" class="sub-heading">${data['title']}</span>
                     % else:
@@ -453,11 +456,7 @@ DOCUMENTATION :: END
                 % endif
             </div>
             <div class="dashboard-activity-metadata-user">
-                % if data['user_id']:
-                <a href="user?user_id=${data['user_id']}" title="${data['friendly_name']}">${data['friendly_name']}</a>
-                % else:
-                ${data['friendly_name']}
-                % endif
+                <a href="${user_href}" title="${data['friendly_name']}">${data['friendly_name']}</a>
             </div>
         </div>
     </div>

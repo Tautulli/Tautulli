@@ -612,7 +612,6 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'last_play': item['last_watch'],
-                           'thumb': user_thumb,
                            'user_thumb': user_thumb,
                            'grandparent_thumb': '',
                            'art': '',

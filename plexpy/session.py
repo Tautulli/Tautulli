@@ -191,10 +191,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
                     'user_thumb': common.DEFAULT_USER_THUMB,
                     'ip_address': 'N/A',
                     'machine_id': '',
-                    'platform': 'Platform',
                     'player': 'Player',
-                    'quality_profile': 'Unknown',
-                    'bandwidth': '',
                     'location': ''
                     }
 
