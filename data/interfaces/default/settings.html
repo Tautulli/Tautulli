@@ -26,11 +26,16 @@
                     <span><i class="fa fa-cogs"></i> Settings</span>
                 </div>
                 <div class="button-bar">
+                    % if config['show_advanced_settings'] == 1:
+                    <button id="menu_link_show_advanced_settings" class="btn btn-dark active"><i class="fa fa-wrench"></i> Hide Advanced</button>
+                    % else:
+                    <button id="menu_link_show_advanced_settings" class="btn btn-dark"><i class="fa fa-wrench"></i> Show Advanced</button>
+                    % endif
                     % if config['check_github']:
                     <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
                     % endif
                     <button id="menu_link_restart" class="btn btn-dark"><i class="fa fa-refresh"></i> Restart</button>
-                    <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shut Down</button>
+                    <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shutdown</button>
                 </div>
             </div>
         </div>
@@ -43,19 +48,16 @@
                 <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
                 <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
                 <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-access_control" aria-controls="tabs-access_control" role="tab" data-toggle="tab">Access Control</a></li>
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-plextv_account" aria-controls="tabs-plextv_account" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-activity_monitoring" aria-controls="tabs-activity_monitoring" role="tab" data-toggle="tab">Activity Monitoring</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
-                <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
         </div>
         <div class="col-md-9">
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
+                <input type="hidden" id="show_advanced_settings" name="show_advanced_settings" value="${config['show_advanced_settings']}" required>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="tabs-help_info">
                         % if common.VERSION_NUMBER:
@@ -78,6 +80,7 @@
                             <br>
                         </div>
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-general">
 
                         <div class="padded-header">
@@ -102,23 +105,53 @@
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="week_start_monday" name="week_start_monday" value="1" ${config['week_start_monday']}> Week Starting on Monday
                             </label>
                             <p class="help-block">Change the "<em>Play by day of week</em>" graph to start on Monday. Default is start on Sunday.</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table and Watch Statistics History
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes
+                            </label>
+                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>History Logging</h3>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="logging_ignore_interval">Ignore Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#logging_ignore_interval_error" required>
+                                </div>
+                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
                         </div>
                         <div class="form-group">
                             <label for="movie_watched_percent">Movie Watched Percent</label>
@@ -150,6 +183,20 @@
                             </div>
                             <p class="help-block">Set the percentage for a music track to be considered as listened. Minimum 50, Maximum 95.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Updates</h3>
@@ -168,7 +215,7 @@
                                 </label>
                                 <p class="help-block">Update Tautulli automatically if an update is available.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <label for="git_token">GitHub API Token</label>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -178,6 +225,41 @@
                                 <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
                             </div>
                         </div>
+
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="form-group advanced-setting">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            <% branches = ('master', 'beta', 'nightly') %>
+                                            % for branch in branches:
+                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
+                                            % endfor
+                                            % if config['git_branch'] not in branches:
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -331,7 +413,13 @@
                         </div>
 
                         <p class="help-block">Note: Web interface changes require a restart.</p>
-                        <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
+                            </label>
+                            <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
                             <label for="http_host">HTTP Host</label>
                             <div class="row">
                                 <div class="col-md-6">
@@ -350,7 +438,7 @@
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group advanced-setting">
                             <label for="http_root">HTTP Root</label>
                             <div class="row">
                                 <div class="col-md-6">
@@ -359,34 +447,27 @@
                             </div>
                             <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
                         </div>
-                       <div class="checkbox">
+                       <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="http_proxy" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
                             </label>
                             <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
                         </div>
-                        <br />
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
-                            </label>
-                            <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
-                        </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
                             </label>
                             <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
                         </div>
                         <div id="https_options">
-                            <div class="checkbox">
+                            <div class="checkbox advanced-setting">
                                 <label>
                                     <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
                                 </label>
                                 <p class="help-block">Check to have Tautulli create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
                             </div>
                             <div id="https_options_self-signed">
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <label for="https_domain">HTTPS Domains</label>
                                     <div class="row">
                                         <div class="col-md-6">
@@ -395,7 +476,7 @@
                                     </div>
                                     <p class="help-block">The domain names used to access Tautulli, separated by commas (,).</p>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <label for="https_ip">HTTPS IPs</label>
                                     <div class="row">
                                         <div class="col-md-6">
@@ -405,7 +486,7 @@
                                     <p class="help-block">The IP addresses used to access Tautulli, separated by commas (,).</p>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <label for="https_cert">HTTPS Certificate</label>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -414,7 +495,7 @@
                                 </div>
                                 <p class="help-block">The location of the SSL certificate.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <label for="https_cert_chain">HTTPS Certificate Chain</label>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -423,7 +504,7 @@
                                 </div>
                                 <p class="help-block">The location of the SSL certificate chain.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <label for="https_key">HTTPS Key</label>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -433,17 +514,22 @@
                                 <p class="help-block">The location of the SSL key.</p>
                             </div>
                         </div>
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-access_control">
+                        <div class="form-group advanced-setting">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
                         </div>
 
-                        <p class="help-block">Authentication changes require a restart.</p>
+                        <p class="help-block">Note: Authentication changes require a restart.</p>
                         <div class="form-group">
                             <label for="http_username">HTTP Username</label>
                             <div class="row">
@@ -463,23 +549,17 @@
                             </div>
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
                         </div>
-                        <div class="checkbox">
+
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
                             </label>
                             <span id="hashPasswordCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
                         </div>
-                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
+                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]"
                                data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
-                            </label>
-                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
-                        </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
                             </label>
@@ -488,10 +568,13 @@
 
                         <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
-                        <div class="padded-header">
-                            <h3>Guest Access</h3>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
+                            </label>
+                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
                         </div>
-
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to Tautulli
@@ -535,6 +618,106 @@
 
                         <div class="padded-header">
                             <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
+                        </div>
+
+                        <div class="form-group has-feedback" id="pms_ip_group">
+                            <label for="pms_ip">Plex IP or Hostname</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
+                                        </span>
+                                    </div>
+                                    <span class="form-control-feedback" id="pms_verify" aria-hidden="true" style="display: none; right: 110px;"></span>
+                                </div>
+                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">IP Address or hostname for Plex Media Server.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="pms_port">Plex Port</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
+                                </div>
+                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Port that Plex Media Server is listening on.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                            </label>
+                            <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
+                            </label>
+                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" disabled> Manual Connection
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
+                            <label>
+                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
+                            </label>
+                            % endif
+                            <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="pms_logs_folder">Plex Web URL</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL.">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Optional: Manually override the Plex Web URL used for click-through links on the media info pages and notifications. Default <strong>https://app.plex.tv/desktop</strong>.
+                            </p>
+                        </div>
+
+                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
+
+                        <div class="form-group advanced-setting">
+                            <label for="pms_logs_folder">Logs Folder</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
+                                </div>
+                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
+                                A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where Tautulli is installed.
+                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Server Monitoring</h3>
                         </div>
 
                         <div class="checkbox">
@@ -584,101 +767,39 @@
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
-                        <div class="form-group has-feedback" id="pms_ip_group">
-                            <label for="pms_ip">Plex IP or Hostname</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
-                                        </span>
-                                    </div>
-                                    <span class="form-control-feedback" id="pms_verify" aria-hidden="true" style="display: none; right: 110px;"></span>
-                                </div>
-                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">IP Address or hostname for Plex Media Server.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="pms_port">Plex Port</label>
+                        <div class="form-group advanced-setting">
+                            <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
                                 </div>
-                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Port that Plex Media Server is listening on.</p>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
                             </label>
-                            <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
+                            <p class="help-block">Refresh the users list when Tautulli starts.</p>
                         </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
-                            </label>
-                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
-                        </div>
-                        <div class="checkbox">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" disabled> Manual Connection
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
-                            <label>
-                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
-                            </label>
-                            % endif
-                            <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="pms_logs_folder">Plex Web URL</label>
+
+                        <div class="form-group advanced-setting">
+                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL.">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
-                                        </span>
-                                    </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
                                 </div>
-                                <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">
-                                Optional: Manually override the Plex Web URL used for click-through links on the media info pages and notifications. Default <strong>https://app.plex.tv/desktop</strong>.
-                            </p>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
                         </div>
-
-                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
-
-                        <div class="padded-header">
-                            <h3>Plex Logs</h3>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
+                            </label>
+                            <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
                         </div>
-
-                        <div class="form-group">
-                            <label for="pms_logs_folder">Logs Folder</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
-                                </div>
-                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">
-                                Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
-                                A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where Tautulli is installed.
-                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
-                            </p>
-                        </div>
-
-                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
-
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-plextv_account">
 
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
@@ -700,71 +821,14 @@
                             <p class="help-block">Token for Plex.tv authentication.</p>
                         </div>
 
-                        <div class="padded-header">
-                            <h3>Friends List</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="refresh_users_interval">Users List Refresh Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
-                                </div>
-                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in hours) Tautulli will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
-                            </label>
-                            <p class="help-block">Refresh the users list when Tautulli starts.</p>
-                        </div>
-
-                        <div class="padded-header">
-                            <h3>Libraries List</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
-                                </div>
-                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in hours) Tautulli will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
-                            </label>
-                            <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
-                        </div>
-
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="tabs-activity_monitoring">
+                    <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
-                            <h3>History Logging</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="logging_ignore_interval">Ignore Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#logging_ignore_interval_error" required>
-                                </div>
-                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
-                        </div>
-
-                        <div class="padded-header">
-                            <h3>Buffer Warnings</h3>
+                            <h3>Current Activity Notifications</h3>
                         </div>
 
                         <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and Plex Web do not report buffer events accurately or at all.</p>
@@ -778,7 +842,7 @@
                             </div>
                             <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group advanced-setting">
                             <label for="buffer_wait">Buffer Wait</label>
                             <div class="row">
                                 <div class="col-md-2">
@@ -788,24 +852,13 @@
                             </div>
                             <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
                         </div>
-
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-notifications">
-
-                        <div class="padded-header">
-                            <h3>Current Activity Notifications</h3>
-                        </div>
-
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
                             </label>
                             <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
                             </label>
@@ -918,103 +971,6 @@
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
                             <br>
                         </div>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
-
-                        <div class="padded-header">
-                            <h3>Extra Settings</h3>
-                        </div>
-
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes
-                            </label>
-                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
-                            </label>
-                            <p class="help-block">
-                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
-                            </p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
-                            </label>
-                            <p class="help-block">
-                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
-                                Note: Video preview thumbnails (BIF) are not cached.
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="anon_redirect">Anonymous Redirect</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
-                        </div>
-                        <div class="form-group">
-                            <label>Flush Temporary Sessions</label>
-                            <p class="help-block">
-                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
-                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
-                            </p>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        % if plexpy.INSTALL_TYPE == 'git':
-                        <div class="padded-header">
-                            <h3>Git Settings</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="git_branch">Git Remote / Branch</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group git-group">
-                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
-                                        <select class="form-control" id="git_branch" name="git_branch">
-                                            <% branches = ('master', 'beta', 'nightly') %>
-                                            % for branch in branches:
-                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
-                                            % endfor
-                                            % if config['git_branch'] not in branches:
-                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
-                                            % endif
-                                        </select>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="git_path">Git Path</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
-                        </div>
-                        % endif
-
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
 
@@ -1668,6 +1624,15 @@ $(document).ready(function() {
         }
     }
 
+    function advancedSettings() {
+        var advanced_button = $('#menu_link_show_advanced_settings');
+        if (advanced_button.hasClass('active')) {
+            $('.advanced-setting').show();
+        } else {
+            $('.advanced-setting').hide();
+        }
+    }
+
     $('.save-button').click(function() {
         preSaveChecks(function () { saveSettings() });
     });
@@ -1707,6 +1672,19 @@ $(document).ready(function() {
         window.location.href = 'restart';
     });
 
+    $('#menu_link_show_advanced_settings').click(function() {
+        $(this).toggleClass('active');
+        if ($(this).hasClass('active')) {
+            $(this).html('<i class="fa fa-wrench"></i> Hide Advanced');
+            $('#show_advanced_settings').val(1);
+        } else {
+            $(this).html('<i class="fa fa-wrench"></i> Show Advanced');
+            $('#show_advanced_settings').val(0);
+        }
+        advancedSettings()
+    });
+
+    advancedSettings();
     getConfigurationTable();
     getSchedulerTable();
     getNotifiersTable();

@@ -2137,6 +2137,20 @@ a:hover .item-children-poster {
     top: 5px;
     left: 12px;
 }
+#menu_link_show_advanced_settings.active {
+  color: #fff;
+  background-color: #cc7b19;
+}
+.advanced-setting {
+    display: none;
+}
+div.advanced-setting {
+    border-left: 1px solid #cc7b19;
+    padding-left: 10px;
+}
+li.advanced-setting {
+    border-left: 1px solid #cc7b19;
+}
 .user-info-wrapper {
 }
 .user-info-poster-face {

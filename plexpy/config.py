@@ -480,6 +480,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
     'REMOTE_ACCESS_PING_THRESHOLD': (int, 'Advanced', 3),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
+    'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
