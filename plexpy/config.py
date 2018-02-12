@@ -182,7 +182,7 @@ _CONFIG_DEFINITIONS = {
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_MONTHS': (int, 'General', 12),
     'GRAPH_TAB': (str, 'General', 'tabs-1'),
-    'GROUP_HISTORY_TABLES': (int, 'General', 0),
+    'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'GROWL_ENABLED': (int, 'Growl', 0),
     'GROWL_HOST': (str, 'Growl', ''),
     'GROWL_PASSWORD': (str, 'Growl', ''),
