@@ -5490,13 +5490,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def newsletter(self, newsletter_id=None, preview=False, master=False, raw=False, **kwargs):
+    def newsletter(self, newsletter_id=None, **kwargs):
         return serve_template(templatename="newsletter_preview.html",
                               title="Newsletter",
-                              newsletter_id=newsletter_id,
-                              preview=preview,
-                              master=master,
-                              raw=raw)
+                              newsletter_id=newsletter_id)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
