@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.0.18-beta (2018-02-12)
+
+* Notifications:
+  * Fix: Default text for Tautulli update notifications using the wrong parameter.
+  * Fix: Playback pause and resume notifications only triggering once.
+  * Change: Negative operators for custom conditions now use "and" instead of "or".
+* UI:
+  * New: Added button to delete the 3rd party lookup info from the info pages.
+  * Fix: Missing host info in the login logs when logging in using Firefox.
+  * Change: Cleaned up settings. Advanced settings are now hidden behind a toggle.
+* API:
+  * New: Updated API documentation for v2.
+* Other:
+  * Fix: DeprecationWarning when using HTTPS with self-signed certificates.
+  * Change: Deleting the Imgur poster URL also deletes the poster from Imgur (only available for new uploads).
+  * Change: GitHub repository moved to Tautulli/Tautulli. Old GitHub URLs will still work.
+
+
 ## v2.0.17-beta (2018-02-03)
 
 * Notifications:
