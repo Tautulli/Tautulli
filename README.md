@@ -29,7 +29,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 * [Full preview gallery on our website](http://tautulli.com)
 
-![Tautulli Homepage](http://tautulli.com/images/screenshots/activity.png?v=2)
+![Tautulli Homepage](http://tautulli.com/images/screenshots/activity-compressed.jpg?v=2)
 
 ## Installation and Support
 
