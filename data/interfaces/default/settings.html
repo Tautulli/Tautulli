@@ -227,10 +227,6 @@
                         </div>
 
                         % if plexpy.INSTALL_TYPE == 'git':
-                        <div class="padded-header advanced-setting">
-                            <h3>Git Settings</h3>
-                        </div>
-
                         <div class="form-group advanced-setting">
                             <label for="git_branch">Git Remote / Branch</label>
                             <div class="row">
@@ -554,13 +550,6 @@
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
                         </div>
 
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
-                            </label>
-                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
-                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
@@ -579,10 +568,13 @@
 
                         <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
-                        <div class="padded-header">
-                            <h3>Guest Access</h3>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
+                            </label>
+                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
                         </div>
-
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to Tautulli
@@ -774,26 +766,6 @@
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
-                        <div class="padded-header">
-                            <h3>Plex.tv Authentication</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="pms_token">Plex.tv Account Token</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Token for Plex.tv authentication.</p>
-                        </div>
-
                         <div class="form-group advanced-setting">
                             <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
@@ -826,6 +798,26 @@
                                 <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
                             </label>
                             <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Plex.tv Authentication</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pms_token">Plex.tv Account Token</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Token for Plex.tv authentication.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
