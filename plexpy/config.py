@@ -176,8 +176,8 @@ _CONFIG_DEFINITIONS = {
     'GIT_PATH': (str, 'General', ''),
     'GIT_REMOTE': (str, 'General', 'origin'),
     'GIT_TOKEN': (str, 'General', ''),
-    'GIT_USER': (str, 'General', 'JonnyWong16'),
-    'GIT_REPO': (str, 'General', 'plexpy'),
+    'GIT_USER': (str, 'General', 'Tautulli'),
+    'GIT_REPO': (str, 'General', 'Tautulli'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_MONTHS': (int, 'General', 12),
@@ -883,3 +883,9 @@ class Config(object):
                 self.PMS_UPDATE_CHANNEL = 'beta'
 
             self.CONFIG_VERSION = 10
+
+        if self.CONFIG_VERSION == 10:
+            self.GIT_USER = 'Tautulli'
+            self.GIT_REPO = 'Tautulli'
+
+            self.CONFIG_VERSION = 11

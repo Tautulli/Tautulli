@@ -62,7 +62,7 @@ def serve_template(templatename, **kwargs):
 
     http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
-    cache_param = '?' + plexpy.CURRENT_VERSION or common.VERSION_NUMBER
+    cache_param = '?' + (plexpy.CURRENT_VERSION or common.VERSION_NUMBER)
 
     _session = get_session_info()
 

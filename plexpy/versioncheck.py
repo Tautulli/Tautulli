@@ -136,7 +136,9 @@ def checkGithub(auto_update=False):
 
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
-    url = 'https://api.github.com/repos/%s/plexpy/commits/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_BRANCH)
+    url = 'https://api.github.com/repos/%s/%s/commits/%s' % (plexpy.CONFIG.GIT_USER,
+                                                             plexpy.CONFIG.GIT_REPO,
+                                                             plexpy.CONFIG.GIT_BRANCH)
     if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
     version = request.request_json(url, timeout=20, validator=lambda x: type(x) == dict)
 
@@ -157,7 +159,10 @@ def checkGithub(auto_update=False):
         return plexpy.LATEST_VERSION
 
     logger.info('Comparing currently installed version with latest GitHub version')
-    url = 'https://api.github.com/repos/%s/plexpy/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.LATEST_VERSION, plexpy.CURRENT_VERSION)
+    url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER,
+                                                                  plexpy.CONFIG.GIT_REPO,
+                                                                  plexpy.LATEST_VERSION,
+                                                                  plexpy.CURRENT_VERSION)
     if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
     commits = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
 
@@ -175,7 +180,7 @@ def checkGithub(auto_update=False):
     if plexpy.COMMITS_BEHIND > 0:
         logger.info('New version is available. You are %s commits behind' % plexpy.COMMITS_BEHIND)
 
-        url = 'https://api.github.com/repos/%s/plexpy/releases' % plexpy.CONFIG.GIT_USER
+        url = 'https://api.github.com/repos/%s/%s/releases' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)
         releases = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == list)
 
         if releases is None:

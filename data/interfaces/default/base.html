@@ -49,7 +49,7 @@
     </div>
     % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
     <div id="updatebar" style="display: none;">
-        A <a href="${anon_url('https://github.com/%s/plexpy/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
+        A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> is available.<br />
         You're ${plexpy.COMMITS_BEHIND} commits behind.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>
@@ -125,7 +125,7 @@
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
-                            <li><a href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
+                            <li><a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
                             <li><a href="settings?support=true"><i class="fa fa-fw fa-comment"></i> Support</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
@@ -239,7 +239,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to Flattr.
                         </p>
-                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/JonnyWong16/plexpy&title=Tautulli&language=en_GB&tags=github&category=software')}" target="_blank">
+                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/%s/%s&title=Tautulli&language=en_GB&tags=github&category=software' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">
                             <img src="images/flattr-badge-large.png" alt="Flattr">
                         </a>
                     </div>
