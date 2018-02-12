@@ -51,7 +51,6 @@
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
-                <li role="presentation" class="advanced-setting"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
@@ -124,6 +123,21 @@
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
                         </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes
+                            </label>
+                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>History Logging</h3>
@@ -169,6 +183,20 @@
                             </div>
                             <p class="help-block">Set the percentage for a music track to be considered as listened. Minimum 50, Maximum 95.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Updates</h3>
@@ -197,6 +225,45 @@
                                 <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
                             </div>
                         </div>
+
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="padded-header advanced-setting">
+                            <h3>Git Settings</h3>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            <% branches = ('master', 'beta', 'nightly') %>
+                                            % for branch in branches:
+                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
+                                            % endfor
+                                            % if config['git_branch'] not in branches:
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -452,6 +519,16 @@
                             </div>
                         </div>
 
+                        <div class="form-group advanced-setting">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Authentication</h3>
                         </div>
@@ -635,6 +712,15 @@
                                 Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
                                 A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where Tautulli is installed.
                                 <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
                             </p>
                         </div>
 
@@ -892,103 +978,6 @@
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
                             <br>
                         </div>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
-
-                        <div class="padded-header advanced-setting">
-                            <h3>Extra Settings</h3>
-                        </div>
-
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes
-                            </label>
-                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
-                            </label>
-                            <p class="help-block">
-                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
-                            </p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
-                            </label>
-                            <p class="help-block">
-                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
-                                Note: Video preview thumbnails (BIF) are not cached.
-                            </p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label for="anon_redirect">Anonymous Redirect</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label>Flush Temporary Sessions</label>
-                            <p class="help-block">
-                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
-                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
-                            </p>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        % if plexpy.INSTALL_TYPE == 'git':
-                        <div class="padded-header advanced-setting">
-                            <h3>Git Settings</h3>
-                        </div>
-
-                        <div class="form-group advanced-setting">
-                            <label for="git_branch">Git Remote / Branch</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group git-group">
-                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
-                                        <select class="form-control" id="git_branch" name="git_branch">
-                                            <% branches = ('master', 'beta', 'nightly') %>
-                                            % for branch in branches:
-                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
-                                            % endfor
-                                            % if config['git_branch'] not in branches:
-                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
-                                            % endif
-                                        </select>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label for="git_path">Git Path</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
-                        </div>
-                        % endif
-
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
 
@@ -1689,9 +1678,6 @@ $(document).ready(function() {
         } else {
             $(this).html('<i class="fa fa-wrench"></i> Show Advanced');
             $('#show_advanced_settings').val(0);
-        }
-        if (document.location.hash == '#tab_tabs-extra_settings') {
-            $('.nav-settings a[href=#tabs-help_info]').tab('show');
         }
         advancedSettings()
     });
