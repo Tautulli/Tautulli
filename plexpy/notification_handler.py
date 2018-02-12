@@ -562,7 +562,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
         elif notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
-            themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
+            if notify_params['media_type'] in ('episode', 'track'):
+                lookup_key = notify_params['grandparent_rating_key']
+            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_key = notify_params['parent_rating_key']
+            else:
+                lookup_key = rating_key
+
+            themoviedb_info = lookup_themoviedb_by_id(rating_key=lookup_key,
                                                       thetvdb_id=notify_params.get('thetvdb_id'),
                                                       imdb_id=notify_params.get('imdb_id'))
             notify_params.update(themoviedb_info)
@@ -570,7 +577,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     # Get TVmaze info (for tv shows only)
     if plexpy.CONFIG.TVMAZE_LOOKUP:
         if notify_params['media_type'] in ('show', 'season', 'episode') and (notify_params.get('thetvdb_id') or notify_params.get('imdb_id')):
-            tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
+            if notify_params['media_type'] in ('episode', 'track'):
+                lookup_key = notify_params['grandparent_rating_key']
+            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_key = notify_params['parent_rating_key']
+            else:
+                lookup_key = rating_key
+
+            tvmaze_info = lookup_tvmaze_by_id(rating_key=lookup_key,
                                               thetvdb_id=notify_params.get('thetvdb_id'),
                                               imdb_id=notify_params.get('imdb_id'))
             notify_params.update(tvmaze_info)

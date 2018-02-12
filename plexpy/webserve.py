@@ -3591,6 +3591,8 @@ class WebInterface(object):
             if metadata:
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
+                lookup_info = data_factory.get_lookup_info(metadata=metadata)
+                metadata.update(lookup_info)
         else:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
@@ -3598,6 +3600,8 @@ class WebInterface(object):
                 data_factory = datafactory.DataFactory()
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
+                lookup_info = data_factory.get_lookup_info(metadata=metadata)
+                metadata.update(lookup_info)
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
@@ -3884,14 +3888,58 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_imgur_poster(self, rating_key='', **kwargs):
+        """ Delete the Imgur poster.
+
+            ```
+            Required parameters:
+                rating_key (int):       1234
+                                        (Note: Must be the movie, show, season, artist, or album rating key)
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Deleted Imgur poster."}
+            ```
+        """
 
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_poster_url(rating_key=rating_key)
 
         if result:
-            return {'result': 'success', 'message': 'Deleted Imgur poster url.'}
+            return {'result': 'success', 'message': 'Deleted Imgur poster.'}
         else:
-            return {'result': 'error', 'message': 'Failed to delete Imgur poster url.'}
+            return {'result': 'error', 'message': 'Failed to delete Imgur poster.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_lookup_info(self, rating_key='', title='', **kwargs):
+        """ Delete the 3rd party API lookup info.
+
+            ```
+            Required parameters:
+                rating_key (int):       1234
+                                        (Note: Must be the movie, show, or artist rating key)
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Deleted lookup info."}
+            ```
+        """
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.delete_lookup_info(rating_key=rating_key, title=title)
+
+        if result:
+            return {'result': 'success', 'message': 'Deleted lookup info.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete lookup info.'}
 
 
     ##### Search #####

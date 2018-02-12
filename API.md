@@ -113,6 +113,20 @@ Delete and recreate the image cache directory.
 
 
 ### delete_imgur_poster
+Delete the Imgur poster.
+
+```
+Required parameters:
+    rating_key (int):       1234
+                            (Note: Must be the movie, show, season, artist, or album rating key)
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"result": "success",
+         "message": "Deleted Imgur poster."}
+```
 
 
 ### delete_library
@@ -142,6 +156,23 @@ Optional parameters:
 
 Returns:
     None
+```
+
+
+### delete_lookup_info
+Delete the 3rd party API lookup info.
+
+```
+Required parameters:
+    rating_key (int):       1234
+                            (Note: Must be the movie, show, or artist rating key)
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"result": "success",
+         "message": "Deleted lookup info."}
 ```
 
 

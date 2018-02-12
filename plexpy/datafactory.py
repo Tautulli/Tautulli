@@ -1107,6 +1107,7 @@ class DataFactory(object):
     def get_poster_info(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()
 
+        poster_key = ''
         if str(rating_key).isdigit():
             poster_key = rating_key
         elif metadata:
@@ -1118,6 +1119,7 @@ class DataFactory(object):
                 poster_key = metadata['parent_rating_key']
 
         poster_info = {}
+
         if poster_key:
             try:
                 query = 'SELECT poster_title, poster_url FROM poster_urls ' \
@@ -1154,6 +1156,51 @@ class DataFactory(object):
                         % (poster_info['poster_title'], rating_key))
             result = monitor_db.action('DELETE FROM poster_urls WHERE rating_key = ?', [rating_key])
             return True if result else False
+
+    def get_lookup_info(self, rating_key='', metadata=None):
+        monitor_db = database.MonitorDatabase()
+
+        lookup_key = ''
+        if str(rating_key).isdigit():
+            lookup_key = rating_key
+        elif metadata:
+            if metadata['media_type'] in ('movie', 'show', 'artist'):
+                lookup_key = metadata['rating_key']
+            elif metadata['media_type'] in ('season', 'album'):
+                lookup_key = metadata['parent_rating_key']
+            elif metadata['media_type'] in ('episode', 'track'):
+                lookup_key = metadata['grandparent_rating_key']
+
+        lookup_info = {'tvmaze_id': '',
+                       'themoviedb_id': ''}
+
+        if lookup_key:
+            try:
+                query = 'SELECT tvmaze_id FROM tvmaze_lookup ' \
+                        'WHERE rating_key = ?'
+                tvmaze_info = monitor_db.select_single(query, args=[lookup_key])
+                if tvmaze_info:
+                    lookup_info['tvmaze_id'] = tvmaze_info['tvmaze_id']
+
+                query = 'SELECT themoviedb_id FROM themoviedb_lookup ' \
+                        'WHERE rating_key = ?'
+                themoviedb_info = monitor_db.select_single(query, args=[lookup_key])
+                if themoviedb_info:
+                    lookup_info['themoviedb_id'] = themoviedb_info['themoviedb_id']
+            except Exception as e:
+                logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_lookup_info: %s." % e)
+
+        return lookup_info
+
+    def delete_lookup_info(self, rating_key='', title=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            logger.info(u"Tautulli DataFactory :: Deleting lookup info for '%s' (rating_key %s) from the database."
+                        % (title, rating_key))
+            result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
+            result_themoviedb = monitor_db.action('DELETE FROM themoviedb_lookup WHERE rating_key = ?', [rating_key])
+            return True if (result_tvmaze or result_themoviedb) else False
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
