@@ -50,6 +50,7 @@
                 <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation" class="advanced-setting"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
@@ -374,7 +375,7 @@
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group advanced-setting">
                             <label for="http_root">HTTP Root</label>
                             <div class="row">
                                 <div class="col-md-6">
@@ -455,7 +456,7 @@
                             <h3>Authentication</h3>
                         </div>
 
-                        <p class="help-block">Authentication changes require a restart.</p>
+                        <p class="help-block">Note: Authentication changes require a restart.</p>
                         <div class="form-group">
                             <label for="http_username">HTTP Username</label>
                             <div class="row">
@@ -513,18 +514,18 @@
                             <p class="help-block">Allow shared users to login to Tautulli using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
                         </div>
 
-                        <div class="padded-header advanced-setting">
+                        <div class="padded-header">
                             <h3>API</h3>
                         </div>
 
-                        <div class="checkbox advanced-setting">
+                        <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
                             </label>
                             <p class="help-block">Allow remote applications to interface with Tautulli.</p>
                         </div>
                         <div id="apioptions">
-                            <div class="form-group advanced-setting">
+                            <div class="form-group">
                                 <label for="api_key">API key</label>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -548,52 +549,6 @@
 
                         <div class="padded-header">
                             <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
-                        </div>
-
-                        <div class="checkbox">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" disabled> Monitor Plex Updates
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
-                            <label>
-                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
-                            </label>
-                            % endif
-                            <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
-                        </div>
-                        <div id="pms_update_options">
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <label for="pms_update_channel">Update Channel</label>
-                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
-                                            <option value="public">Public</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <label for="pms_update_distro_build">Release</label>
-                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
-                                        </select>
-                                        <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="checkbox">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" disabled> Monitor Plex Remote Access
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
-                            </label>
-                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            % endif
-                            <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="form-group has-feedback" id="pms_ip_group">
@@ -684,6 +639,56 @@
                         </div>
 
                         <div class="padded-header">
+                            <h3>Server Monitoring</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" disabled> Monitor Plex Updates
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
+                            </label>
+                            % endif
+                            <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
+                        </div>
+                        <div id="pms_update_options">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="pms_update_channel">Update Channel</label>
+                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                            <option value="public">Public</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="pms_update_distro_build">Release</label>
+                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
+                                        </select>
+                                        <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="checkbox">
+                            % if config['pms_is_cloud']:
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" disabled> Monitor Plex Remote Access
+                            </label>
+                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                            % else:
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            % endif
+                            <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
+                        </div>
+
+                        <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
                         </div>
 
@@ -744,19 +749,6 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
-                            <h3>Notification Agents</h3>
-                        </div>
-
-                        <p class="help-block">
-                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
-                        </p>
-                        <br />
-                        <div id="plexpy-notifiers-table">
-                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
-                            <br>
-                        </div>
-
-                        <div class="padded-header">
                             <h3>Current Activity Notifications</h3>
                         </div>
 
@@ -771,7 +763,7 @@
                             </div>
                             <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group advanced-setting">
                             <label for="buffer_wait">Buffer Wait</label>
                             <div class="row">
                                 <div class="col-md-2">
@@ -781,13 +773,13 @@
                             </div>
                             <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
                             </label>
                             <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
                             </label>
@@ -883,6 +875,23 @@
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
+
+                        <div class="padded-header">
+                            <h3>Notification Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
+                        </p>
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
 
                     </div>
 

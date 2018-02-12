@@ -2129,10 +2129,12 @@ a:hover .item-children-poster {
 .advanced-setting {
     display: none;
 }
-div.checkbox.advanced-setting,
-div.form-group.advanced-setting {
-    border-left: 1px solid #e5a00d;
+div.advanced-setting {
+    border-left: 1px solid #cc7b19;
     padding-left: 10px;
+}
+li.advanced-setting {
+    border-left: 1px solid #cc7b19;
 }
 .user-info-wrapper {
 }
