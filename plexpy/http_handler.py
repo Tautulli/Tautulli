@@ -65,7 +65,7 @@ class HTTPHandler(object):
         Output: list
         """
 
-        self.uri = uri
+        self.uri = uri.encode('utf-8')
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
         self.return_type = return_type
