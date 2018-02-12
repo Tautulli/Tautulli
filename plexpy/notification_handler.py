@@ -531,7 +531,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
-        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0]
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
@@ -542,7 +542,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=movie'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
-            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0]
+            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
 
@@ -1199,6 +1199,17 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
     if response and not err_msg:
         themoviedb_json = response.json()
+        themoviedb_id = themoviedb_json['id']
+        themoviedb_url = 'https://www.themoviedb.org/{}/{}'.format(media_type, themoviedb_id)
+
+        keys = {'themoviedb_id': themoviedb_id}
+        themoviedb_info = {'rating_key': rating_key,
+                           'imdb_id': themoviedb_json.get('imdb_id'),
+                           'themoviedb_url': themoviedb_url,
+                           'themoviedb_json': json.dumps(themoviedb_json)
+                           }
+
+        db.upsert(table_name='themoviedb_lookup', key_dict=keys, value_dict=themoviedb_info)
 
     else:
         if err_msg:
