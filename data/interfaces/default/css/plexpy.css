@@ -86,6 +86,9 @@ select.form-control {
     margin-bottom: 4px;
     padding-left: 5px;
 }
+.selectize-control.form-control.wizard-pms-ip .selectize-input {
+    padding: 6px 12px !important;
+}
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #fff !important;
 }

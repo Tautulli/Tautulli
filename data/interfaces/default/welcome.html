@@ -91,13 +91,13 @@
                     <div class="wizard-input-section">
                         <label for="pms_ip">Plex IP or Hostname</label>
                         <div class="row">
-                            <div class="col-xs-8">
-                                <select id="pms_ip" name="pms_ip"></select>
+                            <div class="col-xs-12">
+                                <select class="form-control wizard-pms-ip" id="pms_ip" name="pms_ip"></select>
                             </div>
                         </div>
                     </div>
                     <div class="wizard-input-section">
-                        <label for="pms_port">Port Number</label>
+                        <label for="pms_port">Plex Port</label>
                         <div class="row">
                             <div class="col-xs-3">
                                 <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
@@ -244,19 +244,40 @@
 
             },
             render: {
-                option: function (item, escape) {
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
-                },
                 item: function (item, escape) {
                     // first item is rendered before initialization bug?
                     if (!item.ci) {
-                        $.extend(item,
-                        $(this.revertSettings.$children)
+                        $.extend(item, $(this.revertSettings.$children)
                             .filter('[value="' + item.value + '"]').data());
-
                     }
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
+                    var label = item.label || item.value;
+                    var caption = item.label ? item.value : null;
+                    return '<div data-use_ssl="' + item.httpsRequired +
+                            '" data-local="' + item.local +
+                            '" data-ci="' + item.clientIdentifier +
+                            '" data-ip="' + item.ip +
+                            '" data-port="' + item.port +
+                            '" data-label="' + item.label + '">' +
+                            '<span class="item-text">' + escape(label) + '</span>' +
+                            (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
+                            '</div>';
+                },
+                option: function (item, escape) {
+                    var label = item.label || item.value;
+                    var caption = item.label ? item.value : null;
+                    return '<div data-use_ssl="' + item.httpsRequired +
+                            '" data-local="' + item.local +
+                            '" data-ci="' + item.clientIdentifier +
+                            '" data-ip="' + item.ip +
+                            '" data-port="' + item.port +
+                            '" data-label="' + item.label + '">' +
+                            escape(label) +
+                            (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                            '</div>';
                 }
+            },
+            create: function(input) {
+                return {label: '', value: input};
             },
             onChange: function (item) {
                 var ci = $('.selectize-input').find('div').attr('data-ci');
