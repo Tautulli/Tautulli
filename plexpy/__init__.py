@@ -22,6 +22,7 @@ import subprocess
 import threading
 import datetime
 import uuid
+
 # Some cut down versions of Python may not include this module and it's not critical for us
 try:
     import webbrowser
@@ -213,6 +214,8 @@ def initialize(config_file):
             except IOError as e:
                 logger.error(u"Unable to read previous version from file '%s': %s" %
                              (version_lock_file, e))
+        else:
+            prev_version = 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca'
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
@@ -283,6 +286,7 @@ def initialize(config_file):
 
         _INITIALIZED = True
         return True
+
 
 def daemonize():
     if threading.activeCount() != 1:
@@ -1080,9 +1084,9 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE session_history_media_info SET transcode_decision = (CASE '
-		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
-			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
-			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
+            'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
+            'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
+            'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1240,7 +1244,6 @@ def dbcheck():
         c_db.execute(
             'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL '
         )
-
 
     # Upgrade session_history_media_info table from earlier versions
     try:
@@ -1586,23 +1589,25 @@ def dbcheck():
     if not result.fetchone():
         logger.debug(u"User 'Local' does not exist. Adding user.")
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
-    
+
     # Create table indices
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup ON tvmaze_lookup (rating_key)'
     )
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup ON themoviedb_lookup (rating_key)'
-    )   
+    )
 
     conn_db.commit()
     c_db.close()
+
 
 def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
         notifiers.upgrade_config_to_db()
     if CONFIG.UPDATE_LIBRARIES_DB_NOTIFY:
         libraries.update_libraries_db_notify()
+
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
