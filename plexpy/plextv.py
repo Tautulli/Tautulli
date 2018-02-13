@@ -144,14 +144,7 @@ class PlexTV(object):
         uri = '/users/sign_in.xml'
         base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'X-Plex-Device-Name': 'Tautulli',
-                   'X-Plex-Product': 'Tautulli',
-                   'X-Plex-Version': plexpy.common.VERSION_NUMBER,
-                   'X-Plex-Platform': plexpy.common.PLATFORM,
-                   'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
-                   'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                   'Authorization': 'Basic %s' % base64string
-                   }
+                   'Authorization': 'Basic %s' % base64string}
         
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='POST',
@@ -314,6 +307,14 @@ class PlexTV(object):
         uri = '/devices/%s/sync_items/%s' % (client_id, sync_id)
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='DELETE',
+                                                    output_format=output_format)
+
+        return request
+
+    def cloud_server_status(self, output_format=''):
+        uri = '/api/v2/cloud_server'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
                                                     output_format=output_format)
 
         return request
@@ -753,3 +754,21 @@ class PlexTV(object):
             devices_list.append(device)
 
         return devices_list
+
+    def get_cloud_server_status(self):
+        cloud_status = self.cloud_server_status(output_format='xml')
+
+        try:
+            status_info = cloud_status.getElementsByTagName('info')
+        except Exception as e:
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_cloud_server_status: %s." % e)
+            return False
+
+        for info in status_info:
+            servers = info.getElementsByTagName('server')
+            for s in servers:
+                if helpers.get_xml_attr(s, 'address') == plexpy.CONFIG.PMS_IP:
+                    if helpers.get_xml_attr(info, 'running') == '1':
+                        return True
+                    else:
+                        return False

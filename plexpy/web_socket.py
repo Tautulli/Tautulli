@@ -41,22 +41,22 @@ def start_thread():
 
 
 def on_connect():
-    plexpy.initialize_scheduler()
-
     if not plexpy.PLEX_SERVER_UP:
         logger.info(u"Tautulli WebSocket :: The Plex Media Server is back up.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
         plexpy.PLEX_SERVER_UP = True
 
-
-def on_disconnect(ws_exception=False):
-    activity_processor.ActivityProcessor().set_temp_stopped()
     plexpy.initialize_scheduler()
 
+
+def on_disconnect(ws_exception=False):
     if not ws_exception and plexpy.PLEX_SERVER_UP:
-        logger.info(u"Tautulli WebSocket :: Unable to get an internal response from the server, Plex server is down.")
+        logger.info(u"Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
         plexpy.PLEX_SERVER_UP = False
+
+    activity_processor.ActivityProcessor().set_temp_stopped()
+    plexpy.initialize_scheduler()
 
 
 def reconnect():
@@ -89,7 +89,7 @@ def run():
     ws_exception = False
 
     # Try an open the websocket connection
-    while not plexpy.WS_CONNECTED and reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+    while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
         reconnects += 1
 
         # Sleep 5 between connection attempts
@@ -116,7 +116,11 @@ def run():
             reconnects = 0
 
         except websocket.WebSocketConnectionClosedException:
-            if reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+            if plexpy.CONFIG.PMS_IS_CLOUD:
+                logger.warn(u"Tautulli WebSocket :: Connection has closed.")
+                activity_pinger.check_cloud_status()
+
+            if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
 
                 # Sleep 5 between connection attempts

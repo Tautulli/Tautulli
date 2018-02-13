@@ -61,7 +61,7 @@ class PmsConnect(object):
             self.url = plexpy.CONFIG.PMS_URL
         elif not self.url:
             self.url = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
-                                                          port=plexpy.CONFIG.PMS_PORT)
+                                                         port=plexpy.CONFIG.PMS_PORT)
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         if not self.token:
