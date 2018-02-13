@@ -121,8 +121,15 @@ def run():
                     ws = create_connection(uri, header=header)
                     logger.info(u"Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
+
                 except IOError as e:
                     logger.info(u"Tautulli WebSocket :: %s." % e)
+
+                except (websocket.WebSocketException, Exception) as e:
+                    logger.error(u"Tautulli WebSocket :: %s." % e)
+                    plexpy.WS_CONNECTED = False
+                    ws_exception = True
+                    break
 
             else:
                 ws.shutdown()
