@@ -1868,7 +1868,7 @@ $(document).ready(function() {
     }
     getServerOptions();
 
-    function PMSCloudCheck () {
+    function PMSCloudCheck() {
         if ($('#pms_is_cloud').val() === "1") {
             $('#pms_port').val(443).prop('readonly', true);
             $('#pms_is_remote_checkbox').prop('checked', true).prop('disabled', true);
@@ -1882,6 +1882,7 @@ $(document).ready(function() {
             $('#cloudManualConnection').show();
             $('#cloudMonitorUpdates').show();
             $('#cloudMonitorRemoteAccess').show();
+            $('#remoteAccessCheck').hide();
         } else {
             $('#pms_port').prop('readonly', false);
             $('#pms_is_remote_checkbox').prop('disabled', false);
@@ -1894,6 +1895,7 @@ $(document).ready(function() {
             $('#cloudManualConnection').hide();
             $('#cloudMonitorUpdates').hide();
             $('#cloudMonitorRemoteAccess').hide();
+            remoteAccessEnabledCheck()
         }
     }
     PMSCloudCheck();
