@@ -264,12 +264,33 @@ def check_recently_added():
                             plexpy.NOTIFY_QUEUE.put({'timeline_data': item.copy(), 'notify_action': 'on_created'})
 
 
-def check_server_response():
-    logger.info(u"Tautulli Monitor :: Attempting to reconnect Plex server...")
-    try:
-        web_socket.start_thread()
-    except:
-        logger.warn(u"Websocket :: Unable to open connection.")
+def connect_server(log=True, startup=False):
+    if plexpy.CONFIG.PMS_IS_CLOUD:
+        if log:
+            logger.info(u"Tautulli Monitor :: Checking for Plex Cloud server status...")
+
+        plex_tv = plextv.PlexTV()
+        status = plex_tv.get_cloud_server_status()
+
+        if status:
+            logger.info(u"Tautulli Monitor :: Plex Cloud server is active.")
+        else:
+            if log:
+                logger.info(u"Tautulli Monitor :: Plex Cloud server is sleeping.")
+            if startup:
+                web_socket.on_disconnect()
+
+    else:
+        status = True
+
+    if status:
+        if log and not startup:
+            logger.info(u"Tautulli Monitor :: Attempting to reconnect Plex server...")
+
+        try:
+            web_socket.start_thread()
+        except:
+            logger.error(u"Websocket :: Unable to open connection.")
 
 
 def check_server_access():
@@ -326,22 +347,3 @@ def check_server_updates():
 
             else:
                 logger.info(u"Tautulli Monitor :: No PMS update available.")
-
-
-def check_cloud_status(log=False, return_status=False):
-    if log:
-        logger.info(u"Tautulli Monitor :: Checking for Plex Cloud server status...")
-
-    plex_tv = plextv.PlexTV()
-    cloud_status = plex_tv.get_cloud_server_status()
-
-    if cloud_status:
-        logger.info(u"Tautulli Monitor :: Plex Cloud server is active.")
-        if return_status:
-            return cloud_status
-        check_server_response()
-    else:
-        if log:
-            logger.info(u"Tautulli Monitor :: Plex Cloud server is sleeping.")
-        if return_status:
-            return cloud_status

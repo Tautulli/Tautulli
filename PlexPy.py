@@ -33,7 +33,7 @@ import signal
 import time
 
 import plexpy
-from plexpy import config, database, logger, web_socket, webstart
+from plexpy import config, database, logger, webstart
 
 
 # Register signals, such as CTRL + C
@@ -193,13 +193,6 @@ def main():
 
     # Start the background threads
     plexpy.start()
-
-    # Open connection for websocket
-    try:
-        web_socket.start_thread(startup=True)
-    except:
-        logger.warn(u"Websocket :: Unable to open connection.")
-        plexpy.initialize_scheduler()
 
     # Force the http port if neccessary
     if args.port:

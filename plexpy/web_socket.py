@@ -32,13 +32,7 @@ opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 ws_reconnect = False
 
 
-def start_thread(startup=False):
-    if startup and plexpy.CONFIG.PMS_IS_CLOUD and plexpy.PLEX_SERVER_UP is None:
-        plexpy.PLEX_SERVER_UP = activity_pinger.check_cloud_status(log=True, return_status=True)
-        if not plexpy.PLEX_SERVER_UP:
-            on_disconnect()
-            return
-
+def start_thread():
     if plexpy.CONFIG.FIRST_RUN_COMPLETE:
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
@@ -81,7 +75,7 @@ def run():
 
     if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
         uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
-        secure = ' secure'
+        secure = 'secure '
     else:
         uri = 'ws://%s:%s/:/websockets/notifications' % (
             plexpy.CONFIG.PMS_IP,
@@ -101,13 +95,16 @@ def run():
 
     # Try an open the websocket connection
     while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+        if reconnects == 0:
+            logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
+
         reconnects += 1
 
         # Sleep 5 between connection attempts
         if reconnects > 1:
             time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-        logger.info(u"Tautulli WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects)))
+        logger.info(u"Tautulli WebSocket :: Connection attempt %s." % str(reconnects))
 
         try:
             ws = create_connection(uri, header=header)
@@ -127,9 +124,8 @@ def run():
             reconnects = 0
 
         except websocket.WebSocketConnectionClosedException:
-            if plexpy.CONFIG.PMS_IS_CLOUD:
+            if reconnects == 0:
                 logger.warn(u"Tautulli WebSocket :: Connection has closed.")
-                activity_pinger.check_cloud_status(log=True)
 
             if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
@@ -138,7 +134,7 @@ def run():
                 if reconnects > 1:
                     time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-                logger.warn(u"Tautulli WebSocket :: Connection has closed, reconnection attempt %s." % str(reconnects))
+                logger.warn(u"Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
                     ws = create_connection(uri, header=header)
@@ -166,7 +162,6 @@ def run():
             start_thread()
     
     if not plexpy.WS_CONNECTED and not ws_reconnect:
-        logger.error(u"Tautulli WebSocket :: Connection unavailable.")
         on_disconnect()
 
     logger.debug(u"Tautulli WebSocket :: Leaving thread.")

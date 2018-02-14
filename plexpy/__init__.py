@@ -397,12 +397,8 @@ def initialize_scheduler():
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
-            if plexpy.CONFIG.PMS_IS_CLOUD:
-                schedule_job(activity_pinger.check_cloud_status, 'Check for server response',
-                             hours=0, minutes=0, seconds=0)
-            else:
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
-                             hours=0, minutes=0, seconds=0)
+            schedule_job(activity_pinger.connect_server, 'Check for server response',
+                         hours=0, minutes=0, seconds=0)
 
         else:
             # Cancel all jobs
@@ -419,15 +415,9 @@ def initialize_scheduler():
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=0, minutes=0, seconds=0)
 
-            if plexpy.CONFIG.PMS_IS_CLOUD:
-                # Schedule job to check for cloud server status
-                schedule_job(activity_pinger.check_cloud_status, 'Check for server response',
-                             hours=0, minutes=0, seconds=60)
-
-            else:
-                # Schedule job to reconnect websocket
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
-                             hours=0, minutes=0, seconds=60)
+            # Schedule job to reconnect server
+            schedule_job(activity_pinger.connect_server, 'Check for server response',
+                         hours=0, minutes=0, seconds=60, args=(False,))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -470,6 +460,8 @@ def start():
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
+
+        activity_pinger.connect_server(log=True, startup=True)
 
         _STARTED = True
 

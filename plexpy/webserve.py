@@ -28,6 +28,7 @@ from mako.lookup import TemplateLookup
 from mako import exceptions
 
 import plexpy
+import activity_pinger
 import common
 import config
 import database
@@ -2747,7 +2748,7 @@ class WebInterface(object):
 
         # If first run, start websocket
         if first_run:
-            web_socket.start_thread()
+            activity_pinger.connect_server()
         
         # Reconfigure scheduler if intervals changed
         if reschedule:
