@@ -2748,7 +2748,7 @@ class WebInterface(object):
 
         # If first run, start websocket
         if first_run:
-            activity_pinger.connect_server()
+            activity_pinger.connect_server(log=True, startup=True)
         
         # Reconfigure scheduler if intervals changed
         if reschedule:

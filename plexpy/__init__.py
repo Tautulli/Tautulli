@@ -461,7 +461,8 @@ def start():
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
 
-        activity_pinger.connect_server(log=True, startup=True)
+        if CONFIG.FIRST_RUN_COMPLETE:
+            activity_pinger.connect_server(log=True, startup=True)
 
         _STARTED = True
 
