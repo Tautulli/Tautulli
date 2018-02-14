@@ -104,7 +104,7 @@ div.form-control .selectize-input {
     text-overflow: ellipsis;
 }
 .selectize-dropdown.form-control.selectize-pms-ip {
-    margin-top: -4px;
+    margin-left: 15px;
 }
 .wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-dropdown .selectize-dropdown-content {
     max-height: 150px;
@@ -186,6 +186,8 @@ select.form-control:focus,
     display: block;
     color: #a0a0a0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .selectize-dropdown .select-all,
 .selectize-dropdown .remove-all {

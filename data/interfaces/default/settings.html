@@ -623,7 +623,7 @@
                         <div class="form-group has-feedback" id="pms_ip_group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
-                                <div class="col-md-9">
+                                <div class="col-md-9" id="selectize-pms-ip-container">
                                     <div class="input-group">
                                         <select class="form-control pms-settings selectize-pms-ip" id="pms_ip" name="pms_ip" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
                                             <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
@@ -1780,7 +1780,7 @@ $(document).ready(function() {
         sortField: 'label',
         searchField: ['label', 'value'],
         inputClass: 'form-control selectize-input',
-        dropdownParent: 'body',
+        dropdownParent: '#selectize-pms-ip-container',
         render: {
             item: function (item, escape) {
                 var label = item.label || item.value;
