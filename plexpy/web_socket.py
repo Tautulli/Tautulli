@@ -123,7 +123,7 @@ def run():
         except websocket.WebSocketConnectionClosedException:
             if plexpy.CONFIG.PMS_IS_CLOUD:
                 logger.warn(u"Tautulli WebSocket :: Connection has closed.")
-                activity_pinger.check_cloud_status()
+                activity_pinger.check_cloud_status(log=True)
 
             if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
