@@ -271,14 +271,21 @@ $(document).ready(function() {
         submitUrl: "configUpdate"
     };
     var wizard = $("#setup-wizard").wizard(options);
-    $('.btn.wizard-back').addClass('btn-dark');
     wizard.show();
+
+    // Change button classes
+    wizard.find('.wizard-back').addClass('btn-dark');
+    wizard.on('incrementCard', function(wizard) {
+        wizard.find('.wizard-next.btn-success').removeClass('btn-success').addClass('btn-bright');
+    });
+    wizard.on('decrementCard', function(wizard) {
+        wizard.find('.wizard-next').removeClass('btn-bright').text('Next');
+    });
 
     wizard.on("submit", function(wizard) {
         // Probably should not success before we know, but hopefully validation is good enough.
         wizard.submitSuccess();
         $.ajax({
-            url: "configUpdate",
             type: "POST",
             url: wizard.args.submitUrl,
             data: wizard.serialize(),
