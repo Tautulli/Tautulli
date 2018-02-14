@@ -272,13 +272,17 @@ def connect_server(log=True, startup=False):
         plex_tv = plextv.PlexTV()
         status = plex_tv.get_cloud_server_status()
 
-        if status:
+        if status is True:
             logger.info(u"Tautulli Monitor :: Plex Cloud server is active.")
-        else:
+        elif status is False:
             if log:
                 logger.info(u"Tautulli Monitor :: Plex Cloud server is sleeping.")
-            if startup:
-                web_socket.on_disconnect()
+        else:
+            if log:
+                logger.error(u"Tautulli Monitor :: Failed to retrieve Plex Cloud server status.")
+
+        if not status and startup:
+            web_socket.on_disconnect()
 
     else:
         status = True
