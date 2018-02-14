@@ -37,7 +37,10 @@ grandparent_title       Returns the name of the TV Show.
 DOCUMENTATION :: END
 </%doc>
 
-% if data is not None:
+% if data:
+<%
+    from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES
+%>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -51,86 +54,182 @@ DOCUMENTATION :: END
             </h4>
         </div>
         <div class="modal-body">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <h4><strong>Stream Details</strong></h4>
-                    </div>
-                    <div class="col-sm-4">
-                        <h5>Media</h5>
-                        <ul class="list-unstyled">
-                            <li>Container: <strong>${data['transcode_container'] if data['transcode_container'] else data['container']}</strong></li>
-                            % if data['media_type'] != 'track':
-                            <li>Resolution: <strong>${data['transcode_height'] if data['transcode_height'] else data['height']}p</strong></li>
-                            % endif
-                        </ul>
-                    </div>
-                    % if data['media_type'] != 'track':
-                    <div class="col-sm-4">
-                        <h5>Video</h5>
-                        <ul class="list-unstyled">
-                            <li>Stream: <strong>${data['transcode_video_dec']}</strong></li>
-                            % if data['transcode_video_dec'] != 'direct play':
-                            <li>Width: <strong>${data['transcode_width']}</strong></li>
-                            <li>Height: <strong>${data['transcode_height']}</strong></li>
-                            <li>Codec: <strong>${data['transcode_video_codec']}</strong></li>
-                            % else:
-                            <li>Width: <strong>${data['width']}</strong></li>
-                            <li>Height: <strong>${data['height']}</strong></li>
-                            <li>Codec: <strong>${data['video_codec']}</strong></li>
-                            % endif
-                        </ul>
-                    </div>
-                    % endif
-                    <div class="col-sm-4">
-                        <h5>Audio</h5>
-                        <ul class="list-unstyled">
-                            <li>Stream: <strong>${data['transcode_audio_dec']}</strong></li>
-                            % if data['transcode_audio_dec'] != 'direct play':
-                            <li>Codec: <strong>${data['transcode_audio_codec']}</strong></li>
-                            <li>Channels: <strong>${data['transcode_audio_channels']}</strong></li>
-                            % else:
-                            <li>Codec: <strong>${data['audio_codec']}</strong></li>
-                            <li>Channels: <strong>${data['audio_channels']}</strong></li>
-                            % endif
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12">
-                        <h4><strong>Source Details</strong></h4>
-                    </div>
-                    <div class="col-sm-4">
-                        <h5>Media</h5>
-                        <ul class="list-unstyled">
-                            <li>Container: <strong>${data['container']}</strong></li>
-                            % if data['media_type'] != 'track':
-                            <li>Resolution: <strong>${data['video_resolution'] + 'p'  if data['video_resolution'] != 'sd' else data['video_resolution']}</strong></li>
-                            % endif
-                            <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
-                        </ul>
-                    </div>
-                    % if data['media_type'] != 'track':
-                    <div class="col-sm-4">
-                        <h5>Video</h5>
-                        <ul class="list-unstyled">
-                            <li>Width: <strong>${data['width']}</strong></li>
-                            <li>Height: <strong>${data['height']}</strong></li>
-                            <li>Codec: <strong>${data['video_codec']}</strong></li>
-                            <li>Aspect Ratio: <strong>${data['aspect_ratio']}</strong></li>
-                            <li>Frame Rate: <strong>${data['video_framerate']}</strong></li>
-                        </ul>
-                    </div>
-                    % endif
-                    <div class="col-sm-4">
-                        <h5>Audio</h5>
-                        <ul class="list-unstyled">
-                            <li>Codec: <strong>${data['audio_codec']}</strong></li>
-                            <li>Channels: <strong>${data['audio_channels']}</strong></li>
-                        </ul>
-                    </div>
-                </div>
+            % if data['current_session']:
+            <div class="col-sm-12 text-muted stream-info-current">
+                <i class="fa fa-exclamation-circle"></i> Current session. Updated stream details below may be delayed.
             </div>
+            % endif
+            <table class="stream-info" style="margin-top: 0;">
+                <thead>
+                    <tr>
+                        <th>
+                        </th>
+                        <th class="heading">
+                            Stream Details
+                        </th>
+                        <th class="heading">
+                            Source Details
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+            <table class="stream-info">
+                <thead>
+                    <tr>
+                        <th>
+                            Media
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bitrate</td>
+                        <td>${data['stream_bitrate']} kbps</td>
+                        <td>${data['bitrate']} kbps</td>
+                    </tr>
+                    % if data['media_type'] != 'track':
+                    <tr>
+                        <td>Resolution</td>
+                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])}</td>
+                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])}</td>
+                    </tr>
+                    % endif
+                    <tr>
+                        <td>Quality</td>
+                        <td>${data['quality_profile']}</td>
+                        <td>-</td>
+                    </tr>
+                    % if data['optimized_version'] == 1:
+                    <tr>
+                        <td>Optimized Version</td>
+                        <td>-</td>
+                        <td>${data['optimized_version_profile']}<br>(${data['optimized_version_title']})</td>
+                    </tr>
+                    % endif
+                    % if data['synced_version'] == 1:
+                    <tr>
+                        <td>Synced Version</td>
+                        <td>-</td>
+                        <td>${data['synced_version_profile']}</td>
+                    </tr>
+                    % endif
+                </tbody>
+            </table>
+            <table class="stream-info">
+                <thead>
+                    <tr>
+                        <th>
+                            Container
+                        </th>
+                        <th>
+                            ${data['stream_container_decision']}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Container</td>
+                        <td>${data['stream_container'].upper()}</td>
+                        <td>${data['container'].upper()}</td>
+                    </tr>
+                </tbody>
+            </table>
+            % if data['media_type'] != 'track':
+            <table class="stream-info">
+                <thead>
+                    <tr>
+                        <th>
+                            Video
+                        </th>
+                        <th>
+                            ${data['stream_video_decision']}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Codec</td>
+                        <td>${data['stream_video_codec'].upper()} ${'(HW)' if data['transcode_hw_encoding'] else ''}</td>
+                        <td>${data['video_codec'].upper()} ${'(HW)' if data['transcode_hw_decoding'] else ''}</td>
+                    </tr>
+                    <tr>
+                        <td>Bitrate</td>
+                        <td>${data['stream_video_bitrate']} kbps</td>
+                        <td>${data['video_bitrate']} kbps</td>
+                    </tr>
+                    <tr>
+                        <td>Width</td>
+                        <td>${data['stream_video_width']}</td>
+                        <td>${data['video_width']}</td>
+                    </tr>
+                    <tr>
+                        <td>Height</td>
+                        <td>${data['stream_video_height']}</td>
+                        <td>${data['video_height']}</td>
+                    </tr>
+                    <tr>
+                        <td>Framerate</td>
+                        <td>${data['stream_video_framerate']}</td>
+                        <td>${data['video_framerate']}</td>
+                    </tr>
+                    <tr>
+                        <td>Aspect Ratio</td>
+                        <td>-</td>
+                        <td>${data['aspect_ratio']}</td>
+                    </tr>
+                </tbody>
+            </table>
+            % endif
+            <table class="stream-info">
+                <thead>
+                    <tr>
+                        <th>
+                            Audio
+                        </th>
+                        <th>
+                            ${data['stream_audio_decision']}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Codec</td>
+                        <td>${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())}</td>
+                        <td>${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())}</td>
+                    </tr>
+                    <tr>
+                        <td>Bitrate</td>
+                        <td>${data['stream_audio_bitrate']} kbps</td>
+                        <td>${data['audio_bitrate']} kbps</td>
+                    </tr>
+                    <tr>
+                        <td>Channels</td>
+                        <td>${data['stream_audio_channels']}</td>
+                        <td>${data['audio_channels']}</td>
+                    </tr>
+                </tbody>
+            </table>
+            % if data['subtitles'] == 1:
+            <table class="stream-info">
+                <thead>
+                    <tr>
+                        <th>
+                            Subtitles
+                        </th>
+                        <th>
+                            ${data['stream_subtitle_decision']}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Codec</td>
+                        <td>${data['stream_subtitle_codec'].upper()}</td>
+                        <td>${data['subtitle_codec'].upper()}</td>
+                    </tr>
+                </tbody>
+            </table>
+            % endif
         </div>
         <div class="modal-footer">
         </div>

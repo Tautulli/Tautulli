@@ -39,6 +39,10 @@ from cherrypy import wsgiserver
 try:
     from OpenSSL import SSL
     from OpenSSL import crypto
+    if hasattr(SSL, 'Connection'):
+        SSLConnectionType = SSL.Connection
+    else:
+        SSLConnectionType = SSL.ConnectionType
 except ImportError:
     SSL = None
 
@@ -244,7 +248,7 @@ class pyOpenSSLAdapter(wsgiserver.SSLAdapter):
         return ssl_environ
 
     def makefile(self, sock, mode='r', bufsize=-1):
-        if SSL and isinstance(sock, SSL.ConnectionType):
+        if SSL and isinstance(sock, SSLConnectionType):
             timeout = sock.gettimeout()
             f = SSL_fileobject(sock, mode, bufsize)
             f.ssl_timeout = timeout

@@ -1,17 +1,17 @@
-# This file is part of PlexPy.
+# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import arrow
 import os
@@ -33,7 +33,7 @@ def drop_session_db():
 
 
 def clear_history_tables():
-    logger.debug(u"PlexPy Database :: Deleting all session_history records... No turning back now bub.")
+    logger.debug(u"Tautulli Database :: Deleting all session_history records... No turning back now bub.")
     monitor_db = MonitorDatabase()
     monitor_db.action('DELETE FROM session_history')
     monitor_db.action('DELETE FROM session_history_media_info')
@@ -42,7 +42,7 @@ def clear_history_tables():
 
 
 def delete_sessions():
-    logger.debug(u"PlexPy Database :: Clearing temporary sessions from database.")
+    logger.debug(u"Tautulli Database :: Clearing temporary sessions from database.")
     monitor_db = MonitorDatabase()
 
     try:
@@ -50,7 +50,7 @@ def delete_sessions():
         monitor_db.action('VACUUM')
         return True
     except Exception as e:
-        logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
+        logger.warn(u"Tautulli Database :: Unable to clear temporary sessions from database: %s." % e)
         return False
 
 def db_filename(filename=FILENAME):
@@ -88,13 +88,13 @@ def make_backup(cleanup=False, scheduler=False):
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error(u"PlexPy Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.error(u"Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug(u"PlexPy Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
+        logger.debug(u"Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
-        logger.warn(u"PlexPy Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
+        logger.warn(u"Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
         return False
 
 
@@ -147,15 +147,15 @@ class MonitorDatabase(object):
 
                 except sqlite3.OperationalError as e:
                     if "unable to open database file" in e or "database is locked" in e:
-                        logger.warn(u"PlexPy Database :: Database Error: %s", e)
+                        logger.warn(u"Tautulli Database :: Database Error: %s", e)
                         attempts += 1
                         time.sleep(1)
                     else:
-                        logger.error(u"PlexPy Database :: Database error: %s", e)
+                        logger.error(u"Tautulli Database :: Database error: %s", e)
                         raise
 
                 except sqlite3.DatabaseError as e:
-                    logger.error(u"PlexPy Database :: Fatal Error executing %s :: %s", query, e)
+                    logger.error(u"Tautulli Database :: Fatal Error executing %s :: %s", query, e)
                     raise
 
             return sql_result
@@ -199,7 +199,13 @@ class MonitorDatabase(object):
             try:
                 self.action(insert_query, value_dict.values() + key_dict.values())
             except sqlite3.IntegrityError:
-                logger.info(u"PlexPy Database :: Queries failed: %s and %s", update_query, insert_query)
+                logger.info(u"Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
 
         # We want to know if it was an update or insert
         return trans_type
+
+    def last_insert_id(self):
+        # Get the last insert row id
+        result = self.select_single(query='SELECT last_insert_rowid() AS last_id')
+        if result:
+            return result.get('last_id', None)

@@ -59,7 +59,7 @@ DOCUMENTATION :: END
                     <h3>
                         <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
-                    <h3 title="${item['title']}">
+                    <h3 class="text-muted" title="${item['title']}">
                         <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
@@ -71,6 +71,7 @@ DOCUMENTATION :: END
                         <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">${item['year']}</h3>
+                    <h3 class="text-muted">&nbsp;</h3>
                     % endif
                 </div>
                 % else:
@@ -110,7 +111,7 @@ DOCUMENTATION :: END
                     <h3 title="${item['grandparent_title']}">
                         <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
-                    <h3 title="${item['title']}">
+                    <h3 class="text-muted" title="${item['title']}">
                         <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">

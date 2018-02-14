@@ -1,0 +1,114 @@
+% if device:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="mobile-device-config-modal-header">${device['device_name']} Settings &nbsp;<small><span class="device_id">(Device ID: ${device['id']})</span></small></h4>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <form action="set_mobile_device_config" method="post" class="form" id="set_mobile_device_config" data-parsley-validate>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="hidden" id="mobile_device_id" name="mobile_device_id" value="${device['id']}" />
+                            <div class="form-group">
+                                <label for="friendly_name">Friendly Name</label>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${device['friendly_name'] or ''}" size="30">
+                                    </div>
+                                </div>
+                                <p class="help-block">Optional: Enter a friendly name for this device. Leave blank for default.</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="button" id="delete-mobile-device" class="btn btn-danger btn-edit" style="float:left;" value="Delete">
+            <input type="button" id="save-mobile-device" class="btn btn-bright" value="Save">
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#mobile-device-config-modal').unbind('hidden.bs.modal');
+
+    function reloadModal() {
+        $.ajax({
+            url: 'get_mobile_device_config_modal',
+            data: { mobile_device_id: '${device["id"]}' },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $('#mobile-device-config-modal').html(xhr.responseText);
+            }
+        });
+    }
+
+    function saveCallback(jqXHR) {
+        if (jqXHR) {
+            var result = $.parseJSON(jqXHR.responseText);
+            var msg = result.message;
+            if (result.result == 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+            }
+        }
+
+        getMobileDevicesTable();
+    }
+
+    function deleteCallback() {
+        $('#mobile-device-config-modal').modal('hide');
+        getMobileDevicesTable();
+    }
+
+    function saveMobileDevice() {
+        // Trim all text inputs before saving
+        $('input[type=text]').val(function(_, value) {
+            return $.trim(value);
+        });
+        // Reload modal to update certain fields
+        doAjaxCall('set_mobile_device_config', $(this), false, true, true, saveCallback);
+    }
+
+    $('#delete-mobile-device').click(function () {
+        var msg = 'Are you sure you want to unregister the device <strong>${device["device_name"]}</strong> from Tautulli?';
+        var url = 'delete_mobile_device';
+        confirmAjaxCall(url, msg, { mobile_device_id: '${device["id"]}' }, null, deleteCallback);
+    });
+
+    $('#save-mobile-device').click(function () {
+        saveMobileDevice();
+    });
+
+    // Never send checkbox values directly, always substitute value in hidden input.
+    $('.checkboxes').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+</script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="mobile-device-config-modal-header">Error</h4>
+        </div>
+        <div class="modal-body">
+            <center><strong>
+                <i class="fa fa-exclamation-circle"></i> Failed to retrieve mobile device configuration. Check the <a href="logs">logs</a> for more info.
+            </strong></center>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif

@@ -1,5 +1,297 @@
 # Changelog
 
+## v2.0.18-beta (2018-02-12)
+
+* Notifications:
+  * Fix: Default text for Tautulli update notifications using the wrong parameter.
+  * Fix: Playback pause and resume notifications only triggering once.
+  * Change: Negative operators for custom conditions now use "and" instead of "or".
+* UI:
+  * New: Added button to delete the 3rd party lookup info from the info pages.
+  * Fix: Missing host info in the login logs when logging in using Firefox.
+  * Change: Cleaned up settings. Advanced settings are now hidden behind a toggle.
+* API:
+  * New: Updated API documentation for v2.
+* Other:
+  * Fix: DeprecationWarning when using HTTPS with self-signed certificates.
+  * Change: Deleting the Imgur poster URL also deletes the poster from Imgur (only available for new uploads).
+  * Change: GitHub repository moved to Tautulli/Tautulli. Old GitHub URLs will still work.
+
+
+## v2.0.17-beta (2018-02-03)
+
+* Notifications:
+  * Fix: Unable to use @ mentions tags for Discord and Slack.
+  * New: Added Zapier notification agent.
+* API:
+  * Fix: get_synced_items returning no results.
+  * Fix: get_library_media_info returning incorrect media type for photo albums.
+  * Fix: get_library_media_info not being able to sort by title.
+
+
+## v2.0.16-beta (2018-01-30)
+
+* Monitoring:
+  * Fix: Timestamp sometimes showing as "0:60" on the activity cards.
+  * Fix: Incorrect session information being shown for playback of synced content.
+  * Fix: Sessions not being stopped when "Playback Stopped" notifications were enabled.
+* UI:
+  * Fix: Stream resolution showing up as "unknown" on the graphs.
+  * New: Added user filter to the Synced Items table.
+* Other:
+  * New: Option to use the Plex server update channel when checking for updates.
+
+
+## v2.0.15-beta (2018-01-27)
+
+* Monitoring:
+  * Fix: Live TV sessions not being stopped in History.
+  * Fix: Stream location showing as "unknown" on the activity cards.
+  * New: Improved Live TV details on the activity cards.
+* Notifications:
+  * New: Added labels and collections to notification parameters.
+  * New: Added more server details to notification parameters.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+
+
+## v2.0.14-beta (2018-01-20)
+
+* Monitoring:
+  * Change: Added "Cellular" bandwidth to "WAN" in activity header.
+* Notifications:
+  * Fix: Plex Web URL for tracks now go to the album page.
+  * Fix: Recently added notifications being sent for the entire library when DVR EPG data was refreshed.
+  * Fix: Notifier settings not loading with an apostrophe in the custom condition values.
+  * Fix: Custom email addresses not being saved when closing the notifier settings.
+  * Change: Re-enabled Browser notifications.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+  * Change: Emails no longer automatically insert HTML line breaks.
+  * Change: "Date" header added to email notifications.
+* UI:
+  * Change: Show all changelogs since the previous version when updating.
+
+
+## v2.0.13-beta (2018-01-13)
+
+* Notifications:
+  * New: Added dropdown selection for email addresses of shared users.
+  * New: Added more notification options for Join.
+  * Change: Show "OR" between custom condition values.
+* Other:
+  * New: Use JSON Web Tokens for authentication. Login now works with SSO applications.
+  * New: Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.
+
+
+## v2.0.12-beta (2018-01-07)
+
+* Notifications:
+  * Fix: Incorrect Plex URL parameter value.
+  * Change: Custom condition logic is now optional. An implicit "and" is applied between all conditions if the logic is blank.
+* UI:
+  * New: Added separate required LAN/WAN bandwidth in the activity header.
+* API:
+  * Fix: Notify API command not sending notifications.
+
+
+## v2.0.11-beta (2018-01-05)
+
+* Notifications:
+  * Fix: Some notification parameters showing up blank.
+* UI:
+  * Fix: Stream data showing up as "None" for pre-v2 history.
+* Other:
+  * Fix: Ability to login using the hashed password.
+
+
+## v2.0.10-beta (2018-01-04)
+
+* Monitoring:
+  * Fix: HW transcoding indicator on activity cards incorrect after refreshing.
+* Notifications:
+  * Remove: Notification toggles from library and user settings. Use custom conditions to filter out notifications instead.
+* UI:
+  * Fix: Incorrect examples for some date format options. Also added a few missing date format options. (Thanks @Tommatheussen)
+
+
+## v2.0.9-beta (2018-01-03)
+
+* Notifications:
+  * Fix: Notifications failing due to incorrect season/episode number types.
+
+
+## v2.0.8-beta (2018-01-03)
+
+* Monitoring:
+  * Fix: Incorrect HW transcoding indicator on activity cards.
+  * Fix: Long product/player names hidden behind platform icon on activity cards.
+* Notifications:
+  * Fix: Notifications failing due to some missing notification parameters.
+
+
+## v2.0.7-beta (2018-01-01)
+
+* Monitoring:
+  * Fix: Incorrect LAN/WAN location on activity cards.
+  * Fix: Paused time not recording correctly.
+* Other:
+  * Fix: Failed to retrieve synced items when there are special characters in the title.
+
+
+## v2.0.6-beta (2017-12-31)
+
+* Monitoring:
+  * New: Beta Plex Cloud support.
+  * Fix: Update paused time while still paused.
+* UI:
+  * Fix: Stopped time showing as "n/a" on history table.
+
+
+## v2.0.5-beta (2017-12-31)
+
+* Monitoring:
+  * Fix: IPv6 addresses overflowing on the activity cards.
+* Notifications:
+  * Fix: Error sending Join notifications.
+* UI:
+  * New: Added total required bandwidth in the activity header.
+* Other:
+  * Fix: Failing to retrieve releases from GitHub.
+  * Fix: CherryPy SSL connection warning. (Thanks @felixbuenemann)
+  * Fix: Sanitize script output in logs.
+  * Change: Login sessions persists across server restarts.
+
+
+## v2.0.4-beta (2017-12-29)
+
+* Monitoring:
+  * Fix: Current activity cards duplicating on the homepage.
+* Notifications:
+  * Fix: Concurrent stream notifications being sent when there is an incorrect number of streams.
+* UI:
+  * New: Info pages for collections.
+  * New: Button to test Plex Web URL override.
+  * Fix: Library and User pages return to the correct tab when pressing back.
+
+
+## v2.0.3-beta (2017-12-25)
+
+* Monitoring:
+  * Fix: Missing sync ID error causing logging to crash.
+  * Fix: Incorrect optimized version title column name causing logging to crash.
+* Notifications:
+  * Fix: Report correct beta version for Tautulli update notifications.
+* UI:
+  * Fix: Missing CSS for stream info modal.
+
+
+## v2.0.2-beta (2017-12-24)
+
+* Monitoring:
+  * Fix: Websocket connection fails to start with existing streams when upgrading to v2.
+  * Fix: Long request URI for refreshing current activity on the homepage.
+  * Fix: Missing subtitle database columns.
+  * Fix: Details for synced and optimized versions reporting incorrectly.
+* Notifications:
+  * Fix: Recently added notifications sending for previously added items. It is now limited to past 24 hours only.
+  * Fix: Source video/audio/subtitle parameters showing up as blank.
+  * Change: Validate condition logic when saving a notification agent.
+* API:
+  * Change: API is enabled by default on new installs.
+* UI:
+  * New: Add logo svg files. (Thanks @Fish2)
+  * New: Updated stream info modal.
+  * Change: Media info tables sort by sort title instead of title.
+* Other:
+  * Fix: Updating library IDs message on libraries page.
+  * Fix: Wtched percentage settings not saving after restart.
+  * Remove: Video Preview Thumbnails setting no longer used.
+  * Change: Add back HTTP Proxy setting under the Web Interface settings tab.
+  * Change: "Group Table and Watch Statistics History" and "Current Activity in History Tables" enabled by default on new installs.
+
+
+## v2.0.1-beta (2017-12-19)
+
+* Monitoring:
+  * Fix: Missing video_height database column.
+* Notifications:
+  * Fix: Join API key.
+  * Change: Temporarily disable broken browser notifications.
+* UI:
+  * Fix: Incorrect fallback image for music watch statistics.
+
+
+## v2.0.0-beta (2017-12-18)
+
+* Monitoring:
+  * New: More detailed stream info including subtitles, bitrates, bandwidth, and quality profiles.
+  * New: Terminate sessions from the current activity (Plex Pass only).
+  * Change: Monitoring uses websockets only now.
+* Notifications:
+  * New: Completely new notification system.
+    * Allow adding multiple of the same notification agent and/or duplicating existing notification agents.
+    * Each notification agent has it's own notification triggers and notification text.
+    * Notification agents are stored in the database instead of the config file. Some notification configurations may have been lost in the transfer. Sorry.
+  * New: Discord notification agent.
+  * New: GroupMe notification agent.
+  * New: MQTT notification agent.
+  * New: More customizable info cards for Discord, Facebook, Hipchat, and Slack.
+  * New: Script notifications are configured individually per script with separate arguments for each notification action.
+  * New: Icon and duration options for Plex Home Theater and XBMC notifications.
+  * New: Notification for Tautulli updates.
+  * New: Added &lt;show&gt;, &lt;season&gt;, &lt;artist&gt;, and &lt;album&gt; notification exclusion tags.
+    * &lt;tv&gt; is renamed to &lt;episode&gt;, and &lt;music&gt; is renamed to &lt;track&gt;
+  * New: Preview notification text in the notifier settings.
+  * New: Properly group recently added notifications when adding a batch of media.
+    * The {season_num}, {episode_num}, and {track_num} parameters will be substituted with the range (e.g. 06-10)
+  * New: Option to group recently added notifications by show/artist or season/album.
+  * New: More detailed media info (video, audio, subtitle, file, etc.) notification options available.
+  * New: Added notification text modifiers to change case and slice lists.
+  * New: Custom notification conditions using parameters to filter notifications.
+  * New: Button to trigger manual recently added notifications from the info pages.
+  * New: Lookup TVMaze and TheMovieDatabase links.
+  * Remove: The shared Imgur client ID has been removed. Please enter your own client ID in the settings to continue uploading posters.
+  * Change: Notifications with a blank subject or body will no longer be sent at all.
+  * Change: Line breaks inserted automatically in Email notification text.
+  * Change: Notifications for season/episodes now use the season poster and album/track now use the album art.
+  * Change: The {action} parameter is no longer capitalized.
+  * Change: Notification success or failure added to notification logs.
+* API:
+  * New: Added check for Plex Media Server updates with the Tautulli API.
+  * New: Added show/artist and episode/track titles to the "get_history" API command.
+  * New: Added manual trigger for recently added notifications.
+  * Remove: Defunct API v1.
+  * Change: The "notify" API command now requires a notifier_id instead of an agent_id. The notifier ID can be found in the settings for each notification agent.
+  * Change: The returned json for the "get_metadata" API command is no longer nested under the "metadata" key.
+* UI:
+  * New: Updated current activity, watch statistics, and library statistics cards on the home page.
+  * New: Toggle stats and recently added categories directly on the homepage.
+  * New: Ability to delete synced items from the Synced Items page.
+  * New: Updated platform icons to a uniform style.
+  * Remove: Setting for number of top items for watch statistic cards.
+  * Change: Separate API and websocket logs.
+* Android Tautulli Remote App (beta):
+  * New: Download the Tautulli Remote app on Google Play!
+    * Link the app using a QR code in the Tautulli settings.
+  * New: Push notifications directly to the Tautulli Remote app.
+* Other:
+  * New: Option to update Tautulli automatically when an update is available.
+  * New: Option to switch the tracking git remote and branch.
+  * New: Option to change the path to your git environment variable.
+  * New: Option to use a HTTPS certificate chain.
+  * New: Option to override the Plex Web URL for click-through links.
+  * New: Separate watched percentage for movies, episodes, and tracks.
+  * New: Show changelog after updating Tautulli.
+  * New: Support for IPv6 geolocation lookup.
+  * New: Download the Tautulli configuration file or database from the settings.
+  * New: Log failed Tautulli login attempts.
+  * Fix: Modal popups not working on mobile Safari.
+  * Fix: Prevent password managers from autofilling the password in the settings.
+  * Fix: Unable to search with special characters.
+  * Remove: Some unused options have been removed from the settings page.
+  * Change: The database schema has been changed, and reverting back to PlexPy v1 will not work.
+  * Change: The dev branch has been depreciated. A master/beta/nightly system is used instead.
+
+  
 ## v1.4.25 (2017-10-02)
 
 * Fix: Tab instead of spaces preventing startup.

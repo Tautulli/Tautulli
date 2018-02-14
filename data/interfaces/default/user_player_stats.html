@@ -12,7 +12,8 @@ data[array_index] :: Usable parameters
 == Global keys ==
 result_id               Returns a unique identifier for the result.
 player_name             Returns the name of the player.
-platform_type           Returns the name of the platform
+platform                Returns the name of the platform
+platform_name           Returns the id name of the platform
 total_plays             Returns the play count for the player.
 
 DOCUMENTATION :: END
@@ -23,7 +24,9 @@ DOCUMENTATION :: END
 <ul class="list-unstyled">
     <div class="user-player-instance">
         <li>
-            <span id="user-player-image-${a['result_id']}"></span>
+            <div id="user-player-image-${a['result_id']}">
+                <div class="user-player-instance-box svg-icon platform-${a['platform_name']}"></div>
+            </div>
             <div class="user-player-instance-name">
                 ${a['player_name']}
             </div>
@@ -34,9 +37,6 @@ DOCUMENTATION :: END
         </li>
     </div>
 </ul>
-<script>
-    $("#user-player-image-${a['result_id']}").html("<div class='user-player-instance-box' style='background-image: url(" + getPlatformImagePath('${a['platform_type']}') + ");'>");
-</script>
 % endfor
 % else:
 <div class="text-muted">No stats to show.</div><br>

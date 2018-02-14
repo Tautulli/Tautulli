@@ -1,6 +1,6 @@
 ﻿<%
     import plexpy
-    from plexpy import common
+    from plexpy import common, helpers
 %>
 
 <!doctype html>
@@ -8,177 +8,185 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PlexPy - ${title}</title>
+    <title>Tautulli - ${title} | ${server_name}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
-    <link href="${http_root}css/plexpy.css" rel="stylesheet">
+    <link href="${http_root}css/plexpy.css${cache_param}" rel="stylesheet">
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
-    <link rel="shortcut icon" href="${http_root}images/favicon.ico">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.0">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.0">
+
+    <!-- ICONS -->
+    <!-- Android >M39 icon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="${http_root}images/favicon/android-chrome-192x192.png?v=2.0.0">
+    <link rel="manifest" href="${http_root}json/Android-manifest.json?v=2.0.0">
+    <meta name="theme-color" content="#1f1f1f">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.0">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.0" color="#1f1f1f">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <!-- IE10 icon -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-TileColor" content="#1f1f1f">
+    <meta name="msapplication-TileImage" content="${http_root}images/favicon/mstile-144x144.png?v=2.0.0">
+    <meta name="msapplication-config" content="${http_root}xml/IEconfig.xml?v=2.0.0" />
 </head>
 
 <body>
 <div class="container-fluid">
     <div class="row">
-        <div class="wizard" id="some-wizard" data-title="PlexPy Setup Wizard">
-            <div class="wizard-card" data-cardname="card1">
-                <div style="float: right;">
-                    <img src="${http_root}images/logo-plexpy.png"/>
-                </div>
-                <h3 style="line-height: 50px;">Welcome!</h3>
-                <br/>
-                <div>
-                    Thanks for taking the time to try out PlexPy. Hope you find it useful.
-                    <br/><br/>
-                    PlexPy requires a permanent internet connection to ensure a reliable experience.
-                    <br/><br/>
-                    This wizard will help you get set up, to continue press Next.
-                </div>
-            </div>
-            <div class="wizard-card" data-cardname="card2">
-                <h3>Plex Authentication</h3>
-                <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
-                <div class="wizard-input-section">
-                    <label for="pms_username">Plex.tv Username</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
-                        </div>
+        <div class="wizard" id="setup-wizard" data-title="Tautulli Setup Wizard">
+            <form>
+                <div class="wizard-card" data-cardname="card1">
+                    <div style="float: right;">
+                        <object data="${http_root}images/logo-tautulli.svg" type="image/svg+xml" style="height: 45px;"></object>
+                    </div>
+                    <h3 style="line-height: 50px;">Welcome!</h3>
+                    <br />
+                    <div>
+                        Thanks for taking the time to try out Tautulli. Hope you find it useful.
+                        <br /><br />
+                        Tautulli requires a permanent internet connection to ensure a reliable experience.
+                        <br /><br />
+                        This wizard will help you get set up, to continue press Next.
                     </div>
                 </div>
-                <div class="wizard-input-section">
-                    <label for="pms_password">Plex.tv Password</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
-                <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
-            </div>
-            <div class="wizard-card" data-cardname="card3">
-                <h3>Plex Media Server</h3>
-                <form>
-                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
-                <div class="wizard-input-section">
-                    <label for="pms_ip">Plex IP or Hostname</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <select id="pms_ip" name="pms_ip"></select>
-                        </div>
-                    </div>
-                </div>
-                <div class="wizard-input-section">
-                    <label for="pms_port">Port Number</label>
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Use SSL
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1"> Remote Server
-                                </label>
+                <div class="wizard-card" data-cardname="card2">
+                    <h3>Plex Authentication</h3>
+                    <p class="help-block">Enter your Plex.tv username and password. Tautulli does not store your username or password.</p>
+                    <div class="wizard-input-section">
+                        <label for="pms_username">Plex.tv Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
                             </div>
                         </div>
                     </div>
-                </div>
-                <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
-                <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
-            </div>
-
-
-            <div class="wizard-card" data-cardname="card4">
-                <h3>Monitoring</h3>
-                <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Enable Movie Logging
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Enable TV Show Logging
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Enable Music Logging
-                </div>
-                <div class="wizard-input-section">
-                    <label for="logging_ignore_interval">Ignore Interval</label>
-                    <div class="row">
-                        <div class="col-xs-4">
-                            <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
-                        </div>
-                        <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
-                    </div>
-                    <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
-                </div>
-            </div>
-            <div class="wizard-card" data-cardname="card5">
-                <h3>Notifications</h3>
-                <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent configure this in <strong>Settings -> Notification Agents</strong>
-                after you have completed this setup wizard.</p><br/>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie playback
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable notifications on TV Show playback
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable notifications on Music playback
-                </div>
-            </div>
-
-            <div class="wizard-card" data-cardname="card6">
-                <h3>Database Import</h3>
-                <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
-                <p class="help-block">
-                    When you complete this wizard navigate to the settings menu and to the Extra Settings tab. You will find an import tool there
-                    which will convert your PlexWatch/Plexivity database into a format that PlexPy can read.
-                </p>
-                <!-- Figure out best way to get friends list refreshed before adding this back
-                    You can skip this and do it later if you wish.</p>
-                <p class="help-block">Enter the path and file name where your
-                plexWatch database file is located and hit Import. The import will run in the background so you can safely finish the wizard when the
-                Import status below changes to "Started"</p>
-                <div class="wizard-input-section">
-                    <label for="db_location">Database full Path and Filename</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="text" class="form-control plexwatch-import" id="db_location" value="">
-                        </div>
-                        <div class="col-xs-4">
-                            <a class="btn btn-default btn-sm" id="plexwatch-import" style="margin-top: 4px;" href="#" role="button">Import</a>
+                    <div class="wizard-input-section">
+                        <label for="pms_password">Plex.tv Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
+                            </div>
                         </div>
                     </div>
+                    <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
+                    <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
-                <span>Import status: </span><strong><span id="plexwatch-import-status">Idle</span></strong>
-                -->
-                <div style="display: none;">
-                    <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
-                    <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
-                    <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
-                    <input type="checkbox" name="check_github" id="check_github" value="1" ${config['check_github']}>
-                    <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" ${config['log_blacklist']}>
-                    <input type="checkbox" name="cache_images" id="cache_images" value="1" ${config['cache_images']}>
-                    <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
-                    <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                    <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
-                    <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
+                <div class="wizard-card" data-cardname="card3">
+                    <h3>Plex Media Server</h3>
+                    <p class="help-block">
+                        Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.
+                    </p>
+                    <div class="wizard-input-section">
+                        <label for="pms_ip">Plex IP or Hostname</label>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <select class="form-control selectize-pms-ip" id="pms_ip" name="pms_ip">
+                                    <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="pms_port">Plex Port</label>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use SSL
+                                        <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" ${helpers.checked(config['pms_is_remote'])}> Remote Server
+                                        <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                    <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
+                    <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                    <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
-            </div>
-            <!-- Required fields but hidden -->
+
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Activity Logging</h3>
+                    <p class="help-block">Tautulli will keep a history of all streaming activity on your Plex server.</p>
+
+                    <div class="wizard-input-section">
+                        <label for="logging_ignore_interval">Ignore Interval</label>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
+                            </div>
+                            <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
+                        </div>
+                        <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                    </div>
+
+                    <p class="help-block">
+                        Additional options to disable history logging for certain libraries or users can be found by editing them 
+                        on the <strong>Libraries</strong> or <strong>Users</strong> pages.
+                    </p>
+                </div>
+
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Notifications</h3>
+                    <p class="help-block">Tautulli can send a wide variety of notification to alert you of activity on your Plex server.</p>
+                    <p class="help-block">
+                        To set up a notification agent, navigate to the <strong>Settings</strong> page 
+                        and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
+                    </p>
+                </div>
+
+                <div class="wizard-card" data-cardname="card5">
+                    <h3>Database Import</h3>
+                    <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into Tautulli.</p>
+                    <p class="help-block">
+                        To import a database, navigate to the <strong>Settings</strong> page 
+                        and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
+                    </p>
+
+                    <!-- Required fields but hidden -->
+                    <div style="display: none;">
+                        <input type="checkbox" name="first_run" id="first_run" value="1" checked>
+                        <input type="checkbox" name="group_history_tables" id="group_history_tables" value="1" checked>
+                        <input type="checkbox" name="history_table_activity" id="history_table_activity" value="1" checked>
+                        <input type="checkbox" name="launch_browser" id="launch_browser" value="1" checked>
+                        <input type="checkbox" name="api_enabled" id="api_enabled" value="1" checked>
+                        <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" checked>
+                        <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" checked>
+                        <input type="checkbox" name="check_github" id="check_github" value="1" checked>
+                        <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" checked>
+                        <input type="checkbox" name="cache_images" id="cache_images" value="1" checked>
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
+                        <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
+                        <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
+                        <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
+                    </div>
+
+                </div>
 
             </form>
             <div class="wizard-success">
@@ -186,7 +194,7 @@
                 <br/>
                 <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
                 <br/>
-                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting 5 seconds to ensure authentication token is registered...
+                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting <span class="countdown">5</span> seconds to ensure authentication token is registered...
 
             </div>
         </div>
@@ -196,111 +204,9 @@
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/selectize.min.js"></script>
-<script src="${http_root}js/script.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
-
-    $(document).ready(function() {
-
-        $.fn.wizard.logging = false;
-        var options = {
-            keyboard : false,
-            contentHeight : 400,
-            contentWidth : 700,
-            backdrop: 'static',
-            buttons: {submitText: 'Finish'},
-            submitUrl: "configUpdate"
-        };
-        var wizard = $("#some-wizard").wizard(options);
-        wizard.show();
-
-        wizard.on("submit", function(wizard) {
-            // Probably should not success before we know, but hopefully validation is good enough.
-            wizard.submitSuccess();
-            $.ajax({
-                url: "configUpdate",
-                type: "POST",
-                url: wizard.args.submitUrl,
-                data: wizard.serialize(),
-                dataType: "json",
-                complete: function (data) {
-                    setTimeout(function(){
-                        location.reload();
-                    }, 5000);
-                }
-            })
-        });
-
-        $select_pms = $('#pms_ip').selectize({
-            create: true,
-            createOnBlur: true,
-            openOnFocus: true,
-            maxItems: 1,
-            closeAfterSelect: true,
-            onInitialize: function () {
-                var s = this;
-                this.revertSettings.$children.each(function () {
-                    $.extend(s.options[this.value], $(this).data());
-                });
-
-            },
-            render: {
-                option: function (item, escape) {
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
-                },
-                item: function (item, escape) {
-                    // first item is rendered before initialization bug?
-                    if (!item.ci) {
-                        $.extend(item,
-                        $(this.revertSettings.$children)
-                            .filter('[value="' + item.value + '"]').data());
-
-                    }
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
-                }
-            },
-            onChange: function (item) {
-                var ci = $('.selectize-input').find('div').attr('data-ci');
-                var port = $('.selectize-input').find('div').attr('data-port')
-                var local = $('.selectize-input').find('div').attr('data-local')
-                var ssl = $('.selectize-input').find('div').attr('data-use_ssl')
-
-                $("#pms-verify-status").html("");
-                // If a option was added by a user its
-                // data-xxx="undefined"
-                if (ci != "undefined") {
-                    // To allow next step in the guide.
-                    // servers with clientIdentifier is verified
-                    $("#pms_identifier").val(ci);
-                    $("#pms_valid").val("valid");
-                    $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
-                } else {
-                    // Self made options must be verified
-                    $("#pms_valid").val("");
-                    $("#pms-verify-status").html("").hide();
-                }
-                // If the server is verified set the correct port
-                if (port != "undefined") {
-                    $('#pms_port').val(port);
-                } else {
-                    // set default port
-                    $('#pms_port').val("32400");
-                }
-                if (local != "undefined" && local == '0') {
-                    $('#pms_is_remote').prop('checked', true);
-                } else {
-                    $('#pms_is_remote').prop('checked', false);
-                }
-                if (ssl != "undefined" && ssl == "1") {
-                    $('#pms_ssl').prop('checked', true);
-                } else {
-                    $('#pms_ssl').prop('checked', false);
-                }
-            }
-        });
-    });
-
-
     function validatePMSip(el) {
         var valid_pms_ip = el.val();
         var retValue = {};
@@ -353,6 +259,139 @@
         return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0)
     }
 
+$(document).ready(function() {
+
+    $.fn.wizard.logging = false;
+    var options = {
+        keyboard : false,
+        contentHeight : 400,
+        contentWidth : 700,
+        backdrop: 'static',
+        buttons: {submitText: 'Finish'},
+        submitUrl: "configUpdate"
+    };
+    var wizard = $("#setup-wizard").wizard(options);
+    $('.btn.wizard-back').addClass('btn-dark');
+    wizard.show();
+
+    wizard.on("submit", function(wizard) {
+        // Probably should not success before we know, but hopefully validation is good enough.
+        wizard.submitSuccess();
+        $.ajax({
+            url: "configUpdate",
+            type: "POST",
+            url: wizard.args.submitUrl,
+            data: wizard.serialize(),
+            dataType: "json",
+            complete: function (data) {
+                $(".countdown").countdown(function () { location.reload(); }, 5, "");
+            }
+        })
+    });
+
+    $('.checkbox-toggle').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+
+    var $select_pms = $('#pms_ip').selectize({
+        createOnBlur: true,
+        openOnFocus: true,
+        maxItems: 1,
+        closeAfterSelect: true,
+        sortField: 'label',
+        searchField: ['label', 'value'],
+        inputClass: 'form-control selectize-input',
+        render: {
+            item: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
+                        '" data-label="' + item.label + '">' +
+                        '<span class="item-text">' + escape(label) + '</span>' +
+                        (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            },
+            option: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
+                        '" data-label="' + item.label + '">' +
+                        escape(label) +
+                        (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            }
+        },
+        create: function(input) {
+            return {label: '', value: input};
+        },
+        onChange: function (item) {
+            var pms_ip_selected = this.getItem(item)[0];
+            var identifier = $(pms_ip_selected).data('identifier');
+            var port = $(pms_ip_selected).data('port');
+            var local = $(pms_ip_selected).data('local');
+            var ssl = $(pms_ip_selected).data('ssl');
+            var is_cloud = $(pms_ip_selected).data('is_cloud');
+
+            $("#pms_valid").val(identifier !== 'undefined' ? 'valid' : '');
+            $("#pms-verify-status").html(identifier !== 'undefined' ? '<i class="fa fa-check"></i> Server found!' : '').fadeIn('fast');
+
+            $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
+            $('#pms_port').val(port !== 'undefined' ? port : 32400);
+            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
+            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
+            $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
+            $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
+            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
+
+            if (is_cloud === true) {
+                $('#pms_port').prop('readonly', true);
+                $('#pms_is_remote_checkbox').prop('disabled', true);
+                $('#pms_ssl_checkbox').prop('disabled', true);
+            } else {
+                $('#pms_port').prop('readonly', false);
+                $('#pms_is_remote_checkbox').prop('disabled', false);
+                $('#pms_ssl_checkbox').prop('disabled', false);
+            }
+        }
+    });
+    var select_pms = $select_pms[0].selectize;
+
+    function getServerOptions(token) {
+        /* Set token and returns server options */
+        $.ajax({
+            url: 'discover',
+            data: {
+                token: token
+            },
+            success: function (result) {
+                if (result) {
+                    var existing_value = $('#pms_ip').val();
+                    result.forEach(function (item) {
+                        if (item.value === existing_value) {
+                            select_pms.updateOption(item.value, item);
+                        } else {
+                            select_pms.addOption(item);
+                        }
+                    });
+                }
+            }
+        })
+    }
     var pms_verified = false;
     var authenticated = false;
 
@@ -361,14 +400,19 @@
             var pms_ip = $("#pms_ip").val().trim();
             var pms_port = $("#pms_port").val().trim();
             var pms_identifier = $("#pms_identifier").val();
-            var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
-            var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
+            var pms_ssl = $("#pms_ssl").val();
+            var pms_is_remote = $("#pms_is_remote").val();
             if ((pms_ip !== '') || (pms_port !== '')) {
                 $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
                 $('#pms-verify-status').fadeIn('fast');
                 $.ajax({
                     url: 'get_server_id',
-                    data: { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
+                    data: {
+                        hostname: pms_ip,
+                        port: pms_port,
+                        identifier: pms_identifier,
+                        ssl: pms_ssl,
+                        remote: pms_is_remote },
                     cache: true,
                     async: true,
                     timeout: 5000,
@@ -445,39 +489,7 @@
             $('#pms-token-status').fadeIn('fast');
         }
     });
-
-    // Send database path to import script
-    //$("#plexwatch-import").click(function() {
-    //    var database_path = $("#db_location").val();
-    //    var table_name = 'processed';
-    //    var import_ignore_interval = 0;
-    //    $.ajax({
-    //        url: 'get_plexwatch_export_data',
-    //        data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
-    //        cache: false,
-    //        async: true,
-    //        success: function(data) {
-    //            if (data === 'Import has started. Check the PlexPy logs to monitor any problems.') {
-    //                $("#plexwatch-import-status").html('Started');
-    //            } else {
-    //                $("#plexwatch-import-status").html(data);
-    //            }
-    //            $("#db_location").val('')
-    //        }
-    //    });
-    //});
-
-    function getServerOptions(token) {
-        /* Set token and returns server options */
-        $.ajax({
-            url: "discover/" + token,
-            success: function (result) {
-                $('#pms_ip').html("")
-                // Add all servers to the "combobox"
-                $select_pms[0].selectize.addOption(result);
-            }
-        })
-    }
+});
 </script>
 
 </body>

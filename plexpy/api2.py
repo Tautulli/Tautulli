@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# This file is part of PlexPy.
+# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import hashlib
@@ -32,9 +32,12 @@ import xmltodict
 import plexpy
 import config
 import database
+import libraries
 import logger
-import plextv
-import pmsconnect
+import mobile_app
+import notification_handler
+import notifiers
+import users
 
 
 class API2:
@@ -50,6 +53,7 @@ class API2:
         self._api_result_type = 'error'
         self._api_profileme = None  # For profiling the api call
         self._api_kwargs = None  # Cleaned kwargs
+        self._api_app = False
 
     def _api_docs(self, md=False):
         """ Makes the api docs. """
@@ -88,9 +92,6 @@ class API2:
         elif 'apikey' not in kwargs:
             self._api_msg = 'Parameter apikey is required'
 
-        elif kwargs.get('apikey', '') != plexpy.CONFIG.API_KEY:
-            self._api_msg = 'Invalid apikey'
-
         elif 'cmd' not in kwargs:
             self._api_msg = 'Parameter cmd is required. Possible commands are: %s' % ', '.join(self._api_valid_methods)
 
@@ -105,23 +106,40 @@ class API2:
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
 
-        if self._api_apikey == plexpy.CONFIG.API_KEY and plexpy.CONFIG.API_ENABLED and self._api_cmd in self._api_valid_methods:
-            self._api_authenticated = True
-            self._api_msg = None
-            self._api_kwargs = kwargs
-        elif self._api_cmd in ('get_apikey', 'docs', 'docs_md') and plexpy.CONFIG.API_ENABLED:
-            self._api_authenticated = True
-            # Remove the old error msg
-            self._api_msg = None
-            self._api_kwargs = kwargs
+        if 'app' in kwargs and kwargs.pop('app') == 'true':
+            self._api_app = True
 
-        logger.debug(u'PlexPy APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
+        if plexpy.CONFIG.API_ENABLED and not self._api_msg:
+            if self._api_apikey == plexpy.CONFIG.API_KEY or (self._api_app and self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN):
+                self._api_authenticated = True
+
+            elif self._api_app and mobile_app.get_mobile_device_by_token(self._api_apikey):
+                mobile_app.set_last_seen(self._api_apikey)
+                self._api_authenticated = True
+
+            else:
+                self._api_msg = 'Invalid apikey'
+            
+            if self._api_authenticated and self._api_cmd in self._api_valid_methods:
+                self._api_msg = None
+                self._api_kwargs = kwargs
+
+            elif not self._api_authenticated and self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
+                self._api_authenticated = True
+                # Remove the old error msg
+                self._api_msg = None
+                self._api_kwargs = kwargs
+
+        if self._api_msg:
+            logger.api_debug(u'Tautulli APIv2 :: %s.' % self._api_msg)
+
+        logger.api_debug(u'Tautulli APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
 
         return self._api_kwargs
 
     def get_logs(self, sort='', search='', order='desc', regex='', start=0, end=0, **kwargs):
         """
-            Get the PlexPy logs.
+            Get the Tautulli logs.
 
             ```
             Required parameters:
@@ -153,7 +171,7 @@ class API2:
         end = int(kwargs.get('end', 0))
 
         if regex:
-            logger.debug(u'PlexPy APIv2 :: Filtering log using regex %s' % regex)
+            logger.api_debug(u'Tautulli APIv2 :: Filtering log using regex %s' % regex)
             reg = re.compile('u' + regex, flags=re.I)
 
         for line in open(logfile, 'r').readlines():
@@ -185,15 +203,15 @@ class API2:
                 templog.append(d)
 
         if end > 0 or start > 0:
-                logger.debug(u'PlexPy APIv2 :: Slicing the log from %s to %s' % (start, end))
+                logger.api_debug(u'Tautulli APIv2 :: Slicing the log from %s to %s' % (start, end))
                 templog = templog[start:end]
 
         if sort:
-            logger.debug(u'PlexPy APIv2 :: Sorting log based on %s' % sort)
+            logger.api_debug(u'Tautulli APIv2 :: Sorting log based on %s' % sort)
             templog = sorted(templog, key=lambda k: k[sort])
 
         if search:
-            logger.debug(u'PlexPy APIv2 :: Searching log values for %s' % search)
+            logger.api_debug(u'Tautulli APIv2 :: Searching log values for %s' % search)
             tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
 
             if len(tt):
@@ -260,7 +278,7 @@ class API2:
         return config
 
     def sql(self, query=''):
-        """ Query the PlexPy database with raw SQL. Automatically makes a backup of
+        """ Query the Tautulli database with raw SQL. Automatically makes a backup of
             the database if the latest backup is older then 24h. `api_sql` must be
             manually enabled in the config file.
 
@@ -314,32 +332,116 @@ class API2:
         return data
 
     def restart(self, **kwargs):
-        """ Restart PlexPy."""
+        """ Restart Tautulli."""
 
         plexpy.SIGNAL = 'restart'
         self._api_msg = 'Restarting plexpy'
         self._api_result_type = 'success'
 
     def update(self, **kwargs):
-        """ Check for PlexPy updates on Github."""
+        """ Check for Tautulli updates on Github."""
 
         plexpy.SIGNAL = 'update'
         self._api_msg = 'Updating plexpy'
         self._api_result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
-        """ Refresh the PlexPy libraries list."""
-        data = pmsconnect.refresh_libraries()
+        """ Refresh the Tautulli libraries list."""
+        data = libraries.refresh_libraries()
         self._api_result_type = 'success' if data else 'error'
 
         return data
 
     def refresh_users_list(self, **kwargs):
-        """ Refresh the PlexPy users list."""
-        data = plextv.refresh_users()
+        """ Refresh the Tautulli users list."""
+        data = users.refresh_users()
         self._api_result_type = 'success' if data else 'error'
 
         return data
+
+    def register_device(self, device_id='', device_name='', friendly_name='', **kwargs):
+        """ Registers the Tautulli Android App for notifications.
+
+            ```
+            Required parameters:
+                device_name (str):        The device name of the Tautulli Android App
+                device_id (str):          The OneSignal device id of the Tautulli Android App
+
+            Optional parameters:
+                friendly_name (str):      A friendly name to identify the mobile device
+
+            Returns:
+                None
+            ```
+        """
+        if not device_id:
+            self._api_msg = 'Device registartion failed: no device id provided.'
+            self._api_result_type = 'error'
+            return
+
+        elif not device_name:
+            self._api_msg = 'Device registartion failed: no device name provided.'
+            self._api_result_type = 'error'
+            return
+
+        result = mobile_app.add_mobile_device(device_id=device_id,
+                                              device_name=device_name,
+                                              device_token=self._api_apikey,
+                                              friendly_name=friendly_name)
+
+        if result:
+            self._api_msg = 'Device registration successful.'
+            self._api_result_type = 'success'
+            mobile_app.TEMP_DEVICE_TOKEN = None
+        else:
+            self._api_msg = 'Device registartion failed: database error.'
+            self._api_result_type = 'error'
+
+        return
+
+    def notify(self, notifier_id='', subject='Tautulli', body='Test notification', **kwargs):
+        """ Send a notification using Tautulli.
+
+            ```
+            Required parameters:
+                notifier_id (int):      The ID number of the notification agent
+                subject (str):          The subject of the message
+                body (str):             The body of the message
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        if not notifier_id:
+            self._api_msg = 'Notification failed: no notifier id provided.'
+            self._api_result_type = 'error'
+            return
+
+        notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
+
+        if not notifier:
+            self._api_msg = 'Notification failed: invalid notifier_id provided %s.' % notifier_id
+            self._api_result_type = 'error'
+            return
+
+        logger.api_debug(u'Tautulli APIv2 :: Sending notification.')
+        success = notification_handler.notify(notifier_id=notifier_id,
+                                              notify_action='api',
+                                              subject=subject,
+                                              body=body,
+                                              **kwargs)
+
+        if success:
+            self._api_msg = 'Notification sent.'
+            self._api_result_type = 'success'
+        else:
+            self._api_msg = 'Notification failed.'
+            self._api_result_type = 'error'
+
+        return
 
     def _api_make_md(self):
         """ Tries to make a API.md to simplify the api docs. """
@@ -397,8 +499,8 @@ General optional parameters:
                 None
 
             Optional parameters:
-                username (str):     Your PlexPy username
-                password (str):     Your PlexPy password
+                username (str):     Your Tautulli username
+                password (str):     Your Tautulli password
 
             Returns:
                 string:             "apikey"
@@ -452,16 +554,16 @@ General optional parameters:
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:
                 if self._api_debug:
-                    out = json.dumps(out, indent=4, sort_keys=True)
+                    out = json.dumps(out, indent=4, sort_keys=True, ensure_ascii=False).encode('utf-8')
                 else:
-                    out = json.dumps(out)
+                    out = json.dumps(out, ensure_ascii=False).encode('utf-8')
                 if self._api_callback is not None:
                     cherrypy.response.headers['Content-Type'] = 'application/javascript'
                     # wrap with JSONP call if requested
                     out = self._api_callback + '(' + out + ');'
             # if we fail to generate the output fake an error
             except Exception as e:
-                logger.info(u'PlexPy APIv2 :: ' + traceback.format_exc())
+                logger.api_exception(u'Tautulli APIv2 :: ' + traceback.format_exc())
                 out['message'] = traceback.format_exc()
                 out['result'] = 'error'
 
@@ -470,14 +572,14 @@ General optional parameters:
             try:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
-                logger.error(u'PlexPy APIv2 :: Failed to parse xml result')
+                logger.api_error(u'Tautulli APIv2 :: Failed to parse xml result')
                 try:
                     out['message'] = e
                     out['result'] = 'error'
                     out = xmltodict.unparse(out, pretty=True)
 
                 except Exception as e:
-                    logger.error(u'PlexPy APIv2 :: Failed to parse xml result error message %s' % e)
+                    logger.api_error(u'Tautulli APIv2 :: Failed to parse xml result error message %s' % e)
                     out = '''<?xml version="1.0" encoding="utf-8"?>
                                 <response>
                                     <message>%s</message>
@@ -492,7 +594,7 @@ General optional parameters:
         """ handles the stuff from the handler """
 
         result = {}
-        logger.debug(u'PlexPy APIv2 :: API called with kwargs: %s' % kwargs)
+        logger.api_debug(u'Tautulli APIv2 :: API called with kwargs: %s' % kwargs)
 
         self._api_validate(**kwargs)
 
@@ -510,7 +612,7 @@ General optional parameters:
 
                 result = call(**self._api_kwargs)
             except Exception as e:
-                logger.error(u'PlexPy APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
+                logger.api_error(u'Tautulli APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True
                     # Reraise the exception so the traceback hits the browser
@@ -525,8 +627,8 @@ General optional parameters:
             if isinstance(result, (dict, list)):
                 ret = result
             else:
-                raise
-        except:
+                raise Exception
+        except Exception:
             try:
                 ret = json.loads(result)
             except (ValueError, TypeError):

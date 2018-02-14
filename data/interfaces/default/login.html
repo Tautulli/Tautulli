@@ -3,16 +3,32 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PlexPy - ${title}</title>
+    <title>Tautulli - ${title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
-    <link href="${http_root}css/plexpy.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet" type="text/css">
+    <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
+    <link href="${http_root}css/plexpy.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
-    <link rel="shortcut icon" href="${http_root}images/favicon.ico">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.5">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.5">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.5">
+
+    <!-- ICONS -->
+    <!-- Android -->
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5">
+    <meta name="theme-color" content="#282a2d">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.5">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.5" color="#282a2d">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <!-- Microsoft -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.0.5">
 </head>
 
 <body>
@@ -21,21 +37,19 @@
         <div class="row">
             <div class="login-container">
                 <div class="login-logo">
-                    <img alt="PlexPy" src="${http_root}images/logo-plexpy@2x.png">
+                    <object data="${http_root}images/logo-tautulli.svg" type="image/svg+xml" style="height: 100px;"></object>
                 </div>
                 <div class="row">
                     <div class="col-sm-6 col-sm-offset-3">
-                        <form action="${http_root}auth/login" method="post">
-                            % if msg:
-                            <div class="alert alert-danger" style="text-align: center; padding: 8px;">
-                                ${msg}
+                        <form id="login-form">
+                            <div id="incorrect-login" class="alert alert-danger" style="text-align: center; padding: 8px; display: none;">
+                                Incorrect username or password.
                             </div>
-                            % endif
                             <div class="form-group">
                                 <label for="username" class="control-label">
                                     Username
                                 </label>
-                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" value="${username}" autofocus>
+                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
                             </div>
                             <div class="form-group">
                                 <label for="password" class="control-label">
@@ -49,7 +63,7 @@
                                         <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
                                     </label>
                                 </div>
-                                <button type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
                             </div>
                         </form>
                     </div>
@@ -59,5 +73,30 @@
     </div>
 </div>
 
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script>
+    $('#login-form').submit(function(event) {
+        event.preventDefault();
+        $('#sign-in').prop('disabled', true).html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        $.ajax({
+            url: '${http_root}auth/signin',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            statusCode: {
+                200: function() {
+                   window.location = "${http_root}";
+                },
+                401: function() {
+                   $('#incorrect-login').show();
+                   $('#username').focus();
+                }
+            },
+            complete: function() {
+                $('#sign-in').prop('disabled', false).html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+            }
+        });
+    });
+</script>
 </body>
 </html>

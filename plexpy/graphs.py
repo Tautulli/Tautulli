@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
 
@@ -66,7 +66,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_day: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_per_day: %s." % e)
             return None
 
         # create our date range as some days may not have any data
@@ -166,7 +166,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
         if plexpy.CONFIG.WEEK_START_MONDAY:
@@ -251,7 +251,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
             return None
 
         hours_list = ['00','01','02','03','04','05',
@@ -336,7 +336,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
             return None
 
         # create our date range as some months may not have any data
@@ -428,7 +428,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_by_top_10_platforms: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_platforms: %s." % e)
             return None
 
         categories = []
@@ -505,7 +505,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_by_top_10_users: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_users: %s." % e)
             return None
 
         categories = []
@@ -588,7 +588,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
             return None
 
         # create our date range as some days may not have any data
@@ -689,7 +689,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_by_source_resolution: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_by_source_resolution: %s." % e)
             return None
 
         categories = []
@@ -698,6 +698,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
+            if item['resolution'] not in ('4k', 'unknown'):
+                item['resolution'] = item['resolution'].upper()
+            if item['resolution'].isdigit():
+                item['resolution'] += 'p'
             categories.append(item['resolution'])
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
@@ -729,16 +733,18 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
+                        '(CASE WHEN session_history_media_info.stream_video_resolution IS NULL THEN ' \
                         '(CASE WHEN session_history_media_info.video_decision = "transcode" THEN ' \
                         '(CASE ' \
-                        'WHEN session_history_media_info.transcode_height <= 360 THEN "sd" ' \
+                        'WHEN session_history_media_info.transcode_height <= 360 THEN "SD" ' \
                         'WHEN session_history_media_info.transcode_height <= 480 THEN "480" ' \
                         'WHEN session_history_media_info.transcode_height <= 576 THEN "576" ' \
                         'WHEN session_history_media_info.transcode_height <= 720 THEN "720" ' \
                         'WHEN session_history_media_info.transcode_height <= 1080 THEN "1080" ' \
                         'WHEN session_history_media_info.transcode_height <= 1440 THEN "QHD" ' \
-                        'WHEN session_history_media_info.transcode_height <= 2160 THEN "4K" ' \
-                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) AS resolution, ' \
+                        'WHEN session_history_media_info.transcode_height <= 2160 THEN "4k" ' \
+                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) ' \
+                        'ELSE session_history_media_info.stream_video_resolution END) AS resolution, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
@@ -758,16 +764,18 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = 'SELECT ' \
+                        '(CASE WHEN session_history_media_info.stream_video_resolution IS NULL THEN ' \
                         '(CASE WHEN session_history_media_info.video_decision = "transcode" THEN ' \
                         '(CASE ' \
-                        'WHEN session_history_media_info.transcode_height <= 360 THEN "sd" ' \
+                        'WHEN session_history_media_info.transcode_height <= 360 THEN "SD" ' \
                         'WHEN session_history_media_info.transcode_height <= 480 THEN "480" ' \
                         'WHEN session_history_media_info.transcode_height <= 576 THEN "576" ' \
                         'WHEN session_history_media_info.transcode_height <= 720 THEN "720" ' \
                         'WHEN session_history_media_info.transcode_height <= 1080 THEN "1080" ' \
                         'WHEN session_history_media_info.transcode_height <= 1440 THEN "QHD" ' \
-                        'WHEN session_history_media_info.transcode_height <= 2160 THEN "4K" ' \
-                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) AS resolution, ' \
+                        'WHEN session_history_media_info.transcode_height <= 2160 THEN "4k" ' \
+                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) ' \
+                        'ELSE session_history_media_info.stream_video_resolution END) AS resolution, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'AND session_history.stopped > 0 THEN (session_history.stopped - session_history.started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS dp_count, ' \
@@ -790,7 +798,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_by_stream_resolution: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_total_plays_by_stream_resolution: %s." % e)
             return None
 
         categories = []
@@ -799,6 +807,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
+            if item['resolution'] not in ('4k', 'unknown'):
+                item['resolution'] = item['resolution'].upper()
+            if item['resolution'].isdigit():
+                item['resolution'] += 'p'
             categories.append(item['resolution'])
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
@@ -870,7 +882,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_stream_type_by_top_10_platforms: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_platforms: %s." % e)
             return None
 
         categories = []
@@ -959,7 +971,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_stream_type_by_top_10_users: %s." % e)
+            logger.warn(u"Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_users: %s." % e)
             return None
 
         categories = []

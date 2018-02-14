@@ -21,7 +21,7 @@ history_table_options = {
         "infoFiltered": "<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
         "emptyTable": "No data in table",
         "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
-},
+    },
     "pagingType": "full_numbers",
     "stateSave": true,
     "processing": false,
@@ -59,6 +59,8 @@ history_table_options = {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Paused"><i class="fa fa-pause fa-fw"></i></span>';
                     } else if (rowData['state'] === 'buffering') {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Buffering"><i class="fa fa-spinner fa-fw"></i></span>';
+                    } else if (rowData['state'] === 'stopped') {
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Stopped"><i class="fa fa-stop fa-fw"></i></span>';
                     }
                     $(td).html('<div><div style="float: left;">' + state + '&nbsp;' + date + '</div></div>');
                 } else if (rowData['group_count'] > 1) {
@@ -94,16 +96,12 @@ history_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    if (isPrivateIP(cellData)) {
-                        if (cellData != '') {
-                            $(td).html(cellData);
-                        } else {
-                            $(td).html('n/a');
-                        }
-                    } else {
+                    isPrivateIP(cellData).then(function () {
+                        $(td).html(cellData || 'n/a');
+                    }, function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ external_ip + cellData + '</a>');
-                    }
+                    });
                 } else {
                     $(td).html('n/a');
                 }
@@ -165,6 +163,8 @@ history_table_options = {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?' + source + 'rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                    } else if (rowData['media_type'] === 'clip') {
+                        $(td).html(cellData);
                     } else {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
@@ -172,7 +172,7 @@ history_table_options = {
             },
             "width": "33%",
             "className": "datatable-wrap"
-},
+        },
         {
             "targets": [7],
             "data":"started",
@@ -205,7 +205,7 @@ history_table_options = {
             "targets": [9],
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === null) {
+                if (cellData === null || (rowData['state'] != null && rowData['state'] != "stopped")) {
                     $(td).html('n/a');
                 } else {
                     $(td).html(moment(cellData,"X").format(time_format));
@@ -253,13 +253,12 @@ history_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.current-activity-tooltip').tooltip({ container: 'body' });
-        $('.expand-history-tooltip').tooltip({ container: 'body' });
-        $('.external-ip-tooltip').tooltip({ container: 'body' });
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.watched-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',
@@ -323,7 +322,7 @@ history_table_options = {
             $(row).addClass('current-activity-row');
         }
     }
-}
+};
 
 // Parent table platform modal
 $('.history_table').on('click', '> tbody > tr > td.modal-control', function () {
@@ -331,22 +330,13 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control', function () {
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    function showStreamDetails() {
-        $.ajax({
-            url: 'get_stream_data',
-            data: {
-                row_id: rowData['id'],
-                session_key: rowData['session_key'],
-                user: rowData['friendly_name']
-            },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#info-modal").html(xhr.responseText);
-            }
-        });
-    }
-    showStreamDetails();
+    $.get('get_stream_data', {
+        row_id: rowData['id'],
+        session_key: rowData['session_key'],
+        user: rowData['friendly_name']
+    }).then(function (jqXHR) {
+        $("#info-modal").html(jqXHR);
+    });
 });
 
 // Parent table ip address modal
@@ -355,21 +345,11 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control-ip', function (
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    function getUserLocation(ip_address) {
-        if (isPrivateIP(ip_address)) {
-            return "n/a"
-        } else {
-            $.ajax({
-                url: 'get_ip_address_details',
-                data: {ip_address: ip_address},
-                async: true,
-                complete: function(xhr, status) {
-                    $("#ip-info-modal").html(xhr.responseText);
-                }
-            });
-        }
-    }
-    getUserLocation(rowData['ip_address']);
+    $.get('get_ip_address_details', {
+        ip_address: rowData['ip_address']
+    }).then(function (jqXHR) {
+        $("#ip-info-modal").html(jqXHR);
+    });
 });
 
 // Parent table delete mode
@@ -502,7 +482,7 @@ function childTableFormat(rowData) {
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +
-                '<th align="left" id="time">Time</th>' +
+                '<th align="left" id="date">Date</th>' +
                 '<th align="left" id="friendly_name">User</th>' +
                 '<th align="left" id="ip_address">IP Address</th>' +
                 '<th align="left" id="platform">Platform</th>' +
@@ -545,18 +525,12 @@ function createChildTable(row, rowData) {
         var childRow = history_child_table[rowData['reference_id']].row(tr);
         var childRowData = childRow.data();
 
-        function showStreamDetails() {
-            $.ajax({
-                url: 'get_stream_data',
-                data: { row_id: childRowData['id'], user: childRowData['friendly_name'] },
-                cache: false,
-                async: true,
-                complete: function (xhr, status) {
-                    $("#info-modal").html(xhr.responseText);
-                }
-            });
-        }
-        showStreamDetails();
+        $.get('get_stream_data', {
+            row_id: childRowData['id'],
+            user: childRowData['friendly_name']
+        }).then(function (jqXHR) {
+            $("#info-modal").html(jqXHR);
+        });
     });
 
     // Child table ip address modal
@@ -565,21 +539,11 @@ function createChildTable(row, rowData) {
         var childRow = history_child_table[rowData['reference_id']].row(tr);
         var childRowData = childRow.data();
 
-        function getUserLocation(ip_address) {
-            if (isPrivateIP(ip_address)) {
-                return "n/a"
-            } else {
-                $.ajax({
-                    url: 'get_ip_address_details',
-                    data: { ip_address: ip_address },
-                    async: true,
-                    complete: function (xhr, status) {
-                        $("#ip-info-modal").html(xhr.responseText);
-                    }
-                });
-            }
-        }
-        getUserLocation(childRowData['ip_address']);
+        $.get('get_ip_address_details', {
+            ip_address: childRowData['ip_address']
+        }).then(function (jqXHR) {
+            $("#ip-info-modal").html(jqXHR);
+        });
     });
 
     // Child table delete mode

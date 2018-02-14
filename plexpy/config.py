@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import arrow
 import os
@@ -45,6 +45,7 @@ _CONFIG_DEFINITIONS = {
     'PLEXWATCH_DATABASE': (str, 'PlexWatch', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
+    'PMS_IS_CLOUD': (int, 'PMS', 0),
     'PMS_IS_REMOTE': (int, 'PMS', 0),
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
@@ -53,18 +54,20 @@ _CONFIG_DEFINITIONS = {
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
     'PMS_URL': (str, 'PMS', ''),
+    'PMS_URL_MANUAL': (int, 'PMS', 0),
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),
     'PMS_TIMEOUT': (int, 'Advanced', 15),
     'PMS_PLEXPASS': (int, 'PMS', 0),
     'PMS_PLATFORM': (str, 'PMS', ''),
     'PMS_VERSION': (str, 'PMS', ''),
-    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'public'),
+    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'plex'),
     'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
+    'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),
-    'API_ENABLED': (int, 'General', 0),
+    'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
+    'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
     'BOXCAR_ENABLED': (int, 'Boxcar', 0),
@@ -112,10 +115,10 @@ _CONFIG_DEFINITIONS = {
     'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
     'CLEANUP_FILES': (int, 'General', 0),
-    'CONFIG_VERSION': (str, 'General', '0'),
+    'CONFIG_VERSION': (int, 'Advanced', 0),
     'DO_NOT_OVERRIDE_GIT_BRANCH': (int, 'General', 0),
     'EMAIL_ENABLED': (int, 'Email', 0),
-    'EMAIL_FROM_NAME': (str, 'Email', 'PlexPy'),
+    'EMAIL_FROM_NAME': (str, 'Email', 'Tautulli'),
     'EMAIL_FROM': (str, 'Email', ''),
     'EMAIL_TO': (str, 'Email', ''),
     'EMAIL_CC': (str, 'Email', ''),
@@ -171,13 +174,15 @@ _CONFIG_DEFINITIONS = {
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
+    'GIT_REMOTE': (str, 'General', 'origin'),
     'GIT_TOKEN': (str, 'General', ''),
-    'GIT_USER': (str, 'General', 'JonnyWong16'),
+    'GIT_USER': (str, 'General', 'Tautulli'),
+    'GIT_REPO': (str, 'General', 'Tautulli'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_MONTHS': (int, 'General', 12),
     'GRAPH_TAB': (str, 'General', 'tabs-1'),
-    'GROUP_HISTORY_TABLES': (int, 'General', 0),
+    'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'GROWL_ENABLED': (int, 'Growl', 0),
     'GROWL_HOST': (str, 'Growl', ''),
     'GROWL_PASSWORD': (str, 'Growl', ''),
@@ -203,8 +208,10 @@ _CONFIG_DEFINITIONS = {
     'HOME_STATS_COUNT': (int, 'General', 5),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
+    'HOME_STATS_RECENTLY_ADDED_COUNT': (int, 'General', 50),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
+    'HTTPS_CERT_CHAIN': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
@@ -218,6 +225,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PROXY': (int, 'General', 0),
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
+    'HTTP_PLEX_ADMIN': (int, 'General', 0),
     'HIPCHAT_URL': (str, 'Hipchat', ''),
     'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),
@@ -242,7 +250,7 @@ _CONFIG_DEFINITIONS = {
     'INTERFACE': (str, 'General', 'default'),
     'IP_LOGGING_ENABLE': (int, 'General', 0),
     'IFTTT_KEY': (str, 'IFTTT', ''),
-    'IFTTT_EVENT': (str, 'IFTTT', 'plexpy'),
+    'IFTTT_EVENT': (str, 'IFTTT', 'tautulli'),
     'IFTTT_ENABLED': (int, 'IFTTT', 0),
     'IFTTT_ON_PLAY': (int, 'IFTTT', 0),
     'IFTTT_ON_STOP': (int, 'IFTTT', 0),
@@ -282,16 +290,19 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
+    'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'MOVIE_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'MUSIC_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MUSIC_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MUSIC_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'MUSIC_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'MUSIC_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'MUSIC_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'MONITOR_PMS_UPDATES': (int, 'Monitoring', 0),
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
@@ -313,44 +324,49 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_PMSUPDATE': (int, 'NMA', 0),
     'NMA_ON_CONCURRENT': (int, 'NMA', 0),
     'NMA_ON_NEWDEVICE': (int, 'NMA', 0),
+    'NOTIFICATION_THREADS': (int, 'Advanced', 2),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
+    'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
+    'NOTIFY_GROUP_RECENTLY_ADDED_PARENT': (int, 'Monitoring', 1),
+    'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
-    'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 60),
+    'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
+    'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
-    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_START_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) started playing {title}.'),
-    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_STOP_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has stopped {title}.'),
-    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_PAUSE_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has paused {title}.'),
-    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_RESUME_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has resumed {title}.'),
-    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_BUFFER_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) is buffering {title}.'),
-    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_WATCHED_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has watched {title}.'),
-    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_CREATED_BODY_TEXT': (unicode, 'Monitoring', '{title} was recently added to Plex.'),
-    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_EXTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is down.'),
-    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_INTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is down.'),
-    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_EXTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is back up.'),
-    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_INTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is back up.'),
-    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (unicode, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
-    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_CONCURRENT_BODY_TEXT': (unicode, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
-    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (unicode, 'Monitoring', '{user} is streaming from a new device: {player}.'),
     'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
-    'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/PlexPy'),
+    'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/Tautulli'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_PLAY': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_STOP': (int, 'OSX_Notify', 0),
@@ -384,6 +400,7 @@ _CONFIG_DEFINITIONS = {
     'PLEX_ON_PMSUPDATE': (int, 'Plex', 0),
     'PLEX_ON_CONCURRENT': (int, 'Plex', 0),
     'PLEX_ON_NEWDEVICE': (int, 'Plex', 0),
+    'PLEXPY_AUTO_UPDATE': (int, 'General', 0),
     'PROWL_ENABLED': (int, 'Prowl', 0),
     'PROWL_KEYS': (str, 'Prowl', ''),
     'PROWL_PRIORITY': (int, 'Prowl', 0),
@@ -461,7 +478,9 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
-    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Monitoring', 5),
+    'REMOTE_ACCESS_PING_THRESHOLD': (int, 'Advanced', 3),
+    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
+    'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
@@ -536,11 +555,15 @@ _CONFIG_DEFINITIONS = {
     'TELEGRAM_ON_PMSUPDATE': (int, 'Telegram', 0),
     'TELEGRAM_ON_CONCURRENT': (int, 'Telegram', 0),
     'TELEGRAM_ON_NEWDEVICE': (int, 'Telegram', 0),
+    'THEMOVIEDB_APIKEY': (str, 'General', 'e9a6655bae34bf694a0f3e33338dc28e'),
+    'THEMOVIEDB_LOOKUP': (int, 'General', 0),
+    'TVMAZE_LOOKUP': (int, 'General', 0),
     'TV_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'TV_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'TV_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'TV_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'TV_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'TV_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'TWITTER_ENABLED': (int, 'Twitter', 0),
     'TWITTER_ACCESS_TOKEN': (str, 'Twitter', ''),
     'TWITTER_ACCESS_TOKEN_SECRET': (str, 'Twitter', ''),
@@ -564,9 +587,14 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ON_NEWDEVICE': (int, 'Twitter', 0),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
     'UPDATE_SECTION_IDS': (int, 'General', 1),
+    'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
     'UPDATE_LABELS': (int, 'General', 1),
+    'UPDATE_LIBRARIES_DB_NOTIFY': (int, 'General', 1),
+    'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
+    'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
+    'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
     'WEEK_START_MONDAY': (int, 'General', 0),
     'XBMC_ENABLED': (int, 'XBMC', 0),
     'XBMC_HOST': (str, 'XBMC', ''),
@@ -585,10 +613,11 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_INTUP': (int, 'XBMC', 0),
     'XBMC_ON_PMSUPDATE': (int, 'XBMC', 0),
     'XBMC_ON_CONCURRENT': (int, 'XBMC', 0),
-    'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0)
+    'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0),
+    'JWT_SECRET': (str, 'Advanced', ''),
 }
 
-_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID']
+_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
 _WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
 
 
@@ -619,13 +648,13 @@ def make_backup(cleanup=False, scheduler=False):
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error(u"PlexPy Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.error(u"Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug(u"PlexPy Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.debug(u"Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
-        logger.warn(u"PlexPy Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.warn(u"Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return False
 
 
@@ -645,15 +674,15 @@ class Config(object):
 
     def _blacklist(self):
         """ Add tokens and passwords to blacklisted words in logger """
-        blacklist = []
+        blacklist = set()
 
         for key, subkeys in self._config.iteritems():
             for subkey, value in subkeys.iteritems():
                 if isinstance(value, basestring) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
-                    blacklist.append(value.strip())
+                    blacklist.add(value.strip())
 
-        logger._BLACKLIST_WORDS = blacklist
+        logger._BLACKLIST_WORDS.update(blacklist)
 
     def _define(self, name):
         key = name.upper()
@@ -706,12 +735,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        logger.info(u"PlexPy Config :: Writing configuration to file")
+        logger.info(u"Tautulli Config :: Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            logger.error(u"PlexPy Config :: Error writing configuration file: %s", e)
+            logger.error(u"Tautulli Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 
@@ -750,7 +779,7 @@ class Config(object):
         """
         Upgrades config file from previous verisions and bumps up config version
         """
-        if self.CONFIG_VERSION == '0':
+        if self.CONFIG_VERSION == 0:
             # Separate out movie and tv notifications
             if self.MOVIE_NOTIFY_ENABLE == 1:
                 self.TV_NOTIFY_ENABLE = 1
@@ -758,9 +787,9 @@ class Config(object):
             if self.VIDEO_LOGGING_ENABLE == 0:
                 self.MOVIE_LOGGING_ENABLE = 0
                 self.TV_LOGGING_ENABLE = 0
-            self.CONFIG_VERSION = '1'
+            self.CONFIG_VERSION = 1
 
-        if self.CONFIG_VERSION == '1':
+        if self.CONFIG_VERSION == 1:
             # Change home_stats_cards to list
             if self.HOME_STATS_CARDS:
                 home_stats_cards = ''.join(self.HOME_STATS_CARDS).split(', ')
@@ -773,29 +802,32 @@ class Config(object):
                 if 'library_statistics' in home_library_cards:
                     home_library_cards.remove('library_statistics')
                     self.HOME_LIBRARY_CARDS = home_library_cards
-            self.CONFIG_VERSION = '2'
+            self.CONFIG_VERSION = 2
 
-        if self.CONFIG_VERSION == '2':
-            self.NOTIFY_ON_START_SUBJECT_TEXT = self.NOTIFY_ON_START_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_START_BODY_TEXT = self.NOTIFY_ON_START_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_STOP_SUBJECT_TEXT = self.NOTIFY_ON_STOP_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_STOP_BODY_TEXT = self.NOTIFY_ON_STOP_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = self.NOTIFY_ON_PAUSE_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_PAUSE_BODY_TEXT = self.NOTIFY_ON_PAUSE_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = self.NOTIFY_ON_RESUME_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_RESUME_BODY_TEXT = self.NOTIFY_ON_RESUME_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = self.NOTIFY_ON_BUFFER_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_BUFFER_BODY_TEXT = self.NOTIFY_ON_BUFFER_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = self.NOTIFY_ON_WATCHED_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_WATCHED_BODY_TEXT = self.NOTIFY_ON_WATCHED_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_SCRIPTS_ARGS_TEXT = self.NOTIFY_SCRIPTS_ARGS_TEXT.replace('{progress}','{progress_duration}')
-            self.CONFIG_VERSION = '3'
+        if self.CONFIG_VERSION == 2:
+            def rep(s):
+                return s.replace('{progress}','{progress_duration}')
 
-        if self.CONFIG_VERSION == '3':
+            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
+            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
+            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
+            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
+            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
+            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
+            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
+            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
+            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
+            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
+            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
+            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
+            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
+            self.CONFIG_VERSION = 3
+
+        if self.CONFIG_VERSION == 3:
             if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
-            self.CONFIG_VERSION = '4'
+            self.CONFIG_VERSION = 4
 
-        if self.CONFIG_VERSION == '4':
+        if self.CONFIG_VERSION == 4:
             if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('watch_stats')
@@ -804,13 +836,56 @@ class Config(object):
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('library_stats')
                 self.HOME_SECTIONS = home_sections
-            self.CONFIG_VERSION = '5'
+            self.CONFIG_VERSION = 5
 
-        if self.CONFIG_VERSION == '5':
+        if self.CONFIG_VERSION == 5:
             self.MONITOR_PMS_UPDATES = 0
-            self.CONFIG_VERSION = '6'
+            self.CONFIG_VERSION = 6
 
-        if self.CONFIG_VERSION == '6':
+        if self.CONFIG_VERSION == 6:
             if self.GIT_USER.lower() == 'drzoidberg33':
                 self.GIT_USER = 'JonnyWong16'
-            self.CONFIG_VERSION = '7'
+            self.CONFIG_VERSION = 7
+
+        if self.CONFIG_VERSION == 7:
+            def rep(s):
+                return s.replace('<tv>','<episode>').replace('</tv>','</episode>').replace('<music>','<track>').replace('</music>','</track>')
+
+            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
+            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
+            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
+            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
+            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
+            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
+            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
+            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
+            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
+            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
+            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
+            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
+            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
+
+            self.NOTIFY_GROUP_RECENTLY_ADDED_PARENT = self.NOTIFY_GROUP_RECENTLY_ADDED
+
+            self.MONITORING_USE_WEBSOCKET = 1
+
+            self.CONFIG_VERSION = 8
+
+        if self.CONFIG_VERSION == 8:
+            self.MOVIE_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+            self.TV_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+            self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+
+            self.CONFIG_VERSION = 9
+
+        if self.CONFIG_VERSION == 9:
+            if self.PMS_UPDATE_CHANNEL == 'plexpass':
+                self.PMS_UPDATE_CHANNEL = 'beta'
+
+            self.CONFIG_VERSION = 10
+
+        if self.CONFIG_VERSION == 10:
+            self.GIT_USER = 'Tautulli'
+            self.GIT_REPO = 'Tautulli'
+
+            self.CONFIG_VERSION = 11
