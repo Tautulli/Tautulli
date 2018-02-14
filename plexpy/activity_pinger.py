@@ -328,7 +328,7 @@ def check_server_updates():
                 logger.info(u"Tautulli Monitor :: No PMS update available.")
 
 
-def check_cloud_status(log=False):
+def check_cloud_status(log=False, return_status=False):
     if log:
         logger.info(u"Tautulli Monitor :: Checking for Plex Cloud server status...")
 
@@ -337,7 +337,11 @@ def check_cloud_status(log=False):
 
     if cloud_status:
         logger.info(u"Tautulli Monitor :: Plex Cloud server is active.")
+        if return_status:
+            return cloud_status
         check_server_response()
     else:
         if log:
             logger.info(u"Tautulli Monitor :: Plex Cloud server is sleeping.")
+        if return_status:
+            return cloud_status

@@ -196,7 +196,7 @@ def main():
 
     # Open connection for websocket
     try:
-        web_socket.start_thread()
+        web_socket.start_thread(startup=True)
     except:
         logger.warn(u"Websocket :: Unable to open connection.")
         plexpy.initialize_scheduler()

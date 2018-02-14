@@ -32,7 +32,13 @@ opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 ws_reconnect = False
 
 
-def start_thread():
+def start_thread(startup=False):
+    if startup and plexpy.CONFIG.PMS_IS_CLOUD and plexpy.PLEX_SERVER_UP is None:
+        plexpy.PLEX_SERVER_UP = activity_pinger.check_cloud_status(log=True, return_status=True)
+        if not plexpy.PLEX_SERVER_UP:
+            on_disconnect()
+            return
+
     if plexpy.CONFIG.FIRST_RUN_COMPLETE:
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
