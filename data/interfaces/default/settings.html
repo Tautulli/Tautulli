@@ -5,7 +5,7 @@
 
     import plexpy
     from plexpy import common, notifiers
-    from plexpy.helpers import anon_url
+    from plexpy.helpers import anon_url, checked
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'])
 %>
@@ -650,13 +650,15 @@
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                                <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
+                                <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
                             </label>
                             <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
+                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use SSL
+                                <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                             </label>
                             <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
@@ -1586,7 +1588,7 @@ $(document).ready(function() {
         if (serverChanged || authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
-        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
         getConfigurationTable();
         getSchedulerTable();
         getNotifiersTable();
@@ -1772,6 +1774,15 @@ $(document).ready(function() {
         verifyServer();
     });
 
+    $('.checkbox-toggle').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+
     var $select_pms = $('#pms_ip').selectize({
         createOnBlur: true,
         openOnFocus: true,
@@ -1823,10 +1834,12 @@ $(document).ready(function() {
             var is_cloud = $(pms_ip_selected).data('is_cloud');
 
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
-            $('#pms_port').val((port !== 'undefined' ? port : 32400));
-            $('#pms_is_remote').prop('checked', (local !== 'undefined' && local === 0));
-            $('#pms_ssl').prop('checked', (ssl !== 'undefined' && ssl === 1));
-            $('#pms_is_cloud').val((is_cloud !== 'undefined' && is_cloud === true ? 1 : 0));
+            $('#pms_port').val(port !== 'undefined' ? port : 32400);
+            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
+            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
+            $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
+            $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
+            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
             $('#pms_url_manual').prop('checked', false);
             PMSCloudCheck();
         }
@@ -1858,8 +1871,10 @@ $(document).ready(function() {
     function PMSCloudCheck () {
         if ($('#pms_is_cloud').val() === "1") {
             $('#pms_port').val(443).prop('readonly', true);
-            $('#pms_is_remote').prop('checked', true).prop('disabled', true);
-            $('#pms_ssl').prop('checked', true).prop('disabled', true);
+            $('#pms_is_remote_checkbox').prop('checked', true).prop('disabled', true);
+            $('#pms_is_remote').val(1);
+            $('#pms_ssl_checkbox').prop('checked', true).prop('disabled', true);
+            $('#pms_ssl').val(1);
             $('#pms_url_manual').prop('checked', false).prop('disabled', true);
             $('#monitor_pms_updates').prop('checked', false).prop('disabled', true);
             $('#pms_update_options').hide();
@@ -1867,18 +1882,18 @@ $(document).ready(function() {
             $('#cloudManualConnection').show();
             $('#cloudMonitorUpdates').show();
             $('#cloudMonitorRemoteAccess').show();
-            $('#remoteAccessCheck').hide();
         } else {
             $('#pms_port').prop('readonly', false);
-            $('#pms_is_remote').prop('disabled', false);
-            $('#pms_ssl').prop('disabled', false);
+            $('#pms_is_remote_checkbox').prop('disabled', false);
+            $('#pms_is_remote').val($('#pms_is_remote_checkbox').is(':checked') ? 1 : 0);
+            $('#pms_ssl_checkbox').prop('disabled', false);
+            $('#pms_ssl').val($('#pms_ssl_checkbox').is(':checked') ? 1 : 0);
             $('#pms_url_manual').prop('disabled', false);
             $('#monitor_pms_updates').prop('disabled', false);
             $('#monitor_remote_access').prop('disabled', false);
             $('#cloudManualConnection').hide();
             $('#cloudMonitorUpdates').hide();
             $('#cloudMonitorRemoteAccess').hide();
-            remoteAccessEnabledCheck();
         }
     }
     PMSCloudCheck();
@@ -1887,8 +1902,8 @@ $(document).ready(function() {
         var pms_ip = $("#pms_ip").val();
         var pms_port = $("#pms_port").val();
         var pms_identifier = $("#pms_identifier").val();
-        var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
-        var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
+        var pms_ssl = $("#pms_ssl").val();
+        var pms_is_remote = $("#pms_is_remote").val();
 
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
@@ -2008,8 +2023,7 @@ $(document).ready(function() {
             success: function(data) {
                 if (data !== 'true') {
                     $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
-                    $("#monitor_remote_access").attr("disabled", true);
-                    $("#monitor_remote_access").attr("checked", false);
+                    $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
                 }
             }
         });
@@ -2024,11 +2038,11 @@ $(document).ready(function() {
             home_sections.push(sec.value);
         });
         $('#home_sections').val(home_sections);
-    };
+    }
 
     var sec_cards = ${config['home_sections'] | n};
     sec_cards.reverse().forEach(function (item) {
-        $('#hsec-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hsec-' + item).prop('checked', !$(this).prop('checked'));
         $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
     });
 
@@ -2050,11 +2064,11 @@ $(document).ready(function() {
             home_stats_cards.push(card.value);
         });
         $('#home_stats_cards').val(home_stats_cards);
-    };
+    }
 
     var config_cards = ${config['home_stats_cards'] | n};
     config_cards.reverse().forEach(function (item) {
-        $('#hscard-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hscard-' + item).prop('checked', !$(this).prop('checked'));
         $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
     });
 
@@ -2076,7 +2090,7 @@ $(document).ready(function() {
             home_library_cards.push(card.value);
         });
         $('#home_library_cards').val(home_library_cards);
-    };
+    }
 
     $.ajax({
         url: 'get_library_sections',
@@ -2115,12 +2129,10 @@ $(document).ready(function() {
 
     function allowPlexAdminCheck () {
         if ($("#http_basic_auth").is(":checked")) {
-            $("#http_plex_admin").attr("disabled", true);
-            $("#http_plex_admin").attr("checked", false);
+            $("#http_plex_admin").attr("checked", false).attr("disabled", true);
             $("#allowPlexCheck").html("Plex admin login cannot be enabled with basic authentication.");
         } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
-            $("#http_plex_admin").attr("disabled", true);
-            $("#http_plex_admin").attr("checked", false);
+            $("#http_plex_admin").attr("checked", false).attr("disabled", true);
             $("#allowPlexCheck").html("You must set an admin username and password above to allow Plex admin login.");
         } else {
             $("#http_plex_admin").attr("disabled", false);
@@ -2135,12 +2147,10 @@ $(document).ready(function() {
 
     function allowGuestAccessCheck () {
         if ($("#http_basic_auth").is(":checked")) {
-            $("#allow_guest_access").attr("disabled", true);
-            $("#allow_guest_access").attr("checked", false);
+            $("#allow_guest_access").attr("checked", false).attr("disabled", true);
             $("#allowGuestCheck").html("Guest access cannot be enabled with basic authentication.");
         } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
-            $("#allow_guest_access").attr("disabled", true);
-            $("#allow_guest_access").attr("checked", false);
+            $("#allow_guest_access").attr("checked", false).attr("disabled", true);
             $("#allowGuestCheck").html("You must set an admin username and password above to allow guest access.");
         } else {
             $("#allow_guest_access").attr("disabled", false);
@@ -2155,8 +2165,7 @@ $(document).ready(function() {
 
     function hashPasswordCheck () {
         if ($("#http_basic_auth").is(":checked")) {
-            $("#http_hash_password").attr("checked", false);
-            $("#http_hash_password").attr("disabled", true);
+            $("#http_hash_password").attr("checked", false).attr("disabled", true);
             $("#hashPasswordCheck").html("Password cannot be hashed with basic authentication.");
         } else {
             $("#http_hash_password").attr("disabled", false);

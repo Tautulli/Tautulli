@@ -1,6 +1,6 @@
 ﻿<%
     import plexpy
-    from plexpy import common
+    from plexpy import common, helpers
 %>
 
 <!doctype html>
@@ -109,20 +109,23 @@
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
+                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use SSL
+                                        <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                                     </label>
                                 </div>
                             </div>
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                                        <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" ${helpers.checked(config['pms_is_remote'])}> Remote Server
+                                        <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                    <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                     <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                     <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
@@ -286,6 +289,15 @@ $(document).ready(function() {
         })
     });
 
+    $('.checkbox-toggle').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+
     var $select_pms = $('#pms_ip').selectize({
         createOnBlur: true,
         openOnFocus: true,
@@ -303,6 +315,7 @@ $(document).ready(function() {
                         '" data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         '<span class="item-text">' + escape(label) + '</span>' +
                         (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
@@ -316,6 +329,7 @@ $(document).ready(function() {
                         '" data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         escape(label) +
                         (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
@@ -331,14 +345,28 @@ $(document).ready(function() {
             var port = $(pms_ip_selected).data('port');
             var local = $(pms_ip_selected).data('local');
             var ssl = $(pms_ip_selected).data('ssl');
+            var is_cloud = $(pms_ip_selected).data('is_cloud');
 
-            $("#pms_valid").val((identifier !== 'undefined' ? 'valid' : ''));
-            $("#pms-verify-status").html((identifier !== 'undefined' ? '<i class="fa fa-check"></i> Server found!' : '')).fadeIn('fast');
+            $("#pms_valid").val(identifier !== 'undefined' ? 'valid' : '');
+            $("#pms-verify-status").html(identifier !== 'undefined' ? '<i class="fa fa-check"></i> Server found!' : '').fadeIn('fast');
 
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
-            $('#pms_port').val((port !== 'undefined' ? port : 32400));
-            $('#pms_is_remote').prop('checked', (local !== 'undefined' && local === 0));
-            $('#pms_ssl').prop('checked', (ssl !== 'undefined' && ssl === 1));
+            $('#pms_port').val(port !== 'undefined' ? port : 32400);
+            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
+            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
+            $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
+            $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
+            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
+
+            if (is_cloud === true) {
+                $('#pms_port').prop('readonly', true);
+                $('#pms_is_remote_checkbox').prop('disabled', true);
+                $('#pms_ssl_checkbox').prop('disabled', true);
+            } else {
+                $('#pms_port').prop('readonly', false);
+                $('#pms_is_remote_checkbox').prop('disabled', false);
+                $('#pms_ssl_checkbox').prop('disabled', false);
+            }
         }
     });
     var select_pms = $select_pms[0].selectize;
@@ -372,14 +400,19 @@ $(document).ready(function() {
             var pms_ip = $("#pms_ip").val().trim();
             var pms_port = $("#pms_port").val().trim();
             var pms_identifier = $("#pms_identifier").val();
-            var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
-            var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
+            var pms_ssl = $("#pms_ssl").val();
+            var pms_is_remote = $("#pms_is_remote").val();
             if ((pms_ip !== '') || (pms_port !== '')) {
                 $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
                 $('#pms-verify-status').fadeIn('fast');
                 $.ajax({
                     url: 'get_server_id',
-                    data: { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
+                    data: {
+                        hostname: pms_ip,
+                        port: pms_port,
+                        identifier: pms_identifier,
+                        ssl: pms_ssl,
+                        remote: pms_is_remote },
                     cache: true,
                     async: true,
                     timeout: 5000,

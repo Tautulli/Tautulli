@@ -103,7 +103,7 @@ div.form-control .selectize-input {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.selectize-dropdown.form-control.selectize-pms-ip {
+#selectize-pms-ip-container .selectize-dropdown.form-control.selectize-pms-ip {
     margin-left: 15px;
 }
 .wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-dropdown .selectize-dropdown-content {
