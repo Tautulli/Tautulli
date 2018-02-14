@@ -1006,13 +1006,13 @@ class Libraries(object):
         except Exception as e:
             logger.warn(u"Tautulli Libraries :: Unable to execute database query for undelete: %s." % e)
 
-    def delete_datatable_media_info_cache(self, section_id=None):
+    def delete_media_info_cache(self, section_id=None):
         import os
 
         try:
             if section_id.isdigit():
-                [os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, f)) for f in os.listdir(plexpy.CONFIG.CACHE_DIR) 
-                 if f.startswith('media_info-%s' % section_id) and f.endswith('.json')]
+                [os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, f)) for f in os.listdir(plexpy.CONFIG.CACHE_DIR)
+                 if f.startswith('media_info_%s' % section_id) and f.endswith('.json')]
 
                 logger.debug(u"Tautulli Libraries :: Deleted media info table cache for section_id %s." % section_id)
                 return 'Deleted media info table cache for library with id %s.' % section_id

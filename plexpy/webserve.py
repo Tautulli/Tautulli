@@ -954,7 +954,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_datatable_media_info_cache(self, section_id, **kwargs):
+    def delete_media_info_cache(self, section_id, **kwargs):
         """ Delete the media info table cache for a specific library.
 
             ```
@@ -974,7 +974,7 @@ class WebInterface(object):
         if section_id not in section_ids:
             if section_id:
                 library_data = libraries.Libraries()
-                delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
+                delete_row = library_data.delete_media_info_cache(section_id=section_id)
 
                 if delete_row:
                     return {'message': delete_row}

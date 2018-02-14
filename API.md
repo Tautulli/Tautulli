@@ -93,21 +93,6 @@ Returns:
 Delete and recreate the cache directory.
 
 
-### delete_datatable_media_info_cache
-Delete the media info table cache for a specific library.
-
-```
-Required parameters:
-    section_id (str):       The id of the Plex library section
-
-Optional parameters:
-    None
-
-Returns:
-    None
-```
-
-
 ### delete_image_cache
 Delete and recreate the image cache directory.
 
@@ -173,6 +158,21 @@ Returns:
     json:
         {"result": "success",
          "message": "Deleted lookup info."}
+```
+
+
+### delete_media_info_cache
+Delete the media info table cache for a specific library.
+
+```
+Required parameters:
+    section_id (str):       The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    None
 ```
 
 
