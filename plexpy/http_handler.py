@@ -85,9 +85,9 @@ class HTTPHandler(object):
         if uri:
             request_urls = [urljoin(url, self.uri) for url in self.urls]
 
-            if no_token and headers:
-                self.headers = headers
-            elif headers:
+            if no_token:
+                self.headers.pop('X-Plex-Token', None)
+            if headers:
                 self.headers.update(headers)
 
             responses = []

@@ -47,7 +47,7 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-        <div class="wizard" id="some-wizard" data-title="Tautulli Setup Wizard">
+        <div class="wizard" id="setup-wizard" data-title="Tautulli Setup Wizard">
             <form>
                 <div class="wizard-card" data-cardname="card1">
                     <div style="float: right;">
@@ -82,17 +82,21 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
+                    <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
                     <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
                 <div class="wizard-card" data-cardname="card3">
                     <h3>Plex Media Server</h3>
-                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure Tautulli can reach the server.</p>
+                    <p class="help-block">
+                        Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.
+                    </p>
                     <div class="wizard-input-section">
                         <label for="pms_ip">Plex IP or Hostname</label>
                         <div class="row">
                             <div class="col-xs-12">
-                                <select class="form-control wizard-pms-ip" id="pms_ip" name="pms_ip"></select>
+                                <select class="form-control selectize-pms-ip" id="pms_ip" name="pms_ip">
+                                    <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -105,14 +109,14 @@
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Use SSL
+                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
                                     </label>
                                 </div>
                             </div>
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1"> Remote Server
+                                        <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
                                     </label>
                                 </div>
                             </div>
@@ -200,127 +204,6 @@
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
-
-    $(document).ready(function() {
-
-        $.fn.wizard.logging = false;
-        var options = {
-            keyboard : false,
-            contentHeight : 400,
-            contentWidth : 700,
-            backdrop: 'static',
-            buttons: {submitText: 'Finish'},
-            submitUrl: "configUpdate"
-        };
-        var wizard = $("#some-wizard").wizard(options);
-        wizard.show();
-
-        wizard.on("submit", function(wizard) {
-            // Probably should not success before we know, but hopefully validation is good enough.
-            wizard.submitSuccess();
-            $.ajax({
-                url: "configUpdate",
-                type: "POST",
-                url: wizard.args.submitUrl,
-                data: wizard.serialize(),
-                dataType: "json",
-                complete: function (data) {
-                    $(".countdown").countdown(function () { location.reload(); }, 5, "");
-                }
-            })
-        });
-
-        $select_pms = $('#pms_ip').selectize({
-            create: true,
-            createOnBlur: true,
-            openOnFocus: true,
-            maxItems: 1,
-            closeAfterSelect: true,
-            onInitialize: function () {
-                var s = this;
-                this.revertSettings.$children.each(function () {
-                    $.extend(s.options[this.value], $(this).data());
-                });
-
-            },
-            render: {
-                item: function (item, escape) {
-                    // first item is rendered before initialization bug?
-                    if (!item.ci) {
-                        $.extend(item, $(this.revertSettings.$children)
-                            .filter('[value="' + item.value + '"]').data());
-                    }
-                    var label = item.label || item.value;
-                    var caption = item.label ? item.value : null;
-                    return '<div data-use_ssl="' + item.httpsRequired +
-                            '" data-local="' + item.local +
-                            '" data-ci="' + item.clientIdentifier +
-                            '" data-ip="' + item.ip +
-                            '" data-port="' + item.port +
-                            '" data-label="' + item.label + '">' +
-                            '<span class="item-text">' + escape(label) + '</span>' +
-                            (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
-                            '</div>';
-                },
-                option: function (item, escape) {
-                    var label = item.label || item.value;
-                    var caption = item.label ? item.value : null;
-                    return '<div data-use_ssl="' + item.httpsRequired +
-                            '" data-local="' + item.local +
-                            '" data-ci="' + item.clientIdentifier +
-                            '" data-ip="' + item.ip +
-                            '" data-port="' + item.port +
-                            '" data-label="' + item.label + '">' +
-                            escape(label) +
-                            (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
-                            '</div>';
-                }
-            },
-            create: function(input) {
-                return {label: '', value: input};
-            },
-            onChange: function (item) {
-                var ci = $('.selectize-input').find('div').attr('data-ci');
-                var port = $('.selectize-input').find('div').attr('data-port')
-                var local = $('.selectize-input').find('div').attr('data-local')
-                var ssl = $('.selectize-input').find('div').attr('data-use_ssl')
-
-                $("#pms-verify-status").html("");
-                // If a option was added by a user its
-                // data-xxx="undefined"
-                if (ci != "undefined") {
-                    // To allow next step in the guide.
-                    // servers with clientIdentifier is verified
-                    $("#pms_identifier").val(ci);
-                    $("#pms_valid").val("valid");
-                    $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
-                } else {
-                    // Self made options must be verified
-                    $("#pms_valid").val("");
-                    $("#pms-verify-status").html("").hide();
-                }
-                // If the server is verified set the correct port
-                if (port != "undefined") {
-                    $('#pms_port').val(port);
-                } else {
-                    // set default port
-                    $('#pms_port').val("32400");
-                }
-                if (local != "undefined" && local == '0') {
-                    $('#pms_is_remote').prop('checked', true);
-                } else {
-                    $('#pms_is_remote').prop('checked', false);
-                }
-                if (ssl != "undefined" && ssl == "1") {
-                    $('#pms_ssl').prop('checked', true);
-                } else {
-                    $('#pms_ssl').prop('checked', false);
-                }
-            }
-        });
-    });
-
-
     function validatePMSip(el) {
         var valid_pms_ip = el.val();
         var retValue = {};
@@ -373,6 +256,114 @@
         return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0)
     }
 
+$(document).ready(function() {
+
+    $.fn.wizard.logging = false;
+    var options = {
+        keyboard : false,
+        contentHeight : 400,
+        contentWidth : 700,
+        backdrop: 'static',
+        buttons: {submitText: 'Finish'},
+        submitUrl: "configUpdate"
+    };
+    var wizard = $("#setup-wizard").wizard(options);
+    $('.btn.wizard-back').addClass('btn-dark');
+    wizard.show();
+
+    wizard.on("submit", function(wizard) {
+        // Probably should not success before we know, but hopefully validation is good enough.
+        wizard.submitSuccess();
+        $.ajax({
+            url: "configUpdate",
+            type: "POST",
+            url: wizard.args.submitUrl,
+            data: wizard.serialize(),
+            dataType: "json",
+            complete: function (data) {
+                $(".countdown").countdown(function () { location.reload(); }, 5, "");
+            }
+        })
+    });
+
+    var $select_pms = $('#pms_ip').selectize({
+        createOnBlur: true,
+        openOnFocus: true,
+        maxItems: 1,
+        closeAfterSelect: true,
+        sortField: 'label',
+        searchField: ['label', 'value'],
+        inputClass: 'form-control selectize-input',
+        render: {
+            item: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-label="' + item.label + '">' +
+                        '<span class="item-text">' + escape(label) + '</span>' +
+                        (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            },
+            option: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-label="' + item.label + '">' +
+                        escape(label) +
+                        (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            }
+        },
+        create: function(input) {
+            return {label: '', value: input};
+        },
+        onChange: function (item) {
+            var pms_ip_selected = this.getItem(item)[0];
+            var identifier = $(pms_ip_selected).data('identifier');
+            var port = $(pms_ip_selected).data('port');
+            var local = $(pms_ip_selected).data('local');
+            var ssl = $(pms_ip_selected).data('ssl');
+
+            $("#pms_valid").val((identifier !== 'undefined' ? 'valid' : ''));
+            $("#pms-verify-status").html((identifier !== 'undefined' ? '<i class="fa fa-check"></i> Server found!' : '')).fadeIn('fast');
+
+            $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
+            $('#pms_port').val((port !== 'undefined' ? port : 32400));
+            $('#pms_is_remote').prop('checked', (local !== 'undefined' && local === 0));
+            $('#pms_ssl').prop('checked', (ssl !== 'undefined' && ssl === 1));
+        }
+    });
+    var select_pms = $select_pms[0].selectize;
+
+    function getServerOptions(token) {
+        /* Set token and returns server options */
+        $.ajax({
+            url: 'discover',
+            data: {
+                token: token
+            },
+            success: function (result) {
+                if (result) {
+                    var existing_value = $('#pms_ip').val();
+                    result.forEach(function (item) {
+                        if (item.value === existing_value) {
+                            select_pms.updateOption(item.value, item);
+                        } else {
+                            select_pms.addOption(item);
+                        }
+                    });
+                }
+            }
+        })
+    }
     var pms_verified = false;
     var authenticated = false;
 
@@ -465,39 +456,7 @@
             $('#pms-token-status').fadeIn('fast');
         }
     });
-
-    // Send database path to import script
-    //$("#plexwatch-import").click(function() {
-    //    var database_path = $("#db_location").val();
-    //    var table_name = 'processed';
-    //    var import_ignore_interval = 0;
-    //    $.ajax({
-    //        url: 'get_plexwatch_export_data',
-    //        data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
-    //        cache: false,
-    //        async: true,
-    //        success: function(data) {
-    //            if (data === 'Import has started. Check the Tautulli logs to monitor any problems.') {
-    //                $("#plexwatch-import-status").html('Started');
-    //            } else {
-    //                $("#plexwatch-import-status").html(data);
-    //            }
-    //            $("#db_location").val('')
-    //        }
-    //    });
-    //});
-
-    function getServerOptions(token) {
-        /* Set token and returns server options */
-        $.ajax({
-            url: "discover/" + token,
-            success: function (result) {
-                $('#pms_ip').html("");
-                // Add all servers to the "combobox"
-                $select_pms[0].selectize.addOption(result);
-            }
-        })
-    }
+});
 </script>
 
 </body>

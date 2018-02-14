@@ -646,7 +646,8 @@ class PlexTV(object):
                                       'ip': helpers.get_xml_attr(c, 'address'),
                                       'port': helpers.get_xml_attr(c, 'port'),
                                       'local': helpers.get_xml_attr(c, 'local'),
-                                      'value': helpers.get_xml_attr(c, 'address')
+                                      'value': helpers.get_xml_attr(c, 'address'),
+                                      'is_cloud': is_cloud
                                       }
                             clean_servers.append(server)
 

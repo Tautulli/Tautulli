@@ -623,9 +623,11 @@
                         <div class="form-group has-feedback" id="pms_ip_group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-9">
                                     <div class="input-group">
-                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                        <select class="form-control pms-settings selectize-pms-ip" id="pms_ip" name="pms_ip" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                            <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
+                                        </select>
                                         <span class="input-group-btn">
                                             <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
                                         </span>
@@ -634,7 +636,7 @@
                                 </div>
                                 <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">IP Address or hostname for Plex Media Server.</p>
+                            <p class="help-block">Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.</p>
                         </div>
                         <div class="form-group">
                             <label for="pms_port">Plex Port</label>
@@ -659,16 +661,10 @@
                             <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
                         <div class="checkbox advanced-setting">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" disabled> Manual Connection
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
                             <label>
                                 <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
                             </label>
-                            % endif
+                            <span id="cloudManualConnection" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
                         </div>
                         <div class="form-group advanced-setting">
@@ -689,6 +685,7 @@
                             </p>
                         </div>
 
+                        <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
@@ -721,16 +718,10 @@
                         </div>
 
                         <div class="checkbox">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" disabled> Monitor Plex Updates
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
-                            % endif
+                            <span id="cloudMonitorUpdates" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
                         </div>
                         <div id="pms_update_options">
@@ -753,17 +744,11 @@
                             </div>
                         </div>
                         <div class="checkbox">
-                            % if config['pms_is_cloud']:
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" disabled> Monitor Plex Remote Access
-                            </label>
-                            <span style="color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            % else:
                             <label>
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
+                            <span id="cloudMonitorRemoteAccess" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            % endif
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
@@ -1787,6 +1772,117 @@ $(document).ready(function() {
         verifyServer();
     });
 
+    var $select_pms = $('#pms_ip').selectize({
+        createOnBlur: true,
+        openOnFocus: true,
+        maxItems: 1,
+        closeAfterSelect: true,
+        sortField: 'label',
+        searchField: ['label', 'value'],
+        inputClass: 'form-control selectize-input',
+        dropdownParent: 'body',
+        render: {
+            item: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
+                        '" data-label="' + item.label + '">' +
+                        '<span class="item-text">' + escape(label) + '</span>' +
+                        (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            },
+            option: function (item, escape) {
+                var label = item.label || item.value;
+                var caption = item.label ? item.value : null;
+                return '<div data-ssl="' + item.httpsRequired +
+                        '" data-local="' + item.local +
+                        '" data-identifier="' + item.clientIdentifier +
+                        '" data-ip="' + item.ip +
+                        '" data-port="' + item.port +
+                        '" data-is_cloud="' + item.is_cloud +
+                        '" data-label="' + item.label + '">' +
+                        escape(label) +
+                        (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                        '</div>';
+            }
+        },
+        create: function(input) {
+            return {label: '', value: input};
+        },
+        onChange: function (item) {
+            var pms_ip_selected = this.getItem(item)[0];
+            var identifier = $(pms_ip_selected).data('identifier');
+            var port = $(pms_ip_selected).data('port');
+            var local = $(pms_ip_selected).data('local');
+            var ssl = $(pms_ip_selected).data('ssl');
+            var is_cloud = $(pms_ip_selected).data('is_cloud');
+
+            $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
+            $('#pms_port').val((port !== 'undefined' ? port : 32400));
+            $('#pms_is_remote').prop('checked', (local !== 'undefined' && local === 0));
+            $('#pms_ssl').prop('checked', (ssl !== 'undefined' && ssl === 1));
+            $('#pms_is_cloud').val((is_cloud !== 'undefined' && is_cloud === true ? 1 : 0));
+            $('#pms_url_manual').prop('checked', false);
+            PMSCloudCheck();
+        }
+    });
+    var select_pms = $select_pms[0].selectize;
+
+    function getServerOptions(token) {
+        $.ajax({
+            url: 'discover',
+            data: {
+                token: token
+            },
+            success: function (result) {
+                if (result) {
+                    var existing_value = $('#pms_ip').val();
+                    result.forEach(function (item) {
+                        if (item.value === existing_value) {
+                            select_pms.updateOption(item.value, item);
+                        } else {
+                            select_pms.addOption(item);
+                        }
+                    });
+                }
+            }
+        })
+    }
+    getServerOptions();
+
+    function PMSCloudCheck () {
+        if ($('#pms_is_cloud').val() === "1") {
+            $('#pms_port').val(443).prop('readonly', true);
+            $('#pms_is_remote').prop('checked', true).prop('disabled', true);
+            $('#pms_ssl').prop('checked', true).prop('disabled', true);
+            $('#pms_url_manual').prop('checked', false).prop('disabled', true);
+            $('#monitor_pms_updates').prop('checked', false).prop('disabled', true);
+            $('#pms_update_options').hide();
+            $('#monitor_remote_access').prop('checked', false).prop('disabled', true);
+            $('#cloudManualConnection').show();
+            $('#cloudMonitorUpdates').show();
+            $('#cloudMonitorRemoteAccess').show();
+            $('#remoteAccessCheck').hide();
+        } else {
+            $('#pms_port').prop('readonly', false);
+            $('#pms_is_remote').prop('disabled', false);
+            $('#pms_ssl').prop('disabled', false);
+            $('#pms_url_manual').prop('disabled', false);
+            $('#monitor_pms_updates').prop('disabled', false);
+            $('#monitor_remote_access').prop('disabled', false);
+            $('#cloudManualConnection').hide();
+            $('#cloudMonitorUpdates').hide();
+            $('#cloudMonitorRemoteAccess').hide();
+            remoteAccessEnabledCheck();
+        }
+    }
+    PMSCloudCheck();
+
     function verifyServer(_callback) {
         var pms_ip = $("#pms_ip").val();
         var pms_port = $("#pms_port").val();
@@ -1875,6 +1971,7 @@ $(document).ready(function() {
                         $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
                         $("#pms_token").val(authToken);
                         $('#pms-auth-modal').modal('hide');
+                        getServerOptions(authToken);
                     } else {
                         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
                     }
@@ -1903,18 +2000,21 @@ $(document).ready(function() {
     pms_logs_debug = false;
     pms_logs = false;
 
-    $.ajax({
-        url: 'get_server_pref',
-        data: { pref: 'PublishServerOnPlexOnlineKey' },
-        async: true,
-        success: function(data) {
-            if (data !== 'true') {
-                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
-                $("#monitor_remote_access").attr("disabled", true);
-                $("#monitor_remote_access").attr("checked", false);
+    function remoteAccessEnabledCheck() {
+        $.ajax({
+            url: 'get_server_pref',
+            data: { pref: 'PublishServerOnPlexOnlineKey' },
+            async: true,
+            success: function(data) {
+                if (data !== 'true') {
+                    $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
+                    $("#monitor_remote_access").attr("disabled", true);
+                    $("#monitor_remote_access").attr("checked", false);
+                }
             }
-        }
-    });
+        });
+    }
+    remoteAccessEnabledCheck();
 
     // Sortable home_sections
     function set_home_sections() {
@@ -1940,7 +2040,7 @@ $(document).ready(function() {
     });
 
     $('[id^=hsec-]').change(function() { set_home_sections(); });
-    set_home_sections()
+    set_home_sections();
 
     // Sortable home_stats_cards
     function set_home_stats_cards() {
@@ -1966,7 +2066,7 @@ $(document).ready(function() {
     });
 
     $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
-    set_home_stats_cards()
+    set_home_stats_cards();
 
     // Sortable home_library_cards
     function set_home_library_cards() {
