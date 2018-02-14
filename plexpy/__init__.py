@@ -93,7 +93,7 @@ HTTP_ROOT = None
 DEV = False
 
 WS_CONNECTED = False
-PLEX_SERVER_UP = True
+PLEX_SERVER_UP = None
 
 
 def initialize(config_file):

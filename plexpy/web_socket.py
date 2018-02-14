@@ -41,6 +41,9 @@ def start_thread():
 
 
 def on_connect():
+    if plexpy.PLEX_SERVER_UP is None:
+        plexpy.PLEX_SERVER_UP = True
+
     if not plexpy.PLEX_SERVER_UP:
         logger.info(u"Tautulli WebSocket :: The Plex Media Server is back up.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
@@ -49,8 +52,11 @@ def on_connect():
     plexpy.initialize_scheduler()
 
 
-def on_disconnect(ws_exception=False):
-    if not ws_exception and plexpy.PLEX_SERVER_UP:
+def on_disconnect():
+    if plexpy.PLEX_SERVER_UP is None:
+        plexpy.PLEX_SERVER_UP = False
+
+    if plexpy.PLEX_SERVER_UP:
         logger.info(u"Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
         plexpy.PLEX_SERVER_UP = False
@@ -86,7 +92,6 @@ def run():
     global ws_reconnect
     ws_reconnect = False
     reconnects = 0
-    ws_exception = False
 
     # Try an open the websocket connection
     while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
@@ -143,8 +148,8 @@ def run():
 
         except (websocket.WebSocketException, Exception) as e:
             logger.error(u"Tautulli WebSocket :: %s." % e)
+            ws.shutdown()
             plexpy.WS_CONNECTED = False
-            ws_exception = True
             break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
@@ -156,7 +161,7 @@ def run():
     
     if not plexpy.WS_CONNECTED and not ws_reconnect:
         logger.error(u"Tautulli WebSocket :: Connection unavailable.")
-        on_disconnect(ws_exception)
+        on_disconnect()
 
     logger.debug(u"Tautulli WebSocket :: Leaving thread.")
 
