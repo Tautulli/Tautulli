@@ -165,9 +165,6 @@ def initialize(config_file):
             except OSError as e:
                 pass
 
-            if not os.path.exists(session_metadata_folder):
-                os.mkdir(session_metadata_folder)
-
         # Initialize the database
         logger.info(u"Checking if the database upgrades are required...")
         try:
