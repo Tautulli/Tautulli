@@ -273,14 +273,25 @@ class ActivityHandler(object):
                 # Monitor if the stream has reached the watch percentage for notifications
                 # The only purpose of this is for notifications
                 if this_state != 'buffering':
-                    progress_percent = helpers.get_percent(db_session['view_offset'], db_session['duration'])
-                    notify_states = notification_handler.get_notify_state(session=db_session)
-                    if (db_session['media_type'] == 'movie' and progress_percent >= plexpy.CONFIG.MOVIE_WATCHED_PERCENT or
-                        db_session['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
-                        db_session['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
-                        and not any(d['notify_action'] == 'on_watched' for d in notify_states):
-                        logger.debug(u"Tautulli ActivityHandler :: Session %s watched." % str(self.get_session_key()))
-                        plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_watched'})
+                    progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                    watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                       'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                       'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
+                                       'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
+                                       }
+
+                    if progress_percent >= watched_percent.get(db_session['media_type'], 101):
+                        watched_notifiers = notification_handler.get_notify_state_enabled(
+                            session=db_session, notify_action='on_watched', notified=False)
+
+                        if watched_notifiers:
+                            logger.debug(u"Tautulli ActivityHandler :: Session %s watched."
+                                         % str(self.get_session_key()))
+
+                        for d in watched_notifiers:
+                            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(),
+                                                     'notifier_id': d['notifier_id'],
+                                                     'notify_action': 'on_watched'})
 
             else:
                 # We don't have this session in our table yet, start a new one.

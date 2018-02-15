@@ -82,11 +82,6 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         # Check if any notification agents have notifications enabled for the action
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
-    # Check if the watched notifications has already been sent
-    if stream_data and notify_action == 'on_watched':
-        watched_notifiers = [d['notifier_id'] for d in get_notify_state(session=stream_data)]
-        notifiers_enabled = [n for n in notifiers_enabled if n['id'] not in watched_notifiers]
-
     if notifiers_enabled and not manual_trigger:
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
@@ -388,6 +383,28 @@ def get_notify_state(session):
         notify_states.append(notify_state)
 
     return notify_states
+
+
+def get_notify_state_enabled(session, notify_action, notified=True):
+    if notified:
+        timestamp_where = 'AND timestamp IS NOT NULL'
+    else:
+        timestamp_where = 'AND timestamp IS NULL'
+
+    monitor_db = database.MonitorDatabase()
+    result = monitor_db.select('SELECT id AS notifier_id, timestamp '
+                               'FROM notifiers '
+                               'LEFT OUTER JOIN ('
+                               'SELECT timestamp, notifier_id '
+                               'FROM notify_log '
+                               'WHERE session_key = ? '
+                               'AND rating_key = ? '
+                               'AND user_id = ? '
+                               'AND notify_action = ?) AS t ON notifiers.id = t.notifier_id '
+                               'WHERE %s = 1 %s' % (notify_action, timestamp_where),
+                               args=[session['session_key'], session['rating_key'], session['user_id'], notify_action])
+
+    return result
 
 
 def set_notify_state(notifier, notify_action, subject='', body='', script_args='', session=None):

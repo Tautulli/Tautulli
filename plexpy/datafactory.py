@@ -188,7 +188,7 @@ class DataFactory(object):
                            'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
                            'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
                            'photo': 0,
-                           'clip': plexpy.CONFIG.MOVIE_WATCHED_PERCENT
+                           'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
                            }
 
         rows = []
