@@ -631,6 +631,7 @@ class WebInterface(object):
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Thrones"
+                refresh (str):                  "true" to refresh the media info table
 
             Returns:
                 json:
