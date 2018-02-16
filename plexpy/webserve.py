@@ -458,12 +458,17 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_library_sections.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
-        """ Refresh the libraries list on it's own thread. """
-        threading.Thread(target=libraries.refresh_libraries).start()
+        """ Manually refresh the libraries list. """
         logger.info(u"Manual libraries list refresh requested.")
-        return True
+        result = libraries.refresh_libraries()
+
+        if result:
+            return {'result': 'success', 'message': 'Libraries list refreshed.'}
+        else:
+            return {'result': 'error', 'message': 'Unable to refresh libraries list.'}
 
     @cherrypy.expose
     @requireAuth()
@@ -1079,12 +1084,17 @@ class WebInterface(object):
         return user_list
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
-        """ Refresh the users list on it's own thread. """
-        threading.Thread(target=users.refresh_users).start()
+        """ Manually refresh the users list. """
         logger.info(u"Manual users list refresh requested.")
-        return True
+        result = users.refresh_users()
+
+        if result:
+            return {'result': 'success', 'message': 'Users list refreshed.'}
+        else:
+            return {'result': 'error', 'message': 'Unable to refresh users list.'}
 
     @cherrypy.expose
     @requireAuth()
