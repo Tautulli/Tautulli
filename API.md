@@ -2409,7 +2409,26 @@ Uninstalls the GeoLite2 database
 
 
 ### update
-Check for Tautulli updates on Github.
+Update Tautulli.
+
+
+### update_check
+Check for Tautulli updates.
+
+```
+Required parameters:
+    None
+
+Optional parameters:
+    None
+
+Returns:
+    json
+        {"result": "success",
+         "update": true,
+         "message": "An update for Tautulli is available."
+        }
+```
 
 
 ### update_metadata_details

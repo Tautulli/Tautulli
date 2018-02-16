@@ -335,14 +335,14 @@ class API2:
         """ Restart Tautulli."""
 
         plexpy.SIGNAL = 'restart'
-        self._api_msg = 'Restarting plexpy'
+        self._api_msg = 'Restarting Tautulli'
         self._api_result_type = 'success'
 
     def update(self, **kwargs):
-        """ Check for Tautulli updates on Github."""
+        """ Update Tautulli."""
 
         plexpy.SIGNAL = 'update'
-        self._api_msg = 'Updating plexpy'
+        self._api_msg = 'Updating Tautulli'
         self._api_result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):

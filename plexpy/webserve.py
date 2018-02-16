@@ -3508,10 +3508,53 @@ class WebInterface(object):
         return apikey
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def checkGithub(self, **kwargs):
+    @addtoapi()
+    def update_check(self, **kwargs):
+        """ Check for Tautulli updates.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json
+                    {"result": "success",
+                     "update": true,
+                     "message": "An update for Tautulli is available."
+                    }
+            ```
+        """
         versioncheck.checkGithub()
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+
+        if not plexpy.CURRENT_VERSION:
+            return {'result': 'error',
+                    'message': 'You are running an unknown version of Tautulli.',
+                    'update': None}
+
+        elif plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
+                plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+            return {'result': 'success',
+                    'update': True,
+                    'message': 'An update for Tautulli is available.',
+                    'latest_version': plexpy.LATEST_VERSION,
+                    'commits_behind': plexpy.COMMITS_BEHIND,
+                    'compare_url': helpers.anon_url(
+                        'https://github.com/%s/%s/compare/%s...%s'
+                        % (plexpy.CONFIG.GIT_USER,
+                           plexpy.CONFIG.GIT_REPO,
+                           plexpy.CURRENT_VERSION,
+                           plexpy.LATEST_VERSION))
+                    }
+
+        else:
+            return {'result': 'success',
+                    'update': False,
+                    'message': 'Tautulli is up to date.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
