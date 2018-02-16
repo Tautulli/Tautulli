@@ -291,7 +291,7 @@ ${next.modalIncludes()}
 % endif
 <script>
     % if _session['user_group'] == 'admin':
-    $('#updateDismiss').click(function() {
+    $('body').on('click', '#updateDismiss', function() {
         $('#updatebar').fadeOut();
         // Set cookie to remember dismiss decision for 1 hour.
         setCookie('updateDismiss', 'true', 1/24);
