@@ -45,14 +45,14 @@
     % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
     <div id="updatebar" style="display: none;">
         You are running an unknown version of Tautulli.<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>.
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
     % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> is available!<br />
         You are ${plexpy.COMMITS_BEHIND} commits behind.<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>.
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
     % else:
     <div id="updatebar" style="display: none;"></div>
@@ -314,13 +314,13 @@ ${next.modalIncludes()}
                 if (result.update === true) {
                     msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> is available!<br />' +
                         'You are '+ result.commits_behind + ' commits behind.<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>.';
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     $('#updatebar').html(msg).fadeIn();
                 } else if (result.update === false) {
                     showMsg('<i class="fa fa-check"></i> ' + result.message, false, true, 2000);
                 } else if (result.update === null) {
                     msg = 'You are running an unknown version of Tautulli.<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>.';
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     $('#updatebar').html(msg).fadeIn();
                 }
 
