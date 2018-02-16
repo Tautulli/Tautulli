@@ -194,6 +194,7 @@
                 var msg = result.message;
                 if (result.result == 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 2000, false);
+                    users_list_table.draw();
                 } else {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 2000, true);
                 }
