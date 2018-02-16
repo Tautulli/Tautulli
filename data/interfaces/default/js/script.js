@@ -26,7 +26,7 @@ function refreshTab() {
 
 function showMsg(msg, loader, timeout, ms, error) {
     var feedback = $("#ajaxMsg");
-    update = $("#updatebar");
+    var update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
         feedback.css("bottom", height + "px");
@@ -35,7 +35,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
-        var message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
+        message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
         feedback.css("padding", "14px 10px")
     }
     if (error) {

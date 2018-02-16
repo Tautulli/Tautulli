@@ -3234,7 +3234,8 @@ div.dataTables_info {
     color: #e9a049;
 }
 #updatebar {
-    background-color: rgba(255,255,255,0.075);
+    background-color: #444;
+    opacity: 0.95;
     color: #999999;
     font-size: 14px;
     right: 10px;
