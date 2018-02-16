@@ -3234,17 +3234,17 @@ div.dataTables_info {
     color: #e9a049;
 }
 #updatebar {
-    background-color: #444;
+    background-color: rgba(255,255,255,0.075);
     color: #999999;
     display: none;
     font-size: 14px;
     right: 10px;
-    padding: 7px 10px;
+    padding: 10px 10px;
     position: fixed;
     text-align: center;
     bottom: 10px;
     min-height: 22px;
-    width: 250px;
+    width: 400px;
     z-index: 9999;
     display: block;
 }
