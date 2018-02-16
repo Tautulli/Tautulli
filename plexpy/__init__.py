@@ -158,13 +158,6 @@ def initialize(config_file):
             except OSError as e:
                 logger.error(u"Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
-        if CONFIG.CACHE_DIR:
-            session_metadata_folder = os.path.join(CONFIG.CACHE_DIR, 'session_metadata')
-            try:
-                shutil.rmtree(session_metadata_folder, ignore_errors=True)
-            except OSError as e:
-                pass
-
         # Initialize the database
         logger.info(u"Checking if the database upgrades are required...")
         try:
