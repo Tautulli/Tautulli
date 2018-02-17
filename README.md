@@ -72,7 +72,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Feature Requests
 
-Feature requests are handled on [FeatHub](http://feathub.com/JonnyWong16/plexpy).
+Feature requests are handled on [FeatHub](https://feathub.com/Tautulli/Tautulli).
 
 1. Search the existing requests to see if your suggestion has already been submitted.
 2. If a similar request exists, give it a thumbs up (+1), or add additional comments to the request.
