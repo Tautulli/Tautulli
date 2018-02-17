@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.0.19-beta (2018-02-16)
+
+* Monitoring:
+  * Fix: Connect to Plex Cloud server without keeping it awake.
+  * Fix: Reconnect to Plex Cloud server after the server wakes up from sleeping.
+* Notifications:
+  * Fix: Don't send Plex Server Up/Down notifications when Tautulli starts up.
+  * Change: Better handling of Watched notifications.
+* UI:
+  * New: Added Plex server selection dropdown in the settings.
+  * Fix: Libraries and Users tables not refreshing properly.
+  * Change: Updated the masked info shown to guests.
+  * Change: Check for updates without refreshing to the homepage.
+* API:
+  * New: Added update_check to the API.
+  * Fix: delete_media_info_cache not deleting the cache.
+  * Change: Document "refresh" parameter for get_library_media_info.
+* Other:
+  * Fix: Show the full changelog since v2 on a fresh install.
+
+
 ## v2.0.18-beta (2018-02-12)
 
 * Notifications:
