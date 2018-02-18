@@ -51,7 +51,7 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
                         'FROM (SELECT * FROM session_history GROUP BY %s) ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % (group_by, time_range, user_cond)
 
@@ -65,7 +65,7 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "track" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS music_count ' \
                         'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % (time_range, user_cond)
 
@@ -116,7 +116,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -127,7 +127,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT strftime("%%w", datetime(started, "unixepoch", "localtime")) AS daynumber, ' \
@@ -142,10 +147,10 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY dayofweek ' \
-                        'ORDER BY daynumber' % (time_range, user_cond)
+                        'ORDER BY daynumber' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -165,7 +170,7 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "track" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS music_count ' \
                         'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY dayofweek ' \
                         'ORDER BY daynumber' % (time_range, user_cond)
 
@@ -217,7 +222,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -228,17 +233,22 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT strftime("%%H", datetime(started, "unixepoch", "localtime")) AS hourofday, ' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY hourofday ' \
-                        'ORDER BY hourofday' % (time_range, user_cond)
+                        'ORDER BY hourofday' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -250,7 +260,7 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "track" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS music_count ' \
                         'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY hourofday ' \
                         'ORDER BY hourofday' % (time_range, user_cond)
 
@@ -300,9 +310,9 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None):
+    def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None):
         import time as time
-        
+
         if not time_range.isdigit():
             time_range = '12'
 
@@ -313,17 +323,22 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) AS datestring, ' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM session_history ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
-                        'ORDER BY datestring DESC LIMIT %s' % (time_range, user_cond, time_range)
+                        'ORDER BY datestring DESC LIMIT %s' % (group_by, time_range, user_cond, time_range)
 
                 result = monitor_db.select(query)
             else:
@@ -389,7 +404,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -400,7 +415,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT platform, ' \
@@ -408,11 +428,11 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count, ' \
                         'COUNT(id) AS total_count ' \
-                        'FROM session_history ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
                         'GROUP BY platform ' \
                         'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (time_range, user_cond)
+                        'LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -426,7 +446,7 @@ class Graphs(object):
                         'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
                         'GROUP BY platform ' \
                         'ORDER BY total_duration DESC ' \
                         'LIMIT 10' % (time_range, user_cond)
@@ -458,7 +478,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -469,7 +489,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
@@ -479,13 +504,13 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count, ' \
-                        'COUNT(session_history.id) AS total_count ' \
-                        'FROM session_history ' \
-                        'JOIN users ON session_history.user_id = users.user_id ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
-                        'GROUP BY session_history.user_id ' \
+                        'COUNT(t.id) AS total_count ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN users ON t.user_id = users.user_id ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
+                        'GROUP BY t.user_id ' \
                         'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (time_range, user_cond)
+                        'LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -503,7 +528,7 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
                         'JOIN users ON session_history.user_id = users.user_id ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
                         'GROUP BY session_history.user_id ' \
                         'ORDER BY total_duration DESC ' \
                         'LIMIT 10' % (time_range, user_cond)
@@ -540,7 +565,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -551,24 +576,28 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
-                query = 'SELECT date(session_history.started, "unixepoch", "localtime") AS date_played, ' \
+                query = 'SELECT date(t.started, "unixepoch", "localtime") AS date_played, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" ' \
                         'THEN 1 ELSE 0 END) AS tc_count ' \
-                        'FROM session_history ' \
-                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN session_history_media_info ON t.id = session_history_media_info.id ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR ' \
-                        'session_history.media_type = "track") %s' \
+                        '(t.media_type = "episode" OR t.media_type = "movie" OR t.media_type = "track") %s' \
                         'GROUP BY date_played ' \
-                        'ORDER BY started ASC' % (time_range, user_cond)
+                        'ORDER BY started ASC' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -584,7 +613,7 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS tc_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR ' \
                         'session_history.media_type = "track") %s' \
@@ -638,7 +667,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -649,7 +678,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT session_history_media_info.video_resolution AS resolution, ' \
@@ -659,15 +693,15 @@ class Graphs(object):
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" ' \
                         'THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(session_history.id) AS total_count ' \
-                        'FROM session_history ' \
-                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'COUNT(t.id) AS total_count ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN session_history_media_info ON t.id = session_history_media_info.id ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie") %s' \
+                        '(t.media_type = "episode" OR t.media_type = "movie") %s' \
                         'GROUP BY resolution ' \
                         'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (time_range, user_cond)
+                        'LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -685,7 +719,7 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie") %s' \
                         'GROUP BY resolution ' \
@@ -723,7 +757,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -734,7 +768,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
@@ -756,15 +795,15 @@ class Graphs(object):
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" '\
                         'THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(session_history.id) AS total_count ' \
-                        'FROM session_history ' \
-                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'COUNT(t.id) AS total_count ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN session_history_media_info ON t.id = session_history_media_info.id ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie") %s' \
+                        '(t.media_type = "episode" OR t.media_type = "movie") %s' \
                         'GROUP BY resolution ' \
                         'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (time_range, user_cond)
+                        'LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -794,7 +833,7 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie") %s' \
                         'GROUP BY resolution ' \
@@ -832,7 +871,7 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -843,24 +882,29 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
-                query = 'SELECT session_history.platform AS platform, ' \
+                query = 'SELECT t.platform AS platform, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" ' \
                         'THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(session_history.id) AS total_count ' \
-                        'FROM session_history ' \
-                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                        'COUNT(t.id) AS total_count ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN session_history_media_info ON t.id = session_history_media_info.id ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
+                        '(t.media_type = "episode" OR t.media_type = "movie" OR t.media_type = "track") %s' \
                         'GROUP BY platform ' \
-                        'ORDER BY total_count DESC LIMIT 10' % (time_range, user_cond)
+                        'ORDER BY total_count DESC LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -879,7 +923,7 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
                         'GROUP BY platform ' \
@@ -913,7 +957,7 @@ class Graphs(object):
 
         return output
 
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -924,7 +968,12 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
@@ -937,15 +986,15 @@ class Graphs(object):
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" ' \
                         'THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(session_history.id) AS total_count ' \
-                        'FROM session_history ' \
-                        'JOIN users ON session_history.user_id = users.user_id ' \
-                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                        'COUNT(t.id) AS total_count ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) AS t ' \
+                        'JOIN users ON t.user_id = users.user_id ' \
+                        'JOIN session_history_media_info ON t.id = session_history_media_info.id ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
+                        '(t.media_type = "episode" OR t.media_type = "movie" OR t.media_type = "track") %s' \
                         'GROUP BY username ' \
-                        'ORDER BY total_count DESC LIMIT 10' % (time_range, user_cond)
+                        'ORDER BY total_count DESC LIMIT 10' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -968,7 +1017,7 @@ class Graphs(object):
                         'FROM session_history ' \
                         'JOIN users ON session_history.user_id = users.user_id ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
-                        'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
                         'GROUP BY username ' \
