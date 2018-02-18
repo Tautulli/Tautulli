@@ -2697,8 +2697,8 @@ class WebInterface(object):
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
-            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE or \
+        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
+            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
             kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             server_changed = True
 
