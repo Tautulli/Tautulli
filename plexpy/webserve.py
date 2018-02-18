@@ -1807,6 +1807,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
+                grouping (int):         0 or 1
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
