@@ -27,7 +27,7 @@ class Graphs(object):
     def __init__(self):
         pass
 
-    def get_total_plays_per_day(self, time_range='30', y_axis='plays', user_id=None):
+    def get_total_plays_per_day(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -38,17 +38,22 @@ class Graphs(object):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
-        
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        group_by = 'reference_id' if grouping else 'id'
+
         try:    
             if y_axis == 'plays':
                 query = 'SELECT date(started, "unixepoch", "localtime") AS date_played, ' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM session_history ' \
+                        'FROM (SELECT * FROM session_history GROUP BY %s) ' \
                         'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY date_played ' \
-                        'ORDER BY started ASC' % (time_range, user_cond)
+                        'ORDER BY started ASC' % (group_by, time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:

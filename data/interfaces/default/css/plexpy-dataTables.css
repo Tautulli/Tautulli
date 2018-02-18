@@ -359,11 +359,13 @@ table.display tr.shown + tr:hover {
 }
 table.display tr.shown + tr:hover a,
 table.display tr.shown + tr td:hover a,
+table.display tr.shown + tr td:hover a .fa,
 table.display tr.shown + tr .pagination > .active > a,
 table.display tr.shown + tr .pagination > .active > a:hover {
     color: #fff;
 }
 table.display tr.shown + tr table[id^='history_child'] td:hover a, 
+table.display tr.shown + tr table[id^='history_child'] td:hover a .fa,
 table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
     color: #cc7b19;

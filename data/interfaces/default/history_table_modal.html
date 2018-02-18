@@ -5,7 +5,15 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
             <h4 class="modal-title" id="myModalLabel">
                 <strong><span id="modal_header_ip_address">
+                    % if data.get('media_type'):
+                    <% h = {'episode': 'TV Show', 'track': 'Music'} %>
+                    <i class="fa fa-history"></i> ${h.get(data['media_type'], data['media_type'].title())} History for <span id="date-header">${data['start_date']}</span>
+                    % elif data.get('transcode_decision'):
+                    <% h = {'copy': 'Direct Stream'} %>
+                    <i class="fa fa-history"></i> ${h.get(data['transcode_decision'], data['transcode_decision'].title())} History for <span id="date-header">${data['start_date']}</span>
+                    % else:
                     <i class="fa fa-history"></i> History for <span id="date-header">${data['start_date']}</span>
+                    % endif
                 </span></strong>
             </h4>
         </div>
@@ -13,11 +21,18 @@
             <table class="display history_table" id="history_table_modal" width="100%">
                 <thead>
                 <tr>
-                    <th align="left" id="started">Started</th>
-                    <th align="left" id="stopped">Stopped</th>
+                    <th align="left" id="delete_row">Delete</th>
+                    <th align="left" id="date">Date</th>
                     <th align="left" id="friendly_name">User</th>
-                    <th align="left" id="player">Player</th>
+                    <th align="left" id="ip_address">IP Address</th>
+                    <th align="left" id="platform">Platform</th>
+                    <th align="left" id="device">Player</th>
                     <th align="left" id="title">Title</th>
+                    <th align="left" id="started">Started</th>
+                    <th align="left" id="paused_counter">Paused</th>
+                    <th align="left" id="stopped">Stopped</th>
+                    <th align="left" id="duration">Duration</th>
+                    <th align="left" id="percent_complete"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -28,28 +43,31 @@
     </div>
 </div>
 
-<script src="${http_root}js/tables/history_table_modal.js${cache_param}"></script>
+<script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script>
     $(document).ready(function() {
         $('#date-header').html(moment('${data["start_date"]}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
-        history_table_modal_options.ajax = {
+        history_table_options.ajax = {
             url: 'get_history',
-            type: 'post',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify(d),
-                    grouping: false,
                     user_id: "${data['user_id']}",
                     start_date: "${data['start_date']}",
                     media_type: "${data.get('media_type')}",
                     transcode_decision: "${data.get('transcode_decision')}"
                 };
             }
-        }
+        };
 
-        history_table = $('#history_table_modal').DataTable(history_table_modal_options);
-        
+        history_table = $('#history_table_modal').DataTable(history_table_options);
+        history_table.columns([0, 3, 4, 8, 10, 11]).visible(false);
+
         clearSearchButton('history_table_modal', history_table);
+
+        $('#history-modal').on('shown.bs.modal', function() {
+            history_table.columns.adjust().draw();
+        });
     });
 </script>
 % else:

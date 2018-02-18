@@ -1799,7 +1799,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by date.
 
             ```
@@ -1823,8 +1823,13 @@ class WebInterface(object):
                      }
             ```
         """
+        if grouping and str(grouping).isdigit():
+            grouping = int(grouping)
+        elif grouping == 'false':
+            grouping = 0
+
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis, grouping=grouping)
 
         if result:
             return result
