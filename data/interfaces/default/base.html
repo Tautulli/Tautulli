@@ -57,7 +57,7 @@
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> of Tautulli is available!<br />
-        You are ${plexpy.COMMITS_BEHIND} commits behind.<br />
+        You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
     % else:
@@ -327,7 +327,7 @@ ${next.modalIncludes()}
                     $('#updatebar').html(msg).fadeIn();
                 } else if (result.update === true && result.release === false) {
                     msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
-                        'You are '+ result.commits_behind + ' commits behind.<br />' +
+                        'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />' +
                         '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     $('#updatebar').html(msg).fadeIn();
                 } else if (result.update === false) {
