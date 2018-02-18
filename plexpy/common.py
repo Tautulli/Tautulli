@@ -471,7 +471,7 @@ NOTIFICATION_PARAMETERS = [
         'parameters': [
              {'name': 'Update Version', 'type': 'str', 'value': 'update_version', 'description': 'The available update version for your Plex Server.'},
              {'name': 'Update Url', 'type': 'str', 'value': 'update_url', 'description': 'The download URL for the available update.'},
-             {'name': 'Update Release Date', 'str': 'int', 'value': 'update_release_date', 'description': 'The release date of the available update.'},
+             {'name': 'Update Release Date', 'type': 'str', 'value': 'update_release_date', 'description': 'The release date of the available update.'},
              {'name': 'Update Channel', 'type': 'str', 'value': 'update_channel', 'description': 'The update channel.', 'example': 'Public or Plex Pass'},
              {'name': 'Update Platform', 'type': 'str', 'value': 'update_platform', 'description': 'The platform of your Plex Server.'},
              {'name': 'Update Distro', 'type': 'str', 'value': 'update_distro', 'description': 'The distro of your Plex Server.'},
