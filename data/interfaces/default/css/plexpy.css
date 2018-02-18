@@ -3146,7 +3146,7 @@ div.dataTables_info {
     border-radius: 2px;
 }
 .history-thumbnail-popover {
-    z-index: 2;
+    z-index: 2000;
     padding: 0;
     border: 0;
 }

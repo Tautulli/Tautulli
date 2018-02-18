@@ -290,7 +290,9 @@ history_table_options = {
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
-        showMsg(msg, false, false, 0)
+        showMsg(msg, false, false, 0);
+        $('[data-toggle="tooltip"]').tooltip('destroy');
+        $('[data-toggle="popover"]').popover('destroy');
     },
     "rowCallback": function (row, rowData, rowIndex) {
         if (rowData['group_count'] == 1) {
