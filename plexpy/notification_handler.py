@@ -907,6 +907,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'update_changelog_fixed': pms_download_info['changelog_fixed'],
         # Tautulli update parameters
         'tautulli_update_version': plexpy_download_info['tag_name'],
+        'tautulli_update_release_url': plexpy_download_info['html_url'],
         'tautulli_update_tar': plexpy_download_info['tarball_url'],
         'tautulli_update_zip': plexpy_download_info['zipball_url'],
         'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),

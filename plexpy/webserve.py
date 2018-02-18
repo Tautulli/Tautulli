@@ -3543,14 +3543,30 @@ class WebInterface(object):
 
         if not plexpy.CURRENT_VERSION:
             return {'result': 'error',
-                    'message': 'You are running an unknown version of Tautulli.',
-                    'update': None}
+                    'update': None,
+                    'message': 'You are running an unknown version of Tautulli.'
+                    }
 
-        elif plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
-                plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+        elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
+                plexpy.common.VERSION_NUMBER != plexpy.LATEST_RELEASE:
             return {'result': 'success',
                     'update': True,
-                    'message': 'An update for Tautulli is available.',
+                    'release': True,
+                    'message': 'A new release (%) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                    'latest_release': plexpy.LATEST_RELEASE,
+                    'release_url': helpers.anon_url(
+                        'https://github.com/%s/%s/releases/tag/%s'
+                        % (plexpy.CONFIG.GIT_USER,
+                           plexpy.CONFIG.GIT_REPO,
+                           plexpy.LATEST_RELEASE))
+                    }
+
+        elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
+                plexpy.INSTALL_TYPE != 'win':
+            return {'result': 'success',
+                    'update': True,
+                    'release': False,
+                    'message': 'A newer version of Tautulli is available.',
                     'latest_version': plexpy.LATEST_VERSION,
                     'commits_behind': plexpy.COMMITS_BEHIND,
                     'compare_url': helpers.anon_url(
@@ -3564,7 +3580,8 @@ class WebInterface(object):
         else:
             return {'result': 'success',
                     'update': False,
-                    'message': 'Tautulli is up to date.'}
+                    'message': 'Tautulli is up to date.'
+                    }
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

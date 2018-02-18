@@ -196,6 +196,8 @@ def checkGithub(auto_update=False):
         else:
             release = releases[0]
 
+        plexpy.LATEST_RELEASE = release['tag_name']
+
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
                                  'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
