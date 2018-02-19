@@ -270,7 +270,7 @@ history_table_options = {
         });
 
         if ($('#row-edit-mode').hasClass('active')) {
-            $('.delete-control').each(function () {
+            $('.history_table .delete-control').each(function () {
                 $(this).removeClass('hidden');
             });
         }
@@ -466,7 +466,7 @@ function childTableOptions(rowData) {
         });
 
         if ($('#row-edit-mode').hasClass('active')) {
-            $('.delete-control').each(function () {
+            $('.history_table .delete-control').each(function () {
                 $(this).removeClass('hidden');
             });
         }

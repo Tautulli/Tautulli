@@ -214,10 +214,10 @@ DOCUMENTATION :: END
                                         </div>
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
-                                            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting edit mode.</div>
+                                            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting delete mode.</div>
                                             <div class="btn-group">
                                                 <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="sync-row-edit-mode">
-                                                    <i class="fa fa-pencil"></i> Edit mode
+                                                    <i class="fa fa-trash-o"></i> Delete mode
                                                 </button>&nbsp
                                             </div>
                                             % endif
@@ -231,6 +231,7 @@ DOCUMENTATION :: END
                                         <table class="display sync_table" id="sync_table-UID-${data['user_id']}" width="100%">
                                             <thead>
                                                 <tr>
+                                                    <th align="left" id="delete_row">Delete</th>
                                                     <th align="left" id="state">State</th>
                                                     <th align="left" id="username">Username</th>
                                                     <th align="left" id="sync_title">Title</th>
@@ -529,14 +530,14 @@ DOCUMENTATION :: END
                 });
             }
 
-            $('.delete-control').each(function () {
+            $('.history_table .delete-control').each(function () {
                 $(this).addClass('hidden');
                 $('#row-edit-mode-alert').fadeOut(200);
             });
 
         } else {
             history_to_delete = [];
-            $('.delete-control').each(function() {
+            $('.history_table .delete-control').each(function() {
                 $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                 $(this).removeClass('hidden');
             });
@@ -571,14 +572,14 @@ DOCUMENTATION :: END
                 });
             }
 
-            $('.delete-control').each(function () {
+            $('.sync_table .delete-control').each(function () {
                 $(this).addClass('hidden');
                 $('#sync-row-edit-mode-alert').fadeOut(200);
             });
 
         } else {
             syncs_to_delete = [];
-            $('.delete-control').each(function() {
+            $('.sync_table .delete-control').each(function() {
                 $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                 $(this).removeClass('hidden');
             });

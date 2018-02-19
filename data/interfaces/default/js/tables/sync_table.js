@@ -139,6 +139,13 @@ sync_table_options = {
         // $('html,body').scrollTop(0);
 
         $('#ajaxMsg').fadeOut();
+
+        if ($('#sync-row-edit-mode').hasClass('active')) {
+            $('.sync_table .delete-control').each(function () {
+                $(this).removeClass('hidden');
+            });
+        }
+
     },
     "preDrawCallback": function (settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";

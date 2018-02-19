@@ -20,10 +20,10 @@
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting edit mode.</div>
+            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting delete mode.</div>
             <div class="btn-group">
-                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                    <i class="fa fa-pencil"></i> Edit mode
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="sync-row-edit-mode">
+                    <i class="fa fa-trash-o"></i> Delete mode
                 </button>&nbsp
             </div>
             % endif
@@ -138,8 +138,8 @@
         loadSyncTable(selected_user_id);
 
         % if _session['user_group'] == 'admin':
-        $('#row-edit-mode').on('click', function() {
-            $('#row-edit-mode-alert').fadeIn(200);
+        $('#sync-row-edit-mode').on('click', function() {
+            $('#sync-row-edit-mode-alert').fadeIn(200);
 
             if ($(this).hasClass('active')) {
                 if (syncs_to_delete.length > 0) {
@@ -167,7 +167,7 @@
 
                 $('.delete-control').each(function () {
                     $(this).addClass('hidden');
-                    $('#row-edit-mode-alert').fadeOut(200);
+                    $('#sync-row-edit-mode-alert').fadeOut(200);
                 });
 
             } else {
