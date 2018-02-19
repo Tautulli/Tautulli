@@ -2395,6 +2395,9 @@ a .library-user-instance-box:hover {
     margin-top: 9px;
     width: 175px;
 }
+.home-padded-header .button-bar {
+    float: left;
+}
 .home-platforms {
 }
 .home-platforms ul,
@@ -3314,6 +3317,44 @@ pre::-webkit-scrollbar-thumb {
     }
     .dashboard-stats-instance {
         width: 100%;
+    }
+    .header-bar {
+        display: block;
+        float: none !important;
+    }
+    .button-bar {
+        float: left !important;
+        clear: both;
+        margin-top: 15px;
+    }
+    .button-bar > div,
+    .button-bar > button,
+    .button-bar > span {
+        float: left !important;
+        clear: both !important;
+        margin-bottom: 10px;
+    }
+    .button-bar > div > button.btn {
+        float: left !important;
+        clear: both !important;
+    }
+    .home-padded-header .button-bar {
+        margin-top: 10px;
+        margin-bottom: 15px;
+    }
+}
+@media only screen
+  and (min-device-width: 800px)
+  and (max-device-width: 1024px) {
+    .button-bar {
+        float: right !important;
+    }
+    .button-bar > div > button.btn {
+        float: left !important;
+        clear: both !important;
+    }
+    .home-padded-header .button-bar {
+        float: left !important;
     }
 }
 #search_form {
