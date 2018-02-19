@@ -3318,6 +3318,10 @@ pre::-webkit-scrollbar-thumb {
     .dashboard-stats-instance {
         width: 100%;
     }
+}
+@media only screen
+  and (min-device-width: 300px)
+  and (max-device-width: 740px) {
     .header-bar {
         display: block;
         float: none !important;
@@ -3344,7 +3348,7 @@ pre::-webkit-scrollbar-thumb {
     }
 }
 @media only screen
-  and (min-device-width: 800px)
+  and (min-device-width: 740px)
   and (max-device-width: 1024px) {
     .button-bar {
         float: right !important;
