@@ -2758,8 +2758,7 @@ class PUSHOVER(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'pushover_incl_poster',
-                          'description': 'Include a poster with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                          'description': 'Include a poster with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
