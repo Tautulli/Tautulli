@@ -1835,7 +1835,7 @@ class HIPCHAT(Notifier):
 
         headers = {'Content-type': 'application/json'}
 
-        return self.make_request(self.config['hook'], json=data)
+        return self.make_request(self.config['hook'], headers=headers, json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Hipchat Custom Integrations Full URL',
