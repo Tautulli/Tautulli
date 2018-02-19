@@ -113,7 +113,7 @@ login_log_table_options = {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
         showMsg(msg, false, false, 0)
     }
-}
+};
 
 $('.login_log_table').on('click', '> tbody > tr > td.modal-control-ip', function () {
     var tr = $(this).closest('tr');

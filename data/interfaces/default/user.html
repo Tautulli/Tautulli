@@ -439,7 +439,7 @@ DOCUMENTATION :: END
         });
     }
 
-    function loadSyncTable(user_id) {
+    function loadSyncTable() {
         // Build user sync table
         sync_table_options.ajax = {
              url: 'get_sync?user_id=' + user_id
@@ -475,7 +475,10 @@ DOCUMENTATION :: END
         login_log_table_options.ajax = {
             url: 'get_user_logins',
             data: function(d) {
-                d.user_id = user_id;
+                return {
+                    json_data: JSON.stringify(d),
+                    user_id: user_id
+                };
             }
         };
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
