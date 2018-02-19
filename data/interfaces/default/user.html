@@ -264,6 +264,11 @@ DOCUMENTATION :: END
                                                 </strong>
                                             </span>
                                         </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-ip-address-button" id="refresh-ip-address-list"><i class="fa fa-refresh"></i> Refresh IP addresses</button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="table-card-back">
                                         <table class="display user_ip_table" id="user_ip_table-UID-${data['user_id']}" width="100%">
@@ -296,6 +301,9 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-login-button" id="refresh-login-list"><i class="fa fa-refresh"></i> Refresh logins</button>
+                                            </div>
                                             <div class="btn-group colvis-button-bar" id="button-bar-login"></div>
                                         </div>
                                     </div>
@@ -310,6 +318,7 @@ DOCUMENTATION :: END
                                                     <th align="left" id="host">Host</th>
                                                     <th align="left" id="os">Operating System</th>
                                                     <th align="left" id="browser">Browser</th>
+                                                    <th align="left" id="login_success"></th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -400,11 +409,6 @@ DOCUMENTATION :: END
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
     });
 
-    $('a[href="#tabs-profile"]').on('shown.bs.tab', function() {
-        var media_type = null;
-        loadHistoryTable(media_type);
-    });
-
     function loadHistoryTable(media_type) {
         // Build watch history table
         history_table_options.ajax = {
@@ -417,7 +421,7 @@ DOCUMENTATION :: END
                     media_type: media_type
                 };
             }
-        }
+        };
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
         history_table.column(2).visible(false);
 
@@ -435,26 +439,21 @@ DOCUMENTATION :: END
         });
     }
 
-    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
-        var media_type = null;
-        loadHistoryTable(media_type);
-    });
-
-    $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
+    function loadSyncTable(user_id) {
         // Build user sync table
         sync_table_options.ajax = {
              url: 'get_sync?user_id=' + user_id
-        }
+        };
         sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
-        sync_table.column(1).visible(false);
+        sync_table.column(2).visible(false);
 
-        var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
+        var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0] } );
         $( colvis_sync.button() ).appendTo('#button-bar-sync');
 
         clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
-    });
+    }
 
-    $('a[href="#tabs-ipaddresses"]').on('shown.bs.tab', function() {
+    function loadIPAddressTable() {
         // Build user IP table
         user_ip_table_options.ajax = {
             url: 'get_user_ips',
@@ -465,27 +464,68 @@ DOCUMENTATION :: END
                     user_id: user_id
                 };
             }
-        }
+        };
         user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
 
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
-    });
+    }
 
-    $('a[href="#tabs-tautullilogins"]').on('shown.bs.tab', function() {
+    function loadLoginTable() {
         // Build user login table
         login_log_table_options.ajax = {
             url: 'get_user_logins',
             data: function(d) {
                 d.user_id = user_id;
             }
-        }
+        };
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
         login_log_table.columns([1, 2]).visible(false);
 
-        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
+        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7] } );
         $( colvis_login.button() ).appendTo('#button-bar-login');
 
         clearSearchButton('login_log_table-UID-${data["user_id"]}', login_log_table);
+    }
+
+    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
+        if (typeof(history_table) === 'undefined') {
+            var media_type = null;
+            loadHistoryTable(media_type);
+        }
+    });
+
+    $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
+        if (typeof(sync_table) === 'undefined') {
+            loadSyncTable(user_id);
+        }
+    });
+
+    $('a[href="#tabs-ipaddresses"]').on('shown.bs.tab', function() {
+        if (typeof(user_ip_table) === 'undefined') {
+            loadIPAddressTable(user_id);
+        }
+    });
+
+    $('a[href="#tabs-tautullilogins"]').on('shown.bs.tab', function() {
+        if (typeof(login_log_table) === 'undefined') {
+            loadLoginTable(user_id);
+        }
+    });
+
+    $("#refresh-history-list").click(function () {
+        history_table.draw();
+    });
+
+    $("#refresh-syncs-list").click(function() {
+        sync_table.ajax.reload();
+    });
+
+    $("#refresh-ip-address-list").click(function () {
+        user_ip_table.draw();
+    });
+
+    $("#refresh-login-list").click(function () {
+        login_log_table.draw();
     });
 
     % if _session['user_group'] == 'admin':
@@ -586,14 +626,6 @@ DOCUMENTATION :: END
         }
     });
     % endif
-
-    $("#refresh-history-list").click(function () {
-        history_table.draw();
-    });
-
-    $("#refresh-syncs-list").click(function() {
-        sync_table.ajax.reload();
-    });
 
     function recentlyWatched() {
         // Populate recently watched
