@@ -2639,6 +2639,7 @@ class PUSHOVER(Notifier):
                        'priority': 0,
                        'sound': '',
                        'incl_url': 1,
+                       'incl_poster': 0,
                        'movie_provider': '',
                        'tv_provider': '',
                        'music_provider': ''
@@ -2651,7 +2652,12 @@ class PUSHOVER(Notifier):
                 'message': body.encode("utf-8"),
                 'sound': self.config['sound'],
                 'html': self.config['html_support'],
-                'priority': self.config['priority']}
+                'priority': self.config['priority'],
+                'timestamp': int(time.time())}
+
+        headers = {'Content-type': 'application/x-www-form-urlencoded'}
+
+        files = {}
 
         if self.config['incl_url'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
@@ -2672,9 +2678,23 @@ class PUSHOVER(Notifier):
             data['url'] = provider_link
             data['url_title'] = caption
 
-        headers = {'Content-type': 'application/x-www-form-urlencoded'}
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-        return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data)
+            # Retrieve the poster from Plex
+            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
+            if result and result[0]:
+                poster_content = result[0]
+            else:
+                poster_content = ''
+
+            if poster_content:
+                title = pretty_metadata.get_title()
+                files = {'attachment': (title, poster_content, 'image/jpeg')}
+                headers = {}
+
+        return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
     def get_sounds(self):
         if self.config['api_token']:
@@ -2733,6 +2753,13 @@ class PUSHOVER(Notifier):
                           'value': self.config['incl_url'],
                           'name': 'pushover_incl_url',
                           'description': 'Include a supplementary URL with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'pushover_incl_poster',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
