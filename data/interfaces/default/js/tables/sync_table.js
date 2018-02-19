@@ -146,7 +146,7 @@ sync_table_options = {
     }
 };
 
-$('#sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
+$('.sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
     var tr = $(this).parents('tr');
     var row = sync_table.row(tr);
     var rowData = row.data();

@@ -213,11 +213,22 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting edit mode.</div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="sync-row-edit-mode">
+                                                    <i class="fa fa-pencil"></i> Edit mode
+                                                </button>&nbsp
+                                            </div>
+                                            % endif
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-syncs-button" id="refresh-syncs-list"><i class="fa fa-refresh"></i> Refresh synced items</button>
+                                            </div>
                                             <div class="btn-group colvis-button-bar" id="button-bar-sync"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display" id="sync_table-UID-${data['user_id']}" width="100%">
+                                        <table class="display sync_table" id="sync_table-UID-${data['user_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="state">State</th>
@@ -351,7 +362,7 @@ DOCUMENTATION :: END
                 <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
             </div>
             <div class="modal-body" style="text-align: center;">
-                <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
+                <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> <span id="deleteType"></span> item(s)?</p>
                 <p>This is permanent and cannot be undone!</p>
             </div>
             <div class="modal-footer">
@@ -431,10 +442,7 @@ DOCUMENTATION :: END
     $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
         // Build user sync table
         sync_table_options.ajax = {
-            url: 'get_sync',
-            data: function(d) {
-                d.user_id = user_id;
-            }
+             url: 'get_sync?user_id=' + user_id
         }
         sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
         sync_table.column(1).visible(false);
@@ -502,6 +510,7 @@ DOCUMENTATION :: END
         if ($(this).hasClass('active')) {
             if (history_to_delete.length > 0) {
                 $('#deleteCount').text(history_to_delete.length);
+                $('#deleteType').text('history');
                 $('#confirm-modal-delete').modal();
                 $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                     history_to_delete.forEach(function(row, idx) {
@@ -533,10 +542,56 @@ DOCUMENTATION :: END
             });
         }
     });
+
+    $('#sync-row-edit-mode').on('click', function() {
+        $('#sync-row-edit-mode-alert').fadeIn(200);
+
+        if ($(this).hasClass('active')) {
+            if (syncs_to_delete.length > 0) {
+                $('#deleteCount').text(syncs_to_delete.length);
+                $('#deleteType').text('sync');
+                $('#confirm-modal-delete').modal();
+                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
+                    syncs_to_delete.forEach(function(row, idx) {
+                        $.ajax({
+                            url: 'delete_sync_rows',
+                            type: 'POST',
+                            data: {
+                                client_id: row.client_id,
+                                sync_id: row.sync_id
+                            },
+                            async: true,
+                            success: function (data) {
+                                var msg = "Sync deleted";
+                                showMsg(msg, false, true, 2000);
+                            }
+                        });
+                    });
+                    sync_table.ajax.reload();
+                });
+            }
+
+            $('.delete-control').each(function () {
+                $(this).addClass('hidden');
+                $('#sync-row-edit-mode-alert').fadeOut(200);
+            });
+
+        } else {
+            syncs_to_delete = [];
+            $('.delete-control').each(function() {
+                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                $(this).removeClass('hidden');
+            });
+        }
+    });
     % endif
 
     $("#refresh-history-list").click(function () {
         history_table.draw();
+    });
+
+    $("#refresh-syncs-list").click(function() {
+        sync_table.ajax.reload();
     });
 
     function recentlyWatched() {
