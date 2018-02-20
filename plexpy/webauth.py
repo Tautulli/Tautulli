@@ -31,6 +31,7 @@ from plexpy.database import MonitorDatabase
 from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
 
+import urllib2 # Used for AuthEndpoints.
 
 SESSION_KEY = '_cp_username'
 
@@ -38,9 +39,33 @@ def user_login(username=None, password=None):
     if not username or not password:
         return None
 
-    # Try to login to Plex.tv to check if the user has a vaild account
-    plex_tv = PlexTV(username=username, password=password)
-    plex_user = plex_tv.get_token()
+    if username == 'PlexAuth' and password == 'PlexAuth':
+        logger.debug(u"Tautulli PlexAuth :: Trying to auth user using PlexAuth.")
+        try:
+            phpSessionID = cherrypy.request.cookie[plexpy.CONFIG.AUTH_SSO_COOKIE].value
+        except:
+            logger.debug(u"Tautulli PlexAuth :: Could not find the specified cookie.")
+        logger.debug(u"Tautulli PlexAuth :: Session id detected as: '%s'" % phpSessionID)
+        PlexAuth = plexpy.CONFIG.AUTH_ENDPOINT + "&session=" + phpSessionID
+        uinfo = urllib2.urlopen(PlexAuth) #URL for getting plexpy info from PlexAuth.
+        data = uinfo.read(500)
+        data = data.split("\n")
+        uinfo.close()
+        claimed_user = []
+        for line in data:
+            claimed_user.append(line)
+        PlexAuth = True
+        #Set all details we wish to override here.
+        username = claimed_user[3]
+        plex_user = {'auth_token': claimed_user[1],
+                     'user_id': claimed_user[0]
+                     }
+
+    if not plex_user:
+        # Try to login to Plex.tv to check if the user has a vaild account
+        plex_tv = PlexTV(username=username, password=password)
+        plex_user = plex_tv.get_token()
+
     if plex_user:
         user_token = plex_user['auth_token']
         user_id = plex_user['user_id']
@@ -54,7 +79,9 @@ def user_login(username=None, password=None):
             return None
         elif not user_details['allow_guest'] or user_details['deleted_user']:
             # Guest access is disabled or the user is deleted.
-            return None
+            # Only deny access if the user wasn't authed using PlexAuth
+            if not PlexAuth:
+                return None
 
         # The user is in the database, and guest access is enabled, so try to retrieve a server token.
         # If a server token is returned, then the user is a valid friend of the server.
@@ -93,6 +120,9 @@ def check_credentials(username, password, admin_login='0'):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
+    if username == 'PlexAuth' and password == 'PlexAuth':
+        #UN and PW have been detected as PlexAuth. This is how we will tell its a SSO login.
+        logger.debug(u"Tautulli PlexAuth :: PlexAuth login attempt detected.")
     if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
         username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
         return True, u'admin'
@@ -214,7 +244,15 @@ class AuthController(object):
 
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
-        return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
+        if msg == "" and username == "":
+            if plexpy.CONFIG.AUTH_ENDPOINT and plexpy.CONFIG.AUTH_SSO_COOKIE:
+                return self.login(username='PlexAuth', password='PlexAuth', remember_me='1')
+        else:
+            logger.debug(u"I serve you... the login form.")
+            if (username == 'PlexAuth'):
+                username = ""
+                msg = "SSO Failed. Please login manually."
+            return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
     
     @cherrypy.expose
     def index(self):
@@ -231,6 +269,24 @@ class AuthController(object):
         (vaild_login, user_group) = check_credentials(username, password, admin_login)
 
         if vaild_login:
+            if username == 'PlexAuth':
+                logger.debug(
+                    u"Tautulli PlexAuth :: Successful authentication with PlexAuth. Change values to claimed user.")
+                try:
+                    phpSessionID = cherrypy.request.cookie[plexpy.CONFIG.AUTH_SSO_COOKIE].value
+                except:
+                    logger.debug(u"Tautulli PlexAuth :: Could not find the specified cookie.")
+                PlexAuth = plexpy.CONFIG.AUTH_ENDPOINT + "&session=" + phpSessionID
+                uinfo = urllib2.urlopen(PlexAuth)  # URL for getting plexpy info from PlexAuth.
+                data = uinfo.read(500)
+                data = data.split("\n")
+                uinfo.close()
+                claimed_user = []
+                for line in data:
+                    claimed_user.append(line)
+                # Set all details we wish to override here.
+                username = claimed_user[3]
+                user_group = claimed_user[2]
             if user_group == 'guest':
                 if re.match(r"[^@]+@[^@]+\.[^@]+", username):
                     user_details = Users().get_details(email=username)
@@ -239,6 +295,7 @@ class AuthController(object):
 
                 user_id = user_details['user_id']
             else:
+                username = plexpy.CONFIG.HTTP_USERNAME
                 user_id = None
 
             expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
@@ -249,7 +306,10 @@ class AuthController(object):
                                              'user_group': user_group,
                                              'expiry': expiry}
 
-            self.on_login(user_id, username, user_group)
+            if PlexAuth:
+                self.on_login(claimed_user[0], claimed_user[3], claimed_user[2])
+            else:
+                self.on_login(user_id, username, user_group)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':

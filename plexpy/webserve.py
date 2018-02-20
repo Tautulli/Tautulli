@@ -2530,6 +2530,8 @@ class WebInterface(object):
             "allow_guest_access": checked(plexpy.CONFIG.ALLOW_GUEST_ACCESS),
             "history_table_activity": checked(plexpy.CONFIG.HISTORY_TABLE_ACTIVITY),
             "http_basic_auth": checked(plexpy.CONFIG.HTTP_BASIC_AUTH),
+            "auth_endpoint": plexpy.CONFIG.AUTH_ENDPOINT,
+            "auth_sso_cookie": plexpy.CONFIG.AUTH_SSO_COOKIE,
             "http_hash_password": checked(plexpy.CONFIG.HTTP_HASH_PASSWORD),
             "http_hashed_password": plexpy.CONFIG.HTTP_HASHED_PASSWORD,
             "http_host": plexpy.CONFIG.HTTP_HOST,

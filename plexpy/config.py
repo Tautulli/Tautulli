@@ -216,6 +216,8 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
     'HTTP_BASIC_AUTH': (int, 'General', 0),
+    'AUTH_ENDPOINT': (str, 'General', 'http://localhost:8087/auth?info=plexpy'),
+    'AUTH_SSO_COOKIE': (str, 'General', 'PlexAuth-SID'),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
     'HTTP_HASH_PASSWORD': (int, 'General', 0),
     'HTTP_HASHED_PASSWORD': (int, 'General', 0),

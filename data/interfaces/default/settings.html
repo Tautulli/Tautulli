@@ -477,6 +477,29 @@
                             <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
                         </div>
 
+                        <div class="padded-header">
+                            <h3>Single Sign On</h3>
+                        </div>
+                        <p class="help-block">Allow Tautulli to be logged in via SSO. You will need to provide an SSO endpoint that responds with the correct information like PlexAuth. For this to work you will also need to enable 'Guest Access'.</p>
+                        <div class="form-group">
+                            <label for="auth_endpoint">Auth Provider Endpoint</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control auth-settings" id="auth_endpoint" name="auth_endpoint" value="${config['auth_endpoint']}" size="255">
+                                </div>
+                            </div>
+                            <p class="help-block">Auth Provider Endpoint, url of PlexAuth or similar. The session id from the cookie specified below will be appended to this url eg (http://localhost:8087/auth?info=plexpy&session=XXX). Leave empty to disable.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth_sso_cookie">SSO Cookie</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control auth-settings" id="auth_sso_cookie" name="auth_sso_cookie" value="${config['auth_sso_cookie']}" size="255">
+                                </div>
+                            </div>
+                            <p class="help-block">Auth provider cookie. The cookie that the Auth provider needs to determine your session id. Leave empty to disable.</p>
+                        </div>
+
 
                         <div class="padded-header">
                             <h3>Guest Access</h3>
