@@ -217,7 +217,8 @@ DOCUMENTATION :: END
                 $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
                 $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
             } else {
-                $('#stats-background-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(images/' + fallback + '.png)');
             }
         }
     }
