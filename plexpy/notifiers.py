@@ -417,7 +417,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
                                % (', '.join(notify_actions), where), args=args)
-    
+
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
@@ -892,26 +892,30 @@ class ANDROIDAPP(Notifier):
         if not CRYPTODOME:
             config_option.append({
                 'label': 'Warning',
-                'description': '<strong>The PyCryptodome library is missing. ' \
-                    'The content of your notifications will be sent unencrypted!</strong><br>' \
-                    'Please install the library to encrypt the notification contents. ' \
-                    'Instructions can be found in the ' \
-                    '<a href="' + helpers.anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
-                                                   % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.',
+                'description': '<strong>The PyCryptodome library is missing. '
+                               'The content of your notifications will be sent unencrypted!</strong><br>'
+                               'Please install the library to encrypt the notification contents. '
+                               'Instructions can be found in the '
+                               '<a href="' + helpers.anon_url(
+                                   'https://github.com/%s/%s-Wiki/wiki/'
+                                   'Frequently-Asked-Questions#notifications-pycryptodome'
+                                   % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) +
+                               '" target="_blank">FAQ</a>.',
                 'input_type': 'help'
                 })
         else:
             config_option.append({
                 'label': 'Note',
-                'description': 'The PyCryptodome library was found. ' \
-                    'The content of your notifications will be sent encrypted!',
+                'description': 'The PyCryptodome library was found. '
+                               'The content of your notifications will be sent encrypted!',
                 'input_type': 'help'
                 })
 
         config_option[-1]['description'] += '<br><br>Notifications are sent using the ' \
             '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
             'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
-            'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" target="_blank">' \
+            'Please read the <a href="' + helpers.anon_url(
+                'https://onesignal.com/privacy_policy') + '" target="_blank">' \
             'OneSignal Privacy Policy</a> for more details.'
 
         devices = self.get_devices()
@@ -919,9 +923,9 @@ class ANDROIDAPP(Notifier):
         if not devices:
             config_option.append({
                 'label': 'Device',
-                'description': 'No devices registered. ' \
-                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                    'style="cursor: pointer;">Get the Android App</a> and register a device.',
+                'description': 'No devices registered. '
+                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" '
+                               'style="cursor: pointer;">Get the Android App</a> and register a device.',
                 'input_type': 'help'
                 })
         else:
@@ -929,9 +933,9 @@ class ANDROIDAPP(Notifier):
                 'label': 'Device',
                 'value': self.config['device_id'],
                 'name': 'androidapp_device_id',
-                'description': 'Set your Android app device or ' \
-                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                    'style="cursor: pointer;">register a new device</a> with Tautulli.',
+                'description': 'Set your Android app device or '
+                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" '
+                               'style="cursor: pointer;">register a new device</a> with Tautulli.',
                 'input_type': 'select',
                 'select_options': devices
                 })
@@ -1184,7 +1188,7 @@ class DISCORD(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -1209,7 +1213,7 @@ class DISCORD(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -1217,7 +1221,7 @@ class DISCORD(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'discord_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1557,14 +1561,14 @@ class FACEBOOK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'facebook_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'facebook_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -1572,7 +1576,7 @@ class FACEBOOK(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1877,7 +1881,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'hipchat_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.<br>'
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.<br>'
                                          'Note: This will change the notification type to HTML and emoticons will no longer work.',
                           'input_type': 'checkbox'
                           },
@@ -1897,7 +1901,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'hipchat_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -1905,7 +1909,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'hipchat_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2090,14 +2094,14 @@ class JOIN(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'join_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'join_movie_provider',
                           'description': 'Select the source for movie links in the notificaation. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -2105,7 +2109,7 @@ class JOIN(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'join_tv_provider',
                           'description': 'Select the source for tv show links in the notificaation. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2629,7 +2633,8 @@ class PUSHBULLET(Notifier):
                 devices.update({'': ''})
                 return devices
             else:
-                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: "
+                             u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                 logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
@@ -2647,8 +2652,8 @@ class PUSHBULLET(Notifier):
                          {'label': 'Device',
                           'value': self.config['device_id'],
                           'name': 'pushbullet_device_id',
-                          'description': 'Set your Pushbullet device. If set, will override channel tag. ' \
-                              'Leave blank to notify on all devices.',
+                          'description': 'Set your Pushbullet device. If set, will override channel tag. '
+                                         'Leave blank to notify on all devices.',
                           'input_type': 'select',
                           'select_options': self.get_devices()
                           },
@@ -2758,7 +2763,8 @@ class PUSHOVER(Notifier):
                 sounds.update({'': ''})
                 return sounds
             else:
-                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} sounds list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} sounds list: "
+                             u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                 logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
@@ -2821,7 +2827,7 @@ class PUSHOVER(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'pushover_movie_provider',
                           'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -2829,7 +2835,7 @@ class PUSHOVER(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'pushover_tv_provider',
                           'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3156,7 +3162,7 @@ class SLACK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'slack_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -3181,7 +3187,7 @@ class SLACK(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'slack_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -3189,7 +3195,7 @@ class SLACK(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'slack_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3263,7 +3269,8 @@ class TELEGRAM(Notifier):
                           'value': self.config['bot_token'],
                           'name': 'telegram_bot_token',
                           'description': 'Your Telegram bot token. '
-                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') + '" target="_blank">@BotFather</a>'
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') +
+                                         '" target="_blank">@BotFather</a>'
                                          ' on Telegram to get one.',
                           'input_type': 'text'
                           },
@@ -3271,7 +3278,8 @@ class TELEGRAM(Notifier):
                           'value': self.config['chat_id'],
                           'name': 'telegram_chat_id',
                           'description': 'Your Telegram Chat ID, Group ID, or @channelusername. '
-                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') + '" target="_blank">@myidbot</a>'
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') +
+                                         '" target="_blank">@myidbot</a>'
                                          ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
@@ -3284,8 +3292,7 @@ class TELEGRAM(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'telegram_incl_poster',
-                          'description': 'Include a poster with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                          'description': 'Include a poster with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Enable HTML Support',
@@ -3395,7 +3402,7 @@ class TWITTER(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'twitter_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -3475,7 +3482,7 @@ class XBMC(Notifier):
                 return False
 
         return True
-        
+
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
                           'value': self.config['hosts'],
@@ -3586,7 +3593,7 @@ class ZAPIER(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'zapier_movie_provider',
                           'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -3594,7 +3601,7 @@ class ZAPIER(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'zapier_tv_provider',
                           'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
-                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3648,7 +3655,7 @@ def upgrade_config_to_db():
 
     # Get Monitoring config section
     monitoring = plexpy.CONFIG._config['Monitoring']
-    
+
     # Get the new default notification subject and body text
     defualt_subject_text = {a['name']: a['subject'] for a in available_notification_actions()}
     defualt_body_text = {a['name']: a['body'] for a in available_notification_actions()}
@@ -3660,7 +3667,7 @@ def upgrade_config_to_db():
         body_key = 'notify_' + action + '_body_text'
         notify_text[action + '_subject'] = monitoring.get(subject_key, defualt_subject_text[action])
         notify_text[action + '_body'] = monitoring.get(body_key, defualt_body_text[action])
-        
+
     # Check through each notification agent
     for agent in get_notify_agents():
         agent_id = AGENT_IDS[agent]
@@ -3669,7 +3676,7 @@ def upgrade_config_to_db():
         agent_section = section_overrides.get(agent, agent.capitalize())
         agent_config = plexpy.CONFIG._config.get(agent_section)
         agent_config_key = agent_section.lower()
-        
+
         # Make sure there is an existing config section (to prevent adding v2 agents)
         if not agent_config:
             continue
