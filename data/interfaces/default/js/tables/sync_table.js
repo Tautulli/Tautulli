@@ -98,7 +98,7 @@ sync_table_options = {
             "data": "total_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData > 0 ) {
-                    megabytes = Math.round((cellData/1024)/1024, 0)
+                    megabytes = Math.round((cellData/1024)/1024, 0);
                     $(td).html(megabytes + 'MB');
                 } else {
                     $(td).html('0MB');
@@ -144,14 +144,16 @@ sync_table_options = {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
         showMsg(msg, false, false, 0)
     }
-}
+};
 
 $('#sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
     var tr = $(this).parents('tr');
     var row = sync_table.row(tr);
     var rowData = row.data();
 
-    var index_delete = syncs_to_delete.findIndex(x => x.client_id == rowData['client_id'] && x.sync_id == rowData['sync_id']);
+    var index_delete = syncs_to_delete.findIndex(function (x) {
+        return x.client_id === rowData['client_id'] && x.sync_id === rowData['sync_id'];
+    });
 
     if (index_delete === -1) {
         syncs_to_delete.push({ client_id: rowData['client_id'], sync_id: rowData['sync_id'] });

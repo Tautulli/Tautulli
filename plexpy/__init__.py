@@ -15,12 +15,14 @@
 
 import os
 from Queue import Queue
+import shutil
 import sqlite3
 import sys
 import subprocess
 import threading
 import datetime
 import uuid
+
 # Some cut down versions of Python may not include this module and it's not critical for us
 try:
     import webbrowser
@@ -34,7 +36,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 import activity_handler
 import activity_pinger
-import config
+import common
 import database
 import libraries
 import logger
@@ -42,7 +44,6 @@ import mobile_app
 import notification_handler
 import notifiers
 import plextv
-import pmsconnect
 import users
 import versioncheck
 import plexpy.config
@@ -83,6 +84,7 @@ INSTALL_TYPE = None
 CURRENT_VERSION = None
 LATEST_VERSION = None
 COMMITS_BEHIND = None
+PREV_RELEASE = None
 
 UMASK = None
 
@@ -91,7 +93,7 @@ HTTP_ROOT = None
 DEV = False
 
 WS_CONNECTED = False
-PLEX_SERVER_UP = True
+PLEX_SERVER_UP = None
 
 
 def initialize(config_file):
@@ -102,7 +104,9 @@ def initialize(config_file):
         global _INITIALIZED
         global CURRENT_VERSION
         global LATEST_VERSION
+        global PREV_RELEASE
         global UMASK
+
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
 
@@ -175,17 +179,34 @@ def initialize(config_file):
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
             logger.debug(u"Generating UUID...")
-            my_uuid = generate_uuid()
-            CONFIG.__setattr__('PMS_UUID', my_uuid)
+            CONFIG.PMS_UUID = generate_uuid()
             CONFIG.write()
-        
+
         # Check if Tautulli has an API key
         if CONFIG.API_KEY == '':
             logger.debug(u"Generating API key...")
-            api_key = generate_uuid()
-            CONFIG.__setattr__('API_KEY', api_key)
+            CONFIG.API_KEY = generate_uuid()
             CONFIG.write()
-        
+
+        # Check if Tautulli has a jwt_secret
+        if CONFIG.JWT_SECRET == '' or not CONFIG.JWT_SECRET:
+            logger.debug(u"Generating JWT secret...")
+            CONFIG.JWT_SECRET = generate_uuid()
+            CONFIG.write()
+
+        # Get the previous version from the file
+        version_lock_file = os.path.join(DATA_DIR, "version.lock")
+        prev_version = None
+        if os.path.isfile(version_lock_file):
+            try:
+                with open(version_lock_file, "r") as fp:
+                    prev_version = fp.read()
+            except IOError as e:
+                logger.error(u"Unable to read previous version from file '%s': %s" %
+                             (version_lock_file, e))
+        else:
+            prev_version = 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca'
+
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
         CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
@@ -194,8 +215,6 @@ def initialize(config_file):
         # This allowes one to restore to that version. The idea is that if we
         # arrive here, most parts of Tautulli seem to work.
         if CURRENT_VERSION:
-            version_lock_file = os.path.join(DATA_DIR, "version.lock")
-
             try:
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
@@ -212,6 +231,32 @@ def initialize(config_file):
                 LATEST_VERSION = CURRENT_VERSION
         else:
             LATEST_VERSION = CURRENT_VERSION
+
+        # Get the previous release from the file
+        release_file = os.path.join(DATA_DIR, "release.lock")
+        PREV_RELEASE = common.VERSION_NUMBER
+        if os.path.isfile(release_file):
+            try:
+                with open(release_file, "r") as fp:
+                    PREV_RELEASE = fp.read()
+            except IOError as e:
+                logger.error(u"Unable to read previous release from file '%s': %s" %
+                             (release_file, e))
+        elif prev_version == 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca':  # Commit hash for v1.4.25
+            PREV_RELEASE = 'v1.4.25'
+
+        # Check if the release was updated
+        if common.VERSION_NUMBER != PREV_RELEASE:
+            CONFIG.UPDATE_SHOW_CHANGELOG = 1
+            CONFIG.write()
+
+        # Write current release version to file for update checking
+        try:
+            with open(release_file, "w") as fp:
+                fp.write(common.VERSION_NUMBER)
+        except IOError as e:
+            logger.error(u"Unable to write current release to file '%s': %s" %
+                         (release_file, e))
 
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
@@ -231,6 +276,7 @@ def initialize(config_file):
 
         _INITIALIZED = True
         return True
+
 
 def daemonize():
     if threading.activeCount() != 1:
@@ -341,7 +387,7 @@ def initialize_scheduler():
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
-            schedule_job(activity_pinger.check_server_response, 'Check server response',
+            schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
 
         else:
@@ -359,12 +405,9 @@ def initialize_scheduler():
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=0, minutes=0, seconds=0)
 
-            # Schedule job to reconnect websocket
-            response_seconds = CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS * CONFIG.WEBSOCKET_CONNECTION_TIMEOUT
-            response_seconds = 60 if response_seconds < 60 else response_seconds
-
-            schedule_job(activity_pinger.check_server_response, 'Check server response',
-                         hours=0, minutes=0, seconds=response_seconds)
+            # Schedule job to reconnect server
+            schedule_job(activity_pinger.connect_server, 'Check for server response',
+                         hours=0, minutes=0, seconds=60, args=(False,))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -406,6 +449,10 @@ def start():
 
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
+        notifiers.check_browser_enabled()
+
+        if CONFIG.FIRST_RUN_COMPLETE:
+            activity_pinger.connect_server(log=True, startup=True)
 
         _STARTED = True
 
@@ -498,7 +545,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
         'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
@@ -554,7 +601,7 @@ def dbcheck():
     # poster_urls table :: This table keeps record of the notification poster urls
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
+        'rating_key INTEGER, poster_title TEXT, poster_url TEXT, delete_hash TEXT)'
     )
 
     # recently_added table :: This table keeps record of recently added items
@@ -1027,9 +1074,9 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE session_history_media_info SET transcode_decision = (CASE '
-		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
-			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
-			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
+            'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
+            'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
+            'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1188,6 +1235,26 @@ def dbcheck():
             'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL '
         )
 
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        result = c_db.execute('SELECT stream_container FROM session_history_media_info '
+                              'WHERE stream_container IS NULL').fetchall()
+        if len(result) > 0:
+            logger.debug(u"Altering database. Removing NULL values from session_history_media_info table.")
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_container = "" WHERE stream_container IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_video_codec = "" WHERE stream_video_codec IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_audio_codec = "" WHERE stream_audio_codec IS NULL '
+            )
+            c_db.execute(
+                'UPDATE session_history_media_info SET stream_subtitle_codec = "" WHERE stream_subtitle_codec IS NULL '
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to remove NULL values from session_history_media_info table.")
 
     # Upgrade users table from earlier versions
     try:
@@ -1262,6 +1329,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE users ADD COLUMN filter_photos TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT is_admin FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0'
         )
 
     # Upgrade notify_log table from earlier versions
@@ -1370,8 +1446,8 @@ def dbcheck():
 
     # Upgrade library_sections table from earlier versions (remove duplicated libraries)
     try:
-        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""')
-        if result.rowcount > 0:
+        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""').fetchall()
+        if len(result) > 0:
             logger.debug(u"Altering database. Removing duplicate libraries from library_sections table.")
             c_db.execute(
                 'DELETE FROM library_sections WHERE server_id = ""'
@@ -1489,22 +1565,32 @@ def dbcheck():
             'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
         )
 
+    # Upgrade poster_urls table from earlier versions
+    try:
+        c_db.execute('SELECT delete_hash FROM poster_urls')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table poster_urls.")
+        c_db.execute(
+            'ALTER TABLE poster_urls ADD COLUMN delete_hash TEXT'
+        )
+
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
         logger.debug(u"User 'Local' does not exist. Adding user.")
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
-    
+
     # Create table indices
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup ON tvmaze_lookup (rating_key)'
     )
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup ON themoviedb_lookup (rating_key)'
-    )   
+    )
 
     conn_db.commit()
     c_db.close()
+
 
 def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
@@ -1512,9 +1598,11 @@ def upgrade():
     if CONFIG.UPDATE_LIBRARIES_DB_NOTIFY:
         libraries.update_libraries_db_notify()
 
+
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
+    activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
 
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
@@ -1545,22 +1633,34 @@ def shutdown(restart=False, update=False, checkout=False):
 
     if restart:
         logger.info(u"Tautulli is restarting...")
+
         exe = sys.executable
         args = [exe, FULL_PATH]
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']
 
-        # os.execv fails with spaced names on Windows
-        # https://bugs.python.org/issue19066
+        # Separate out logger so we can shutdown logger after
         if NOFORK:
             logger.info('Running as service, not forking. Exiting...')
         elif os.name == 'nt':
             logger.info('Restarting Tautulli with %s', args)
-            subprocess.Popen(args, cwd=os.getcwd())
         else:
             logger.info('Restarting Tautulli with %s', args)
+
+        logger.shutdown()
+
+        # os.execv fails with spaced names on Windows
+        # https://bugs.python.org/issue19066
+        if NOFORK:
+            pass
+        elif os.name == 'nt':
+            subprocess.Popen(args, cwd=os.getcwd())
+        else:
             os.execv(exe, args)
+
+    else:
+        logger.shutdown()
 
     os._exit(0)
 

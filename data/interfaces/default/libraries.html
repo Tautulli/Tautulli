@@ -180,18 +180,20 @@
 
     % if _session['user_group'] == 'admin':
     $("#refresh-libraries-list").click(function () {
+        showMsg('Refreshing libraries list...', true, false);
         $.ajax({
             url: 'refresh_libraries_list',
             cache: false,
             async: true,
-            success: function (data) {
-                showMsg('<i class="fa fa-refresh"></i>&nbspLibraries list refresh started...', false, true, 2000, false);
-            },
-            complete: function (data) {
-                showMsg('<i class="fa fa-check"></i>&nbspLibraries list refreshed.', false, true, 2000, false);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh libraries list.', false, true, 2000, true);
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 2000, false);
+                    libraries_list_table.draw();
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 2000, true);
+                }
             }
         });
     });

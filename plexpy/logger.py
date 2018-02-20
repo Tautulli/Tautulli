@@ -306,6 +306,11 @@ def initHooks(global_exceptions=True, thread_exceptions=True, pass_original=True
         # Monkey patch the run() by monkey patching the __init__ method
         threading.Thread.__init__ = new_init
 
+
+def shutdown():
+    logging.shutdown()
+
+
 # Expose logger methods
 # Main Tautulli logger
 info = logger.info

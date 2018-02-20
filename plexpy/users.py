@@ -52,6 +52,7 @@ def refresh_users():
             new_value_dict = {"username": item['username'],
                               "thumb": item['thumb'],
                               "email": item['email'],
+                              "is_admin": item['is_admin'],
                               "is_home_user": item['is_home_user'],
                               "is_allow_sync": item['is_allow_sync'],
                               "is_restricted": item['is_restricted'],
@@ -330,6 +331,7 @@ class Users(object):
                           'friendly_name': 'Local',
                           'user_thumb': common.DEFAULT_USER_THUMB,
                           'email': '',
+                          'is_admin': '',
                           'is_home_user': 0,
                           'is_allow_sync': 0,
                           'is_restricted': 0,
@@ -349,21 +351,21 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE email = ? COLLATE NOCASE '
@@ -398,6 +400,7 @@ class Users(object):
                                     'friendly_name': friendly_name,
                                     'user_thumb': user_thumb,
                                     'email': item['email'],
+                                    'is_admin': item['is_admin'],
                                     'is_home_user': item['is_home_user'],
                                     'is_allow_sync': item['is_allow_sync'],
                                     'is_restricted': item['is_restricted'],
@@ -579,6 +582,27 @@ class Users(object):
                 recently_watched.append(recent_output)
 
         return recently_watched
+
+    def get_users(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT user_id, username, friendly_name, email FROM users WHERE deleted_user = 0'
+            result = monitor_db.select(query=query)
+        except Exception as e:
+            logger.warn(u"Tautulli Users :: Unable to execute database query for get_users: %s." % e)
+            return None
+
+        users = []
+        for item in result:
+            user = {'user_id': item['user_id'],
+                    'username': item['username'],
+                    'friendly_name': item['friendly_name'] or item['username'],
+                    'email': item['email']
+                    }
+            users.append(user)
+
+        return users
 
     def delete_all_history(self, user_id=None):
         monitor_db = database.MonitorDatabase()

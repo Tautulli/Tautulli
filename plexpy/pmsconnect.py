@@ -61,7 +61,7 @@ class PmsConnect(object):
             self.url = plexpy.CONFIG.PMS_URL
         elif not self.url:
             self.url = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
-                                                          port=plexpy.CONFIG.PMS_PORT)
+                                                         port=plexpy.CONFIG.PMS_PORT)
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         if not self.token:
@@ -533,17 +533,22 @@ class PmsConnect(object):
         metadata = {}
 
         if cache_key:
-            in_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+            in_file_folder = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata')
+            in_file_path = os.path.join(in_file_folder, 'metadata-sessionKey-%s.json' % cache_key)
+
+            if not os.path.exists(in_file_folder):
+                os.mkdir(in_file_folder)
+
             try:
                 with open(in_file_path, 'r') as inFile:
                     metadata = json.load(inFile)
-            except IOError as e:
+            except (IOError, ValueError) as e:
                 pass
 
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
-                # Return cached metadata if less than 30 minutes ago
-                if int(time.time()) - _cache_time <= 1800:
+                # Return cached metadata if less than METADATA_CACHE_SECONDS ago
+                if int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
         if rating_key:
@@ -559,26 +564,31 @@ class PmsConnect(object):
 
         for a in xml_head:
             if a.getAttribute('size'):
-                if a.getAttribute('size') != '1':
+                if a.getAttribute('size') == '0':
                     return metadata
 
             if a.getElementsByTagName('Directory'):
-                metadata_main = a.getElementsByTagName('Directory')[0]
-                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
-                if metadata_type == 'photo':
-                    metadata_type = 'photo_album'
+                metadata_main_list = a.getElementsByTagName('Directory')
             elif a.getElementsByTagName('Video'):
-                metadata_main = a.getElementsByTagName('Video')[0]
-                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+                metadata_main_list = a.getElementsByTagName('Video')
             elif a.getElementsByTagName('Track'):
-                metadata_main = a.getElementsByTagName('Track')[0]
-                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+                metadata_main_list = a.getElementsByTagName('Track')
             elif a.getElementsByTagName('Photo'):
-                metadata_main = a.getElementsByTagName('Photo')[0]
-                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+                metadata_main_list = a.getElementsByTagName('Photo')
             else:
                 logger.debug(u"Tautulli Pmsconnect :: Metadata failed")
                 return {}
+
+            if sync_id and len(metadata_main_list) > 1:
+                for metadata_main in metadata_main_list:
+                    if helpers.get_xml_attr(metadata_main, 'ratingKey') == rating_key:
+                        break
+            else:
+                metadata_main = metadata_main_list[0]
+
+            metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+            if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
+                metadata_type = 'photo_album'
 
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
@@ -588,6 +598,7 @@ class PmsConnect(object):
         actors = []
         genres = []
         labels = []
+        collections = []
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
@@ -608,6 +619,10 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Label'):
             for label in metadata_main.getElementsByTagName('Label'):
                 labels.append(helpers.get_xml_attr(label, 'tag'))
+
+        if metadata_main.getElementsByTagName('Collection'):
+            for collection in metadata_main.getElementsByTagName('Collection'):
+                collections.append(helpers.get_xml_attr(collection, 'tag'))
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -646,6 +661,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -686,6 +702,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -728,6 +745,7 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
+                        'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -771,6 +789,7 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
+                        'collections': show_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -812,6 +831,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -854,6 +874,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -897,6 +918,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': album_details['genres'],
                         'labels': album_details['labels'],
+                        'collections': album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -938,6 +960,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -980,6 +1003,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': photo_album_details['genres'],
                         'labels': photo_album_details['labels'],
+                        'collections': photo_album_details['collections'],
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
@@ -1025,6 +1049,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -1065,6 +1090,7 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
+                        'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
 
@@ -1155,14 +1181,19 @@ class PmsConnect(object):
             metadata['media_info'] = medias
 
         if metadata:
-            metadata['_cache_time'] = int(time.time())
-
             if cache_key:
-                out_file_path = os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % cache_key)
+                metadata['_cache_time'] = int(time.time())
+
+                out_file_folder = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata')
+                out_file_path = os.path.join(out_file_folder, 'metadata-sessionKey-%s.json' % cache_key)
+
+                if not os.path.exists(out_file_folder):
+                    os.mkdir(out_file_folder)
+
                 try:
                     with open(out_file_path, 'w') as outFile:
                         json.dump(metadata, outFile)
-                except IOError as e:
+                except (IOError, ValueError) as e:
                     logger.error(u"Tautulli Pmsconnect :: Unable to create cache file for metadata (sessionKey %s): %s"
                                  % (cache_key, e))
 
@@ -1370,7 +1401,7 @@ class PmsConnect(object):
         else:
             session_details = {'session_id': '',
                                'bandwidth': '',
-                               'location': 'Unknown'
+                               'location': 'wan' if player_details['local'] == '0' else 'lan'
                                }
 
         # Get the transcode details
@@ -1443,16 +1474,24 @@ class PmsConnect(object):
         if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') \
             and helpers.get_xml_attr(session, 'ratingKey').isdigit() and transcode_decision == 'direct play':
             plex_tv = plextv.PlexTV()
+            parent_rating_key = helpers.get_xml_attr(session, 'parentRatingKey')
+            grandparent_rating_key = helpers.get_xml_attr(session, 'grandparentRatingKey')
+
             synced_items = plex_tv.get_synced_items(client_id_filter=player_details['machine_id'],
-                                                    rating_key_filter=rating_key)
+                                                    rating_key_filter=[rating_key, parent_rating_key, grandparent_rating_key])
             if synced_items:
-                sync_id = synced_items[0]['sync_id']
+                synced_item_details = synced_items[0]
+                sync_id = synced_item_details['sync_id']
                 synced_xml = self.get_sync_item(sync_id=sync_id, output_format='xml')
                 synced_xml_head = synced_xml.getElementsByTagName('MediaContainer')
                 if synced_xml_head[0].getElementsByTagName('Track'):
-                    synced_session_data = synced_xml_head[0].getElementsByTagName('Track')[0]
+                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Track')
                 elif synced_xml_head[0].getElementsByTagName('Video'):
-                    synced_session_data = synced_xml_head[0].getElementsByTagName('Video')[0]
+                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Video')
+
+                for synced_session_data in synced_xml_items:
+                    if helpers.get_xml_attr(synced_session_data, 'ratingKey') == rating_key:
+                        break
 
         # Figure out which version is being played
         if sync_id:
@@ -1586,6 +1625,7 @@ class PmsConnect(object):
             channel_stream = 1
 
             clip_media = session.getElementsByTagName('Media')[0]
+            clip_part = clip_media.getElementsByTagName('Part')[0]
             audio_channels = helpers.get_xml_attr(clip_media, 'audioChannels')
             metadata_details = {'media_type': media_type,
                                 'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
@@ -1624,7 +1664,8 @@ class PmsConnect(object):
                                 'genres': [],
                                 'labels': [],
                                 'full_title': helpers.get_xml_attr(session, 'title'),
-                                'container': helpers.get_xml_attr(clip_media, 'container'),
+                                'container': helpers.get_xml_attr(clip_media, 'container') \
+                                             or helpers.get_xml_attr(clip_part, 'container'),
                                 'height': helpers.get_xml_attr(clip_media, 'height'),
                                 'width': helpers.get_xml_attr(clip_media, 'width'),
                                 'video_codec': helpers.get_xml_attr(clip_media, 'videoCodec'),
@@ -1633,7 +1674,8 @@ class PmsConnect(object):
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
-                                'channel_title': helpers.get_xml_attr(session, 'sourceTitle')
+                                'channel_title': helpers.get_xml_attr(session, 'sourceTitle'),
+                                'live': int(helpers.get_xml_attr(session, 'live') == '1')
                                 }
         else:
             channel_stream = 0
@@ -1642,7 +1684,7 @@ class PmsConnect(object):
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
             if sync_id:
-                metadata_details = self.get_metadata_details(sync_id=sync_id, cache_key=session_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id, cache_key=session_key)
             else:
                 metadata_details = self.get_metadata_details(rating_key=rating_key, cache_key=session_key)
 
@@ -1699,50 +1741,71 @@ class PmsConnect(object):
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
 
+        # Overrides for live sessions
+        if metadata_details.get('live') and transcode_decision == 'transcode':
+            stream_details['stream_container_decision'] = 'transcode'
+            stream_details['stream_container'] = transcode_details['transcode_container']
+
+            video_details['stream_video_decision'] = transcode_details['video_decision']
+            stream_details['stream_video_codec'] = transcode_details['transcode_video_codec']
+            stream_details['stream_video_resolution'] = metadata_details['video_resolution']
+
+            audio_details['stream_audio_decision'] = transcode_details['audio_decision']
+            stream_details['stream_audio_codec'] = transcode_details['transcode_audio_codec']
+            stream_details['stream_audio_channels'] = transcode_details['transcode_audio_channels']
+            stream_details['stream_audio_channel_layout'] = common.AUDIO_CHANNELS.get(
+                transcode_details['transcode_audio_channels'], transcode_details['transcode_audio_channels'])
+
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
-            stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
-            source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
-
-            try:
-                quailtiy_bitrate = min(b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
-                quality_profile = common.VIDEO_QUALITY_PROFILES[quailtiy_bitrate]
-            except ValueError:
+            if sync_id:
                 quality_profile = 'Original'
 
-            if sync_id:
+                synced_item_bitrate = helpers.cast_to_int(synced_item_details['video_bitrate'])
                 try:
-                    synced_bitrate = min(b for b in common.VIDEO_QUALITY_PROFILES if source_bitrate <= b)
+                    synced_bitrate = max(b for b in common.VIDEO_QUALITY_PROFILES if b <= synced_item_bitrate)
                     synced_version_profile = common.VIDEO_QUALITY_PROFILES[synced_bitrate]
                 except ValueError:
                     synced_version_profile = 'Original'
             else:
                 synced_version_profile = ''
 
+                stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
+                source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
+                try:
+                    quailtiy_bitrate = min(
+                        b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
+                    quality_profile = common.VIDEO_QUALITY_PROFILES[quailtiy_bitrate]
+                except ValueError:
+                    quality_profile = 'Original'
+
             if stream_details['optimized_version']:
                 optimized_version_profile = '{} Mbps {}'.format(round(source_bitrate / 1000.0, 1),
-                    plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(source_media_details['video_resolution'], source_media_details['video_resolution']))
+                    plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(source_media_details['video_resolution'],
+                                                                 source_media_details['video_resolution']))
             else:
                 optimized_version_profile = ''
 
         elif media_type == 'track' and 'stream_bitrate' in stream_details:
-            stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
-            source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
-
-            try:
-                quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
-                quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
-            except ValueError:
+            if sync_id:
                 quality_profile = 'Original'
 
-            if sync_id:
+                synced_item_bitrate = helpers.cast_to_int(synced_item_details['audio_bitrate'])
                 try:
-                    synced_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if source_bitrate <= b)
+                    synced_bitrate = max(b for b in common.AUDIO_QUALITY_PROFILES if b <= synced_item_bitrate)
                     synced_version_profile = common.AUDIO_QUALITY_PROFILES[synced_bitrate]
                 except ValueError:
                     synced_version_profile = 'Original'
             else:
                 synced_version_profile = ''
+
+                stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
+                source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
+                try:
+                    quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
+                    quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
+                except ValueError:
+                    quality_profile = 'Original'
 
             optimized_version_profile = ''
 
@@ -2122,8 +2185,12 @@ class PmsConnect(object):
                 item_main += a.getElementsByTagName('Photo')
 
             for item in item_main:
+                media_type = helpers.get_xml_attr(item, 'type')
+                if item.nodeName == 'Directory' and media_type == 'photo':
+                    media_type = 'photo_album'
+
                 item_info = {'section_id': helpers.get_xml_attr(a, 'librarySectionID'),
-                             'media_type': helpers.get_xml_attr(item, 'type'),
+                             'media_type': media_type,
                              'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                              'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
                              'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
@@ -2534,3 +2601,14 @@ class PmsConnect(object):
 
         plexpy.CONFIG.__setattr__('PMS_VERSION', version)
         plexpy.CONFIG.write()
+
+    def get_server_update_channel(self):
+        if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plex':
+            update_channel_value = self.get_server_pref('ButlerUpdateChannel')
+
+            if update_channel_value == '8':
+                return 'beta'
+            else:
+                return 'public'
+
+        return plexpy.CONFIG.PMS_UPDATE_CHANNEL

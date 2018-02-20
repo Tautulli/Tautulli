@@ -114,7 +114,7 @@
         $.ajax({
             url: 'get_user_names',
             type: 'get',
-            dataType: "json",
+            dataType: 'json',
             success: function (data) {
                 var select = $('#history-user');
                 data.sort(function (a, b) {
@@ -130,7 +130,6 @@
         function loadHistoryTable(media_type, selected_user_id) {
             history_table_options.ajax = {
                 url: 'get_history',
-                type: 'post',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d),
@@ -138,9 +137,13 @@
                         user_id: selected_user_id
                     };
                 }
-            }
+            };
             history_table = $('#history_table').DataTable(history_table_options);
-            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
+            var colvis = new $.fn.dataTable.ColVis(history_table, {
+                buttonText: '<i class="fa fa-columns"></i> Select columns',
+                buttonClass: 'btn btn-dark',
+                exclude: [0, 11]
+            });
             $(colvis.button()).appendTo('div.colvis-button-bar');
 
             clearSearchButton('history_table', history_table);
@@ -160,7 +163,7 @@
         }
 
         var media_type = null;
-        var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+        var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}";
         loadHistoryTable(media_type, selected_user_id);
 
         % if _session['user_group'] == 'admin':

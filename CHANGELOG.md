@@ -1,5 +1,129 @@
 # Changelog
 
+## v2.0.19-beta (2018-02-16)
+
+* Monitoring:
+  * Fix: Connect to Plex Cloud server without keeping it awake.
+  * Fix: Reconnect to Plex Cloud server after the server wakes up from sleeping.
+* Notifications:
+  * Fix: Don't send Plex Server Up/Down notifications when Tautulli starts up.
+  * Change: Better handling of Watched notifications.
+* UI:
+  * New: Added Plex server selection dropdown in the settings.
+  * Fix: Libraries and Users tables not refreshing properly.
+  * Change: Updated the masked info shown to guests.
+  * Change: Check for updates without refreshing to the homepage.
+* API:
+  * New: Added update_check to the API.
+  * Fix: delete_media_info_cache not deleting the cache.
+  * Change: Document "refresh" parameter for get_library_media_info.
+* Other:
+  * Fix: Show the full changelog since v2 on a fresh install.
+
+
+## v2.0.18-beta (2018-02-12)
+
+* Notifications:
+  * Fix: Default text for Tautulli update notifications using the wrong parameter.
+  * Fix: Playback pause and resume notifications only triggering once.
+  * Change: Negative operators for custom conditions now use "and" instead of "or".
+* UI:
+  * New: Added button to delete the 3rd party lookup info from the info pages.
+  * Fix: Missing host info in the login logs when logging in using Firefox.
+  * Change: Cleaned up settings. Advanced settings are now hidden behind a toggle.
+* API:
+  * New: Updated API documentation for v2.
+* Other:
+  * Fix: DeprecationWarning when using HTTPS with self-signed certificates.
+  * Change: Deleting the Imgur poster URL also deletes the poster from Imgur (only available for new uploads).
+  * Change: GitHub repository moved to Tautulli/Tautulli. Old GitHub URLs will still work.
+
+
+## v2.0.17-beta (2018-02-03)
+
+* Notifications:
+  * Fix: Unable to use @ mentions tags for Discord and Slack.
+  * New: Added Zapier notification agent.
+* API:
+  * Fix: get_synced_items returning no results.
+  * Fix: get_library_media_info returning incorrect media type for photo albums.
+  * Fix: get_library_media_info not being able to sort by title.
+
+
+## v2.0.16-beta (2018-01-30)
+
+* Monitoring:
+  * Fix: Timestamp sometimes showing as "0:60" on the activity cards.
+  * Fix: Incorrect session information being shown for playback of synced content.
+  * Fix: Sessions not being stopped when "Playback Stopped" notifications were enabled.
+* UI:
+  * Fix: Stream resolution showing up as "unknown" on the graphs.
+  * New: Added user filter to the Synced Items table.
+* Other:
+  * New: Option to use the Plex server update channel when checking for updates.
+
+
+## v2.0.15-beta (2018-01-27)
+
+* Monitoring:
+  * Fix: Live TV sessions not being stopped in History.
+  * Fix: Stream location showing as "unknown" on the activity cards.
+  * New: Improved Live TV details on the activity cards.
+* Notifications:
+  * New: Added labels and collections to notification parameters.
+  * New: Added more server details to notification parameters.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+
+
+## v2.0.14-beta (2018-01-20)
+
+* Monitoring:
+  * Change: Added "Cellular" bandwidth to "WAN" in activity header.
+* Notifications:
+  * Fix: Plex Web URL for tracks now go to the album page.
+  * Fix: Recently added notifications being sent for the entire library when DVR EPG data was refreshed.
+  * Fix: Notifier settings not loading with an apostrophe in the custom condition values.
+  * Fix: Custom email addresses not being saved when closing the notifier settings.
+  * Change: Re-enabled Browser notifications.
+  * Change: Renamed "PlexPy" update notification parameters to "Tautulli".
+  * Change: Emails no longer automatically insert HTML line breaks.
+  * Change: "Date" header added to email notifications.
+* UI:
+  * Change: Show all changelogs since the previous version when updating.
+
+
+## v2.0.13-beta (2018-01-13)
+
+* Notifications:
+  * New: Added dropdown selection for email addresses of shared users.
+  * New: Added more notification options for Join.
+  * Change: Show "OR" between custom condition values.
+* Other:
+  * New: Use JSON Web Tokens for authentication. Login now works with SSO applications.
+  * New: Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.
+
+
+## v2.0.12-beta (2018-01-07)
+
+* Notifications:
+  * Fix: Incorrect Plex URL parameter value.
+  * Change: Custom condition logic is now optional. An implicit "and" is applied between all conditions if the logic is blank.
+* UI:
+  * New: Added separate required LAN/WAN bandwidth in the activity header.
+* API:
+  * Fix: Notify API command not sending notifications.
+
+
+## v2.0.11-beta (2018-01-05)
+
+* Notifications:
+  * Fix: Some notification parameters showing up blank.
+* UI:
+  * Fix: Stream data showing up as "None" for pre-v2 history.
+* Other:
+  * Fix: Ability to login using the hashed password.
+
+
 ## v2.0.10-beta (2018-01-04)
 
 * Monitoring:

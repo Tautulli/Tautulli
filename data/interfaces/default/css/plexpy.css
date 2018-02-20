@@ -60,7 +60,8 @@ select[multiple] option {
     -moz-border-radius: 2px;
     border-radius: 2px;
 }
-select.form-control {
+select.form-control,
+div.form-control .selectize-input {
     margin: 5px 0 5px 0;
     color: #fff;
     border: 0px solid #444;
@@ -71,11 +72,45 @@ select.form-control {
     border-radius: 3px;
     transition: background-color .3s;
 }
-.react-selectize.root-node .react-selectize-control {
+.react-selectize.root-node .react-selectize-control,
+.selectize-control.form-control .selectize-input {
     color: #fff !important;
     border: 0px solid #444 !important;
     background: #555 !important;
     padding: 1px 2px;
+    transition: background-color .3s;
+}
+.selectize-control.form-control .selectize-input {
+    display: flex !important;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    padding-left: 5px;
+}
+.selectize-control.form-control.selectize-pms-ip .selectize-input {
+    padding-left: 12px !important;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    min-height: 32px !important;
+}
+.input-group .selectize-control.form-control.selectize-pms-ip .selectize-input > div {
+    max-width: 450px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-input > div {
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#selectize-pms-ip-container .selectize-dropdown.form-control.selectize-pms-ip {
+    margin-left: 15px;
+}
+.wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-dropdown .selectize-dropdown-content {
+    max-height: 150px;
+}
+.wizard-input-section .selectize-dropdown.form-control.selectize-pms-ip {
+    margin-top: 0 !important;
 }
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #fff !important;
@@ -83,19 +118,95 @@ select.form-control {
 .react-selectize.root-node .react-selectize-control .react-selectize-toggle-button path {
     fill: #fff !important;
 }
+.react-selectize.root-node .simple-value,
+.selectize-control.multi .selectize-input > div {
+    background: #444444 !important;
+    color: #ffffff !important;
+    padding-bottom: 2px !important;
+    transition: background-color .3s;
+}
 .react-selectize.root-node .simple-value span {
     padding-bottom: 2px !important;
 }
-.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input{
+.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .value-wrapper:not(:first-child):before {
+    content: "or";
+    padding: 0 3px;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values.negative-operator .value-wrapper:not(:first-child):before {
+    content: "and" !important;
+}
+.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input {
     padding-top: 3px !important;
     padding-bottom: 3px !important;
 }
-select.form-control:focus {
+select.form-control:focus,
+.react-selectize.root-node.open .react-selectize-control,
+.selectize-control.form-control .selectize-input.focus {
     outline: 0;
     outline: thin dotted \9;
-    color: #555;
-    background-color: #fff;
+    color: #555 !important;
+    background-color: #fff !important;
     transition: background-color .3s;
+}
+.react-selectize.root-node.open .simple-value,
+.selectize-control.multi .selectize-input.focus > div,
+.selectize-control.multi .selectize-input > div.active {
+    background: #efefef !important;
+    color: #333333 !important;
+    transition: background-color .3s;
+}
+.react-selectize.root-node.open .react-selectize-control .react-selectize-toggle-button path {
+    fill: #999 !important;
+}
+.selectize-input > div .item-text {
+    white-space: nowrap;
+}
+.selectize-input > div .item-value {
+    opacity: 0.8;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.selectize-input > div .item-text + .item-value {
+    margin-left: 5px;
+}
+.selectize-input > div .item-value:before {
+    content: '<';
+    opacity: 0.8;
+    font-size: 12px;
+}
+.selectize-input > div .item-value:after {
+    content: '>';
+    opacity: 0.8;
+    font-size: 12px;
+}
+.selectize-dropdown .caption {
+    font-size: 12px;
+    display: block;
+    color: #a0a0a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.selectize-dropdown .select-all,
+.selectize-dropdown .remove-all {
+    font-weight: bold;
+}
+.selectize-dropdown .border-all {
+    pointer-events: none;
+    display: block;
+    height: 1px;
+    margin: 9px -12px 9px -12px;
+    padding: 0 !important;
+    overflow: hidden;
+    background-color: #e5e5e5;
+}
+.selectize-dropdown .border-all:last-child {
+    display: none;
+}
+.selectize-dropdown .optgroup-header {
+    font-weight: bold;
 }
 select.form-control option {
     color: #555;
@@ -145,7 +256,7 @@ object {
 }
 .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
     background-color: #2f2f2f;
-    border-color: none;
+    border-color: unset;
 }
 .dropdown-menu {
   background-color: #282828;
@@ -541,18 +652,8 @@ textarea.form-control:focus {
     color: #fff;
 }
 .form-control-feedback {
-    position: absolute;
     color: #F9AA03;
-    top: 0;
-    right: 0;
-    margin: 5px 10px 5px 0;
-    z-index: 2;
-    display: block;
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    text-align: center;
-    pointer-events: none;
+    margin: 5px 40px 5px 0;
 }
 .form-control[readonly] {
     background-color: #555;
@@ -631,8 +732,8 @@ a .users-poster-face:hover {
     height: 290px;
     min-width: 350px;
     max-width: 500px;
-    margin-right: 20px;
-    margin-bottom: 20px;
+    margin-right: 25px;
+    margin-bottom: 25px;
 }
 .dashboard-activity-container {
     height: 240px;
@@ -913,7 +1014,6 @@ a .users-poster-face:hover {
     background-image: -o-linear-gradient(top, #fbb450, #f89406);
     background-image: linear-gradient(to bottom, #fbb450, #f89406);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
     position: absolute;
     height: 100%;
     max-width: 100%;
@@ -1050,8 +1150,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     height: 160px;
     min-width: 350px;
     max-width: 500px;
-    margin-right: 20px;
-    margin-bottom: 20px;
+    margin-right: 25px;
+    margin-bottom: 25px;
 }
 .dashboard-stats-container {
     height: 160px;
@@ -1668,7 +1768,6 @@ a:hover .dashboard-recent-media-cover {
     background-image: -moz-linear-gradient(top,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-image: linear-gradient(to bottom,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#b3000000', endColorstr='#e6000000', GradientType=0);
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
@@ -1685,6 +1784,18 @@ a:hover .dashboard-recent-media-cover {
     background-position: center;
     opacity: 0;
     transition: opacity .3s;
+}
+.summary-poster-face-overlay span:before {
+    content: "View On";
+    color: #999;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    display: block;
+    position: absolute;
+    top: calc(50% - 34px);
+    width: 100%;
 }
 a:hover .summary-poster-face .summary-poster-face-overlay,
 a:hover .summary-poster-face-episode .summary-poster-face-overlay,
@@ -2048,6 +2159,20 @@ a:hover .item-children-poster {
     position: absolute;
     top: 5px;
     left: 12px;
+}
+#menu_link_show_advanced_settings.active {
+  color: #fff;
+  background-color: #cc7b19;
+}
+.advanced-setting {
+    display: none;
+}
+div.advanced-setting {
+    border-left: 1px solid #cc7b19;
+    padding-left: 10px;
+}
+li.advanced-setting {
+    border-left: 1px solid #cc7b19;
 }
 .user-info-wrapper {
 }
@@ -3110,16 +3235,16 @@ div.dataTables_info {
 }
 #updatebar {
     background-color: #444;
+    opacity: 0.95;
     color: #999999;
-    display: none;
     font-size: 14px;
     right: 10px;
-    padding: 7px 10px;
+    padding: 10px 10px;
     position: fixed;
     text-align: center;
     bottom: 10px;
     min-height: 22px;
-    width: 250px;
+    width: 400px;
     z-index: 9999;
     display: block;
 }
@@ -3722,7 +3847,11 @@ a:hover .overlay-refresh-image:hover {
 .no-image {
     background-image: none !important;
 }
-
+#info-modal .stream-info-current {
+    color: #aaa;
+    text-align: center;
+    padding-bottom: 10px;
+}
 #info-modal .stream-info-item {
     display: flex;
     flex-direction: row;

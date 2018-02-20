@@ -1,6 +1,10 @@
 <%!
-    from plexpy import helpers, notifiers
+    import json
+    from plexpy import helpers, notifiers, users
     available_notification_actions = notifiers.available_notification_actions()
+
+    user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
+    sorted(user_emails, key=lambda u: u['user'])
 %>
 % if notifier:
 <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
@@ -39,7 +43,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
                                                 % if item['name'] == 'osx_notify_app':
                                                 <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
@@ -62,7 +66,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                                             </div>
                                         </div>
@@ -80,7 +84,7 @@
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                     % for key, value in sorted(item['select_options'].iteritems()):
                                                     % if key == item['value']:
@@ -94,6 +98,33 @@
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
                                     </div>
+                                    % elif item['input_type'] == 'selectize':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    <option value="select-all">Select All</option>
+                                                    <option value="remove-all">Remove All</option>
+                                                    % if isinstance(item['select_options'], dict):
+                                                    % for section, options in item['select_options'].iteritems():
+                                                    <optgroup label="${section}">
+                                                        % for option in sorted(options, key=lambda x: x['text'].lower()):
+                                                            <option value="${option['value']}">${option['text']}</option>
+                                                        % endfor
+                                                    </optgroup>
+                                                    % endfor
+                                                    % else:
+                                                    <option value="border-all"></option>
+                                                    % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
+                                                        <option value="${option['value']}">${option['text']}</option>
+                                                    % endfor
+                                                    % endif
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
                                     % endif
                                     % endfor
                                 </div>
@@ -101,7 +132,7 @@
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
                                             </div>
                                         </div>
@@ -132,11 +163,8 @@
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
                             <label>Notification Conditions</label>
                             <p class="help-block">
-                                Add custom notification conditions.
+                                Add custom conditions to only <em>allow certain notifications</em>. By default, all notifications will be sent if there are no conditions.
                                 <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
-                            </p>
-                            <p class="help-block">
-                                Note: Conditions are checked after the notification trigger and the notification will only be sent if the condition logic is satisfied.
                             </p>
                             <div id="condition-widget"></div>
                             <input type="hidden" name="custom_conditions" id="custom_conditions" />
@@ -146,7 +174,8 @@
                                 <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
                                 <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
                                 <p class="help-block">
-                                    Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                    Optional: Enter custom logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                    Leave blank for implicit <span class="inline-pre">and</span> between all conditions.
                                 </p>
                                 <p class="help-block">
                                     Note: Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.
@@ -187,7 +216,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
-                                                    <div class="col-md-8">
+                                                    <div class="col-md-12">
                                                         <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Arguments">
                                                     </div>
                                                 </div>
@@ -214,7 +243,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
-                                                    <div class="col-md-8">
+                                                    <div class="col-md-12">
                                                         <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Text">
                                                     </div>
                                                 </div>
@@ -280,7 +309,7 @@
                             % endif
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-12">
                                         <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${notifier['agent_label']}">
                                     </div>
                                 </div>
@@ -304,7 +333,7 @@
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     // Need this for setting conditions since conditions contain the character "
-    $('#custom_conditions').val('${notifier['custom_conditions'] | n}')
+    $('#custom_conditions').val(${json.dumps(notifier["custom_conditions"]) | n});
 
     $('#condition-widget').filterer({
         parameters: ${parameters | n},
@@ -312,8 +341,23 @@
         updateConditions: function(newConditions){
             $('#custom_conditions').val(JSON.stringify(newConditions));
         }
-    })
-    
+    });
+
+    function setNegativeOperator(select) {
+       if (select.val() === 'does not contain' || select.val() === 'is not') {
+           select.closest('.form-group').find('.react-selectize-search-field-and-selected-values').addClass('negative-operator');
+       } else {
+           select.closest('.form-group').find('.react-selectize-search-field-and-selected-values').removeClass('negative-operator');
+       }
+    }
+
+    $('#condition-widget select[name=operator]').each(function () {
+        setNegativeOperator($(this));
+    });
+    $('#condition-widget').on('change', 'select[name=operator]', function () {
+        setNegativeOperator($(this));
+    });
+
     function reloadModal() {
         $.ajax({
             url: 'get_notifier_config_modal',
@@ -330,7 +374,7 @@
         if (jqXHR) {
             var result = $.parseJSON(jqXHR.responseText);
             var msg = result.message;
-            if (result.result == 'success') {
+            if (result.result === 'success') {
                 showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
             } else {
                 showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
@@ -390,7 +434,7 @@
 
     % if notifier['agent_name'] == 'facebook':
     function disableFacebookRequest() {
-        if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebook_facebookStep1').prop('disabled', false); }
+        if ($('#facebook_app_id').val() !== '' && $('#facebook_app_secret').val() !== '') { $('#facebook_facebookStep1').prop('disabled', false); }
         else { $('#facebook_facebookStep1').prop('disabled', true); }
     }
     disableFacebookRequest();
@@ -404,19 +448,20 @@
             $('#facebook_redirect_uri').val($('#facebook_redirect_uri').val().slice(0, -1));
         }
 
+        var facebook_token;
         $.ajax({
             url: 'facebookStep1',
             data: {
                 app_id: $('#facebook_app_id').val(),
                 app_secret: $('#facebook_app_secret').val(),
-                redirect_uri: $('#facebook_redirect_uri').val(),
+                redirect_uri: $('#facebook_redirect_uri').val()
             },
             cache: false,
             async: true,
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.msg;
-                if (result.result == 'success') {
+                if (result.result === 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                     window.open(result.url);
 
@@ -455,18 +500,112 @@
 
     $('#notifier-config-modal').on('hidden.bs.modal', function () {
         facebook_token = false;
-    })
+    });
 
     % elif notifier['agent_name'] == 'browser':
     $('#browser_allow_browser').click(function () {
         PNotify.desktop.permission();
-    })
+    });
 
     % elif notifier['agent_name'] == 'osx':
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
-    })
+    });
+
+    % elif notifier['agent_name'] == 'email':
+    var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
+                      '(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)';
+    var $email_selectors = $('#email_to, #email_cc, #email_bcc').selectize({
+        plugins: ['remove_button'],
+        maxItems: null,
+        render: {
+            item: function(item, escape) {
+                return '<div>' +
+                    (item.text ? '<span class="item-text">' + escape(item.text) + '</span>' : '') +
+                    (item.value ? '<span class="item-value">' + escape(item.value) + '</span>' : '') +
+                '</div>';
+            },
+            option: function(item, escape) {
+                var label = item.text || item.value;
+                var caption = item.text ? item.value : null;
+                if (item.value.endsWith('-all')) {
+                    return '<div class="' + item.value + '">' + escape(label) + '</div>'
+                }
+                return '<div>' +
+                    escape(label) +
+                    (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                '</div>';
+            }
+        },
+        onItemAdd: function(value) {
+            if (value === 'select-all') {
+                var all_keys = $.map(this.options, function(option){
+                    return option.value.endsWith('-all') ? null : option.value;
+                });
+                this.setValue(all_keys);
+            } else if (value === 'remove-all') {
+                this.clear();
+                this.refreshOptions();
+                this.positionDropdown();
+            }
+        },
+        createFilter: function(input) {
+            var match, regex;
+
+            // email@address.com
+            regex = new RegExp('^' + REGEX_EMAIL + '$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[0]);
+
+            // user <email@address.com>
+            regex = new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i');
+            match = input.match(regex);
+            if (match) return !this.options.hasOwnProperty(match[2]);
+
+            return false;
+        },
+        create: function(input) {
+            if ((new RegExp('^' + REGEX_EMAIL + '$', 'i')).test(input)) {
+                return {value: input};
+            }
+            var match = input.match(new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i'));
+            if (match) {
+                return {
+                    value : match[2],
+                    text  : $.trim(match[1])
+                };
+            }
+            return false;
+        }
+    });
+    var email_to = $email_selectors[0].selectize;
+    var email_cc = $email_selectors[1].selectize;
+    var email_bcc = $email_selectors[2].selectize;
+    email_to.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_to'), [])) | n});
+    email_cc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_cc'), [])) | n});
+    email_bcc.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'email_bcc'), [])) | n});
+
+    % elif notifier['agent_name'] == 'join':
+    var $join_device_names = $('#join_device_names').selectize({
+        plugins: ['remove_button'],
+        maxItems: null,
+        create: true
+    });
+    var join_device_names = $join_device_names[0].selectize;
+    join_device_names.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'join_device_names'), [])) | n});
+
+    % elif notifier['agent_name'] == 'zapier':
+    $('#zapier_test_hook').click(function () {
+        $.get('zapier_test_hook', { 'zapier_hook': $('#zapier_hook').val() }, function (data) {
+            if (data.result === 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + data.msg, false, true, 5000);
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + data.msg, false, true, 5000, true);
+            }
+        });
+    });
+
     % endif
 
     function validateLogic() {
@@ -597,7 +736,7 @@
     });
 
     function sendTestNotification() {
-        if ('${notifier["agent_name"]}' != 'browser') {
+        if ('${notifier["agent_name"]}' !== 'browser') {
             $.ajax({
                 url: 'send_notification',
                 data: {
@@ -621,7 +760,7 @@
                 }
             });
         } else {
-            if ($('#browser_auto_hide_delay').val() == "0") {
+            if ($('#browser_auto_hide_delay').val() === "0") {
                 PNotify.prototype.options.hide = false;
             } else {
                 PNotify.prototype.options.hide = true;

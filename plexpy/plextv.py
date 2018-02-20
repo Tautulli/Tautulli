@@ -144,14 +144,7 @@ class PlexTV(object):
         uri = '/users/sign_in.xml'
         base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'X-Plex-Device-Name': 'Tautulli',
-                   'X-Plex-Product': 'Tautulli',
-                   'X-Plex-Version': plexpy.common.VERSION_NUMBER,
-                   'X-Plex-Platform': plexpy.common.PLATFORM,
-                   'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
-                   'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                   'Authorization': 'Basic %s' % base64string
-                   }
+                   'Authorization': 'Basic %s' % base64string}
         
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='POST',
@@ -318,6 +311,14 @@ class PlexTV(object):
 
         return request
 
+    def cloud_server_status(self, output_format=''):
+        uri = '/api/v2/cloud_server'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_full_users_list(self):
         friends_list = self.get_plextv_friends(output_format='xml')
         own_account = self.get_plextv_user_details(output_format='xml')
@@ -331,18 +332,19 @@ class PlexTV(object):
 
         for a in xml_head:
             own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
-                            "username": helpers.get_xml_attr(a, 'username'),
-                            "thumb": helpers.get_xml_attr(a, 'thumb'),
-                            "email": helpers.get_xml_attr(a, 'email'),
-                            "is_home_user": helpers.get_xml_attr(a, 'home'),
-                            "is_allow_sync": None,
-                            "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                            "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                            "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                            "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                            "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                            "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                            }
+                           "username": helpers.get_xml_attr(a, 'username'),
+                           "thumb": helpers.get_xml_attr(a, 'thumb'),
+                           "email": helpers.get_xml_attr(a, 'email'),
+                           "is_home_user": helpers.get_xml_attr(a, 'home'),
+                           "is_admin": 1,
+                           "is_allow_sync": None,
+                           "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                           "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                           "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                           "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                           "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                           "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                           }
 
             users_list.append(own_details)
 
@@ -354,18 +356,19 @@ class PlexTV(object):
 
         for a in xml_head:
             friend = {"user_id": helpers.get_xml_attr(a, 'id'),
-                        "username": helpers.get_xml_attr(a, 'title'),
-                        "thumb": helpers.get_xml_attr(a, 'thumb'),
-                        "email": helpers.get_xml_attr(a, 'email'),
-                        "is_home_user": helpers.get_xml_attr(a, 'home'),
-                        "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
-                        "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                        "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                        "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                        "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                        "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                        "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                        }
+                      "username": helpers.get_xml_attr(a, 'title'),
+                      "thumb": helpers.get_xml_attr(a, 'thumb'),
+                      "email": helpers.get_xml_attr(a, 'email'),
+                      "is_admin": 0,
+                      "is_home_user": helpers.get_xml_attr(a, 'home'),
+                      "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
+                      "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                      "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                      "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                      "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                      "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                      "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                      }
 
             users_list.append(friend)
 
@@ -374,8 +377,18 @@ class PlexTV(object):
     def get_synced_items(self, machine_id=None, client_id_filter=None, user_id_filter=None,
                          rating_key_filter=None, sync_id_filter=None):
 
-        if machine_id is None:
+        if not machine_id:
             machine_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+        if isinstance(rating_key_filter, list):
+            rating_key_filter = [str(k) for k in rating_key_filter]
+        elif rating_key_filter:
+            rating_key_filter = [str(rating_key_filter)]
+
+        if isinstance(user_id_filter, list):
+            user_id_filter = [str(k) for k in user_id_filter]
+        elif user_id_filter:
+            user_id_filter = [str(user_id_filter)]
 
         sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
         user_data = users.Users()
@@ -416,7 +429,7 @@ class PlexTV(object):
                 device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
 
             # Filter by user_id
-            if user_id_filter and str(user_id_filter) != device_user_id:
+            if user_id_filter and device_user_id not in user_id_filter:
                 continue
 
             for synced in a.getElementsByTagName('SyncItems'):
@@ -430,7 +443,7 @@ class PlexTV(object):
                                        for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                     # Filter by rating_key
-                    if rating_key_filter and str(rating_key_filter) != rating_key:
+                    if rating_key_filter and rating_key not in rating_key_filter:
                         continue
 
                     sync_id = helpers.get_xml_attr(item, 'id')
@@ -459,12 +472,13 @@ class PlexTV(object):
                             status_item_downloaded_count, status_item_count)
 
                     for settings in item.getElementsByTagName('MediaSettings'):
-                        settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
-                        settings_music_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
-                        settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
-                        settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
+                        settings_video_bitrate = helpers.get_xml_attr(settings, 'maxVideoBitrate')
                         settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
                         settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
+                        settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
+                        settings_audio_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
+                        settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
+                        settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
 
                     sync_details = {"device_name": helpers.sanitize(device_name),
                                     "platform": helpers.sanitize(device_platform),
@@ -481,7 +495,8 @@ class PlexTV(object):
                                     "item_complete_count": status_item_complete_count,
                                     "item_downloaded_count": status_item_downloaded_count,
                                     "item_downloaded_percent_complete": status_item_download_percent_complete,
-                                    "music_bitrate": settings_music_bitrate,
+                                    "video_bitrate": settings_video_bitrate,
+                                    "audio_bitrate": settings_audio_bitrate,
                                     "photo_quality": settings_photo_quality,
                                     "video_quality": settings_video_quality,
                                     "total_size": status_total_size,
@@ -631,7 +646,8 @@ class PlexTV(object):
                                       'ip': helpers.get_xml_attr(c, 'address'),
                                       'port': helpers.get_xml_attr(c, 'port'),
                                       'local': helpers.get_xml_attr(c, 'local'),
-                                      'value': helpers.get_xml_attr(c, 'address')
+                                      'value': helpers.get_xml_attr(c, 'address'),
+                                      'is_cloud': is_cloud
                                       }
                             clean_servers.append(server)
 
@@ -639,10 +655,14 @@ class PlexTV(object):
 
     def get_plex_downloads(self):
         logger.debug(u"Tautulli PlexTV :: Retrieving current server version.")
-        pmsconnect.PmsConnect().set_server_version()
 
-        logger.debug(u"Tautulli PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
-        plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
+        pms_connect = pmsconnect.PmsConnect()
+        pms_connect.set_server_version()
+
+        update_channel = pms_connect.get_server_update_channel()
+
+        logger.debug(u"Tautulli PlexTV :: Plex update channel is %s." % update_channel)
+        plex_downloads = self.get_plextv_downloads(plexpass=(update_channel == 'beta'))
 
         try:
             available_downloads = json.loads(plex_downloads)
@@ -735,3 +755,21 @@ class PlexTV(object):
             devices_list.append(device)
 
         return devices_list
+
+    def get_cloud_server_status(self):
+        cloud_status = self.cloud_server_status(output_format='xml')
+
+        try:
+            status_info = cloud_status.getElementsByTagName('info')
+        except Exception as e:
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_cloud_server_status: %s." % e)
+            return False
+
+        for info in status_info:
+            servers = info.getElementsByTagName('server')
+            for s in servers:
+                if helpers.get_xml_attr(s, 'address') == plexpy.CONFIG.PMS_IP:
+                    if helpers.get_xml_attr(info, 'running') == '1':
+                        return True
+                    else:
+                        return False

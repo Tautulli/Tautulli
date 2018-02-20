@@ -2,7 +2,7 @@
 
 PNotify.prototype.options.addclass = "stack-bottomright";
 PNotify.prototype.options.buttons.closer_hover = false;
-PNotify.prototype.options.desktop = { desktop: true, icon: 'images/logo.png' }
+PNotify.prototype.options.desktop = { desktop: true, icon: 'images/logo-circle.png' };
 PNotify.prototype.options.history = false;
 PNotify.prototype.options.shadow = false;
 PNotify.prototype.options.stack = { dir1: 'up', dir2: 'left', firstpos1: 25, firstpos2: 25 };
@@ -21,7 +21,7 @@ function check_notifications() {
     $.getJSON('get_browser_notifications', function (data) {
         if (data) {
             $.each(data, function (i, notification) {
-                if (notification.delay == 0) {
+                if (notification.delay === 0) {
                     PNotify.prototype.options.hide = false;
                 } else {
                     PNotify.prototype.options.hide = true;
@@ -34,7 +34,7 @@ function check_notifications() {
     setTimeout(function () {
         "use strict";
         check_notifications();
-    }, 3000);
+    }, 5000);
 }
 
 $(document).ready(function () {

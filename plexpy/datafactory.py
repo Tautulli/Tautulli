@@ -188,7 +188,7 @@ class DataFactory(object):
                            'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
                            'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
                            'photo': 0,
-                           'clip': plexpy.CONFIG.MOVIE_WATCHED_PERCENT
+                           'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
                            }
 
         rows = []
@@ -612,7 +612,6 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'last_play': item['last_watch'],
-                           'thumb': user_thumb,
                            'user_thumb': user_thumb,
                            'grandparent_thumb': '',
                            'art': '',
@@ -827,6 +826,9 @@ class DataFactory(object):
         if session.get_session_shared_libraries():
             library_cards = session.get_session_shared_libraries()
 
+        if 'first_run_wizard' in library_cards:
+            return None
+
         library_stats = []
 
         try:
@@ -951,9 +953,11 @@ class DataFactory(object):
                              'transcode_hw_encoding': item['transcode_hw_encoding'],
                              'media_type': item['media_type'],
                              'title': item['title'],
-                             'grandparent_title': item['grandparent_title']
+                             'grandparent_title': item['grandparent_title'],
+                             'current_session': 1 if session_key else 0
                              }
 
+        stream_output = {k: v or '' for k, v in stream_output.iteritems()}
         return stream_output
 
     def get_metadata_details(self, rating_key):
@@ -1105,6 +1109,7 @@ class DataFactory(object):
     def get_poster_info(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()
 
+        poster_key = ''
         if str(rating_key).isdigit():
             poster_key = rating_key
         elif metadata:
@@ -1116,6 +1121,7 @@ class DataFactory(object):
                 poster_key = metadata['parent_rating_key']
 
         poster_info = {}
+
         if poster_key:
             try:
                 query = 'SELECT poster_title, poster_url FROM poster_urls ' \
@@ -1126,14 +1132,15 @@ class DataFactory(object):
 
         return poster_info
 
-    def set_poster_url(self, rating_key='', poster_title='', poster_url=''):
+    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash=''):
         monitor_db = database.MonitorDatabase()
 
         if str(rating_key).isdigit():
             keys = {'rating_key': int(rating_key)}
 
             values = {'poster_title': poster_title,
-                      'poster_url': poster_url}
+                      'poster_url': poster_url,
+                      'delete_hash': delete_hash}
 
             monitor_db.upsert(table_name='poster_urls', key_dict=keys, value_dict=values)
 
@@ -1141,9 +1148,61 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            logger.info(u"Tautulli DataFactory :: Deleting poster_url for rating_key %s from the database." % rating_key)
+            poster_info = monitor_db.select_single('SELECT poster_title, delete_hash '
+                                                   'FROM poster_urls WHERE rating_key = ?',
+                                                   [rating_key])
+            if poster_info['delete_hash']:
+                helpers.delete_from_imgur(poster_info['delete_hash'], poster_info['poster_title'])
+
+            logger.info(u"Tautulli DataFactory :: Deleting poster_url for '%s' (rating_key %s) from the database."
+                        % (poster_info['poster_title'], rating_key))
             result = monitor_db.action('DELETE FROM poster_urls WHERE rating_key = ?', [rating_key])
             return True if result else False
+
+    def get_lookup_info(self, rating_key='', metadata=None):
+        monitor_db = database.MonitorDatabase()
+
+        lookup_key = ''
+        if str(rating_key).isdigit():
+            lookup_key = rating_key
+        elif metadata:
+            if metadata['media_type'] in ('movie', 'show', 'artist'):
+                lookup_key = metadata['rating_key']
+            elif metadata['media_type'] in ('season', 'album'):
+                lookup_key = metadata['parent_rating_key']
+            elif metadata['media_type'] in ('episode', 'track'):
+                lookup_key = metadata['grandparent_rating_key']
+
+        lookup_info = {'tvmaze_id': '',
+                       'themoviedb_id': ''}
+
+        if lookup_key:
+            try:
+                query = 'SELECT tvmaze_id FROM tvmaze_lookup ' \
+                        'WHERE rating_key = ?'
+                tvmaze_info = monitor_db.select_single(query, args=[lookup_key])
+                if tvmaze_info:
+                    lookup_info['tvmaze_id'] = tvmaze_info['tvmaze_id']
+
+                query = 'SELECT themoviedb_id FROM themoviedb_lookup ' \
+                        'WHERE rating_key = ?'
+                themoviedb_info = monitor_db.select_single(query, args=[lookup_key])
+                if themoviedb_info:
+                    lookup_info['themoviedb_id'] = themoviedb_info['themoviedb_id']
+            except Exception as e:
+                logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_lookup_info: %s." % e)
+
+        return lookup_info
+
+    def delete_lookup_info(self, rating_key='', title=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            logger.info(u"Tautulli DataFactory :: Deleting lookup info for '%s' (rating_key %s) from the database."
+                        % (title, rating_key))
+            result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
+            result_themoviedb = monitor_db.action('DELETE FROM themoviedb_lookup WHERE rating_key = ?', [rating_key])
+            return True if (result_tvmaze or result_themoviedb) else False
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

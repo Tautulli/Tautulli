@@ -39,11 +39,17 @@ class HTTPHandler(object):
         else:
             self.urls = urls
 
+        self.headers = {'X-Plex-Device-Name': 'Tautulli',
+                        'X-Plex-Product': 'Tautulli',
+                        'X-Plex-Version': plexpy.common.VERSION_NUMBER,
+                        'X-Plex-Platform': plexpy.common.PLATFORM,
+                        'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
+                        'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
+                        }
+
         self.token = token
         if self.token:
-            self.headers = {'X-Plex-Token': self.token}
-        else:
-            self.headers = {}
+            self.headers['X-Plex-Token'] = self.token
 
         self.timeout = timeout
         self.ssl_verify = ssl_verify
@@ -65,7 +71,7 @@ class HTTPHandler(object):
         Output: list
         """
 
-        self.uri = uri
+        self.uri = uri.encode('utf-8')
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
         self.return_type = return_type
@@ -79,9 +85,9 @@ class HTTPHandler(object):
         if uri:
             request_urls = [urljoin(url, self.uri) for url in self.urls]
 
-            if no_token and headers:
-                self.headers = headers
-            elif headers:
+            if no_token:
+                self.headers.pop('X-Plex-Token', None)
+            if headers:
                 self.headers.update(headers)
 
             responses = []

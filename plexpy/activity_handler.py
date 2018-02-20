@@ -33,6 +33,7 @@ ACTIVITY_SCHED = BackgroundScheduler()
 
 RECENTLY_ADDED_QUEUE = {}
 
+
 class ActivityHandler(object):
 
     def __init__(self, timeline):
@@ -53,7 +54,7 @@ class ActivityHandler(object):
 
     def get_rating_key(self):
         if self.is_valid_session():
-            return int(self.timeline['ratingKey'])
+            return self.timeline['ratingKey']
 
         return None
 
@@ -64,6 +65,10 @@ class ActivityHandler(object):
         if session_list:
             for session in session_list['sessions']:
                 if int(session['session_key']) == self.get_session_key():
+                    # Live sessions don't have rating keys in sessions
+                    # Get it from the websocket data
+                    if not session['rating_key']:
+                        session['rating_key'] = self.get_rating_key()
                     return session
 
         return None
@@ -92,14 +97,15 @@ class ActivityHandler(object):
                          % (str(session['session_key']), str(session['user_id']), session['username'],
                             str(session['rating_key']), session['full_title']))
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_play'})
+            plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
 
             # Write the new session to our temp session table
             self.update_db_session(session=session)
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            logger.debug(u"Tautulli ActivityHandler :: Session %s stopped." % str(self.get_session_key()))
+            logger.debug(u"Tautulli ActivityHandler :: Session %s %sstopped."
+                         % (str(self.get_session_key()), 'force ' if force_stop else ''))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -116,17 +122,23 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_stop'})
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_stop'})
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
-            monitor_proc.write_session_history(session=db_session)
+            row_id = monitor_proc.write_session_history(session=db_session)
 
-            # Remove the session from our temp session table
-            logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
-                         % (str(self.get_session_key()), str(self.get_rating_key())))
-            ap.delete_session(session_key=self.get_session_key())
-            delete_metadata_cache(self.get_session_key())
+            if row_id:
+                schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
+
+                # Remove the session from our temp session table
+                logger.debug(u"Tautulli ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
+                             % (str(self.get_session_key()), str(self.get_rating_key())))
+                ap.delete_session(row_id=row_id)
+                delete_metadata_cache(self.get_session_key())
+            else:
+                schedule_callback('session_key-{}'.format(self.get_session_key()), func=force_stop_stream,
+                                  args=[self.get_session_key()], seconds=30)
 
     def on_pause(self, still_paused=False):
         if self.is_valid_session():
@@ -147,7 +159,7 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             if not still_paused:
-                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_pause'})
+                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_pause'})
 
     def on_resume(self):
         if self.is_valid_session():
@@ -166,7 +178,7 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_resume'})
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_resume'})
 
     def on_buffer(self):
         if self.is_valid_session():
@@ -204,7 +216,7 @@ class ActivityHandler(object):
                 # Retrieve the session data from our temp table
                 db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_buffer'})
+                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_buffer'})
 
     # This function receives events from our websocket connection
     def process(self):
@@ -219,7 +231,7 @@ class ActivityHandler(object):
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
                 schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                  function=force_stop_stream, args=[self.get_session_key()], minutes=5)
+                                  func=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
@@ -229,9 +241,11 @@ class ActivityHandler(object):
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
-                        session = self.get_live_session()
-                        if session:
-                            self.update_db_session(session=session)
+                        # if the last set temporary stopped time exceeds 15 seconds
+                        if int(time.time()) - db_session['stopped'] > 60:
+                            session = self.get_live_session()
+                            if session:
+                                self.update_db_session(session=session)
 
                     # Start our state checks
                     if this_state != last_state:
@@ -241,9 +255,6 @@ class ActivityHandler(object):
                             self.on_resume()
                         elif this_state == 'stopped':
                             self.on_stop()
-
-                            # Remove the callback if the stream is stopped
-                            schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
 
                     elif this_state == 'buffering':
                         self.on_buffer()
@@ -262,13 +273,25 @@ class ActivityHandler(object):
                 # Monitor if the stream has reached the watch percentage for notifications
                 # The only purpose of this is for notifications
                 if this_state != 'buffering':
-                    progress_percent = helpers.get_percent(db_session['view_offset'], db_session['duration'])
-                    notify_states = notification_handler.get_notify_state(session=db_session)
-                    if (db_session['media_type'] == 'movie' and progress_percent >= plexpy.CONFIG.MOVIE_WATCHED_PERCENT or
-                        db_session['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
-                        db_session['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
-                        and not any(d['notify_action'] == 'on_watched' for d in notify_states):
-                        plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_watched'})
+                    progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                    watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                       'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                       'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
+                                       'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
+                                       }
+
+                    if progress_percent >= watched_percent.get(db_session['media_type'], 101):
+                        watched_notifiers = notification_handler.get_notify_state_enabled(
+                            session=db_session, notify_action='on_watched', notified=False)
+
+                        if watched_notifiers:
+                            logger.debug(u"Tautulli ActivityHandler :: Session %s watched."
+                                         % str(self.get_session_key()))
+
+                        for d in watched_notifiers:
+                            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(),
+                                                     'notifier_id': d['notifier_id'],
+                                                     'notify_action': 'on_watched'})
 
             else:
                 # We don't have this session in our table yet, start a new one.
@@ -277,7 +300,7 @@ class ActivityHandler(object):
 
                     # Schedule a callback to force stop a stale stream 5 minutes later
                     schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                      function=force_stop_stream, args=[self.get_session_key()], minutes=5)
+                                      func=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
 
 class TimelineHandler(object):
@@ -321,6 +344,7 @@ class TimelineHandler(object):
                            9: 'album',
                            10: 'track'}
 
+            identifier = self.timeline.get('identifier')
             state_type = self.timeline.get('state')
             media_type = media_types.get(self.timeline.get('type'))
             section_id = self.timeline.get('sectionID', 0)
@@ -328,6 +352,10 @@ class TimelineHandler(object):
             metadata_state = self.timeline.get('metadataState')
             media_state = self.timeline.get('mediaState')
             queue_size = self.timeline.get('queueSize')
+
+            # Return if it is not a library event (i.e. DVR EPG event)
+            if identifier != 'com.plexapp.plugins.library':
+                return
 
             # Add a new media item to the recently added queue
             if media_type and section_id > 0 and \
@@ -355,7 +383,7 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), function=clear_recently_added_queue,
+                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), func=clear_recently_added_queue,
                                           args=[grandparent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 elif media_type in ('season', 'album'):
@@ -371,7 +399,7 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(parent_rating_key), function=clear_recently_added_queue,
+                        schedule_callback('rating_key-{}'.format(parent_rating_key), func=clear_recently_added_queue,
                                           args=[parent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 else:
@@ -382,7 +410,7 @@ class TimelineHandler(object):
                                  % (title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
-                    schedule_callback('rating_key-{}'.format(rating_key), function=clear_recently_added_queue,
+                    schedule_callback('rating_key-{}'.format(rating_key), func=clear_recently_added_queue,
                                       args=[rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
@@ -412,7 +440,7 @@ def del_keys(key):
         del_keys(RECENTLY_ADDED_QUEUE.pop(key))
 
 
-def schedule_callback(id, function=None, remove_job=False, args=None, **kwargs):
+def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
     if ACTIVITY_SCHED.get_job(id):
         if remove_job:
             ACTIVITY_SCHED.remove_job(id)
@@ -422,7 +450,7 @@ def schedule_callback(id, function=None, remove_job=False, args=None, **kwargs):
                     run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     elif not remove_job:
         ACTIVITY_SCHED.add_job(
-            function, args=args, id=id, trigger=DateTrigger(
+            func, args=args, id=id, trigger=DateTrigger(
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
     
 
@@ -430,13 +458,14 @@ def force_stop_stream(session_key):
     ap = activity_processor.ActivityProcessor()
     session = ap.get_session_by_key(session_key=session_key)
 
-    success = ap.write_session_history(session=session)
+    row_id = ap.write_session_history(session=session)
 
-    if success:
-        # If session is written to the databaase successfully, remove the session from the session table
+    if row_id:
+        # If session is written to the database successfully, remove the session from the session table
         logger.info(u"Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
-        ap.delete_session(session_key=session_key)
+        ap.delete_session(row_id=row_id)
+        delete_metadata_cache(session_key)
 
     else:
         session['write_attempts'] += 1
@@ -448,7 +477,7 @@ def force_stop_stream(session_key):
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
-            schedule_callback('session_key={}'.format(session_key), function=force_stop_stream,
+            schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
                               args=[session_key], seconds=30)
 
         else:
@@ -495,16 +524,18 @@ def on_created(rating_key, **kwargs):
 
     if metadata:
         notify = True
-        now = int(time.time())
-
-        if helpers.cast_to_int(metadata['updated_at']) < now - 86400:  # Updated more than 24 hours ago
-            logger.debug(u"Tautulli TimelineHandler :: Library item %s updated more than 24 hours ago. Not notifying." % str(rating_key))
-            notify = False
+        # now = int(time.time())
+        #
+        # if helpers.cast_to_int(metadata['added_at']) < now - 86400:  # Updated more than 24 hours ago
+        #     logger.debug(u"Tautulli TimelineHandler :: Library item %s added more than 24 hours ago. Not notifying."
+        #                  % str(rating_key))
+        #     notify = False
 
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
             if data_factory.get_recently_added_item(rating_key):
-                logger.debug(u"Tautulli TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
+                logger.debug(u"Tautulli TimelineHandler :: Library item %s added already. Not notifying again."
+                             % str(rating_key))
                 notify = False
 
         if notify:
@@ -527,7 +558,7 @@ def on_created(rating_key, **kwargs):
 
 def delete_metadata_cache(session_key):
     try:
-        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'metadata-sessionKey-%s.json' % session_key))
+        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % session_key))
     except IOError as e:
         logger.error(u"Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
                      % (session_key, e))

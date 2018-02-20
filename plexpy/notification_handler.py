@@ -87,6 +87,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         conditions = notify_conditions(notify_action=notify_action,
                                        stream_data=stream_data,
                                        timeline_data=timeline_data)
+    else:
+        conditions = True
 
     if notifiers_enabled and (manual_trigger or conditions):
         if stream_data or timeline_data:
@@ -122,8 +124,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 
     # Add on_concurrent and on_newdevice to queue if action is on_play
     if notify_action == 'on_play':
-        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_concurrent'})
-        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_newdevice'})
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data.copy(), 'notify_action': 'on_concurrent'})
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data.copy(), 'notify_action': 'on_newdevice'})
 
 
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
@@ -206,19 +208,21 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     custom_conditions_logic = notifier_config['custom_conditions_logic']
+    custom_conditions = json.loads(notifier_config['custom_conditions']) or []
 
-    if custom_conditions_logic:
-        logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s." % notifier_id)
+    if custom_conditions_logic or any(c for c in custom_conditions if c['value']):
+        logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s."
+                     % notifier_id)
 
-        custom_conditions = json.loads(notifier_config['custom_conditions'])
-        
-        try:
-            # Parse and validate the custom conditions logic
-            logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
-        except ValueError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition logic '%s': %s."
-                         % (custom_conditions_logic, e))
-            return False
+        logic_groups = None
+        if custom_conditions_logic:
+            try:
+                # Parse and validate the custom conditions logic
+                logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition logic '%s': %s."
+                             % (custom_conditions_logic, e))
+                return False
 
         evaluated_conditions = [None]  # Set condition {0} to None
 
@@ -227,10 +231,11 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             operator = condition['operator']
             values = condition['value']
             parameter_type = condition['type']
+            parameter_value = parameters.get(parameter, "")
 
-            # Set blank conditions to None
+            # Set blank conditions to True (skip)
             if not parameter or not operator or not values:
-                evaluated_conditions.append(None)
+                evaluated_conditions.append(True)
                 continue
 
             # Make sure the condition values is in a list
@@ -248,25 +253,25 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 elif parameter_type == 'float':
                     values = [float(v) for v in values]
             
-            except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s' to type '%s'."
-                             % (parameter, parameter_type))
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s', values '%s', to type '%s'."
+                             % (parameter, values, parameter_type))
                 return False
 
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = unicode(parameters[parameter]).lower()
+                    parameter_value = unicode(parameter_value).lower()
 
                 elif parameter_type == 'int':
-                    parameter_value = int(parameters[parameter])
+                    parameter_value = int(parameter_value)
 
                 elif parameter_type == 'float':
-                    parameter_value = float(parameters[parameter])
-            
-            except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s' to type '%s'."
-                             % (parameter, parameter_type))
+                    parameter_value = float(parameter_value)
+
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s', value '%s', to type '%s'."
+                             % (parameter, parameter_value, parameter_type))
                 return False
 
             # Check each condition
@@ -274,13 +279,13 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 evaluated_conditions.append(any(c in parameter_value for c in values))
 
             elif operator == 'does not contain':
-                evaluated_conditions.append(any(c not in parameter_value for c in values))
+                evaluated_conditions.append(all(c not in parameter_value for c in values))
 
             elif operator == 'is':
                 evaluated_conditions.append(any(parameter_value == c for c in values))
 
             elif operator == 'is not':
-                evaluated_conditions.append(any(parameter_value != c for c in values))
+                evaluated_conditions.append(all(parameter_value != c for c in values))
 
             elif operator == 'begins with':
                 evaluated_conditions.append(parameter_value.startswith(tuple(values)))
@@ -298,12 +303,15 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 logger.warn(u"Tautulli NotificationHandler :: Invalid condition operator '%s'." % operator)
                 evaluated_conditions.append(None)
 
-        # Format and evaluate the logic string
-        try:
-            evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
-        except Exception as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
-            return False
+        if logic_groups:
+            # Format and evaluate the logic string
+            try:
+                evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
+                return False
+        else:
+            evaluated_logic = all(evaluated_conditions[1:])
 
         logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
         return evaluated_logic
@@ -312,13 +320,6 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
-    # Double check again if the notification has already been sent
-    if stream_data and \
-        any(d['notifier_id'] == notifier_id and d['notify_action'] == notify_action
-            for d in get_notify_state(session=stream_data)):
-        # Return if the notification has already been sent
-        return
-
     logger.info(u"Tautulli NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
 
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
@@ -326,7 +327,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     if not notifier_config:
         return
 
-    if notify_action == 'test':
+    if notify_action in ('test', 'api'):
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
         script_args = kwargs.pop('script_args', [])
@@ -344,8 +345,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
     # Set the notification state in the db
     notification_id = set_notify_state(session=stream_data or timeline_data,
-                                       notify_action=notify_action,
                                        notifier=notifier_config,
+                                       notify_action=notify_action,
                                        subject=subject,
                                        body=body,
                                        script_args=script_args)
@@ -384,9 +385,31 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, notifier, subject, body, script_args, session=None):
+def get_notify_state_enabled(session, notify_action, notified=True):
+    if notified:
+        timestamp_where = 'AND timestamp IS NOT NULL'
+    else:
+        timestamp_where = 'AND timestamp IS NULL'
 
-    if notify_action and notifier:
+    monitor_db = database.MonitorDatabase()
+    result = monitor_db.select('SELECT id AS notifier_id, timestamp '
+                               'FROM notifiers '
+                               'LEFT OUTER JOIN ('
+                               'SELECT timestamp, notifier_id '
+                               'FROM notify_log '
+                               'WHERE session_key = ? '
+                               'AND rating_key = ? '
+                               'AND user_id = ? '
+                               'AND notify_action = ?) AS t ON notifiers.id = t.notifier_id '
+                               'WHERE %s = 1 %s' % (notify_action, timestamp_where),
+                               args=[session['session_key'], session['rating_key'], session['user_id'], notify_action])
+
+    return result
+
+
+def set_notify_state(notifier, notify_action, subject='', body='', script_args='', session=None):
+
+    if notifier and notify_action:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}
@@ -429,20 +452,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
     duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('a','').replace('A','')
 
-    # Get the server name
-    server_name = plexpy.CONFIG.PMS_NAME
-
-    # Get the server uptime
-    plex_tv = plextv.PlexTV()
-    server_times = plex_tv.get_server_times()
-
-    if server_times:
-        updated_at = server_times['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
-    else:
-        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
-        server_uptime = 'N/A'
-
     # Get metadata for the item
     if session:
         rating_key = session['rating_key']
@@ -451,7 +460,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     notify_params = defaultdict(str)
     if session:
+        # Reload json from raw stream info
+        if session.get('raw_stream_info'):
+            session.update(json.loads(session['raw_stream_info']))
         notify_params.update(session)
+
     if timeline:
         notify_params.update(timeline)
 
@@ -513,10 +526,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     remaining_duration = duration - view_offset
 
     # Build Plex URL
-    notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fnotify_params%2F{rating_key}'.format(
+    if notify_params['media_type'] == 'track':
+        plex_web_rating_key = notify_params['parent_rating_key']
+    else:
+        plex_web_rating_key = notify_params['rating_key']
+
+    notify_params['plex_url'] = '{web_url}#!/server/{pms_identifier}/details?key=%2Flibrary%2Fmetadata%2F{rating_key}'.format(
         web_url=plexpy.CONFIG.PMS_WEB_URL,
         pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
-        rating_key=rating_key)
+        rating_key=plex_web_rating_key)
 
     # Get media IDs from guid and build URLs
     if 'imdb://' in notify_params['guid']:
@@ -525,12 +543,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
     if 'thetvdb://' in notify_params['guid']:
-        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0]
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
-        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0]
+        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
@@ -541,7 +559,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=movie'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
-            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0]
+            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
 
@@ -561,7 +579,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
         elif notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
-            themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
+            if notify_params['media_type'] in ('episode', 'track'):
+                lookup_key = notify_params['grandparent_rating_key']
+            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_key = notify_params['parent_rating_key']
+            else:
+                lookup_key = rating_key
+
+            themoviedb_info = lookup_themoviedb_by_id(rating_key=lookup_key,
                                                       thetvdb_id=notify_params.get('thetvdb_id'),
                                                       imdb_id=notify_params.get('imdb_id'))
             notify_params.update(themoviedb_info)
@@ -569,7 +594,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     # Get TVmaze info (for tv shows only)
     if plexpy.CONFIG.TVMAZE_LOOKUP:
         if notify_params['media_type'] in ('show', 'season', 'episode') and (notify_params.get('thetvdb_id') or notify_params.get('imdb_id')):
-            tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
+            if notify_params['media_type'] in ('episode', 'track'):
+                lookup_key = notify_params['grandparent_rating_key']
+            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_key = notify_params['parent_rating_key']
+            else:
+                lookup_key = rating_key
+
+            tvmaze_info = lookup_tvmaze_by_id(rating_key=lookup_key,
                                               thetvdb_id=notify_params.get('thetvdb_id'),
                                               imdb_id=notify_params.get('imdb_id'))
             notify_params.update(tvmaze_info)
@@ -645,15 +677,21 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     available_params = {
         # Global paramaters
-        'plexpy_version': common.VERSION_NUMBER,
-        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-        'plexpy_commit': plexpy.CURRENT_VERSION,
-        'server_name': server_name,
-        'server_uptime': server_uptime,
-        'server_version': server_times.get('version', ''),
+        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
+        'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
+        'tautulli_commit': plexpy.CURRENT_VERSION,
+        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_ip': plexpy.CONFIG.PMS_IP,
+        'server_port': plexpy.CONFIG.PMS_PORT,
+        'server_url': plexpy.CONFIG.PMS_URL,
+        'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
+        'server_platform': plexpy.CONFIG.PMS_PLATFORM,
+        'server_version': plexpy.CONFIG.PMS_VERSION,
         'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
+        'unixtime': int(time.time()),
         # Stream parameters
         'streams': stream_count,
         'user_streams': user_stream_count,
@@ -762,6 +800,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'writers': ', '.join(notify_params['writers']),
         'actors': ', '.join(notify_params['actors']),
         'genres': ', '.join(notify_params['genres']),
+        'labels': ', '.join(notify_params['labels']),
+        'collections': ', '.join(notify_params['collections']),
         'summary': notify_params['summary'],
         'tagline': notify_params['tagline'],
         'rating': notify_params['rating'],
@@ -830,40 +870,34 @@ def build_server_notify_params(notify_action=None, **kwargs):
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
 
-    # Get the server name
-    server_name = plexpy.CONFIG.PMS_NAME
-
-    # Get the server uptime
-    plex_tv = plextv.PlexTV()
-    server_times = plex_tv.get_server_times()
+    update_channel = pmsconnect.PmsConnect().get_server_update_channel()
 
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
 
-    if server_times:
-        updated_at = server_times['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
-    else:
-        logger.error(u"Tautulli NotificationHandler :: Unable to retrieve server uptime.")
-        server_uptime = 'N/A'
-
     available_params = {
         # Global paramaters
-        'plexpy_version': common.VERSION_NUMBER,
-        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-        'plexpy_commit': plexpy.CURRENT_VERSION,
-        'server_name': server_name,
-        'server_uptime': server_uptime,
-        'server_version': server_times.get('version', ''),
+        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
+        'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
+        'tautulli_commit': plexpy.CURRENT_VERSION,
+        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_ip': plexpy.CONFIG.PMS_IP,
+        'server_port': plexpy.CONFIG.PMS_PORT,
+        'server_url': plexpy.CONFIG.PMS_URL,
+        'server_platform': plexpy.CONFIG.PMS_PLATFORM,
+        'server_version': plexpy.CONFIG.PMS_VERSION,
+        'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
         'action': notify_action.lstrip('on_'),
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
+        'unixtime': int(time.time()),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
         'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
             if pms_download_info['release_date'] else '',
-        'update_channel': 'Beta' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
+        'update_channel': 'Beta' if update_channel == 'beta' else 'Public',
         'update_platform': pms_download_info['platform'],
         'update_distro': pms_download_info['distro'],
         'update_distro_build': pms_download_info['build'],
@@ -872,12 +906,12 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'update_changelog_added': pms_download_info['changelog_added'],
         'update_changelog_fixed': pms_download_info['changelog_fixed'],
         # Tautulli update parameters
-        'plexpy_update_version': plexpy_download_info['tag_name'],
-        'plexpy_update_tar': plexpy_download_info['tarball_url'],
-        'plexpy_update_zip': plexpy_download_info['zipball_url'],
-        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
-        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
-        'plexpy_update_changelog': plexpy_download_info['body']
+        'tautulli_update_version': plexpy_download_info['tag_name'],
+        'tautulli_update_tar': plexpy_download_info['tarball_url'],
+        'tautulli_update_zip': plexpy_download_info['zipball_url'],
+        'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),
+        'tautulli_update_behind': kwargs.pop('plexpy_update_behind', ''),
+        'tautulli_update_changelog': plexpy_download_info['body']
         }
 
     return available_params
@@ -937,7 +971,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         try:
             script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in subject.split()]
         except LookupError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
@@ -948,7 +982,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     try:
         subject = custom_formatter.format(unicode(subject), **parameters)
     except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
     except Exception as e:
         logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
@@ -957,7 +991,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     try:
         body = custom_formatter.format(unicode(body), **parameters)
     except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
     except Exception as e:
         logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
@@ -977,8 +1011,8 @@ def strip_tag(data, agent_id=None):
                      'font': ['color']}
         return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
-    elif agent_id == 10:
-        # Don't remove tags for email
+    elif agent_id in (10, 14, 20):
+        # Don't remove tags for Email, Slack, and Discord
         return data
 
     elif agent_id == 13:
@@ -1036,14 +1070,17 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
                 raise Exception(u'PMS image request failed')
 
             # Upload poster_thumb to Imgur and get link
-            poster_url = helpers.uploadToImgur(poster_file, poster_title)
+            poster_url, delete_hash = helpers.upload_to_imgur(poster_file, poster_title)
 
             if poster_url:
                 # Create poster info
                 poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
 
                 # Save the poster url in the database
-                data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
+                data_factory.set_poster_url(rating_key=poster_key,
+                                            poster_title=poster_title,
+                                            poster_url=poster_url,
+                                            delete_hash=delete_hash)
 
             # Delete the cached poster
             os.remove(poster_file)
@@ -1193,6 +1230,17 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
     if response and not err_msg:
         themoviedb_json = response.json()
+        themoviedb_id = themoviedb_json['id']
+        themoviedb_url = 'https://www.themoviedb.org/{}/{}'.format(media_type, themoviedb_id)
+
+        keys = {'themoviedb_id': themoviedb_id}
+        themoviedb_info = {'rating_key': rating_key,
+                           'imdb_id': themoviedb_json.get('imdb_id'),
+                           'themoviedb_url': themoviedb_url,
+                           'themoviedb_json': json.dumps(themoviedb_json)
+                           }
+
+        db.upsert(table_name='themoviedb_lookup', key_dict=keys, value_dict=themoviedb_info)
 
     else:
         if err_msg:
