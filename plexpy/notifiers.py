@@ -2559,13 +2559,21 @@ class PUSHBULLET(Notifier):
     NAME = 'Pushbullet'
     _DEFAULT_CONFIG = {'api_key': '',
                        'device_id': '',
-                       'channel_tag': ''
+                       'channel_tag': '',
+                       'incl_subject': 1,
+                       'incl_poster': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'type': 'note',
-                'title': subject.encode("utf-8"),
                 'body': body.encode("utf-8")}
+
+        headers = {'Content-type': 'application/json',
+                   'Access-Token': self.config['api_key']
+                   }
+
+        if self.config['incl_subject']:
+            data['title'] = subject.encode("utf-8")
 
         # Can only send to a device or channel, not both.
         if self.config['device_id']:
@@ -2573,17 +2581,44 @@ class PUSHBULLET(Notifier):
         elif self.config['channel_tag']:
             data['channel_tag'] = self.config['channel_tag']
 
-        headers = {'Content-type': 'application/json',
-                   'Access-Token': self.config['api_key']
-                   }
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            # Retrieve the poster from Plex
+            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
+            if result and result[0]:
+                poster_content = result[0]
+            else:
+                poster_content = ''
+
+            if poster_content:
+                title = pretty_metadata.get_title()
+                file_json = {'file_name': title, 'file_type': 'image/jpeg'}
+                files = {'file': (title, poster_content, 'image/jpeg')}
+
+                r = requests.post('https://api.pushbullet.com/v2/upload-request', headers=headers, json=file_json)
+
+                file_response = r.json()
+                file_response.pop('data')
+                upload_url = file_response.pop('upload_url')
+
+                r = requests.post(upload_url, files=files)
+
+                if r.status_code == 204:
+                    data['type'] = 'file'
+                    data.update(file_response)
+                else:
+                    logger.error(u"Tautulli Notifiers :: Unable to upload image to {name}: "
+                                 u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
 
         return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
 
     def get_devices(self):
         if self.config['api_key']:
-            headers={'Content-type': "application/json",
-                     'Access-Token': self.config['api_key']
-                     }
+            headers = {'Content-type': "application/json",
+                       'Access-Token': self.config['api_key']
+                       }
 
             r = requests.get('https://api.pushbullet.com/v2/devices', headers=headers)
 
@@ -2622,6 +2657,18 @@ class PUSHBULLET(Notifier):
                           'name': 'pushbullet_channel_tag',
                           'description': 'A channel tag (optional).',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'pushbullet_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'pushbullet_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
