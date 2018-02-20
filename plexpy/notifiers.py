@@ -1620,6 +1620,7 @@ class GROUPME(Notifier):
                 poster_content = result[0]
             else:
                 poster_content = ''
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
                 headers = {'X-Access-Token': self.config['access_token'],
@@ -1633,9 +1634,9 @@ class GROUPME(Notifier):
                     data['attachments'] = [{'type': 'image',
                                             'url': r_content['payload']['picture_url']}]
                 else:
-                    logger.error(u"Tautulli Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.error(u"Tautulli Notifiers :: {name} poster failed: "
+                                 u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                     logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                    return False
 
         return self.make_request('https://api.groupme.com/v3/bots/post', json=data)
 
@@ -2595,26 +2596,28 @@ class PUSHBULLET(Notifier):
                 poster_content = result[0]
             else:
                 poster_content = ''
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                title = pretty_metadata.get_title()
-                file_json = {'file_name': title, 'file_type': 'image/jpeg'}
-                files = {'file': (title, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
+                file_json = {'file_name': poster_filename, 'file_type': 'image/jpeg'}
+                files = {'file': (poster_filename, poster_content, 'image/jpeg')}
 
                 r = requests.post('https://api.pushbullet.com/v2/upload-request', headers=headers, json=file_json)
 
                 file_response = r.json()
-                file_response.pop('data')
                 upload_url = file_response.pop('upload_url')
 
                 r = requests.post(upload_url, files=files)
 
                 if r.status_code == 204:
                     data['type'] = 'file'
+                    file_response.pop('data', None)
                     data.update(file_response)
                 else:
                     logger.error(u"Tautulli Notifiers :: Unable to upload image to {name}: "
                                  u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
         return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
 
@@ -2743,10 +2746,11 @@ class PUSHOVER(Notifier):
                 poster_content = result[0]
             else:
                 poster_content = ''
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                title = pretty_metadata.get_title()
-                files = {'attachment': (title, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
+                files = {'attachment': (poster_filename, poster_content, 'image/jpeg')}
                 headers = {}
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
@@ -3245,10 +3249,11 @@ class TELEGRAM(Notifier):
                 poster_content = result[0]
             else:
                 poster_content = ''
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                title = pretty_metadata.get_title()
-                files = {'photo': (title, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
+                files = {'photo': (poster_filename, poster_content, 'image/jpeg')}
                 data['caption'] = text
 
                 return self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
