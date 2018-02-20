@@ -21,7 +21,7 @@ history_table_options = {
         "infoFiltered": "<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
         "emptyTable": "No data in table",
         "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
-},
+    },
     "pagingType": "full_numbers",
     "stateSave": true,
     "processing": false,
@@ -172,7 +172,7 @@ history_table_options = {
             },
             "width": "33%",
             "className": "datatable-wrap"
-},
+        },
         {
             "targets": [7],
             "data":"started",
@@ -322,7 +322,7 @@ history_table_options = {
             $(row).addClass('current-activity-row');
         }
     }
-}
+};
 
 // Parent table platform modal
 $('.history_table').on('click', '> tbody > tr > td.modal-control', function () {

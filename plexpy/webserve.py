@@ -28,6 +28,7 @@ from mako.lookup import TemplateLookup
 from mako import exceptions
 
 import plexpy
+import activity_pinger
 import common
 import config
 import database
@@ -62,7 +63,7 @@ def serve_template(templatename, **kwargs):
 
     http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
-    cache_param = '?' + plexpy.CURRENT_VERSION or common.VERSION_NUMBER
+    cache_param = '?' + (plexpy.CURRENT_VERSION or common.VERSION_NUMBER)
 
     _session = get_session_info()
 
@@ -98,10 +99,11 @@ class WebInterface(object):
         config = {
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
-            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "pms_port": plexpy.CONFIG.PMS_PORT,
+            "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
+            "pms_ssl": plexpy.CONFIG.PMS_SSL,
+            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
-            "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
@@ -117,7 +119,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, token=None, include_cloud=True, all_servers=False, **kwargs):
+    def discover(self, token=None, include_cloud=True, all_servers=True, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -148,7 +150,7 @@ class WebInterface(object):
             plexpy.CONFIG.write()
 
         include_cloud = not (include_cloud == 'false')
-        all_servers = (all_servers == 'true')
+        all_servers = not (all_servers == 'false')
 
         plex_tv = plextv.PlexTV()
         servers_list = plex_tv.discover(include_cloud=include_cloud,
@@ -456,12 +458,17 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_library_sections.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
-        """ Refresh the libraries list on it's own thread. """
-        threading.Thread(target=libraries.refresh_libraries).start()
+        """ Manually refresh the libraries list. """
         logger.info(u"Manual libraries list refresh requested.")
-        return True
+        result = libraries.refresh_libraries()
+
+        if result:
+            return {'result': 'success', 'message': 'Libraries list refreshed.'}
+        else:
+            return {'result': 'error', 'message': 'Unable to refresh libraries list.'}
 
     @cherrypy.expose
     @requireAuth()
@@ -512,8 +519,6 @@ class WebInterface(object):
 
             Optional parameters:
                 custom_thumb (str):         The URL for the custom library thumbnail
-                do_notify (int):            0 or 1
-                do_notify_created (int):    0 or 1
                 keep_history (int):         0 or 1
 
             Returns:
@@ -624,13 +629,14 @@ class WebInterface(object):
 
             Optional parameters:
                 section_type (str):             "movie", "show", "artist", "photo"
-                order_column (str):             "added_at", "title", "container", "bitrate", "video_codec",
+                order_column (str):             "added_at", "sort_title", "container", "bitrate", "video_codec",
                                                 "video_resolution", "video_framerate", "audio_codec", "audio_channels",
                                                 "file_size", "last_played", "play_count"
                 order_dir (str):                "desc" or "asc"
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Thrones"
+                refresh (str):                  "true" to refresh the media info table
 
             Returns:
                 json:
@@ -674,7 +680,7 @@ class WebInterface(object):
         if not kwargs.get('json_data'):
             # Alias 'title' to 'sort_title'
             if kwargs.get('order_column') == 'title':
-                kwargs['order_column'] == 'sort_title'
+                kwargs['order_column'] = 'sort_title'
                 
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),
@@ -954,7 +960,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_datatable_media_info_cache(self, section_id, **kwargs):
+    def delete_media_info_cache(self, section_id, **kwargs):
         """ Delete the media info table cache for a specific library.
 
             ```
@@ -974,14 +980,14 @@ class WebInterface(object):
         if section_id not in section_ids:
             if section_id:
                 library_data = libraries.Libraries()
-                delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
+                delete_row = library_data.delete_media_info_cache(section_id=section_id)
 
                 if delete_row:
                     return {'message': delete_row}
             else:
                 return {'message': 'no data received'}
         else:
-            return {'message': 'Cannot refresh library while getting file sizes.'}
+            return {'message': 'Cannot delete media info cache while getting file sizes.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1078,12 +1084,17 @@ class WebInterface(object):
         return user_list
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
-        """ Refresh the users list on it's own thread. """
-        threading.Thread(target=users.refresh_users).start()
+        """ Manually refresh the users list. """
         logger.info(u"Manual users list refresh requested.")
-        return True
+        result = users.refresh_users()
+
+        if result:
+            return {'result': 'success', 'message': 'Users list refreshed.'}
+        else:
+            return {'result': 'error', 'message': 'Unable to refresh users list.'}
 
     @cherrypy.expose
     @requireAuth()
@@ -1130,9 +1141,8 @@ class WebInterface(object):
             Optional paramters:
                 friendly_name(str):         The friendly name of the user
                 custom_thumb (str):         The URL for the custom user thumbnail
-                do_notify (int):            0 or 1
-                do_notify_created (int):    0 or 1
                 keep_history (int):         0 or 1
+                allow_guest (int):          0 or 1
 
             Returns:
                 None
@@ -2201,9 +2211,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
-
-        if not machine_id:
-            machine_id = plexpy.CONFIG.PMS_IDENTIFIER
+        if user_id == 'null':
+            user_id = None
 
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
@@ -2540,6 +2549,7 @@ class WebInterface(object):
             "http_password": http_password,
             "http_root": plexpy.CONFIG.HTTP_ROOT,
             "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
+            "http_plex_admin": checked(plexpy.CONFIG.HTTP_PLEX_ADMIN),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
@@ -2567,8 +2577,8 @@ class WebInterface(object):
             "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
-            "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
-            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
+            "pms_ssl": plexpy.CONFIG.PMS_SSL,
+            "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
@@ -2613,7 +2623,8 @@ class WebInterface(object):
             "tv_watched_percent": plexpy.CONFIG.TV_WATCHED_PERCENT,
             "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
             "themoviedb_lookup": checked(plexpy.CONFIG.THEMOVIEDB_LOOKUP),
-            "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP)
+            "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
+            "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2627,14 +2638,14 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_ssl", "pms_is_remote", "pms_url_manual", "week_start_monday",
+            "pms_url_manual", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
-            "themoviedb_lookup", "tvmaze_lookup"
+            "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -2675,8 +2686,7 @@ class WebInterface(object):
         refresh_users = False
 
         # First run from the setup wizard
-        if kwargs.get('first_run'):
-            del kwargs['first_run']
+        if kwargs.pop('first_run', None):
             first_run = True
             
         # If we change any monitoring settings, make sure we reschedule tasks.
@@ -2730,11 +2740,14 @@ class WebInterface(object):
                 refresh_libraries = True
 
         # If we change the server, make sure we grab the new url and refresh libraries and users lists.
-        if kwargs.get('server_changed'):
-            del kwargs['server_changed']
+        if kwargs.pop('server_changed', None):
             server_changed = True
             refresh_users = True
             refresh_libraries = True
+
+        # If we change the authentication settings, make sure we refresh the users lists.
+        if kwargs.pop('auth_changed', None):
+            refresh_users = True
 
         plexpy.CONFIG.process_kwargs(kwargs)
 
@@ -2748,7 +2761,7 @@ class WebInterface(object):
 
         # If first run, start websocket
         if first_run:
-            web_socket.start_thread()
+            activity_pinger.connect_server(log=True, startup=True)
         
         # Reconfigure scheduler if intervals changed
         if reschedule:
@@ -2797,12 +2810,16 @@ class WebInterface(object):
     def get_server_update_params(self, **kwargs):
         plex_tv = plextv.PlexTV()
         plexpass = plex_tv.get_plexpass_status()
+
+        update_channel = pmsconnect.PmsConnect().get_server_update_channel()
+
         return {'plexpass': plexpass,
                 'pms_platform': common.PMS_PLATFORM_NAME_OVERRIDES.get(
                     plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
                 'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
-                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
+                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD,
+                'plex_update_channel': 'plexpass' if update_channel == 'beta' else 'public'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3010,12 +3027,14 @@ class WebInterface(object):
                 Pass all the config options for the agent with the agent prefix:
                     e.g. For Telegram: telegram_bot_token
                                        telegram_chat_id
-                                       disable_web_preview
-                                       html_support
-                                       incl_poster
-                                       incl_subject
-                Notify actions with 'trigger_' prefix (trigger_on_play, trigger_on_stop, etc.),
-                and notify text with 'text_' prefix (text_on_play_subject, text_on_play_body, etc.) are optional.
+                                       telegram_disable_web_preview
+                                       telegram_html_support
+                                       telegram_incl_poster
+                                       telegram_incl_subject
+                Notify actions (int):  0 or 1,
+                    e.g. on_play, on_stop, etc.
+                Notify text (str):
+                    e.g. on_play_subject, on_play_body, etc.
 
             Returns:
                 None
@@ -3081,7 +3100,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi("notify")
     def send_notification(self, notifier_id=None, subject='Tautulli', body='Test notification', notify_action='', **kwargs):
         """ Send a notification using Tautulli.
 
@@ -3126,8 +3144,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_browser_notifications(self, **kwargs):
-        browser = notifiers.BROWSER()
-        result = browser.get_notifications()
+        result = notifiers.get_browser_notifications()
 
         if result:
             notifications = result['notifications']
@@ -3197,6 +3214,16 @@ class WebInterface(object):
         else:
             logger.warn(msg)
         return msg
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def zapier_test_hook(self, zapier_hook='', **kwargs):
+        success = notifiers.ZAPIER(config={'hook': zapier_hook})._test_hook()
+        if success:
+            return {'result': 'success', 'msg': 'Test Zapier webhook sent.'}
+        else:
+            return {'result': 'error', 'msg': 'Failed to send test Zapier webhook.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3493,10 +3520,53 @@ class WebInterface(object):
         return apikey
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def checkGithub(self, **kwargs):
+    @addtoapi()
+    def update_check(self, **kwargs):
+        """ Check for Tautulli updates.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json
+                    {"result": "success",
+                     "update": true,
+                     "message": "An update for Tautulli is available."
+                    }
+            ```
+        """
         versioncheck.checkGithub()
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+
+        if not plexpy.CURRENT_VERSION:
+            return {'result': 'error',
+                    'message': 'You are running an unknown version of Tautulli.',
+                    'update': None}
+
+        elif plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
+                plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+            return {'result': 'success',
+                    'update': True,
+                    'message': 'An update for Tautulli is available.',
+                    'latest_version': plexpy.LATEST_VERSION,
+                    'commits_behind': plexpy.COMMITS_BEHIND,
+                    'compare_url': helpers.anon_url(
+                        'https://github.com/%s/%s/compare/%s...%s'
+                        % (plexpy.CONFIG.GIT_USER,
+                           plexpy.CONFIG.GIT_REPO,
+                           plexpy.CURRENT_VERSION,
+                           plexpy.LATEST_VERSION))
+                    }
+
+        else:
+            return {'result': 'success',
+                    'update': False,
+                    'message': 'Tautulli is up to date.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3546,13 +3616,20 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def get_changelog(self, latest_only=False, update_shown=False, **kwargs):
-        latest_only = True if latest_only == 'true' else False
+    def get_changelog(self, latest_only=False, since_prev_release=False, update_shown=False, **kwargs):
+        latest_only = (latest_only == 'true')
+        since_prev_release = (since_prev_release == 'true')
+
+        if since_prev_release and plexpy.PREV_RELEASE == common.VERSION_NUMBER:
+            latest_only = True
+            since_prev_release = False
+
         # Set update changelog shown status
         if update_shown == 'true':
             plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
             plexpy.CONFIG.write()
-        return versioncheck.read_changelog(latest_only=latest_only)
+
+        return versioncheck.read_changelog(latest_only=latest_only, since_prev_release=since_prev_release)
 
     ##### Info #####
 
@@ -3572,6 +3649,8 @@ class WebInterface(object):
             if metadata:
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
+                lookup_info = data_factory.get_lookup_info(metadata=metadata)
+                metadata.update(lookup_info)
         else:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
@@ -3579,6 +3658,8 @@ class WebInterface(object):
                 data_factory = datafactory.DataFactory()
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
+                lookup_info = data_factory.get_lookup_info(metadata=metadata)
+                metadata.update(lookup_info)
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
@@ -3863,15 +3944,60 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_poster_url(self, rating_key='', **kwargs):
+    @addtoapi()
+    def delete_imgur_poster(self, rating_key='', **kwargs):
+        """ Delete the Imgur poster.
+
+            ```
+            Required parameters:
+                rating_key (int):       1234
+                                        (Note: Must be the movie, show, season, artist, or album rating key)
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Deleted Imgur poster."}
+            ```
+        """
 
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_poster_url(rating_key=rating_key)
 
         if result:
-            return {'result': 'success', 'message': 'Deleted Imgur poster url.'}
+            return {'result': 'success', 'message': 'Deleted Imgur poster.'}
         else:
-            return {'result': 'error', 'message': 'Failed to delete Imgur poster url.'}
+            return {'result': 'error', 'message': 'Failed to delete Imgur poster.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_lookup_info(self, rating_key='', title='', **kwargs):
+        """ Delete the 3rd party API lookup info.
+
+            ```
+            Required parameters:
+                rating_key (int):       1234
+                                        (Note: Must be the movie, show, or artist rating key)
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Deleted lookup info."}
+            ```
+        """
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.delete_lookup_info(rating_key=rating_key, title=title)
+
+        if result:
+            return {'result': 'success', 'message': 'Deleted lookup info.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete lookup info.'}
 
 
     ##### Search #####
@@ -4097,11 +4223,15 @@ class WebInterface(object):
                      ],
                      "added_at": "1461572396",
                      "art": "/library/metadata/1219/art/1462175063",
+                     "audience_rating": "8",
+                     "banner": "/library/metadata/1219/banner/1462175063",
+                     "collections": [],
                      "content_rating": "TV-MA",
                      "directors": [
                         "Jeremy Podeswa"
                      ],
                      "duration": "2998290",
+                     "full_title": "Game of Thrones - The Red Woman",
                      "genres": [
                         "Adventure",
                         "Drama",
@@ -4115,6 +4245,74 @@ class WebInterface(object):
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
                      "media_index": "1",
+                     "media_info": [
+                         {
+                             "aspect_ratio": "1.78",
+                             "audio_channel_layout": "5.1",
+                             "audio_channels": "6",
+                             "audio_codec": "ac3",
+                             "audio_profile": "",
+                             "bitrate": "10617",
+                             "container": "mkv",
+                             "height": "1078",
+                             "id": "257925",
+                             "optimized_version": 0,
+                             "parts": [
+                                 {
+                                     "file": "/media/TV Shows/Game of Thrones/Season 06/Game of Thrones - S06E01 - The Red Woman.mkv",
+                                     "file_size": "3979115377",
+                                     "id": "274169",
+                                     "indexes": 1,
+                                     "streams": [
+                                         {
+                                             "id": "511663",
+                                             "type": "1",
+                                             "video_bit_depth": "8",
+                                             "video_bitrate": "10233",
+                                             "video_codec": "h264",
+                                             "video_codec_level": "41",
+                                             "video_frame_rate": "23.976",
+                                             "video_height": "1078",
+                                             "video_language": "",
+                                             "video_language_code": "",
+                                             "video_profile": "high",
+                                             "video_ref_frames": "4",
+                                             "video_width": "1920"
+                                         },
+                                         {
+                                             "audio_bitrate": "384",
+                                             "audio_bitrate_mode": "",
+                                             "audio_channel_layout": "5.1(side)",
+                                             "audio_channels": "6",
+                                             "audio_codec": "ac3",
+                                             "audio_language": "",
+                                             "audio_language_code": "",
+                                             "audio_profile": "",
+                                             "audio_sample_rate": "48000",
+                                             "id": "511664",
+                                             "type": "2"
+                                         },
+                                         {
+                                             "id": "511953",
+                                             "subtitle_codec": "srt",
+                                             "subtitle_container": "",
+                                             "subtitle_forced": 0,
+                                             "subtitle_format": "srt",
+                                             "subtitle_language": "English",
+                                             "subtitle_language_code": "eng",
+                                             "subtitle_location": "external",
+                                             "type": "3"
+                                         }
+                                     ]
+                                 }
+                             ],
+                             "video_codec": "h264",
+                             "video_framerate": "24p",
+                             "video_profile": "high",
+                             "video_resolution": "1080",
+                             "width": "1920"
+                         }
+                     ],
                      "media_type": "episode",
                      "originally_available_at": "2016-04-24",
                      "parent_media_index": "6",
@@ -4124,11 +4322,13 @@ class WebInterface(object):
                      "rating": "7.8",
                      "rating_key": "153037",
                      "section_id": "2",
+                     "sort_title": "Game of Thrones",
                      "studio": "HBO",
                      "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
                      "tagline": "",
                      "thumb": "/library/metadata/153037/thumb/1462175060",
                      "title": "The Red Woman",
+                     "user_rating": "9.0",
                      "updated_at": "1462175060",
                      "writers": [
                         "David Benioff",
@@ -4367,67 +4567,219 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"stream_count": 3,
-                     "sessions":
-                        [{"art": "/library/metadata/1219/art/1462175063",
-                          "aspect_ratio": "1.78",
-                          "audio_channels": "6",
-                          "audio_codec": "ac3",
-                          "audio_decision": "transcode",
-                          "bif_thumb": "/library/parts/274169/indexes/sd/",
-                          "bitrate": "10617",
-                          "container": "mkv",
-                          "content_rating": "TV-MA",
-                          "duration": "2998290",
-                          "friendly_name": "Mother of Dragons",
-                          "grandparent_rating_key": "1219",
-                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
-                          "grandparent_title": "Game of Thrones",
-                          "height": "1078",
-                          "indexes": 1,
-                          "ip_address": "xxx.xxx.xxx.xxx",
-                          "labels": [],
-                          "machine_id": "83f189w617623ccs6a1lqpby",
-                          "media_index": "1",
-                          "media_type": "episode",
-                          "parent_media_index": "6",
-                          "parent_rating_key": "153036",
-                          "parent_thumb": "/library/metadata/153036/thumb/1462175062",
-                          "parent_title": "",
-                          "platform": "Chrome",
-                          "player": "Plex Web (Chrome)",
-                          "progress_percent": "0",
-                          "rating_key": "153037",
-                          "section_id": "2",
-                          "session_key": "291",
-                          "state": "playing",
-                          "throttled": "1",
-                          "thumb": "/library/metadata/153037/thumb/1462175060",
-                          "title": "The Red Woman",
-                          "transcode_audio_channels": "2",
-                          "transcode_audio_codec": "aac",
-                          "transcode_container": "mkv",
-                          "transcode_height": "1078",
-                          "transcode_key": "tiv5p524wcupe8nxegc26s9k9",
-                          "transcode_progress": 2,
-                          "transcode_protocol": "http",
-                          "transcode_speed": "0.0",
-                          "transcode_video_codec": "h264",
-                          "transcode_width": "1920",
-                          "user": "DanyKhaleesi69",
-                          "user_id": 8008135,
-                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
-                          "video_codec": "h264",
-                          "video_decision": "copy",
-                          "video_framerate": "24p",
-                          "video_resolution": "1080",
-                          "view_offset": "",
-                          "width": "1920",
-                          "year": "2016"
-                          },
-                         {...},
-                         {...}
-                         ]
+                    {"lan_bandwidth": 25318,
+                     "sessions": [
+                         {
+                             "actors": [
+                                 "Kit Harington",
+                                 "Emilia Clarke",
+                                 "Isaac Hempstead-Wright",
+                                 "Maisie Williams",
+                                 "Liam Cunningham",
+                             ],
+                             "added_at": "1461572396",
+                             "allow_guest": 1,
+                             "art": "/library/metadata/1219/art/1503306930",
+                             "aspect_ratio": "1.78",
+                             "audience_rating": "",
+                             "audio_bitrate": "384",
+                             "audio_bitrate_mode": "",
+                             "audio_channel_layout": "5.1(side)",
+                             "audio_channels": "6",
+                             "audio_codec": "ac3",
+                             "audio_decision": "direct play",
+                             "audio_language": "",
+                             "audio_language_code": "",
+                             "audio_profile": "",
+                             "audio_sample_rate": "48000",
+                             "bandwidth": "25318",
+                             "banner": "/library/metadata/1219/banner/1503306930",
+                             "bif_thumb": "/library/parts/274169/indexes/sd/1000",
+                             "bitrate": "10617",
+                             "channel_stream": 0,
+                             "collections": [],
+                             "container": "mkv",
+                             "content_rating": "TV-MA",
+                             "deleted_user": 0,
+                             "device": "Windows",
+                             "directors": [
+                                 "Jeremy Podeswa"
+                             ],
+                             "do_notify": 0,
+                             "duration": "2998272",
+                             "email": "Jon.Snow.1337@CastleBlack.com",
+                             "file": "/media/TV Shows/Game of Thrones/Season 06/Game of Thrones - S06E01 - The Red Woman.mkv",
+                             "file_size": "3979115377",
+                             "friendly_name": "Jon Snow",
+                             "full_title": "Game of Thrones - The Red Woman",
+                             "genres": [
+                                 "Adventure",
+                                 "Drama",
+                                 "Fantasy"
+                             ],
+                             "grandparent_rating_key": "1219",
+                             "grandparent_thumb": "/library/metadata/1219/thumb/1503306930",
+                             "grandparent_title": "Game of Thrones",
+                             "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
+                             "height": "1078",
+                             "id": "",
+                             "indexes": 1,
+                             "ip_address": "10.10.10.1",
+                             "ip_address_public": "64.123.23.111",
+                             "is_admin": 1,
+                             "is_allow_sync": null,
+                             "is_home_user": 1,
+                             "is_restricted": 0,
+                             "keep_history": 1,
+                             "labels": [],
+                             "last_viewed_at": "1462165717",
+                             "library_name": "TV Shows",
+                             "local": "1",
+                             "location": "lan",
+                             "machine_id": "lmd93nkn12k29j2lnm",
+                             "media_index": "1",
+                             "media_type": "episode",
+                             "optimized_version": 0,
+                             "optimized_version_profile": "",
+                             "optimized_version_title": "",
+                             "originally_available_at": "2016-04-24",
+                             "parent_media_index": "6",
+                             "parent_rating_key": "153036",
+                             "parent_thumb": "/library/metadata/153036/thumb/1503889210",
+                             "parent_title": "Season 6",
+                             "platform": "Plex Media Player",
+                             "platform_name": "plex",
+                             "platform_version": "2.4.1.787-54a020cd",
+                             "player": "Castle-PC",
+                             "product": "Plex Media Player",
+                             "product_version": "3.35.2",
+                             "profile": "Konvergo",
+                             "progress_percent": "0",
+                             "quality_profile": "Original",
+                             "rating": "7.8",
+                             "rating_key": "153037",
+                             "section_id": "2",
+                             "session_id": "helf15l3rxgw01xxe0jf3l3d",
+                             "session_key": "27",
+                             "shared_libraries": [
+                                 "10",
+                                 "1",
+                                 "4",
+                                 "5",
+                                 "15",
+                                 "20",
+                                 "2"
+                             ],
+                             "sort_title": "Red Woman",
+                             "state": "playing",
+                             "stream_aspect_ratio": "1.78",
+                             "stream_audio_bitrate": "384",
+                             "stream_audio_bitrate_mode": "",
+                             "stream_audio_channel_layout": "5.1(side)",
+                             "stream_audio_channel_layout_": "5.1(side)",
+                             "stream_audio_channels": "6",
+                             "stream_audio_codec": "ac3",
+                             "stream_audio_decision": "direct play",
+                             "stream_audio_language": "",
+                             "stream_audio_language_code": "",
+                             "stream_audio_sample_rate": "48000",
+                             "stream_bitrate": "10617",
+                             "stream_container": "mkv",
+                             "stream_container_decision": "direct play",
+                             "stream_duration": "2998272",
+                             "stream_subtitle_codec": "",
+                             "stream_subtitle_container": "",
+                             "stream_subtitle_decision": "",
+                             "stream_subtitle_forced": 0,
+                             "stream_subtitle_format": "",
+                             "stream_subtitle_language": "",
+                             "stream_subtitle_language_code": "",
+                             "stream_subtitle_location": "",
+                             "stream_video_bit_depth": "8",
+                             "stream_video_bitrate": "10233",
+                             "stream_video_codec": "h264",
+                             "stream_video_codec_level": "41",
+                             "stream_video_decision": "direct play",
+                             "stream_video_framerate": "24p",
+                             "stream_video_height": "1078",
+                             "stream_video_language": "",
+                             "stream_video_language_code": "",
+                             "stream_video_ref_frames": "4",
+                             "stream_video_resolution": "1080",
+                             "stream_video_width": "1920",
+                             "studio": "HBO",
+                             "subtitle_codec": "",
+                             "subtitle_container": "",
+                             "subtitle_decision": "",
+                             "subtitle_forced": 0,
+                             "subtitle_format": "",
+                             "subtitle_language": "",
+                             "subtitle_language_code": "",
+                             "subtitle_location": "",
+                             "subtitles": 0,
+                             "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
+                             "synced_version": 0,
+                             "synced_version_profile": "",
+                             "tagline": "",
+                             "throttled": "0",
+                             "thumb": "/library/metadata/153037/thumb/1503889207",
+                             "title": "The Red Woman",
+                             "transcode_audio_channels": "",
+                             "transcode_audio_codec": "",
+                             "transcode_container": "",
+                             "transcode_decision": "direct play",
+                             "transcode_height": "",
+                             "transcode_hw_decode": "",
+                             "transcode_hw_decode_title": "",
+                             "transcode_hw_decoding": 0,
+                             "transcode_hw_encode": "",
+                             "transcode_hw_encode_title": "",
+                             "transcode_hw_encoding": 0,
+                             "transcode_hw_full_pipeline": 0,
+                             "transcode_hw_requested": 0,
+                             "transcode_key": "",
+                             "transcode_progress": 0,
+                             "transcode_protocol": "",
+                             "transcode_speed": "",
+                             "transcode_throttled": 0,
+                             "transcode_video_codec": "",
+                             "transcode_width": "",
+                             "type": "",
+                             "updated_at": "1503889207",
+                             "user": "LordCommanderSnow",
+                             "user_id": 133788,
+                             "user_rating": "",
+                             "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+                             "username": "LordCommanderSnow",
+                             "video_bit_depth": "8",
+                             "video_bitrate": "10233",
+                             "video_codec": "h264",
+                             "video_codec_level": "41",
+                             "video_decision": "direct play",
+                             "video_frame_rate": "23.976",
+                             "video_framerate": "24p",
+                             "video_height": "1078",
+                             "video_language": "",
+                             "video_language_code": "",
+                             "video_profile": "high",
+                             "video_ref_frames": "4",
+                             "video_resolution": "1080",
+                             "video_width": "1920",
+                             "view_offset": "1000",
+                             "width": "1920",
+                             "writers": [
+                                 "David Benioff",
+                                 "D. B. Weiss"
+                             ],
+                             "year": "2016"
+                         }
+                     ],
+                     "stream_count": "1",
+                     "stream_count_direct_play": 1,
+                     "stream_count_direct_stream": 0,
+                     "stream_count_transcode": 0,
+                     "total_bandwidth": 25318,
+                     "wan_bandwidth": 0
                      }
             ```
         """
@@ -4442,7 +4794,9 @@ class WebInterface(object):
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,
                           'stream_count_transcode': 0,
-                          'total_bandwidth': 0}
+                          'total_bandwidth': 0,
+                          'lan_bandwidth': 0,
+                          'wan_bandwidth': 0}
 
                 for s in result['sessions']:
                     if s['transcode_decision'] == 'transcode':
@@ -4453,6 +4807,10 @@ class WebInterface(object):
                         counts['stream_count_direct_play'] += 1
 
                     counts['total_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
+                    if s['location'] == 'lan':
+                        counts['lan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
+                    else:
+                        counts['wan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
 
                 result.update(counts)
 
@@ -4558,27 +4916,29 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"content_type": "video",
+                    [{"audio_bitrate": "192",
+                      "client_id": "95434se643fsf24f-com-plexapp-android",
+                      "content_type": "video",
                       "device_name": "Tyrion's iPad",
                       "failure": "",
-                      "friendly_name": "Tyrion Lannister",
-                      "item_complete_count": "0",
+                      "item_complete_count": "1",
                       "item_count": "1",
-                      "item_downloaded_count": "0",
-                      "item_downloaded_percent_complete": 0,
+                      "item_downloaded_count": "1",
+                      "item_downloaded_percent_complete": 100,
                       "metadata_type": "movie",
-                      "music_bitrate": "192",
                       "photo_quality": "74",
                       "platform": "iOS",
                       "rating_key": "154092",
-                      "root_title": "Deadpool",
-                      "state": "pending",
+                      "root_title": "Movies",
+                      "state": "complete",
                       "sync_id": "11617019",
-                      "title": "Deadpool",
-                      "total_size": "0",
+                      "sync_title": "Deadpool",
+                      "total_size": "560718134",
+                      "user": "DrukenDwarfMan",
                       "user_id": "696969",
                       "username": "DrukenDwarfMan",
-                      "video_quality": "60"
+                      "video_bitrate": "4000"
+                      "video_quality": "100"
                       },
                      {...},
                      {...}

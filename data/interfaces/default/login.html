@@ -41,17 +41,15 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-6 col-sm-offset-3">
-                        <form action="${http_root}auth/login" method="post">
-                            % if msg:
-                            <div class="alert alert-danger" style="text-align: center; padding: 8px;">
-                                ${msg}
+                        <form id="login-form">
+                            <div id="incorrect-login" class="alert alert-danger" style="text-align: center; padding: 8px; display: none;">
+                                Incorrect username or password.
                             </div>
-                            % endif
                             <div class="form-group">
                                 <label for="username" class="control-label">
                                     Username
                                 </label>
-                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" value="${username}" autofocus>
+                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
                             </div>
                             <div class="form-group">
                                 <label for="password" class="control-label">
@@ -65,7 +63,7 @@
                                         <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
                                     </label>
                                 </div>
-                                <button type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
                             </div>
                         </form>
                     </div>
@@ -75,5 +73,30 @@
     </div>
 </div>
 
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script>
+    $('#login-form').submit(function(event) {
+        event.preventDefault();
+        $('#sign-in').prop('disabled', true).html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        $.ajax({
+            url: '${http_root}auth/signin',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            statusCode: {
+                200: function() {
+                   window.location = "${http_root}";
+                },
+                401: function() {
+                   $('#incorrect-login').show();
+                   $('#username').focus();
+                }
+            },
+            complete: function() {
+                $('#sign-in').prop('disabled', false).html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+            }
+        });
+    });
+</script>
 </body>
 </html>

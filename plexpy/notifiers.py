@@ -60,8 +60,11 @@ import logger
 import mobile_app
 import pmsconnect
 import request
+import users
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
-from plexpy.helpers import checked
+
+
+BROWSER_NOTIFIERS = {}
 
 
 AGENT_IDS = {'growl': 0,
@@ -87,7 +90,8 @@ AGENT_IDS = {'growl': 0,
              'discord': 20,
              'androidapp': 21,
              'groupme': 22,
-             'mqtt': 23
+             'mqtt': 23,
+             'zapier': 24
              }
 
 
@@ -183,6 +187,10 @@ def available_notification_agents():
               {'label': 'XBMC',
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc']
+               },
+              {'label': 'Zapier',
+               'name': 'zapier',
+               'id': AGENT_IDS['zapier']
                }
               ]
 
@@ -313,7 +321,7 @@ def available_notification_actions():
                 'name': 'on_plexpyupdate',
                 'description': 'Trigger a notification when an update for the Tautulli is available.',
                 'subject': 'Tautulli ({server_name})',
-                'body': 'An update is available for Tautulli (version {plexpy_update_version}).',
+                'body': 'An update is available for Tautulli (version {tautulli_update_version}).',
                 'icon': 'fa-refresh',
                 'media_types': ('server',)
                 }
@@ -374,6 +382,8 @@ def get_agent_class(agent_id=None, config=None):
             return GROUPME(config=config)
         elif agent_id == 23:
             return MQTT(config=config)
+        elif agent_id == 24:
+            return ZAPIER(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -551,6 +561,10 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info(u"Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         blacklist_logger()
+
+        if agent['name'] == 'browser':
+            check_browser_enabled()
+
         return True
     except Exception as e:
         logger.warn(u"Tautulli Notifiers :: Unable to update notification agent: %s." % e)
@@ -624,9 +638,9 @@ class PrettyMetadata(object):
         poster_url = self.parameters['poster_url']
         if not poster_url:
             if self.media_type in ('artist', 'album', 'track'):
-                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
+                poster_url = 'http://tautulli.com/images/cover.png'
             else:
-                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
+                poster_url = 'http://tautulli.com/images/poster.png'
         return poster_url
 
     def get_provider_name(self, provider):
@@ -645,13 +659,28 @@ class PrettyMetadata(object):
             provider_name = 'Trakt.tv'
         elif provider == 'lastfm':
             provider_name = 'Last.fm'
+        else:
+            if self.media_type == 'movie':
+                provider_name = 'IMDb'
+            elif self.media_type in ('show', 'season', 'episode'):
+                provider_name = 'TheTVDB'
+            elif self.media_type in ('artist', 'album', 'track'):
+                provider_name = 'Last.fm'
         return provider_name
 
     def get_provider_link(self, provider=None):
+        provider_link = ''
         if provider == 'plexweb':
             provider_link = self.get_plex_url()
-        else:
+        elif provider:
             provider_link = self.parameters.get(provider + '_url', '')
+        else:
+            if self.media_type == 'movie':
+                provider_link = self.parameters.get('imdb_url', '')
+            elif self.media_type in ('show', 'season', 'episode'):
+                provider_link = self.parameters.get('thetvdb_url', '')
+            elif self.media_type in ('artist', 'album', 'track'):
+                provider_link = self.parameters.get('lastfm_url', '')
         return provider_link
 
     def get_caption(self, provider):
@@ -715,6 +744,17 @@ class Notifier(object):
         return new_config
 
     def notify(self, subject='', body='', action='', **kwargs):
+        if self.NAME != 'Script':
+            if not subject and self.config.get('incl_subject', True):
+                logger.error(u"Tautulli Notifiers :: %s notification subject cannot be blank." % self.NAME)
+                return
+            elif not body:
+                logger.error(u"Tautulli Notifiers :: %s notification body cannot be blank." % self.NAME)
+                return
+
+        return self.agent_notify(subject=subject, body=body, action=action, **kwargs)
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         pass
 
     def make_request(self, url, method='POST', **kwargs):
@@ -755,10 +795,7 @@ class ANDROIDAPP(Notifier):
 
     _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
-    def notify(self, subject='', body='', action='', notification_id=None, **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
         if not device:
@@ -859,7 +896,8 @@ class ANDROIDAPP(Notifier):
                     'The content of your notifications will be sent unencrypted!</strong><br>' \
                     'Please install the library to encrypt the notification contents. ' \
                     'Instructions can be found in the ' \
-                    '<a href="' + helpers.anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)#notifications-pycryptodome' % plexpy.CONFIG.GIT_USER) + '" target="_blank">FAQ</a>.',
+                    '<a href="' + helpers.anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
+                                                   % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.',
                 'input_type': 'help'
                 })
         else:
@@ -919,10 +957,7 @@ class BOXCAR(Notifier):
                        'sound': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'user_credentials': self.config['token'],
                 'notification[title]': subject.encode('utf-8'),
                 'notification[long_message]': body.encode('utf-8'),
@@ -989,43 +1024,15 @@ class BROWSER(Notifier):
     Browser notifications
     """
     NAME = 'Browser'
-    _DEFAULT_CONFIG = {'enabled': 0,
-                       'auto_hide_delay': 5
+    _DEFAULT_CONFIG = {'auto_hide_delay': 5
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
         return True
 
-    def get_notifications(self):
-        if not self.config['enabled']:
-            return
-
-        db = database.MonitorDatabase()
-        result = db.select('SELECT subject_text, body_text FROM notify_log '
-                                   'WHERE agent_id = 17 AND timestamp >= ? ',
-                                   args=[time.time() - 3])
-
-        notifications = []
-        for item in result:
-            notification = {'subject_text': item['subject_text'],
-                            'body_text': item['body_text'],
-                            'delay': self.config['auto_hide_delay']}
-            notifications.append(notification)
-
-        return {'notifications': notifications}
-
     def return_config_options(self):
-        config_option = [{'label': 'Enable Browser Notifications',
-                          'value': self.config['enabled'],
-                          'name': 'browser_enabled',
-                          'description': 'Enable to display desktop notifications from your browser.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Allow Notifications',
+        config_option = [{'label': 'Allow Notifications',
                           'value': 'Allow Notifications',
                           'name': 'browser_allow_browser',
                           'description': 'Click to allow browser notifications. You must click this button for each browser.',
@@ -1063,10 +1070,7 @@ class DISCORD(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -1179,7 +1183,8 @@ class DISCORD(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -1203,16 +1208,16 @@ class DISCORD(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'discord_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1246,27 +1251,31 @@ class EMAIL(Notifier):
                        'html_support': 1
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
+    def __init__(self, config=None):
+        super(EMAIL, self).__init__(config=config)
 
+        if not isinstance(self.config['to'], list):
+            self.config['to'] = [x.strip() for x in self.config['to'].split(';')]
+        if not isinstance(self.config['cc'], list):
+            self.config['cc'] = [x.strip() for x in self.config['cc'].split(';')]
+        if not isinstance(self.config['bcc'], list):
+            self.config['bcc'] = [x.strip() for x in self.config['bcc'].split(';')]
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['html_support']:
-            body = body.replace('\n', '<br />')
             msg = MIMEMultipart('alternative')
             msg.attach(MIMEText(bleach.clean(body, strip=True), 'plain', 'utf-8'))
             msg.attach(MIMEText(body, 'html', 'utf-8'))
         else:
             msg = MIMEText(body, 'plain', 'utf-8')
 
+        msg['Date'] = email.utils.formatdate(localtime=True)
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
-        msg['To'] = self.config['to']
-        msg['CC'] = self.config['cc']
+        msg['To'] = ','.join(self.config['to'])
+        msg['CC'] = ','.join(self.config['cc'])
 
-        recipients = [x.strip() for x in self.config['to'].split(';')] \
-                   + [x.strip() for x in self.config['cc'].split(';')] \
-                   + [x.strip() for x in self.config['bcc'].split(';')]
-        recipients = filter(None, recipients)
+        recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
         try:
             mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
@@ -1289,7 +1298,26 @@ class EMAIL(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
+    def get_user_emails(self):
+        emails = {u['email']: u['friendly_name'] for u in users.Users().get_users() if u['email']}
+
+        user_emails_to = {v: '' for v in self.config['to']}
+        user_emails_cc = {v: '' for v in self.config['cc']}
+        user_emails_bcc = {v: '' for v in self.config['bcc']}
+
+        user_emails_to.update(emails)
+        user_emails_cc.update(emails)
+        user_emails_bcc.update(emails)
+
+        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.iteritems()]
+        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.iteritems()]
+        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.iteritems()]
+
+        return user_emails_to, user_emails_cc, user_emails_bcc
+
     def return_config_options(self):
+        user_emails_to, user_emails_cc, user_emails_bcc = self.get_user_emails()
+
         config_option = [{'label': 'From Name',
                           'value': self.config['from_name'],
                           'name': 'email_from_name',
@@ -1305,20 +1333,23 @@ class EMAIL(Notifier):
                          {'label': 'To',
                           'value': self.config['to'],
                           'name': 'email_to',
-                          'description': 'The email address(es) of the recipients, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) of the recipients.',
+                          'input_type': 'selectize',
+                          'select_options': user_emails_to
                           },
                          {'label': 'CC',
                           'value': self.config['cc'],
                           'name': 'email_cc',
-                          'description': 'The email address(es) to CC, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) to CC.',
+                          'input_type': 'selectize',
+                          'select_options': user_emails_cc
                           },
                          {'label': 'BCC',
                           'value': self.config['bcc'],
                           'name': 'email_bcc',
-                          'description': 'The email address(es) to BCC, separated by semicolons (;).',
-                          'input_type': 'text'
+                          'description': 'The email address(es) to BCC.',
+                          'input_type': 'selectize',
+                          'select_options': user_emails_bcc
                           },
                          {'label': 'SMTP Server',
                           'value': self.config['smtp_server'],
@@ -1353,8 +1384,7 @@ class EMAIL(Notifier):
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
                           'name': 'email_html_support',
-                          'description': 'Style your messages using  HTML tags. '
-                                         'Line breaks (&lt;br&gt;) will be inserted automatically.',
+                          'description': 'Style your messages using HTML tags.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1416,7 +1446,7 @@ class FACEBOOK(Notifier):
         except Exception as e:
             logger.error(u"Tautulli Notifiers :: Error requesting {name} access token: {e}".format(name=self.NAME, e=e))
             plexpy.CONFIG.FACEBOOK_TOKEN = ''
-            
+
         # Clear out temporary config values
         plexpy.CONFIG.FACEBOOK_APP_ID = ''
         plexpy.CONFIG.FACEBOOK_APP_SECRET = ''
@@ -1440,10 +1470,7 @@ class FACEBOOK(Notifier):
             logger.error(u"Tautulli Notifiers :: Error sending {name} post: No {name} Group ID provided.".format(name=self.NAME))
             return False
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -1463,24 +1490,24 @@ class FACEBOOK(Notifier):
                 provider = self.config['music_provider']
             else:
                 provider = None
-            
+
             data['link'] = pretty_metadata.get_provider_link(provider)
 
         return self._post_facebook(**data)
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
-                                          Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
-                                          Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong> \
-                                          for <strong>Facebook Login</strong>.<br>\
-                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>\
-                                          Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
-                                          Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>\
-                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>\
-                                          Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>\
-                                          Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank">'
+                                         'Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>'
+                                         'Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong>'
+                                         'for <strong>Facebook Login</strong>.<br>'
+                                         'Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>'
+                                         'Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>'
+                                         'Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>'
+                                         'Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>'
+                                         'Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>'
+                                         'Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>'
+                                         'Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
                           'input_type': 'help'
                           },
                          {'label': 'Tautulli URL',
@@ -1529,22 +1556,23 @@ class FACEBOOK(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'facebook_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'facebook_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1571,10 +1599,7 @@ class GROUPME(Notifier):
                        'incl_poster': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'bot_id': self.config['bot_id']}
 
         if self.config['incl_subject']:
@@ -1649,10 +1674,7 @@ class GROWL(Notifier):
                        'password': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         # Split host and port
         if self.config['host'] == "":
             host, port = "localhost", 23053
@@ -1692,7 +1714,7 @@ class GROWL(Notifier):
 
         # Send it, including an image
         image_file = os.path.join(str(plexpy.PROG_DIR),
-            "data/interfaces/default/images/logo.png")
+            "data/interfaces/default/images/logo-circle.png")
 
         with open(image_file, 'rb') as f:
             image = f.read()
@@ -1745,10 +1767,7 @@ class HIPCHAT(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'notify': 'false'}
 
         text = body.encode('utf-8')
@@ -1858,6 +1877,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'hipchat_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.<br>'
                                          'Note: This will change the notification type to HTML and emoticons will no longer work.',
                           'input_type': 'checkbox'
                           },
@@ -1876,16 +1896,16 @@ class HIPCHAT(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'hipchat_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'hipchat_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1910,10 +1930,7 @@ class IFTTT(Notifier):
                        'event': 'plexpy'
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         event = unicode(self.config['event']).format(action=action)
 
         data = {'value1': subject.encode("utf-8"),
@@ -1925,23 +1942,24 @@ class IFTTT(Notifier):
                                  headers=headers, json=data)
 
     def return_config_options(self):
-        config_option = [{'label': 'Ifttt Maker Channel Key',
+        config_option = [{'label': 'IFTTT Webhook Key',
                           'value': self.config['key'],
                           'name': 'ifttt_key',
-                          'description': 'Your Ifttt  key. You can get a key from'
-                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker') + '" target="_blank">here</a>.',
+                          'description': 'Your IFTTT webhook key. You can get a key from'
+                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker_webhooks') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
-                         {'label': 'Ifttt Event',
+                         {'label': 'IFTTT Event',
                           'value': self.config['event'],
                           'name': 'ifttt_event',
-                          'description': 'The Ifttt maker event to fire. You can include'
-                                         ' the {action} to be substituted with the action name.'
+                          'description': 'The IFTTT maker event to fire. You can include'
+                                         ' <span class="inline-pre">{action}</span>'
+                                         ' to be substituted with the action name.'
                                          ' The notification subject and body will be sent'
-                                         ' as value1 and value2 respectively.',
+                                         ' as <span class="inline-pre">value1</span>'
+                                         ' and <span class="inline-pre">value2</span> respectively.',
                           'input_type': 'text'
                           }
-
                          ]
 
         return config_option
@@ -1953,22 +1971,49 @@ class JOIN(Notifier):
     """
     NAME = 'Join'
     _DEFAULT_CONFIG = {'api_key': '',
-                       'device_id': '',
-                       'incl_subject': 1
+                       'device_names': '',
+                       'priority': 2,
+                       'incl_subject': 1,
+                       'incl_poster': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
+    def __init__(self, config=None):
+        super(JOIN, self).__init__(config=config)
 
-        deviceid_key = 'deviceId%s' % ('s' if len(self.config['device_id'].split(',')) > 1 else '')
+        if not isinstance(self.config['device_names'], list):
+            self.config['device_names'] = [x.strip() for x in self.config['device_names'].split(',')]
 
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['api_key'],
-                deviceid_key: self.config['device_id'],
+                'deviceNames': ','.join(self.config['device_names']),
                 'text': body.encode("utf-8")}
 
         if self.config['incl_subject']:
             data['title'] = subject.encode("utf-8")
+
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            poster_url = pretty_metadata.get_poster_url()
+            if poster_url and self.config['incl_poster']:
+                data['icon'] = poster_url
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
+            provider_link = pretty_metadata.get_provider_link(provider)
+            if provider_link:
+                data['url'] = provider_link
 
         r = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush', params=data)
 
@@ -1987,6 +2032,9 @@ class JOIN(Notifier):
             return False
 
     def get_devices(self):
+        devices = {d: d for d in self.config['device_names']}
+        devices.update({'': ''})
+
         if self.config['api_key']:
             params = {'apikey': self.config['api_key']}
 
@@ -1995,28 +2043,22 @@ class JOIN(Notifier):
             if r.status_code == 200:
                 response_data = r.json()
                 if response_data.get('success'):
-                    devices = response_data.get('records', [])
-                    devices = {d['deviceId']: d['deviceName'] for d in devices}
-                    devices.update({'': ''})
+                    response_devices = response_data.get('records', [])
+                    devices.update({d['deviceName']: d['deviceName'] for d in response_devices})
                     return devices
                 else:
                     error_msg = response_data.get('errorMessage')
                     logger.info(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
-                    return {'': ''}
+                    return devices
             else:
                 logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                 logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                return {'': ''}
+                return devices
 
         else:
-            return {'': ''}
+            return devices
 
     def return_config_options(self):
-        devices = '<br>'.join(['%s: <span class="inline-pre">%s</span>'
-                               % (v, k) for k, v in self.get_devices().iteritems() if k])
-        if not devices:
-            devices = 'Enter your Join API key to load your device list.'
-
         config_option = [{'label': 'Join API Key',
                           'value': self.config['api_key'],
                           'name': 'join_api_key',
@@ -2024,22 +2066,55 @@ class JOIN(Notifier):
                           'input_type': 'text',
                           'refresh': True
                           },
-                         {'label': 'Device ID(s) or Group ID',
-                          'value': self.config['device_id'],
-                          'name': 'join_device_id',
-                          'description': 'Set your Join device ID or group ID. ' \
-                              'Separate multiple devices with commas (,).',
-                          'input_type': 'text',
+                         {'label': 'Device Name(s)',
+                          'value': self.config['device_names'],
+                          'name': 'join_device_names',
+                          'description': 'Select your Join device(s).',
+                          'input_type': 'select',
+                          'select_options': self.get_devices()
                           },
-                         {'label': 'Your Devices IDs',
-                          'description': devices,
-                          'input_type': 'help'
+                         {'label': 'Priority',
+                          'value': self.config['priority'],
+                          'name': 'join_priority',
+                          'description': 'Set the notification priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
                           'name': 'join_incl_subject',
                           'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'join_incl_poster',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'join_movie_provider',
+                          'description': 'Select the source for movie links in the notificaation. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'join_tv_provider',
+                          'description': 'Select the source for tv show links in the notificaation. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'join_music_provider',
+                          'description': 'Select the source for music links in the notificaation. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -2062,10 +2137,7 @@ class MQTT(Notifier):
                        'keep_alive': 60
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if not self.config['topic']:
             logger.error(u"Tautulli Notifiers :: MQTT topic not specified.")
             return
@@ -2168,10 +2240,7 @@ class NMA(Notifier):
                        'priority': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         title = 'Tautulli'
         batch = False
 
@@ -2248,7 +2317,7 @@ class OSX(Notifier):
     def _swizzled_bundleIdentifier(self, original, swizzled):
         return 'ade.plexpy.osxnotify'
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def agent_notify(self, subject='', body='', action='', **kwargs):
 
         subtitle = kwargs.get('subtitle', '')
         sound = kwargs.get('sound', '')
@@ -2341,10 +2410,7 @@ class PLEX(Notifier):
         if response:
             return response[0]['result']
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
         if self.config['display_time'] > 0:
@@ -2355,7 +2421,7 @@ class PLEX(Notifier):
         if self.config['image']:
             image = self.config['image']
         else:
-            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo-circle.png"))
 
         for host in hosts:
             logger.info(u"Tautulli Notifiers :: Sending notification command to {name} @ {host}".format(name=self.NAME, host=host))
@@ -2379,7 +2445,7 @@ class PLEX(Notifier):
             except Exception as e:
                 logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
-                
+
         return True
 
     def return_config_options(self):
@@ -2427,16 +2493,13 @@ class PROWL(Notifier):
                        'priority': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['key'],
                 'application': 'Tautulli',
                 'event': subject.encode("utf-8"),
                 'description': body.encode("utf-8"),
                 'priority': self.config['priority']}
-        
+
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
         return self.make_request('https://api.prowlapp.com/publicapi/add', headers=headers, data=data)
@@ -2468,10 +2531,7 @@ class PUSHALOT(Notifier):
     _DEFAULT_CONFIG = {'api_key': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'AuthorizationToken': self.config['api_key'],
                 'Title': subject.encode('utf-8'),
                 'Body': body.encode("utf-8")}
@@ -2502,10 +2562,7 @@ class PUSHBULLET(Notifier):
                        'channel_tag': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'type': 'note',
                 'title': subject.encode("utf-8"),
                 'body': body.encode("utf-8")}
@@ -2587,10 +2644,7 @@ class PUSHOVER(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'token': self.config['api_token'],
                 'user': self.config['key'],
                 'title': subject.encode("utf-8"),
@@ -2684,23 +2738,23 @@ class PUSHOVER(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'pushover_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'pushover_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'pushover_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'description': 'Select the source for music links in the notification. Leave blank for default.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -2795,7 +2849,7 @@ class SCRIPTS(Notifier):
             logger.info(u"Tautulli Notifiers :: Script notification sent.")
             return True
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         """
             Args:
                   subject(string, optional): Subject text,
@@ -2907,10 +2961,7 @@ class SLACK(Notifier):
                        'music_provider': ''
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
             text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
         else:
@@ -3022,7 +3073,8 @@ class SLACK(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'slack_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -3046,16 +3098,16 @@ class SLACK(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'slack_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'slack_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br> \
-                                          3rd party API lookup may need to be enabled under the notification settings tab.',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3084,10 +3136,7 @@ class TELEGRAM(Notifier):
                        'incl_poster': 0
                        }
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not body or not subject:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'chat_id': self.config['chat_id']}
 
         if self.config['incl_subject']:
@@ -3150,7 +3199,8 @@ class TELEGRAM(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'telegram_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Enable HTML Support',
@@ -3205,10 +3255,7 @@ class TWITTER(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         poster_url = ''
         if self.config['incl_poster'] and kwargs.get('parameters'):
             parameters = kwargs['parameters']
@@ -3221,12 +3268,12 @@ class TWITTER(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank"> \
-                                          Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>\
-                                          Step 2: Go to <strong>Keys and Access Tokens</strong> and click \
-                                          <strong>Create my access token</strong>.<br>\
-                                          Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, \
-                                          <strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank">'
+                                         'Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>'
+                                         'Step 2: Go to <strong>Keys and Access Tokens</strong> and click '
+                                         '<strong>Create my access token</strong>.<br>'
+                                         'Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, '
+                                         '<strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'Twitter Consumer Key',
@@ -3262,7 +3309,8 @@ class TWITTER(Notifier):
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'twitter_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                          'description': 'Include a poster with the notifications.<br>'
+                                         'Imgur upload may need to be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -3305,10 +3353,7 @@ class XBMC(Notifier):
         if response:
             return response[0]['result']
 
-    def notify(self, subject='', body='', action='', **kwargs):
-        if not subject or not body:
-            return
-
+    def agent_notify(self, subject='', body='', action='', **kwargs):
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
         if self.config['display_time'] > 0:
@@ -3319,7 +3364,7 @@ class XBMC(Notifier):
         if self.config['image']:
             image = self.config['image']
         else:
-            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo.png"))
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/logo-circle.png"))
 
         for host in hosts:
             logger.info(u"Tautulli Notifiers :: Sending notification command to XMBC @ " + host)
@@ -3376,6 +3421,104 @@ class XBMC(Notifier):
                           'name': 'xbmc_image',
                           'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
                           'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
+
+
+class ZAPIER(Notifier):
+    """
+    Zapier notifications
+    """
+    NAME = 'Zapier'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
+                       }
+
+    def _test_hook(self):
+        _test_data = {'subject': 'Subject',
+                      'body': 'Body',
+                      'action': 'Action',
+                      'poster_url': 'https://i.imgur.com',
+                      'provider_name': 'Provider Name',
+                      'provider_link': 'http://www.imdb.com',
+                      'plex_url': 'https://app.plex.tv/desktop'}
+
+        return self.agent_notify(_test_data=_test_data)
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        data = {'subject': subject.encode("utf-8"),
+                'body': body.encode("utf-8"),
+                'action': action.encode("utf-8")}
+
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
+            poster_url = pretty_metadata.get_poster_url()
+            provider_name = pretty_metadata.get_provider_name(provider)
+            provider_link = pretty_metadata.get_provider_link(provider)
+            plex_url = pretty_metadata.get_plex_url()
+
+            data['poster_url'] = poster_url
+            data['provider_name'] = provider_name
+            data['provider_link'] = provider_link
+            data['plex_url'] = plex_url
+
+        if kwargs.get('_test_data'):
+            data.update(kwargs['_test_data'])
+
+        headers = {'Content-type': 'application/json'}
+
+        return self.make_request(self.config['hook'], headers=headers, json=data)
+
+    def return_config_options(self):
+        config_option = [{'label': 'Zapier Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'zapier_hook',
+                          'description': 'Your Zapier webhook URL.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Test Zapier Webhook',
+                          'value': 'Send Test Data',
+                          'name': 'zapier_test_hook',
+                          'description': 'Click this button when prompted on then "Test Webhooks by Zapier" step.',
+                          'input_type': 'button'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'zapier_movie_provider',
+                          'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'zapier_tv_provider',
+                          'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
+                                         '3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'zapier_music_provider',
+                          'description': 'Select the source for music links in the notification. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -3504,3 +3647,27 @@ def upgrade_config_to_db():
                 notifier_id = add_notifier_config(agent_id=agent_id)
                 set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **notifier_config)
 
+
+def check_browser_enabled():
+    global BROWSER_NOTIFIERS
+    BROWSER_NOTIFIERS = {}
+    for n in get_notifiers():
+        if n['agent_id'] == 17 and n['active']:
+            notifier_config = get_notifier_config(n['id'])
+            BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']
+
+
+def get_browser_notifications():
+    db = database.MonitorDatabase()
+    result = db.select('SELECT notifier_id, subject_text, body_text FROM notify_log '
+                       'WHERE agent_id = 17 AND timestamp >= ? ',
+                       args=[time.time() - 5])
+
+    notifications = []
+    for item in result:
+        notification = {'subject_text': item['subject_text'],
+                        'body_text': item['body_text'],
+                        'delay': BROWSER_NOTIFIERS.get(item['notifier_id'], 5)}
+        notifications.append(notification)
+
+    return {'notifications': notifications}

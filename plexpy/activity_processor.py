@@ -127,7 +127,7 @@ class ActivityProcessor(object):
             if result == 'insert':
                 # Check if any notification agents have notifications enabled
                 if notify:
-                    plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_play'})
+                    plexpy.NOTIFY_QUEUE.put({'stream_data': values.copy(), 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.
                 started = int(time.time())
@@ -155,7 +155,12 @@ class ActivityProcessor(object):
 
             # Reload json from raw stream info
             if session.get('raw_stream_info'):
-                session.update(json.loads(session['raw_stream_info']))
+                raw_stream_info = json.loads(session['raw_stream_info'])
+                # Don't overwrite id, session_key, stopped
+                raw_stream_info.pop('id', None)
+                raw_stream_info.pop('session_key', None)
+                raw_stream_info.pop('stopped', None)
+                session.update(raw_stream_info)
 
             session = defaultdict(str, session)
 
@@ -177,6 +182,7 @@ class ActivityProcessor(object):
             else:
                 logger.debug(u"Tautulli ActivityProcessor :: ratingKey %s not logged. Does not meet logging criteria. "
                              u"Media type is '%s'" % (session['rating_key'], session['media_type']))
+                return session['id']
 
             if str(session['paused_counter']).isdigit():
                 real_play_time = stopped - session['started'] - int(session['paused_counter'])
@@ -229,7 +235,8 @@ class ActivityProcessor(object):
                     ## TODO: Fix media info from imports. Temporary media info from import session.
                     media_info = session
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write sessionKey %s to session_history table..."
+                #              % session['session_key'])
                 keys = {'id': None}
                 values = {'started': session['started'],
                           'stopped': stopped,
@@ -254,7 +261,8 @@ class ActivityProcessor(object):
                           'view_offset': session['view_offset']
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
+                #              % session['session_key'])
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
@@ -284,7 +292,7 @@ class ActivityProcessor(object):
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
-                if  prev_session == new_session == None:
+                if prev_session is None and new_session is None:
                     args = [last_id, last_id]
                 elif prev_session['rating_key'] == new_session['rating_key'] and prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
@@ -298,7 +306,8 @@ class ActivityProcessor(object):
 
                 # Write the session_history_media_info table
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history_media_info table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_media_info table..."
+                #              % session['session_key'])
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
                           'video_decision': session['video_decision'],
@@ -365,7 +374,8 @@ class ActivityProcessor(object):
                           'optimized_version_title': session['optimized_version_title']
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history_media_info transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."
+                #              % session['session_key'])
                 self.db.upsert(table_name='session_history_media_info', key_dict=keys, value_dict=values)
 
                 # Write the session_history_metadata table
@@ -375,7 +385,8 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to session_history_metadata table...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
+                #              % session['session_key'])
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
                           'parent_rating_key': session['parent_rating_key'],
@@ -411,11 +422,12 @@ class ActivityProcessor(object):
                           'labels': labels
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing session_history_metadata transaction...")
+                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
+                #              % session['session_key'])
                 self.db.upsert(table_name='session_history_metadata', key_dict=keys, value_dict=values)
 
-            # Return true when the session is successfully written to the database
-            return True
+            # Return the session row id when the session is successfully written to the database
+            return session['id']
 
     def get_sessions(self, user_id=None, ip_address=None):
         query = 'SELECT * FROM sessions'
@@ -456,9 +468,11 @@ class ActivityProcessor(object):
 
         return None
 
-    def delete_session(self, session_key=None):
+    def delete_session(self, session_key=None, row_id=None):
         if str(session_key).isdigit():
             self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
+        elif str(row_id).isdigit():
+            self.db.action('DELETE FROM sessions WHERE id = ?', [row_id])
 
     def set_session_last_paused(self, session_key=None, timestamp=None):
         if str(session_key).isdigit():

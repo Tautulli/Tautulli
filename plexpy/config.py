@@ -61,7 +61,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_PLEXPASS': (int, 'PMS', 0),
     'PMS_PLATFORM': (str, 'PMS', ''),
     'PMS_VERSION': (str, 'PMS', ''),
-    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'public'),
+    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'plex'),
     'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
@@ -176,13 +176,13 @@ _CONFIG_DEFINITIONS = {
     'GIT_PATH': (str, 'General', ''),
     'GIT_REMOTE': (str, 'General', 'origin'),
     'GIT_TOKEN': (str, 'General', ''),
-    'GIT_USER': (str, 'General', 'JonnyWong16'),
-    'GIT_REPO': (str, 'General', 'plexpy'),
+    'GIT_USER': (str, 'General', 'Tautulli'),
+    'GIT_REPO': (str, 'General', 'Tautulli'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_MONTHS': (int, 'General', 12),
     'GRAPH_TAB': (str, 'General', 'tabs-1'),
-    'GROUP_HISTORY_TABLES': (int, 'General', 0),
+    'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'GROWL_ENABLED': (int, 'Growl', 0),
     'GROWL_HOST': (str, 'Growl', ''),
     'GROWL_PASSWORD': (str, 'Growl', ''),
@@ -227,6 +227,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PROXY': (int, 'General', 0),
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
+    'HTTP_PLEX_ADMIN': (int, 'General', 0),
     'HIPCHAT_URL': (str, 'Hipchat', ''),
     'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),
@@ -291,6 +292,7 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
+    'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_START': (int, 'Monitoring', 1),
@@ -480,6 +482,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
     'REMOTE_ACCESS_PING_THRESHOLD': (int, 'Advanced', 3),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
+    'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
@@ -612,7 +615,8 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_INTUP': (int, 'XBMC', 0),
     'XBMC_ON_PMSUPDATE': (int, 'XBMC', 0),
     'XBMC_ON_CONCURRENT': (int, 'XBMC', 0),
-    'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0)
+    'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0),
+    'JWT_SECRET': (str, 'Advanced', ''),
 }
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
@@ -875,3 +879,15 @@ class Config(object):
             self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
 
             self.CONFIG_VERSION = 9
+
+        if self.CONFIG_VERSION == 9:
+            if self.PMS_UPDATE_CHANNEL == 'plexpass':
+                self.PMS_UPDATE_CHANNEL = 'beta'
+
+            self.CONFIG_VERSION = 10
+
+        if self.CONFIG_VERSION == 10:
+            self.GIT_USER = 'Tautulli'
+            self.GIT_REPO = 'Tautulli'
+
+            self.CONFIG_VERSION = 11

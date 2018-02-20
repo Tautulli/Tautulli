@@ -26,7 +26,7 @@ function refreshTab() {
 
 function showMsg(msg, loader, timeout, ms, error) {
     var feedback = $("#ajaxMsg");
-    update = $("#updatebar");
+    var update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
         feedback.css("bottom", height + "px");
@@ -35,7 +35,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
-        var message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
+        message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
         feedback.css("padding", "14px 10px")
     }
     if (error) {
@@ -290,19 +290,9 @@ String.prototype.toProperCase = function () {
 
 function millisecondsToMinutes(ms, roundToMinute) {
     if (ms > 0) {
-        seconds = ms / 1000;
-        minutes = seconds / 60;
-        if (roundToMinute) {
-            output = Math.round(minutes, 0)
-        } else {
-            minutesFloor = Math.floor(minutes);
-            secondsReal = Math.round((seconds - (minutesFloor * 60)), 0);
-            if (secondsReal < 10) {
-                secondsReal = '0' + secondsReal;
-            }
-            output = minutesFloor + ':' + secondsReal;
-        }
-        return output;
+      var minutes = Math.floor(ms / 60000);
+      var seconds = ((ms % 60000) / 1000).toFixed(0);
+      return (seconds == 60 ? (minutes+1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
     } else {
         if (roundToMinute) {
             return '0';

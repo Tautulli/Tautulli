@@ -1,8 +1,8 @@
 # Tautulli
 
-[![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://discord.gg/36ggawe)
+[![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://discord.gg/tQcWEUp)
 [![Reddit](https://img.shields.io/badge/Reddit-Tautulli-FF5700.svg?style=flat-square)](https://www.reddit.com/r/Tautulli/)
-[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
+[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/307821/tautulli-monitor-your-plex-media-server)
 
 A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
@@ -27,56 +27,19 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Preview
 
-* [Full preview gallery on our website](http://tautulli.com)
+* [Full preview gallery available on our website](http://tautulli.com)
 
-![Tautulli Homepage](http://tautulli.com/images/screenshots/activity.png?v=2)
+![Tautulli Homepage](http://tautulli.com/images/screenshots/activity-compressed.jpg?v=2)
 
 ## Installation and Support
 
-* [Installation Guides](https://github.com/JonnyWong16/plexpy/wiki/Installation) shows you how to install Tautulli.
-* [FAQs](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)) in the wiki can help you with common problems.
+* Read the [Installation Guides](https://github.com/Tautulli/Tautulli-Wiki/wiki/Installation) for instructions to install Tautulli.
+* The [Frequently Asked Questions](https://github.com/Tautulli/Tautulli-Wiki/wiki/Frequently-Asked-Questions) in the wiki can help you with common problems.
+* Support is available on [Discord](https://discord.gg/tQcWEUp), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/307821/tautulli-monitor-your-plex-media-server).
 
-**Support** the project by implementing new features, solving support tickets and provide bug fixes.
+## Issues & Feature Requests
 
-## Issues
-
-##### Many issues can simply be solved by:
-
-- Making sure you update to the latest version. 
-- Turning your device off and on again.
-- Analyzing your logs, you just might find the solution yourself!
-- Using the **search** function to see if this issue has already been reported/solved.
-- Checking the [Wiki](https://github.com/JonnyWong16/plexpy/wiki) for 
-[ [Installation] ](https://github.com/JonnyWong16/plexpy/wiki/Installation) and 
-[ [FAQs] ](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
-- For basic questions try asking on [Discord](https://discord.gg/36ggawe), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
-
-##### If nothing has worked:
-
-1. Open a new issue on the GitHub [issue tracker](http://github.com/JonnyWong16/plexpy/issues).
-2. Provide a clear title to easily help identify your problem.
-3. Use proper [markdown syntax](https://help.github.com/articles/github-flavored-markdown) to structure your post (i.e. code/log in code blocks).
-4. Make sure you provide the following information:
-    - [ ] Version
-    - [ ] Branch
-    - [ ] Commit hash
-    - [ ] Operating system
-    - [ ] Python version
-    - [ ] What you did?
-    - [ ] What happened?
-    - [ ] What you expected?
-    - [ ] How can we reproduce your issue?
-    - [ ] What are your (relevant) settings?
-    - [ ] Include a link to your **FULL** (not just a few lines!) log file that has the error. Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
-5. Close your issue when it's solved! If you found the solution yourself please comment so that others benefit from it.
-
-## Feature Requests
-
-Feature requests are handled on [FeatHub](http://feathub.com/JonnyWong16/plexpy).
-
-1. Search the existing requests to see if your suggestion has already been submitted.
-2. If a similar request exists, give it a thumbs up (+1), or add additional comments to the request.
-3. If no similar requests exist, you can create a new one. Make sure to provide a clear title to easily identify the feature request.
+* Please see the [Issues Repository](https://github.com/Tautulli/Tautulli-Issues).
 
 ## License
 

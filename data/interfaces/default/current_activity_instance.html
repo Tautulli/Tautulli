@@ -67,8 +67,15 @@ DOCUMENTATION :: END
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES
     import plexpy
 %>
-<% data = defaultdict(lambda: 'Unknown', **session) %>
-<% sk = data['session_key'] %>
+<%
+    data = defaultdict(lambda: 'Unknown', **session)
+    sk = data['session_key']
+
+    href = 'info?rating_key={}'.format(data['rating_key']) if data['rating_key'] else '#'
+    parent_href = 'info?rating_key={}'.format(data['parent_rating_key']) if data['parent_rating_key'] else '#'
+    grandparent_href = 'info?rating_key={}'.format(data['grandparent_rating_key']) if data['grandparent_rating_key'] else '#'
+    user_href = 'user?user_id={}'.format(data['user_id']) if data['user_id'] else '#'
+%>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
@@ -89,15 +96,15 @@ DOCUMENTATION :: END
                 % endif
                 % if data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}">
+                    <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'episode':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">
+                    <a id="poster-url-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'track':
-                    <a id="poster-url-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}">
+                    <a id="poster-url-${sk}" href="${parent_href}" title="${data['parent_title']}">
                         <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
@@ -201,8 +208,8 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Container</div>
                                 <div class="sub-value" id="transcode_container-${sk}">
-                                    % if data.get('stream_container_decision') == 'transcode':
-                                    Transcode (${data['container'].upper()} &rarr; ${data['stream_container'].upper()})
+                                    % if data['stream_container_decision'] == 'transcode':
+                                    Transcode (${data['container'].upper()} <i class="fa fa-long-arrow-right"></i> ${data['stream_container'].upper()})
                                     % else:
                                     Direct Play (${data['container'].upper()})
                                     % endif
@@ -213,13 +220,13 @@ DOCUMENTATION :: END
                                 <div class="sub-heading">Video</div>
                                 <div class="sub-value" id="video_decision-${sk}">
                                     % if data['media_type'] in ('movie', 'episode', 'clip'):
-                                        % if data.get('stream_video_decision') == 'transcode':
+                                        % if data['stream_video_decision'] == 'transcode':
                                         <%
                                             hw_d = ' (HW)' if data['transcode_hw_decoding'] else ''
                                             hw_e = ' (HW)' if data['transcode_hw_encoding'] else ''
                                         %>
-                                        Transcode (${data['video_codec'].upper()}${hw_d} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()}${hw_e} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
-                                        % elif data.get('stream_video_decision') == 'copy':
+                                        Transcode (${data['video_codec'].upper()}${hw_d} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
+                                        % elif data['stream_video_decision'] == 'copy':
                                         Direct Stream (${data['stream_video_codec'].upper()} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
                                         % else:
                                         Direct Play (${data['video_codec'].upper()} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])})
@@ -234,9 +241,9 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Audio</div>
                                 <div class="sub-value" id="audio_decision-${sk}">
-                                    % if data.get('stream_audio_decision') == 'transcode':
-                                    Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} &rarr; ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
-                                    % elif data.get('stream_audio_decision') == 'copy':
+                                    % if data['stream_audio_decision'] == 'transcode':
+                                    Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                    % elif data['stream_audio_decision'] == 'copy':
                                     Direct Stream (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
                                     % else:
                                     Direct Play (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()})
@@ -250,7 +257,7 @@ DOCUMENTATION :: END
                                 <div class="sub-value" id="subtitle_decision-${sk}">
                                     % if data['subtitles'] == 1:
                                         % if data['stream_subtitle_decision'] == 'transcode':
-                                        Transcode (${data['subtitle_codec'].upper()} &rarr; ${data['stream_subtitle_codec'].upper()})
+                                        Transcode (${data['subtitle_codec'].upper()} <i class="fa fa-long-arrow-right"></i> ${data['stream_subtitle_codec'].upper()})
                                         % elif data['stream_subtitle_decision'] == 'copy':
                                         Direct Stream (${data['subtitle_codec'].upper()})
                                         % elif data['stream_subtitle_decision'] == 'burn':
@@ -269,8 +276,9 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Location</div>
                                 <div class="sub-value time-right">
+                                    <span id="location-${sk}">${data['location'].upper()}</span>:
                                     % if data['ip_address'] != 'N/A':
-                                    ${data['location'].upper()}: <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
+                                    <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
                                     <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
                                         <span id="external_ip-${sk}" class="external-ip-tooltip" data-toggle="tooltip" title="Lookup External IP" style="display: none;"><i class="fa fa-map-marker"></i></span>
                                     </a>
@@ -312,7 +320,9 @@ DOCUMENTATION :: END
                 </div>
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
-                    % if data['view_offset']:
+                    % if data['live'] == 1:
+                    <br />Live
+                    % elif data['view_offset']:
                     ETA:
                     <span id="stream-eta-${sk}">
                         <script>
@@ -340,19 +350,19 @@ DOCUMENTATION :: END
         </div>
         <div class="dashboard-activity-progress">
             <div class="dashboard-activity-progress-bar">
+                % if data['live'] == 1:
+                <div id="progress-bar-${sk}" class="progress-bar" style="width: 100%" data-toggle="tooltip" title="Stream Progress Live">Live</div>
+                % else:
                 <div id="buffer-bar-${sk}" class="buffer-bar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress ${data['transcode_progress']}%">${data['transcode_progress']}%</div>
                 <div id="progress-bar-${sk}" class="progress-bar" style="width: ${data['progress_percent']}%" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}" data-toggle="tooltip" title="Stream Progress ${data['progress_percent']}%">${data['progress_percent']}%</div>
+                % endif
             </div>
         </div>
     </div>
     <div class="dashboard-activity-metadata-wrapper">
-        % if data['user_id']:
-        <a href="user?user_id=${data['user_id']}" title="${data['friendly_name']}">
+        <a href="${user_href}" title="${data['friendly_name']}">
             <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
         </a>
-        % else:
-        <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
-        % endif
         <div class="dashboard-activity-metadata-title-container">
             <div id="play-state-${sk}" class="dashboard-activity-metadata-play_state-icon" title="${data['state'].capitalize()}">
                 % if data['state'] == 'playing':
@@ -365,21 +375,21 @@ DOCUMENTATION :: END
             </div>
             <div class="dashboard-activity-metadata-title">
                 % if data['channel_stream'] == 0:
-                % if data['media_type'] == 'movie':
-                <a href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'episode':
-                <a href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
-                - <a href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'track':
-                <a id="metadata-grandparent_title-${sk}" href="info?rating_key=${data['grandparent_rating_key']}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
-                - <a id="metadata-title-${sk}" href="info?rating_key=${data['rating_key']}" title="${data['title']}">${data['title']}</a>
-                % elif data['media_type'] == 'photo':
-                <span title="${data['parent_title']}">${data['parent_title']}</span>
-                % elif data['media_type'] == 'clip':
-                <span title="${data['title']}">${data['title']}</span>
-                % else:
-                <span title="${data['title']}">${data['title']}</span>
-                % endif
+                    % if data['media_type'] == 'movie':
+                    <a href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'episode':
+                    <a href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
+                    - <a href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'track':
+                    <a id="metadata-grandparent_title-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
+                    - <a id="metadata-title-${sk}" href="${href}" title="${data['title']}">${data['title']}</a>
+                    % elif data['media_type'] == 'photo':
+                    <span title="${data['parent_title']}">${data['parent_title']}</span>
+                    % elif data['media_type'] == 'clip':
+                    <span title="${data['title']}">${data['title']}</span>
+                    % else:
+                    <span title="${data['title']}">${data['title']}</span>
+                    % endif
                 % elif data['media_type'] == 'episode' and data['grandparent_title']:
                 <span title="${data['grandparent_title']}">${data['grandparent_title']}</span>
                 - <span title="${data['title']}">${data['title']}</span>
@@ -389,7 +399,11 @@ DOCUMENTATION :: END
             </div>
         </div>
         <div class="dashboard-activity-metadata-subtitle-container">
-            % if data['channel_stream'] == 0:
+            % if data['live'] == 1:
+            <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Plex Live TV">
+                <i class="fa fa-fw fa-television"></i>&nbsp;
+            </div>
+            % elif data['channel_stream'] == 0:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="${data['media_type'].capitalize()}">
                 % if data['media_type'] == 'movie':
                 <i class="fa fa-fw fa-film"></i>&nbsp;
@@ -404,19 +418,21 @@ DOCUMENTATION :: END
                 % endif
             </div>
             % else:
-            <div id="media-type-${sk}" title="Channel">
+            <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Channel">
                 <i class="fa fa-fw fa-cloud"></i>&nbsp;
             </div>
             % endif
             <div class="dashboard-activity-metadata-subtitle">
-                % if data['channel_stream'] == 0:
+                % if data['live'] == 1:
+                    <span title="Plex Live TV" class="sub-heading">Plex Live TV</span>
+                % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
-                    <a href="info?rating_key=${data['parent_rating_key']}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
-                    &middot; <a href="info?rating_key=${data['rating_key']}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
+                    <a href="${parent_href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
+                    &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % elif data['media_type'] == 'track':
-                    <a id="metadata-parent_title-${sk}" href="info?rating_key=${data['parent_rating_key']}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
+                    <a id="metadata-parent_title-${sk}" href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
                     % elif data['media_type'] == 'photo':
                     <span title="${data['title']}" class="sub-heading">${data['title']}</span>
                     % else:
@@ -441,11 +457,7 @@ DOCUMENTATION :: END
                 % endif
             </div>
             <div class="dashboard-activity-metadata-user">
-                % if data['user_id']:
-                <a href="user?user_id=${data['user_id']}" title="${data['friendly_name']}">${data['friendly_name']}</a>
-                % else:
-                ${data['friendly_name']}
-                % endif
+                <a href="${user_href}" title="${data['friendly_name']}">${data['friendly_name']}</a>
             </div>
         </div>
     </div>

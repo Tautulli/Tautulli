@@ -35,6 +35,8 @@ import database
 import libraries
 import logger
 import mobile_app
+import notification_handler
+import notifiers
 import users
 
 
@@ -333,14 +335,14 @@ class API2:
         """ Restart Tautulli."""
 
         plexpy.SIGNAL = 'restart'
-        self._api_msg = 'Restarting plexpy'
+        self._api_msg = 'Restarting Tautulli'
         self._api_result_type = 'success'
 
     def update(self, **kwargs):
-        """ Check for Tautulli updates on Github."""
+        """ Update Tautulli."""
 
         plexpy.SIGNAL = 'update'
-        self._api_msg = 'Updating plexpy'
+        self._api_msg = 'Updating Tautulli'
         self._api_result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
@@ -393,6 +395,50 @@ class API2:
             mobile_app.TEMP_DEVICE_TOKEN = None
         else:
             self._api_msg = 'Device registartion failed: database error.'
+            self._api_result_type = 'error'
+
+        return
+
+    def notify(self, notifier_id='', subject='Tautulli', body='Test notification', **kwargs):
+        """ Send a notification using Tautulli.
+
+            ```
+            Required parameters:
+                notifier_id (int):      The ID number of the notification agent
+                subject (str):          The subject of the message
+                body (str):             The body of the message
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        if not notifier_id:
+            self._api_msg = 'Notification failed: no notifier id provided.'
+            self._api_result_type = 'error'
+            return
+
+        notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
+
+        if not notifier:
+            self._api_msg = 'Notification failed: invalid notifier_id provided %s.' % notifier_id
+            self._api_result_type = 'error'
+            return
+
+        logger.api_debug(u'Tautulli APIv2 :: Sending notification.')
+        success = notification_handler.notify(notifier_id=notifier_id,
+                                              notify_action='api',
+                                              subject=subject,
+                                              body=body,
+                                              **kwargs)
+
+        if success:
+            self._api_msg = 'Notification sent.'
+            self._api_result_type = 'success'
+        else:
+            self._api_msg = 'Notification failed.'
             self._api_result_type = 'error'
 
         return
@@ -581,8 +627,8 @@ General optional parameters:
             if isinstance(result, (dict, list)):
                 ret = result
             else:
-                raise
-        except:
+                raise Exception
+        except Exception:
             try:
                 ret = json.loads(result)
             except (ValueError, TypeError):
