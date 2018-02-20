@@ -3170,34 +3170,37 @@ class TELEGRAM(Notifier):
         else:
             text = body.encode('utf-8')
 
-        if self.config['incl_poster'] and kwargs.get('parameters'):
-            parameters = kwargs['parameters']
-            poster_url = parameters.get('poster_url','')
-
-            if poster_url:
-                poster_data = {'photo': poster_url,
-                               'chat_id': self.config['chat_id'],
-                               'disable_notification': True}
-
-                r = requests.post('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']), json=poster_data)
-
-                if r.status_code == 200:
-                    logger.info(u"Tautulli Notifiers :: {name} poster sent.".format(name=self.NAME))
-                else:
-                    logger.error(u"Tautulli Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-
-        data['text'] = text
-
         if self.config['html_support']:
             data['parse_mode'] = 'HTML'
+
+        if self.config['incl_poster'] and kwargs.get('parameters'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            # Retrieve the poster from Plex
+            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
+            if result and result[0]:
+                poster_content = result[0]
+            else:
+                poster_content = ''
+
+            if poster_content:
+                title = pretty_metadata.get_title()
+                files = {'photo': (title, poster_content, 'image/jpeg')}
+                data['caption'] = text
+
+                return self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                                         data=data, files=files)
+
+        data['text'] = text
 
         if self.config['disable_web_preview']:
             data['disable_web_page_preview'] = True
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']), headers=headers, data=data)
+        return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']),
+                                 headers=headers, data=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Telegram Bot Token',
