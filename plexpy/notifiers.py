@@ -2686,6 +2686,7 @@ class PUSHOVER(Notifier):
                        'priority': 0,
                        'sound': '',
                        'incl_url': 1,
+                       'incl_subject': 1,
                        'incl_poster': 0,
                        'movie_provider': '',
                        'tv_provider': '',
@@ -2695,12 +2696,14 @@ class PUSHOVER(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'token': self.config['api_token'],
                 'user': self.config['key'],
-                'title': subject.encode("utf-8"),
                 'message': body.encode("utf-8"),
                 'sound': self.config['sound'],
                 'html': self.config['html_support'],
                 'priority': self.config['priority'],
                 'timestamp': int(time.time())}
+
+        if self.config['incl_subject']:
+            data['title'] = subject.encode("utf-8")
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
@@ -2800,6 +2803,12 @@ class PUSHOVER(Notifier):
                           'value': self.config['incl_url'],
                           'name': 'pushover_incl_url',
                           'description': 'Include a supplementary URL with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'pushover_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Poster Image',
