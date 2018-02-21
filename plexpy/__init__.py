@@ -33,6 +33,7 @@ except ImportError:
 import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from UniversalAnalytics import Tracker
 
 import activity_handler
 import activity_pinger
@@ -454,6 +455,8 @@ def start():
 
         if CONFIG.FIRST_RUN_COMPLETE:
             activity_pinger.connect_server(log=True, startup=True)
+
+        send_analytics()
 
         _STARTED = True
 
@@ -1668,3 +1671,16 @@ def shutdown(restart=False, update=False, checkout=False):
 
 def generate_uuid():
     return uuid.uuid4().hex
+
+
+def send_analytics():
+    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID)
+    tracker.send('event', {
+        'category': 'system',
+        'action': 'install',
+        'appName': 'Tautulli',
+        'appVersion': common.VERSION_NUMBER,
+        'appID': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),
+        'appInstallerId': plexpy.INSTALL_TYPE,
+        'noninteractive': True
+        })
