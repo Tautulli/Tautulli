@@ -303,6 +303,7 @@ Tracker.alias(safe_unicode, 'dr', 'referrer', 'referer')
 Tracker.alias(int, 'qt', 'queueTime', 'queue-time')
 Tracker.alias(safe_unicode, 't', 'hitType', 'hittype')
 Tracker.alias(int, 'aip', 'anonymizeIp', 'anonIp', 'anonymize-ip')
+Tracker.alias(safe_unicode, 'ds', 'dataSource', 'data-source')
 
 # Campaign attribution
 Tracker.alias(safe_unicode, 'cn', 'campaign', 'campaignName', 'campaign-name')

@@ -62,7 +62,7 @@ def main():
 
     try:
         locale.setlocale(locale.LC_ALL, "")
-        plexpy.SYS_ENCODING = locale.getpreferredencoding()
+        plexpy.SYS_LANGUAGE, plexpy.SYS_ENCODING = locale.getdefaultlocale()
     except (locale.Error, IOError):
         pass
 

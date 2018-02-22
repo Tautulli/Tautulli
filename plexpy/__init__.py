@@ -15,7 +15,6 @@
 
 import os
 from Queue import Queue
-import shutil
 import sqlite3
 import sys
 import subprocess
@@ -56,6 +55,7 @@ ARGS = None
 SIGNAL = None
 
 SYS_PLATFORM = None
+SYS_LANGUAGE = None
 SYS_ENCODING = None
 
 QUIET = False
@@ -97,6 +97,8 @@ DEV = False
 
 WS_CONNECTED = False
 PLEX_SERVER_UP = None
+
+TRACKER = None
 
 
 def initialize(config_file):
@@ -460,14 +462,17 @@ def start():
             activity_pinger.connect_server(log=True, startup=True)
 
         if CONFIG.SYSTEM_ANALYTICS:
-            # Send analytic events
+            global TRACKER
+            TRACKER = initialize_tracker()
+
+            # Send system analytics events
             if not CONFIG.FIRST_RUN_COMPLETE:
-                send_analytics(category='system', action='install')
+                analytics_event(category='system', action='install')
 
             if _UPDATE:
-                send_analytics(category='system', action='update')
+                analytics_event(category='system', action='update')
 
-            send_analytics(category='system', action='start')
+            analytics_event(category='system', action='start')
 
         _STARTED = True
 
@@ -1684,14 +1689,35 @@ def generate_uuid():
     return uuid.uuid4().hex
 
 
-def send_analytics(category, action):
-    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True)
-    tracker.send('event', {
-        'category': category,
-        'action': action,
+def initialize_tracker():
+    data = {
+        'dataSource': 'server',
         'appName': 'Tautulli',
         'appVersion': common.VERSION_NUMBER,
         'appID': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),
         'appInstallerId': plexpy.INSTALL_TYPE,
+        'userLanguage': plexpy.SYS_LANGUAGE,
+        'documentEncoding': plexpy.SYS_ENCODING,
         'noninteractive': True
-        })
+        }
+
+    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True)
+    tracker.set(data)
+
+    return tracker
+
+
+def analytics_event(category, action, label=None, value=None, **kwargs):
+    data = {'category': category, 'action': action}
+
+    if label is not None:
+        data['label'] = label
+
+    if value is not None:
+        data['value'] = value
+
+    if kwargs:
+        data.update(kwargs)
+
+    if TRACKER:
+        TRACKER.send('event', data)
