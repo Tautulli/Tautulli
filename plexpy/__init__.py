@@ -469,7 +469,7 @@ def start():
             if not CONFIG.FIRST_RUN_COMPLETE:
                 analytics_event(category='system', action='install')
 
-            if _UPDATE:
+            elif _UPDATE:
                 analytics_event(category='system', action='update')
 
             analytics_event(category='system', action='start')
