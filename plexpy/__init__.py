@@ -1674,7 +1674,7 @@ def generate_uuid():
 
 
 def send_analytics():
-    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID)
+    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True)
     tracker.send('event', {
         'category': 'system',
         'action': 'install',
