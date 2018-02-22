@@ -1699,6 +1699,7 @@ def initialize_tracker():
         'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),  # App Platform
         'userLanguage': plexpy.SYS_LANGUAGE,
         'documentEncoding': plexpy.SYS_ENCODING,
+        'contentGroup': 'dev' if DEV else 'production',
         'noninteractive': True
         }
 

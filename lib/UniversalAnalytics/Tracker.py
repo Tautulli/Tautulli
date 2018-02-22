@@ -373,6 +373,10 @@ for i in range(0, 200):
     Tracker.alias(safe_unicode, 'cd{0}'.format(i), 'dimension{0}'.format(i))
     Tracker.alias(int, 'cm{0}'.format(i), 'metric{0}'.format(i))
 
+# Content groups
+for i in range(0, 5):
+    Tracker.alias(safe_unicode, 'cg{0}'.format(i), 'contentGroup{0}'.format(i))
+
 # Enhanced Ecommerce
 Tracker.alias(str, 'pa')  # Product action
 Tracker.alias(str, 'tcc')  # Coupon code
