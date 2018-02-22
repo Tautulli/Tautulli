@@ -1694,8 +1694,9 @@ def initialize_tracker():
         'dataSource': 'server',
         'appName': 'Tautulli',
         'appVersion': common.VERSION_NUMBER,
-        'appID': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),
-        'appInstallerId': plexpy.INSTALL_TYPE,
+        'appId': plexpy.INSTALL_TYPE,
+        'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
+        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),  # App Platform
         'userLanguage': plexpy.SYS_LANGUAGE,
         'documentEncoding': plexpy.SYS_ENCODING,
         'noninteractive': True
