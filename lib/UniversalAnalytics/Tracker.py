@@ -20,25 +20,25 @@ import hashlib
 import socket
 
 
-
-def generate_uuid(basedata = None):
+def generate_uuid(basedata=None):
     """ Provides a _random_ UUID with no input, or a UUID4-format MD5 checksum of any input data provided """
     if basedata is None:
         return str(uuid.uuid4())
     elif isinstance(basedata, basestring):
         checksum = hashlib.md5(basedata).hexdigest()
-        return '%8s-%4s-%4s-%4s-%12s' % (checksum[0:8], checksum[8:12], checksum[12:16], checksum[16:20], checksum[20:32])
+        return '%8s-%4s-%4s-%4s-%12s' % (
+        checksum[0:8], checksum[8:12], checksum[12:16], checksum[16:20], checksum[20:32])
 
 
 class Time(datetime.datetime):
     """ Wrappers and convenience methods for processing various time representations """
-    
+
     @classmethod
-    def from_unix(cls, seconds, milliseconds = 0):
+    def from_unix(cls, seconds, milliseconds=0):
         """ Produce a full |datetime.datetime| object from a Unix timestamp """
         base = list(time.gmtime(seconds))[0:6]
-        base.append(milliseconds * 1000) # microseconds
-        return cls(* base)
+        base.append(milliseconds * 1000)  # microseconds
+        return cls(*base)
 
     @classmethod
     def to_unix(cls, timestamp):
@@ -49,17 +49,16 @@ class Time(datetime.datetime):
         return base
 
     @classmethod
-    def milliseconds_offset(cls, timestamp, now = None):
+    def milliseconds_offset(cls, timestamp, now=None):
         """ Offset time (in milliseconds) from a |datetime.datetime| object to now """
         if isinstance(timestamp, (int, float)):
             base = timestamp
         else:
-            base = cls.to_unix(timestamp) 
+            base = cls.to_unix(timestamp)
             base = base + (timestamp.microsecond / 1000000)
         if now is None:
             now = time.time()
         return (now - base) * 1000
-
 
 
 class HTTPRequest(object):
@@ -72,37 +71,33 @@ class HTTPRequest(object):
 
     endpoint = 'https://www.google-analytics.com/collect'
 
-    
     @staticmethod
     def debug():
         """ Activate debugging on urllib2 """
-        handler = HTTPSHandler(debuglevel = 1)
+        handler = HTTPSHandler(debuglevel=1)
         opener = build_opener(handler)
         install_opener(opener)
 
     # Store properties for all requests
-    def __init__(self, user_agent = None, *args, **opts):
+    def __init__(self, user_agent=None, *args, **opts):
         self.user_agent = user_agent or 'Analytics Pros - Universal Analytics (Python)'
 
-
     @classmethod
-    def fixUTF8(cls, data): # Ensure proper encoding for UA's servers...
+    def fixUTF8(cls, data):  # Ensure proper encoding for UA's servers...
         """ Convert all strings to UTF-8 """
         for key in data:
-            if isinstance(data[ key ], basestring):
-                data[ key ] = data[ key ].encode('utf-8')
+            if isinstance(data[key], basestring):
+                data[key] = data[key].encode('utf-8')
         return data
 
-
-
-    # Apply stored properties to the given dataset & POST to the configured endpoint 
-    def send(self, data):     
+    # Apply stored properties to the given dataset & POST to the configured endpoint
+    def send(self, data):
         request = Request(
-                self.endpoint + '?' + urlencode(self.fixUTF8(data)), 
-                headers = {
-                    'User-Agent': self.user_agent
-                }
-            )
+            self.endpoint + '?' + urlencode(self.fixUTF8(data)),
+            headers={
+                'User-Agent': self.user_agent
+            }
+        )
         self.open(request)
 
     def open(self, request):
@@ -120,24 +115,18 @@ class HTTPRequest(object):
         pass
 
 
-
-
 class HTTPPost(HTTPRequest):
 
     # Apply stored properties to the given dataset & POST to the configured endpoint 
     def send(self, data):
         request = Request(
-                self.endpoint, 
-                data = urlencode(self.fixUTF8(data)), 
-                headers = {
-                    'User-Agent': self.user_agent
-                }
-            )
+            self.endpoint,
+            data=urlencode(self.fixUTF8(data)),
+            headers={
+                'User-Agent': self.user_agent
+            }
+        )
         self.open(request)
-
-
-
-
 
 
 class Tracker(object):
@@ -145,17 +134,16 @@ class Tracker(object):
     params = None
     parameter_alias = {}
     valid_hittypes = ('pageview', 'event', 'social', 'screenview', 'transaction', 'item', 'exception', 'timing')
- 
 
     @classmethod
     def alias(cls, typemap, base, *names):
         """ Declare an alternate (humane) name for a measurement protocol parameter """
-        cls.parameter_alias[ base ] = (typemap, base)
+        cls.parameter_alias[base] = (typemap, base)
         for i in names:
-            cls.parameter_alias[ i ] = (typemap, base)
+            cls.parameter_alias[i] = (typemap, base)
 
     @classmethod
-    def coerceParameter(cls, name, value = None):
+    def coerceParameter(cls, name, value=None):
         if isinstance(name, basestring) and name[0] == '&':
             return name[1:], str(value)
         elif name in cls.parameter_alias:
@@ -164,7 +152,6 @@ class Tracker(object):
         else:
             raise KeyError, 'Parameter "{0}" is not recognized'.format(name)
 
-
     def payload(self, data):
         for key, value in data.iteritems():
             try:
@@ -172,73 +159,64 @@ class Tracker(object):
             except KeyError:
                 continue
 
-
-
     option_sequence = {
-        'pageview': [ (basestring, 'dp') ],
-        'event': [ (basestring, 'ec'), (basestring, 'ea'), (basestring, 'el'), (int, 'ev') ],
-        'social': [ (basestring, 'sn'), (basestring, 'sa'), (basestring, 'st') ],
-        'timing': [ (basestring, 'utc'), (basestring, 'utv'), (basestring, 'utt'), (basestring, 'utl') ]
+        'pageview': [(basestring, 'dp')],
+        'event': [(basestring, 'ec'), (basestring, 'ea'), (basestring, 'el'), (int, 'ev')],
+        'social': [(basestring, 'sn'), (basestring, 'sa'), (basestring, 'st')],
+        'timing': [(basestring, 'utc'), (basestring, 'utv'), (basestring, 'utt'), (basestring, 'utl')]
     }
 
     @classmethod
     def consume_options(cls, data, hittype, args):
         """ Interpret sequential arguments related to known hittypes based on declared structures """
         opt_position = 0
-        data[ 't' ] = hittype # integrate hit type parameter
+        data['t'] = hittype  # integrate hit type parameter
         if hittype in cls.option_sequence:
-            for expected_type, optname in cls.option_sequence[ hittype ]:
+            for expected_type, optname in cls.option_sequence[hittype]:
                 if opt_position < len(args) and isinstance(args[opt_position], expected_type):
-                    data[ optname ] = args[ opt_position ]
+                    data[optname] = args[opt_position]
                 opt_position += 1
-        
-
-
 
     @classmethod
-    def hittime(cls, timestamp = None, age = None, milliseconds = None):
+    def hittime(cls, timestamp=None, age=None, milliseconds=None):
         """ Returns an integer represeting the milliseconds offset for a given hit (relative to now) """
         if isinstance(timestamp, (int, float)):
-            return int(Time.milliseconds_offset(Time.from_unix(timestamp, milliseconds = milliseconds)))
+            return int(Time.milliseconds_offset(Time.from_unix(timestamp, milliseconds=milliseconds)))
         if isinstance(timestamp, datetime.datetime):
             return int(Time.milliseconds_offset(timestamp))
         if isinstance(age, (int, float)):
             return int(age * 1000) + (milliseconds or 0)
 
-  
-
     @property
     def account(self):
         return self.params.get('tid', None)
 
+    def __init__(self, account, name=None, client_id=None, hash_client_id=False, user_id=None, user_agent=None,
+                 use_post=True):
 
-    def __init__(self, account, name = None, client_id = None, hash_client_id = False, user_id = None, user_agent = None, use_post = True):
-    
         if use_post is False:
-            self.http = HTTPRequest(user_agent = user_agent)
-        else: 
-            self.http = HTTPPost(user_agent = user_agent)
+            self.http = HTTPRequest(user_agent=user_agent)
+        else:
+            self.http = HTTPPost(user_agent=user_agent)
 
-        self.params = { 'v': 1, 'tid': account }
+        self.params = {'v': 1, 'tid': account}
 
         if client_id is None:
             client_id = generate_uuid()
 
-        self.params[ 'cid' ] = client_id
+        self.params['cid'] = client_id
 
         self.hash_client_id = hash_client_id
 
         if user_id is not None:
-            self.params[ 'uid' ] = user_id
-
+            self.params['uid'] = user_id
 
     def set_timestamp(self, data):
         """ Interpret time-related options, apply queue-time parameter as needed """
-        if 'hittime' in data: # an absolute timestamp
-            data['qt'] = self.hittime(timestamp = data.pop('hittime', None))
-        if 'hitage' in data: # a relative age (in seconds)
-            data['qt'] = self.hittime(age = data.pop('hitage', None))
-
+        if 'hittime' in data:  # an absolute timestamp
+            data['qt'] = self.hittime(timestamp=data.pop('hittime', None))
+        if 'hitage' in data:  # a relative age (in seconds)
+            data['qt'] = self.hittime(age=data.pop('hitage', None))
 
     def send(self, hittype, *args, **data):
         """ Transmit HTTP requests to Google Analytics using the measurement protocol """
@@ -249,44 +227,38 @@ class Tracker(object):
         self.set_timestamp(data)
         self.consume_options(data, hittype, args)
 
-        for item in args: # process dictionary-object arguments of transcient data
+        for item in args:  # process dictionary-object arguments of transcient data
             if isinstance(item, dict):
                 for key, val in self.payload(item):
-                    data[ key ] = val
+                    data[key] = val
 
-        for k, v in self.params.iteritems(): # update only absent parameters
+        for k, v in self.params.iteritems():  # update only absent parameters
             if k not in data:
-                data[ k ] = v
+                data[k] = v
 
-   
         data = dict(self.payload(data))
 
         if self.hash_client_id:
-            data[ 'cid' ] = generate_uuid(data[ 'cid' ])
+            data['cid'] = generate_uuid(data['cid'])
 
         # Transmit the hit to Google...
         self.http.send(data)
 
-
-
-
     # Setting persistent attibutes of the session/hit/etc (inc. custom dimensions/metrics)
-    def set(self, name, value = None):
+    def set(self, name, value=None):
         if isinstance(name, dict):
             for key, value in name.iteritems():
                 try:
                     param, value = self.coerceParameter(key, value)
                     self.params[param] = value
                 except KeyError:
-                    pass 
+                    pass
         elif isinstance(name, basestring):
             try:
                 param, value = self.coerceParameter(name, value)
                 self.params[param] = value
             except KeyError:
-                pass 
-
-
+                pass
 
     def __getitem__(self, name):
         param, value = self.coerceParameter(name, None)
@@ -301,6 +273,7 @@ class Tracker(object):
         if param in self.params:
             del self.params[param]
 
+
 def safe_unicode(obj):
     """ Safe convertion to the Unicode string version of the object """
     try:
@@ -313,7 +286,7 @@ def safe_unicode(obj):
 MAX_CUSTOM_DEFINITIONS = 200
 MAX_EC_LISTS = 11  # 1-based index
 MAX_EC_PRODUCTS = 11  # 1-based index
-MAX_EC_PROMOTIONS = 11 # 1-based index
+MAX_EC_PROMOTIONS = 11  # 1-based index
 
 Tracker.alias(int, 'v', 'protocol-version')
 Tracker.alias(safe_unicode, 'cid', 'client-id', 'clientId', 'clientid')
@@ -330,7 +303,6 @@ Tracker.alias(safe_unicode, 'dr', 'referrer', 'referer')
 Tracker.alias(int, 'qt', 'queueTime', 'queue-time')
 Tracker.alias(safe_unicode, 't', 'hitType', 'hittype')
 Tracker.alias(int, 'aip', 'anonymizeIp', 'anonIp', 'anonymize-ip')
-
 
 # Campaign attribution
 Tracker.alias(safe_unicode, 'cn', 'campaign', 'campaignName', 'campaign-name')
@@ -360,7 +332,8 @@ Tracker.alias(safe_unicode, 'ti', 'transaction', 'transactionId', 'transaction-i
 Tracker.alias(float, 'tr', 'revenue', 'transactionRevenue', 'transaction-revenue')
 Tracker.alias(float, 'ts', 'shipping', 'transactionShipping', 'transaction-shipping')
 Tracker.alias(float, 'tt', 'tax', 'transactionTax', 'transaction-tax')
-Tracker.alias(safe_unicode, 'cu', 'currency', 'transactionCurrency', 'transaction-currency') # Currency code, e.g. USD, EUR
+Tracker.alias(safe_unicode, 'cu', 'currency', 'transactionCurrency',
+              'transaction-currency')  # Currency code, e.g. USD, EUR
 Tracker.alias(safe_unicode, 'in', 'item-name', 'itemName')
 Tracker.alias(float, 'ip', 'item-price', 'itemPrice')
 Tracker.alias(float, 'iq', 'item-quantity', 'itemQuantity')
@@ -373,7 +346,6 @@ Tracker.alias(safe_unicode, 'ea', 'event-action', 'eventAction', 'action')
 Tracker.alias(safe_unicode, 'el', 'event-label', 'eventLabel', 'label')
 Tracker.alias(int, 'ev', 'event-value', 'eventValue', 'value')
 Tracker.alias(int, 'ni', 'noninteractive', 'nonInteractive', 'noninteraction', 'nonInteraction')
-
 
 # Social
 Tracker.alias(safe_unicode, 'sa', 'social-action', 'socialAction')
@@ -396,7 +368,7 @@ Tracker.alias(safe_unicode, 'tcp', 'timingTCPConnect', 'timing-tcp-connect')
 Tracker.alias(safe_unicode, 'srt', 'timingServerResponse', 'timing-server-response')
 
 # Custom dimensions and metrics
-for i in range(0,200):
+for i in range(0, 200):
     Tracker.alias(safe_unicode, 'cd{0}'.format(i), 'dimension{0}'.format(i))
     Tracker.alias(int, 'cm{0}'.format(i), 'metric{0}'.format(i))
 
@@ -419,7 +391,7 @@ for product_index in range(1, MAX_EC_PRODUCTS):
     Tracker.alias(int, 'pr{0}qt'.format(product_index))  # Product quantity
     Tracker.alias(str, 'pr{0}cc'.format(product_index))  # Product coupon code
     Tracker.alias(int, 'pr{0}ps'.format(product_index))  # Product position
-    
+
     for custom_index in range(MAX_CUSTOM_DEFINITIONS):
         Tracker.alias(str, 'pr{0}cd{1}'.format(product_index, custom_index))  # Product custom dimension
         Tracker.alias(int, 'pr{0}cm{1}'.format(product_index, custom_index))  # Product custom metric
@@ -434,8 +406,10 @@ for product_index in range(1, MAX_EC_PRODUCTS):
         Tracker.alias(int, 'il{0}pi{1}pr'.format(list_index, product_index))  # Product impression price
 
         for custom_index in range(MAX_CUSTOM_DEFINITIONS):
-            Tracker.alias(str, 'il{0}pi{1}cd{2}'.format(list_index, product_index, custom_index))  # Product impression custom dimension
-            Tracker.alias(int, 'il{0}pi{1}cm{2}'.format(list_index, product_index, custom_index))  # Product impression custom metric
+            Tracker.alias(str, 'il{0}pi{1}cd{2}'.format(list_index, product_index,
+                                                        custom_index))  # Product impression custom dimension
+            Tracker.alias(int, 'il{0}pi{1}cm{2}'.format(list_index, product_index,
+                                                        custom_index))  # Product impression custom metric
 
 for list_index in range(1, MAX_EC_LISTS):
     Tracker.alias(unicode, 'il{0}nm'.format(list_index))  # Product impression list name
