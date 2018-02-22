@@ -73,6 +73,7 @@ NOTIFY_QUEUE = Queue()
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
 _STARTED = False
+_UPDATE = False
 
 DATA_DIR = None
 
@@ -108,6 +109,7 @@ def initialize(config_file):
         global LATEST_VERSION
         global PREV_RELEASE
         global UMASK
+        global _UPDATE
 
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
@@ -251,6 +253,7 @@ def initialize(config_file):
         if common.VERSION_NUMBER != PREV_RELEASE:
             CONFIG.UPDATE_SHOW_CHANGELOG = 1
             CONFIG.write()
+            _UPDATE = True
 
         # Write current release version to file for update checking
         try:
@@ -456,7 +459,15 @@ def start():
         if CONFIG.FIRST_RUN_COMPLETE:
             activity_pinger.connect_server(log=True, startup=True)
 
-        send_analytics()
+        if CONFIG.SYSTEM_ANALYTICS:
+            # Send analytic events
+            if not CONFIG.FIRST_RUN_COMPLETE:
+                send_analytics(category='system', action='install')
+
+            if _UPDATE:
+                send_analytics(category='system', action='update')
+
+            send_analytics(category='system', action='start')
 
         _STARTED = True
 
@@ -1673,11 +1684,11 @@ def generate_uuid():
     return uuid.uuid4().hex
 
 
-def send_analytics():
+def send_analytics(category, action):
     tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True)
     tracker.send('event', {
-        'category': 'system',
-        'action': 'install',
+        'category': category,
+        'action': action,
         'appName': 'Tautulli',
         'appVersion': common.VERSION_NUMBER,
         'appID': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),
