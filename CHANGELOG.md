@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.0.20-beta (2018-02-24)
+
+* Notifications:
+  * New: Add poster support for Pushover notifications.
+  * New: Add poster support for Pushbullet notifications.
+  * Fix: Incorrect Plex/Tautulli update notification parameter types.
+  * Change: Poster and text sent as a single message for Telegram.
+  * Change: Posters uploaded directly to Telegram without Imgur.
+* UI:
+  * New: Add "Delete" button to synced items table on user pages.
+  * Fix: Button spacing/positioning on mobile site.
+  * Fix: Music statistic cards not using the fallback thumbnail.
+  * Fix: Logo not showing up when using an SVG.
+  * Change: Graphs now respect the "Group History" setting.
+* API:
+  * New: Add grouping to graph API commands.
+* Other:
+  * New: Added Google Analytics to collect installation metrics.
+  * Fix: Reconnecting to the Plex server when server settings are not changed.
+
+
 ## v2.0.19-beta (2018-02-16)
 
 * Monitoring:
