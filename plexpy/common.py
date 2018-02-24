@@ -19,13 +19,12 @@ from collections import OrderedDict
 import version
 
 # Identify Our Application
-USER_AGENT = 'Tautulli/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
-             ' ' + platform.release() + ')'
-
 PLATFORM = platform.system()
 PLATFORM_VERSION = platform.release()
 BRANCH = version.PLEXPY_BRANCH
-VERSION_NUMBER = version.PLEXPY_RELEASE_VERSION
+RELEASE = version.PLEXPY_RELEASE_VERSION
+
+USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFORM_VERSION)
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"

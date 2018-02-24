@@ -137,7 +137,7 @@
 <%def name="modalIncludes()">
 
 % if _session['user_group'] == 'admin' and config['update_show_changelog']:
-<% from plexpy.common import VERSION_NUMBER %>
+<% from plexpy.common import RELEASE %>
 <div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

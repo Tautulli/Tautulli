@@ -47,7 +47,7 @@
         You are running an unknown version of Tautulli.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and plexpy.common.VERSION_NUMBER != plexpy.LATEST_RELEASE:
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
         new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />

@@ -677,7 +677,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     available_params = {
         # Global paramaters
-        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
         'tautulli_commit': plexpy.CURRENT_VERSION,
@@ -877,7 +877,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
 
     available_params = {
         # Global paramaters
-        'tautulli_version': common.VERSION_NUMBER,
+        'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
         'tautulli_commit': plexpy.CURRENT_VERSION,

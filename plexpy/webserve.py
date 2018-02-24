@@ -63,7 +63,7 @@ def serve_template(templatename, **kwargs):
 
     http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
-    cache_param = '?' + (plexpy.CURRENT_VERSION or common.VERSION_NUMBER)
+    cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
 
@@ -3581,7 +3581,7 @@ class WebInterface(object):
                     }
 
         elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
-                plexpy.common.VERSION_NUMBER != plexpy.LATEST_RELEASE:
+                plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
             return {'result': 'success',
                     'update': True,
                     'release': True,
@@ -3668,7 +3668,7 @@ class WebInterface(object):
         latest_only = (latest_only == 'true')
         since_prev_release = (since_prev_release == 'true')
 
-        if since_prev_release and plexpy.PREV_RELEASE == common.VERSION_NUMBER:
+        if since_prev_release and plexpy.PREV_RELEASE == common.RELEASE:
             latest_only = True
             since_prev_release = False
 

@@ -60,9 +60,9 @@
                 <input type="hidden" id="show_advanced_settings" name="show_advanced_settings" value="${config['show_advanced_settings']}" required>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="tabs-help_info">
-                        % if common.VERSION_NUMBER:
+                        % if common.RELEASE:
                         <div class="padded-header">
-                            <h3>Version ${common.VERSION_NUMBER} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                            <h3>Version ${common.RELEASE} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
                         % endif
                         <div class="padded-header">

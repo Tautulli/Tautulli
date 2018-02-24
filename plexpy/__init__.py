@@ -240,7 +240,7 @@ def initialize(config_file):
 
         # Get the previous release from the file
         release_file = os.path.join(DATA_DIR, "release.lock")
-        PREV_RELEASE = common.VERSION_NUMBER
+        PREV_RELEASE = common.RELEASE
         if os.path.isfile(release_file):
             try:
                 with open(release_file, "r") as fp:
@@ -252,7 +252,7 @@ def initialize(config_file):
             PREV_RELEASE = 'v1.4.25'
 
         # Check if the release was updated
-        if common.VERSION_NUMBER != PREV_RELEASE:
+        if common.RELEASE != PREV_RELEASE:
             CONFIG.UPDATE_SHOW_CHANGELOG = 1
             CONFIG.write()
             _UPDATE = True
@@ -260,7 +260,7 @@ def initialize(config_file):
         # Write current release version to file for update checking
         try:
             with open(release_file, "w") as fp:
-                fp.write(common.VERSION_NUMBER)
+                fp.write(common.RELEASE)
         except IOError as e:
             logger.error(u"Unable to write current release to file '%s': %s" %
                          (release_file, e))
@@ -1693,7 +1693,7 @@ def initialize_tracker():
     data = {
         'dataSource': 'server',
         'appName': 'Tautulli',
-        'appVersion': common.VERSION_NUMBER,
+        'appVersion': common.RELEASE,
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
         'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),  # App Platform
@@ -1702,7 +1702,8 @@ def initialize_tracker():
         'noninteractive': True
         }
 
-    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True)
+    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True,
+                             user_agent=common.USER_AGENT)
     tracker.set(data)
 
     return tracker
