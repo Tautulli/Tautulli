@@ -1722,4 +1722,7 @@ def analytics_event(category, action, label=None, value=None, **kwargs):
         data.update(kwargs)
 
     if TRACKER:
-        TRACKER.send('event', data)
+        try:
+            TRACKER.send('event', data)
+        except Exception as e:
+            logger.warn(u"Failed to send analytics event for category '%s', action '%s': %s" % (category, action, e))
