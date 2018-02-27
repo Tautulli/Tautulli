@@ -1,4 +1,3 @@
-<% from plexpy import PLEX_SERVER_UP %>
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
@@ -23,6 +22,7 @@
                 </h3>
             </div>
             <div id="currentActivity">
+                <% from plexpy import PLEX_SERVER_UP %>
                 % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
                 % else:
@@ -252,6 +252,7 @@
         });
     }
 </script>
+<% from plexpy import PLEX_SERVER_UP %>
 % if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     var defaultHandler = {
