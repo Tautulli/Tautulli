@@ -1,3 +1,4 @@
+<% from plexpy import PLEX_SERVER_UP %>
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
@@ -22,7 +23,15 @@
                 </h3>
             </div>
             <div id="currentActivity">
+                % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                % else:
+                <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
+                    % if _session['user_group'] == 'admin':
+                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
+                    % endif
+                </div>
+                % endif
             </div>
         </div>
     </div>
@@ -241,9 +250,9 @@
                 });
             }
         });
-    };
+    }
 </script>
-% if 'current_activity' in config['home_sections']:
+% if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     var defaultHandler = {
         get: function(target, name) {
@@ -280,9 +289,9 @@
 
                 if (!(current_activity)) {
                     % if _session['user_group'] == 'admin':
-                    var msg_settings = ' Verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+                    var msg_settings = ' Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
                     % else:
-                    var msg_settings = ''
+                    var msg_settings = '';
                     % endif
                     $('#currentActivityHeader').hide();
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');
