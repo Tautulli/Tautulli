@@ -401,6 +401,7 @@ Returns:
                  "quality_profile": "Original",
                  "rating": "7.8",
                  "rating_key": "153037",
+                 "relay": 0,
                  "section_id": "2",
                  "session_id": "helf15l3rxgw01xxe0jf3l3d",
                  "session_key": "27",

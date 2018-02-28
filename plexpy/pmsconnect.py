@@ -1404,6 +1404,10 @@ class PmsConnect(object):
                                'location': 'wan' if player_details['local'] == '0' else 'lan'
                                }
 
+        # Check if using Plex Relay
+        session_details['relay'] = int(session_details['location'] != 'lan'
+                                       and player_details['ip_address_public'] == '127.0.0.1')
+
         # Get the transcode details
         if session.getElementsByTagName('TranscodeSession'):
             transcode_info = session.getElementsByTagName('TranscodeSession')[0]
