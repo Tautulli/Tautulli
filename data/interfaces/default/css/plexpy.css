@@ -548,6 +548,11 @@ input[type="color"],
     border-radius: 3px;
     transition: background-color .3s;
 }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 textarea.form-control {
     height: initial;
     margin: 5px 0 5px 0;
