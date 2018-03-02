@@ -3944,6 +3944,7 @@ a:hover .overlay-refresh-image:hover {
     margin: 0 !important;
     width: 55px !important;
     height: 34px !important;
+    -moz-appearance: textfield;
 }
 .number-input::-webkit-inner-spin-button,
 .number-input::-webkit-outer-spin-button {
