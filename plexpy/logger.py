@@ -178,9 +178,9 @@ def initMultiprocessing():
 def initLogger(console=False, log_dir=False, verbose=False):
     """
     Setup logging for Tautulli. It uses the logger instance with the name
-    'plexpy'. Three log handlers are added:
+    'tautulli'. Three log handlers are added:
 
-    * RotatingFileHandler: for the file plexpy.log
+    * RotatingFileHandler: for the file tautulli.log
     * LogListHandler: for Web UI
     * StreamHandler: for console (if console)
 
