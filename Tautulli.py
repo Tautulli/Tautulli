@@ -185,6 +185,10 @@ def main():
     # Put the database in the DATA_DIR
     plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, database.FILENAME)
 
+    # Move 'plexpy.db' to 'tautulli.db'
+    if os.path.isfile(os.path.join(plexpy.DATA_DIR, 'plexpy.db')):
+        os.rename(os.path.join(plexpy.DATA_DIR, 'plexpy.db'), plexpy.DB_FILE)
+
     if plexpy.DAEMON:
         plexpy.daemonize()
 

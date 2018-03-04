@@ -23,7 +23,7 @@ import time
 import plexpy
 import logger
 
-FILENAME = "plexpy.db"
+FILENAME = "tautulli.db"
 db_lock = threading.Lock()
 
 
