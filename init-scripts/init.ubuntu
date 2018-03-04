@@ -27,7 +27,7 @@
 ## sudo service tautulli restart
 ##
 ## TAUTULLI_USER=         #$RUN_AS, username to run Tautulli under, the default is tautulli
-## TAUTULLI_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/Tautulli
+## TAUTULLI_HOME=         #$APP_PATH, the location of Tautulli.py, the default is /opt/Tautulli
 ## TAUTULLI_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/Tautulli
 ## TAUTULLI_PIDFILE=      #$PID_FILE, the location of tautulli.pid, the default is /var/run/tautulli/tautulli.pid
 ## PYTHON_BIN=      #$DAEMON, the location of the python binary, the default is /usr/bin/python
@@ -86,7 +86,7 @@ load_settings() {
         # Run as username
         RUN_AS=${TAUTULLI_USER-tautulli}
 
-        # Path to app TAUTULLI_HOME=path_to_app_PlexPy.py
+        # Path to app TAUTULLI_HOME=path_to_app_Tautulli.py
         APP_PATH=${TAUTULLI_HOME-/opt/Tautulli}
 
         # Data directory where plexpy.db, cache and logs are stored
@@ -109,7 +109,7 @@ load_settings() {
             PORT_OPTS=" --port=${TAUTULLI_PORT} "
         }
 
-        DAEMON_OPTS=" PlexPy.py --quiet --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${PORT_OPTS}${EXTRA_DAEMON_OPTS}"
+        DAEMON_OPTS=" Tautulli.py --quiet --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${PORT_OPTS}${EXTRA_DAEMON_OPTS}"
 
         SETTINGS_LOADED=TRUE
     fi

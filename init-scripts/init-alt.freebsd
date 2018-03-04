@@ -43,7 +43,7 @@ fi
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
-command="${tautulli_dir}/PlexPy.py"
+command="${tautulli_dir}/Tautulli.py"
 command_args="--daemon --quiet --nolaunch --port ${PORT} --pidfile ${tautulli_pid} --config ${tautulli_conf}"
 
 # Check for wget and refuse to start without it.
@@ -61,7 +61,7 @@ fi
 verify_tautulli_pid() {
     # Make sure the pid corresponds to the Tautulli process.
     pid=`cat ${tautulli_pid} 2>/dev/null`
-    ps -p ${pid} | grep -q "python ${tautulli_dir}/PlexPy.py"
+    ps -p ${pid} | grep -q "python ${tautulli_dir}/Tautulli.py"
     return $?
 }
 

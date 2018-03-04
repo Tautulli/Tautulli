@@ -30,7 +30,7 @@ options=" --daemon --config $configfile --pidfile $pidfile --datadir $datadir --
 start() {
         # Start daemon.
         echo -n $"Starting $prog: "
-        daemon --pidfile=$pidfile $nice $python27 $homedir/PlexPy.py $options
+        daemon --pidfile=$pidfile $nice $python27 $homedir/Tautulli.py $options
         RETVAL=$?
         echo
         [ $RETVAL -eq 0 ] && touch $lockfile

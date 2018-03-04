@@ -8,7 +8,7 @@
   <array>
        <!-- Modify these two lines if you need to to reflect your python location and Tautulli install location -->
        <string>/usr/bin/python</string>
-       <string>/Applications/Tautulli/PlexPy.py</string>
+       <string>/Applications/Tautulli/Tautulli.py</string>
   </array>
   <key>RunAtLoad</key>
   <true/>

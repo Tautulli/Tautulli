@@ -15,4 +15,4 @@ pre-start script
     [ -d "$DATA" ] || mkdir -p "$DATA"
 end script
 
-exec PlexPy.py --nolaunch --config "$CONFIG"/config.ini --datadir "$DATA"
+exec Tautulli.py --nolaunch --config "$CONFIG"/config.ini --datadir "$DATA"
