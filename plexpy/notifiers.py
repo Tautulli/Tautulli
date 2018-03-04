@@ -1932,7 +1932,7 @@ class IFTTT(Notifier):
     """
     NAME = 'IFTTT'
     _DEFAULT_CONFIG = {'key': '',
-                       'event': 'plexpy'
+                       'event': 'tautulli'
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -2135,7 +2135,7 @@ class MQTT(Notifier):
                        'protocol': 'MQTTv311',
                        'username': '',
                        'password': '',
-                       'clientid': 'plexpy',
+                       'clientid': 'tautulli',
                        'topic': '',
                        'qos': 1,
                        'retain': 0,
@@ -2320,7 +2320,7 @@ class OSX(Notifier):
         self.objc.classAddMethod(cls, SEL, new_IMP)
 
     def _swizzled_bundleIdentifier(self, original, swizzled):
-        return 'ade.plexpy.osxnotify'
+        return 'ade.tautulli.osxnotify'
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
 
