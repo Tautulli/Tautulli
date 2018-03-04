@@ -26,17 +26,17 @@
 ## sudo service tautulli stop
 ## sudo service tautulli restart
 ##
-## HP_USER=         #$RUN_AS, username to run Tautulli under, the default is tautulli
-## HP_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/Tautulli
-## HP_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/Tautulli
-## HP_PIDFILE=      #$PID_FILE, the location of tautulli.pid, the default is /var/run/tautulli/tautulli.pid
+## TAUTULLI_USER=         #$RUN_AS, username to run Tautulli under, the default is tautulli
+## TAUTULLI_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/Tautulli
+## TAUTULLI_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/Tautulli
+## TAUTULLI_PIDFILE=      #$PID_FILE, the location of tautulli.pid, the default is /var/run/tautulli/tautulli.pid
 ## PYTHON_BIN=      #$DAEMON, the location of the python binary, the default is /usr/bin/python
-## HP_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for Tautulli, i.e. " --config=/home/Tautulli/config.ini"
+## TAUTULLI_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for Tautulli, i.e. " --config=/home/Tautulli/config.ini"
 ## SSD_OPTS=        #$EXTRA_SSD_OPTS, extra start-stop-daemon option like " --group=users"
-## HP_PORT=         #$PORT_OPTS, hardcoded port for the webserver, overrides value in config.ini
+## TAUTULLI_PORT=         #$PORT_OPTS, hardcoded port for the webserver, overrides value in config.ini
 ##
 ## EXAMPLE if want to run as different user
-## add HP_USER=username to /etc/default/tautulli
+## add TAUTULLI_USER=username to /etc/default/tautulli
 ## otherwise default tautulli is used
 #
 ### BEGIN INIT INFO
@@ -84,29 +84,29 @@ load_settings() {
 
         ## The defaults
         # Run as username
-        RUN_AS=${HP_USER-tautulli}
+        RUN_AS=${TAUTULLI_USER-tautulli}
 
-        # Path to app HP_HOME=path_to_app_PlexPy.py
-        APP_PATH=${HP_HOME-/opt/Tautulli}
+        # Path to app TAUTULLI_HOME=path_to_app_PlexPy.py
+        APP_PATH=${TAUTULLI_HOME-/opt/Tautulli}
 
         # Data directory where plexpy.db, cache and logs are stored
-        DATA_DIR=${HP_DATA-/opt/Tautulli}
+        DATA_DIR=${TAUTULLI_DATA-/opt/Tautulli}
 
         # Path to store PID file
-        PID_FILE=${HP_PIDFILE-/var/run/tautulli/tautulli.pid}
+        PID_FILE=${TAUTULLI_PIDFILE-/var/run/tautulli/tautulli.pid}
 
         # Path to python bin
         DAEMON=${PYTHON_BIN-/usr/bin/python}
 
-        # Extra daemon option like: HP_OPTS=" --config=/home/Tautulli/config.ini"
-        EXTRA_DAEMON_OPTS=${HP_OPTS-}
+        # Extra daemon option like: TAUTULLI_OPTS=" --config=/home/Tautulli/config.ini"
+        EXTRA_DAEMON_OPTS=${TAUTULLI_OPTS-}
 
         # Extra start-stop-daemon option like START_OPTS=" --group=users"
         EXTRA_SSD_OPTS=${SSD_OPTS-}
 
         # Hardcoded port to run on, overrides config.ini settings
-        [ -n "$HP_PORT" ] && {
-            PORT_OPTS=" --port=${HP_PORT} "
+        [ -n "$TAUTULLI_PORT" ] && {
+            PORT_OPTS=" --port=${TAUTULLI_PORT} "
         }
 
         DAEMON_OPTS=" PlexPy.py --quiet --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${PORT_OPTS}${EXTRA_DAEMON_OPTS}"
