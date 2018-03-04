@@ -30,8 +30,8 @@ import plexpy
 import helpers
 
 # These settings are for file logging only
-FILENAME = "plexpy.log"
-FILENAME_API = "plexpy_api.log"
+FILENAME = "tautulli.log"
+FILENAME_API = "tautulli_api.log"
 FILENAME_PLEX_WEBSOCKET = "plex_websocket.log"
 MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
@@ -39,9 +39,9 @@ MAX_FILES = 5
 _BLACKLIST_WORDS = set()
 
 # Tautulli logger
-logger = logging.getLogger("plexpy")
+logger = logging.getLogger("tautulli")
 # Tautulli API logger
-logger_api = logging.getLogger("plexpy_api")
+logger_api = logging.getLogger("tautulli_api")
 # Tautulli websocket logger
 logger_plex_websocket = logging.getLogger("plex_websocket")
 

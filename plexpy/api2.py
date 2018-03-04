@@ -167,8 +167,8 @@ class API2:
         """
         logfile = os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)
         templog = []
-        start = int(kwargs.get('start', 0))
-        end = int(kwargs.get('end', 0))
+        start = int(start)
+        end = int(end)
 
         if regex:
             logger.api_debug(u'Tautulli APIv2 :: Filtering log using regex %s' % regex)

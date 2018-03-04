@@ -2293,7 +2293,7 @@ class WebInterface(object):
         filtered = []
         fa = filt.append
 
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -2496,7 +2496,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_logs(self, logfile='', **kwargs):
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -2538,7 +2538,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logFile(self, logfile='', **kwargs):
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -3912,7 +3912,7 @@ class WebInterface(object):
     @addtoapi()
     def download_log(self, logfile='', **kwargs):
         """ Download the Tautulli log file. """
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
             log = logger.logger_api
         elif logfile == "plex_websocket":
