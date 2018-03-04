@@ -2,9 +2,9 @@
 <!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
 <!--
         Created by Manifold
---><service_bundle type="manifest" name="plexpy">
+--><service_bundle type="manifest" name="tautulli">
 
-    <service name="application/plexpy" type="service" version="1">
+    <service name="application/tautulli" type="service" version="1">
 
         <create_default_instance enabled="true"/>
 
@@ -19,10 +19,10 @@
         </dependency>
 
         <method_context>
-            <method_credential user="plexpy" group="nogroup"/>
+            <method_credential user="tautulli" group="nogroup"/>
         </method_context>
 
-        <exec_method type="method" name="start" exec="python /opt/plexpy/PlexPy.py --daemon --quiet --nolaunch" timeout_seconds="60"/>
+        <exec_method type="method" name="start" exec="python /opt/tautulli/PlexPy.py --daemon --quiet --nolaunch" timeout_seconds="60"/>
 
         <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
 
@@ -37,7 +37,7 @@
         <template>
             <common_name>
                 <loctext xml:lang="C">
-                    PlexPy
+                    Tautulli
                 </loctext>
             </common_name>
         </template>

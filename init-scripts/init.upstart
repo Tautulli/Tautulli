@@ -1,14 +1,14 @@
-# plexpy
+# tautulli
 #
 # This is a session/user job. Install this file into /usr/share/upstart/sessions
-# if plexpy is installed system wide, and into $XDG_CONFIG_HOME/upstart if
-# plexpy is installed per user. Change the executable path appropiately.
+# if Tautulli is installed system wide, and into $XDG_CONFIG_HOME/upstart if
+# Tautulli is installed per user. Change the executable path appropiately.
 
 start on desktop-start
 stop on desktop-end
 
-env CONFIG=""$XDG_CONFIG_HOME"/plexpy"
-env DATA=""$XDG_DATA_HOME"/plexpy"
+env CONFIG=""$XDG_CONFIG_HOME"/Tautulli"
+env DATA=""$XDG_DATA_HOME"/Tautulli"
 
 pre-start script
     [ -d "$CONFIG" ] || mkdir -p "$CONFIG"

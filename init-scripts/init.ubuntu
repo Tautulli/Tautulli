@@ -1,71 +1,71 @@
 #!/bin/sh
 #
 ## Don't edit this file
-## Edit user configuation in /etc/default/plexpy to change
+## Edit user configuation in /etc/default/tautulli to change
 ##
 ## Make sure init script is executable
 ## sudo chmod +x /path/to/init.ubuntu
 ##
 ## Install the init script
-## sudo ln -s /path/to/init.ubuntu /etc/init.d/plexpy
+## sudo ln -s /path/to/init.ubuntu /etc/init.d/tautulli
 ##
-## Create the plexpy daemon user:
-## sudo adduser --system --no-create-home plexpy
+## Create the tautulli daemon user:
+## sudo adduser --system --no-create-home tautulli
 ##
-## Make sure /opt/plexpy is owned by the plexpy user
-## sudo chown plexpy:nogroup -R /opt/plexpy
+## Make sure /opt/Tautulli is owned by the tautulli user
+## sudo chown tautulli:nogroup -R /opt/Tautulli
 ##
 ## Touch the default file to stop the warning message when starting
-## sudo touch /etc/default/plexpy
+## sudo touch /etc/default/tautulli
 ##
-## To start PlexPy automatically
-## sudo  update-rc.d plexpy defaults
+## To start Tautulli automatically
+## sudo  update-rc.d tautulli defaults
 ##
-## To start/stop/restart PlexPy
-## sudo service plexpy start
-## sudo service plexpy stop
-## sudo service plexpy restart
+## To start/stop/restart Tautulli
+## sudo service tautulli start
+## sudo service tautulli stop
+## sudo service tautulli restart
 ##
-## HP_USER=         #$RUN_AS, username to run plexpy under, the default is plexpy
-## HP_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/plexpy
-## HP_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/plexpy
-## HP_PIDFILE=      #$PID_FILE, the location of plexpy.pid, the default is /var/run/plexpy/plexpy.pid
+## HP_USER=         #$RUN_AS, username to run Tautulli under, the default is tautulli
+## HP_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/Tautulli
+## HP_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/Tautulli
+## HP_PIDFILE=      #$PID_FILE, the location of tautulli.pid, the default is /var/run/tautulli/tautulli.pid
 ## PYTHON_BIN=      #$DAEMON, the location of the python binary, the default is /usr/bin/python
-## HP_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for plexpy, i.e. " --config=/home/plexpy/config.ini"
+## HP_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for Tautulli, i.e. " --config=/home/Tautulli/config.ini"
 ## SSD_OPTS=        #$EXTRA_SSD_OPTS, extra start-stop-daemon option like " --group=users"
 ## HP_PORT=         #$PORT_OPTS, hardcoded port for the webserver, overrides value in config.ini
 ##
 ## EXAMPLE if want to run as different user
-## add HP_USER=username to /etc/default/plexpy
-## otherwise default plexpy is used
+## add HP_USER=username to /etc/default/tautulli
+## otherwise default tautulli is used
 #
 ### BEGIN INIT INFO
-# Provides:          plexpy
+# Provides:          tautulli
 # Required-Start:    $local_fs $network $remote_fs
 # Required-Stop:     $local_fs $network $remote_fs
 # Should-Start:      $NetworkManager
 # Should-Stop:       $NetworkManager
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts instance of PlexPy
-# Description:       starts instance of PlexPy using start-stop-daemon
+# Short-Description: starts instance of Tautulli
+# Description:       starts instance of Tautulli using start-stop-daemon
 ### END INIT INFO
 
 # Script name
-NAME=plexpy
+NAME=tautulli
 
 # App name
-DESC=PlexPy
+DESC=Tautulli
 
 SETTINGS_LOADED=FALSE
 
 . /lib/lsb/init-functions
 
-# Source PlexPy configuration
-if [ -f /etc/default/plexpy ]; then
-    SETTINGS=/etc/default/plexpy
+# Source Tautulli configuration
+if [ -f /etc/default/tautulli ]; then
+    SETTINGS=/etc/default/tautulli
 else
-    log_warning_msg "/etc/default/plexpy not found using default settings.";
+    log_warning_msg "/etc/default/tautulli not found using default settings.";
 fi
 
 check_retval() {
@@ -84,21 +84,21 @@ load_settings() {
 
         ## The defaults
         # Run as username
-        RUN_AS=${HP_USER-plexpy}
+        RUN_AS=${HP_USER-tautulli}
 
         # Path to app HP_HOME=path_to_app_PlexPy.py
-        APP_PATH=${HP_HOME-/opt/plexpy}
+        APP_PATH=${HP_HOME-/opt/Tautulli}
 
         # Data directory where plexpy.db, cache and logs are stored
-        DATA_DIR=${HP_DATA-/opt/plexpy}
+        DATA_DIR=${HP_DATA-/opt/Tautulli}
 
         # Path to store PID file
-        PID_FILE=${HP_PIDFILE-/var/run/plexpy/plexpy.pid}
+        PID_FILE=${HP_PIDFILE-/var/run/tautulli/tautulli.pid}
 
         # Path to python bin
         DAEMON=${PYTHON_BIN-/usr/bin/python}
 
-        # Extra daemon option like: HP_OPTS=" --config=/home/plexpy/config.ini"
+        # Extra daemon option like: HP_OPTS=" --config=/home/Tautulli/config.ini"
         EXTRA_DAEMON_OPTS=${HP_OPTS-}
 
         # Extra start-stop-daemon option like START_OPTS=" --group=users"
@@ -162,7 +162,7 @@ handle_updates () {
         return 0; }
 }
 
-start_plexpy () {
+start_tautulli () {
     handle_pid
     handle_datadir
     handle_updates
@@ -175,7 +175,7 @@ start_plexpy () {
     fi
 }
 
-stop_plexpy () {
+stop_tautulli () {
     if is_running; then
         log_daemon_msg "Stopping $DESC"
         start-stop-daemon -o --stop --pidfile $PID_FILE --retry 15
@@ -187,14 +187,14 @@ stop_plexpy () {
 
 case "$1" in
     start)
-        start_plexpy
+        start_tautulli
         ;;
     stop)
-        stop_plexpy
+        stop_tautulli
         ;;
     restart|force-reload)
-        stop_plexpy
-        start_plexpy
+        stop_tautulli
+        start_tautulli
         ;;
     status)
         status_of_proc -p "$PID_FILE" "$DAEMON" "$DESC"

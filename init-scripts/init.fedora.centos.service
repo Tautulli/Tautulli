@@ -1,25 +1,25 @@
 #!/bin/sh
 #
 ### BEGIN INIT INFO
-# Provides:          PlexPy 
+# Provides:          Tautulli
 # Required-Start:    $all
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts PlexPy 
-# Description:       starts PlexPy
+# Short-Description: starts Tautulli
+# Description:       starts Tautulli
 ### END INIT INFO
 
 # Source function library.
 . /etc/init.d/functions
 
 ## Variables
-prog=plexpy
+prog=tautulli
 lockfile=/var/lock/subsys/$prog
-homedir=/opt/plexpy
-datadir=/opt/plexpy
-configfile=/opt/plexpy/config.ini
-pidfile=/var/run/plexpy.pid
+homedir=/opt/Tautulli
+datadir=/opt/Tautulli
+configfile=/opt/Tautulli/config.ini
+pidfile=/var/run/tautulli.pid
 nice=
 # The following line must point to your Python 2.7 install
 python27=/usr/src/Python-2.7.11/python

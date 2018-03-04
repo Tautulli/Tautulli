@@ -1,54 +1,54 @@
 #!/bin/sh
 #
-# PROVIDE: plexpy
-# REQUIRE: plexpy
+# PROVIDE: tautulli
+# REQUIRE: tautulli
 # KEYWORD: shutdown
 #
 # Add the following lines to /etc/rc.conf.local or /etc/rc.conf
 # to enable this service:
 #
-# plexpy_enable (bool):     Set to NO by default.
+# tautulli_enable (bool):     Set to NO by default.
 #                       Set it to YES to enable it.
-# plexpy_user:  The user account PlexPy daemon runs as what
-#                       you want it to be. It uses 'plexpy' user by
+# tautulli_user:  The user account Tautulli daemon runs as what
+#                       you want it to be. It uses 'tautulli' user by
 #                       default. Do not sets it as empty or it will run
 #                       as root.
-# plexpy_dir:       Directory where PlexPy lives.
-#                       Default: /usr/local/plexpy
-# plexpy_chdir:  Change to this directory before running PlexPy.
-#     Default is same as plexpy_dir.
-# plexpy_pid:  The name of the pidfile to create.
-#     Default is plexpy.pid in plexpy_dir.
+# tautulli_dir:       Directory where Tautulli lives.
+#                       Default: /usr/local/share/Tautulli
+# tautulli_chdir:  Change to this directory before running Tautulli.
+#     Default is same as tautulli_dir.
+# tautulli_pid:  The name of the pidfile to create.
+#     Default is tautulli.pid in tautulli_dir.
 
 . /etc/rc.subr
 
-name="plexpy"
+name="tautulli"
 rcvar=${name}_enable
 
 load_rc_config ${name}
 
-: ${plexpy_enable:="NO"}
-: ${plexpy_user:="plexpy"}
-: ${plexpy_dir:="/usr/local/plexpy"}
-: ${plexpy_chdir:="${plexpy_dir}"}
-: ${plexpy_pid:="${plexpy_dir}/plexpy.pid"}
-: ${plexpy_conf:="${plexpy_dir}/config.ini"}
+: ${tautulli_enable:="NO"}
+: ${tautulli_user:="tautulli"}
+: ${tautulli_dir:="/usr/local/share/Tautulli"}
+: ${tautulli_chdir:="${tautulli_dir}"}
+: ${tautulli_pid:="${tautulli_dir}/tautulli.pid"}
+: ${tautulli_conf:="${tautulli_dir}/config.ini"}
 
-WGET="/usr/local/bin/wget" # You need wget for this script to safely shutdown PlexPy.
-if [ -e "${plexpy_conf}" ]; then
-        HOST=`grep -A64 "\[General\]" "${plexpy_conf}"|egrep "^http_host"|perl -wple 's/^http_host = (.*)$/$1/'`
-        PORT=`grep -A64 "\[General\]" "${plexpy_conf}"|egrep "^http_port"|perl -wple 's/^http_port = (.*)$/$1/'`
+WGET="/usr/local/bin/wget" # You need wget for this script to safely shutdown Tautulli.
+if [ -e "${tautulli_conf}" ]; then
+        HOST=`grep -A64 "\[General\]" "${tautulli_conf}"|egrep "^http_host"|perl -wple 's/^http_host = (.*)$/$1/'`
+        PORT=`grep -A64 "\[General\]" "${tautulli_conf}"|egrep "^http_port"|perl -wple 's/^http_port = (.*)$/$1/'`
 fi
 
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
-command="${plexpy_dir}/PlexPy.py"
-command_args="--daemon --quiet --nolaunch --port ${PORT} --pidfile ${plexpy_pid} --config ${plexpy_conf}"
+command="${tautulli_dir}/PlexPy.py"
+command_args="--daemon --quiet --nolaunch --port ${PORT} --pidfile ${tautulli_pid} --config ${tautulli_conf}"
 
 # Check for wget and refuse to start without it.
 if [ ! -x "${WGET}" ]; then
-  warn "PlexPy not started: You need wget to safely shut down PlexPy."
+  warn "Tautulli not started: You need wget to safely shut down Tautulli."
   exit 1
 fi
 
@@ -58,21 +58,21 @@ if [ `id -u` != "0" ]; then
   exit 1
 fi
 
-verify_plexpy_pid() {
-    # Make sure the pid corresponds to the PlexPy process.
-    pid=`cat ${plexpy_pid} 2>/dev/null`
-    ps -p ${pid} | grep -q "python ${plexpy_dir}/PlexPy.py"
+verify_tautulli_pid() {
+    # Make sure the pid corresponds to the Tautulli process.
+    pid=`cat ${tautulli_pid} 2>/dev/null`
+    ps -p ${pid} | grep -q "python ${tautulli_dir}/PlexPy.py"
     return $?
 }
 
-# Try to stop PlexPy cleanly by calling shutdown over http.
-plexpy_stop() {
-    if [ ! -e "${plexpy_conf}" ]; then
-        echo "PlexPy' settings file does not exist. Try starting PlexPy, as this should create the file."
+# Try to stop Tautulli cleanly by calling shutdown over http.
+tautulli_stop() {
+    if [ ! -e "${tautulli_conf}" ]; then
+        echo "Tautulli' settings file does not exist. Try starting Tautulli, as this should create the file."
         exit 1
     fi
     echo "Stopping $name"
-    verify_plexpy_pid
+    verify_tautulli_pid
     ${WGET} -O - -q --user=${SBUSR} --password=${SBPWD} "http://${HOST}:${PORT}/shutdown/" >/dev/null
     
     if [ -n "${pid}" ]; then
@@ -81,8 +81,8 @@ plexpy_stop() {
     fi
 }
 
-plexpy_status() {
-    verify_plexpy_pid && echo "$name is running as ${pid}" || echo "$name is not running"
+tautulli_status() {
+    verify_tautulli_pid && echo "$name is running as ${pid}" || echo "$name is not running"
 }
 
 run_rc_command "$1"
