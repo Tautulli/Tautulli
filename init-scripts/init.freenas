@@ -14,7 +14,7 @@
 #           default. Do not sets it as empty or it will run
 #           as root.
 # tautulli_dir:   Directory where Tautulli lives.
-#           Default: /usr/local/share/tautulli
+#           Default: /usr/local/share/Tautulli
 # tautulli_chdir:  Change to this directory before running Tautulli.
 #     Default is same as tautulli_dir.
 # tautulli_pid:  The name of the pidfile to create.
@@ -30,7 +30,7 @@ load_rc_config ${name}
 
 : ${tautulli_enable:="NO"}
 : ${tautulli_user:="tautulli"}
-: ${tautulli_dir:="/usr/local/share/tautulli"}
+: ${tautulli_dir:="/usr/local/share/Tautulli"}
 : ${tautulli_chdir:="${tautulli_dir}"}
 : ${tautulli_pid:="${tautulli_dir}/tautulli.pid"}
 : ${tautulli_flags:=""}

@@ -22,7 +22,7 @@
             <method_credential user="tautulli" group="nogroup"/>
         </method_context>
 
-        <exec_method type="method" name="start" exec="python /opt/tautulli/PlexPy.py --daemon --quiet --nolaunch" timeout_seconds="60"/>
+        <exec_method type="method" name="start" exec="python /opt/Tautulli/PlexPy.py --daemon --quiet --nolaunch" timeout_seconds="60"/>
 
         <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
 
