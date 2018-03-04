@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.0.21-beta (2018-03-04)
+
+* Monitoring:
+  * New: Identify if a stream is using Plex Relay.
+  * Change: Don't ping the Plex server if the websocket is disconnected.
+* Notifications:
+  * Fix: Pause/resume state not being sent correctly in some instances.
+* Other:
+  * New: Add Patreon donation method.
+  * Fix: Catch failure to send analytics.
+  * Fix: IP address connection lookup error when the country is missing.
+  * Change: Updated all init scripts to Tautulli.
+  * Change: Move database to tautulli.db.
+  * Change: Move logs to tautulli.log.
+  * Change: Move startup file to Tautulli.py.
+
+
 ## v2.0.20-beta (2018-02-24)
 
 * Notifications:
