@@ -227,28 +227,28 @@ ${next.modalIncludes()}
                     </div>
                 </div>
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
-                    <li class="active"><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
-                    <li><a href="#flattr-donation" role="tab" data-toggle="tab">Flattr</a></li>
+                    <li class="active"><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
+                    <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoin" data-name="Bitcoin" data-address="3FdfJAyNWU15Sf11U9FTgPHuP1hPz32eEN">Bitcoin</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoincash" data-name="Bitcoin Cash" data-address="1H2atabxAQGaFAWYQEiLkXKSnK9CZZvt2n">Bitcoin Cash</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="ethereum" data-name="Ethereum" data-address="0x77ae4c2b8de1a1ccfa93553db39971da58c873d3">Ethereum</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="litecoin" data-name="Litecoin" data-address="LWpPmUqQYHBhMV83XSCsHzPmKLhJt6r57J">Litecoin</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="paypal-donation" style="text-align: center">
+                    <div role="tabpanel" class="tab-pane active" id="patreon-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Patreon.
+                        </p>
+                        <a href="${anon_url('https://www.patreon.com/bePatron?u=10078609')}" target="_blank">
+                            <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
                         <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
-                        </a>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="flattr-donation" style="text-align: center">
-                        <p>
-                            Click the button below to continue to Flattr.
-                        </p>
-                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/%s/%s&title=Tautulli&language=en_GB&tags=github&category=software' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">
-                            <img src="images/flattr-badge-large.png" alt="Flattr">
                         </a>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="crypto-donation">
