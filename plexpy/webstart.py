@@ -122,6 +122,7 @@ def initialize(options):
         '/images': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/images",
+            'tools.staticdir.content_types': {'svg': 'image/svg+xml'},
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,
