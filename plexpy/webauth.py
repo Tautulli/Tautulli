@@ -47,6 +47,7 @@ def user_login(username=None, password=None):
             phpSessionID = cherrypy.request.cookie[plexpy.CONFIG.AUTH_SSO_COOKIE].value
         except:
             logger.debug(u"Tautulli PlexAuth :: Could not find the specified cookie.")
+            return None
         logger.debug(u"Tautulli PlexAuth :: Session id detected as: '%s'" % phpSessionID)
         PlexAuth = plexpy.CONFIG.AUTH_ENDPOINT + "&session=" + phpSessionID
         uinfo = urllib2.urlopen(PlexAuth) #URL for getting plexpy info from PlexAuth.
@@ -62,6 +63,7 @@ def user_login(username=None, password=None):
         plex_user = {'auth_token': claimed_user[1],
                      'user_id': claimed_user[0]
                      }
+        logger.debug(u"Tautulli PlexAuth :: Welcome %s" %claimed_user[0])
 
     if not plex_user:
         # Try to login to Plex.tv to check if the user has a vaild account
@@ -96,6 +98,10 @@ def user_login(username=None, password=None):
         # If a server token is returned, then the user is a valid friend of the server.
         plex_tv = PlexTV(token=user_token)
         server_token = plex_tv.get_server_token()
+
+#        if not (server_token):
+#            server_token = "PlexAuth"
+
         if server_token:
 
             # Register the new user / update the access tokens.
@@ -144,6 +150,7 @@ def check_credentials(username, password, admin_login='0'):
     if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
         plex_login = user_login(username, password)
         if plex_login is not None:
+            logger.debug(u"Tautulli PlexAuth :: Login success as %s." % plex_login)
             return True, plex_login
 
     return False, None
@@ -283,16 +290,13 @@ class AuthController(object):
 
     def get_loginform(self):
         from plexpy.webserve import serve_template
-        if msg == "" and username == "":
-            if plexpy.CONFIG.AUTH_ENDPOINT and plexpy.CONFIG.AUTH_SSO_COOKIE:
-                return self.login(username='PlexAuth', password='PlexAuth', remember_me='1')
-        else:
-            logger.debug(u"I serve you... the login form.")
-            if (username == 'PlexAuth'):
-                username = ""
-                msg = "SSO Failed. Please login manually."
-            return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
-    
+        if plexpy.CONFIG.AUTH_ENDPOINT and plexpy.CONFIG.AUTH_SSO_COOKIE:
+            if (self.signin(username='PlexAuth', password='PlexAuth', remember_me='1')['status'] == 'success'):
+                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "/")
+            logger.debug(u"PlexAuth failed - I serve you... the login form.")
+
+        return serve_template(templatename="login.html", title="Login")
+
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
@@ -322,15 +326,17 @@ class AuthController(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def signin(self, username=None, password=None, remember_me='0', admin_login='0'):
-        if cherrypy.request.method != 'POST':
-            cherrypy.response.status = 405
-            return {'status': 'error', 'message': 'Sign in using POST.'}
+        if username != 'PlexAuth' and password != 'PlexAuth':
+            if cherrypy.request.method != 'POST':
+                cherrypy.response.status = 405
+                return {'status': 'error', 'message': 'Sign in using POST.'}
 
         error_message = {'status': 'error', 'message': 'Incorrect username or password.'}
 
         valid_login, user_group = check_credentials(username, password, admin_login)
 
-        if vaild_login:
+        if valid_login:
+            logger.debug(u"Tautulli PlexAuth :: username: %s." % username)
             if username == 'PlexAuth':
                 logger.debug(
                     u"Tautulli PlexAuth :: Successful authentication with PlexAuth. Change values to claimed user.")
@@ -375,16 +381,16 @@ class AuthController(object):
             if PlexAuth:
                 self.on_login(claimed_user[0], claimed_user[3], claimed_user[2])
             else:
-				self.on_login(user_id, username, user_group)
+                self.on_login(user_id, username, user_group)
 
-				jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
-				cherrypy.response.cookie[jwt_cookie] = jwt_token
-				cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
-				cherrypy.response.cookie[jwt_cookie]['path'] = '/'
+            jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+            cherrypy.response.cookie[jwt_cookie] = jwt_token
+            cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
+            cherrypy.response.cookie[jwt_cookie]['path'] = '/'
 
-				cherrypy.request.login = payload
-				cherrypy.response.status = 200
-				return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
+            cherrypy.request.login = payload
+            cherrypy.response.status = 200
+            return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
 
         elif admin_login == '1':
             self.on_login_failed(username)
