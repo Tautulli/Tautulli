@@ -3585,7 +3585,7 @@ class WebInterface(object):
             return {'result': 'success',
                     'update': True,
                     'release': True,
-                    'message': 'A new release (%) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                    'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
                     'latest_release': plexpy.LATEST_RELEASE,
                     'release_url': helpers.anon_url(
                         'https://github.com/%s/%s/releases/tag/%s'
