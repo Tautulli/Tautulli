@@ -2138,10 +2138,12 @@ class PmsConnect(object):
             sort_type = '&type=10'
         elif section_type == 'photo':
             sort_type = ''
-        elif section_type == 'photoAlbum':
+        elif section_type == 'photo_album':
             sort_type = '&type=14'
         elif section_type == 'picture':
-            sort_type = '&type=13'
+            sort_type = '&type=13&clusterZoomLevel=1'
+        elif section_type == 'clip':
+            sort_type = '&type=12&clusterZoomLevel=1'
         else:
             sort_type = ''
 
@@ -2284,12 +2286,12 @@ class PmsConnect(object):
                             library_stats.update(child_stats)
 
                     if section_type == 'photo':
-                        parent_list = self.get_library_children_details(section_id=section_id, section_type='photoAlbum', count='1')
+                        parent_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
                         if parent_list:
                             parent_stats = {'parent_count': parent_list['library_count']}
                             library_stats.update(parent_stats)
 
-                        child_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
+                        child_list = self.get_library_children_details(section_id=section_id, section_type='clip', count='1')
                         if child_list:
                             child_stats = {'child_count': child_list['library_count']}
                             library_stats.update(child_stats)
