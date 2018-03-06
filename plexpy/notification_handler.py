@@ -550,8 +550,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     server_times = plex_tv.get_server_times()
 
     if server_times:
-        updated_at = server_times['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
+        created_at = server_times['created_at']
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(created_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
