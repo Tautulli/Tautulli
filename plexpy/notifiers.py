@@ -2691,8 +2691,10 @@ class PUSHOVER(Notifier):
     _DEFAULT_CONFIG = {'api_token': '',
                        'key': '',
                        'html_support': 1,
-                       'priority': 0,
                        'sound': '',
+                       'priority': 0,
+                       'retry': 30,
+                       'expire': 3600,
                        'incl_url': 1,
                        'incl_subject': 1,
                        'incl_poster': 0,
@@ -2712,6 +2714,10 @@ class PUSHOVER(Notifier):
 
         if self.config['incl_subject']:
             data['title'] = subject.encode("utf-8")
+
+        if self.config['priority'] == 2:
+            data['retry'] = max(30, self.config['retry'])
+            data['expire'] = max(30, self.config['expire'])
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
@@ -2789,6 +2795,13 @@ class PUSHOVER(Notifier):
                           'description': 'Your Pushover user or group key.',
                           'input_type': 'text'
                           },
+                         {'label': 'Sound',
+                          'value': self.config['sound'],
+                          'name': 'pushover_sound',
+                          'description': 'Set the notification sound. Leave blank for the default sound.',
+                          'input_type': 'select',
+                          'select_options': self.get_sounds()
+                          },
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'pushover_priority',
@@ -2796,12 +2809,19 @@ class PUSHOVER(Notifier):
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
-                         {'label': 'Sound',
-                          'value': self.config['sound'],
-                          'name': 'pushover_sound',
-                          'description': 'Set the notification sound. Leave blank for the default sound.',
-                          'input_type': 'select',
-                          'select_options': self.get_sounds()
+                         {'label': 'Retry Interval',
+                          'value': self.config['retry'],
+                          'name': 'pushover_retry',
+                          'description': 'Set the interval in seconds to keep retrying the notification.<br>'
+                                         'Note: For priority 2 only. Minimum 30 seconds.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Expire Duration',
+                          'value': self.config['expire'],
+                          'name': 'pushover_expire',
+                          'description': 'Set the duration in seconds when the notification will stop retrying.<br>'
+                                         'Note: For priority 2 only. Minimum 30 seconds.',
+                          'input_type': 'number'
                           },
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
