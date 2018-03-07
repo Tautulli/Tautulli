@@ -276,6 +276,7 @@
             async: true,
             error: function (xhr, status, error) {
                 console.log(status + ': ' + error);
+                activity_ready = true;
             },
             complete: function (xhr, status) {
                 $('#dashboard-checking-activity').remove();
