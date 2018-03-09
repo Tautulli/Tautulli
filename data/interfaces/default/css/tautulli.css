@@ -66,7 +66,6 @@ div.form-control .selectize-input {
     color: #fff;
     border: 0px solid #444;
     background: #555;
-    height: 32px;
     padding: 6px 12px;
     background-color: #555;
     border-radius: 3px;
@@ -92,6 +91,7 @@ div.form-control .selectize-input {
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
     min-height: 32px !important;
+    height: 32px !important;
 }
 .input-group .selectize-control.form-control.selectize-pms-ip .selectize-input > div {
     max-width: 450px;
