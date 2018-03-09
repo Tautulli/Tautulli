@@ -744,7 +744,7 @@ class Libraries(object):
             logger.warn(u"Tautulli Libraries :: Unable to retrieve library %s from database. Requesting library list refresh."
                         % section_id)
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
-            pmsconnect.refresh_libraries()
+            refresh_libraries()
 
             library_details = get_library_details(section_id=section_id)
 
