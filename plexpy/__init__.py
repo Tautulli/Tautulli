@@ -1621,8 +1621,11 @@ def upgrade():
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
-    SCHED.shutdown(wait=False)
-    activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
+
+    if SCHED.running:
+        SCHED.shutdown(wait=False)
+    if activity_handler.ACTIVITY_SCHED.running:
+        activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
 
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
