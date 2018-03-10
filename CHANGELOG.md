@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.22 (2018-03-10)
+
+* Tautulli v2 release!
+
+
 ## v2.0.22-beta (2018-03-09)
 
 * Notifications:
