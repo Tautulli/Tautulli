@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.0.22-beta (2018-03-09)
+
+* Notifications:
+  * Fix: Pushover notifications failing with priority 2 is set.
+  * Fix: Expanding selectize box for some notification agent settings.
+* Other:
+  * Fix: Update check failing when an update is available.
+  * Fix: Item count incorrect for photo libraries.
+
+
 ## v2.0.21-beta (2018-03-04)
 
 * Monitoring:
