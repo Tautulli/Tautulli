@@ -292,7 +292,11 @@ function millisecondsToMinutes(ms, roundToMinute) {
     if (ms > 0) {
       var minutes = Math.floor(ms / 60000);
       var seconds = ((ms % 60000) / 1000).toFixed(0);
-      return (seconds == 60 ? (minutes+1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
+      if (roundToMinute) {
+          return (seconds >= 30 ? (minutes + 1) : minutes);
+      } else {
+          return (seconds == 60 ? (minutes + 1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
+      }
     } else {
         if (roundToMinute) {
             return '0';
