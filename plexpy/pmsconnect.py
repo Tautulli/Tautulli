@@ -666,6 +666,11 @@ class PmsConnect(object):
                         }
 
         elif metadata_type == 'show':
+            # Workaround for for duration sometimes reported in minutes for a show
+            duration = helpers.get_xml_attr(metadata_main, 'duration')
+            if duration.isdigit() and int(duration) < 1000:
+                duration = unicode(int(duration) * 60 * 1000)
+
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -685,7 +690,7 @@ class PmsConnect(object):
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'audience_rating': helpers.get_xml_attr(metadata_main, 'audienceRating'),
                         'user_rating': helpers.get_xml_attr(metadata_main, 'userRating'),
-                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'duration': duration,
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
