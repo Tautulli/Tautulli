@@ -2166,16 +2166,16 @@ class PmsConnect(object):
             logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_library_children_details: %s." % e)
             return []
 
-        childern_list = []
+        children_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
                     logger.debug(u"Tautulli Pmsconnect :: No library data.")
-                    childern_list = {'library_count': '0',
-                                     'childern_list': []
+                    children_list = {'library_count': '0',
+                                     'children_list': []
                                      }
-                    return childern_list
+                    return children_list
 
             if rating_key:
                 library_count = helpers.get_xml_attr(xml_head[0], 'size')
@@ -2233,10 +2233,10 @@ class PmsConnect(object):
                                       }
                         item_info.update(media_info)
 
-                childern_list.append(item_info)
+                children_list.append(item_info)
 
         output = {'library_count': library_count,
-                  'childern_list': childern_list
+                  'children_list': children_list
                   }
 
         return output

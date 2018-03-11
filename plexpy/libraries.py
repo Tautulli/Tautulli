@@ -125,8 +125,8 @@ def update_section_ids():
             library_children = pms_connect.get_library_children_details(section_id=section_id,
                                                                         section_type=section_type)
             if library_children:
-                children_list = library_children['childern_list']
-                key_mappings.update({child['rating_key']:child['section_id'] for child in children_list})
+                children_list = library_children['children_list']
+                key_mappings.update({child['rating_key']: child['section_id'] for child in children_list})
             else:
                 logger.warn(u"Tautulli Libraries :: Unable to get a list of library items for section_id %s." % section_id)
 
@@ -198,7 +198,7 @@ def update_labels():
                                                                                 label_key=label['label_key'])
 
                     if library_children:
-                        children_list = library_children['childern_list']
+                        children_list = library_children['children_list']
                         # rating_key_list = [child['rating_key'] for child in children_list]
 
                         for rating_key in [child['rating_key'] for child in children_list]:
@@ -456,7 +456,7 @@ class Libraries(object):
                                                                             get_media_info=True)
             if library_children:
                 library_count = library_children['library_count']
-                children_list = library_children['childern_list']
+                children_list = library_children['children_list']
             else:
                 logger.warn(u"Tautulli Libraries :: Unable to get a list of library items.")
                 return default_return
