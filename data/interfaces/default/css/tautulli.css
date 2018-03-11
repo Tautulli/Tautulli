@@ -3694,6 +3694,7 @@ a:hover .overlay-refresh-image:hover {
 }
 .git-group select.form-control {
     width: 50%;
+    height: 32px;
 }
 #changelog-modal .modal-body > h2 {
     margin-bottom: 10px;
