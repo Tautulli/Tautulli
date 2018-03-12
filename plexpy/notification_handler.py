@@ -208,7 +208,10 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     custom_conditions_logic = notifier_config['custom_conditions_logic']
-    custom_conditions = json.loads(notifier_config['custom_conditions']) or []
+    try:
+        custom_conditions = json.loads(notifier_config['custom_conditions']) or []
+    except ValueError as e:
+        custom_conditions = []
 
     if custom_conditions_logic or any(c for c in custom_conditions if c['value']):
         logger.debug(u"Tautulli NotificationHandler :: Checking custom notification conditions for notifier_id %s."
