@@ -1932,7 +1932,8 @@ class IFTTT(Notifier):
     """
     NAME = 'IFTTT'
     _DEFAULT_CONFIG = {'key': '',
-                       'event': 'tautulli'
+                       'event': 'tautulli',
+                       'incl_poster': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -1940,6 +1941,14 @@ class IFTTT(Notifier):
 
         data = {'value1': subject.encode("utf-8"),
                 'value2': body.encode("utf-8")}
+
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            poster_url = pretty_metadata.get_poster_url()
+            if poster_url and self.config['incl_poster']:
+               data['value3'] = poster_url
 
         headers = {'Content-type': 'application/json'}
 
@@ -1964,6 +1973,14 @@ class IFTTT(Notifier):
                                          ' as <span class="inline-pre">value1</span>'
                                          ' and <span class="inline-pre">value2</span> respectively.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'ifttt_incl_poster',
+                          'description': 'Include a poster with the notifications. The poster image '
+                                         'URL will be sent as <span class="inline-pre">value3</span>.<br>'
+                                         'Note: Imgur upload may need to be enabled under the notifications settings tab.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
