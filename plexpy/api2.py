@@ -652,10 +652,9 @@ General optional parameters:
         # {result: error, message: 'Some shit happend'}
         if isinstance(ret, dict):
             if ret.get('message'):
-                self._api_msg = ret.get('message', {})
-                ret = {}
+                self._api_msg = ret.pop('message', None)
 
             if ret.get('result'):
-                self._api_result_type = ret.get('result')
+                self._api_result_type = ret.pop('result', None)
 
         return self._api_out_as(self._api_responds(result_type=self._api_result_type, msg=self._api_msg, data=ret))
