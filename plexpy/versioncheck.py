@@ -292,8 +292,8 @@ def update():
 
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('fetch ' + plexpy.CONFIG.GIT_REMOTE)
-        output, err = runGit('checkout ' + plexpy.CONFIG.GIT_BRANCH)
+        output, err = runGit('fetch %s' % plexpy.CONFIG.GIT_REMOTE)
+        output, err = runGit('checkout %s' % plexpy.CONFIG.GIT_BRANCH)
 
         if not output:
             logger.error('Unable to change git branch.')
@@ -303,6 +303,8 @@ def checkout_git_branch():
             if line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to checkout from git: ' + line)
                 logger.info('Output: ' + str(output))
+
+        output, err = runGit('pull %s %s' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
 
 
 def read_changelog(latest_only=False, since_prev_release=False):
