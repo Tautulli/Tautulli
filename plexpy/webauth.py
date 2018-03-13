@@ -220,7 +220,7 @@ class AuthController(object):
 
         # Save login to the database
         ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = None #cherrypy.request.headers.get('Origin')
+        host = cherrypy.request.headers.get('Origin')
         if not host:
             scheme = cherrypy.request.headers.get('X-Forwarded-Proto', 'http')
             address = cherrypy.request.headers.get('X-Forwarded-Host', cherrypy.request.headers.get('Host'))
