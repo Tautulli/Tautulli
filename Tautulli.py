@@ -188,7 +188,10 @@ def main():
     # Move 'plexpy.db' to 'tautulli.db'
     if os.path.isfile(os.path.join(plexpy.DATA_DIR, 'plexpy.db')) and \
             not os.path.isfile(os.path.join(plexpy.DATA_DIR, plexpy.DB_FILE)):
-        os.rename(os.path.join(plexpy.DATA_DIR, 'plexpy.db'), plexpy.DB_FILE)
+        try:
+            os.rename(os.path.join(plexpy.DATA_DIR, 'plexpy.db'), plexpy.DB_FILE)
+        except OSError as e:
+            raise SystemExit("Unable to rename plexpy.db to tautulli.db: %s", e)
 
     if plexpy.DAEMON:
         plexpy.daemonize()
