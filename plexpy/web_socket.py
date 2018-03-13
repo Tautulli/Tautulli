@@ -29,7 +29,7 @@ import logger
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
-ws_reconnect = False
+ws_shutdown = False
 
 
 def start_thread():
@@ -65,8 +65,18 @@ def on_disconnect():
 
 
 def reconnect():
-    global ws_reconnect
-    ws_reconnect = True
+    shutdown()
+    logger.info(u"Tautulli WebSocket :: Reconnecting websocket...")
+    start_thread()
+
+
+def shutdown():
+    global ws_shutdown
+    ws_shutdown = True
+
+    logger.info(u"Tautulli WebSocket :: Disconnecting websocket...")
+    plexpy.WEBSOCKET.close()
+    plexpy.WS_CONNECTED = False
 
 
 def run():
@@ -88,8 +98,8 @@ def run():
     else:
         header = []
 
-    global ws_reconnect
-    ws_reconnect = False
+    global ws_shutdown
+    ws_shutdown = False
     reconnects = 0
 
     # Try an open the websocket connection
@@ -106,7 +116,7 @@ def run():
         logger.info(u"Tautulli WebSocket :: Connection attempt %s." % str(reconnects))
 
         try:
-            ws = create_connection(uri, header=header)
+            plexpy.WEBSOCKET = create_connection(uri, header=header)
             logger.info(u"Tautulli WebSocket :: Ready")
             plexpy.WS_CONNECTED = True
         except (websocket.WebSocketException, IOError, Exception) as e:
@@ -117,12 +127,15 @@ def run():
 
     while plexpy.WS_CONNECTED:
         try:
-            process(*receive(ws))
+            process(*receive(plexpy.WEBSOCKET))
 
             # successfully received data, reset reconnects counter
             reconnects = 0
 
         except websocket.WebSocketConnectionClosedException:
+            if ws_shutdown:
+                break
+
             if reconnects == 0:
                 logger.warn(u"Tautulli WebSocket :: Connection has closed.")
 
@@ -136,31 +149,25 @@ def run():
                 logger.warn(u"Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
-                    ws = create_connection(uri, header=header)
+                    plexpy.WEBSOCKET = create_connection(uri, header=header)
                     logger.info(u"Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:
                     logger.error(u"Tautulli WebSocket :: %s." % e)
 
             else:
-                ws.shutdown()
-                plexpy.WS_CONNECTED = False
+                shutdown()
                 break
 
         except (websocket.WebSocketException, Exception) as e:
+            if ws_shutdown:
+                break
+
             logger.error(u"Tautulli WebSocket :: %s." % e)
-            ws.shutdown()
-            plexpy.WS_CONNECTED = False
+            shutdown()
             break
 
-        # Check if we recieved a restart notification and close websocket connection cleanly
-        if ws_reconnect:
-            logger.info(u"Tautulli WebSocket :: Reconnecting websocket...")
-            ws.shutdown()
-            plexpy.WS_CONNECTED = False
-            start_thread()
-    
-    if not plexpy.WS_CONNECTED and not ws_reconnect:
+    if not plexpy.WS_CONNECTED and not ws_shutdown:
         on_disconnect()
 
     logger.debug(u"Tautulli WebSocket :: Leaving thread.")

@@ -46,6 +46,7 @@ import notifiers
 import plextv
 import users
 import versioncheck
+import web_socket
 import plexpy.config
 
 PROG_DIR = None
@@ -95,6 +96,7 @@ HTTP_ROOT = None
 
 DEV = False
 
+WEBSOCKET = None
 WS_CONNECTED = False
 PLEX_SERVER_UP = None
 
@@ -1621,6 +1623,10 @@ def upgrade():
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
+
+    # Shutdown the websocket connection
+    if WEBSOCKET:
+        web_socket.shutdown()
 
     if SCHED.running:
         SCHED.shutdown(wait=False)
