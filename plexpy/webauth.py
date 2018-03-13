@@ -106,10 +106,10 @@ def check_credentials(username, password, admin_login='0'):
     if plexpy.CONFIG.HTTP_PASSWORD:
         if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
                 username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-            return True, 'admin'
+            return True, 'tautulli admin'
         elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
                 username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
-            return True, 'admin'
+            return True, 'tautulli admin'
 
     if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
         plex_login = user_login(username, password)
@@ -220,7 +220,12 @@ class AuthController(object):
 
         # Save login to the database
         ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = cherrypy.request.headers.get('Host', cherrypy.request.headers.get('Origin'))
+        host = None #cherrypy.request.headers.get('Origin')
+        if not host:
+            scheme = cherrypy.request.headers.get('X-Forwarded-Proto', 'http')
+            address = cherrypy.request.headers.get('X-Forwarded-Host', cherrypy.request.headers.get('Host'))
+            host = "{}://{}".format(scheme, address)
+
         user_agent = cherrypy.request.headers.get('User-Agent')
 
         Users().set_user_login(user_id=user_id,
@@ -293,15 +298,16 @@ class AuthController(object):
         valid_login, user_group = check_credentials(username, password, admin_login)
 
         if valid_login:
-            if user_group == 'guest':
+            if user_group == 'tautulli admin':
+                user_group = 'admin'
+                user_id = None
+            else:
                 if re.match(r"[^@]+@[^@]+\.[^@]+", username):
                     user_details = Users().get_details(email=username)
                 else:
                     user_details = Users().get_details(user=username)
 
                 user_id = user_details['user_id']
-            else:
-                user_id = None
 
             time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)
             expiry = datetime.utcnow() + time_delta

@@ -163,7 +163,7 @@
         }
 
         var media_type = null;
-        var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}";
+        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
         loadHistoryTable(media_type, selected_user_id);
 
         % if _session['user_group'] == 'admin':

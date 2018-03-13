@@ -379,7 +379,7 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
-                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }
         };

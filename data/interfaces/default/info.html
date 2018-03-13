@@ -552,7 +552,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     grandparent_rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -568,7 +568,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     parent_rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -584,7 +584,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }
         }

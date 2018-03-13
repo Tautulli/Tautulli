@@ -38,14 +38,14 @@ def get_session_user():
     Returns the user_id for the current logged in session
     """
     _session = get_session_info()
-    return _session['user'] if _session and _session['user'] else None
+    return _session['user'] if _session['user_group'] == 'guest' and _session['user'] else None
 
 def get_session_user_id():
     """
     Returns the user_id for the current logged in session
     """
     _session = get_session_info()
-    return str(_session['user_id']) if _session and _session['user_id'] else None
+    return str(_session['user_id']) if _session['user_group'] == 'guest' and _session['user_id'] else None
 
 def get_session_shared_libraries():
     """
