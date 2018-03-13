@@ -219,13 +219,10 @@ class AuthController(object):
         """Called on successful login"""
 
         # Save login to the database
-        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = cherrypy.request.headers.get('Origin')
-        if not host:
-            scheme = cherrypy.request.headers.get('X-Forwarded-Proto', 'http')
-            address = cherrypy.request.headers.get('X-Forwarded-Host', cherrypy.request.headers.get('Host'))
-            host = "{}://{}".format(scheme, address)
-
+        host = cherrypy.request.base
+        ip_address = cherrypy.request.headers.get('X-Forwarded-For',
+            cherrypy.request.headers.get('X-Real-Ip',
+                cherrypy.request.headers.get('Remote-Addr')))
         user_agent = cherrypy.request.headers.get('User-Agent')
 
         Users().set_user_login(user_id=user_id,
@@ -246,8 +243,10 @@ class AuthController(object):
         """Called on failed login"""
 
         # Save login attempt to the database
-        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
-        host = cherrypy.request.headers.get('Origin')
+        host = cherrypy.request.base
+        ip_address = cherrypy.request.headers.get('X-Forwarded-For',
+            cherrypy.request.headers.get('X-Real-Ip',
+                cherrypy.request.headers.get('Remote-Addr')))
         user_agent = cherrypy.request.headers.get('User-Agent')
 
         Users().set_user_login(user=username,
