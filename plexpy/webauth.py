@@ -215,14 +215,12 @@ class AuthController(object):
             return
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-    def on_login(self, user_id, username, user_group):
+    def on_login(self, username, user_id=None, user_group=None, success=0):
         """Called on successful login"""
 
         # Save login to the database
+        ip_address = cherrypy.request.remote.ip
         host = cherrypy.request.base
-        ip_address = cherrypy.request.headers.get('X-Forwarded-For',
-            cherrypy.request.headers.get('X-Real-Ip',
-                cherrypy.request.headers.get('Remote-Addr')))
         user_agent = cherrypy.request.headers.get('User-Agent')
 
         Users().set_user_login(user_id=user_id,
@@ -231,30 +229,15 @@ class AuthController(object):
                                ip_address=ip_address,
                                host=host,
                                user_agent=user_agent,
-                               success=1)
+                               success=success)
 
-        logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli." % (user_group.capitalize(), username))
+        if success == 1:
+            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli." % (user_group.capitalize(), username))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
         logger.debug(u"Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
     
-    def on_login_failed(self, username):
-        """Called on failed login"""
-
-        # Save login attempt to the database
-        host = cherrypy.request.base
-        ip_address = cherrypy.request.headers.get('X-Forwarded-For',
-            cherrypy.request.headers.get('X-Real-Ip',
-                cherrypy.request.headers.get('Remote-Addr')))
-        user_agent = cherrypy.request.headers.get('User-Agent')
-
-        Users().set_user_login(user=username,
-                               ip_address=ip_address,
-                               host=host,
-                               user_agent=user_agent,
-                               success=0)
-
     def get_loginform(self):
         from plexpy.webserve import serve_template
         return serve_template(templatename="login.html", title="Login")
@@ -320,7 +303,10 @@ class AuthController(object):
 
             jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-            self.on_login(user_id, username, user_group)
+            self.on_login(username=username,
+                          user_id=user_id,
+                          user_group=user_group,
+                          success=1)
 
             jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
             cherrypy.response.cookie[jwt_cookie] = jwt_token
@@ -332,13 +318,13 @@ class AuthController(object):
             return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
 
         elif admin_login == '1':
-            self.on_login_failed(username)
+            self.on_login(username=username)
             logger.debug(u"Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
             cherrypy.response.status = 401
             return error_message
 
         else:
-            self.on_login_failed(username)
+            self.on_login(username=username)
             logger.debug(u"Tautulli WebAuth :: Invalid login attempt from '%s'." % username)
             cherrypy.response.status = 401
             return error_message
