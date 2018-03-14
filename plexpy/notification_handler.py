@@ -211,6 +211,9 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     try:
         custom_conditions = json.loads(notifier_config['custom_conditions']) or []
     except ValueError as e:
+        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom condition: %s." % e)
+        logger.debug(u"Tautulli NotificationHandler :: Custom conditions json: %s "
+                     % notifier_config['custom_conditions'])
         custom_conditions = []
 
     if custom_conditions_logic or any(c for c in custom_conditions if c['value']):
