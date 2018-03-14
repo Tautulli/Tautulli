@@ -171,7 +171,7 @@
 
                             <div class="form-group">
                                 <label for="custom_conditions_logic">Condition Logic</label>
-                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
+                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" />
                                 <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
                                 <p class="help-block">
                                     Optional: Enter custom logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
@@ -333,11 +333,11 @@
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     // Need this for setting conditions since conditions contain the character "
-    $('#custom_conditions').val(${json.dumps(notifier["custom_conditions"]) | n});
+    $('#custom_conditions').val(JSON.stringify(${json.dumps(notifier["custom_conditions"]) | n}));
 
     $('#condition-widget').filterer({
-        parameters: ${parameters | n},
-        conditions: ${notifier["custom_conditions"] | n},
+        parameters: ${json.dumps(parameters) | n},
+        conditions: ${json.dumps(notifier["custom_conditions"]) | n},
         updateConditions: function(newConditions){
             $('#custom_conditions').val(JSON.stringify(newConditions));
         }

@@ -94,6 +94,8 @@ AGENT_IDS = {'growl': 0,
              'zapier': 24
              }
 
+DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
+
 
 def available_notification_agents():
     agents = [{'label': 'Tautulli Remote Android App',
@@ -446,7 +448,6 @@ def get_notifier_config(notifier_id=None):
     db = database.MonitorDatabase()
     result = db.select_single('SELECT * FROM notifiers WHERE id = ?',
                                       args=[notifier_id])
-
     if not result:
         return None
 
@@ -467,6 +468,14 @@ def get_notifier_config(notifier_id=None):
             notifier_actions[k] = helpers.cast_to_int(result.pop(k))
             notifier_text[k] = {'subject': result.pop(k + '_subject'),
                                 'body': result.pop(k + '_body')}
+
+    try:
+        result['custom_conditions'] = json.loads(result['custom_conditions'])
+    except (ValueError, TypeError):
+        result['custom_conditions'] = DEFAULT_CUSTOM_CONDITIONS
+
+    if not result['custom_conditions_logic']:
+        result['custom_conditions_logic'] = ''
 
     result['config'] = config
     result['config_options'] = notifier_config
@@ -494,7 +503,9 @@ def add_notifier_config(agent_id=None, **kwargs):
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': '',
-              'notifier_config': json.dumps(get_agent_class(agent_id=agent['id']).config)
+              'notifier_config': json.dumps(get_agent_class(agent_id=agent['id']).config),
+              'custom_conditions': json.dumps(DEFAULT_CUSTOM_CONDITIONS),
+              'custom_conditions_logic': ''
               }
     if agent['name'] == 'scripts':
         for a in available_notification_actions():
@@ -549,7 +560,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
               'agent_label': agent['label'],
               'friendly_name': kwargs.get('friendly_name', ''),
               'notifier_config': json.dumps(notifier_config),
-              'custom_conditions': kwargs.get('custom_conditions', ''),
+              'custom_conditions': kwargs.get('custom_conditions', json.dumps(DEFAULT_CUSTOM_CONDITIONS)),
               'custom_conditions_logic': kwargs.get('custom_conditions_logic', ''),
               }
     values.update(actions)
