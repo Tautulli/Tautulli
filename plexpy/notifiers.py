@@ -1290,7 +1290,7 @@ class EMAIL(Notifier):
             mailserver.ehlo()
 
             if self.config['smtp_user']:
-                mailserver.login(self.config['smtp_user'], self.config['smtp_password'])
+                mailserver.login(str(self.config['smtp_user']), str(self.config['smtp_password']))
 
             mailserver.sendmail(self.config['from'], recipients, msg.as_string())
             mailserver.quit()
