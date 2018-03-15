@@ -1470,18 +1470,12 @@ class PmsConnect(object):
         transcode_details['transcode_hw_decoding'] = int(transcode_details['transcode_hw_decode'].lower() in common.HW_DECODERS)
         transcode_details['transcode_hw_encoding'] = int(transcode_details['transcode_hw_encode'].lower() in common.HW_ENCODERS)
 
-        # Generate a combined transcode decision value
-        if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
-            transcode_decision = 'transcode'
-        elif transcode_details['video_decision'] == 'copy' or transcode_details['audio_decision'] == 'copy':
-            transcode_decision = 'copy'
-        else:
-            transcode_decision = 'direct play'
-    
         # Determine if a synced version is being played
         sync_id = None
-        if media_type not in ('photo', 'clip') and not session.getElementsByTagName('Session') \
-            and helpers.get_xml_attr(session, 'ratingKey').isdigit() and transcode_decision == 'direct play':
+        if media_type not in ('photo', 'clip') \
+                and not session.getElementsByTagName('Session') \
+                and not session.getElementsByTagName('TranscodeSession') \
+                and helpers.get_xml_attr(session, 'ratingKey').isdigit():
             plex_tv = plextv.PlexTV()
             parent_rating_key = helpers.get_xml_attr(session, 'parentRatingKey')
             grandparent_rating_key = helpers.get_xml_attr(session, 'grandparentRatingKey')
@@ -1586,6 +1580,14 @@ class PmsConnect(object):
                                 'stream_subtitle_language_code': '',
                                 'stream_subtitle_decision': ''
                                 }
+
+        # Generate a combined transcode decision value
+        if video_details['stream_video_decision'] == 'transcode' or audio_details['stream_audio_decision'] == 'transcode':
+            transcode_decision = 'transcode'
+        elif video_details['stream_video_decision'] == 'copy' or audio_details['stream_audio_decision'] == 'copy':
+            transcode_decision = 'copy'
+        else:
+            transcode_decision = 'direct play'
 
         # Get the bif thumbnail
         indexes = helpers.get_xml_attr(stream_media_parts_info, 'indexes')

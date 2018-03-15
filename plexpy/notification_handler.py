@@ -507,9 +507,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     user_stream_count = len(user_sessions)
 
     # Generate a combined transcode decision value
-    if session.get('video_decision','') == 'transcode' or session.get('audio_decision','') == 'transcode':
+    if session.get('stream_video_decision', '') == 'transcode' or session.get('stream_audio_decision', '') == 'transcode':
         transcode_decision = 'Transcode'
-    elif session.get('video_decision','') == 'copy' or session.get('audio_decision','') == 'copy':
+    elif session.get('stream_video_decision', '') == 'copy' or session.get('stream_audio_decision', '') == 'copy':
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
