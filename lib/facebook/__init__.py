@@ -45,7 +45,8 @@ __version__ = version.__version__
 
 FACEBOOK_GRAPH_URL = "https://graph.facebook.com/"
 FACEBOOK_OAUTH_DIALOG_URL = "https://www.facebook.com/dialog/oauth?"
-VALID_API_VERSIONS = ["2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9"]
+VALID_API_VERSIONS = [
+    "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12"]
 VALID_SEARCH_TYPES = ["page", "event", "group", "place", "placetopic", "user"]
 
 
@@ -89,7 +90,7 @@ class GraphAPI(object):
         self.session = session or requests.Session()
 
         if version:
-            version_regex = re.compile("^\d\.\d$")
+            version_regex = re.compile("^\d\.\d{1,2}$")
             match = version_regex.search(str(version))
             if match is not None:
                 if str(version) not in VALID_API_VERSIONS:
@@ -229,7 +230,7 @@ class GraphAPI(object):
         try:
             headers = response.headers
             version = headers["facebook-api-version"].replace("v", "")
-            return float(version)
+            return str(version)
         except Exception:
             raise GraphAPIError("API version number not available")
 
@@ -369,24 +370,24 @@ class GraphAPIError(Exception):
         self.code = None
         try:
             self.type = result["error_code"]
-        except:
+        except (KeyError, TypeError):
             self.type = ""
 
         # OAuth 2.0 Draft 10
         try:
             self.message = result["error_description"]
-        except:
+        except (KeyError, TypeError):
             # OAuth 2.0 Draft 00
             try:
                 self.message = result["error"]["message"]
                 self.code = result["error"].get("code")
                 if not self.type:
                     self.type = result["error"].get("type", "")
-            except:
+            except (KeyError, TypeError):
                 # REST server style
                 try:
                     self.message = result["error_msg"]
-                except:
+                except (KeyError, TypeError):
                     self.message = result
 
         Exception.__init__(self, self.message)

@@ -1453,7 +1453,7 @@ class FACEBOOK(Notifier):
 
         try:
             # Request user access token
-            api = facebook.GraphAPI(version='2.5')
+            api = facebook.GraphAPI(version='2.12')
             response = api.get_access_token_from_code(code=code,
                                                       redirect_uri=redirect_uri + '/facebookStep2',
                                                       app_id=app_id,
@@ -1461,7 +1461,7 @@ class FACEBOOK(Notifier):
             access_token = response['access_token']
 
             # Request extended user access token
-            api = facebook.GraphAPI(access_token=access_token, version='2.5')
+            api = facebook.GraphAPI(access_token=access_token, version='2.12')
             response = api.extend_access_token(app_id=app_id,
                                                app_secret=app_secret)
 
@@ -1479,7 +1479,7 @@ class FACEBOOK(Notifier):
 
     def _post_facebook(self, **data):
         if self.config['group_id']:
-            api = facebook.GraphAPI(access_token=self.config['access_token'], version='2.5')
+            api = facebook.GraphAPI(access_token=self.config['access_token'], version='2.12')
 
             try:
                 api.put_object(parent_object=self.config['group_id'], connection_name='feed', **data)
