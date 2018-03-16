@@ -54,6 +54,7 @@ import twitter
 import pynma
 
 import plexpy
+import common
 import database
 import helpers
 import logger
@@ -728,6 +729,13 @@ class PrettyMetadata(object):
 
     def get_plex_url(self):
         return self.parameters['plex_url']
+
+    @staticmethod
+    def get_parameters():
+        parameters = {param['value']: param['name']
+                for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']}
+        parameters[''] = ''
+        return parameters
 
 
 class Notifier(object):
@@ -1943,7 +1951,8 @@ class IFTTT(Notifier):
     """
     NAME = 'IFTTT'
     _DEFAULT_CONFIG = {'key': '',
-                       'event': 'tautulli'
+                       'event': 'tautulli',
+                       'value3': '',
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -1951,6 +1960,10 @@ class IFTTT(Notifier):
 
         data = {'value1': subject.encode("utf-8"),
                 'value2': body.encode("utf-8")}
+
+        if self.config['value3']:
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            data['value3'] = pretty_metadata.parameters.get(self.config['value3'], '')
 
         headers = {'Content-type': 'application/json'}
 
@@ -1975,6 +1988,13 @@ class IFTTT(Notifier):
                                          ' as <span class="inline-pre">value1</span>'
                                          ' and <span class="inline-pre">value2</span> respectively.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Value 3',
+                          'value': self.config['value3'],
+                          'name': 'ifttt_value3',
+                          'description': 'Optional: Select a parameter to send as <span class="inline-pre">value3</span>.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_parameters()
                           }
                          ]
 
