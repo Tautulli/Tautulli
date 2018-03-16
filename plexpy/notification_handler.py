@@ -640,12 +640,16 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         album_name = ''
         track_name = ''
 
-        num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+        child_num = [helpers.cast_to_int(
+            d['media_index']) for d in child_metadata if d['parent_rating_key'] == rating_key]
+        num, num00 = format_group_index(child_num)
         season_num, season_num00 = num, num00
 
         episode_num, episode_num00 = '', ''
         track_num, track_num00 = '', ''
+
+        child_count = len(child_num)
+        grandchild_count = ''
 
     elif ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT)
           and notify_params['media_type'] in ('season', 'album')):
@@ -654,13 +658,18 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         artist_name = notify_params['parent_title']
         album_name = notify_params['title']
         track_name = ''
+
         season_num = str(notify_params['media_index']).zfill(1)
         season_num00 = str(notify_params['media_index']).zfill(2)
 
-        num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+        grandchild_num = [helpers.cast_to_int(
+            d['media_index']) for d in child_metadata if d['parent_rating_key'] == rating_key]
+        num, num00 = format_group_index(grandchild_num)
         episode_num, episode_num00 = num, num00
         track_num, track_num00 = num, num00
+
+        child_count = 1
+        grandchild_count = len(grandchild_num)
 
     else:
         show_name = notify_params['grandparent_title']
@@ -674,6 +683,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         episode_num00 = str(notify_params['media_index']).zfill(2)
         track_num = str(notify_params['media_index']).zfill(1)
         track_num00 = str(notify_params['media_index']).zfill(2)
+        child_count = 1
+        grandchild_count = 1
 
     available_params = {
         # Global paramaters
@@ -783,6 +794,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'episode_num00': episode_num00,
         'track_num': track_num,
         'track_num00': track_num00,
+        'season_count': child_count,
+        'episode_count': grandchild_count,
+        'album_count': child_count,
+        'track_count': grandchild_count,
         'year': notify_params['year'],
         'release_date': arrow.get(notify_params['originally_available_at']).format(date_format)
             if notify_params['originally_available_at'] else '',
