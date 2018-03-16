@@ -190,9 +190,9 @@ def checkGithub(auto_update=False):
         if plexpy.CONFIG.GIT_BRANCH == 'master':
             release = next((r for r in releases if not r['prerelease']), releases[0])
         elif plexpy.CONFIG.GIT_BRANCH == 'beta':
-            release = next((r for r in releases if r['prerelease'] and '-beta' in r['tag_name']), releases[0])
+            release = next((r for r in releases if not r['tag_name'].endswith('-nightly')), releases[0])
         elif plexpy.CONFIG.GIT_BRANCH == 'nightly':
-            release = next((r for r in releases if r['prerelease'] and '-nightly' in r['tag_name']), releases[0])
+            release = next((r for r in releases), releases[0])
         else:
             release = releases[0]
 
