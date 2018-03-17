@@ -885,6 +885,9 @@ class DataFactory(object):
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'transcode_hw_decoding, transcode_hw_encoding, ' \
+                    'video_decision, audio_decision, transcode_decision, width, height, container, ' \
+                    'transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, ' \
+                    'transcode_width, transcode_height, ' \
                     'session_history_metadata.media_type, title, grandparent_title ' \
                     'FROM session_history_media_info ' \
                     'JOIN session_history ON session_history_media_info.id = session_history.id ' \
@@ -903,6 +906,9 @@ class DataFactory(object):
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'transcode_hw_decoding, transcode_hw_encoding, ' \
+                    'video_decision, audio_decision, transcode_decision, width, height, container, ' \
+                    'transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, ' \
+                    'transcode_width, transcode_height, ' \
                     'media_type, title, grandparent_title ' \
                     'FROM sessions ' \
                     'WHERE session_key = ? %s' % user_cond
@@ -913,6 +919,23 @@ class DataFactory(object):
         stream_output = {}
 
         for item in result:
+            pre_tautulli = 0
+
+            # For backwards compatibility. Pick one new Tautulli key to check and override with old values.
+            if not item['stream_video_resolution']:
+                item['stream_video_resolution'] = item['video_resolution']
+                item['stream_container'] = item['transcode_container'] or item['container']
+                item['stream_video_decision'] = item['video_decision']
+                item['stream_video_codec'] = item['transcode_video_codec'] or item['video_codec']
+                item['stream_video_width'] = item['transcode_width'] or item['width']
+                item['stream_video_height'] = item['transcode_height'] or item['height']
+                item['stream_audio_decision'] = item['audio_decision']
+                item['stream_audio_codec'] = item['transcode_audio_codec'] or item['audio_codec']
+                item['stream_audio_channels'] = item['transcode_audio_channels'] or item['audio_channels']
+                item['video_width'] = item['width']
+                item['video_height'] = item['height']
+                pre_tautulli = 1
+
             stream_output = {'bitrate': item['bitrate'],
                              'video_resolution': item['video_resolution'],
                              'optimized_version': item['optimized_version'],
@@ -951,10 +974,13 @@ class DataFactory(object):
                              'stream_subtitle_codec': item['stream_subtitle_codec'],
                              'transcode_hw_decoding': item['transcode_hw_decoding'],
                              'transcode_hw_encoding': item['transcode_hw_encoding'],
+                             'video_decision': item['video_decision'],
+                             'audio_decision': item['audio_decision'],
                              'media_type': item['media_type'],
                              'title': item['title'],
                              'grandparent_title': item['grandparent_title'],
-                             'current_session': 1 if session_key else 0
+                             'current_session': 1 if session_key else 0,
+                             'pre_tautulli': pre_tautulli
                              }
 
         stream_output = {k: v or '' for k, v in stream_output.iteritems()}
