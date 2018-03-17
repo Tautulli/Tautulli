@@ -642,7 +642,7 @@
                             <label for="pms_port">Plex Port</label>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
+                                    <input data-parsley-type="integer" class="form-control pms-settings" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
                                 </div>
                                 <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -650,29 +650,45 @@
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
+                                <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
                                 <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
                             </label>
                             <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use SSL
+                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use SSL
                                 <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                             </label>
                             <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="pms_url">Plex Server URL</label>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_url" name="pms_url" value="${config['pms_url']}" size="30" readonly>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="test_pms_url_button">Test URL</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">
+                                The server URL that Tautulli will use to connect to your Plex server. Retrieved automatically.
+                            </p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
+                                <input type="checkbox" class="pms-settings" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
                             </label>
                             <span id="cloudManualConnection" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="pms_logs_folder">Plex Web URL</label>
+                            <label for="pms_web_url">Plex Web URL</label>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-9">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL.">
                                         <span class="input-group-btn">
@@ -1573,7 +1589,7 @@ $(document).ready(function() {
     }
 
     function preSaveChecks(_callback) {
-        if ($("#pms_identifier").val() == "") {
+        if (serverChanged) {
             verifyServer();
         }
         verifyPMSWebURL();
@@ -1585,7 +1601,7 @@ $(document).ready(function() {
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
-        if (serverChanged || authChanged || httpChanged || directoryChanged) {
+        if (authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
@@ -1769,9 +1785,8 @@ $(document).ready(function() {
 
     $( ".pms-settings" ).change(function() {
         serverChanged = true;
-        $("#pms_identifier").val("");
         $("#server_changed").prop('checked', true);
-        verifyServer();
+        $("#pms_verify").hide();
     });
 
     $('.checkbox-toggle').click(function () {
@@ -1841,6 +1856,7 @@ $(document).ready(function() {
             $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
             $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
             $('#pms_url_manual').prop('checked', false);
+            $('#pms_url').val('Please verify your server above to retrieve the URL');
             PMSCloudCheck();
         }
     });
@@ -1906,6 +1922,7 @@ $(document).ready(function() {
         var pms_identifier = $("#pms_identifier").val();
         var pms_ssl = $("#pms_ssl").val();
         var pms_is_remote = $("#pms_is_remote").val();
+        var pms_url_manual = $("#pms_url_manual").is(':checked') ? 1 : 0;
 
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
@@ -1916,7 +1933,9 @@ $(document).ready(function() {
                     port: pms_port,
                     identifier: pms_identifier,
                     ssl: pms_ssl,
-                    remote: pms_is_remote
+                    remote: pms_is_remote,
+                    manual: pms_url_manual,
+                    get_url: serverChanged
                 },
                 cache: true,
                 async: true,
@@ -1925,12 +1944,19 @@ $(document).ready(function() {
                     $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
                     $("#pms_ip_group").addClass("has-error");
                 },
-                success: function (json) {
-                    var machine_identifier = json;
-                    if (machine_identifier) {
-                        $("#pms_identifier").val(machine_identifier);
+                success: function(xhr, status) {
+                    var result = xhr;
+                    var identifier = result.identifier;
+                    var url = result.url;
+                    if (identifier) {
+                        $("#pms_identifier").val(identifier);
+                        if (url) {
+                            $("#pms_url").val(url);
+                        }
                         $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
                         $("#pms_ip_group").removeClass("has-error");
+
+                        serverChanged = false;
 
                         if (_callback) {
                             _callback();
@@ -1950,7 +1976,6 @@ $(document).ready(function() {
     }
 
     $('#verify_server_button').on('click', function(){
-        $("#pms_identifier").val("");
         verifyServer();
     });
 
@@ -1958,6 +1983,13 @@ $(document).ready(function() {
         var pms_web_url = $.trim($("#pms_web_url").val());
         $("#pms_web_url").val(pms_web_url || 'https://app.plex.tv/desktop');
     }
+
+    $('#test_pms_url_button').on('click', function(){
+        var pms_url = $.trim($("#pms_url").val());
+        if (pms_url.startsWith('http')) {
+            window.open(pms_url + '/web', '_blank');
+        }
+    });
 
     $('#test_pms_web_button').on('click', function(){
         var pms_web_url = $.trim($("#pms_web_url").val());

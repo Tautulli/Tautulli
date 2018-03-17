@@ -29,7 +29,7 @@ import pmsconnect
 import session
 
 
-def get_server_resources(return_presence=False):
+def get_server_resources(return_presence=False, return_server=False, **kwargs):
     if not return_presence:
         logger.info(u"Tautulli PlexTV :: Requesting resources for server...")
 
@@ -42,8 +42,14 @@ def get_server_resources(return_presence=False):
               'pms_is_remote': plexpy.CONFIG.PMS_IS_REMOTE,
               'pms_is_cloud': plexpy.CONFIG.PMS_IS_CLOUD,
               'pms_url': plexpy.CONFIG.PMS_URL,
-              'pms_url_manual': plexpy.CONFIG.PMS_URL_MANUAL
+              'pms_url_manual': plexpy.CONFIG.PMS_URL_MANUAL,
+              'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER
               }
+
+    if kwargs:
+        server.update(kwargs)
+        for k in ['pms_ssl', 'pms_is_remote', 'pms_is_cloud', 'pms_url_manual']:
+            server[k] = int(server[k])
 
     if server['pms_url_manual'] and server['pms_ssl'] or server['pms_is_cloud']:
         scheme = 'https'
@@ -55,7 +61,7 @@ def get_server_resources(return_presence=False):
                                                          port=server['pms_port'])
 
     plex_tv = PlexTV()
-    result = plex_tv.get_server_connections(pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
+    result = plex_tv.get_server_connections(pms_identifier=server['pms_identifier'],
                                             pms_ip=server['pms_ip'],
                                             pms_port=server['pms_port'],
                                             include_https=server['pms_ssl'])
@@ -102,6 +108,9 @@ def get_server_resources(return_presence=False):
     else:
         server['pms_url'] = fallback_url
         logger.info(u"Tautulli PlexTV :: Using user-defined URL.")
+
+    if return_server:
+        return server
 
     plexpy.CONFIG.process_kwargs(server)
     plexpy.CONFIG.write()
@@ -645,6 +654,7 @@ class PlexTV(object):
                                       'label': helpers.get_xml_attr(d, 'name'),
                                       'ip': helpers.get_xml_attr(c, 'address'),
                                       'port': helpers.get_xml_attr(c, 'port'),
+                                      'uri': helpers.get_xml_attr(c, 'uri'),
                                       'local': helpers.get_xml_attr(c, 'local'),
                                       'value': helpers.get_xml_attr(c, 'address'),
                                       'is_cloud': is_cloud

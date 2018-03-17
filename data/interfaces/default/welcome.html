@@ -94,7 +94,7 @@
                         <label for="pms_ip">Plex IP or Hostname</label>
                         <div class="row">
                             <div class="col-xs-12">
-                                <select class="form-control selectize-pms-ip" id="pms_ip" name="pms_ip">
+                                <select class="form-control pms-settings selectize-pms-ip" id="pms_ip" name="pms_ip">
                                     <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
                                 </select>
                             </div>
@@ -104,12 +104,12 @@
                         <label for="pms_port">Plex Port</label>
                         <div class="row">
                             <div class="col-xs-3">
-                                <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
+                                <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
                             </div>
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use SSL
+                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use SSL
                                         <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                                     </label>
                                 </div>
@@ -117,16 +117,16 @@
                             <div class="col-xs-4">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" ${helpers.checked(config['pms_is_remote'])}> Remote Server
+                                        <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${helpers.checked(config['pms_is_remote'])}> Remote Server
                                         <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                    <input type="hidden" id="pms_valid" data-validate="validatePMSip" value="">
                     <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
-                    <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                    <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                     <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
 
@@ -419,7 +419,8 @@ $(document).ready(function() {
                         port: pms_port,
                         identifier: pms_identifier,
                         ssl: pms_ssl,
-                        remote: pms_is_remote },
+                        remote: pms_is_remote
+                    },
                     cache: true,
                     async: true,
                     timeout: 5000,
@@ -427,10 +428,11 @@ $(document).ready(function() {
                         $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
                         $('#pms-verify-status').fadeIn('fast');
                     },
-                    success: function (json) {
-                        var machine_identifier = json;
-                        if (machine_identifier) {
-                            $("#pms_identifier").val(machine_identifier);
+                    success: function(xhr, status) {
+                        var result = xhr;
+                        var identifier = result.identifier;
+                        if (identifier) {
+                            $("#pms_identifier").val(identifier);
                             $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
                             $('#pms-verify-status').fadeIn('fast');
                             pms_verified = true;

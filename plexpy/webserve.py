@@ -2611,6 +2611,7 @@ class WebInterface(object):
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
+            "pms_url": plexpy.CONFIG.PMS_URL,
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
@@ -2811,6 +2812,12 @@ class WebInterface(object):
             threading.Thread(target=users.refresh_users).start()
 
         return {'result': 'success', 'message': 'Settings saved.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_server_resources(self, **kwargs):
+        return plextv.get_server_resources(return_server=True, **kwargs)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3455,7 +3462,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
+    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
+                      get_url=False, **kwargs):
         """ Get the PMS server identifier.
 
             ```
@@ -3468,7 +3476,8 @@ class WebInterface(object):
                 remote (int):       0 or 1
 
             Returns:
-                string:             The unique PMS identifier
+                json:
+                    {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
             ```
         """
         # Attempt to get the pms_identifier from plex.tv if the server is published
@@ -3499,11 +3508,21 @@ class WebInterface(object):
                     xml_head = request.getElementsByTagName('MediaContainer')[0]
                     identifier = xml_head.getAttribute('machineIdentifier')
 
+        result = {'identifier': identifier}
+
         if identifier:
-            return identifier
+            if get_url == 'true':
+                server = self.get_server_resources(pms_ip=hostname,
+                                                   pms_port=port,
+                                                   pms_ssl=ssl,
+                                                   pms_is_remote=remote,
+                                                   pms_url_manual=manual,
+                                                   pms_identifier=identifier)
+                result['url'] = server['pms_url']
+            return result
         else:
             logger.warn('Unable to retrieve the PMS identifier.')
-            return None
+            return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
