@@ -2960,6 +2960,7 @@ class SCRIPTS(Notifier):
                'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
                'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY
                }
+        env.update(os.environ)
 
         self.script_killed = False
         output = error = ''
