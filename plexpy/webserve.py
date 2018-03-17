@@ -5284,34 +5284,4 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     def get_plexpy_url(self, **kwargs):
-        if plexpy.CONFIG.ENABLE_HTTPS:
-           scheme = 'https' 
-        else:
-           scheme = 'http'
-
-        # Have to return some hostname if socket fails even if 127.0.0.1 won't work
-        hostname = '127.0.0.1'
-
-        if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
-            import socket
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                s.connect(('<broadcast>', 0))
-                hostname = s.getsockname()[0]
-            except socket.error:
-                hostname = socket.gethostbyname(socket.gethostname())
-        else:
-            hostname = plexpy.CONFIG.HTTP_HOST
-
-        if plexpy.CONFIG.HTTP_PORT not in (80, 443):
-            port = ':' + str(plexpy.CONFIG.HTTP_PORT)
-        else:
-            port = ''
-
-        if plexpy.CONFIG.HTTP_ROOT.strip('/'):
-            root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/')
-        else:
-            root = ''
-
-        return scheme + '://' + hostname + port + root
+        return helpers.get_plexpy_url()

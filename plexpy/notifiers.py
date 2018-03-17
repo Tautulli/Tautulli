@@ -2954,6 +2954,13 @@ class SCRIPTS(Notifier):
             process.kill()
             self.script_killed = True
 
+        # Common environment variables
+        env = {'PLEX_URL': plexpy.CONFIG.PMS_URL,
+               'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
+               'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
+               'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY
+               }
+
         self.script_killed = False
         output = error = ''
         try:
@@ -2961,7 +2968,8 @@ class SCRIPTS(Notifier):
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
-                                       cwd=self.config['script_folder'])
+                                       cwd=self.config['script_folder'],
+                                       env=env)
 
             if self.config['timeout'] > 0:
                 timer = threading.Timer(self.config['timeout'], kill_script, (process,))
@@ -2969,11 +2977,13 @@ class SCRIPTS(Notifier):
                 timer = None
 
             try:
-                if timer: timer.start()
+                if timer:
+                    timer.start()
                 output, error = process.communicate()
                 status = process.returncode
             finally:
-                if timer: timer.cancel()
+                if timer:
+                    timer.cancel()
 
         except OSError as e:
             logger.error(u"Tautulli Notifiers :: Failed to run script: %s" % e)
