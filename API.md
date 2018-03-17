@@ -1674,7 +1674,8 @@ Optional parameters:
     remote (int):       0 or 1
 
 Returns:
-    string:             The unique PMS identifier
+    json:
+        {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
 ```
 
 
