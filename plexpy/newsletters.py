@@ -30,7 +30,7 @@ import logger
 import newsletter_handler
 import notification_handler
 import pmsconnect
-from notification_handler import PILLOW, get_poster_info
+from notification_handler import get_poster_info
 from notifiers import send_notification, EMAIL
 
 
@@ -542,16 +542,16 @@ class RecentlyAdded(Newsletter):
                 if poster_info:
                     item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
 
-                art_info = {}
-                if PILLOW:
-                    art_info = get_poster_info(poster_thumb=item['art'],
-                                               poster_key=item['rating_key'],
-                                               poster_title=item['title'],
-                                               art=True,
-                                               width='500',
-                                               height='280',
-                                               blur=True)
-                item['art_url'] = art_info.get('blur_art_url', '')
+                art_info = get_poster_info(poster_thumb=item['art'],
+                                           poster_key=item['rating_key'],
+                                           poster_title=item['title'],
+                                           art=True,
+                                           width='500',
+                                           height='280',
+                                           opacity='25',
+                                           background='282828',
+                                           blur='3')
+                item['art_url'] = art_info.get('art_url', '')
 
         self.data['recently_added'] = recently_added
 
@@ -599,20 +599,5 @@ class RecentlyAdded(Newsletter):
                           'select_options': self._get_sections_options()
                           }
                          ]
-
-        if not PILLOW:
-            pillow_message = {
-                'label': 'Background Art',
-                'description': 'The Pillow library is missing. '
-                               'Background art on the newsletter media cards will not be included.<br>'
-                               'Install the Pillow library to add background art. '
-                               'Instructions can be found in the '
-                               '<a href="' + helpers.anon_url('https://github.com/%s/plexpy/wiki/'
-                                                              'Frequently-Asked-Questions-(FAQ)#notifications-pillow'
-                                                              % plexpy.CONFIG.GIT_USER) + '" target="_blank">FAQ</a>.',
-                'name': 'recently_added_pillow',
-                'input_type': 'help'
-                }
-            config_option.insert(0, pillow_message)
 
         return config_option

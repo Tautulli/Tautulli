@@ -1,6 +1,5 @@
 ﻿% if data:
 <%
-    from plexpy.notification_handler import PILLOW
     recently_added = data['recently_added']
 %>
 <!doctype html>
@@ -351,25 +350,10 @@
             margin: 3px auto !important;
         }
         .card-background {
-            background-color: #3F4245;
             background-position: center;
             background-size: cover;
             width: 100%;
             height: 100%;
-        }
-        .card-background-preview {
-            background-color: #3F4245;
-            background-position: center;
-            background-size: cover;
-            opacity: 0.25;
-            -webkit-filter: blur(3px);
-            filter: blur(3px);
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 0;
         }
         .card-poster-container {
             width: 150px;
@@ -617,15 +601,10 @@
                                 % else:
                                 <div class="card-instance movie">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&fallback=art&refresh=true'});"></div>
+                                    <div class="card-background" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
                                     % else:
                                     <div class="card-background" style="background-image: url(${movie['art_url']});">
-                                    % endif
-                                    % else:
-                                    <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
@@ -705,15 +684,10 @@
                                 % else:
                                 <div class="card-instance show">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&fallback=art&refresh=true'});"></div>
+                                    <div class="card-background" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
                                     % else:
                                     <div class="card-background" style="background-image: url(${show['art_url']});">
-                                    % endif
-                                    % else:
-                                    <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
@@ -815,15 +789,10 @@
                                 % else:
                                 <div class="card-instance album">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&fallback=art&refresh=true'});"></div>
+                                    <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
                                     % else:
                                     <div class="card-background" style="background-image: url(${album['art_url']});">
-                                    % endif
-                                    % else:
-                                    <div class="card-background">
                                     % endif
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">

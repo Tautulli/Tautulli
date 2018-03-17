@@ -1656,7 +1656,7 @@ class GROUPME(Notifier):
 
             if poster_content:
                 headers = {'X-Access-Token': self.config['access_token'],
-                           'Content-Type': 'image/jpeg'}
+                           'Content-Type': 'image/png'}
 
                 r = requests.post('https://image.groupme.com/pictures', headers=headers, data=poster_content)
 
@@ -2643,9 +2643,9 @@ class PUSHBULLET(Notifier):
                 logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
-                file_json = {'file_name': poster_filename, 'file_type': 'image/jpeg'}
-                files = {'file': (poster_filename, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
+                file_json = {'file_name': poster_filename, 'file_type': 'image/png'}
+                files = {'file': (poster_filename, poster_content, 'image/png')}
 
                 r = requests.post('https://api.pushbullet.com/v2/upload-request', headers=headers, json=file_json)
 
@@ -2799,8 +2799,8 @@ class PUSHOVER(Notifier):
                 logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
-                files = {'attachment': (poster_filename, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
+                files = {'attachment': (poster_filename, poster_content, 'image/png')}
                 headers = {}
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
@@ -3327,8 +3327,8 @@ class TELEGRAM(Notifier):
                 logger.error(u"Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
 
             if poster_content:
-                poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
-                files = {'photo': (poster_filename, poster_content, 'image/jpeg')}
+                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
+                files = {'photo': (poster_filename, poster_content, 'image/png')}
                 data['caption'] = text
 
                 return self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),

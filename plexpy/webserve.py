@@ -3816,6 +3816,7 @@ class WebInterface(object):
 
     @addtoapi('pms_image_proxy')
     def real_pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
+                             opacity=None, background=None, blur=None, img_format='png',
                              fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
 
@@ -3826,8 +3827,12 @@ class WebInterface(object):
                 rating_key (str):       54321
 
             Optional parameters:
-                width (str):            150
-                height (str):           255
+                width (str):            300
+                height (str):           450
+                opacity (str):          25
+                background (str):       282828
+                blur (str):             3
+                img_format (str):       png
                 fallback (str):         "poster", "cover", "art"
                 refresh (bool):         True or False whether to refresh the image cache
 
@@ -3843,9 +3848,20 @@ class WebInterface(object):
             img = '/library/metadata/%s/thumb/1337' % rating_key
 
         img_string = img.rsplit('/', 1)[0] if '/library/metadata' in img else img
-        img_string += '%s%s' % (width, height)
+
+        if width:
+            img_string += width
+        if height:
+            img_string += height
+        if opacity:
+            img_string += opacity
+        if background:
+            img_string += background
+        if blur:
+            img_string += blur
+
         fp = hashlib.md5(img_string).hexdigest()
-        fp += '.jpg'  # we want to be able to preview the thumbs
+        fp += '.%s' % img_format  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
         ffp = os.path.join(c_dir, fp)
 
@@ -3858,13 +3874,20 @@ class WebInterface(object):
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
                 raise NotFound
 
-            return serve_file(path=ffp, content_type='image/jpeg')
+            return serve_file(path=ffp, content_type='image/png')
 
         except NotFound:
             # the image does not exist, download it from pms
             try:
                 pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_image(img, width, height, clip=clip)
+                result = pms_connect.get_image(img=img,
+                                               width=width,
+                                               height=height,
+                                               opacity=opacity,
+                                               background=background,
+                                               blur=blur,
+                                               img_format=img_format,
+                                               clip=clip)
 
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]

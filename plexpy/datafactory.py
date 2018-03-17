@@ -1106,7 +1106,7 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_info(self, rating_key='', metadata=None, art=False):
+    def get_poster_info(self, rating_key='', metadata=None, art=False, blur=None):
         monitor_db = database.MonitorDatabase()
 
         poster_key = ''
@@ -1125,31 +1125,31 @@ class DataFactory(object):
         if poster_key:
             try:
                 if art:
-                    query = 'SELECT art_title, art_url, blur_art_url FROM art_urls ' \
-                            'WHERE rating_key = ?'
+                    query = 'SELECT art_title, art_url, blur FROM art_urls ' \
+                            'WHERE rating_key = ? AND blur = ?'
+                    args = [poster_key, int(blur is not None)]
                 else:
                     query = 'SELECT poster_title, poster_url FROM poster_urls ' \
                             'WHERE rating_key = ?'
-                poster_info = monitor_db.select_single(query, args=[poster_key])
+                    args = [poster_key]
+                poster_info = monitor_db.select_single(query, args=args)
             except Exception as e:
                 logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
 
         return poster_info
 
-    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash='', art=False, blur=False):
+    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash='', art=False, blur=None):
         monitor_db = database.MonitorDatabase()
 
         if str(rating_key).isdigit():
             keys = {'rating_key': int(rating_key)}
 
             if art:
+                keys['blur'] = int(blur is not None)
                 table = 'art_urls'
                 values = {'art_title': poster_title,
+                          'art_url': poster_url,
                           'delete_hash': delete_hash}
-                if blur:
-                    values['blur_art_url'] = poster_url
-                else:
-                    values['art_url'] = poster_url
             else:
                 table = 'poster_urls'
                 values = {'poster_title': poster_title,

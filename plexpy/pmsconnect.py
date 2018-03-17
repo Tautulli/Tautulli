@@ -2425,7 +2425,8 @@ class PmsConnect(object):
 
         return labels_list
 
-    def get_image(self, img=None, width='1000', height='1500', clip=False):
+    def get_image(self, img=None, width='1000', height='1500', opacity=None, background=None, blur=None, img_format='png',
+                  clip=False):
         """
         Return image data as array.
         Array contains the image content type and image binary
@@ -2433,6 +2434,9 @@ class PmsConnect(object):
         Parameters required:    img { Plex image location }
         Optional parameters:    width { the image width }
                                 height { the image height }
+                                opacity { the image opacity 0-100 }
+                                background { the image background HEX }
+                                blur { the image blur 0-100 }
         Output: array
         """
 
@@ -2447,6 +2451,14 @@ class PmsConnect(object):
 
             params['width'] = width
             params['height'] = height
+            params['format'] = img_format
+
+            if opacity:
+                params['opacity'] = opacity
+            if background:
+                params['background'] = background
+            if blur:
+                params['blur'] = blur
 
             uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
             result = self.request_handler.make_request(uri=uri,

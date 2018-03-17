@@ -1,6 +1,5 @@
 ﻿% if data:
 <%
-    from plexpy.notification_handler import PILLOW
     recently_added = data['recently_added']
 %>
 <!doctype html>
@@ -351,25 +350,10 @@
             margin: 3px auto !important;
         }
         .card-background {
-            background-color: #3F4245;
             background-position: center;
             background-size: cover;
             width: 100%;
             height: 100%;
-        }
-        .card-background-preview {
-            background-color: #3F4245;
-            background-position: center;
-            background-size: cover;
-            opacity: 0.25;
-            -webkit-filter: blur(3px);
-            filter: blur(3px);
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 0;
         }
         .card-poster-container {
             width: 150px;
@@ -387,7 +371,7 @@
             height: 150px;
         }
         .card-poster {
-            background-color: #3F4245;
+            background-color: #282828;
             background-position: center;
             background-size: cover;
             height: 100%;
@@ -617,19 +601,14 @@
                                 % else:
                                 <div class="card-instance movie" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                    <div class="card-background" style="background-image: url(${'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % else:
-                                    <div class="card-background" style="background-image: url(${movie['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
-                                    % else:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
+                                    <div class="card-background" style="background-image: url(${movie['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -705,19 +684,14 @@
                                 % else:
                                 <div class="card-instance show" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                    <div class="card-background" style="background-image: url(${'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % else:
-                                    <div class="card-background" style="background-image: url(${show['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
-                                    % else:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
+                                    <div class="card-background" style="background-image: url(${show['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -815,19 +789,14 @@
                                 % else:
                                 <div class="card-instance album" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
                                 % endif
-                                    % if PILLOW:
                                     % if preview:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                        <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&fallback=art&refresh=true'});background-color: #3F4245;background-position: center;background-size: cover;opacity: 0.25;-webkit-filter: blur(3px);filter: blur(3px);position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 0;"></div>
+                                    <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
                                     % else:
-                                    <div class="card-background" style="background-image: url(${album['art_url']});background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
-                                    % else:
-                                    <div class="card-background" style="background-color: #3F4245;background-position: center;background-size: cover;width: 100%;height: 100%;">
+                                    <div class="card-background" style="background-image: url(${album['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
