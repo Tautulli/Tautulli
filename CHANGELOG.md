@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.0.23-beta (2018-03-16)
+
+* Monitoring:
+  * Fix: Certain transcode stream showing incorrectly as direct play in history. Fix is not retroactive.
+* Notifications:
+  * New: Added season/episode/album/track count to notification parameters.
+  * New: Added "Value 3" setting for IFTTT notifications.
+  * New: Set PLEX_URL, PLEX_TOKEN, TAUTULLI_URL, and TAUTULLI_APIKEY environment variables for scripts.
+  * Fix: Notifications failing to send with invalid custom conditions json.
+  * Fix: Email notifications failing with unicode username/passwords.
+  * Change: Facebook Graph API version updated to v2.12.
+* UI:
+  * New: Show the Plex Server URL in the settings.
+  * Fix: Incorrect info displayed in the Tautulli login logs.
+* API:
+  * Fix: API returning empty data if a message was in the original data.
+  * Change: get_server_id command returns json instead of string.
+* Other:
+  * Fix: Forgot git pull when changing branches in the web UI.
+
+
 ## v2.0.22 (2018-03-10)
 
 * Tautulli v2 release!
