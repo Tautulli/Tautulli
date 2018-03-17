@@ -1106,9 +1106,9 @@ def get_poster_info(poster_thumb='', poster_key='', poster_title='', art=False, 
 
             # Upload poster_thumb to Imgur and get link
             if blur:
-                poster_url, delete_hash = helpers.uploadToImgur(poster_file_blur, poster_title)
+                poster_url, delete_hash = helpers.upload_to_imgur(poster_file_blur, poster_title)
             else:
-                poster_url, delete_hash = helpers.uploadToImgur(poster_file, poster_title)
+                poster_url, delete_hash = helpers.upload_to_imgur(poster_file, poster_title)
 
             if poster_url:
                 # Create poster info
