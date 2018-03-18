@@ -15,7 +15,7 @@
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
-    <link href="${http_root}css/plexpy.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}
@@ -47,11 +47,17 @@
         You are running an unknown version of Tautulli.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
+    <div id="updatebar" style="display: none;">
+        A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
+        new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
+    </div>
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.INSTALL_TYPE != 'win':
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
-        newer version</a> is available!<br />
-        You are ${plexpy.COMMITS_BEHIND} commits behind.<br />
+        newer version</a> of Tautulli is available!<br />
+        You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
     % else:
@@ -68,7 +74,7 @@
                     <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="home" title="Tautulli">
-                    <object data="${http_root}images/logo-tautulli.svg" type="image/svg+xml" style="height: 45px;"></object>
+                    <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="PlexPy">
                 </a>
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
@@ -221,28 +227,28 @@ ${next.modalIncludes()}
                     </div>
                 </div>
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
-                    <li class="active"><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
-                    <li><a href="#flattr-donation" role="tab" data-toggle="tab">Flattr</a></li>
+                    <li class="active"><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
+                    <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoin" data-name="Bitcoin" data-address="3FdfJAyNWU15Sf11U9FTgPHuP1hPz32eEN">Bitcoin</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoincash" data-name="Bitcoin Cash" data-address="1H2atabxAQGaFAWYQEiLkXKSnK9CZZvt2n">Bitcoin Cash</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="ethereum" data-name="Ethereum" data-address="0x77ae4c2b8de1a1ccfa93553db39971da58c873d3">Ethereum</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="litecoin" data-name="Litecoin" data-address="LWpPmUqQYHBhMV83XSCsHzPmKLhJt6r57J">Litecoin</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="paypal-donation" style="text-align: center">
+                    <div role="tabpanel" class="tab-pane active" id="patreon-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Patreon.
+                        </p>
+                        <a href="${anon_url('https://www.patreon.com/bePatron?u=10078609')}" target="_blank">
+                            <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
                         <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
-                        </a>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="flattr-donation" style="text-align: center">
-                        <p>
-                            Click the button below to continue to Flattr.
-                        </p>
-                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/%s/%s&title=Tautulli&language=en_GB&tags=github&category=software' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">
-                            <img src="images/flattr-badge-large.png" alt="Flattr">
                         </a>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="crypto-donation">
@@ -311,17 +317,21 @@ ${next.modalIncludes()}
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = '';
-                if (result.update === true) {
-                    msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> is available!<br />' +
-                        'You are '+ result.commits_behind + ' commits behind.<br />' +
+                if (result.update === null) {
+                    msg = 'You are running an unknown version of Tautulli.<br />' +
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    $('#updatebar').html(msg).fadeIn();
+                } else if (result.update === true && result.release === true) {
+                    msg = 'A <a href="' + result.release_url + '" target="_blank">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />' +
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    $('#updatebar').html(msg).fadeIn();
+                } else if (result.update === true && result.release === false) {
+                    msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
+                        'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />' +
                         '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     $('#updatebar').html(msg).fadeIn();
                 } else if (result.update === false) {
                     showMsg('<i class="fa fa-check"></i> ' + result.message, false, true, 2000);
-                } else if (result.update === null) {
-                    msg = 'You are running an unknown version of Tautulli.<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
-                    $('#updatebar').html(msg).fadeIn();
                 }
 
                 if (_callback) {

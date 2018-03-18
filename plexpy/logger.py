@@ -30,8 +30,8 @@ import plexpy
 import helpers
 
 # These settings are for file logging only
-FILENAME = "plexpy.log"
-FILENAME_API = "plexpy_api.log"
+FILENAME = "tautulli.log"
+FILENAME_API = "tautulli_api.log"
 FILENAME_PLEX_WEBSOCKET = "plex_websocket.log"
 MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
@@ -39,9 +39,9 @@ MAX_FILES = 5
 _BLACKLIST_WORDS = set()
 
 # Tautulli logger
-logger = logging.getLogger("plexpy")
+logger = logging.getLogger("tautulli")
 # Tautulli API logger
-logger_api = logging.getLogger("plexpy_api")
+logger_api = logging.getLogger("tautulli_api")
 # Tautulli websocket logger
 logger_plex_websocket = logging.getLogger("plex_websocket")
 
@@ -178,9 +178,9 @@ def initMultiprocessing():
 def initLogger(console=False, log_dir=False, verbose=False):
     """
     Setup logging for Tautulli. It uses the logger instance with the name
-    'plexpy'. Three log handlers are added:
+    'tautulli'. Three log handlers are added:
 
-    * RotatingFileHandler: for the file plexpy.log
+    * RotatingFileHandler: for the file tautulli.log
     * LogListHandler: for Web UI
     * StreamHandler: for console (if console)
 

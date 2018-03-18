@@ -2,7 +2,7 @@
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -11,7 +11,7 @@
         <div class="header-bar">
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
-        <div class="button-bar hidden-xs">
+        <div class="button-bar">
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
@@ -39,12 +39,12 @@
             </div>
             <div class="input-group pull-right" style="width: 1px;" id="days-selection">
                 <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
+                <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
                 <span class="input-group-addon btn-dark inactive">days</span>
             </div>
             <div class="input-group pull-right" style="width: 1px;" id="months-selection">
                 <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
+                <input type="number" class="form-control number-input" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
                 <span class="input-group-addon btn-dark inactive">months</span>
 			</div>
         </div>

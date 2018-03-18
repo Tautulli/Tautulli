@@ -139,6 +139,13 @@ sync_table_options = {
         // $('html,body').scrollTop(0);
 
         $('#ajaxMsg').fadeOut();
+
+        if ($('#sync-row-edit-mode').hasClass('active')) {
+            $('.sync_table .delete-control').each(function () {
+                $(this).removeClass('hidden');
+            });
+        }
+
     },
     "preDrawCallback": function (settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
@@ -146,7 +153,7 @@ sync_table_options = {
     }
 };
 
-$('#sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
+$('.sync_table').on('click', 'td.delete-control > .edit-sync-toggles > button.delete-sync', function () {
     var tr = $(this).parents('tr');
     var row = sync_table.row(tr);
     var rowData = row.data();

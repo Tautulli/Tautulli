@@ -2,7 +2,7 @@
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
 <style>
     td {word-wrap: break-word}
@@ -20,10 +20,10 @@
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting edit mode.</div>
+            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting delete mode.</div>
             <div class="btn-group">
-                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                    <i class="fa fa-pencil"></i> Edit mode
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="sync-row-edit-mode">
+                    <i class="fa fa-trash-o"></i> Delete mode
                 </button>&nbsp
             </div>
             % endif
@@ -44,7 +44,7 @@
         </div>
     </div>
     <div class='table-card-back'>
-        <table class="display" id="sync_table" width="100%">
+        <table class="display sync_table" id="sync_table" width="100%">
             <thead>
             <tr>
                 <th align="left" id="delete_row">Delete</th>
@@ -138,8 +138,8 @@
         loadSyncTable(selected_user_id);
 
         % if _session['user_group'] == 'admin':
-        $('#row-edit-mode').on('click', function() {
-            $('#row-edit-mode-alert').fadeIn(200);
+        $('#sync-row-edit-mode').on('click', function() {
+            $('#sync-row-edit-mode-alert').fadeIn(200);
 
             if ($(this).hasClass('active')) {
                 if (syncs_to_delete.length > 0) {
@@ -161,13 +161,13 @@
                                 }
                             });
                         });
-                        sync_table.draw();
+                        sync_table.ajax.reload();
                     });
                 }
 
                 $('.delete-control').each(function () {
                     $(this).addClass('hidden');
-                    $('#row-edit-mode-alert').fadeOut(200);
+                    $('#sync-row-edit-mode-alert').fadeOut(200);
                 });
 
             } else {
@@ -182,7 +182,7 @@
     });
 
     $("#refresh-syncs-list").click(function() {
-        sync_table.draw();
+        sync_table.ajax.reload();
     });
 </script>
 </%def>

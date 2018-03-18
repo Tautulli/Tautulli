@@ -23,7 +23,7 @@ import time
 import plexpy
 import logger
 
-FILENAME = "plexpy.db"
+FILENAME = "tautulli.db"
 db_lock = threading.Lock()
 
 
@@ -63,9 +63,9 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of db, removes all but the last 5 backups """
 
     if scheduler:
-        backup_file = 'plexpy.backup-%s.sched.db' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'tautulli.backup-%s.sched.db' % arrow.now().format('YYYYMMDDHHmmss')
     else:
-        backup_file = 'plexpy.backup-%s.db' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'tautulli.backup-%s.db' % arrow.now().format('YYYYMMDDHHmmss')
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 

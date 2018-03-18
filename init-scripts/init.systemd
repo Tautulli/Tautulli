@@ -1,11 +1,11 @@
-# PlexPy - Stats for Plex Media Server usage
+# Tautulli - Stats for Plex Media Server usage
 #
 # Service Unit file for systemd system manager
 #
 # INSTALLATION NOTES
 #
 #   1. Rename this file as you want, ensuring that it ends in .service
-#       e.g. 'plexpy.service'
+#       e.g. 'tautulli.service'
 #
 #   2. Adjust configuration settings as required.  More details in the
 #      "CONFIGURATION NOTES" section shown below.
@@ -15,39 +15,39 @@
 #
 #   4. Enable boot-time autostart with the following commands:
 #       systemctl daemon-reload
-#       systemctl enable plexpy.service
+#       systemctl enable tautulli.service
 #
 #   5. Start now with the following command:
-#       systemctl start plexpy.service
+#       systemctl start tautulli.service
 #
 # CONFIGURATION NOTES
 #
-#    - The example settings in this file assume that you will run PlexPy as user: plexpy
-#    - To create this user and give it ownership of the plexpy directory: 
-#       sudo adduser --system --no-create-home plexpy
-#       sudo chown plexpy:nogroup -R /opt/plexpy
+#    - The example settings in this file assume that you will run Tautulli as user: tautulli
+#    - To create this user and give it ownership of the tautulli directory: 
+#       sudo adduser --system --no-create-home tautulli
+#       sudo chown tautulli:nogroup -R /opt/Tautulli
 #     
 #    - Option names (e.g. ExecStart=, Type=) appear to be case-sensitive)
 #
 #    - Adjust ExecStart= to point to:
-#       1. Your PlexPy executable,
+#       1. Your Tautulli executable,
 #       2. Your config file (recommended is to put it somewhere in /etc)
-#       3. Your datadir (recommended is to NOT put it in your PlexPy exec dir)
+#       3. Your datadir (recommended is to NOT put it in your Tautulli exec dir)
 #
-#    - Adjust User= and Group= to the user/group you want PlexPy to run as.
+#    - Adjust User= and Group= to the user/group you want Tautulli to run as.
 #
-#    - WantedBy= specifies which target (i.e. runlevel) to start PlexPy for.
+#    - WantedBy= specifies which target (i.e. runlevel) to start Tautulli for.
 #        multi-user.target equates to runlevel 3 (multi-user text mode)
 #        graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
 
 [Unit]
-Description=PlexPy - Stats for Plex Media Server usage
+Description=Tautulli - Stats for Plex Media Server usage
 
 [Service]
-ExecStart=/opt/plexpy/PlexPy.py --quiet --daemon --nolaunch --config /opt/plexpy/config.ini --datadir /opt/plexpy
+ExecStart=/opt/Tautulli/Tautulli.py --quiet --daemon --nolaunch --config /opt/Tautulli/config.ini --datadir /opt/Tautulli
 GuessMainPID=no
 Type=forking
-User=plexpy
+User=tautulli
 Group=nogroup
 
 [Install]

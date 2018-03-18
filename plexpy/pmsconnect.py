@@ -666,6 +666,11 @@ class PmsConnect(object):
                         }
 
         elif metadata_type == 'show':
+            # Workaround for for duration sometimes reported in minutes for a show
+            duration = helpers.get_xml_attr(metadata_main, 'duration')
+            if duration.isdigit() and int(duration) < 1000:
+                duration = unicode(int(duration) * 60 * 1000)
+
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -685,7 +690,7 @@ class PmsConnect(object):
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'audience_rating': helpers.get_xml_attr(metadata_main, 'audienceRating'),
                         'user_rating': helpers.get_xml_attr(metadata_main, 'userRating'),
-                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'duration': duration,
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
@@ -1403,6 +1408,10 @@ class PmsConnect(object):
                                'bandwidth': '',
                                'location': 'wan' if player_details['local'] == '0' else 'lan'
                                }
+
+        # Check if using Plex Relay
+        session_details['relay'] = int(session_details['location'] != 'lan'
+                                       and player_details['ip_address_public'] == '127.0.0.1')
 
         # Get the transcode details
         if session.getElementsByTagName('TranscodeSession'):
@@ -2134,10 +2143,12 @@ class PmsConnect(object):
             sort_type = '&type=10'
         elif section_type == 'photo':
             sort_type = ''
-        elif section_type == 'photoAlbum':
+        elif section_type == 'photo_album':
             sort_type = '&type=14'
         elif section_type == 'picture':
-            sort_type = '&type=13'
+            sort_type = '&type=13&clusterZoomLevel=1'
+        elif section_type == 'clip':
+            sort_type = '&type=12&clusterZoomLevel=1'
         else:
             sort_type = ''
 
@@ -2280,12 +2291,12 @@ class PmsConnect(object):
                             library_stats.update(child_stats)
 
                     if section_type == 'photo':
-                        parent_list = self.get_library_children_details(section_id=section_id, section_type='photoAlbum', count='1')
+                        parent_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
                         if parent_list:
                             parent_stats = {'parent_count': parent_list['library_count']}
                             library_stats.update(parent_stats)
 
-                        child_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
+                        child_list = self.get_library_children_details(section_id=section_id, section_type='clip', count='1')
                         if child_list:
                             child_stats = {'child_count': child_list['library_count']}
                             library_stats.update(child_stats)

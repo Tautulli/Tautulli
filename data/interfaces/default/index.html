@@ -22,7 +22,16 @@
                 </h3>
             </div>
             <div id="currentActivity">
+                <% from plexpy import PLEX_SERVER_UP %>
+                % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                % else:
+                <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
+                    % if _session['user_group'] == 'admin':
+                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
+                    % endif
+                </div>
+                % endif
             </div>
         </div>
     </div>
@@ -31,27 +40,29 @@
         <div class="col-md-12">
             <div class="home-padded-header padded-header">
                 <h3 class="pull-left">Watch Statistics</h3>
-                <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
-                    % if config['home_stats_type'] == 0:
-                    <label class="btn btn-dark active">
-                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off" checked> Play Count
-                    </label>
-                    <label class="btn btn-dark">
-                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off"> Play Duration
-                    </label>
-                    % else:
-                    <label class="btn btn-dark">
-                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off"> Play Count
-                    </label>
-                    <label class="btn btn-dark active">
-                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off" checked> Play Duration
-                    </label>
-                    % endif
-                </div>
-                <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
-                    <span class="input-group-addon btn-dark inactive">Last</span>
-                    <input type="number" class="form-control" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
-                    <span class="input-group-addon btn-dark inactive">days</span>
+                <div class="button-bar">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
+                        % if config['home_stats_type'] == 0:
+                        <label class="btn btn-dark active">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off" checked> Play Count
+                        </label>
+                        <label class="btn btn-dark">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off"> Play Duration
+                        </label>
+                        % else:
+                        <label class="btn btn-dark">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off"> Play Count
+                        </label>
+                        <label class="btn btn-dark active">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off" checked> Play Duration
+                        </label>
+                        % endif
+                    </div>
+                    <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
+                        <span class="input-group-addon btn-dark inactive">Last</span>
+                        <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
+                        <span class="input-group-addon btn-dark inactive">days</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -69,7 +80,9 @@
         <div class="col-md-12">
             <div class="home-padded-header padded-header" id="library-statistics-header">
                 <h3 class="pull-left">Library Statistics</h3>
-                <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
+                <div class="button-bar">
+                    <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -94,23 +107,25 @@
                         <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
-                <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
-                    <label class="btn btn-dark active" id="recently-added-label-all">
-                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="" autocomplete="off"> All
-                    </label>
-                    <label class="btn btn-dark" id="recently-added-label-movies">
-                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
-                    </label>
-                    <label class="btn btn-dark" id="recently-added-label-tv">
-                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
-                    </label>
-                    <label class="btn btn-dark" id="recently-added-label-music">
-                        <input type="radio" name="recently-added-toggle" id="recently-added-toggle-music" value="artist" autocomplete="off"> Music
-                    </label>
-                </div>
-                <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
-                    <input type="number" class="form-control" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="100" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 100 items" />
-                    <span class="input-group-addon btn-dark inactive">items</span>
+                <div class="button-bar">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
+                        <label class="btn btn-dark active" id="recently-added-label-all">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="" autocomplete="off"> All
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-movies">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-tv">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-music">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-music" value="artist" autocomplete="off"> Music
+                        </label>
+                    </div>
+                    <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
+                        <input type="number" class="form-control number-input" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="100" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 100 items" />
+                        <span class="input-group-addon btn-dark inactive">items</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,13 +146,13 @@
 <%def name="modalIncludes()">
 
 % if _session['user_group'] == 'admin' and config['update_show_changelog']:
-<% from plexpy.common import VERSION_NUMBER %>
+<% from plexpy.common import RELEASE %>
 <div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Tautulli Updated to <strong>${VERSION_NUMBER}</strong></h4>
+                <h4 class="modal-title">Tautulli Updated to <strong>${RELEASE}</strong></h4>
             </div>
             <div class="modal-body">
             </div>
@@ -235,9 +250,10 @@
                 });
             }
         });
-    };
+    }
 </script>
-% if 'current_activity' in config['home_sections']:
+<% from plexpy import PLEX_SERVER_UP %>
+% if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     var defaultHandler = {
         get: function(target, name) {
@@ -260,6 +276,7 @@
             async: true,
             error: function (xhr, status, error) {
                 console.log(status + ': ' + error);
+                activity_ready = true;
             },
             complete: function (xhr, status) {
                 $('#dashboard-checking-activity').remove();
@@ -274,9 +291,9 @@
 
                 if (!(current_activity)) {
                     % if _session['user_group'] == 'admin':
-                    var msg_settings = ' Verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+                    var msg_settings = ' Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
                     % else:
-                    var msg_settings = ''
+                    var msg_settings = '';
                     % endif
                     $('#currentActivityHeader').hide();
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');

@@ -19,13 +19,12 @@ from collections import OrderedDict
 import version
 
 # Identify Our Application
-USER_AGENT = 'Tautulli/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
-             ' ' + platform.release() + ')'
-
 PLATFORM = platform.system()
 PLATFORM_VERSION = platform.release()
 BRANCH = version.PLEXPY_BRANCH
-VERSION_NUMBER = version.PLEXPY_RELEASE_VERSION
+RELEASE = version.PLEXPY_RELEASE_VERSION
+
+USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFORM_VERSION)
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
@@ -469,28 +468,29 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Plex Update Available',
         'parameters': [
-             {'name': 'Update Version', 'type': 'int', 'value': 'update_version', 'description': 'The available update version for your Plex Server.'},
-             {'name': 'Update Url', 'type': 'int', 'value': 'update_url', 'description': 'The download URL for the available update.'},
-             {'name': 'Update Release Date', 'type': 'int', 'value': 'update_release_date', 'description': 'The release date of the available update.'},
-             {'name': 'Update Channel', 'type': 'int', 'value': 'update_channel', 'description': 'The update channel.', 'example': 'Public or Plex Pass'},
-             {'name': 'Update Platform', 'type': 'int', 'value': 'update_platform', 'description': 'The platform of your Plex Server.'},
-             {'name': 'Update Distro', 'type': 'int', 'value': 'update_distro', 'description': 'The distro of your Plex Server.'},
-             {'name': 'Update Distro Build', 'type': 'int', 'value': 'update_distro_build', 'description': 'The distro build of your Plex Server.'},
-             {'name': 'Update Requirements', 'type': 'int', 'value': 'update_requirements', 'description': 'The requirements for the available update.'},
-             {'name': 'Update Extra Info', 'type': 'int', 'value': 'update_extra_info', 'description': 'Any extra info for the available update.'},
-             {'name': 'Update Changelog Added', 'type': 'int', 'value': 'update_changelog_added', 'description': 'The added changelog for the available update.'},
-             {'name': 'Update Changelog Fixed', 'type': 'int', 'value': 'update_changelog_fixed', 'description': 'The fixed changelog for the available update.'},
+             {'name': 'Update Version', 'type': 'str', 'value': 'update_version', 'description': 'The available update version for your Plex Server.'},
+             {'name': 'Update Url', 'type': 'str', 'value': 'update_url', 'description': 'The download URL for the available update.'},
+             {'name': 'Update Release Date', 'type': 'str', 'value': 'update_release_date', 'description': 'The release date of the available update.'},
+             {'name': 'Update Channel', 'type': 'str', 'value': 'update_channel', 'description': 'The update channel.', 'example': 'Public or Plex Pass'},
+             {'name': 'Update Platform', 'type': 'str', 'value': 'update_platform', 'description': 'The platform of your Plex Server.'},
+             {'name': 'Update Distro', 'type': 'str', 'value': 'update_distro', 'description': 'The distro of your Plex Server.'},
+             {'name': 'Update Distro Build', 'type': 'str', 'value': 'update_distro_build', 'description': 'The distro build of your Plex Server.'},
+             {'name': 'Update Requirements', 'type': 'str', 'value': 'update_requirements', 'description': 'The requirements for the available update.'},
+             {'name': 'Update Extra Info', 'type': 'str', 'value': 'update_extra_info', 'description': 'Any extra info for the available update.'},
+             {'name': 'Update Changelog Added', 'type': 'str', 'value': 'update_changelog_added', 'description': 'The added changelog for the available update.'},
+             {'name': 'Update Changelog Fixed', 'type': 'str', 'value': 'update_changelog_fixed', 'description': 'The fixed changelog for the available update.'},
          ]
      },
     {
         'category': 'Tautulli Update Available',
         'parameters': [
-             {'name': 'Tautulli Update Version', 'type': 'int', 'value': 'tautulli_update_version', 'description': 'The available update version for Tautulli.'},
-             {'name': 'Tautulli Update Tar', 'type': 'int', 'value': 'tautulli_update_tar', 'description': 'The tar download URL for the available update.'},
-             {'name': 'Tautulli Update Zip', 'type': 'int', 'value': 'tautulli_update_zip', 'description': 'The zip download URL for the available update.'},
-             {'name': 'Tautulli Update Commit', 'type': 'int', 'value': 'tautulli_update_commit', 'description': 'The commit hash for the available update.'},
+             {'name': 'Tautulli Update Version', 'type': 'str', 'value': 'tautulli_update_version', 'description': 'The available update version for Tautulli.'},
+             {'name': 'Tautulli Update Release URL', 'type': 'str', 'value': 'tautulli_update_release_url', 'description': 'The release page URL on GitHub'},
+             {'name': 'Tautulli Update Tar', 'type': 'str', 'value': 'tautulli_update_tar', 'description': 'The tar download URL for the available update.'},
+             {'name': 'Tautulli Update Zip', 'type': 'str', 'value': 'tautulli_update_zip', 'description': 'The zip download URL for the available update.'},
+             {'name': 'Tautulli Update Commit', 'type': 'str', 'value': 'tautulli_update_commit', 'description': 'The commit hash for the available update.'},
              {'name': 'Tautulli Update Behind', 'type': 'int', 'value': 'tautulli_update_behind', 'description': 'The number of commits behind for the available update.'},
-             {'name': 'Tautulli Update Changelog', 'type': 'int', 'value': 'tautulli_update_changelog', 'description': 'The changelog for the available update.'},
+             {'name': 'Tautulli Update Changelog', 'type': 'str', 'value': 'tautulli_update_changelog', 'description': 'The changelog for the available update.'},
         ]
      },
 ]

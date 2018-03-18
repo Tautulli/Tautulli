@@ -606,6 +606,22 @@
         });
     });
 
+    % elif notifier['agent_name'] == 'pushover':
+    function pushoverPriority() {
+         if ($('#pushover_priority').val() == '2') {
+             $('#pushover_retry').closest('.form-group').show();
+             $('#pushover_expire').closest('.form-group').show();
+         } else {
+             $('#pushover_retry').closest('.form-group').hide();
+             $('#pushover_expire').closest('.form-group').hide();
+         }
+    }
+
+    pushoverPriority();
+    $('#pushover_priority').change( function () {
+        pushoverPriority();
+    });
+
     % endif
 
     function validateLogic() {

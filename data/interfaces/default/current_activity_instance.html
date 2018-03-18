@@ -279,16 +279,20 @@ DOCUMENTATION :: END
                                     <span id="location-${sk}">${data['location'].upper()}</span>:
                                     % if data['ip_address'] != 'N/A':
                                     <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
-                                    <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
-                                        <span id="external_ip-${sk}" class="external-ip-tooltip" data-toggle="tooltip" title="Lookup External IP" style="display: none;"><i class="fa fa-map-marker"></i></span>
-                                    </a>
-                                    <script>
-                                        isPrivateIP("${data['ip_address']}").then(function () {
-                                            $("#external_ip-${sk}").hide();
-                                        }, function () {
-                                            $("#external_ip-${sk}").show();
-                                        });
-                                    </script>
+                                        % if data['relay']:
+                                        <span data-toggle="tooltip" title="Plex Relay"><i class="fa fa-exclamation-circle"></i></span>
+                                        % else:
+                                        <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
+                                            <span id="external_ip-${sk}" class="external-ip-tooltip" data-toggle="tooltip" title="Lookup External IP" style="display: none;"><i class="fa fa-map-marker"></i></span>
+                                        </a>
+                                        <script>
+                                            isPrivateIP("${data['ip_address']}").then(function () {
+                                                $("#external_ip-${sk}").hide();
+                                            }, function () {
+                                                $("#external_ip-${sk}").show();
+                                            });
+                                        </script>
+                                        % endif
                                     % else:
                                     N/A
                                     % endif

@@ -74,9 +74,22 @@ class ActivityHandler(object):
         return None
 
     def update_db_session(self, session=None):
-        # Update our session temp table values
-        monitor_proc = activity_processor.ActivityProcessor()
-        monitor_proc.write_session(session=session, notify=False)
+        if session is None:
+            session = self.get_live_session()
+
+        if session:
+            # Update our session temp table values
+            ap = activity_processor.ActivityProcessor()
+            ap.write_session(session=session, notify=False)
+
+        self.set_session_state()
+
+    def set_session_state(self):
+        ap = activity_processor.ActivityProcessor()
+        ap.set_session_state(session_key=self.get_session_key(),
+                             state=self.timeline['state'],
+                             view_offset=self.timeline['viewOffset'],
+                             stopped=int(time.time()))
 
     def on_start(self):
         if self.is_valid_session():
@@ -114,10 +127,7 @@ class ActivityHandler(object):
             # Update the session state and viewOffset
             # Set force_stop to true to disable the state set
             if not force_stop:
-                ap.set_session_state(session_key=self.get_session_key(),
-                                     state=self.timeline['state'],
-                                     view_offset=self.timeline['viewOffset'],
-                                     stopped=int(time.time()))
+                self.set_session_state()
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -150,10 +160,7 @@ class ActivityHandler(object):
             ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=int(time.time()))
 
             # Update the session state and viewOffset
-            ap.set_session_state(session_key=self.get_session_key(),
-                                 state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'],
-                                 stopped=int(time.time()))
+            self.update_db_session()
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -170,10 +177,7 @@ class ActivityHandler(object):
             ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
 
             # Update the session state and viewOffset
-            ap.set_session_state(session_key=self.get_session_key(),
-                                 state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'],
-                                 stopped=int(time.time()))
+            self.update_db_session()
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -198,10 +202,7 @@ class ActivityHandler(object):
             buffer_last_triggered = ap.get_session_buffer_trigger_time(self.get_session_key())
 
             # Update the session state and viewOffset
-            ap.set_session_state(session_key=self.get_session_key(),
-                                 state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'],
-                                 stopped=int(time.time()))
+            self.update_db_session()
 
             time_since_last_trigger = 0
             if buffer_last_triggered:
@@ -243,9 +244,7 @@ class ActivityHandler(object):
                         # Update the session in our temp session table
                         # if the last set temporary stopped time exceeds 15 seconds
                         if int(time.time()) - db_session['stopped'] > 60:
-                            session = self.get_live_session()
-                            if session:
-                                self.update_db_session(session=session)
+                            self.update_db_session()
 
                     # Start our state checks
                     if this_state != last_state:

@@ -1,45 +1,45 @@
 #!/bin/sh
 #
-# PROVIDE: plexpy
-# REQUIRE: DAEMON plexpy
+# PROVIDE: tautulli
+# REQUIRE: DAEMON tautulli
 # KEYWORD: shutdown
 #
 # Add the following lines to /etc/rc.conf.local or /etc/rc.conf
 # to enable this service:
 #
-# plexpy_enable (bool): Set to NO by default.
+# tautulli_enable (bool): Set to NO by default.
 #           Set it to YES to enable it.
-# plexpy_user:  The user account PlexPy daemon runs as what
-#           you want it to be. It uses 'plexpy' user by
+# tautulli_user:  The user account Tautulli daemon runs as what
+#           you want it to be. It uses 'tautulli' user by
 #           default. Do not sets it as empty or it will run
 #           as root.
-# plexpy_dir:   Directory where PlexPy lives.
-#           Default: /usr/local/share/plexpy
-# plexpy_chdir:  Change to this directory before running PlexPy.
-#     Default is same as plexpy_dir.
-# plexpy_pid:  The name of the pidfile to create.
-#     Default is plexpy.pid in plexpy_dir.
+# tautulli_dir:   Directory where Tautulli lives.
+#           Default: /usr/local/share/Tautulli
+# tautulli_chdir:  Change to this directory before running Tautulli.
+#     Default is same as tautulli_dir.
+# tautulli_pid:  The name of the pidfile to create.
+#     Default is tautulli.pid in tautulli_dir.
 PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin"
 
 . /etc/rc.subr
 
-name="plexpy"
+name="tautulli"
 rcvar=${name}_enable
 
 load_rc_config ${name}
 
-: ${plexpy_enable:="NO"}
-: ${plexpy_user:="plexpy"}
-: ${plexpy_dir:="/usr/local/share/plexpy"}
-: ${plexpy_chdir:="${plexpy_dir}"}
-: ${plexpy_pid:="${plexpy_dir}/plexpy.pid"}
-: ${plexpy_flags:=""}
+: ${tautulli_enable:="NO"}
+: ${tautulli_user:="tautulli"}
+: ${tautulli_dir:="/usr/local/share/Tautulli"}
+: ${tautulli_chdir:="${tautulli_dir}"}
+: ${tautulli_pid:="${tautulli_dir}/tautulli.pid"}
+: ${tautulli_flags:=""}
 
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
-command="${plexpy_dir}/PlexPy.py"
-command_args="--daemon --pidfile ${plexpy_pid} --quiet --nolaunch ${plexpy_flags}"
+command="${tautulli_dir}/Tautulli.py"
+command_args="--daemon --pidfile ${tautulli_pid} --quiet --nolaunch ${tautulli_flags}"
 
 # Ensure user is root when running this script.
 if [ `id -u` != "0" ]; then
@@ -47,21 +47,21 @@ if [ `id -u` != "0" ]; then
   exit 1
 fi
 
-verify_plexpy_pid() {
-    # Make sure the pid corresponds to the PlexPy process.
-    if [ -f ${plexpy_pid} ]; then
-      pid=`cat ${plexpy_pid} 2>/dev/null`
-      ps -p ${pid} | grep -q "python2 ${plexpy_dir}/PlexPy.py"
+verify_tautulli_pid() {
+    # Make sure the pid corresponds to the Tautulli process.
+    if [ -f ${tautulli_pid} ]; then
+      pid=`cat ${tautulli_pid} 2>/dev/null`
+      ps -p ${pid} | grep -q "python2 ${tautulli_dir}/Tautulli.py"
       return $?
     else
       return 0
     fi
 }
 
-# Try to stop PlexPy cleanly by sending SIGTERM
-plexpy_stop() {
+# Try to stop Tautulli cleanly by sending SIGTERM
+tautulli_stop() {
     echo "Stopping $name"
-    verify_plexpy_pid
+    verify_tautulli_pid
     if [ -n "${pid}" ]; then
       kill ${pid}
       wait_for_pids ${pid}
@@ -69,8 +69,8 @@ plexpy_stop() {
     fi
 }
 
-plexpy_status() {
-    verify_plexpy_pid
+tautulli_status() {
+    verify_tautulli_pid
     if [ -n "${pid}" ]; then
       echo "$name is running as ${pid}."
     else

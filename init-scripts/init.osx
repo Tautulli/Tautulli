@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>plexpy</string>
+  <string>tautulli</string>
   <key>ProgramArguments</key>
   <array>
-       <!-- Modify these two lines if you need to to reflect your python location and PlexPy install location -->
+       <!-- Modify these two lines if you need to to reflect your python location and Tautulli install location -->
        <string>/usr/bin/python</string>
-       <string>/Applications/PlexPy/PlexPy.py</string>
+       <string>/Applications/Tautulli/Tautulli.py</string>
   </array>
   <key>RunAtLoad</key>
   <true/>

@@ -30,7 +30,7 @@ DOCUMENTATION :: END
 <%def name="headIncludes()">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
-<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -382,7 +382,7 @@ DOCUMENTATION :: END
                     user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
-        }
+        };
         history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
@@ -392,7 +392,13 @@ DOCUMENTATION :: END
     }
 
     $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
-        loadHistoryTable();
+        if (typeof(history_table) === 'undefined') {
+            loadHistoryTable();
+        }
+    });
+
+    $("#refresh-history-list").click(function () {
+        history_table.draw();
     });
 
     % if _session['user_group'] == 'admin':
@@ -408,7 +414,7 @@ DOCUMENTATION :: END
                     refresh: refresh_table
                 };
             }
-        }
+        };
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
@@ -418,7 +424,9 @@ DOCUMENTATION :: END
     }
 
     $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
-        loadMediaInfoTable();
+        if (typeof(media_info_table) === 'undefined') {
+            loadMediaInfoTable();
+        }
     });
 
     $("#refresh-media-info-table").click(function () {
@@ -483,10 +491,6 @@ DOCUMENTATION :: END
         }
     });
     % endif
-
-    $("#refresh-history-list").click(function () {
-        history_table.draw();
-    });
 
     function recentlyWatched() {
         // Populate recently watched

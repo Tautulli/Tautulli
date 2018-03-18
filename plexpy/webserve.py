@@ -63,7 +63,7 @@ def serve_template(templatename, **kwargs):
 
     http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
-    cache_param = '?' + (plexpy.CURRENT_VERSION or common.VERSION_NUMBER)
+    cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
 
@@ -1799,7 +1799,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by date.
 
             ```
@@ -1810,6 +1810,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1823,8 +1824,10 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis, grouping=grouping)
 
         if result:
             return result
@@ -1835,7 +1838,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by day of the week.
 
             ```
@@ -1846,6 +1849,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1859,6 +1863,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_dayofweek(time_range=time_range, user_id=user_id, y_axis=y_axis)
 
@@ -1871,7 +1877,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by hour of the day.
 
             ```
@@ -1882,6 +1888,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1895,6 +1902,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_hourofday(time_range=time_range, user_id=user_id, y_axis=y_axis)
 
@@ -1907,7 +1916,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -1918,6 +1927,7 @@ class WebInterface(object):
                 time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1931,6 +1941,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_month(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -1943,7 +1955,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by top 10 platforms.
 
             ```
@@ -1954,6 +1966,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1967,6 +1980,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -1979,7 +1994,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by top 10 users.
 
             ```
@@ -1990,6 +2005,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2003,6 +2019,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2015,7 +2033,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by stream type by date.
 
             ```
@@ -2026,6 +2044,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2039,6 +2058,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2051,7 +2072,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by source resolution.
 
             ```
@@ -2062,6 +2083,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2075,6 +2097,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2087,7 +2111,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by stream resolution.
 
             ```
@@ -2098,6 +2122,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2111,6 +2136,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2123,7 +2150,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by stream type by top 10 users.
 
             ```
@@ -2134,6 +2161,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2147,6 +2175,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2159,7 +2189,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
         """ Get graph data by stream type by top 10 platforms.
 
             ```
@@ -2170,6 +2200,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -2183,6 +2214,8 @@ class WebInterface(object):
                      }
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
@@ -2260,7 +2293,7 @@ class WebInterface(object):
         filtered = []
         fa = filt.append
 
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -2463,7 +2496,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_logs(self, logfile='', **kwargs):
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -2505,7 +2538,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logFile(self, logfile='', **kwargs):
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
         elif logfile == "plex_websocket":
             filename = logger.FILENAME_PLEX_WEBSOCKET
@@ -2699,8 +2732,8 @@ class WebInterface(object):
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
-            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE or \
+        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
+            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
             kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             server_changed = True
 
@@ -3545,14 +3578,30 @@ class WebInterface(object):
 
         if not plexpy.CURRENT_VERSION:
             return {'result': 'error',
-                    'message': 'You are running an unknown version of Tautulli.',
-                    'update': None}
+                    'update': None,
+                    'message': 'You are running an unknown version of Tautulli.'
+                    }
 
-        elif plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
-                plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+        elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
+                plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
             return {'result': 'success',
                     'update': True,
-                    'message': 'An update for Tautulli is available.',
+                    'release': True,
+                    'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                    'latest_release': plexpy.LATEST_RELEASE,
+                    'release_url': helpers.anon_url(
+                        'https://github.com/%s/%s/releases/tag/%s'
+                        % (plexpy.CONFIG.GIT_USER,
+                           plexpy.CONFIG.GIT_REPO,
+                           plexpy.LATEST_RELEASE))
+                    }
+
+        elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
+                plexpy.INSTALL_TYPE != 'win':
+            return {'result': 'success',
+                    'update': True,
+                    'release': False,
+                    'message': 'A newer version of Tautulli is available.',
                     'latest_version': plexpy.LATEST_VERSION,
                     'commits_behind': plexpy.COMMITS_BEHIND,
                     'compare_url': helpers.anon_url(
@@ -3566,7 +3615,8 @@ class WebInterface(object):
         else:
             return {'result': 'success',
                     'update': False,
-                    'message': 'Tautulli is up to date.'}
+                    'message': 'Tautulli is up to date.'
+                    }
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3620,7 +3670,7 @@ class WebInterface(object):
         latest_only = (latest_only == 'true')
         since_prev_release = (since_prev_release == 'true')
 
-        if since_prev_release and plexpy.PREV_RELEASE == common.VERSION_NUMBER:
+        if since_prev_release and plexpy.PREV_RELEASE == common.RELEASE:
             latest_only = True
             since_prev_release = False
 
@@ -3864,7 +3914,7 @@ class WebInterface(object):
     @addtoapi()
     def download_log(self, logfile='', **kwargs):
         """ Download the Tautulli log file. """
-        if logfile == "plexpy_api":
+        if logfile == "tautulli_api":
             filename = logger.FILENAME_API
             log = logger.logger_api
         elif logfile == "plex_websocket":
@@ -4658,6 +4708,7 @@ class WebInterface(object):
                              "quality_profile": "Original",
                              "rating": "7.8",
                              "rating_key": "153037",
+                             "relay": 0,
                              "section_id": "2",
                              "session_id": "helf15l3rxgw01xxe0jf3l3d",
                              "session_key": "27",

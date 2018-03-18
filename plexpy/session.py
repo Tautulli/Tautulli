@@ -79,7 +79,7 @@ def get_session_library_filters_type(filters, media_type=None):
         filters = filters.get('filter_tv', ())
     elif media_type == 'artist' or media_type == 'album' or media_type == 'track':
         filters = filters.get('filter_music', ())
-    elif media_type == 'photo' or media_type == 'photoAlbum' or media_type == 'picture':
+    elif media_type == 'photo' or media_type == 'photo_album' or media_type == 'picture' or media_type == 'clip':
         filters = filters.get('filter_photos', ())
     else:
         filters = filters.get('filter_all', ())

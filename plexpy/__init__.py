@@ -15,7 +15,6 @@
 
 import os
 from Queue import Queue
-import shutil
 import sqlite3
 import sys
 import subprocess
@@ -33,6 +32,7 @@ except ImportError:
 import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from UniversalAnalytics import Tracker
 
 import activity_handler
 import activity_pinger
@@ -55,6 +55,7 @@ ARGS = None
 SIGNAL = None
 
 SYS_PLATFORM = None
+SYS_LANGUAGE = None
 SYS_ENCODING = None
 
 QUIET = False
@@ -72,6 +73,7 @@ NOTIFY_QUEUE = Queue()
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
 _STARTED = False
+_UPDATE = False
 
 DATA_DIR = None
 
@@ -85,6 +87,7 @@ CURRENT_VERSION = None
 LATEST_VERSION = None
 COMMITS_BEHIND = None
 PREV_RELEASE = None
+LATEST_RELEASE = None
 
 UMASK = None
 
@@ -94,6 +97,8 @@ DEV = False
 
 WS_CONNECTED = False
 PLEX_SERVER_UP = None
+
+TRACKER = None
 
 
 def initialize(config_file):
@@ -106,6 +111,7 @@ def initialize(config_file):
         global LATEST_VERSION
         global PREV_RELEASE
         global UMASK
+        global _UPDATE
 
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
@@ -234,7 +240,7 @@ def initialize(config_file):
 
         # Get the previous release from the file
         release_file = os.path.join(DATA_DIR, "release.lock")
-        PREV_RELEASE = common.VERSION_NUMBER
+        PREV_RELEASE = common.RELEASE
         if os.path.isfile(release_file):
             try:
                 with open(release_file, "r") as fp:
@@ -246,14 +252,15 @@ def initialize(config_file):
             PREV_RELEASE = 'v1.4.25'
 
         # Check if the release was updated
-        if common.VERSION_NUMBER != PREV_RELEASE:
+        if common.RELEASE != PREV_RELEASE:
             CONFIG.UPDATE_SHOW_CHANGELOG = 1
             CONFIG.write()
+            _UPDATE = True
 
         # Write current release version to file for update checking
         try:
             with open(release_file, "w") as fp:
-                fp.write(common.VERSION_NUMBER)
+                fp.write(common.RELEASE)
         except IOError as e:
             logger.error(u"Unable to write current release to file '%s': %s" %
                          (release_file, e))
@@ -453,6 +460,19 @@ def start():
 
         if CONFIG.FIRST_RUN_COMPLETE:
             activity_pinger.connect_server(log=True, startup=True)
+
+        if CONFIG.SYSTEM_ANALYTICS:
+            global TRACKER
+            TRACKER = initialize_tracker()
+
+            # Send system analytics events
+            if not CONFIG.FIRST_RUN_COMPLETE:
+                analytics_event(category='system', action='install')
+
+            elif _UPDATE:
+                analytics_event(category='system', action='update')
+
+            analytics_event(category='system', action='start')
 
         _STARTED = True
 
@@ -1601,8 +1621,11 @@ def upgrade():
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
-    SCHED.shutdown(wait=False)
-    activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
+
+    if SCHED.running:
+        SCHED.shutdown(wait=False)
+    if activity_handler.ACTIVITY_SCHED.running:
+        activity_handler.ACTIVITY_SCHED.shutdown(wait=False)
 
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
@@ -1667,3 +1690,42 @@ def shutdown(restart=False, update=False, checkout=False):
 
 def generate_uuid():
     return uuid.uuid4().hex
+
+
+def initialize_tracker():
+    data = {
+        'dataSource': 'server',
+        'appName': 'Tautulli',
+        'appVersion': common.RELEASE,
+        'appId': plexpy.INSTALL_TYPE,
+        'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
+        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),  # App Platform
+        'userLanguage': plexpy.SYS_LANGUAGE,
+        'documentEncoding': plexpy.SYS_ENCODING,
+        'noninteractive': True
+        }
+
+    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True,
+                             user_agent=common.USER_AGENT)
+    tracker.set(data)
+
+    return tracker
+
+
+def analytics_event(category, action, label=None, value=None, **kwargs):
+    data = {'category': category, 'action': action}
+
+    if label is not None:
+        data['label'] = label
+
+    if value is not None:
+        data['value'] = value
+
+    if kwargs:
+        data.update(kwargs)
+
+    if TRACKER:
+        try:
+            TRACKER.send('event', data)
+        except Exception as e:
+            logger.warn(u"Failed to send analytics event for category '%s', action '%s': %s" % (category, action, e))

@@ -41,13 +41,16 @@
 
 <%def name="javascriptIncludes()">
 <script>
+    // Remove the update bar
+    $('#updatebar').remove();
+
     // Use p.countdown as container, pass redirect, duration, and optional message
     $(".countdown").countdown(reloadPage, ${timer}, "");
-    $('#state-change-modal').modal({
-        keyboard: false
-    })
     // Make modal visible
-    $('#state-change-modal').modal('show')
+    $('#state-change-modal').modal({
+        backdrop: 'static',
+        keyboard: false
+    }).show();
 
     // Redirect to home page after countdown.
     function reloadPage() {

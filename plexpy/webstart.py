@@ -72,7 +72,7 @@ def initialize(options):
         if plexpy.CONFIG.HTTP_PLEX_ADMIN:
             login_allowed.append("Plex admin")
 
-        logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s allowed", ' and '.join(login_allowed))
+        logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s.", ' and '.join(login_allowed))
 
         if options['http_basic_auth']:
             auth_enabled = False
@@ -122,6 +122,7 @@ def initialize(options):
         '/images': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/images",
+            'tools.staticdir.content_types': {'svg': 'image/svg+xml'},
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,

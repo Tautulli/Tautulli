@@ -41,7 +41,7 @@ class HTTPHandler(object):
 
         self.headers = {'X-Plex-Device-Name': 'Tautulli',
                         'X-Plex-Product': 'Tautulli',
-                        'X-Plex-Version': plexpy.common.VERSION_NUMBER,
+                        'X-Plex-Version': plexpy.common.RELEASE,
                         'X-Plex-Platform': plexpy.common.PLATFORM,
                         'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
                         'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,

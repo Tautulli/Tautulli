@@ -646,7 +646,7 @@ def whois_lookup(ip_address):
         countries = ipwhois.utils.get_countries()
         nets = whois['nets']
         for net in nets:
-            net['country'] = countries[net['country']]
+            net['country'] = countries.get(net['country'])
             if net['postal_code']:
                  net['postal_code'] = net['postal_code'].replace('-', ' ')
     except ValueError as e:

@@ -20,9 +20,9 @@ import subprocess
 import tarfile
 
 import plexpy
+import common
 import logger
 import request
-import version
 
 
 def runGit(args):
@@ -65,7 +65,7 @@ def runGit(args):
 
 def getVersion():
 
-    if version.PLEXPY_BRANCH.startswith('win32build'):
+    if common.BRANCH.startswith('win32build'):
         plexpy.INSTALL_TYPE = 'win'
 
         # Don't have a way to update exe yet, but don't want to set VERSION to None
@@ -120,15 +120,15 @@ def getVersion():
         version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
 
         if not os.path.isfile(version_file):
-            return None, 'origin', 'master'
+            return None, 'origin', common.BRANCH
 
         with open(version_file, 'r') as f:
             current_version = f.read().strip(' \n\r')
 
         if current_version:
-            return current_version, plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH
+            return current_version, 'origin', common.BRANCH
         else:
-            return None, 'origin', 'master'
+            return None, 'origin', common.BRANCH
 
 
 def checkGithub(auto_update=False):
@@ -195,6 +195,8 @@ def checkGithub(auto_update=False):
             release = next((r for r in releases if r['prerelease'] and '-nightly' in r['tag_name']), releases[0])
         else:
             release = releases[0]
+
+        plexpy.LATEST_RELEASE = release['tag_name']
 
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
                                  'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
