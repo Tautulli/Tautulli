@@ -248,6 +248,7 @@ _CONFIG_DEFINITIONS = {
     'HIPCHAT_ON_CONCURRENT': (int, 'Hipchat', 0),
     'HIPCHAT_ON_NEWDEVICE': (int, 'Hipchat', 0),
     'INTERFACE': (str, 'General', 'default'),
+    'INTERFACE_NEWSLETTERS': (str, 'General', 'newsletters'),
     'IP_LOGGING_ENABLE': (int, 'General', 0),
     'IFTTT_KEY': (str, 'IFTTT', ''),
     'IFTTT_EVENT': (str, 'IFTTT', 'tautulli'),

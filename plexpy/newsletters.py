@@ -244,7 +244,7 @@ def send_newsletter(newsletter_id=None, subject=None, notify_action='', newslett
 
 def serve_template(templatename, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
-    template_dir = os.path.join(str(interface_dir), 'newsletters')
+    template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE_NEWSLETTERS)
 
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
