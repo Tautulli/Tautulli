@@ -64,46 +64,45 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     if not newsletter_config:
         return
 
-    if notify_action in ('test', 'api'):
-        subject_string = kwargs.pop('subject', 'Tautulli Newsletter')
-    else:
-        # Get the subject string
-        subject_string = newsletter_config['email_config']['subject']
-
     newsletter_agent = newsletters.get_agent_class(agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],
                                                    email_config=newsletter_config['email_config'])
-    subject = newsletter_agent.format_subject(subject_string)
+
+    if notify_action in ('test', 'api'):
+        subject_string = kwargs.pop('subject', None)
+        if subject_string:
+            newsletter_agent.subject = newsletter_agent.format_subject(subject_string)
 
     # Set the newsletter state in the db
     newsletter_log_id = set_notify_state(newsletter=newsletter_config,
                                          notify_action=notify_action,
-                                         subject=subject)
+                                         subject=newsletter_agent.subject,
+                                         start_date=newsletter_agent.start_date.format('YYYY-MM-DD'),
+                                         end_date=newsletter_agent.end_date.format('YYYY-MM-DD'))
 
     # Send the notification
-    success = newsletters.send_newsletter(newsletter_id=newsletter_config['id'],
-                                          subject=subject,
-                                          notify_action=notify_action,
-                                          newsletter_log_id=newsletter_log_id,
-                                          **kwargs)
+    success = newsletter_agent.send()
 
     if success:
         set_notify_success(newsletter_log_id)
         return True
 
 
-def set_notify_state(newsletter, notify_action, subject):
+def set_notify_state(newsletter, notify_action, subject, start_date, end_date):
 
     if newsletter and notify_action:
         monitor_db = database.MonitorDatabase()
 
         keys = {'timestamp': int(time.time()),
-                'newsletter_id': newsletter['id'],
-                'agent_id': newsletter['agent_id'],
-                'notify_action': notify_action}
+                'uuid': get_newsletter_uuid()}
 
-        values = {'agent_name': newsletter['agent_name'],
-                  'subject_text': subject}
+        values = {'newsletter_id': newsletter['id'],
+                  'agent_id': newsletter['agent_id'],
+                  'agent_name': newsletter['agent_name'],
+                  'notify_action': notify_action,
+                  'subject_text': subject,
+                  'start_date': start_date,
+                  'end_date': end_date}
 
         monitor_db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
         return monitor_db.last_insert_id()
@@ -117,3 +116,19 @@ def set_notify_success(newsletter_log_id):
 
     monitor_db = database.MonitorDatabase()
     monitor_db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+
+
+def get_newsletter_uuid():
+    uuid = ''
+    uuid_exists = 1
+    db = database.MonitorDatabase()
+
+    while not uuid or uuid_exists:
+        if uuid:
+            result = db.select_single(
+                'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
+            uuid_exists = result['uuid_exists']
+
+        uuid = plexpy.generate_uuid()[:8]
+
+    return uuid

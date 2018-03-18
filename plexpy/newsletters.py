@@ -19,7 +19,6 @@ from itertools import groupby
 from mako.lookup import TemplateLookup
 from mako import exceptions
 import os
-import time
 
 import plexpy
 import common
@@ -257,7 +256,7 @@ def serve_template(templatename, **kwargs):
 
 class Newsletter(object):
     NAME = ''
-    _DEFAULT_CONFIG = {}
+    _DEFAULT_CONFIG = {'last_days': 7}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier'] = 0
@@ -265,11 +264,44 @@ class Newsletter(object):
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None):
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
 
-        self.parameters = {'server_name': plexpy.CONFIG.PMS_NAME}
+        date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
+
+        self.start_date = None
+        self.end_date = None
+
+        if end_date:
+            try:
+                self.end_date = arrow.get(end_date, 'YYYY-MM-DD', tzinfo='local').ceil('day')
+            except ValueError:
+                pass
+
+        if self.end_date is None:
+            self.end_date = arrow.now().ceil('day')
+
+        if start_date:
+            try:
+                self.start_date = arrow.get(start_date, 'YYYY-MM-DD', tzinfo='local').floor('day')
+            except ValueError:
+                pass
+
+        if self.start_date is None:
+            self.start_date = self.end_date.shift(days=-self.config['last_days']+1).floor('day')
+
+        self.end_time = self.end_date.timestamp
+        self.start_time = self.start_date.timestamp
+
+        self.parameters = {
+            'start_date': self.start_date.format(date_format),
+            'end_date': self.end_date.format(date_format),
+            'server_name': plexpy.CONFIG.PMS_NAME
+        }
+
+        self.subject = self.format_subject(self.email_config['subject'])
+
         self.is_preview = False
 
         self.data = {}
@@ -324,8 +356,7 @@ class Newsletter(object):
             preview=self.is_preview
         )
 
-    def send(self, subject='', **kwargs):
-        subject = self.format_subject(subject or self.email_config['subject'])
+    def send(self):
         newsletter = self.generate_newsletter()
 
         if not self._has_data():
@@ -335,18 +366,18 @@ class Newsletter(object):
         if self.email_config['notifier']:
             return send_notification(
                 notifier_id=self.email_config['notifier'],
-                subject=subject,
+                subject=self.subject,
                 body=newsletter
             )
 
         else:
             email = EMAIL(config=self.email_config)
             return email.notify(
-                subject=subject,
+                subject=self.subject,
                 body=newsletter
             )
 
-    def format_subject(self, subject):
+    def format_subject(self, subject=None):
         subject = subject or self._DEFAULT_EMAIL_CONFIG['subject']
 
         try:
@@ -381,7 +412,7 @@ class RecentlyAdded(Newsletter):
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 
-    def __init__(self, config=None, email_config=None):
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None):
         super(RecentlyAdded, self).__init__(config=config, email_config=email_config)
 
         if self.config['incl_libraries'] is None:
@@ -391,15 +422,6 @@ class RecentlyAdded(Newsletter):
 
         self._DEFAULT_EMAIL_CONFIG['subject'] = 'Recently Added to Plex ({server_name})! ({end_date})'
 
-        date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
-
-        self.end_time = int(time.time())
-        self.start_time = self.end_time - self.config['last_days']*24*60*60
-        self.end_date = arrow.get(self.end_time).format(date_format)
-        self.start_date = arrow.get(self.start_time).format(date_format)
-
-        self.parameters['start_date'] = self.start_date
-        self.parameters['end_date'] = self.end_date
         self.parameters['pms_identifier'] = plexpy.CONFIG.PMS_IDENTIFIER
         self.parameters['pms_web_url'] = plexpy.CONFIG.PMS_WEB_URL
 
