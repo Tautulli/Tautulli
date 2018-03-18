@@ -5513,20 +5513,36 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def newsletter(self, newsletter_id=None, **kwargs):
+    def newsletter(self, *args, **kwargs):
+        newsletter_uuid = args[0] if args else None
+        newsletter_id = kwargs.pop('newsletter_id', None)
         return serve_template(templatename="newsletter_preview.html",
                               title="Newsletter",
-                              newsletter_id=newsletter_id)
+                              newsletter_id=newsletter_id,
+                              newsletter_uuid=newsletter_uuid)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def real_newsletter(self, newsletter_id=None, preview=False, master=False, raw=False, **kwargs):
+    def real_newsletter(self, newsletter_id=None, newsletter_uuid=None, start_date=None, end_date=None,
+                        preview=False, master=False, raw=False, **kwargs):
+        if newsletter_uuid:
+            newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
+
+            if newsletter:
+                newsletter_id = newsletter['newsletter_id']
+                start_date = newsletter['start_date']
+                end_date = newsletter['end_date']
+            else:
+                return "This newsletter does not exist"
+
         if newsletter_id:
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
                 newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'],
-                                                               config=newsletter['config'])
+                                                               config=newsletter['config'],
+                                                               start_date=start_date,
+                                                               end_date=end_date)
                 preview = (preview == 'true')
                 master = (master == 'true')
                 raw = (raw == 'true')
@@ -5537,6 +5553,8 @@ class WebInterface(object):
 
                 return newsletter_agent.generate_newsletter(preview=preview, master=master)
 
-            return "Invalid Newsletter ID #%s" % newsletter_id
+            logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id #%s" % newsletter_id)
+            return "Failed to retrieve newsletter"
 
-        return "Missing newsletter_id parameter"
+        logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
+        return "Failed to retrieve newsletter"

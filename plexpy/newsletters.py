@@ -63,14 +63,19 @@ def available_notification_actions():
     return actions
 
 
-def get_agent_class(agent_id=None, config=None, email_config=None):
+def get_agent_class(agent_id=None, config=None, email_config=None, start_date=None, end_date=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
+        kwargs = {'config': config,
+                  'email_config': email_config,
+                  'start_date': start_date,
+                  'end_date': end_date}
+
         if agent_id == 0:
-            return RecentlyAdded(config=config, email_config=email_config)
+            return RecentlyAdded(**kwargs)
         else:
-            return Newsletter(config=config, email_config=email_config)
+            return Newsletter(**kwargs)
     else:
         return None
 
@@ -413,7 +418,8 @@ class RecentlyAdded(Newsletter):
     _TEMPLATE = 'recently_added.html'
 
     def __init__(self, config=None, email_config=None, start_date=None, end_date=None):
-        super(RecentlyAdded, self).__init__(config=config, email_config=email_config)
+        super(RecentlyAdded, self).__init__(config=config, email_config=email_config,
+                                            start_date=start_date, end_date=end_date)
 
         if self.config['incl_libraries'] is None:
             self.config['incl_libraries'] = []
@@ -435,7 +441,7 @@ class RecentlyAdded(Newsletter):
         while not done:
             recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', type=media_type)
             filtered_items = [i for i in recent_items['recently_added']
-                              if helpers.cast_to_int(i['added_at']) > self.start_time]
+                              if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
             if len(filtered_items) < 10:
                 done = True
             else:
@@ -475,7 +481,7 @@ class RecentlyAdded(Newsletter):
                 show_metadata = pms_connect.get_metadata_details(show_rating_key, media_info=False)
                 children = pms_connect.get_item_children(show_rating_key, get_grandchildren=True)
                 filtered_children = [i for i in children['children_list']
-                                     if helpers.cast_to_int(i['added_at']) > self.start_time]
+                                     if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: int(x['parent_media_index']))
 
                 seasons = []
@@ -522,7 +528,7 @@ class RecentlyAdded(Newsletter):
                 artist_metadata = pms_connect.get_metadata_details(artist_rating_key, media_info=False)
                 children = pms_connect.get_item_children(artist_rating_key)
                 filtered_children = [i for i in children['children_list']
-                                     if helpers.cast_to_int(i['added_at']) > self.start_time]
+                                     if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: x['added_at'])
 
                 albums = []

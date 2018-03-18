@@ -91,10 +91,10 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
 def set_notify_state(newsletter, notify_action, subject, start_date, end_date):
 
     if newsletter and notify_action:
-        monitor_db = database.MonitorDatabase()
+        db = database.MonitorDatabase()
 
         keys = {'timestamp': int(time.time()),
-                'uuid': get_newsletter_uuid()}
+                'uuid': generate_newsletter_uuid()}
 
         values = {'newsletter_id': newsletter['id'],
                   'agent_id': newsletter['agent_id'],
@@ -104,8 +104,8 @@ def set_notify_state(newsletter, notify_action, subject, start_date, end_date):
                   'start_date': start_date,
                   'end_date': end_date}
 
-        monitor_db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
-        return monitor_db.last_insert_id()
+        db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+        return db.last_insert_id()
     else:
         logger.error(u"Tautulli NewsletterHandler :: Unable to set notify state.")
 
@@ -114,21 +114,26 @@ def set_notify_success(newsletter_log_id):
     keys = {'id': newsletter_log_id}
     values = {'success': 1}
 
-    monitor_db = database.MonitorDatabase()
-    monitor_db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+    db = database.MonitorDatabase()
+    db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
 
 
-def get_newsletter_uuid():
+def generate_newsletter_uuid():
     uuid = ''
-    uuid_exists = 1
+    uuid_exists = 0
     db = database.MonitorDatabase()
 
     while not uuid or uuid_exists:
-        if uuid:
-            result = db.select_single(
-                'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
-            uuid_exists = result['uuid_exists']
-
         uuid = plexpy.generate_uuid()[:8]
+        result = db.select_single(
+            'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
+        uuid_exists = result['uuid_exists']
 
     return uuid
+
+
+def get_newsletter(newsletter_uuid):
+    db = database.MonitorDatabase()
+    result = db.select_single('SELECT newsletter_id, start_date, end_date FROM newsletter_log '
+                              'WHERE uuid = ?', [newsletter_uuid])
+    return result
