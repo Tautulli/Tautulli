@@ -1044,6 +1044,17 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="log_dir">Log Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="backup_dir">Backup Directory</label>
                             <div class="row">
                                 <div class="col-md-6">
@@ -1068,13 +1079,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="log_dir">Log Directory</label>
+                            <label for="newsletter_dir">Newsletter Directory</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
-                                    </div>
+                                    <input type="text" class="form-control directory-settings" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}">
                                 </div>
                             </div>
                         </div>

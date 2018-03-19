@@ -308,6 +308,7 @@ _CONFIG_DEFINITIONS = {
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
     'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
+    'NEWSLETTER_DIR': (str, 'General', ''),
     'NMA_APIKEY': (str, 'NMA', ''),
     'NMA_ENABLED': (int, 'NMA', 0),
     'NMA_PRIORITY': (int, 'NMA', 0),
@@ -656,7 +657,7 @@ def make_backup(cleanup=False, scheduler=False):
         logger.debug(u"Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
-        logger.warn(u"Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.error(u"Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return False
 
 

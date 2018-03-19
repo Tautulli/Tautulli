@@ -94,7 +94,7 @@ def make_backup(cleanup=False, scheduler=False):
         logger.debug(u"Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
-        logger.warn(u"Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
+        logger.error(u"Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
         return False
 
 

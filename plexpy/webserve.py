@@ -2658,7 +2658,8 @@ class WebInterface(object):
             "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
             "themoviedb_lookup": checked(plexpy.CONFIG.THEMOVIEDB_LOOKUP),
             "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
-            "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS
+            "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
+            "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -5474,7 +5475,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify_newsletter")
-    def send_newsletter(self, newsletter_id=None, subject='Tautulli Newsletter', notify_action='', **kwargs):
+    def send_newsletter(self, newsletter_id=None, subject='', notify_action='', **kwargs):
         """ Send a newsletter using Tautulli.
 
             ```
@@ -5527,15 +5528,9 @@ class WebInterface(object):
                         preview=False, master=False, raw=False, **kwargs):
         if newsletter_uuid:
             newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
+            return newsletter
 
-            if newsletter:
-                newsletter_id = newsletter['newsletter_id']
-                start_date = newsletter['start_date']
-                end_date = newsletter['end_date']
-            else:
-                return "This newsletter does not exist"
-
-        if newsletter_id:
+        if newsletter_id and newsletter_id != 'None':
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
@@ -5553,7 +5548,7 @@ class WebInterface(object):
 
                 return newsletter_agent.generate_newsletter(preview=preview, master=master)
 
-            logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id #%s" % newsletter_id)
+            logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
             return "Failed to retrieve newsletter"
 
         logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")

@@ -259,6 +259,20 @@ def serve_template(templatename, **kwargs):
         return exceptions.html_error_template().render()
 
 
+def generate_newsletter_uuid():
+    uuid = ''
+    uuid_exists = 0
+    db = database.MonitorDatabase()
+
+    while not uuid or uuid_exists:
+        uuid = plexpy.generate_uuid()[:8]
+        result = db.select_single(
+            'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
+        uuid_exists = result['uuid_exists']
+
+    return uuid
+
+
 class Newsletter(object):
     NAME = ''
     _DEFAULT_CONFIG = {'last_days': 7}
@@ -306,6 +320,8 @@ class Newsletter(object):
         }
 
         self.subject = self.format_subject(self.email_config['subject'])
+
+        self.uuid = generate_newsletter_uuid()
 
         self.is_preview = False
 
@@ -355,7 +371,7 @@ class Newsletter(object):
 
         return serve_template(
             templatename=template,
-            title=self.NAME,
+            title=self.subject,
             parameters=self.parameters,
             data=self.data,
             preview=self.is_preview
@@ -364,6 +380,30 @@ class Newsletter(object):
     def send(self):
         newsletter = self.generate_newsletter()
 
+        self._save(newsletter)
+        return self._send(newsletter)
+
+    def _save(self, newsletter):
+        newsletter_file = 'newsletter_%s-%s_%s.html' % (self.start_date.format('YYYYMMDD'),
+                                                        self.end_date.format('YYYYMMDD'),
+                                                        self.uuid)
+        newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR
+        newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
+
+        # In case the user has deleted it manually
+        if not os.path.exists(newsletter_folder):
+            os.makedirs(newsletter_folder)
+
+        try:
+            with open(newsletter_file_fp, 'w') as n_file:
+                n_file.write(newsletter)
+
+            logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
+        except OSError as e:
+            logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to %s: %s"
+                         % (self.NAME, newsletter_file, e))
+
+    def _send(self, newsletter):
         if not self._has_data():
             logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False

@@ -15,7 +15,9 @@
 release.lock
 version.lock
 logs/*
+backups/*
 cache/*
+newsletters/*
 *.mmdb
 
 # HTTPS Cert/Key #

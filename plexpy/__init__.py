@@ -167,6 +167,14 @@ def initialize(config_file):
             except OSError as e:
                 logger.error(u"Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
+        if not CONFIG.NEWSLETTER_DIR:
+            CONFIG.NEWSLETTER_DIR = os.path.join(DATA_DIR, 'newsletters')
+        if not os.path.exists(CONFIG.NEWSLETTER_DIR):
+            try:
+                os.makedirs(CONFIG.NEWSLETTER_DIR)
+            except OSError as e:
+                logger.error(u"Could not create newsletter dir '%s': %s" % (CONFIG.NEWSLETTER_DIR, e))
+
         # Initialize the database
         logger.info(u"Checking if the database upgrades are required...")
         try:

@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -78,7 +79,8 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
                                          notify_action=notify_action,
                                          subject=newsletter_agent.subject,
                                          start_date=newsletter_agent.start_date.format('YYYY-MM-DD'),
-                                         end_date=newsletter_agent.end_date.format('YYYY-MM-DD'))
+                                         end_date=newsletter_agent.end_date.format('YYYY-MM-DD'),
+                                         newsletter_uuid=newsletter_agent.uuid)
 
     # Send the notification
     success = newsletter_agent.send()
@@ -88,13 +90,13 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         return True
 
 
-def set_notify_state(newsletter, notify_action, subject, start_date, end_date):
+def set_notify_state(newsletter, notify_action, subject, start_date, end_date, newsletter_uuid):
 
     if newsletter and notify_action:
         db = database.MonitorDatabase()
 
         keys = {'timestamp': int(time.time()),
-                'uuid': generate_newsletter_uuid()}
+                'uuid': newsletter_uuid}
 
         values = {'newsletter_id': newsletter['id'],
                   'agent_id': newsletter['agent_id'],
@@ -118,22 +120,32 @@ def set_notify_success(newsletter_log_id):
     db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
 
 
-def generate_newsletter_uuid():
-    uuid = ''
-    uuid_exists = 0
-    db = database.MonitorDatabase()
-
-    while not uuid or uuid_exists:
-        uuid = plexpy.generate_uuid()[:8]
-        result = db.select_single(
-            'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
-        uuid_exists = result['uuid_exists']
-
-    return uuid
-
-
 def get_newsletter(newsletter_uuid):
     db = database.MonitorDatabase()
     result = db.select_single('SELECT newsletter_id, start_date, end_date FROM newsletter_log '
                               'WHERE uuid = ?', [newsletter_uuid])
-    return result
+
+    if result:
+        newsletter_id = result['newsletter_id']
+        start_date = result['start_date']
+        end_date = result['end_date']
+
+        newsletter_file = 'newsletter_%s-%s_%s.html' % (start_date.replace('-', ''),
+                                                        end_date.replace('-', ''),
+                                                        newsletter_uuid)
+        newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR
+        newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
+
+        if newsletter_file in os.listdir(newsletter_folder):
+            try:
+                with open(newsletter_file_fp, 'r') as n_file:
+                    newsletter = n_file.read()
+                return newsletter
+            except OSError as e:
+                logger.error(u"Tautulli NewsletterHandler :: Failed to retrieve newsletter '%s': %s" % (newsletter_uuid, e))
+                return "Failed to retrieve newsletter"
+        else:
+            logger.warn(u"Tautulli NewsletterHandler :: Newsletter '%s' file is missing." % newsletter_uuid)
+            return "Newsletter no longer exists"
+    else:
+        return "Newsletter does not exist"
