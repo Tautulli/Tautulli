@@ -790,7 +790,7 @@
                                 <div class="card-instance album" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
                                 % endif
                                     % if preview:
-                                    <div class="card-background-preview" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
+                                    <div class="card-background" style="background-image: url(${'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
                                     % else:
                                     <div class="card-background" style="background-image: url(${album['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                     % endif
