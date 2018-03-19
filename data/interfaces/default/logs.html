@@ -50,6 +50,7 @@
             <button class="btn btn-dark" id="download-plexscannerlog" style="display: none;"><i class="fa fa-download"></i> Download logs</button>
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
+            <button class="btn btn-dark" id="clear-newsletter-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-login-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
         </div>
     </div>
@@ -62,6 +63,7 @@
                 <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-plex_scanner_log" aria-controls="tabs-plex_scanner_log" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
                 <li role="presentation"><a id="plex-websocket-logs-btn" href="#tabs-plex_websocket_log" aria-controls="tabs-plex_websocket_log" role="tab" data-toggle="tab">Plex Websocket Logs</a></li>
                 <li role="presentation"><a id="notification-logs-btn" href="#tabs-notification_log" aria-controls="tabs-notification_log" role="tab" data-toggle="tab">Notification Logs</a></li>
+                <li role="presentation"><a id="newsletter-logs-btn" href="#tabs-newsletter_log" aria-controls="tabs-newsletter_log" role="tab" data-toggle="tab">Newsletter Logs</a></li>
                 <li role="presentation"><a id="login-logs-btn" href="#tabs-login_log" aria-controls="tabs-login_log" role="tab" data-toggle="tab">Login Logs</a></li>
             </ul>
             <div class="tab-content">
@@ -141,6 +143,24 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div role="tabpanel" class="tab-pane" id="tabs-newsletter_log">
+                    <table class="display" id="newsletter_log_table" width="100%">
+                        <thead>
+                            <tr>
+                                <th align="left" id="newsletter_timestamp">Timestamp</th>
+                                <th align="left" id="newsletter_newsletter_id">Newsletter ID</th>
+                                <th align="left" id="newsletter_agent_name">Agent</th>
+                                <th align="left" id="newsletter_notify_action">Action</th>
+                                <th align="left" id="newsletter_subject_text">Subject Text</th>
+                                <th align="left" id="newsletter_start_date">Start Date</th>
+                                <th align="left" id="newsletter_end_date">End Date</th>
+                                <th align="left" id="newsletter_uuid">UUID</th>
+                                <th align="left" id="newsletter_success"></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
                 <div role="tabpanel" class="tab-pane" id="tabs-login_log">
                     <table class="display login_log_table" id="login_log_table" width="100%">
                         <thead>
@@ -191,6 +211,7 @@
 <script src="${http_root}js/tables/logs.js${cache_param}"></script>
 <script src="${http_root}js/tables/plex_logs.js${cache_param}"></script>
 <script src="${http_root}js/tables/notification_logs.js${cache_param}"></script>
+<script src="${http_root}js/tables/newsletter_logs.js${cache_param}"></script>
 <script src="${http_root}js/tables/login_logs.js${cache_param}"></script>
 <script>
 
@@ -275,6 +296,18 @@
             notification_log_table = $('#notification_log_table').DataTable(notification_log_table_options);
         }
 
+        function loadNewsletterLogs() {
+            newsletter_log_table_options.ajax = {
+                url: "get_newsletter_log",
+                data: function (d) {
+                    return {
+                        json_data: JSON.stringify(d)
+                    };
+                }
+            };
+            newsletter_log_table = $('#newsletter_log_table').DataTable(newsletter_log_table_options);
+        }
+
         function loadLoginLogs() {
             login_log_table_options.pageLength = 50;
             login_log_table_options.ajax = {
@@ -296,6 +329,7 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").hide();
             loadtautullilogs('tautulli', selected_log_level);
             clearSearchButton('tautulli_log_table', log_table);
@@ -309,7 +343,8 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").hide();
-            $("#clear-login-logs").hide();
+             $("#clear-newsletter-logs").hide();
+           $("#clear-login-logs").hide();
             loadtautullilogs('tautulli_api', selected_log_level);
             clearSearchButton('tautulli_api_log_table', log_table);
         });
@@ -322,6 +357,7 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").hide();
             loadtautullilogs('plex_websocket', selected_log_level);
             clearSearchButton('plex_websocket_log_table', log_table);
@@ -335,6 +371,7 @@
             $("#download-plexserverlog").show();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").hide();
             loadPlexLogs();
             clearSearchButton('plex_log_table', plex_log_table);
@@ -348,6 +385,7 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").show();
             $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").hide();
             loadPlexScannerLogs();
             clearSearchButton('plex_scanner_log_table', plex_scanner_log_table);
@@ -361,9 +399,24 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").show();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").hide();
             loadNotificationLogs();
             clearSearchButton('notification_log_table', notification_log_table);
+        });
+
+        $("#newsletter-logs-btn").click(function () {
+            $("#tautulli-log-levels").hide();
+            $("#plex-log-levels").hide();
+            $("#clear-logs").hide();
+            $("#download-tautullilog").hide();
+            $("#download-plexserverlog").hide();
+            $("#download-plexscannerlog").hide();
+            $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").show();
+            $("#clear-login-logs").hide();
+            loadNewsletterLogs();
+            clearSearchButton('newsletter_log_table', newsletter_log_table);
         });
 
         $("#login-logs-btn").click(function () {
@@ -374,6 +427,7 @@
             $("#download-plexserverlog").hide();
             $("#download-plexscannerlog").hide();
             $("#clear-notify-logs").hide();
+            $("#clear-newsletter-logs").hide();
             $("#clear-login-logs").show();
             loadLoginLogs();
             clearSearchButton('login_log_table', notification_log_table);
@@ -437,6 +491,27 @@
                             showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
                         }
                         notification_log_table.draw();
+                    }
+                });
+            });
+        });
+
+        $("#clear-newsletter-logs").click(function () {
+            $("#confirm-message").text("Are you sure you want to clear the Tautulli Newsletter Logs?");
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                $.ajax({
+                    url: 'delete_newsletter_log',
+                    type: 'POST',
+                    complete: function (xhr, status) {
+                        result = $.parseJSON(xhr.responseText);
+                        msg = result.message;
+                        if (result.result === 'success') {
+                            showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                        } else {
+                            showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                        }
+                        newsletter_log_table.draw();
                     }
                 });
             });

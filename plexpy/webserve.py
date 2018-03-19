@@ -2394,8 +2394,8 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                order_column (str):             "timestamp", "agent_name", "notify_action",
-                                                "subject_text", "body_text", "script_args"
+                order_column (str):             "timestamp", "notifier_id", "agent_name", "notify_action",
+                                                "subject_text", "body_text",
                 order_dir (str):                "desc" or "asc"
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
@@ -2408,15 +2408,14 @@ class WebInterface(object):
                      "recordsFiltered": 163,
                      "data":
                         [{"agent_id": 13,
-                          "agent_name": "Telegram",
-                          "body_text": "Game of Thrones - S06E01 - The Red Woman [Transcode].",
+                          "agent_name": "telegram",
+                          "body_text": "DanyKhaleesi69 started playing The Red Woman.",
                           "id": 1000,
-                          "notify_action": "play",
-                          "poster_url": "http://i.imgur.com/ZSqS8Ri.jpg",
+                          "notify_action": "on_play",
                           "rating_key": 153037,
-                          "script_args": "[]",
                           "session_key": 147,
                           "subject_text": "Tautulli (Winterfell-Server)",
+                          "success": 1,
                           "timestamp": 1462253821,
                           "user": "DanyKhaleesi69",
                           "user_id": 8008135
@@ -2432,17 +2431,79 @@ class WebInterface(object):
         if not kwargs.get('json_data'):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("timestamp", True, True),
+                          ("notifier_id", True, True),
                           ("agent_name", True, True),
                           ("notify_action", True, True),
                           ("subject_text", True, True),
-                          ("body_text", True, True),
-                          ("script_args", True, True)]
+                          ("body_text", True, True)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
 
         data_factory = datafactory.DataFactory()
-        notifications = data_factory.get_notification_log(kwargs=kwargs)
+        notification_logs = data_factory.get_notification_log(kwargs=kwargs)
 
-        return notifications
+        return notification_logs
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_newsletter_log(self, **kwargs):
+        """ Get the data on the Tautulli newsletter logs table.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                order_column (str):             "timestamp", "newsletter_id", "agent_name", "notify_action",
+                                                "subject_text", "start_date", "end_date", "uuid"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Telegram"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 1039,
+                     "recordsFiltered": 163,
+                     "data":
+                        [{"agent_id": 0,
+                          "agent_name": "recently_added",
+                          "end_date": "2018-03-18",
+                          "id": 7,
+                          "newsletter_id": 1,
+                          "notify_action": "on_cron",
+                          "start_date": "2018-03-05",
+                          "subject_text": "Recently Added to Plex (Winterfell-Server)! (2018-03-18)",
+                          "success": 1,
+                          "timestamp": 1462253821,
+                          "uuid": "7fe4g65i"
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("timestamp", True, True),
+                          ("newsletter_id", True, True),
+                          ("agent_name", True, True),
+                          ("notify_action", True, True),
+                          ("subject_text", True, True),
+                          ("start_date", True, True),
+                          ("end_date", True, True),
+                          ("uuid", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
+
+        data_factory = datafactory.DataFactory()
+        newsletter_logs = data_factory.get_newsletter_log(kwargs=kwargs)
+
+        return newsletter_logs
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2466,6 +2527,31 @@ class WebInterface(object):
         result = data_factory.delete_notification_log()
         res = 'success' if result else 'error'
         msg = 'Cleared notification logs.' if result else 'Failed to clear notification logs.'
+
+        return {'result': res, 'message': msg}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_newsletter_log(self, **kwargs):
+        """ Delete the Tautulli newsletter logs.
+
+            ```
+            Required paramters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        data_factory = datafactory.DataFactory()
+        result = data_factory.delete_newsletter_log()
+        res = 'success' if result else 'error'
+        msg = 'Cleared newsletter logs.' if result else 'Failed to clear newsletter logs.'
 
         return {'result': res, 'message': msg}
 

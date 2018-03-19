@@ -1563,6 +1563,77 @@ class DataFactory(object):
             logger.warn(u"Tautulli DataFactory :: Unable to execute database query for delete_notification_log: %s." % e)
             return False
 
+    def get_newsletter_log(self, kwargs=None):
+        data_tables = datatables.DataTables()
+
+        columns = ['newsletter_log.id',
+                   'newsletter_log.timestamp',
+                   'newsletter_log.newsletter_id',
+                   'newsletter_log.agent_id',
+                   'newsletter_log.agent_name',
+                   'newsletter_log.notify_action',
+                   'newsletter_log.subject_text',
+                   'newsletter_log.start_date',
+                   'newsletter_log.end_date',
+                   'newsletter_log.uuid',
+                   'newsletter_log.success'
+                   ]
+        try:
+            query = data_tables.ssp_query(table_name='newsletter_log',
+                                          columns=columns,
+                                          custom_where=[],
+                                          group_by=[],
+                                          join_types=[],
+                                          join_tables=[],
+                                          join_evals=[],
+                                          kwargs=kwargs)
+        except Exception as e:
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_newsletter_log: %s." % e)
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'draw': 0,
+                    'data': 'null',
+                    'error': 'Unable to execute database query.'}
+
+        newsletters = query['result']
+
+        rows = []
+        for item in newsletters:
+            row = {'id': item['id'],
+                   'timestamp': item['timestamp'],
+                   'newsletter_id': item['newsletter_id'],
+                   'agent_id': item['agent_id'],
+                   'agent_name': item['agent_name'],
+                   'notify_action': item['notify_action'],
+                   'subject_text': item['subject_text'],
+                   'start_date': item['start_date'],
+                   'end_date': item['end_date'],
+                   'uuid': item['uuid'],
+                   'success': item['success']
+                   }
+
+            rows.append(row)
+
+        dict = {'recordsFiltered': query['filteredCount'],
+                'recordsTotal': query['totalCount'],
+                'data': rows,
+                'draw': query['draw']
+                }
+
+        return dict
+
+    def delete_newsletter_log(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            logger.info(u"Tautulli DataFactory :: Clearing newsletter logs from database.")
+            monitor_db.action('DELETE FROM newsletter_log')
+            monitor_db.action('VACUUM')
+            return True
+        except Exception as e:
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for delete_newsletter_log: %s." % e)
+            return False
+
     def get_user_devices(self, user_id=''):
         monitor_db = database.MonitorDatabase()
 

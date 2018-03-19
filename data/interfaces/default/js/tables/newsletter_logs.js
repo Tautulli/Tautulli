@@ -1,4 +1,4 @@
-notification_log_table_options = {
+newsletter_log_table_options = {
     "destroy": true,
     "serverSide": true,
     "processing": false,
@@ -31,7 +31,7 @@ notification_log_table_options = {
         },
         {
             "targets": [1],
-            "data": "notifier_id",
+            "data": "newsletter_id",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
@@ -48,7 +48,7 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "5%",
+            "width": "10%",
             "className": "no-wrap"
         },
         {
@@ -67,29 +67,49 @@ notification_log_table_options = {
             "data": "subject_text",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    $(td).html('<a href="newsletter/' + rowData['uuid'] + '" target="_blank">' + cellData + '</a>');
                 }
             },
-            "width": "25%"
+            "width": "38%"
         },
         {
             "targets": [5],
-            "data": "body_text",
+            "data": "start_date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "48%"
+            "width": "10%"
         },
         {
             "targets": [6],
+            "data": "end_date",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "10%"
+        },
+        {
+            "targets": [7],
+            "data": "uuid",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "10%"
+        },
+        {
+            "targets": [8],
             "data": "success",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1) {
-                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Sent"><i class="fa fa-lg fa-fw fa-check"></i></span>');
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Newsletter Sent"><i class="fa fa-lg fa-fw fa-check"></i></span>');
                 } else {
-                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Failed"><i class="fa fa-lg fa-fw fa-times"></i></span>');
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Newsletter Failed"><i class="fa fa-lg fa-fw fa-times"></i></span>');
                 }
             },
             "searchable": false,
