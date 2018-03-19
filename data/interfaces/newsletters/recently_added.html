@@ -560,27 +560,27 @@
 
     </style>
 </head>
-<body class="" style="font-family: sans-serif;-webkit-font-smoothing: antialiased;font-size: 14px;line-height: 1.4;margin: 0;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+<body class="" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;-webkit-font-smoothing: antialiased;font-size: 14px;line-height: 1.4;margin: 0;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
 <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
     <tr>
-        <td class="container" style="font-family: sans-serif;font-size: 14px;vertical-align: top;display: block;max-width: 1042px;padding: 10px;width: 1042px;margin: 0 auto !important;">
+        <td class="container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;display: block;max-width: 1042px;padding: 10px;width: 1042px;margin: 0 auto !important;">
             <div class="content" style="box-sizing: border-box;display: block;margin: 0 auto;max-width: 1042px;padding: 10px;">
 
                 <!-- START CENTERED WHITE CONTAINER -->
-                <span class="preheader">Tautulli Newsletter  - ${title}</span>
+                <span class="preheader" style="color: transparent;display: none;height: 0;max-height: 0;max-width: 0;opacity: 0;overflow: hidden;mso-hide: all;visibility: hidden;width: 0;">Tautulli Newsletter  - ${title}</span>
 
                 <table border="0" cellpadding="0" cellspacing="0" class="main" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background: #282A2D;border-radius: 3px;color: #ffffff;">
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
-                        <td class="wrapper newsletter-header" style="font-family: sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
+                        <td class="wrapper newsletter-header" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="header" style="background: url(https://i.imgur.com/oqMQJxp.png) no-repeat;background-position: calc(50% - 20px) 50%;background-size: contain;width: 100%;height: 100px;"></div>
                             <div class="server-name" style="font-size: 30px;text-align: center;">${parameters['server_name']}</div>
                             <div class="dates" style="color: #aaaaaa;font-size: 20px;text-align: center;">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>
                     <tr>
-                        <td style="font-family: sans-serif;font-size: 14px;vertical-align: top;">
+                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
                             % if recently_added.get('movie'):
                             <div class="wrapper" style="box-sizing: border-box;padding: 5px;overflow: auto;">
                                 <div class="sub-header">
@@ -608,7 +608,7 @@
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -691,7 +691,7 @@
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -796,7 +796,7 @@
                                     % endif
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #282828;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if preview else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
