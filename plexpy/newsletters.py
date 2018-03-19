@@ -326,6 +326,7 @@ class Newsletter(object):
         self.is_preview = False
 
         self.data = {}
+        self.newsletter = None
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -378,12 +379,12 @@ class Newsletter(object):
         )
 
     def send(self):
-        newsletter = self.generate_newsletter()
+        self.newsletter = self.generate_newsletter()
 
-        self._save(newsletter)
-        return self._send(newsletter)
+        self._save()
+        return self._send()
 
-    def _save(self, newsletter):
+    def _save(self):
         newsletter_file = 'newsletter_%s-%s_%s.html' % (self.start_date.format('YYYYMMDD'),
                                                         self.end_date.format('YYYYMMDD'),
                                                         self.uuid)
@@ -396,14 +397,14 @@ class Newsletter(object):
 
         try:
             with open(newsletter_file_fp, 'w') as n_file:
-                n_file.write(newsletter)
+                n_file.write(self.newsletter)
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
         except OSError as e:
             logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to %s: %s"
                          % (self.NAME, newsletter_file, e))
 
-    def _send(self, newsletter):
+    def _send(self):
         if not self._has_data():
             logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False
@@ -412,14 +413,14 @@ class Newsletter(object):
             return send_notification(
                 notifier_id=self.email_config['notifier'],
                 subject=self.subject,
-                body=newsletter
+                body=self.newsletter
             )
 
         else:
             email = EMAIL(config=self.email_config)
             return email.notify(
                 subject=self.subject,
-                body=newsletter
+                body=self.newsletter
             )
 
     def format_subject(self, subject=None):
@@ -588,6 +589,9 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def retrieve_data(self):
+        if not self.config['incl_libraries']:
+            logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
+
         media_types = {s['section_type'] for s in self._get_sections()
                        if str(s['section_id']) in self.config['incl_libraries']}
 
