@@ -3193,7 +3193,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def facebookStep1(self, app_id='', app_secret='', redirect_uri='', **kwargs):
+    def facebook_auth(self, app_id='', app_secret='', redirect_uri='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
         facebook_notifier = notifiers.FACEBOOK()
@@ -3208,7 +3208,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def facebookStep2(self, code='', **kwargs):
+    def facebook_redirect(self, code='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
         facebook = notifiers.FACEBOOK()
@@ -5151,10 +5151,10 @@ class WebInterface(object):
         quote_list = ['To crush your enemies, see them driven before you, and to hear the lamentation of their women!',
                       'Your clothes, give them to me, now!',
                       'Do it!',
-                      'If it bleeds, we can kill it',
+                      'If it bleeds, we can kill it.',
                       'See you at the party Richter!',
-                      'Let off some steam, Bennett',
-                      'I\'ll be back',
+                      'Let off some steam, Bennett.',
+                      'I\'ll be back.',
                       'Get to the chopper!',
                       'Hasta La Vista, Baby!',
                       'It\'s not a tumor!',
@@ -5175,7 +5175,7 @@ class WebInterface(object):
                       'What killed the dinosaurs? The Ice Age!',
                       'That\'s for sleeping with my wife!',
                       'Remember when I said I\'d kill you last... I lied!',
-                      'You want to be a farmer? Here\'s a couple of acres',
+                      'You want to be a farmer? Here\'s a couple of acres.',
                       'Now, this is the plan. Get your ass to Mars.',
                       'I just had a terrible thought... What if this is a dream?',
                       'Well, listen to this one: Rubber baby buggy bumpers!',

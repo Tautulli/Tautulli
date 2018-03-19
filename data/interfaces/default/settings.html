@@ -971,6 +971,9 @@
                         <p class="help-block">
                             Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
                         </p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
+                        </p>
                         <br />
                         <div id="plexpy-notifiers-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
@@ -1002,7 +1005,7 @@
                             <h3>Database Import</h3>
                         </div>
 
-                        <p class="help-block">Click a button below to import an exisiting database from another app.</p>
+                        <p class="help-block">Click a button below to import an existing database from another app.</p>
                         <div class="btn-group">
                             <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
                             <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
@@ -1249,7 +1252,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <ul class="stacked-configs list-unstyled">
-                                % for agent in available_notification_agents:
+                                % for agent in sorted(available_notification_agents, key=lambda k: k['label'].lower()):
                                 <li class="new-notification-agent" data-id="${agent['id']}">
                                     <span>${agent['label']}</span>
                                 </li>

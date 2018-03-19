@@ -43,9 +43,6 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
-                                                % if item['name'] == 'osx_notify_app':
-                                                <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
-                                                % endif
                                             </div>
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
@@ -431,16 +428,30 @@
     });
 
     % if notifier['agent_name'] == 'facebook':
+    if (location.protocol !== 'https:') {
+        $('#tabs-config .form-group:first').prepend(
+            '<div class="form-group">' +
+            '<label>Warning</label>' +
+            '<p class="help-block" style="color: #eb8600;">Facebook requires HTTPS for authorization. ' +
+            'Please enable HTTPS for Tautulli under <a data-tab-destination="tabs-web_interface" data-dismiss="modal" style="cursor: pointer;">Web Interface</a>.</p>' +
+            '</div>'
+        );
+        $('#facebook_redirect_uri').val('HTTPS not enabled');
+
+    } else {
+        $('#facebook_redirect_uri').val(location.href.split('/settings')[0] + '/facebook_redirect');
+    }
+
     function disableFacebookRequest() {
-        if ($('#facebook_app_id').val() !== '' && $('#facebook_app_secret').val() !== '') { $('#facebook_facebookStep1').prop('disabled', false); }
-        else { $('#facebook_facebookStep1').prop('disabled', true); }
+        if ($('#facebook_app_id').val() !== '' && $('#facebook_app_secret').val() !== '') { $('#facebook_facebook_auth').prop('disabled', false); }
+        else { $('#facebook_facebook_auth').prop('disabled', true); }
     }
     disableFacebookRequest();
     $('#facebook_app_id, #facebook_app_secret').on('change', function () {
         disableFacebookRequest();
     });
 
-    $('#facebook_facebookStep1').click(function () {
+    $('#facebook_facebook_auth').click(function () {
         // Remove trailing '/' from Facebook redirect URI
         if ($('#facebook_redirect_uri') && $('#facebook_redirect_uri').val().endsWith('/')) {
             $('#facebook_redirect_uri').val($('#facebook_redirect_uri').val().slice(0, -1));
@@ -448,7 +459,7 @@
 
         var facebook_token;
         $.ajax({
-            url: 'facebookStep1',
+            url: 'facebook_auth',
             data: {
                 app_id: $('#facebook_app_id').val(),
                 app_secret: $('#facebook_app_secret').val(),
@@ -506,7 +517,7 @@
     });
 
     % elif notifier['agent_name'] == 'osx':
-    $('#osxnotifyregister').click(function () {
+    $('#osx_notify_register').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     });

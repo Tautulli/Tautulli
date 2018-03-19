@@ -58,6 +58,10 @@ DOCUMENTATION :: END
             <div class="col-sm-12 text-muted stream-info-current">
                 <i class="fa fa-exclamation-circle"></i> Current session. Updated stream details below may be delayed.
             </div>
+            % elif data['pre_tautulli']:
+            <div class="col-sm-12 text-muted stream-info-current">
+                <i class="fa fa-exclamation-circle"></i> Pre-Tautulli history. Stream details below may be incorrect.
+            </div>
             % endif
             <table class="stream-info" style="margin-top: 0;">
                 <thead>
@@ -84,8 +88,8 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_bitrate']} kbps</td>
-                        <td>${data['bitrate']} kbps</td>
+                        <td>${data['stream_bitrate']} ${'kbps' if data['stream_bitrate'] else ''}</td>
+                        <td>${data['bitrate']} ${'kbps' if data['bitrate'] else ''}</td>
                     </tr>
                     % if data['media_type'] != 'track':
                     <tr>
@@ -154,8 +158,8 @@ DOCUMENTATION :: END
                     </tr>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_video_bitrate']} kbps</td>
-                        <td>${data['video_bitrate']} kbps</td>
+                        <td>${data['stream_video_bitrate']} ${'kbps' if data['stream_video_bitrate'] else ''}</td>
+                        <td>${data['video_bitrate']} ${'kbps' if data['video_bitrate'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Width</td>
@@ -199,8 +203,8 @@ DOCUMENTATION :: END
                     </tr>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_audio_bitrate']} kbps</td>
-                        <td>${data['audio_bitrate']} kbps</td>
+                        <td>${data['stream_audio_bitrate']} ${'kbps' if data['stream_audio_bitrate'] else ''}</td>
+                        <td>${data['audio_bitrate']} ${'kbps' if data['audio_bitrate'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Channels</td>
