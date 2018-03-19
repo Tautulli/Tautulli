@@ -55,7 +55,7 @@ DOCUMENTATION :: END
             })
         }
         return deferred;
-    }
+    };
 
     function checkQRAddress(url) {
         var parser = document.createElement('a');
@@ -82,7 +82,7 @@ DOCUMENTATION :: END
         verifiedDevice = false;
 
         getPlexPyURL().then(function (url) {
-            checkQRAddress(url)
+            checkQRAddress(url);
 
             $.get('generate_api_key', { device: true }).then(function (token) {
                 $('#api_qr_address').val(url);
@@ -120,7 +120,7 @@ DOCUMENTATION :: END
 
     $('#api_qr_address').change(function () {
         var url = $(this).val();
-        checkQRAddress(url)
+        checkQRAddress(url);
 
         $('#api_qr_code').empty().qrcode({
             text: url + '|' + $('#api_qr_token').val()

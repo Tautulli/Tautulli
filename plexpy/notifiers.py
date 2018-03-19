@@ -143,6 +143,10 @@ def available_notification_agents():
                'name': 'join',
                'id': AGENT_IDS['join']
                },
+              {'label': 'Kodi',
+               'name': 'xbmc',
+               'id': AGENT_IDS['xbmc']
+               },
               {'label': 'Notify My Android',
                'name': 'nma',
                'id': AGENT_IDS['nma']
@@ -159,10 +163,10 @@ def available_notification_agents():
                'name': 'prowl',
                'id': AGENT_IDS['prowl']
                },
-              {'label': 'Pushalot',
-               'name': 'pushalot',
-               'id': AGENT_IDS['pushalot']
-               },
+              # {'label': 'Pushalot',
+              #  'name': 'pushalot',
+              #  'id': AGENT_IDS['pushalot']
+              #  },
               {'label': 'Pushbullet',
                'name': 'pushbullet',
                'id': AGENT_IDS['pushbullet']
@@ -187,10 +191,6 @@ def available_notification_agents():
                'name': 'twitter',
                'id': AGENT_IDS['twitter']
                },
-              {'label': 'XBMC',
-               'name': 'xbmc',
-               'id': AGENT_IDS['xbmc']
-               },
               {'label': 'Zapier',
                'name': 'zapier',
                'id': AGENT_IDS['zapier']
@@ -199,7 +199,7 @@ def available_notification_agents():
 
     # OSX Notifications should only be visible if it can be used
     if OSX().validate():
-        agents.append({'label': 'OSX Notify',
+        agents.append({'label': 'macOS Notification Center',
                        'name': 'osx',
                        'id': AGENT_IDS['osx']
                        })
@@ -1441,7 +1441,7 @@ class FACEBOOK(Notifier):
         plexpy.CONFIG.FACEBOOK_TOKEN = 'temp'
 
         return facebook.auth_url(app_id=app_id,
-                                 canvas_url=redirect_uri + '/facebookStep2',
+                                 canvas_url=redirect_uri,
                                  perms=['user_managed_groups','publish_actions'])
 
     def _get_credentials(self, code=''):
@@ -1455,7 +1455,7 @@ class FACEBOOK(Notifier):
             # Request user access token
             api = facebook.GraphAPI(version='2.12')
             response = api.get_access_token_from_code(code=code,
-                                                      redirect_uri=redirect_uri + '/facebookStep2',
+                                                      redirect_uri=redirect_uri,
                                                       app_id=app_id,
                                                       app_secret=app_secret)
             access_token = response['access_token']
@@ -1519,25 +1519,11 @@ class FACEBOOK(Notifier):
         return self._post_facebook(**data)
 
     def return_config_options(self):
-        config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank">'
-                                         'Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>'
-                                         'Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong>'
-                                         'for <strong>Facebook Login</strong>.<br>'
-                                         'Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your Tautulli URL (e.g. http://localhost:8181).<br>'
-                                         'Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>'
-                                         'Step 5: Fill in the <strong>Tautulli URL</strong> below with the exact same URL from Step 3.<br>'
-                                         'Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>'
-                                         'Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>'
-                                         'Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>'
-                                         'Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
-                          'input_type': 'help'
-                          },
-                         {'label': 'Tautulli URL',
+        config_option = [{'label': 'OAuth Redirect URI',
                           'value': self.config['redirect_uri'],
                           'name': 'facebook_redirect_uri',
-                          'description': 'Your Tautulli URL. This will tell Facebook where to redirect you after authorization.\
-                                          (e.g. http://localhost:8181)',
+                          'description': 'Fill in this address for the "Valid OAuth redirect URIs" '
+                                         'in your Facebook App.',
                           'input_type': 'text'
                           },
                          {'label': 'Facebook App ID',
@@ -1554,14 +1540,15 @@ class FACEBOOK(Notifier):
                           },
                          {'label': 'Request Authorization',
                           'value': 'Request Authorization',
-                          'name': 'facebook_facebookStep1',
+                          'name': 'facebook_facebook_auth',
                           'description': 'Request Facebook authorization. (Ensure you allow the browser pop-up).',
                           'input_type': 'button'
                           },
                          {'label': 'Facebook Access Token',
                           'value': self.config['access_token'],
                           'name': 'facebook_access_token',
-                          'description': 'Your Facebook access token. Automatically filled in after requesting authorization.',
+                          'description': 'Your Facebook access token. '
+                                         'Automatically filled in after requesting authorization.',
                           'input_type': 'text'
                           },
                          {'label': 'Facebook Group ID',
@@ -1760,7 +1747,7 @@ class GROWL(Notifier):
         config_option = [{'label': 'Growl Host',
                           'value': self.config['host'],
                           'name': 'growl_host',
-                          'description': 'Your Growl hostname.',
+                          'description': 'Your Growl hostname or IP address.',
                           'input_type': 'text'
                           },
                          {'label': 'Growl Password',
@@ -1862,7 +1849,7 @@ class HIPCHAT(Notifier):
         return self.make_request(self.config['hook'], headers=headers, json=data)
 
     def return_config_options(self):
-        config_option = [{'label': 'Hipchat Custom Integrations Full URL',
+        config_option = [{'label': 'Hipchat Custom Integrations URL',
                           'value': self.config['hook'],
                           'name': 'hipchat_hook',
                           'description': 'Your Hipchat BYO integration URL. You can get a key from'
@@ -2317,9 +2304,9 @@ class NMA(Notifier):
 
 class OSX(Notifier):
     """
-    OSX notifications
+    macOS notifications
     """
-    NAME = 'OSX Notify'
+    NAME = 'macOS'
     _DEFAULT_CONFIG = {'notify_app': '/Applications/Tautulli'
                        }
 
@@ -2485,7 +2472,7 @@ class PLEX(Notifier):
         return True
 
     def return_config_options(self):
-        config_option = [{'label': 'Plex Home Theater Host:Port',
+        config_option = [{'label': 'Plex Home Theater Host Address',
                           'value': self.config['hosts'],
                           'name': 'plex_hosts',
                           'description': 'Host running Plex Home Theater (eg. http://localhost:3005). Separate multiple hosts with commas (,).',
@@ -2676,10 +2663,10 @@ class PUSHBULLET(Notifier):
             return {'': ''}
 
     def return_config_options(self):
-        config_option = [{'label': 'Pushbullet API Key',
+        config_option = [{'label': 'Pushbullet Access Token',
                           'value': self.config['api_key'],
                           'name': 'pushbullet_api_key',
-                          'description': 'Your Pushbullet API key.',
+                          'description': 'Your Pushbullet access token.',
                           'input_type': 'text',
                           'refresh': True
                           },
@@ -3426,16 +3413,7 @@ class TWITTER(Notifier):
             return self._send_tweet(body, attachment=poster_url)
 
     def return_config_options(self):
-        config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank">'
-                                         'Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>'
-                                         'Step 2: Go to <strong>Keys and Access Tokens</strong> and click '
-                                         '<strong>Create my access token</strong>.<br>'
-                                         'Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, '
-                                         '<strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
-                          'input_type': 'help'
-                          },
-                         {'label': 'Twitter Consumer Key',
+        config_option = [{'label': 'Twitter Consumer Key',
                           'value': self.config['consumer_key'],
                           'name': 'twitter_consumer_key',
                           'description': 'Your Twitter consumer key.',
@@ -3479,9 +3457,9 @@ class TWITTER(Notifier):
 
 class XBMC(Notifier):
     """
-    XBMC notifications
+    Kodi notifications
     """
-    NAME = 'XBMC'
+    NAME = 'Kodi'
     _DEFAULT_CONFIG = {'hosts': '',
                        'username': '',
                        'password': '',
@@ -3551,22 +3529,22 @@ class XBMC(Notifier):
         return True
 
     def return_config_options(self):
-        config_option = [{'label': 'XBMC Host:Port',
+        config_option = [{'label': 'Kodi Host Address',
                           'value': self.config['hosts'],
                           'name': 'xbmc_hosts',
-                          'description': 'Host running XBMC (e.g. http://localhost:8080). Separate multiple hosts with commas (,).',
+                          'description': 'Host running Kodi (e.g. http://localhost:8080). Separate multiple hosts with commas (,).',
                           'input_type': 'text'
                           },
-                         {'label': 'XBMC Username',
+                         {'label': 'Kodi Username',
                           'value': self.config['username'],
                           'name': 'xbmc_username',
-                          'description': 'Username of your XBMC client API (blank for none).',
+                          'description': 'Username of your Kodi client API (blank for none).',
                           'input_type': 'text'
                           },
-                         {'label': 'XBMC Password',
+                         {'label': 'Kodi Password',
                           'value': self.config['password'],
                           'name': 'xbmc_password',
-                          'description': 'Password of your XBMC client API (blank for none).',
+                          'description': 'Password of your Kodi client API (blank for none).',
                           'input_type': 'password'
                           },
                          {'label': 'Notification Duration',

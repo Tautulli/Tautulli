@@ -3191,7 +3191,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def facebookStep1(self, app_id='', app_secret='', redirect_uri='', **kwargs):
+    def facebook_auth(self, app_id='', app_secret='', redirect_uri='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
         facebook_notifier = notifiers.FACEBOOK()
@@ -3206,7 +3206,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def facebookStep2(self, code='', **kwargs):
+    def facebook_redirect(self, code='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
         facebook = notifiers.FACEBOOK()
