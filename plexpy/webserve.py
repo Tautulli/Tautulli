@@ -5599,23 +5599,25 @@ class WebInterface(object):
             return "No newsletter id received."
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def newsletter(self, *args, **kwargs):
-        newsletter_uuid = args[0] if args else None
-        newsletter_id = kwargs.pop('newsletter_id', None)
-        return serve_template(templatename="newsletter_preview.html",
-                              title="Newsletter",
-                              newsletter_id=newsletter_id,
-                              newsletter_uuid=newsletter_uuid)
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def real_newsletter(self, newsletter_id=None, newsletter_uuid=None, start_date=None, end_date=None,
-                        preview=False, master=False, raw=False, **kwargs):
-        if newsletter_uuid:
+        if args:
+            newsletter_uuid = args[0]
             newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
             return newsletter
 
+        return self._newsletter(**kwargs)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def _newsletter(self, newsletter_id=None, **kwargs):
+        return serve_template(templatename="newsletter_preview.html",
+                              title="Newsletter",
+                              newsletter_id=newsletter_id)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def real_newsletter(self, newsletter_id=None, start_date=None, end_date=None,
+                        preview=False, master=False, raw=False, **kwargs):
         if newsletter_id and newsletter_id != 'None':
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 

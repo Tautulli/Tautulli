@@ -27,11 +27,7 @@
 <script>
 $(document).ready(function () {
     var frame = $('<iframe></iframe>', {
-        % if newsletter_uuid:
-        src: '${http_root}real_newsletter?newsletter_uuid=${newsletter_uuid}',
-        % else:
         src: '${http_root}real_newsletter?newsletter_id=${newsletter_id}&preview=true',
-        % endif
         frameborder: '0',
         style: 'display: none; height: 100vh; width: 100vw;'
     });
