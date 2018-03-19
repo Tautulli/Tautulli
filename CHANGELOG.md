@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.24 (2018-03-18)
+
+* Monitoring:
+  * Fix: Fix stream data not showing for history recorded before v2.
+* Notifications:
+  * Fix: Set all environment variables for scripts.
+  * Change: Moved all notification agent instructions to the wiki.
+  * Change: XBMC notification agent renamed to Kodi.
+  * Change: OSX Notify notification agent renamed to macOS Notification Center.
+
+
 ## v2.0.23-beta (2018-03-16)
 
 * Monitoring:
