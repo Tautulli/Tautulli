@@ -45,9 +45,6 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
-                                                % if item['name'] == 'osx_notify_app':
-                                                <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
-                                                % endif
                                             </div>
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
@@ -522,7 +519,7 @@
     });
 
     % elif notifier['agent_name'] == 'osx':
-    $('#osxnotifyregister').click(function () {
+    $('#osx_notify_register').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     });

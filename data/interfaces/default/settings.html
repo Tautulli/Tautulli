@@ -1233,7 +1233,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <ul class="stacked-configs list-unstyled">
-                                % for agent in available_notification_agents:
+                                % for agent in sorted(available_notification_agents, key=lambda k: k['label'].lower()):
                                 <li class="new-notification-agent" data-id="${agent['id']}">
                                     <span>${agent['label']}</span>
                                 </li>

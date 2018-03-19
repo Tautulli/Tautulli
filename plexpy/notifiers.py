@@ -2389,9 +2389,15 @@ class OSX(Notifier):
         config_option = [{'label': 'Register Notify App',
                           'value': self.config['notify_app'],
                           'name': 'osx_notify_app',
-                          'description': 'Enter the path/application name to be registered with the '
-                                         'Notification Center, default is /Applications/Tautulli.',
+                          'description': 'Enter the path/application name to be registered with the Notification Center. '
+                                         'Default is <span class="inline-pre">/Applications/Tautulli</span>.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Register App',
+                          'value': 'Register App',
+                          'name': 'osx_notify_register',
+                          'description': 'Register Tautulli with the Notification Center.',
+                          'input_type': 'button'
                           }
                          ]
 
