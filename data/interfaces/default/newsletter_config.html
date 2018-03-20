@@ -239,7 +239,7 @@
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
                                     </div>
-                                    % elif item['input_type'] == 'checkbox' and item['name'] != 'email_html_support':
+                                    % elif item['input_type'] == 'checkbox' and item['name'] != 'newsletter_email_html_support':
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
@@ -294,7 +294,7 @@
                                     </div>
                                     % endif
                                     % endfor
-                                    <input type="hidden" id="email_html_support" name="email_html_support" value="1">
+                                    <input type="hidden" id="newsletter_email_html_support" name="newsletter_email_html_support" value="1">
                                 </div>
                             </div>
                         </div>
@@ -387,7 +387,7 @@
 
     var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +
                       '(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)';
-    var $email_selectors = $('#email_to, #email_cc, #email_bcc').selectize({
+    var $email_selectors = $('#newsletter_email_to, #newsletter_email_cc, #newsletter_email_bcc').selectize({
         plugins: ['remove_button'],
         maxItems: null,
         render: {
@@ -453,9 +453,9 @@
     var email_to = $email_selectors[0].selectize;
     var email_cc = $email_selectors[1].selectize;
     var email_bcc = $email_selectors[2].selectize;
-    email_to.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_to'), [])) | n});
-    email_cc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_cc'), [])) | n});
-    email_bcc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'email_bcc'), [])) | n});
+    email_to.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_to'), [])) | n});
+    email_cc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_cc'), [])) | n});
+    email_bcc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_bcc'), [])) | n});
 
     function reloadModal() {
         $.ajax({

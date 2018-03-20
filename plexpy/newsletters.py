@@ -209,7 +209,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         return False
 
     config_prefix = agent['name'] + '_'
-    email_config_prefix = 'email_'
+    email_config_prefix = 'newsletter_email_'
 
     newsletter_config = {k[len(config_prefix):]: kwargs.pop(k)
                          for k in kwargs.keys() if k.startswith(config_prefix)}
@@ -350,7 +350,11 @@ class Newsletter(object):
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             elif isinstance(v, list):
-                new_config[k] = list(config.get(k, v))
+                c = config.get(k, v)
+                if not isinstance(c, list):
+                    new_config[k] = [c]
+                else:
+                    new_config[k] = c
             else:
                 new_config[k] = config.get(k, v)
 
@@ -489,7 +493,10 @@ class Newsletter(object):
         return config_options
 
     def return_email_config_options(self):
-        return EMAIL(self.email_config).return_config_options()
+        config_options = EMAIL(self.email_config).return_config_options()
+        for c in config_options:
+            c['name'] = 'newsletter_' + c['name']
+        return config_options
 
 
 class RecentlyAdded(Newsletter):

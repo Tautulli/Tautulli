@@ -767,13 +767,19 @@ class Notifier(object):
         for k, v in default.iteritems():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
+            elif isinstance(v, list):
+                c = config.get(k, v)
+                if not isinstance(c, list):
+                    new_config[k] = [c]
+                else:
+                    new_config[k] = c
             else:
                 new_config[k] = config.get(k, v)
 
         return new_config
 
     def return_default_config(self):
-        return self._DEFAULT_CONFIG
+        return self._DEFAULT_CONFIG.copy()
 
     def notify(self, subject='', body='', action='', **kwargs):
         if self.NAME != 'Script':
@@ -1274,9 +1280,9 @@ class EMAIL(Notifier):
     NAME = 'Email'
     _DEFAULT_CONFIG = {'from_name': 'Tautulli',
                        'from': '',
-                       'to': '',
-                       'cc': '',
-                       'bcc': '',
+                       'to': [],
+                       'cc': [],
+                       'bcc': [],
                        'smtp_server': '',
                        'smtp_port': 25,
                        'smtp_user': '',
@@ -1284,16 +1290,6 @@ class EMAIL(Notifier):
                        'tls': 0,
                        'html_support': 1
                        }
-
-    def __init__(self, config=None):
-        super(EMAIL, self).__init__(config=config)
-
-        if not isinstance(self.config['to'], list):
-            self.config['to'] = [x.strip() for x in self.config['to'].split(';')]
-        if not isinstance(self.config['cc'], list):
-            self.config['cc'] = [x.strip() for x in self.config['cc'].split(';')]
-        if not isinstance(self.config['bcc'], list):
-            self.config['bcc'] = [x.strip() for x in self.config['bcc'].split(';')]
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['html_support']:
@@ -2005,7 +2001,7 @@ class JOIN(Notifier):
     """
     NAME = 'Join'
     _DEFAULT_CONFIG = {'api_key': '',
-                       'device_names': '',
+                       'device_names': [],
                        'priority': 2,
                        'incl_subject': 1,
                        'incl_poster': 0,
@@ -2013,12 +2009,6 @@ class JOIN(Notifier):
                        'tv_provider': '',
                        'music_provider': ''
                        }
-
-    def __init__(self, config=None):
-        super(JOIN, self).__init__(config=config)
-
-        if not isinstance(self.config['device_names'], list):
-            self.config['device_names'] = [x.strip() for x in self.config['device_names'].split(',')]
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['api_key'],
