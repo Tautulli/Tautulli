@@ -480,7 +480,6 @@ fieldset[disabled] .btn-bright.active {
     height: 32px;
     width: 100%;
     margin-top: 5px;
-    opacity: 0.65;
 }
 #user-selection label {
     margin-bottom: 0;

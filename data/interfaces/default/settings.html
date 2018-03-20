@@ -2437,6 +2437,10 @@ $(document).ready(function() {
         });
     });
 
+    $('#newsletter_base_url').change(function () {
+       $(this).val($(this).val().replace(/\/*$/, ''));
+    });
+
     function apiEnabled() {
         var api_enabled = $('#api_enabled').prop('checked');
         $('#app_api_msg').toggle(!(api_enabled));
