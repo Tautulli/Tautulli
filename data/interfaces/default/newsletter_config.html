@@ -350,7 +350,7 @@
         }
     }); // apply cron with default options
 
-    var $incl_libraries = $('#recently_added_incl_libraries').selectize({
+    var $incl_libraries = $('#newsletter_config_incl_libraries').selectize({
         plugins: ['remove_button'],
         maxItems: null,
         render: {
@@ -375,7 +375,7 @@
         }
     });
     var incl_libraries = $incl_libraries[0].selectize;
-    incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'recently_added_incl_libraries'), [])) | n});
+    incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
     $('#email_notifier').change(function () {
         if ($(this).val() === "0") {

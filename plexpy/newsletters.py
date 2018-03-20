@@ -208,7 +208,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
                      % agent_id)
         return False
 
-    config_prefix = agent['name'] + '_'
+    config_prefix = 'newsletter_config_'
     email_config_prefix = 'newsletter_email_'
 
     newsletter_config = {k[len(config_prefix):]: kwargs.pop(k)
@@ -289,7 +289,8 @@ def generate_newsletter_uuid():
 
 class Newsletter(object):
     NAME = ''
-    _DEFAULT_CONFIG = {'last_days': 7}
+    _DEFAULT_CONFIG = {'last_days': 7,
+                       'self_hosted': 0}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier'] = 0
@@ -336,7 +337,7 @@ class Newsletter(object):
         self.data = {}
         self.newsletter = None
 
-        self.is_preview = False
+        self.is_preview = bool(self.config['self_hosted'])
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -398,6 +399,10 @@ class Newsletter(object):
         self.newsletter = self.generate_newsletter()
 
         self._save()
+
+        if self.is_preview:
+            return True
+
         return self._send()
 
     def _save(self):
@@ -489,7 +494,24 @@ class Newsletter(object):
         return subject, body
 
     def return_config_options(self):
-        config_options = []
+        return self._return_config_options()
+
+    def _return_config_options(self):
+        config_options = [
+            {'label': 'Self-Hosted',
+             'value': self.config['self_hosted'],
+             'description': 'Self-host this newsletter.',
+             'name': 'newsletter_config_self_hosted',
+             'input_type': 'checkbox'
+             },
+            {'label': 'Number of Days',
+             'value': self.config['last_days'],
+             'name': 'newsletter_config_last_days',
+             'description': 'The past number of days to include in the newsletter.',
+             'input_type': 'number'
+             }
+        ]
+
         return config_options
 
     def return_email_config_options(self):
@@ -504,9 +526,8 @@ class RecentlyAdded(Newsletter):
     Recently Added Newsletter
     """
     NAME = 'Recently Added'
-    _DEFAULT_CONFIG = {'last_days': 7,
-                       'incl_libraries': []
-                       }
+    _DEFAULT_CONFIG = Newsletter._DEFAULT_CONFIG.copy()
+    _DEFAULT_CONFIG['incl_libraries'] = []
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _TEMPLATE_MASTER = 'recently_added_master.html'
@@ -713,19 +734,16 @@ class RecentlyAdded(Newsletter):
         return parameters
 
     def return_config_options(self):
-        config_option = [{'label': 'Number of Days',
-                          'value': self.config['last_days'],
-                          'name': 'recently_added_last_days',
-                          'description': 'The past number of days to include in the newsletter.',
-                          'input_type': 'number'
-                          },
-                         {'label': 'Included Libraries',
-                          'value': self.config['incl_libraries'],
-                          'description': 'Select the libraries to include in the newsletter.',
-                          'name': 'recently_added_incl_libraries',
-                          'input_type': 'selectize',
-                          'select_options': self._get_sections_options()
-                          }
-                         ]
+        config_options = self._return_config_options()
 
-        return config_option
+        additional_config = [
+            {'label': 'Included Libraries',
+             'value': self.config['incl_libraries'],
+             'description': 'Select the libraries to include in the newsletter.',
+             'name': 'newsletter_config_incl_libraries',
+             'input_type': 'selectize',
+             'select_options': self._get_sections_options()
+             }
+        ]
+
+        return config_options + additional_config
