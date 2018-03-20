@@ -418,7 +418,7 @@ class Newsletter(object):
 
         try:
             with open(newsletter_file_fp, 'w') as n_file:
-                n_file.write(self.newsletter)
+                n_file.write(self.newsletter.encode('utf-8'))
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
         except OSError as e:
