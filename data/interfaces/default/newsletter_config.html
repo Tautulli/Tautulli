@@ -176,14 +176,27 @@
                                         <p class="help-block">Use an existing Email notification agent or enter a new configuration below.</p>
                                     </div>
                                     <div class="form-group">
-                                        <label for="email_subject">Email Subject</label>
+                                        <label for="subject">Subject</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <input type="text" class="form-control" id="email_subject" name="email_subject" value="${newsletter['email_config']['subject']}" size="30">
+                                                <input type="text" class="form-control" id="subject" name="subject" value="${newsletter['subject']}" size="30">
                                             </div>
                                         </div>
                                         <p class="help-block">
                                             Optional: Enter a subject line for the email. Leave blank for default.
+                                            <br>
+                                            Note: You may include <span class="inline-pre">{server_name}</span>, <span class="inline-pre">{start_date}</span>, and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
+                                        </p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="body">Body</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="text" class="form-control" id="body" name="body" value="${newsletter['body']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Optional: Enter a body line for the email. Leave blank for default.
                                             <br>
                                             Note: You may include <span class="inline-pre">{server_name}</span>, <span class="inline-pre">{start_date}</span>, and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
                                         </p>

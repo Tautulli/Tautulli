@@ -29,7 +29,7 @@ import logger
 import newsletter_handler
 import notification_handler
 import pmsconnect
-from notification_handler import get_poster_info
+from notification_handler import get_poster_info, CustomFormatter
 from notifiers import send_notification, EMAIL
 
 
@@ -55,6 +55,7 @@ def available_notification_actions():
                 'name': 'on_cron',
                 'description': 'Trigger a notification on a certain schedule.',
                 'subject': 'Tautulli Newsletter',
+                'body': 'Tautulli Newsletter',
                 'icon': 'fa-calendar',
                 'media_types': ('newsletter',)
                 }
@@ -63,14 +64,17 @@ def available_notification_actions():
     return actions
 
 
-def get_agent_class(agent_id=None, config=None, email_config=None, start_date=None, end_date=None):
+def get_agent_class(agent_id=None, config=None, email_config=None, start_date=None, end_date=None,
+                    subject=None, body=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
         kwargs = {'config': config,
                   'email_config': email_config,
                   'start_date': start_date,
-                  'end_date': end_date}
+                  'end_date': end_date,
+                  'subject': subject,
+                  'body': body}
 
         if agent_id == 0:
             return RecentlyAdded(**kwargs)
@@ -131,13 +135,18 @@ def get_newsletter_config(newsletter_id=None):
     try:
         config = json.loads(result.pop('newsletter_config', '{}'))
         email_config = json.loads(result.pop('email_config', '{}'))
-        newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config)
+        subject = result.pop('subject')
+        body = result.pop('body')
+        newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config,
+                                           subject=subject, body=body)
         newsletter_config = newsletter_agent.return_config_options()
         newsletter_email_config = newsletter_agent.return_email_config_options()
     except Exception as e:
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
+    result['subject'] = newsletter_agent.subject
+    result['body'] = newsletter_agent.body
     result['config'] = config
     result['email_config'] = email_config
     result['config_options'] = newsletter_config
@@ -169,7 +178,9 @@ def add_newsletter_config(agent_id=None, **kwargs):
               'agent_label': agent['label'],
               'friendly_name': '',
               'newsletter_config': json.dumps(agent_class.config),
-              'email_config': json.dumps(agent_class.email_config)
+              'email_config': json.dumps(agent_class.email_config),
+              'subject': agent_class.subject,
+              'body': agent_class.body
               }
 
     db = database.MonitorDatabase()
@@ -207,7 +218,11 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in kwargs.keys() if k.startswith(email_config_prefix)}
 
-    agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config)
+    subject = kwargs.pop('subject')
+    body = kwargs.pop('body')
+
+    agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config,
+                                  subject=subject, body=body)
 
     keys = {'id': newsletter_id}
     values = {'agent_id': agent['id'],
@@ -216,6 +231,8 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
               'friendly_name': kwargs.get('friendly_name', ''),
               'newsletter_config': json.dumps(agent_class.config),
               'email_config': json.dumps(agent_class.email_config),
+              'subject': agent_class.subject,
+              'body': agent_class.body,
               'cron': kwargs.get('cron'),
               'active': kwargs.get('active')
               }
@@ -232,16 +249,15 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_newsletter(newsletter_id=None, subject=None, notify_action='', newsletter_log_id=None, **kwargs):
+def send_newsletter(newsletter_id=None, subject=None, body=None, newsletter_log_id=None, **kwargs):
     newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
     if newsletter_config:
         agent = get_agent_class(agent_id=newsletter_config['agent_id'],
                                 config=newsletter_config['config'],
-                                email_config=newsletter_config['email_config'])
-        return agent.send(subject=subject,
-                          action=notify_action.split('on_')[-1],
-                          newsletter_log_id=newsletter_log_id,
-                          **kwargs)
+                                email_config=newsletter_config['email_config'],
+                                subject=subject,
+                                body=body)
+        return agent.send()
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
@@ -279,15 +295,16 @@ class Newsletter(object):
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier'] = 0
-    _DEFAULT_EMAIL_CONFIG['subject'] = 'Tautulli Newsletter'
+    _DEFAULT_SUBJECT = 'Tautulli Newsletter'
+    _DEFAULT_BODY = 'Tautulli Newsletter'
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None):
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None, subject=None, body=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
 
-        date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
+        self.uuid = generate_newsletter_uuid()
 
         self.start_date = None
         self.end_date = None
@@ -313,22 +330,19 @@ class Newsletter(object):
         self.end_time = self.end_date.timestamp
         self.start_time = self.start_date.timestamp
 
-        self.parameters = {
-            'start_date': self.start_date.format(date_format),
-            'end_date': self.end_date.format(date_format),
-            'server_name': plexpy.CONFIG.PMS_NAME
-        }
-
-        self.subject = self.format_subject(self.email_config['subject'])
-
-        self.uuid = generate_newsletter_uuid()
-
-        self.is_preview = False
+        self.parameters = self.build_params()
+        self.subject = subject or self._DEFAULT_SUBJECT
+        self.body = body or self._DEFAULT_BODY
+        self.subject_formatted, self.body_formatted = self.build_text()
 
         self.data = {}
         self.newsletter = None
 
+        self.is_preview = False
+
     def set_config(self, config=None, default=None):
+        self._add_config()
+
         return self._validate_config(config=config, default=default)
 
     def _validate_config(self, config=None, default=None):
@@ -343,6 +357,9 @@ class Newsletter(object):
                 new_config[k] = config.get(k, v)
 
         return new_config
+
+    def _add_config(self):
+        pass
 
     def retrieve_data(self):
         pass
@@ -372,7 +389,7 @@ class Newsletter(object):
 
         return serve_template(
             templatename=template,
-            title=self.subject,
+            title=self.subject_formatted,
             parameters=self.parameters,
             data=self.data,
             preview=self.is_preview
@@ -412,32 +429,62 @@ class Newsletter(object):
         if self.email_config['notifier']:
             return send_notification(
                 notifier_id=self.email_config['notifier'],
-                subject=self.subject,
+                subject=self.subject_formatted,
                 body=self.newsletter
             )
 
         else:
             email = EMAIL(config=self.email_config)
             return email.notify(
-                subject=self.subject,
+                subject=self.subject_formatted,
                 body=self.newsletter
             )
 
-    def format_subject(self, subject=None):
-        subject = subject or self._DEFAULT_EMAIL_CONFIG['subject']
+    def build_params(self):
+        parameters = self._build_params()
+
+        return parameters
+
+    def _build_params(self):
+        date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
+
+        parameters = {
+            'server_name': plexpy.CONFIG.PMS_NAME,
+            'start_date': self.start_date.format(date_format),
+            'end_date': self.end_date.format(date_format),
+            'newsletter_days': self.config['last_days'],
+            'newsletter_url': 'http://localhost:8181/dev'.rstrip('/') + '/newsletter/' + self.uuid,
+            'newsletter_uuid': self.uuid
+        }
+
+        return parameters
+
+    def build_text(self):
+        custom_formatter = CustomFormatter()
 
         try:
-            subject = unicode(subject).format(**self.parameters)
+            subject = custom_formatter.format(unicode(self.subject), **self.parameters)
         except LookupError as e:
             logger.error(
                 u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
-            subject = unicode(self._DEFAULT_EMAIL_CONFIG['subject']).format(**self.parameters)
+            subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
         except Exception as e:
             logger.error(
                 u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
-            subject = unicode(self._DEFAULT_EMAIL_CONFIG['subject']).format(**self.parameters)
+            subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
 
-        return subject
+        try:
+            body = custom_formatter.format(unicode(self.body), **self.parameters)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
+            body = unicode(self._DEFAULT_BODY).format(**self.parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
+            body = unicode(self._DEFAULT_BODY).format(**self.parameters)
+
+        return subject, body
 
     def return_config_options(self):
         config_options = []
@@ -455,22 +502,21 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_CONFIG = {'last_days': 7,
                        'incl_libraries': None
                        }
+    _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
+    _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None):
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None, subject=None, body=None):
         super(RecentlyAdded, self).__init__(config=config, email_config=email_config,
-                                            start_date=start_date, end_date=end_date)
+                                            start_date=start_date, end_date=end_date,
+                                            subject=subject, body=body)
 
+    def _add_config(self):
         if self.config['incl_libraries'] is None:
             self.config['incl_libraries'] = []
         elif not isinstance(self.config['incl_libraries'], list):
             self.config['incl_libraries'] = [self.config['incl_libraries']]
-
-        self._DEFAULT_EMAIL_CONFIG['subject'] = 'Recently Added to Plex ({server_name})! ({end_date})'
-
-        self.parameters['pms_identifier'] = plexpy.CONFIG.PMS_IDENTIFIER
-        self.parameters['pms_web_url'] = plexpy.CONFIG.PMS_WEB_URL
 
     def _get_recently_added(self, media_type=None):
         pms_connect = pmsconnect.PmsConnect()
@@ -655,6 +701,20 @@ class RecentlyAdded(Newsletter):
                               'text': s['section_name']})
                 sections[library_type] = group
         return sections
+
+    def build_params(self):
+        parameters = self._build_params()
+
+        newsletter_libraries = []
+        for s in self._get_sections():
+            if str(s['section_id']) in self.config['incl_libraries']:
+                newsletter_libraries.append(s['section_name'])
+
+        parameters['newsletter_libraries'] = ', '.join(sorted(newsletter_libraries))
+        parameters['pms_identifier'] = plexpy.CONFIG.PMS_IDENTIFIER
+        parameters['pms_web_url'] = plexpy.CONFIG.PMS_WEB_URL
+
+        return parameters
 
     def return_config_options(self):
         config_option = [{'label': 'Number of Days',

@@ -48,7 +48,7 @@ newsletter_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "10%",
+            "width": "5%",
             "className": "no-wrap"
         },
         {
@@ -67,43 +67,53 @@ newsletter_log_table_options = {
             "data": "subject_text",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="newsletter/' + rowData['uuid'] + '" target="_blank">' + cellData + '</a>');
+                    $(td).html(cellData);
                 }
             },
-            "width": "38%"
+            "width": "25%"
         },
         {
             "targets": [5],
+            "data": "body_text",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "33%"
+        },
+        {
+            "targets": [6],
             "data": "start_date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "10%"
+            "width": "5%"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data": "end_date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "10%"
-        },
-        {
-            "targets": [7],
-            "data": "uuid",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html(cellData);
-                }
-            },
-            "width": "10%"
+            "width": "5%"
         },
         {
             "targets": [8],
+            "data": "uuid",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html('<a href="newsletter/' + rowData['uuid'] + '" target="_blank">' + cellData + '</a>');
+                }
+            },
+            "width": "5%"
+        },
+        {
+            "targets": [9],
             "data": "success",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1) {

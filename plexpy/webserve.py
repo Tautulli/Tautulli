@@ -2495,6 +2495,7 @@ class WebInterface(object):
                           ("agent_name", True, True),
                           ("notify_action", True, True),
                           ("subject_text", True, True),
+                          ("body_text", True, True),
                           ("start_date", True, True),
                           ("end_date", True, True),
                           ("uuid", True, True)]
@@ -5482,13 +5483,11 @@ class WebInterface(object):
                      "cron": "0 0 * * 1",
                      "active": 1
                      "config": {"last_days": 7,
-                                "incl_movies": 1,
-                                "incl_shows": 1,
-                                "incl_artists": 1,
+                                "incl_libraries": [1, 2]
                                 },
+                     "email_config": {...},
                      "config_options": [{...}, ...],
-                     "email_config_options": [{...}, ...],
-                     "email_notifier": 0
+                     "email_config_options": [{...}, ...]
                      }
             ```
         """
@@ -5561,7 +5560,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify_newsletter")
-    def send_newsletter(self, newsletter_id=None, subject='', notify_action='', **kwargs):
+    def send_newsletter(self, newsletter_id=None, subject='', body='', notify_action='', **kwargs):
         """ Send a newsletter using Tautulli.
 
             ```
@@ -5587,6 +5586,7 @@ class WebInterface(object):
                 if newsletter_handler.notify(newsletter_id=newsletter_id,
                                              notify_action=notify_action,
                                              subject=subject,
+                                             body=body,
                                              **kwargs):
                     return "Newsletter sent."
                 else:
