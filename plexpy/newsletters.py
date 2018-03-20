@@ -27,9 +27,7 @@ import helpers
 import libraries
 import logger
 import newsletter_handler
-import notification_handler
 import pmsconnect
-from notification_handler import get_poster_info, CustomFormatter
 from notifiers import send_notification, EMAIL
 
 
@@ -459,6 +457,7 @@ class Newsletter(object):
         return parameters
 
     def build_text(self):
+        from notification_handler import CustomFormatter
         custom_formatter = CustomFormatter()
 
         try:
@@ -507,6 +506,8 @@ class RecentlyAdded(Newsletter):
     _TEMPLATE = 'recently_added.html'
 
     def _get_recently_added(self, media_type=None):
+        from notification_handler import format_group_index
+
         pms_connect = pmsconnect.PmsConnect()
 
         recently_added = []
@@ -562,16 +563,14 @@ class RecentlyAdded(Newsletter):
                 seasons = []
                 for k, v in groupby(filtered_children, key=lambda x: x['parent_media_index']):
                     episodes = list(v)
-                    num, num00 = notification_handler.format_group_index(
-                        [helpers.cast_to_int(d['media_index']) for d in episodes])
+                    num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
 
                     seasons.append({'media_index': k,
                                     'episode_range': num00,
                                     'episode_count': len(episodes),
                                     'episode': episodes})
 
-                num, num00 = notification_handler.format_group_index(
-                    [helpers.cast_to_int(d['media_index']) for d in seasons])
+                num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in seasons])
 
                 show_metadata['season_range'] = num00
                 show_metadata['season_count'] = len(seasons)
@@ -623,6 +622,8 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def retrieve_data(self):
+        from notification_handler import get_poster_info
+
         if not self.config['incl_libraries']:
             logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
 

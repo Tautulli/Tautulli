@@ -28,6 +28,18 @@ import newsletters
 NEWSLETTER_SCHED = BackgroundScheduler()
 
 
+def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
+    if not notify_action:
+        logger.debug(u"Tautulli NewsletterHandler :: Notify called but no action received.")
+        return
+
+    data = {'newsletter': True,
+            'newsletter_id': newsletter_id,
+            'notify_action': notify_action}
+    data.update(kwargs)
+    plexpy.NOTIFY_QUEUE.put(data)
+
+
 def schedule_newsletters(newsletter_id=None):
     newsletters_list = newsletters.get_newsletters(newsletter_id=newsletter_id)
 
@@ -36,7 +48,7 @@ def schedule_newsletters(newsletter_id=None):
 
         if newsletter['active']:
             schedule_newsletter_job('newsletter-{}'.format(newsletter['id']), name=newsletter_job_name,
-                                    func=notify, args=[newsletter['id'], 'on_cron'], cron=newsletter['cron'])
+                                    func=add_newsletter_each, args=[newsletter['id'], 'on_cron'], cron=newsletter['cron'])
         else:
             schedule_newsletter_job('newsletter-{}'.format(newsletter['id']), name=newsletter_job_name,
                                     remove_job=True)

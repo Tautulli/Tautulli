@@ -5559,6 +5559,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to save newsletter.'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("notify_newsletter")
     def send_newsletter(self, newsletter_id=None, subject='', body='', notify_action='', **kwargs):
@@ -5584,20 +5585,18 @@ class WebInterface(object):
 
             if newsletter:
                 logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_label']))
-                if newsletter_handler.notify(newsletter_id=newsletter_id,
-                                             notify_action=notify_action,
-                                             subject=subject,
-                                             body=body,
-                                             **kwargs):
-                    return "Newsletter sent."
-                else:
-                    return "Newsletter failed."
+                newsletter_handler.add_newsletter_each(newsletter_id=newsletter_id,
+                                                       notify_action=notify_action,
+                                                       subject=subject,
+                                                       body=body,
+                                                        **kwargs)
+                return {'result': 'success', 'message': 'Newsletter queued.'}
             else:
                 logger.debug(u"Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
-                return "Invalid newsletter id %s." % newsletter_id
+                return {'result': 'error', 'message': 'Invalid newsletter id %s.' % newsletter_id}
         else:
             logger.debug(u"Unable to send %snotification, no newsletter_id received." % test)
-            return "No newsletter id received."
+            return {'result': 'error', 'message': 'No newsletter id received.'}
 
     @cherrypy.expose
     def newsletter(self, *args, **kwargs):

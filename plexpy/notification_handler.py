@@ -39,6 +39,7 @@ import plextv
 import pmsconnect
 import request
 import users
+from newsletter_handler import notify as notify_newsletter
 
 
 def process_queue():
@@ -50,7 +51,9 @@ def process_queue():
             break
         elif params:
             try:
-                if 'notify' in params:
+                if 'newsletter' in params:
+                    notify_newsletter(**params)
+                elif 'notification' in params:
                     notify(**params)
                 else:
                     add_notifier_each(**params)
@@ -111,7 +114,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
             # Check custom user conditions
             if manual_trigger or notify_custom_conditions(notifier_id=notifier['id'], parameters=parameters):
                 # Add each notifier to the queue
-                data = {'notify': True,
+                data = {'notification': True,
                         'notifier_id': notifier['id'],
                         'notify_action': notify_action,
                         'stream_data': stream_data,
