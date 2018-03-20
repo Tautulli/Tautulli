@@ -262,7 +262,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, newsletter_log_
 
 def serve_template(templatename, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
-    template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE_NEWSLETTERS)
+    template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
 
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
@@ -289,8 +289,7 @@ def generate_newsletter_uuid():
 
 class Newsletter(object):
     NAME = ''
-    _DEFAULT_CONFIG = {'last_days': 7,
-                       'self_hosted': 0}
+    _DEFAULT_CONFIG = {'last_days': 7}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier'] = 0
@@ -337,7 +336,7 @@ class Newsletter(object):
         self.data = {}
         self.newsletter = None
 
-        self.is_preview = bool(self.config['self_hosted'])
+        self.is_preview = False
 
     def set_config(self, config=None, default=None):
         return self._validate_config(config=config, default=default)
@@ -372,6 +371,7 @@ class Newsletter(object):
             self.is_preview = True
 
         self.retrieve_data()
+
         return {'title': self.NAME,
                 'parameters': self.parameters,
                 'data': self.data}
@@ -392,17 +392,13 @@ class Newsletter(object):
             title=self.subject_formatted,
             parameters=self.parameters,
             data=self.data,
-            preview=self.is_preview
+            self_hosted=self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED
         )
 
     def send(self):
         self.newsletter = self.generate_newsletter()
 
         self._save()
-
-        if self.is_preview:
-            return True
-
         return self._send()
 
     def _save(self):
@@ -498,12 +494,6 @@ class Newsletter(object):
 
     def _return_config_options(self):
         config_options = [
-            {'label': 'Self-Hosted',
-             'value': self.config['self_hosted'],
-             'description': 'Self-host this newsletter.',
-             'name': 'newsletter_config_self_hosted',
-             'input_type': 'checkbox'
-             },
             {'label': 'Number of Days',
              'value': self.config['last_days'],
              'name': 'newsletter_config_last_days',
@@ -670,23 +660,24 @@ class RecentlyAdded(Newsletter):
             artists = recently_added.get('artist', [])
             albums = [a for artist in artists for a in artist['album']]
 
-            for item in movies + shows + albums:
-                poster_info = get_poster_info(poster_thumb=item['thumb'],
-                                              poster_key=item['rating_key'],
-                                              poster_title=item['title'])
-                if poster_info:
-                    item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
+            if not plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
+                for item in movies + shows + albums:
+                    poster_info = get_poster_info(poster_thumb=item['thumb'],
+                                                  poster_key=item['rating_key'],
+                                                  poster_title=item['title'])
+                    if poster_info:
+                        item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
 
-                art_info = get_poster_info(poster_thumb=item['art'],
-                                           poster_key=item['rating_key'],
-                                           poster_title=item['title'],
-                                           art=True,
-                                           width='500',
-                                           height='280',
-                                           opacity='25',
-                                           background='282828',
-                                           blur='3')
-                item['art_url'] = art_info.get('art_url', '')
+                    art_info = get_poster_info(poster_thumb=item['art'],
+                                               poster_key=item['rating_key'],
+                                               poster_title=item['title'],
+                                               art=True,
+                                               width='500',
+                                               height='280',
+                                               opacity='25',
+                                               background='282828',
+                                               blur='3')
+                    item['art_url'] = art_info.get('art_url', '')
 
         self.data['recently_added'] = recently_added
 

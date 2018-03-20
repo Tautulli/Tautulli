@@ -2747,6 +2747,7 @@ class WebInterface(object):
             "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
+            "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
             "newsletter_base_url": plexpy.CONFIG.NEWSLETTER_BASE_URL
         }
 
@@ -2768,7 +2769,8 @@ class WebInterface(object):
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
-            "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin"
+            "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
+            "newsletter_self_hosted"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

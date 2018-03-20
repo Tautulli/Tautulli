@@ -989,20 +989,28 @@
                             <h3>Newsletters</h3>
                         </div>
 
-                        <div class="form-group">
-                            <label for="newsletter_base_url">Newsletter Base URL</label>
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="newsletter_base_url" name="newsletter_base_url" value="${config['newsletter_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#newsletter_base_url_error"  data-parsley-error-message="Invalid URL">
-                                        <span class="input-group-btn">
-                                            <span class="input-group-addon input-group-addon-form">/newsletter</span>
-                                        </span>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
+                            </label>
+                            <p class="help-block">Enable to self-host newsletters without uploading images to Imgur.</p>
+                        </div>
+                        <div id="newsletter_self_hosted_options">
+                            <div class="form-group">
+                                <label for="newsletter_base_url">Newsletter Base URL</label>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="newsletter_base_url" name="newsletter_base_url" value="${config['newsletter_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#newsletter_base_url_error"  data-parsley-error-message="Invalid URL">
+                                            <span class="input-group-btn">
+                                                <span class="input-group-addon input-group-addon-form">/newsletter</span>
+                                            </span>
+                                        </div>
                                     </div>
+                                    <div id="newsletter_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
                                 </div>
-                                <div id="newsletter_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                <p class="help-block">Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)</p>
                             </div>
-                            <p class="help-block">Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -1756,7 +1764,8 @@ $(document).ready(function() {
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#notify_upload_posters');
     initConfigCheckbox('#monitor_pms_updates');
-    
+    initConfigCheckbox('#newsletter_self_hosted');
+
     $('#menu_link_shutdown').click(function() {
         $('#confirm-message').text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
