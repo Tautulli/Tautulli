@@ -52,6 +52,7 @@
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-newsletters" aria-controls="tabs-newsletters" role="tab" data-toggle="tab">Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
@@ -692,7 +693,7 @@
                             <div class="row">
                                 <div class="col-md-9">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL.">
+                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL">
                                         <span class="input-group-btn">
                                             <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
                                         </span>
@@ -979,6 +980,32 @@
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
                             <br>
                         </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-newsletters">
+
+                        <div class="padded-header">
+                            <h3>Newsletters</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newsletter_base_url">Newsletter Base URL</label>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="newsletter_base_url" name="newsletter_base_url" value="${config['newsletter_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#newsletter_base_url_error"  data-parsley-error-message="Invalid URL">
+                                        <span class="input-group-btn">
+                                            <span class="input-group-addon input-group-addon-form">/newsletter</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="newsletter_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)</p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
 

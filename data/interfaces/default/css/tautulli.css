@@ -469,6 +469,19 @@ fieldset[disabled] .btn-bright.active {
 .btn-group select {
     margin-top: 0;
 }
+.input-group-addon-form {
+    display: inline-block;
+    line-height: 1.42857143;
+    color: #e5e5e5;
+    background-color: #3B3B3B;
+    border: 1px solid transparent;
+    border-top-right-radius: 3px !important;
+    border-bottom-right-radius: 3px !important;
+    height: 32px;
+    width: 100%;
+    margin-top: 5px;
+    opacity: 0.65;
+}
 #user-selection label {
     margin-bottom: 0;
 }

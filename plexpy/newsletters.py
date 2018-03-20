@@ -341,8 +341,6 @@ class Newsletter(object):
         self.is_preview = False
 
     def set_config(self, config=None, default=None):
-        self._add_config()
-
         return self._validate_config(config=config, default=default)
 
     def _validate_config(self, config=None, default=None):
@@ -353,13 +351,12 @@ class Newsletter(object):
         for k, v in default.iteritems():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
+            elif isinstance(v, list):
+                new_config[k] = list(config.get(k, v))
             else:
                 new_config[k] = config.get(k, v)
 
         return new_config
-
-    def _add_config(self):
-        pass
 
     def retrieve_data(self):
         pass
@@ -448,12 +445,14 @@ class Newsletter(object):
     def _build_params(self):
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL or helpers.get_plexpy_url()
+
         parameters = {
             'server_name': plexpy.CONFIG.PMS_NAME,
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'newsletter_days': self.config['last_days'],
-            'newsletter_url': 'http://localhost:8181/dev'.rstrip('/') + '/newsletter/' + self.uuid,
+            'newsletter_url': base_url.rstrip('/') + '/newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
         }
 
@@ -500,23 +499,12 @@ class RecentlyAdded(Newsletter):
     """
     NAME = 'Recently Added'
     _DEFAULT_CONFIG = {'last_days': 7,
-                       'incl_libraries': None
+                       'incl_libraries': []
                        }
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
-
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None, subject=None, body=None):
-        super(RecentlyAdded, self).__init__(config=config, email_config=email_config,
-                                            start_date=start_date, end_date=end_date,
-                                            subject=subject, body=body)
-
-    def _add_config(self):
-        if self.config['incl_libraries'] is None:
-            self.config['incl_libraries'] = []
-        elif not isinstance(self.config['incl_libraries'], list):
-            self.config['incl_libraries'] = [self.config['incl_libraries']]
 
     def _get_recently_added(self, media_type=None):
         pms_connect = pmsconnect.PmsConnect()

@@ -2746,7 +2746,8 @@ class WebInterface(object):
             "themoviedb_lookup": checked(plexpy.CONFIG.THEMOVIEDB_LOOKUP),
             "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
-            "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR
+            "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
+            "newsletter_base_url": plexpy.CONFIG.NEWSLETTER_BASE_URL
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
