@@ -3222,6 +3222,7 @@ class WebInterface(object):
         return parameters
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def send_notification(self, notifier_id=None, subject='Tautulli', body='Test notification', notify_action='', **kwargs):
         """ Send a notification using Tautulli.
@@ -3248,20 +3249,19 @@ class WebInterface(object):
 
             if notifier:
                 logger.debug(u"Sending %s%s notification." % (test, notifier['agent_label']))
-                if notification_handler.notify(notifier_id=notifier_id,
-                                               notify_action=notify_action,
-                                               subject=subject,
-                                               body=body,
-                                               **kwargs):
-                    return "Notification sent."
-                else:
-                    return "Notification failed."
+                notification_handler.add_notifier_each(notifier_id=notifier_id,
+                                                       notify_action=notify_action,
+                                                       subject=subject,
+                                                       body=body,
+                                                       manual_trigger=True,
+                                                       **kwargs)
+                return {'result': 'success', 'message': 'Notification queued.'}
             else:
                 logger.debug(u"Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
-                return "Invalid notifier id %s." % notifier_id
+                return {'result': 'success', 'message': 'Invalid notifier id %s.' % notifier_id}
         else:
             logger.debug(u"Unable to send %snotification, no notifier_id received." % test)
-            return "No notifier id received."
+            return {'result': 'success', 'message': 'No notifier id received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

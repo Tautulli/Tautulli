@@ -775,13 +775,11 @@
                 },
                 cache: false,
                 async: true,
-                complete: function (xhr, status) {
-                    if (xhr.responseText.indexOf('sent') > -1) {
-                        var msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
-                        showMsg(msg, false, true, 2000);
+                success: function (data) {
+                    if (data.result === 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
                     } else {
-                        var msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
-                        showMsg(msg, false, true, 2000, true);
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
                     }
                 }
             });
