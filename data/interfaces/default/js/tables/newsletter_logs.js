@@ -70,7 +70,7 @@ newsletter_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "25%"
+            "width": "23%"
         },
         {
             "targets": [5],
@@ -80,7 +80,7 @@ newsletter_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "33%"
+            "width": "35%"
         },
         {
             "targets": [6],
