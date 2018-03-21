@@ -5617,14 +5617,13 @@ class WebInterface(object):
             newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
             return newsletter
 
-        return self._newsletter(**kwargs)
-
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def _newsletter(self, newsletter_id=None, **kwargs):
+    def newsletter_preview(self, **kwargs):
+        kwargs['preview'] = 'true'
         return serve_template(templatename="newsletter_preview.html",
                               title="Newsletter",
-                              newsletter_id=newsletter_id)
+                              kwargs=kwargs)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5649,7 +5648,7 @@ class WebInterface(object):
                 return newsletter_agent.generate_newsletter(preview=preview, master=master)
 
             logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
-            return "Failed to retrieve newsletter"
+            return "Failed to retrieve newsletter: invalid newsletter_id parameter"
 
         logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
-        return "Failed to retrieve newsletter"
+        return "Failed to retrieve newsletter: missing newsletter_id parameter"
