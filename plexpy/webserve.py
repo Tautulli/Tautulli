@@ -3998,8 +3998,10 @@ class WebInterface(object):
         if args:
             img_hash = args[0]
             img_info = notification_handler.get_hash_image_info(img_hash=img_hash)
-            kwargs.update(img_info)
-            return self.real_pms_image_proxy(**kwargs)
+
+            if img_info:
+                kwargs.update(img_info)
+                return self.real_pms_image_proxy(**kwargs)
 
         return
 
@@ -5604,7 +5606,10 @@ class WebInterface(object):
             if len(args) >= 2 and args[0] == 'image':
                 if args[1] == 'images':
                     resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
-                    return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+                    try:
+                        return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+                    except NotFound:
+                        return
 
                 return self.image(args[1], refresh=True)
 

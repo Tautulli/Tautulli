@@ -161,10 +161,5 @@ def get_newsletter(newsletter_uuid):
                 return newsletter
             except OSError as e:
                 logger.error(u"Tautulli NewsletterHandler :: Failed to retrieve newsletter '%s': %s" % (newsletter_uuid, e))
-                return "Failed to retrieve newsletter"
         else:
             logger.warn(u"Tautulli NewsletterHandler :: Newsletter '%s' file is missing." % newsletter_uuid)
-            return "Newsletter no longer exists"
-    else:
-        return "Newsletter does not exist"
-
