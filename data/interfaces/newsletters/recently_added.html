@@ -27,7 +27,7 @@
         }
 
         body {
-            font-family: sans-serif;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             font-size: 14px;
             line-height: 1.4;
@@ -45,7 +45,7 @@
         }
 
         table td {
-            font-family: sans-serif;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
             font-size: 14px;
             vertical-align: top;
         }
@@ -130,7 +130,7 @@
         h3,
         h4 {
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
             font-weight: 400;
             margin: 0;
         }
@@ -138,7 +138,7 @@
         p,
         ul,
         ol {
-            font-family: sans-serif;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
             font-size: 14px;
             font-weight: 400;
             margin: 0;
@@ -271,7 +271,7 @@
             HEADER
         ------------------------------------- */
         .header {
-            background: url(https://i.imgur.com/oqMQJxp.png) no-repeat;
+            background-repeat: no-repeat;
             background-position: calc(50% - 20px) 50%;
             background-size: contain;
             width: 100%;
@@ -379,14 +379,15 @@
             height: 150px;
         }
         .card-poster {
-            background-color: #282828;
+            background-color: #3F4245;
             background-position: center;
             background-size: cover;
             height: 100%;
             width: 100%;
         }
         .card-poster-overlay {
-            background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;
+            background-repeat: no-repeat;
+            background-position: bottom right;
             width: 100%;
             height: 100%;
         }
@@ -582,7 +583,7 @@
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
                         <td class="wrapper newsletter-header" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
-                            <div class="header" style="background: url(https://i.imgur.com/oqMQJxp.png) no-repeat;background-position: calc(50% - 20px) 50%;background-size: contain;width: 100%;height: 100px;"></div>
+                            <div class="header" style="background-image: url(${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'});background-repeat: no-repeat;background-position: calc(50% - 20px) 50%;background-size: contain;width: 100%;height: 100px;"></div>
                             <div class="server-name" style="font-size: 30px;text-align: center;">${parameters['server_name']}</div>
                             <div class="dates" style="color: #aaaaaa;font-size: 20px;text-align: center;">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
@@ -594,7 +595,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar" style="width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;"></div>
                                     <div class="sub-header-title" style="font-weight: lighter;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <img src="http://tautulli.com/images/libraries/movie.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
+                                        <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                         <span class="count" style="color: #E5A00D;">${len(recently_added['movie'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -616,7 +617,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'});background-repeat: no-repeat;background-position: bottom right;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -666,7 +667,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar" style="width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;"></div>
                                     <div class="sub-header-title" style="font-weight: lighter;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <img src="http://tautulli.com/images/libraries/show.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
+                                        <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                         <span class="count" style="color: #E5A00D;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -697,7 +698,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'});background-repeat: no-repeat;background-position: bottom right;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -774,7 +775,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar" style="width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;"></div>
                                     <div class="sub-header-title" style="font-weight: lighter;margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
-                                        <img src="http://tautulli.com/images/libraries/artist.png" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
+                                        <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
                                     </div>
                                     <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                         <span class="count" style="color: #E5A00D;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -802,7 +803,7 @@
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
                                                 <div class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
-                                                    <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'});background-repeat: no-repeat;background-position: bottom right;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
                                         </div>

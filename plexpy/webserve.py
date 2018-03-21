@@ -5602,6 +5602,10 @@ class WebInterface(object):
     def newsletter(self, *args, **kwargs):
         if args:
             if len(args) >= 2 and args[0] == 'image':
+                if args[1] == 'images':
+                    resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                    return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+
                 return self.image(args[1], refresh=True)
 
             newsletter_uuid = args[0]

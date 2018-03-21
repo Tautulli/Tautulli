@@ -271,7 +271,7 @@
             HEADER
         ------------------------------------- */
         .header {
-            background: url(https://i.imgur.com/oqMQJxp.png) no-repeat;
+            background-repeat: no-repeat;
             background-position: calc(50% - 20px) 50%;
             background-size: contain;
             width: 100%;
@@ -386,7 +386,8 @@
             width: 100%;
         }
         .card-poster-overlay {
-            background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;
+            background-repeat: no-repeat;
+            background-position: bottom right;
             width: 100%;
             height: 100%;
         }
@@ -582,7 +583,7 @@
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
                         <td class="wrapper newsletter-header">
-                            <div class="header"></div>
+                            <div class="header" style="background-image: url(${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'})"></div>
                             <div class="server-name">${parameters['server_name']}</div>
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
@@ -594,7 +595,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
                                     <div class="sub-header-title">
-                                        <img src="http://tautulli.com/images/libraries/movie.png" class="sub-header-icon"/> Recently Added Movies
+                                        <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon"/> Recently Added Movies
                                     </div>
                                     <div class="sub-header-count">
                                         <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -616,7 +617,7 @@
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']})">
-                                                    <div class="card-poster-overlay"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -666,7 +667,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
                                     <div class="sub-header-title">
-                                        <img src="http://tautulli.com/images/libraries/show.png" class="sub-header-icon"/> Recently Added TV Shows
+                                        <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon"/> Recently Added TV Shows
                                     </div>
                                     <div class="sub-header-count">
                                         <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -697,7 +698,7 @@
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});">
-                                                    <div class="card-poster-overlay"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
                                                 </div>
                                             </a>
                                         </div>
@@ -774,7 +775,7 @@
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
                                     <div class="sub-header-title">
-                                        <img src="http://tautulli.com/images/libraries/artist.png" class="sub-header-icon"/> Recently Added Music
+                                        <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon"/> Recently Added Music
                                     </div>
                                     <div class="sub-header-count">
                                         <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -802,7 +803,7 @@
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
                                                 <div class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});">
-                                                    <div class="card-poster-overlay"></div>
+                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
                                                 </div>
                                             </a>
                                         </div>

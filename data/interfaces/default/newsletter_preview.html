@@ -4,13 +4,41 @@
 <head>
     <meta charset="utf-8">
     <title>Tautulli - ${title} | ${server_name}</title>
-    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
-    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
-    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     <style>
         * {
             padding: 0 !important;
             margin: 0 !important;
+        }
+        .newsletter-loader-container {
+            font-family: 'Open Sans', Arial, sans-serif;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+        .newsletter-loader-message {
+            color: #282A2D;
+            text-align: center;
+            position: absolute;
+            left: 50%;
+            top: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .newsletter-loader {
+            border: 5px solid #ccc;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+            border-top: 5px solid #282A2D;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            position: relative;
+            left: calc(50% - 25px);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -18,7 +46,10 @@
 <body>
 <div id="loader" class="newsletter-loader-container">
     <div class="newsletter-loader-message">
-        <i class="fa fa-refresh fa-spin"></i>&nbsp; Generating Newsletter<br>
+        <div class="newsletter-loader"></div>
+        <br>
+        Generating Newsletter
+        <br>
         Please wait, this may take a few minutes...
     </div>
 </div>
