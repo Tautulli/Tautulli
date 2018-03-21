@@ -3893,7 +3893,6 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Notification failed.'}
 
     @cherrypy.expose
-    @requireAuth()
     def pms_image_proxy(self, **kwargs):
         """ See real_pms_image_proxy docs string"""
 
@@ -3906,8 +3905,8 @@ class WebInterface(object):
         return self.real_pms_image_proxy(**kwargs)
 
     @addtoapi('pms_image_proxy')
-    def real_pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
-                             opacity=None, background=None, blur=None, img_format='png',
+    def real_pms_image_proxy(self, img='', rating_key=None, width=0, height=0,
+                             opacity=100, background='000000', blur=0, img_format='png',
                              fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
 
@@ -3939,17 +3938,7 @@ class WebInterface(object):
             img = '/library/metadata/%s/thumb/1337' % rating_key
 
         img_string = img.rsplit('/', 1)[0] if '/library/metadata' in img else img
-
-        if width:
-            img_string += width
-        if height:
-            img_string += height
-        if opacity:
-            img_string += opacity
-        if background:
-            img_string += background
-        if blur:
-            img_string += blur
+        img_string = '{}{}{}{}{}{}'.format(img_string, width, height, opacity, background, blur)
 
         fp = hashlib.md5(img_string).hexdigest()
         fp += '.%s' % img_format  # we want to be able to preview the thumbs
@@ -4004,6 +3993,15 @@ class WebInterface(object):
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
 
+    @cherrypy.expose
+    def image(self, *args, **kwargs):
+        if args:
+            img_hash = args[0]
+            img_info = notification_handler.get_hash_image_info(img_hash=img_hash)
+            kwargs.update(img_info)
+            return self.real_pms_image_proxy(**kwargs)
+
+        return
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5603,6 +5601,9 @@ class WebInterface(object):
     @cherrypy.expose
     def newsletter(self, *args, **kwargs):
         if args:
+            if len(args) >= 2 and args[0] == 'image':
+                return self.image(args[1], refresh=True)
+
             newsletter_uuid = args[0]
             newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
             return newsletter

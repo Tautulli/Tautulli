@@ -156,10 +156,10 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="email_notifier">Email Notification Agent</label>
+                                        <label for="newsletter_email_notifier">Email Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="email_notifier" name="email_notifier">
+                                                <select class="form-control" id="newsletter_email_notifier" name="newsletter_email_notifier">
                                                     % for notifier in email_notifiers:
                                                     <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier'] else '' %>
                                                     % if notifier['friendly_name']:
@@ -377,7 +377,7 @@
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
-    $('#email_notifier').change(function () {
+    $('#newsletter_email_notifier').change(function () {
         if ($(this).val() === "0") {
             $('#newsletter-email-config').show();
         } else {

@@ -392,7 +392,7 @@ class Newsletter(object):
             title=self.subject_formatted,
             parameters=self.parameters,
             data=self.data,
-            self_hosted=self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED
+            preview=self.is_preview
         )
 
     def send(self):
@@ -640,7 +640,7 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def retrieve_data(self):
-        from notification_handler import get_poster_info
+        from notification_handler import get_poster_info, set_hash_image_info
 
         if not self.config['incl_libraries']:
             logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
@@ -653,31 +653,50 @@ class RecentlyAdded(Newsletter):
             if media_type not in recently_added:
                 recently_added[media_type] = self._get_recently_added(media_type)
 
-        if not self.is_preview:
+        movies = recently_added.get('movie', [])
+        shows = recently_added.get('show', [])
+        artists = recently_added.get('artist', [])
+        albums = [a for artist in artists for a in artist['album']]
+
+        if self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
+            for item in movies + shows + albums:
+                item['thumb_hash'] = set_hash_image_info(img=item['thumb'],
+                                                         width=300,
+                                                         height=450,
+                                                         fallback='poster')
+                item['art_hash'] = set_hash_image_info(img=item['art'],
+                                                       width=500,
+                                                       height=280,
+                                                       opacity=25,
+                                                       background='282828',
+                                                       blur=3,
+                                                       fallback='art')
+
+                item['poster_url'] = ''
+                item['art_url'] = ''
+
+        else:
             # Upload posters and art to Imgur
-            movies = recently_added.get('movie', [])
-            shows = recently_added.get('show', [])
-            artists = recently_added.get('artist', [])
-            albums = [a for artist in artists for a in artist['album']]
+            for item in movies + shows + albums:
+                poster_info = get_poster_info(poster_thumb=item['thumb'],
+                                              poster_key=item['rating_key'],
+                                              poster_title=item['title'])
+                if poster_info:
+                    item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
 
-            if not plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
-                for item in movies + shows + albums:
-                    poster_info = get_poster_info(poster_thumb=item['thumb'],
-                                                  poster_key=item['rating_key'],
-                                                  poster_title=item['title'])
-                    if poster_info:
-                        item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
+                art_info = get_poster_info(poster_thumb=item['art'],
+                                           poster_key=item['rating_key'],
+                                           poster_title=item['title'],
+                                           art=True,
+                                           width='500',
+                                           height='280',
+                                           opacity='25',
+                                           background='282828',
+                                           blur='3')
+                item['art_url'] = art_info.get('art_url', '')
 
-                    art_info = get_poster_info(poster_thumb=item['art'],
-                                               poster_key=item['rating_key'],
-                                               poster_title=item['title'],
-                                               art=True,
-                                               width='500',
-                                               height='280',
-                                               opacity='25',
-                                               background='282828',
-                                               blur='3')
-                    item['art_url'] = art_info.get('art_url', '')
+                item['thumb_hash'] = ''
+                item['art_hash'] = ''
 
         self.data['recently_added'] = recently_added
 

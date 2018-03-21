@@ -690,6 +690,13 @@ def dbcheck():
         'themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
     )
 
+    # image_hash_lookup table :: This table keeps record of the image hash lookups
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'img_hash TEXT, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, '
+        'opacity INTEGER, background TEXT, blur INTEGER, fallback TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

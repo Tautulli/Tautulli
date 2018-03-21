@@ -3,9 +3,12 @@
     import plexpy
 
     recently_added = data['recently_added']
-    base_url = ''
-    if self_hosted and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/'
+    if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/newsletter/image/'
+    elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
+        base_url = 'newsletter/image/'
+    else:
+        base_url = ''
 %>
 <!doctype html>
 <html>
@@ -600,20 +603,19 @@
                             </div>
                             <div class="wrapper">
                                 % for movie in recently_added['movie']:
-                                % if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
-                                <div class="clear"></div>
-                                <div class="card-instance movie odd">
-                                % else:
-                                <div class="card-instance movie">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${movie['art_url']});">
-                                    % endif
+                                <%
+                                    if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
+                                %>
+                                ${clear}
+                                <div class="card-instance movie ${odd}">
+                                    <div class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});">
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else movie['poster_url']})">
+                                                <div class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']})">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
                                             </a>
@@ -682,21 +684,19 @@
                                     else:
                                         link_rating_key = show['rating_key']
                                         link_title = show['title']
+
+                                    if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
                                 %>
-                                % if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
-                                <div class="clear"></div>
-                                <div class="card-instance show odd">
-                                % else:
-                                <div class="card-instance show">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${show['art_url']});">
-                                    % endif
+                                ${clear}
+                                <div class="card-instance show ${odd}">
+                                    <div class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});">
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else show['poster_url']});">
+                                                <div class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
                                             </a>
@@ -787,21 +787,21 @@
                                 <% album_count = 0 %>
                                 % for artist in recently_added['artist']:
                                 % for album in artist['album']:
-                                <% album_count += 1 %>
-                                % if album_count == total_albums and album_count % 2 == 1:
-                                <div class="clear"></div>
-                                <div class="card-instance album odd">
-                                % else:
-                                <div class="card-instance album">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${album['art_url']});">
-                                    % endif
+                                <%
+                                    album_count += 1
+
+                                    if album_count == total_albums and album_count % 2 == 1:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
+                                %>
+                                ${clear}
+                                <div class="card-instance album ${odd}">
+                                    <div class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});">
                                         <div class="card-poster-container">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else album['poster_url']});">
+                                                <div class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});">
                                                     <div class="card-poster-overlay"></div>
                                                 </div>
                                             </a>

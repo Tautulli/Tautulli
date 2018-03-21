@@ -17,6 +17,7 @@
 import arrow
 import bleach
 from collections import Counter, defaultdict
+import hashlib
 from itertools import groupby
 import json
 from operator import itemgetter
@@ -1125,6 +1126,41 @@ def get_poster_info(poster_thumb='', poster_key='', poster_title='', art=False,
         return poster_info or default_art_info
     else:
         return poster_info or default_poster_info
+
+
+def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,
+                        opacity=100, background='000000', blur=0, fallback=None):
+    if rating_key and not img:
+        img = '/library/metadata/{}/thumb'.format(rating_key)
+
+    img_split = img.split('/')
+    img = '/'.join(img_split[:5])
+    rating_key = rating_key or img_split[3]
+
+    img_string = '{}{}{}{}{}{}{}'.format(rating_key, width, height, opacity, background, blur, fallback)
+    img_hash = hashlib.sha256(img_string).hexdigest()
+
+    keys = {'img_hash': img_hash}
+    values = {'img': img,
+              'rating_key': rating_key,
+              'width': width,
+              'height': height,
+              'opacity': opacity,
+              'background': background,
+              'blur': blur,
+              'fallback': fallback}
+
+    db = database.MonitorDatabase()
+    db.upsert('image_hash_lookup', key_dict=keys, value_dict=values)
+
+    return img_hash
+
+
+def get_hash_image_info(img_hash=None):
+    db = database.MonitorDatabase()
+    query = 'SELECT * FROM image_hash_lookup WHERE img_hash = ?'
+    result = db.select_single(query, args=[img_hash])
+    return result
 
 
 def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):

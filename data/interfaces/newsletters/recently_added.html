@@ -3,9 +3,12 @@
     import plexpy
 
     recently_added = data['recently_added']
-    base_url = ''
-    if self_hosted and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/'
+    if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/newsletter/image/'
+    elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
+        base_url = 'newsletter/image/'
+    else:
+        base_url = ''
 %>
 <!doctype html>
 <html>
@@ -600,20 +603,19 @@
                             </div>
                             <div class="wrapper" style="box-sizing: border-box;padding: 5px;overflow: auto;">
                                 % for movie in recently_added['movie']:
-                                % if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
-                                <div class="clear" style="clear: both;"></div>
-                                <div class="card-instance movie odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
-                                % else:
-                                <div class="card-instance movie" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + movie['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${movie['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
+                                <%
+                                    if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
+                                %>
+                                ${clear}
+                                <div class="card-instance movie ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
+                                    <div class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + movie['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -682,21 +684,19 @@
                                     else:
                                         link_rating_key = show['rating_key']
                                         link_title = show['title']
+
+                                    if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
                                 %>
-                                % if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
-                                <div class="clear" style="clear: both;"></div>
-                                <div class="card-instance show odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
-                                % else:
-                                <div class="card-instance show" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + show['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${show['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
+                                ${clear}
+                                <div class="card-instance show ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
+                                    <div class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + show['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
@@ -787,21 +787,21 @@
                                 <% album_count = 0 %>
                                 % for artist in recently_added['artist']:
                                 % for album in artist['album']:
-                                <% album_count += 1 %>
-                                % if album_count == total_albums and album_count % 2 == 1:
-                                <div class="clear" style="clear: both;"></div>
-                                <div class="card-instance album odd" style="float: none !important;width: 500px;margin: 3px auto !important;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
-                                % else:
-                                <div class="card-instance album" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
-                                % endif
-                                    % if self_hosted:
-                                    <div class="card-background" style="background-image: url(${base_url + 'pms_image_proxy?img=' + album['art'] + '&width=500&height=280&opacity=25&background=282828&blur=3&fallback=art&refresh=true'});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % else:
-                                    <div class="card-background" style="background-image: url(${album['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
-                                    % endif
+                                <%
+                                    album_count += 1
+
+                                    if album_count == total_albums and album_count % 2 == 1:
+                                        clear = '<div class="clear"></div>'
+                                        odd = 'odd'
+                                    else:
+                                        clear = odd = ''
+                                %>
+                                ${clear}
+                                <div class="card-instance album ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
+                                    <div class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                <div class="card-poster" style="background-image: url(${base_url + 'pms_image_proxy?img=' + album['thumb'] + '&width=300&height=450&fallback=poster&refresh=true' if self_hosted else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
+                                                <div class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});background-color: #3F4245;background-position: center;background-size: cover;height: 100%;width: 100%;">
                                                     <div class="card-poster-overlay" style="background: url(https://cdn.discordapp.com/attachments/334355557706235906/401064397780287489/newsletter-view-on-plex-flat.png) bottom right no-repeat;width: 100%;height: 100%;"></div>
                                                 </div>
                                             </a>
