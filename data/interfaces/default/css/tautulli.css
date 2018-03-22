@@ -3989,6 +3989,7 @@ a:hover .overlay-refresh-image:hover {
     margin: 0;
 }
 .newsletter-loader-container {
+    font-family: 'Open Sans', Arial, sans-serif;
     position: absolute;
     top: 0;
     right: 0;
@@ -4002,4 +4003,19 @@ a:hover .overlay-refresh-image:hover {
     left: 50%;
     top: 25%;
     transform: translate(-50%, -50%);
+}
+.newsletter-loader {
+    border: 5px solid #ccc;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+    border-top: 5px solid #282A2D;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    position: relative;
+    left: calc(50% - 25px);
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
