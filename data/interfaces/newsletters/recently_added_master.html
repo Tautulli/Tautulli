@@ -4,7 +4,7 @@
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/newsletter/image/'
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
     elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
         base_url = 'newsletter/image/'
     else:
@@ -606,12 +606,12 @@
                                 % for movie in recently_added['movie']:
                                 <%
                                     if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance movie ${odd}">
                                     <div class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});">
                                         <div class="card-poster-container">
@@ -687,12 +687,12 @@
                                         link_title = show['title']
 
                                     if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance show ${odd}">
                                     <div class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});">
                                         <div class="card-poster-container">
@@ -792,12 +792,12 @@
                                     album_count += 1
 
                                     if album_count == total_albums and album_count % 2 == 1:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance album ${odd}">
                                     <div class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});">
                                         <div class="card-poster-container">

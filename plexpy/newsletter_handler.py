@@ -78,8 +78,8 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         return
 
     if notify_action in ('test', 'api'):
-        subject = kwargs.pop('subject', newsletter_config['subject'])
-        body = kwargs.pop('body', newsletter_config['body'])
+        subject = kwargs.pop('subject', None) or newsletter_config['subject']
+        body = kwargs.pop('body', None) or newsletter_config['body']
     else:
         subject = newsletter_config['subject']
         body = newsletter_config['body']

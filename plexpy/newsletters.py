@@ -455,7 +455,7 @@ class Newsletter(object):
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'newsletter_days': self.config['last_days'],
-            'newsletter_url': base_url.rstrip('/') + '/newsletter/' + self.uuid,
+            'newsletter_url': base_url.rstrip('/') + plexpy.HTTP_ROOT + 'newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
         }
 

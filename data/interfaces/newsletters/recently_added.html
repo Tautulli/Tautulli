@@ -4,7 +4,7 @@
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + '/newsletter/image/'
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
     elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
         base_url = 'newsletter/image/'
     else:
@@ -606,12 +606,12 @@
                                 % for movie in recently_added['movie']:
                                 <%
                                     if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance movie ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                     <div class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
@@ -687,12 +687,12 @@
                                         link_title = show['title']
 
                                     if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance show ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 235px;">
                                     <div class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 225px;">
@@ -792,12 +792,12 @@
                                     album_count += 1
 
                                     if album_count == total_albums and album_count % 2 == 1:
-                                        clear = '<div class="clear"></div>'
+                                        clear = '<div style="clear: both;"></div>'
                                         odd = 'odd'
                                     else:
                                         clear = odd = ''
                                 %>
-                                ${clear}
+                                ${clear | n}
                                 <div class="card-instance album ${odd}" style="float: left;width: 500px;margin: 3px;border: 1px solid rgba(255,255,255,.1);-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;font-size: 12px;overflow: hidden;position: relative;height: 160px;">
                                     <div class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});background-position: center;background-size: cover;width: 100%;height: 100%;">
                                         <div class="card-poster-container" style="width: 150px;margin: 3px;border: 1px solid rgba(255,255,255,.1);float: left;position: relative;z-index: 1;height: 150px;">
