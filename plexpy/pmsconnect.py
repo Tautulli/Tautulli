@@ -1475,7 +1475,8 @@ class PmsConnect(object):
         if media_type not in ('photo', 'clip') \
                 and not session.getElementsByTagName('Session') \
                 and not session.getElementsByTagName('TranscodeSession') \
-                and helpers.get_xml_attr(session, 'ratingKey').isdigit():
+                and helpers.get_xml_attr(session, 'ratingKey').isdigit() \
+                and plexpy.CONFIG.PMS_PLEXPASS:
             plex_tv = plextv.PlexTV()
             parent_rating_key = helpers.get_xml_attr(session, 'parentRatingKey')
             grandparent_rating_key = helpers.get_xml_attr(session, 'grandparentRatingKey')
