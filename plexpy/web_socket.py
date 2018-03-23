@@ -162,7 +162,7 @@ def run():
                     logger.info(u"Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:
-                    logger.error(u"Tautulli WebSocket :: %s." % e)
+                    logger.error("Tautulli WebSocket :: %s." % e)
 
             else:
                 shutdown()
@@ -172,7 +172,7 @@ def run():
             if ws_shutdown:
                 break
 
-            logger.error(u"Tautulli WebSocket :: %s." % e)
+            logger.error("Tautulli WebSocket :: %s." % e)
             shutdown()
             break
 
