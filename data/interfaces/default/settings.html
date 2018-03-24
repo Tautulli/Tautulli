@@ -557,7 +557,7 @@
                             <label>
                                 <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
                             </label>
-                            <span id="hashPasswordCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <span id="hashPasswordCheck" class="settings-warning"></span>
                             <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
                         </div>
                         <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]"
@@ -575,14 +575,14 @@
                             <label>
                                 <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
                             </label>
-                            <span id="allowPlexCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <span id="allowPlexCheck" class="settings-warning"></span>
                             <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to Tautulli
                             </label>
-                            <span id="allowGuestCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <span id="allowGuestCheck" class="settings-warning"></span>
                             <p class="help-block">Allow shared users to login to Tautulli using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
                         </div>
 
@@ -769,7 +769,7 @@
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
                             <span id="cloudMonitorRemoteAccess" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <span id="remoteAccessCheck" class="settings-warning"></span>
                             <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
@@ -915,7 +915,7 @@
                         </div>
                         <!--<div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span style="color: #eb8600; padding-left: 10px;">[Not working]</span>
+                                <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span class="settings-warning">[Not working]</span>
                             </label>
                             <p class="help-block">
                                 Enable to send another recently added notification when adding a new version of existing media.<br />
@@ -993,7 +993,7 @@
                             <label>
                                 <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
                             </label>
-                            <p class="help-block">Enable to self-host newsletters without uploading images to Imgur.</p>
+                            <p class="help-block">Enable to self-host newsletters on your own domain.</p>
                         </div>
                         <div id="newsletter_self_hosted_options">
                             <div class="form-group">
@@ -1009,7 +1009,10 @@
                                     </div>
                                     <div id="newsletter_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
                                 </div>
-                                <p class="help-block">Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)</p>
+                                <p class="help-block">
+                                    Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)<br>
+                                    Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be accessible from the internet.
+                                </p>
                             </div>
                         </div>
 
@@ -1026,7 +1029,10 @@
                         <p class="help-block">
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
-                        <br />
+                        <p class="help-block settings-warning" id="newsletter_upload_warning">
+                            Note: Either <a data-tab-destination="tabs-notifications" style="cursor: pointer;">Imgur uploads</a> or <a data-tab-destination="tabs-newsletters" style="cursor: pointer;">self-hosted newsletters</a> must be enabled.</span>
+                        </p>
+                        <br/>
                         <div id="plexpy-newsletters-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
                             <br>
@@ -2497,13 +2503,26 @@ $(document).ready(function() {
        $(this).val($(this).val().replace(/\/*$/, ''));
     });
 
-    function apiEnabled() {
+    function apiEnabled () {
         var api_enabled = $('#api_enabled').prop('checked');
         $('#app_api_msg').toggle(!(api_enabled));
     }
     apiEnabled();
     $('#api_enabled').click(function () {
         apiEnabled();
+    });
+
+    function newsletterUploadEnabled () {
+        if ($('#notify_upload_posters').is(':checked') || $('#newsletter_self_hosted').is(':checked')) {
+            $('#newsletter_upload_warning').hide();
+        } else {
+            $('#newsletter_upload_warning').show();
+        }
+    }
+    newsletterUploadEnabled();
+
+    $('#notify_upload_posters, #newsletter_self_hosted').change(function () {
+        newsletterUploadEnabled();
     });
 
     $('body').on('click', 'a[data-tab-destination]', function () {
