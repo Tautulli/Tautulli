@@ -417,7 +417,7 @@ class Newsletter(object):
             with open(newsletter_file_fp, 'wb') as n_file:
                 for line in self.newsletter.encode('utf-8').splitlines():
                     if '<!-- IGNORE SAVE -->' not in line:
-                        n_file.write(line)
+                        n_file.write(line + '\r\n')
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
         except OSError as e:
