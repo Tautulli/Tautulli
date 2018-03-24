@@ -5,11 +5,13 @@
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
-        base_url = 'newsletter/image/'
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
+        base_url_image = base_url + 'image/'
+    elif preview:
+        base_url = 'newsletter/'
+        base_url_image = base_url + 'image/'
     else:
-        base_url = ''
+        base_url = base_url_image = ''
 %>
 <!doctype html>
 <html>
@@ -152,7 +154,6 @@
         }
 
         a {
-            color: #3498db;
             text-decoration: underline;
         }
 
@@ -262,6 +263,18 @@
             mso-hide: all;
             visibility: hidden;
             width: 0;
+        }
+
+        .view-full {
+            clear: both;
+            color: #282A2D;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+        .view-full a {
+            color: #282A2D;
         }
 
         .powered-by a {
@@ -580,13 +593,19 @@
                 <!-- START CENTERED WHITE CONTAINER -->
                 <span class="preheader" style="color: transparent;display: none;height: 0;max-height: 0;max-width: 0;opacity: 0;overflow: hidden;mso-hide: all;visibility: hidden;width: 0;">Tautulli Newsletter  - ${title}</span>
 
+                % if base_url and not preview:
+                <div class="view-full" style="clear: both;color: #282A2D;font-size: 12px;margin-bottom: 10px;text-align: center;width: 100%;">  <!-- IGNORE SAVE -->
+                    <a href="${base_url + uuid}" title="View full newsletter" target="_blank" style="text-decoration: underline;color: #282A2D;">Click here to view the full newsletter.</a>  <!-- IGNORE SAVE -->
+                </div>  <!-- IGNORE SAVE -->
+                % endif
+
                 <table border="0" cellpadding="3" cellspacing="0" class="main" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background: #282A2D;border-radius: 3px;color: #ffffff;">
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
                         <td class="wrapper newsletter-header" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="header" style="width: 100%;height: 90px;text-align: center;">
-                                <img src="${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;width: 492px;height: 90px;margin-left: -35px;">
+                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;width: 492px;height: 90px;margin-left: -35px;">
                             </div>
                             <div class="server-name" style="font-size: 30px;text-align: center;">${parameters['server_name']}</div>
                             <div class="dates" style="color: #aaaaaa;font-size: 20px;text-align: center;">${parameters['start_date']} - ${parameters['end_date']}</div>
@@ -597,7 +616,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
+                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['movie'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -613,16 +632,16 @@
                                         % for movie in (movie_a, movie_b):
                                         % if movie:
                                         <td align="center" valign="top" class="card-instance movie" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 3px;width: 502px;min-width: 502px;max-width: 502px;height: 233px;">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + movie['art_hash']) if base_url_image else movie['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;width: 152px;min-width: 152px;height: 227px;">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="text-decoration: underline;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -634,7 +653,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td class="card-info-title nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.9rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 1.2rem;padding: 5px;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${movie['title']}</a>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${movie['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -704,7 +723,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
+                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -722,16 +741,16 @@
                                         % for show in (show_a, show_b):
                                         % if show:
                                         <td align="center" valign="top" class="card-instance show" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 3px;width: 502px;min-width: 502px;max-width: 502px;height: 233px;">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;width: 152px;min-width: 152px;height: 227px;">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="text-decoration: underline;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -743,7 +762,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td class="card-info-title nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.9rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 1.2rem;padding: 5px;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${show['title']}</a>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${show['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -840,7 +859,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
+                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -858,16 +877,16 @@
                                         % for album in (album_a, album_b):
                                         % if album:
                                         <td align="center" valign="top" class="card-instance album" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 3px;width: 502px;min-width: 502px;max-width: 502px;height: 158px;">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + album['art_hash']) if base_url_image else album['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;width: 152px;min-width: 152px;height: 152px;">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #3498db;text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-cover.png' if base_url else 'https://i.imgur.com/ObC1NeY.png'}" width="150" height="150" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="text-decoration: underline;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'https://i.imgur.com/ObC1NeY.png'}" width="150" height="150" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -879,7 +898,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td class="card-info-title nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.9rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 1.2rem;padding: 5px;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="color: #ffffff;text-decoration: none;">${album['title']}</a>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${album['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -948,7 +967,7 @@
                             <!-- START FOOTER -->
                             <div class="footer-bar" style="margin-left: auto;margin-right: auto;width: 200px;border-top: 1px solid #E5A00D;margin-top: 25px;"></div>
                             <div class="content-block powered-by" style="padding-bottom: 10px;padding-top: 10px;">
-                                Newsletter generated by <a href="http://tautulli.com" target="_blank" style="color: #fff;text-decoration: underline;font-size: 12px;text-align: center;">Tautulli</a>.
+                                Newsletter generated by <a href="http://tautulli.com" target="_blank" style="text-decoration: underline;color: #fff;font-size: 12px;text-align: center;">Tautulli</a>.
                             </div>
                             <!-- END FOOTER -->
                         </td>

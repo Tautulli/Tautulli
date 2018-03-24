@@ -389,6 +389,7 @@ class Newsletter(object):
 
         return serve_template(
             templatename=template,
+            uuid=self.uuid,
             title=self.subject_formatted,
             parameters=self.parameters,
             data=self.data,
@@ -414,7 +415,9 @@ class Newsletter(object):
 
         try:
             with open(newsletter_file_fp, 'wb') as n_file:
-                n_file.write(self.newsletter.encode('utf-8'))
+                for line in self.newsletter.encode('utf-8').splitlines():
+                    if '<!-- IGNORE SAVE -->' not in line:
+                        n_file.write(line)
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
         except OSError as e:

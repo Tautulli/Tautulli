@@ -5,11 +5,13 @@
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif plexpy.CONFIG.NEWSLETTER_SELF_HOSTED or preview:
-        base_url = 'newsletter/image/'
+        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
+        base_url_image = base_url + 'image/'
+    elif preview:
+        base_url = 'newsletter/'
+        base_url_image = base_url + 'image/'
     else:
-        base_url = ''
+        base_url = base_url_image = ''
 %>
 <!doctype html>
 <html>
@@ -152,7 +154,6 @@
         }
 
         a {
-            color: #3498db;
             text-decoration: underline;
         }
 
@@ -262,6 +263,18 @@
             mso-hide: all;
             visibility: hidden;
             width: 0;
+        }
+
+        .view-full {
+            clear: both;
+            color: #282A2D;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+        .view-full a {
+            color: #282A2D;
         }
 
         .powered-by a {
@@ -580,13 +593,19 @@
                 <!-- START CENTERED WHITE CONTAINER -->
                 <span class="preheader">Tautulli Newsletter  - ${title}</span>
 
+                % if base_url and not preview:
+                <div class="view-full">  <!-- IGNORE SAVE -->
+                    <a href="${base_url + uuid}" title="View full newsletter" target="_blank">Click here to view the full newsletter.</a>  <!-- IGNORE SAVE -->
+                </div>  <!-- IGNORE SAVE -->
+                % endif
+
                 <table border="0" cellpadding="3" cellspacing="0" class="main">
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
                         <td class="wrapper newsletter-header">
                             <div class="header">
-                                <img src="${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90"/>
+                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90"/>
                             </div>
                             <div class="server-name">${parameters['server_name']}</div>
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
@@ -597,7 +616,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Movies
+                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Movies
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -613,16 +632,16 @@
                                         % for movie in (movie_a, movie_b):
                                         % if movie:
                                         <td align="center" valign="top" class="card-instance movie">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + movie['art_hash']) if base_url_image else movie['art_url']});">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']})">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['poster_url']})">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -704,7 +723,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
+                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -722,16 +741,16 @@
                                         % for show in (show_a, show_b):
                                         % if show:
                                         <td align="center" valign="top" class="card-instance show">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']})">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['poster_url']})">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -840,7 +859,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Music
+                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Music
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -858,16 +877,16 @@
                                         % for album in (album_a, album_b):
                                         % if album:
                                         <td align="center" valign="top" class="card-instance album">
-                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + album['art_hash']) if base_url_image else album['art_url']});">
                                                 <tbody>
                                                     <tr>
                                                         <td class="card-poster-container">
-                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']})">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['poster_url']})">
                                                                 <tbody>
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-cover.png' if base_url else 'https://i.imgur.com/ObC1NeY.png'}" width="150" height="150">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'https://i.imgur.com/ObC1NeY.png'}" width="150" height="150">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
