@@ -1,7 +1,7 @@
 ﻿% if data:
 <%
     import plexpy
-    from helpers import grouper
+    from plexpy.helpers import grouper
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
