@@ -3,9 +3,11 @@
     import json
     from plexpy import helpers, notifiers
 
-    email_notifiers = [n for n in notifiers.get_notifiers() if n['agent_name'] == 'email']
+    all_notifiers = notifiers.get_notifiers()
+    email_notifiers = [n for n in all_notifiers if n['agent_name'] == 'email']
     sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
     email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
+    other_notifiers = [{'id': 0, 'agent_label': 'Select a Notification Agent', 'friendly_name': ''}] + all_notifiers
 %>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -18,7 +20,8 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-newsletter_config" aria-controls="tabs-newsletter_config" role="tab" data-toggle="tab">Configuration</a></li>
-                        <li role="presentation"><a href="#tabs-email_config" aria-controls="tabs-email_config" role="tab" data-toggle="tab">Email Configuration</a></li>
+                        <li role="presentation"><a href="#tabs-newsletter_text" aria-controls="tabs-newsletter_text" role="tab" data-toggle="tab">Newsletter Text</a></li>
+                        <li role="presentation"><a href="#tabs-newsletter_agent" aria-controls="tabs-newsletter_agent" role="tab" data-toggle="tab">Notification Agent</a></li>
                         <li role="presentation"><a href="#tabs-test_newsletter" aria-controls="tabs-test_newsletter" role="tab" data-toggle="tab">Test Newsletter</a></li>
                     </ul>
                 </div>
@@ -152,16 +155,57 @@
                                 </div>
                             </div>
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="tabs-email_config">
+                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_text">
+                            <label>Newsletter Text</label>
+                            <p class="help-block">
+                                Set the custom formatted text for each type of notification.
+                                <a href="#newsletter-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
+                            </p>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="newsletter_email_notifier">Email Notification Agent</label>
+                                        <label for="subject">Subject</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="newsletter_email_notifier" name="newsletter_email_notifier">
+                                                <input type="text" class="form-control" id="subject" name="subject" value="${newsletter['subject']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Optional: Enter a subject line for the newsletter. Leave blank for default.
+                                        </p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="body">Body</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="text" class="form-control" id="body" name="body" value="${newsletter['body']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Optional: Enter a body line for the newsletter. Leave blank for default.<br>
+                                            Note: Only sent to notifications agents other than HTML formatted Emails.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agent">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${helpers.checked(newsletter['config']['formatted'])}> Send newsletter as a HTML formatted Email
+                                        </label>
+                                        <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
+                                        <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
+                                    </div>
+                                    <div class="form-group" id="email_notifier_select">
+                                        <label for="newsletter_email_notifier_id">Email Notification Agent</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <select class="form-control" id="newsletter_email_notifier_id" name="newsletter_email_notifier_id">
                                                     % for notifier in email_notifiers:
-                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier'] else '' %>
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier_id'] else '' %>
                                                     % if notifier['friendly_name']:
                                                     <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
                                                     % elif notifier['id']:
@@ -173,36 +217,33 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <p class="help-block">Use an existing Email notification agent or enter a new configuration below.</p>
+                                        <p class="help-block">Select an existing Email notification agent or enter a new configuration below.</p>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="subject">Subject</label>
+                                    <div class="form-group" id="other_notifier_select">
+                                        <label for="newsletter_config_notifier_id">Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <input type="text" class="form-control" id="subject" name="subject" value="${newsletter['subject']}" size="30">
+                                                <select class="form-control" id="newsletter_config_notifier_id" name="newsletter_config_notifier_id">
+                                                    % for notifier in other_notifiers:
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['config']['notifier_id'] else '' %>
+                                                    % if notifier['friendly_name']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                    % elif notifier['id']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
+                                                    % else:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
+                                                    % endif
+                                                    % endfor
+                                                </select>
                                             </div>
                                         </div>
-                                        <p class="help-block">
-                                            Optional: Enter a subject line for the email. Leave blank for default.
-                                            <br>
-                                            Note: You may include <span class="inline-pre">{server_name}</span>, <span class="inline-pre">{start_date}</span>, and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
-                                        </p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="body">Body</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <input type="text" class="form-control" id="body" name="body" value="${newsletter['body']}" size="30">
-                                            </div>
-                                        </div>
-                                        <p class="help-block">
-                                            Optional: Enter a body line for the email. Leave blank for default.
-                                            <br>
-                                            Note: You may include <span class="inline-pre">{server_name}</span>, <span class="inline-pre">{start_date}</span>, and <span class="inline-pre">{end_date}</span> as parameters. The global date format under Settings > General will be used.
+                                        <p class="help-block">Select an existing notification agent where the subject and body text will be sent.<br>
+                                            Note: Self-hosted newsletters must be enabled under <a data-tab-destination="tabs-newsletters" style="cursor: pointer;" data-dismiss="modal">Newsletters</a> to include a link to the newsletter.
+
                                         </p>
                                     </div>
                                 </div>
-                                <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444; ${'display: none;' if newsletter['email_config']['notifier'] else ''}">
+                                <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
                                     % for item in newsletter['email_config_options']:
                                     % if item['input_type'] == 'help':
                                     <div class="form-group">
@@ -377,12 +418,34 @@
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
-    $('#newsletter_email_notifier').change(function () {
-        if ($(this).val() === "0") {
+    function toggleEmailSelect () {
+        if ($('#newsletter_config_formatted_checkbox').is(':checked')) {
+            $('#email_notifier_select').show();
+            $('#other_notifier_select').hide();
+            toggleNewEmailConfig();
+        } else {
+            $('#email_notifier_select').hide();
+            $('#other_notifier_select').show();
+            $('#newsletter-email-config').hide();
+        }
+    }
+    toggleEmailSelect();
+
+    $('#newsletter_config_formatted_checkbox').change(function () {
+        toggleEmailSelect();
+    });
+
+    function toggleNewEmailConfig () {
+        if ($('#newsletter_email_notifier_id').val() === '0') {
             $('#newsletter-email-config').show();
         } else {
             $('#newsletter-email-config').hide();
         }
+    }
+    toggleNewEmailConfig();
+
+    $('#newsletter_email_notifier_id').change(function () {
+        toggleNewEmailConfig();
     });
 
     var REGEX_EMAIL = '([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@' +

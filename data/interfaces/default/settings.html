@@ -1496,6 +1496,53 @@
 </div>
 <div id="notifier-text-preview-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notifier-text-preview-modal">
 </div>
+<div id="newsletter-text-sub-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="newsletter-text-sub-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Newsletter Parameters</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p class="help-block">
+                        If the value for a selected parameter cannot be provided, it will display as blank.
+                    </p>
+                    % for category in common.NEWSLETTER_PARAMETERS:
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    ${category['category']}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            % for parameter in category['parameters']:
+                            <tr>
+                                <td><strong>{${parameter['value']}}</strong></td>
+                                <td>
+                                    ${parameter['description']}
+                                    % if parameter.get('example'):
+                                    <span class="small-muted">(${parameter['example']})</span>
+                                    % endif
+                                    % if parameter.get('help_text'):
+                                    <p class="small-muted">(${parameter['help_text']})</p>
+                                    % endif
+                                </td>
+                            </tr>
+                            % endfor
+                        </tbody>
+                    </table>
+                    % endfor
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
 <div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

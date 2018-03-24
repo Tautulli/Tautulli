@@ -493,7 +493,7 @@ NOTIFICATION_PARAMETERS = [
         'category': 'Tautulli Update Available',
         'parameters': [
              {'name': 'Tautulli Update Version', 'type': 'str', 'value': 'tautulli_update_version', 'description': 'The available update version for Tautulli.'},
-             {'name': 'Tautulli Update Release URL', 'type': 'str', 'value': 'tautulli_update_release_url', 'description': 'The release page URL on GitHub'},
+             {'name': 'Tautulli Update Release URL', 'type': 'str', 'value': 'tautulli_update_release_url', 'description': 'The release page URL on GitHub.'},
              {'name': 'Tautulli Update Tar', 'type': 'str', 'value': 'tautulli_update_tar', 'description': 'The tar download URL for the available update.'},
              {'name': 'Tautulli Update Zip', 'type': 'str', 'value': 'tautulli_update_zip', 'description': 'The zip download URL for the available update.'},
              {'name': 'Tautulli Update Commit', 'type': 'str', 'value': 'tautulli_update_commit', 'description': 'The commit hash for the available update.'},
@@ -501,4 +501,24 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Tautulli Update Changelog', 'type': 'str', 'value': 'tautulli_update_changelog', 'description': 'The changelog for the available update.'},
         ]
      },
+]
+
+NEWSLETTER_PARAMETERS = [
+    {
+        'category': 'Global',
+        'parameters': [
+            {'name': 'Server Name', 'type': 'str', 'value': 'server_name', 'description': 'The name of your Plex Server.'},
+            {'name': 'Start Date', 'type': 'str', 'value': 'start_date', 'description': 'The start date of the newesletter.'},
+            {'name': 'End Date', 'type': 'str', 'value': 'end_date', 'description': 'The end date of the newesletter.'},
+            {'name': 'Newsletter Days', 'type': 'int', 'value': 'newsletter_days', 'description': 'The past number of days included in the newsletter.'},
+            {'name': 'Newsletter URL', 'type': 'str', 'value': 'newsletter_url', 'description': 'The self-hosted URL to the newsletter.'},
+            {'name': 'Newsletter UUID', 'type': 'str', 'value': 'newsletter_uuid', 'description': 'The unique identifier for the newsletter.'},
+        ]
+     },
+    {
+        'category': 'Recently Added',
+        'parameters': [
+            {'name': 'Included Libraries', 'type': 'str', 'value': 'newsletter_libraries', 'description': 'The list of libraries included in the newsletter.'},
+        ]
+    }
 ]

@@ -137,18 +137,16 @@ def get_newsletter_config(newsletter_id=None):
         body = result.pop('body')
         newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config,
                                            subject=subject, body=body)
-        newsletter_config = newsletter_agent.return_config_options()
-        newsletter_email_config = newsletter_agent.return_email_config_options()
     except Exception as e:
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
     result['subject'] = newsletter_agent.subject
     result['body'] = newsletter_agent.body
-    result['config'] = config
-    result['email_config'] = email_config
-    result['config_options'] = newsletter_config
-    result['email_config_options'] = newsletter_email_config
+    result['config'] = newsletter_agent.config
+    result['email_config'] = newsletter_agent.email_config
+    result['config_options'] = newsletter_agent.return_config_options()
+    result['email_config_options'] = newsletter_agent.return_email_config_options()
 
     return result
 
@@ -289,10 +287,12 @@ def generate_newsletter_uuid():
 
 class Newsletter(object):
     NAME = ''
-    _DEFAULT_CONFIG = {'last_days': 7}
+    _DEFAULT_CONFIG = {'last_days': 7,
+                       'formatted': 1,
+                       'notifier_id': 0}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
-    _DEFAULT_EMAIL_CONFIG['notifier'] = 0
+    _DEFAULT_EMAIL_CONFIG['notifier_id'] = 0
     _DEFAULT_SUBJECT = 'Tautulli Newsletter'
     _DEFAULT_BODY = 'Tautulli Newsletter'
     _TEMPLATE_MASTER = ''
@@ -301,7 +301,6 @@ class Newsletter(object):
     def __init__(self, config=None, email_config=None, start_date=None, end_date=None, subject=None, body=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
-
         self.uuid = generate_newsletter_uuid()
 
         self.start_date = None
@@ -429,19 +428,26 @@ class Newsletter(object):
             logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False
 
-        if self.email_config['notifier']:
-            return send_notification(
-                notifier_id=self.email_config['notifier'],
-                subject=self.subject_formatted,
-                body=self.newsletter
-            )
+        if self.config['formatted']:
+            if self.email_config['notifier_id']:
+                return send_notification(
+                    notifier_id=self.email_config['notifier_id'],
+                    subject=self.subject_formatted,
+                    body=self.newsletter
+                )
 
-        else:
-            email = EMAIL(config=self.email_config)
-            return email.notify(
-                subject=self.subject_formatted,
-                body=self.newsletter
-            )
+            else:
+                email = EMAIL(config=self.email_config)
+                return email.notify(
+                    subject=self.subject_formatted,
+                    body=self.newsletter
+                )
+        elif self.config['notifier_id']:
+            return send_notification(
+                    notifier_id=self.config['notifier_id'],
+                    subject=self.subject_formatted,
+                    body=self.body_formatted
+                )
 
     def build_params(self):
         parameters = self._build_params()
@@ -522,7 +528,7 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_CONFIG = Newsletter._DEFAULT_CONFIG.copy()
     _DEFAULT_CONFIG['incl_libraries'] = []
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
-    _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
+    _DEFAULT_BODY = 'View the full newsletter here: {newsletter_url}'
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 
