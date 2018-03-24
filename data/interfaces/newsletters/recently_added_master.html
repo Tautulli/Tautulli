@@ -272,11 +272,14 @@
             HEADER
         ------------------------------------- */
         .header {
-            background-repeat: no-repeat;
-            background-position: calc(50% - 20px) 50%;
-            background-size: contain;
             width: 100%;
-            height: 100px;
+            height: 90px;
+            text-align: center;
+        }
+        .header-img {
+            width: 492px;
+            height: 90px;
+            margin-left: -35px;
         }
         .server-name {
             font-size: 30px;
@@ -303,26 +306,35 @@
             margin: 0 0 10px 0;
         }
 
-        img.sub-header-icon {
+        .sub-header-icon {
             height: 30px;
+            width: 30px;
             vertical-align: middle;
             margin-right: 5px;
             margin-bottom: 5px;
         }
-        .sub-header > div {
+        .sub-header-bar {
             margin-left: auto;
             margin-right: auto;
             font-size: 30px;
             text-align: center;
-        }
-        .sub-header-bar {
             width: 200px;
             border-top: 1px solid #E5A00D;
             margin-top: 15px;
             margin-bottom: 25px;
         }
         .sub-header-title {
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 30px;
+            text-align: center;
             font-weight: lighter;
+        }
+        .sub-header-count {
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 30px;
+            text-align: center;
         }
         .sub-header-count .count {
             color: #E5A00D;
@@ -462,11 +474,19 @@
         @media only screen and (max-width: 1040px) {
             .card-instance {
                 display: block !important;
-                margin: 0 auto;
+                margin-top: 0 !important;
+                margin-right: auto !important;
+                margin-bottom: 0 !important;
+                margin-left: auto !important;
             }
 
             table[class=body] .header {
-                background-position: center !important;
+                height: 75px !important;
+            }
+            table[class=body] .header-img {
+                width: 410px;
+                height: 75px;
+                margin-left: -30px;
             }
 
             table[class=body] h1 {
@@ -486,8 +506,9 @@
             table[class=body] .sub-header-title {
                 font-size: 20px !important;
             }
-            table[class=body] img.sub-header-icon {
+            table[class=body] .sub-header-icon {
                 height: 20px !important;
+                width: 20px !important;
             }
             table[class=body] .count {
                 font-size: 20px !important;
@@ -564,24 +585,22 @@
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
                         <td class="wrapper newsletter-header">
-                            <div class="header" style="background-image: url(${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'})"></div>
+                            <div class="header">
+                                <img src="${base_url + 'images/newsletter/newsletter-header.png' if base_url else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90"/>
+                            </div>
                             <div class="server-name">${parameters['server_name']}</div>
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>
                     % if recently_added.get('movie'):
                     <tr>
-                        <td>
-                            <div class="wrapper">
-                                <div class="sub-header">
-                                    <div class="sub-header-bar"></div>
-                                    <div class="sub-header-title">
-                                        <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon"/> Recently Added Movies
-                                    </div>
-                                    <div class="sub-header-count">
-                                        <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
-                                    </div>
-                                </div>
+                        <td class="wrapper">
+                            <div class="sub-header-bar"></div>
+                            <div class="sub-header-title">
+                                <img src="${(base_url + 'images/libraries/movie.png') if base_url else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Movies
+                            </div>
+                            <div class="sub-header-count">
+                                <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
                             </div>
                         </td>
                     </tr>
@@ -682,20 +701,20 @@
                     % endif
                     % if recently_added.get('show'):
                     <tr>
-                        <td>
-                            <div class="wrapper">
-                                <div class="sub-header">
-                                    <div class="sub-header-bar"></div>
-                                    <div class="sub-header-title">
-                                        <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon"/> Recently Added TV Shows
-                                    </div>
-                                    <div class="sub-header-count">
-                                        <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
-                                        <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
-                                        <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total > 1 else ''}</span>
-                                    </div>
-                                </div>
+                        <td class="wrapper">
+                            <div class="sub-header-bar"></div>
+                            <div class="sub-header-title">
+                                <img src="${(base_url + 'images/libraries/show.png') if base_url else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
                             </div>
+                            <div class="sub-header-count">
+                                <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
+                                <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
+                                <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total > 1 else ''}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <table border="0" cellpadding="0" cellspacing="0">
                                 <tbody>
                                     % for show_a, show_b in grouper(recently_added['show'], 2):
@@ -818,20 +837,20 @@
                     % endif
                     % if recently_added.get('artist'):
                     <tr>
-                        <td>
-                            <div class="wrapper">
-                                <div class="sub-header">
-                                    <div class="sub-header-bar"></div>
-                                    <div class="sub-header-title">
-                                        <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon"/> Recently Added Music
-                                    </div>
-                                    <div class="sub-header-count">
-                                        <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
-                                        <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
-                                        <span class="count">${total_albums}</span> <span class="count-units">album${'s' if total > 1 else ''}</span>
-                                    </div>
-                                </div>
+                        <td class="wrapper">
+                            <div class="sub-header-bar"></div>
+                            <div class="sub-header-title">
+                                <img src="${(base_url + 'images/libraries/artist.png') if base_url else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Music
                             </div>
+                            <div class="sub-header-count">
+                                <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
+                                <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
+                                <span class="count">${total_albums}</span> <span class="count-units">album${'s' if total > 1 else ''}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <table border="0" cellpadding="0" cellspacing="0">
                                 <tbody>
                                     % for album_a, album_b in grouper([a for artist in recently_added['artist'] for a in artist['album']], 2):
@@ -925,13 +944,11 @@
                     </tr>
                     % endif
                     <tr>
-                        <td>
+                        <td class="footer">
                             <!-- START FOOTER -->
-                            <div class="footer">
-                                <div class="footer-bar"></div>
-                                <div class="content-block powered-by">
-                                    Newsletter generated by <a href="http://tautulli.com" target="_blank">Tautulli</a>.
-                                </div>
+                            <div class="footer-bar"></div>
+                            <div class="content-block powered-by">
+                                Newsletter generated by <a href="http://tautulli.com" target="_blank">Tautulli</a>.
                             </div>
                             <!-- END FOOTER -->
                         </td>
