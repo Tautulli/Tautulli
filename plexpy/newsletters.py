@@ -413,7 +413,7 @@ class Newsletter(object):
             os.makedirs(newsletter_folder)
 
         try:
-            with open(newsletter_file_fp, 'w') as n_file:
+            with open(newsletter_file_fp, 'wb') as n_file:
                 n_file.write(self.newsletter.encode('utf-8'))
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
@@ -661,8 +661,8 @@ class RecentlyAdded(Newsletter):
         if self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
             for item in movies + shows + albums:
                 item['thumb_hash'] = set_hash_image_info(img=item['thumb'],
-                                                         width=300,
-                                                         height=450,
+                                                         width=150,
+                                                         height=225,
                                                          fallback='poster')
                 item['art_hash'] = set_hash_image_info(img=item['art'],
                                                        width=500,

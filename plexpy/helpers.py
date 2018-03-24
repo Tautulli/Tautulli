@@ -20,6 +20,7 @@ import geoip2.database, geoip2.errors
 import gzip
 import hashlib
 import imghdr
+from itertools import izip_longest
 import ipwhois, ipwhois.exceptions, ipwhois.utils
 from IPy import IP
 import json
@@ -974,3 +975,10 @@ def momentjs_to_arrow(format, duration=False):
     for f in invalid_formats:
         format = format.replace(f, '')
     return format
+
+
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return izip_longest(fillvalue=fillvalue, *args)

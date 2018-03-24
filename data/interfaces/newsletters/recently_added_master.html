@@ -1,6 +1,7 @@
 ﻿% if data:
 <%
     import plexpy
+    from helpers import grouper
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.NEWSLETTER_BASE_URL:
@@ -73,7 +74,7 @@
             box-sizing: border-box;
             display: block;
             margin: 0 auto;
-            max-width: 1042px;
+            max-width: 1037px;
             padding: 10px;
         }
 
@@ -139,10 +140,8 @@
         ul,
         ol {
             font-family: 'Open Sans', Helvetica, Arial, sans-serif;
-            font-size: 14px;
             font-weight: 400;
             margin: 0;
-            margin-bottom: 15px;
         }
 
         p li,
@@ -245,6 +244,8 @@
 
         .nowrap {
             white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
         .clear {
             clear: both;
@@ -335,150 +336,135 @@
             MEDIA CARDS
         ------------------------------------- */
         .card-instance {
-            float: left;
-            width: 500px;
-            margin: 3px;
-            border: 1px solid rgba(255,255,255,.1);
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
             font-size: 12px;
             overflow: hidden;
-            position: relative;
+            padding: 3px;
+            width: 502px;
+            min-width: 502px;
+            max-width: 502px;
         }
         .card-instance.movie,
         .card-instance.show {
-            height: 235px;
+            height: 233px;
         }
         .card-instance.album {
-            height: 160px;
-        }
-        .card-instance.odd {
-            float: none !important;
-            margin: 3px auto !important;
+            height: 158px;
         }
         .card-background {
             background-position: center;
             background-size: cover;
-            width: 100%;
-            height: 100%;
+            background-repeat: no-repeat;
+            background-clip: padding-box;
+            border: 1px solid rgba(255,255,255,.1);
         }
         .card-poster-container {
-            width: 150px;
-            margin: 3px;
-            border: 1px solid rgba(255,255,255,.1);
-            float: left;
-            position: relative;
-            z-index: 1;
+            width: 152px;
+            min-width: 152px;
         }
         .card-instance.movie .card-poster-container,
         .card-instance.show .card-poster-container{
-            height: 225px;
+            height: 227px;
         }
         .card-instance.album .card-poster-container {
-            height: 150px;
+            height: 152px;
         }
         .card-poster {
             background-color: #3F4245;
             background-position: center;
             background-size: cover;
-            height: 100%;
-            width: 100%;
+            background-repeat: no-repeat;
+            background-clip: padding-box;
+            border: 1px solid rgba(255,255,255,.1);
         }
         .card-poster-overlay {
-            background-repeat: no-repeat;
-            background-position: bottom right;
-            width: 100%;
-            height: 100%;
+            display: block;
         }
         .card-info-container {
-            margin: 4px;
-            width: 332px;
-            float: left;
-            position: relative;
-            z-index: 1;
+            padding-left: 4px;
         }
         .card-instance.movie .card-info-container,
         .card-instance.show .card-info-container{
-            height: 225px;
+            height: 227px;
         }
         .card-instance.album .card-info-container {
-            height: 150px;
+            height: 152px;
         }
-        .card-info-container > div {
-            padding: 5px;
-            text-overflow: ellipsis;
-            overflow: hidden;
+        .card-info-container > table {
+            height: 100%;
         }
         .card-info-title {
             border-bottom: 1px solid rgba(255, 255, 255, .1);
-            line-height: 20px;
-            font-size: 15px;
+            line-height: 1.2rem;
+            font-size: 0.9rem;
+            padding: 5px;
         }
         .card-info-title a {
             text-decoration: none;
             color: #ffffff;
         }
-        .card-info-body > div {
-            color: #ffffff;
-            font-size: 12px;
-            text-overflow: ellipsis;
-            overflow: hidden;
+        .card-info-body {
+            font-size: 0.75rem;
+            padding: 5px;
+            height: 100%;
+        }
+        .card-info-body > p {
+            max-width: 325px;
         }
         .card-instance.movie .card-info-body,
         .card-instance.show .card-info-body {
-            min-height: 157px;
         }
         .card-instance.album .card-info-body {
+            height: 82px;
             min-height: 82px;
         }
         .card-info-footer {
-            font-size: 10px;
+            font-size: 0.6rem;
+            padding-top: 0px;
+            padding-right: 5px;
+            padding-bottom: 5px;
+            padding-left: 5px;
+        }
+        .card-info-footer .star-rating-container {
+            vertical-align: bottom;
+            padding-right: 5px;
         }
         .card-info-footer .star-rating {
-            width: 60px;
-            font-size: 14px;
-            line-height: 17px;
-            float: right;
-        }
-        .star-rating-full {
-            color: #E5A00D;
-            direction: ltr;
-            padding: 0;
-            overflow: hidden;
-            float: left;
-        }
-        .star-rating-empty {
-            color: #aaaaaa;
-            direction: rtl;
-            padding: 0;
-            overflow: hidden;
-            float: left;
-        }
-        .star-rating span {
+            font-size: 0.8rem;
+            line-height: 1rem;
+            width: 0.5rem;
             display: inline-block;
-            text-align: center;
-            width: 12px;
+        }
+        .star-rating.full {
+            color: #E5A00D;
+        }
+        .star-rating.empty {
+            color: #aaaaaa;
         }
         .badge {
             display: inline-block;
             min-width: 10px;
             padding: 3px 7px;
             font-size: 11px;
-            font-style: normal;
             line-height: 1;
-            color: #fff;
             text-align: center;
             white-space: nowrap;
             vertical-align: middle;
             background-color: rgba(0, 0, 0, .25);
             border-radius: 2px;
+            max-width: 75px;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
         /* -------------------------------------
             RESPONSIVE AND MOBILE FRIENDLY STYLES
         ------------------------------------- */
-        @media only screen and (max-width: 620px) {
+        @media only screen and (max-width: 1040px) {
+            .card-instance {
+                display: block !important;
+                margin: 0 auto;
+            }
+
             table[class=body] .header {
                 background-position: center !important;
             }
@@ -508,11 +494,6 @@
             }
             table[class=body] .count-units {
                 font-size: 14px !important;
-            }
-
-            table[class=body] .card-instance {
-                margin: 3px auto;
-                float: none;
             }
 
             table[class=body] .content {
@@ -576,9 +557,9 @@
             <div class="content">
 
                 <!-- START CENTERED WHITE CONTAINER -->
-                <span class="preheader">Tautulli card-backbro  - ${title}</span>
+                <span class="preheader">Tautulli Newsletter  - ${title}</span>
 
-                <table border="0" cellpadding="0" cellspacing="0" class="main">
+                <table border="0" cellpadding="3" cellspacing="0" class="main">
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
@@ -588,9 +569,9 @@
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>
+                    % if recently_added.get('movie'):
                     <tr>
                         <td>
-                            % if recently_added.get('movie'):
                             <div class="wrapper">
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
@@ -602,67 +583,106 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="wrapper">
-                                % for movie in recently_added['movie']:
-                                <%
-                                    if loop.index == len(recently_added['movie'])-1 and loop.index % 2 == 0:
-                                        clear = '<div style="clear: both;"></div>'
-                                        odd = 'odd'
-                                    else:
-                                        clear = odd = ''
-                                %>
-                                ${clear | n}
-                                <div class="card-instance movie ${odd}">
-                                    <div class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});">
-                                        <div class="card-poster-container">
-                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']})">
-                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="card-info-container">
-                                            <div class="card-info-title nowrap">
-                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
-                                            </div>
-                                            <div class="card-info-body">
-                                                % if movie['tagline']:
-                                                <div class="nowrap mb5">
-                                                    <em>${movie['tagline']}</em>
-                                                </div>
-                                                % endif
-                                                <div>
-                                                    ${movie['summary'][:450] + (movie['summary'][450:] and '...')}
-                                                </div>
-                                            </div>
-                                            <div class="card-info-footer nowrap">
-                                                % if movie['year']:
-                                                <span class="badge">${movie['year']}</span>
-                                                % endif
-                                                % if movie['content_rating']:
-                                                <span class="badge">${movie['content_rating']}</span>
-                                                % endif
-                                                % if movie['duration']:
-                                                <span class="badge">${int(int(movie['duration'])/60000)} mins</span>
-                                                % endif
-                                                % if movie['rating']:
-                                                <span class="star-rating" title="${int(float(movie['rating'])/0.1)}%">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(movie['rating'])/0.1}%">
-                                                        <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
-                                                    </div>
-                                                    <div class="star-rating-empty" style="width: ${100-float(movie['rating'])/0.1}%">
-                                                        <span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span>
-                                                    </div>
-                                                </span>
-                                                % endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                % endfor
-                            </div>
-                            % endif
-                            % if recently_added.get('show'):
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    % for movie_a, movie_b in grouper(recently_added['movie'], 2):
+                                    <tr>
+                                        % for movie in (movie_a, movie_b):
+                                        % if movie:
+                                        <td align="center" valign="top" class="card-instance movie">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + movie['art_hash']) if base_url else movie['art_url']});">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="card-poster-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + movie['thumb_hash']) if base_url else movie['poster_url']})">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
+                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                        <td class="card-info-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="card-info-title nowrap">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-body">
+                                                                            % if movie['tagline']:
+                                                                            <p class="nowrap mb5">
+                                                                                <em>${movie['tagline']}</em>
+                                                                            </p>
+                                                                            % endif
+                                                                            <p>
+                                                                                ${movie['summary'][:450] + (movie['summary'][450:] and '...')}
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-footer nowrap">
+                                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            % if movie['year']:
+                                                                                            <span class="badge">${movie['year']}</span>
+                                                                                            % endif
+                                                                                            % if movie['content_rating']:
+                                                                                            <span class="badge">${movie['content_rating']}</span>
+                                                                                            % endif
+                                                                                            % if movie['duration']:
+                                                                                            <span class="badge">${int(int(movie['duration'])/60000)} mins</span>
+                                                                                            % endif
+                                                                                        </td>
+                                                                                        % if movie['rating']:
+                                                                                        <% rating = int(round(float(movie['rating']) / 2)) %>
+                                                                                        <td class="star-rating-container" title="${int(float(movie['rating'])/0.1)}%" align="right">
+                                                                                            % for _ in range(rating):
+                                                                                            <span class="star-rating full">&#9733;</span>
+                                                                                            % endfor
+                                                                                            % for _ in range(5-rating):
+                                                                                            <span class="star-rating empty">&#9734;</span>
+                                                                                            % endfor
+                                                                                        </td>
+                                                                                        % endif
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        % else:
+                                        <td align="center" valign="top" class="card-instance"></td>
+                                        % endif
+                                        % endfor
+                                    </tr>
+                                    % endfor
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    % if recently_added.get('show'):
+                    <tr>
+                        <td>
                             <div class="wrapper">
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
@@ -676,101 +696,129 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="wrapper">
-                                % for show in recently_added['show']:
-                                <%
-                                    if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
-                                        link_rating_key = show['season'][0]['episode'][0]['rating_key']
-                                        link_title = show['title'] + " - " + show['season'][0]['episode'][0]['title']
-                                    else:
-                                        link_rating_key = show['rating_key']
-                                        link_title = show['title']
-
-                                    if loop.index == len(recently_added['show'])-1 and loop.index % 2 == 0:
-                                        clear = '<div style="clear: both;"></div>'
-                                        odd = 'odd'
-                                    else:
-                                        clear = odd = ''
-                                %>
-                                ${clear | n}
-                                <div class="card-instance show ${odd}">
-                                    <div class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});">
-                                        <div class="card-poster-container">
-                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']});">
-                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="card-info-container">
-                                            <div class="card-info-title nowrap">
-                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${link_title}" target="_blank">${show['title']}</a>
-                                            </div>
-                                            <div class="card-info-body">
-                                                <div class="nowrap mb5">
-                                                    % if show['season_count'] > 1:
-                                                        <em>${show['season_count']} seasons /</em>
-                                                    % endif
-                                                    <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
-                                                    <em>${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}</em>
-                                                </div>
-                                                <div class="nowrap mb5">
-                                                    % for i, season in enumerate(show['season'][:8]):
-                                                        Season ${season['media_index']} &middot;
-                                                        % if season['episode_count'] == 1:
-                                                            Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
-                                                        % else:
-                                                            Episodes ${season['episode_range']}
-                                                        % endif
-                                                        % if i < min(show['season_count'], 7):
-                                                            <br>
-                                                        % elif i == 7 and show['season_count'] > 8:
-                                                            ...plus ${show['season_count'] - 8} more seasons!
-                                                        % endif
-                                                    % endfor
-                                                </div>
-                                                <div>
-                                                    % if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
-                                                    ${show['season'][0]['episode'][0]['summary'][:350] + (show['season'][0]['episode'][0]['summary'][350:] and '...')}
-                                                    % else:
-                                                    <% length = max(0, 350 - 50 * (show['season_count'] - 1)) %>
-                                                        % if length:
-                                                        ${show['summary'][:length] + (show['summary'][length:] and '...')}
-                                                        % endif
-                                                    % endif
-                                                </div>
-                                            </div>
-                                            <div class="card-info-footer nowrap">
-                                                % if show['studio']:
-                                                <span class="badge">${show['studio']}</span>
-                                                % endif
-                                                % if show['year']:
-                                                <span class="badge">${show['year']}</span>
-                                                % endif
-                                                % if show['content_rating']:
-                                                <span class="badge">${show['content_rating']}</span>
-                                                % endif
-                                                % if show['duration']:
-                                                <span class="badge">${int(int(show['duration'])/60000)} mins</span>
-                                                % endif
-                                                % if show['rating']:
-                                                <span class="star-rating" title="${int(float(show['rating'])/0.1)}%">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(show['rating'])/0.1}%">
-                                                        <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
-                                                    </div>
-                                                    <div class="star-rating-empty" style="width: ${100-float(show['rating'])/0.1}%">
-                                                        <span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span>
-                                                    </div>
-                                                </span>
-                                                % endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                % endfor
-                            </div>
-                            % endif
-                            % if recently_added.get('artist'):
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    % for show_a, show_b in grouper(recently_added['show'], 2):
+                                    <tr>
+                                        % for show in (show_a, show_b):
+                                        % if show:
+                                        <td align="center" valign="top" class="card-instance show">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + show['art_hash']) if base_url else show['art_url']});">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="card-poster-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + show['thumb_hash']) if base_url else show['poster_url']})">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank">
+                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-poster.png' if base_url else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                        <td class="card-info-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="card-info-title nowrap">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank">${show['title']}</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-body">
+                                                                            <p class="nowrap mb5">
+                                                                                % if show['season_count'] > 1:
+                                                                                    <em>${show['season_count']} seasons /</em>
+                                                                                % endif
+                                                                                <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
+                                                                                <em>${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}</em>
+                                                                            </p>
+                                                                            <p class="nowrap mb5">
+                                                                                % for i, season in enumerate(show['season'][:8]):
+                                                                                    Season ${season['media_index']} &middot;
+                                                                                    % if season['episode_count'] == 1:
+                                                                                        Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
+                                                                                    % else:
+                                                                                        Episodes ${season['episode_range']}
+                                                                                    % endif
+                                                                                    % if i < min(show['season_count'], 7):
+                                                                                        <br>
+                                                                                    % elif i == 7 and show['season_count'] > 8:
+                                                                                        ...plus ${show['season_count'] - 8} more seasons!
+                                                                                    % endif
+                                                                                % endfor
+                                                                            </p>
+                                                                            <p>
+                                                                                % if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
+                                                                                ${show['season'][0]['episode'][0]['summary'][:350] + (show['season'][0]['episode'][0]['summary'][350:] and '...')}
+                                                                                % else:
+                                                                                <% length = max(0, 350 - 50 * (show['season_count'] - 1)) %>
+                                                                                    % if length:
+                                                                                    ${show['summary'][:length] + (show['summary'][length:] and '...')}
+                                                                                    % endif
+                                                                                % endif
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-footer nowrap">
+                                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            % if show['studio']:
+                                                                                            <span class="badge">${show['studio']}</span>
+                                                                                            % endif
+                                                                                            % if show['year']:
+                                                                                            <span class="badge">${show['year']}</span>
+                                                                                            % endif
+                                                                                            % if show['content_rating']:
+                                                                                            <span class="badge">${show['content_rating']}</span>
+                                                                                            % endif
+                                                                                            % if show['duration']:
+                                                                                            <span class="badge">${int(int(show['duration'])/60000)} mins</span>
+                                                                                            % endif
+                                                                                        </td>
+                                                                                        % if show['rating']:
+                                                                                        <% rating = int(round(float(show['rating']) / 2)) %>
+                                                                                        <td class="star-rating-container" title="${int(float(show['rating'])/0.1)}%" align="right">
+                                                                                            % for _ in range(rating):
+                                                                                            <span class="star-rating full">&#9733;</span>
+                                                                                            % endfor
+                                                                                            % for _ in range(5-rating):
+                                                                                            <span class="star-rating empty">&#9734;</span>
+                                                                                            % endfor
+                                                                                        </td>
+                                                                                        % endif
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        % else:
+                                        <td align="center" valign="top" class="card-instance"></td>
+                                        % endif
+                                        % endfor
+                                    </tr>
+                                    % endfor
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    % if recently_added.get('artist'):
+                    <tr>
+                        <td>
                             <div class="wrapper">
                                 <div class="sub-header">
                                     <div class="sub-header-bar"></div>
@@ -784,71 +832,100 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="wrapper">
-                                <% album_count = 0 %>
-                                % for artist in recently_added['artist']:
-                                % for album in artist['album']:
-                                <%
-                                    album_count += 1
-
-                                    if album_count == total_albums and album_count % 2 == 1:
-                                        clear = '<div style="clear: both;"></div>'
-                                        odd = 'odd'
-                                    else:
-                                        clear = odd = ''
-                                %>
-                                ${clear | n}
-                                <div class="card-instance album ${odd}">
-                                    <div class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});">
-                                        <div class="card-poster-container">
-                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
-                                                <div class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']});">
-                                                    <div class="card-poster-overlay" style="background-image: url(${base_url + 'images/newsletter/view-on-plex.png' if base_url else 'https://i.imgur.com/NSV7q16.png'})"></div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="card-info-container">
-                                            <div class="card-info-title nowrap">
-                                                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
-                                            </div>
-                                            <div class="card-info-body">
-                                                <div class="nowrap mb5">
-                                                    <em>${artist['title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
-                                                </div>
-                                                % if artist['title'].lower() != 'various artists':
-                                                <div>
-                                                    ${album['summary'][:200] + (album['summary'][200:] and '...')}
-                                                </div>
-                                                % endif
-                                            </div>
-                                            <div class="card-info-footer nowrap">
-                                                % if album['year']:
-                                                <span class="badge">${album['year']}</span>
-                                                % endif
-                                                % if album['genres']:
-                                                % for genre in album['genres'][:2]:
-                                                <span class="badge">${genre}</span>
-                                                % endfor
-                                                % endif
-                                                % if album['rating']:
-                                                <span class="star-rating" title="${int(float(album['rating'])/0.1)}%">
-                                                    <div class="star-rating-full nowrap" style="width: ${float(album['rating'])/0.1}%">
-                                                        <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
-                                                    </div>
-                                                    <div class="star-rating-empty" style="width: ${100-float(album['rating'])/0.1}%">
-                                                        <span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span>
-                                                    </div>
-                                                </span>
-                                                % endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                % endfor
-                                % endfor
-                            </div>
-                            % endif
-
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    % for album_a, album_b in grouper([a for artist in recently_added['artist'] for a in artist['album']], 2):
+                                    <tr>
+                                        % for album in (album_a, album_b):
+                                        % if album:
+                                        <td align="center" valign="top" class="card-instance album">
+                                            <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url + album['art_hash']) if base_url else album['art_url']});">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="card-poster-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url + album['thumb_hash']) if base_url else album['poster_url']})">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
+                                                                                <img class="card-poster-overlay" src="${base_url + 'images/newsletter/view-on-plex-cover.png' if base_url else 'https://i.imgur.com/ObC1NeY.png'}" width="150" height="150">
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                        <td class="card-info-container">
+                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="card-info-title nowrap">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-body">
+                                                                            <p class="nowrap mb5">
+                                                                                <em>${album['parent_title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
+                                                                            </p>
+                                                                            % if artist['title'].lower() != 'various artists':
+                                                                            <p>
+                                                                                ${album['summary'][:200] + (album['summary'][200:] and '...')}
+                                                                            </p>
+                                                                            % endif
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-footer nowrap">
+                                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            % if album['year']:
+                                                                                            <span class="badge">${album['year']}</span>
+                                                                                            % endif
+                                                                                            % if album['genres']:
+                                                                                            % for genre in album['genres'][:2]:
+                                                                                            <span class="badge">${genre}</span>
+                                                                                            % endfor
+                                                                                            % endif
+                                                                                        </td>
+                                                                                        % if album['rating']:
+                                                                                        <% rating = int(round(float(album['rating']) / 2)) %>
+                                                                                        <td class="star-rating-container" title="${int(float(album['rating'])/0.1)}%" align="right">
+                                                                                            % for _ in range(rating):
+                                                                                            <span class="star-rating full">&#9733;</span>
+                                                                                            % endfor
+                                                                                            % for _ in range(5-rating):
+                                                                                            <span class="star-rating empty">&#9734;</span>
+                                                                                            % endfor
+                                                                                        </td>
+                                                                                        % endif
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        % else:
+                                        <td align="center" valign="top" class="card-instance"></td>
+                                        % endif
+                                        % endfor
+                                    </tr>
+                                    % endfor
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    <tr>
+                        <td>
                             <!-- START FOOTER -->
                             <div class="footer">
                                 <div class="footer-bar"></div>
@@ -857,7 +934,6 @@
                                 </div>
                             </div>
                             <!-- END FOOTER -->
-
                         </td>
                     </tr>
 
