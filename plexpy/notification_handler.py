@@ -1345,13 +1345,13 @@ class CustomFormatter(Formatter):
 
     def format_field(self, value, format_spec):
         if format_spec.startswith('[') and format_spec.endswith(']'):
-            pattern = re.compile(r'\[(\d*):?(\d*)\]')
+            pattern = re.compile(r'\[(-?\d*):?(-?\d*)\]')
             if re.match(pattern, format_spec):  # slice
                 items = [x.strip() for x in unicode(value).split(',')]
                 slice_start, slice_end = re.search(pattern, format_spec).groups()
-                slice_start = max(int(slice_start), 0) if slice_start else None
-                slice_end = min(int(slice_end), len(items)) if slice_end else None
-                return ', '.join(items[slice_start:slice_end])
+                slice_start = helpers.cast_to_int(slice_start) or None
+                slice_end = helpers.cast_to_int(slice_end) or None
+                return ', '.join(items[slice(slice_start, slice_end)])
             else:
                 return value
         else:

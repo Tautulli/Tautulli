@@ -294,7 +294,7 @@ class Newsletter(object):
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier_id'] = 0
     _DEFAULT_SUBJECT = 'Tautulli Newsletter'
-    _DEFAULT_BODY = 'Tautulli Newsletter'
+    _DEFAULT_BODY = ''
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
@@ -389,7 +389,8 @@ class Newsletter(object):
         return serve_template(
             templatename=template,
             uuid=self.uuid,
-            title=self.subject_formatted,
+            subject=self.subject_formatted,
+            body=self.body_formatted,
             parameters=self.parameters,
             data=self.data,
             preview=self.is_preview
@@ -528,7 +529,7 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_CONFIG = Newsletter._DEFAULT_CONFIG.copy()
     _DEFAULT_CONFIG['incl_libraries'] = []
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
-    _DEFAULT_BODY = 'View the full newsletter here: {newsletter_url}'
+    _DEFAULT_BODY = ''
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 

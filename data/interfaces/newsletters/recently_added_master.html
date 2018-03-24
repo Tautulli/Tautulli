@@ -18,7 +18,7 @@
 <head>
     <meta name="viewport" content="width=device-width"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Tautulli Newsletter - ${title}</title>
+    <title>Tautulli Newsletter - ${subject}</title>
     <style>
         /* -------------------------------------
             GLOBAL RESETS
@@ -264,7 +264,13 @@
             visibility: hidden;
             width: 0;
         }
-
+        .body-message {
+            color: #282A2D;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            width: 100%;
+        }
         .view-full {
             clear: both;
             color: #282A2D;
@@ -598,7 +604,13 @@
             <div class="content">
 
                 <!-- START CENTERED WHITE CONTAINER -->
-                <span class="preheader">Tautulli Newsletter  - ${title}</span>
+                <span class="preheader">Tautulli Newsletter  - ${subject}</span>
+
+                % if body:
+                <div class="body-message">
+                    ${'<br>'.join(l for l in body.splitlines()) | n}
+                </div>
+                % endif
 
                 % if base_url and not preview:
                 <div class="view-full">  <!-- IGNORE SAVE -->

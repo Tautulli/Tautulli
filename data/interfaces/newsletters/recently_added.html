@@ -18,7 +18,7 @@
 <head>
     <meta name="viewport" content="width=device-width">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Tautulli Newsletter - ${title}</title>
+    <title>Tautulli Newsletter - ${subject}</title>
     <style>
         /* -------------------------------------
             GLOBAL RESETS
@@ -264,7 +264,13 @@
             visibility: hidden;
             width: 0;
         }
-
+        .body-message {
+            color: #282A2D;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            width: 100%;
+        }
         .view-full {
             clear: both;
             color: #282A2D;
@@ -598,7 +604,13 @@
             <div class="content" style="box-sizing: border-box;display: block;margin: 0 auto;max-width: 1037px;padding: 10px;">
 
                 <!-- START CENTERED WHITE CONTAINER -->
-                <span class="preheader" style="color: transparent;display: none;height: 0;max-height: 0;max-width: 0;opacity: 0;overflow: hidden;mso-hide: all;visibility: hidden;width: 0;">Tautulli Newsletter  - ${title}</span>
+                <span class="preheader" style="color: transparent;display: none;height: 0;max-height: 0;max-width: 0;opacity: 0;overflow: hidden;mso-hide: all;visibility: hidden;width: 0;">Tautulli Newsletter  - ${subject}</span>
+
+                % if body:
+                <div class="body-message" style="color: #282A2D;font-size: 16px;margin-bottom: 15px;text-align: center;width: 100%;">
+                    ${'<br>'.join(l for l in body.splitlines()) | n}
+                </div>
+                % endif
 
                 % if base_url and not preview:
                 <div class="view-full" style="clear: both;color: #282A2D;font-size: 12px;margin-bottom: 10px;text-align: center;width: 100%;">  <!-- IGNORE SAVE -->

@@ -5636,7 +5636,9 @@ class WebInterface(object):
                 newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'],
                                                                config=newsletter['config'],
                                                                start_date=start_date,
-                                                               end_date=end_date)
+                                                               end_date=end_date,
+                                                               subject=newsletter['subject'],
+                                                               body=newsletter['body'])
                 preview = (preview == 'true')
                 master = (master == 'true')
                 raw = (raw == 'true')

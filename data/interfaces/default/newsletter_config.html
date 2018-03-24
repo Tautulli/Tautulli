@@ -3,9 +3,8 @@
     import json
     from plexpy import helpers, notifiers
 
-    all_notifiers = notifiers.get_notifiers()
+    all_notifiers = sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id']))
     email_notifiers = [n for n in all_notifiers if n['agent_name'] == 'email']
-    sorted(email_notifiers, key=lambda k: (k['agent_label'], k['friendly_name'], k['id']))
     email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
     other_notifiers = [{'id': 0, 'agent_label': 'Select a Notification Agent', 'friendly_name': ''}] + all_notifiers
 %>
@@ -161,6 +160,10 @@
                                 Set the custom formatted text for each type of notification.
                                 <a href="#newsletter-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
                             </p>
+                            <p class="help-block">
+                                You can also add text modifiers to change the case or slice parameters with a list of items.
+                                <a href="#notify-text-modifiers-modal" data-toggle="modal">Click here</a> to view usage information.
+                            </p>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
@@ -171,19 +174,18 @@
                                             </div>
                                         </div>
                                         <p class="help-block">
-                                            Optional: Enter a subject line for the newsletter. Leave blank for default.
+                                            Enter a custom subject line for the newsletter. Leave blank for default.
                                         </p>
                                     </div>
                                     <div class="form-group">
                                         <label for="body">Body</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <input type="text" class="form-control" id="body" name="body" value="${newsletter['body']}" size="30">
+                                                <textarea class="form-control"  id="body" name="body" value="${newsletter['body']}" data-autoresize>${newsletter['body']}</textarea>
                                             </div>
                                         </div>
                                         <p class="help-block">
-                                            Optional: Enter a body line for the newsletter. Leave blank for default.<br>
-                                            Note: Only sent to notifications agents other than HTML formatted Emails.
+                                            Enter a custom body line for the newsletter.
                                         </p>
                                     </div>
                                 </div>
@@ -638,6 +640,14 @@
         }
     });
 
+    // auto resizing textarea for custom notification message body
+    $('textarea[data-autoresize]').each(function () {
+        var offset = this.offsetHeight - this.clientHeight;
+        var resizeTextarea = function (el) {
+            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
 </script>
 % else:
 <div class="modal-dialog" role="document">

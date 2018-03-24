@@ -7,8 +7,8 @@
     from plexpy import common, notifiers, newsletters
     from plexpy.helpers import anon_url, checked
 
-    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'])
-    available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'])
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'].lower())
+    available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'].lower())
 %>
 <%def name="headIncludes()">
 </%def>
