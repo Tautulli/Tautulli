@@ -264,13 +264,6 @@
             visibility: hidden;
             width: 0;
         }
-        .body-message {
-            color: #282A2D;
-            font-size: 16px;
-            margin-bottom: 15px;
-            text-align: center;
-            width: 100%;
-        }
         .view-full {
             clear: both;
             color: #282A2D;
@@ -308,6 +301,13 @@
             color: #aaaaaa;
             font-size: 20px;
             text-align: center;
+        }
+        .body-message {
+            font-size: 20px;
+            text-align: center;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
         }
         /* -------------------------------------
             MEDIA SECTIONS
@@ -523,7 +523,8 @@
             table[class=body] .server-name {
                 font-size: 20px !important;
             }
-            table[class=body] .dates {
+            table[class=body] .dates,
+            table[class=body] .body-message {
                 font-size: 14px !important;
             }
             table[class=body] .sub-header > div {
@@ -606,12 +607,6 @@
                 <!-- START CENTERED WHITE CONTAINER -->
                 <span class="preheader" style="color: transparent;display: none;height: 0;max-height: 0;max-width: 0;opacity: 0;overflow: hidden;mso-hide: all;visibility: hidden;width: 0;">Tautulli Newsletter  - ${subject}</span>
 
-                % if body:
-                <div class="body-message" style="color: #282A2D;font-size: 16px;margin-bottom: 15px;text-align: center;width: 100%;">
-                    ${'<br>'.join(l for l in body.splitlines()) | n}
-                </div>
-                % endif
-
                 % if base_url and not preview:
                 <div class="view-full" style="clear: both;color: #282A2D;font-size: 12px;margin-bottom: 10px;text-align: center;width: 100%;">  <!-- IGNORE SAVE -->
                     <a href="${base_url + uuid}" title="View full newsletter" target="_blank" style="text-decoration: underline;color: #282A2D;">Click here to view the full newsletter.</a>  <!-- IGNORE SAVE -->
@@ -622,7 +617,7 @@
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
-                        <td class="wrapper newsletter-header" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
+                        <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="header" style="width: 100%;height: 90px;text-align: center;">
                                 <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;width: 492px;height: 90px;margin-left: -35px;">
                             </div>
@@ -630,6 +625,16 @@
                             <div class="dates" style="color: #aaaaaa;font-size: 20px;text-align: center;">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>
+
+                    % if body:
+                    <tr>
+                        <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
+                            <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
+                            <div class="body-message" style="font-size: 20px;text-align: center;width: 80%;margin-left: auto;margin-right: auto;">${'<br>'.join(l for l in body.splitlines()) | n}</div>
+                        </td>
+                    </tr>
+                    % endif
+
                     % if recently_added.get('movie'):
                     <tr>
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">

@@ -264,13 +264,6 @@
             visibility: hidden;
             width: 0;
         }
-        .body-message {
-            color: #282A2D;
-            font-size: 16px;
-            margin-bottom: 15px;
-            text-align: center;
-            width: 100%;
-        }
         .view-full {
             clear: both;
             color: #282A2D;
@@ -308,6 +301,13 @@
             color: #aaaaaa;
             font-size: 20px;
             text-align: center;
+        }
+        .body-message {
+            font-size: 20px;
+            text-align: center;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
         }
         /* -------------------------------------
             MEDIA SECTIONS
@@ -523,7 +523,8 @@
             table[class=body] .server-name {
                 font-size: 20px !important;
             }
-            table[class=body] .dates {
+            table[class=body] .dates,
+            table[class=body] .body-message {
                 font-size: 14px !important;
             }
             table[class=body] .sub-header > div {
@@ -606,12 +607,6 @@
                 <!-- START CENTERED WHITE CONTAINER -->
                 <span class="preheader">Tautulli Newsletter  - ${subject}</span>
 
-                % if body:
-                <div class="body-message">
-                    ${'<br>'.join(l for l in body.splitlines()) | n}
-                </div>
-                % endif
-
                 % if base_url and not preview:
                 <div class="view-full">  <!-- IGNORE SAVE -->
                     <a href="${base_url + uuid}" title="View full newsletter" target="_blank">Click here to view the full newsletter.</a>  <!-- IGNORE SAVE -->
@@ -622,7 +617,7 @@
 
                     <!-- START MAIN CONTENT AREA -->
                     <tr>
-                        <td class="wrapper newsletter-header">
+                        <td class="wrapper">
                             <div class="header">
                                 <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://i.imgur.com/oqMQJxp.png'}" class="header-img" width="492" height="90"/>
                             </div>
@@ -630,6 +625,16 @@
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
                         </td>
                     </tr>
+
+                    % if body:
+                    <tr>
+                        <td class="wrapper">
+                            <div class="sub-header-bar"></div>
+                            <div class="body-message">${'<br>'.join(l for l in body.splitlines()) | n}</div>
+                        </td>
+                    </tr>
+                    % endif
+
                     % if recently_added.get('movie'):
                     <tr>
                         <td class="wrapper">
