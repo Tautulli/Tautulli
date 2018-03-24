@@ -450,7 +450,14 @@
             padding-bottom: 5px;
             padding-left: 5px;
         }
+        .card-info-footer .badge-container {
+            max-width: 265px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .card-info-footer .star-rating-container {
+            width: 60px;
             vertical-align: bottom;
             padding-right: 5px;
         }
@@ -477,7 +484,6 @@
             vertical-align: middle;
             background-color: rgba(0, 0, 0, .25);
             border-radius: 2px;
-            max-width: 75px;
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -674,15 +680,18 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td>
+                                                                                        <td class="badge-container">
                                                                                             % if movie['year']:
-                                                                                            <span class="badge">${movie['year']}</span>
-                                                                                            % endif
-                                                                                            % if movie['content_rating']:
-                                                                                            <span class="badge">${movie['content_rating']}</span>
+                                                                                            <span class="badge" title="${movie['year']}">${movie['year']}</span>
                                                                                             % endif
                                                                                             % if movie['duration']:
-                                                                                            <span class="badge">${int(int(movie['duration'])/60000)} mins</span>
+                                                                                            <% duration = int(int(movie['duration'])/60000) %>
+                                                                                            <span class="badge" title="${duration} mins">${duration} mins</span>
+                                                                                            % endif
+                                                                                            % if movie['genres']:
+                                                                                            % for genre in movie['genres'][:2]:
+                                                                                            <span class="badge" title="${genre}">${genre}</span>
+                                                                                            % endfor
                                                                                             % endif
                                                                                         </td>
                                                                                         % if movie['rating']:
@@ -807,18 +816,18 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td>
-                                                                                            % if show['studio']:
-                                                                                            <span class="badge">${show['studio']}</span>
-                                                                                            % endif
+                                                                                        <td class="badge-container">
                                                                                             % if show['year']:
-                                                                                            <span class="badge">${show['year']}</span>
-                                                                                            % endif
-                                                                                            % if show['content_rating']:
-                                                                                            <span class="badge">${show['content_rating']}</span>
+                                                                                            <span class="badge" title="${show['year']}">${show['year']}</span>
                                                                                             % endif
                                                                                             % if show['duration']:
-                                                                                            <span class="badge">${int(int(show['duration'])/60000)} mins</span>
+                                                                                            <% duration = int(int(show['duration'])/60000) %>
+                                                                                            <span class="badge" title="${duration} mins">${duration} mins</span>
+                                                                                            % endif
+                                                                                            % if show['genres']:
+                                                                                            % for genre in show['genres'][:2]:
+                                                                                            <span class="badge" title="${genre}">${genre}</span>
+                                                                                            % endfor
                                                                                             % endif
                                                                                         </td>
                                                                                         % if show['rating']:
@@ -919,13 +928,13 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td>
+                                                                                        <td class="badge-container">
                                                                                             % if album['year']:
-                                                                                            <span class="badge">${album['year']}</span>
+                                                                                            <span class="badge" title="${album['year']}">${album['year']}</span>
                                                                                             % endif
                                                                                             % if album['genres']:
                                                                                             % for genre in album['genres'][:2]:
-                                                                                            <span class="badge">${genre}</span>
+                                                                                            <span class="badge" title="${genre}">${genre}</span>
                                                                                             % endfor
                                                                                             % endif
                                                                                         </td>

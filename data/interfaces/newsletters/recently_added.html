@@ -450,7 +450,14 @@
             padding-bottom: 5px;
             padding-left: 5px;
         }
+        .card-info-footer .badge-container {
+            max-width: 265px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .card-info-footer .star-rating-container {
+            width: 60px;
             vertical-align: bottom;
             padding-right: 5px;
         }
@@ -477,7 +484,6 @@
             vertical-align: middle;
             background-color: rgba(0, 0, 0, .25);
             border-radius: 2px;
-            max-width: 75px;
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -674,20 +680,23 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+                                                                                        <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                             % if movie['year']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${movie['year']}</span>
-                                                                                            % endif
-                                                                                            % if movie['content_rating']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${movie['content_rating']}</span>
+                                                                                            <span class="badge" title="${movie['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${movie['year']}</span>
                                                                                             % endif
                                                                                             % if movie['duration']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${int(int(movie['duration'])/60000)} mins</span>
+                                                                                            <% duration = int(int(movie['duration'])/60000) %>
+                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${duration} mins</span>
+                                                                                            % endif
+                                                                                            % if movie['genres']:
+                                                                                            % for genre in movie['genres'][:2]:
+                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                            % endfor
                                                                                             % endif
                                                                                         </td>
                                                                                         % if movie['rating']:
                                                                                         <% rating = int(round(float(movie['rating']) / 2)) %>
-                                                                                        <td class="star-rating-container" title="${int(float(movie['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;padding-right: 5px;">
+                                                                                        <td class="star-rating-container" title="${int(float(movie['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;width: 60px;padding-right: 5px;">
                                                                                             % for _ in range(rating):
                                                                                             <span class="star-rating full" style="font-size: 0.8rem;line-height: 1rem;width: 0.5rem;display: inline-block;color: #E5A00D;">&#9733;</span>
                                                                                             % endfor
@@ -807,23 +816,23 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
-                                                                                            % if show['studio']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${show['studio']}</span>
-                                                                                            % endif
+                                                                                        <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                             % if show['year']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${show['year']}</span>
-                                                                                            % endif
-                                                                                            % if show['content_rating']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${show['content_rating']}</span>
+                                                                                            <span class="badge" title="${show['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${show['year']}</span>
                                                                                             % endif
                                                                                             % if show['duration']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${int(int(show['duration'])/60000)} mins</span>
+                                                                                            <% duration = int(int(show['duration'])/60000) %>
+                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${duration} mins</span>
+                                                                                            % endif
+                                                                                            % if show['genres']:
+                                                                                            % for genre in show['genres'][:2]:
+                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                            % endfor
                                                                                             % endif
                                                                                         </td>
                                                                                         % if show['rating']:
                                                                                         <% rating = int(round(float(show['rating']) / 2)) %>
-                                                                                        <td class="star-rating-container" title="${int(float(show['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;padding-right: 5px;">
+                                                                                        <td class="star-rating-container" title="${int(float(show['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;width: 60px;padding-right: 5px;">
                                                                                             % for _ in range(rating):
                                                                                             <span class="star-rating full" style="font-size: 0.8rem;line-height: 1rem;width: 0.5rem;display: inline-block;color: #E5A00D;">&#9733;</span>
                                                                                             % endfor
@@ -919,19 +928,19 @@
                                                                             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
                                                                                 <tbody>
                                                                                     <tr>
-                                                                                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+                                                                                        <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                             % if album['year']:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${album['year']}</span>
+                                                                                            <span class="badge" title="${album['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${album['year']}</span>
                                                                                             % endif
                                                                                             % if album['genres']:
                                                                                             % for genre in album['genres'][:2]:
-                                                                                            <span class="badge" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;max-width: 75px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
                                                                                             % endfor
                                                                                             % endif
                                                                                         </td>
                                                                                         % if album['rating']:
                                                                                         <% rating = int(round(float(album['rating']) / 2)) %>
-                                                                                        <td class="star-rating-container" title="${int(float(album['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;padding-right: 5px;">
+                                                                                        <td class="star-rating-container" title="${int(float(album['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: bottom;width: 60px;padding-right: 5px;">
                                                                                             % for _ in range(rating):
                                                                                             <span class="star-rating full" style="font-size: 0.8rem;line-height: 1rem;width: 0.5rem;display: inline-block;color: #E5A00D;">&#9733;</span>
                                                                                             % endfor
