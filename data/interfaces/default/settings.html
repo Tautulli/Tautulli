@@ -441,7 +441,7 @@
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="http_base_url">Tautulli Public Domain</label>
+                            <label for="http_base_url">Public Tautulli Domain</label>
                             <div class="row">
                                 <div class="col-md-8">
                                     <input type="text" class="form-control" id="http_base_url" name="http_base_url" value="${config['http_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#http_base_url_error"  data-parsley-error-message="Invalid URL">
@@ -449,7 +449,7 @@
                                 <div id=http_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">
-                                Set your Tautulli public domain for self-hosted notification images and newsletters. (e.g. http://mydomain.com)<br>
+                                Set your public Tautulli domain for self-hosted notification images and newsletters. (e.g. http://mydomain.com)
                             </p>
                         </div>
                         <div class="form-group advanced-setting">
@@ -942,11 +942,11 @@
                             <label>
                                 <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
                             </label>
-                            <p class="help-block">Enable to self-host newsletters on your own domain.</p>
+                            <p class="help-block">Enable to host newsletters on your own domain. </p>
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
-                            <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publically accessible from the internet.</p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
 
                         <div class="padded-header">
@@ -960,7 +960,7 @@
                                     <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
                                         <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
                                         <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
-                                        <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted public Tautulli domain</option>
+                                        <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted on public Tautulli domain</option>
                                     </select>
                                 </div>
                             </div>
@@ -976,12 +976,13 @@
                                 </div>
                                 <p class="help-block">
                                     Enter your Imgur API client ID in order to upload posters.
-                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
+                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.
+                                </p>>
                             </div>
                         </div>
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
-                            <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publically accessible from the internet.</p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
                         <div class="checkbox">
                             <label>
