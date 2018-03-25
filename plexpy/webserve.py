@@ -3532,10 +3532,10 @@ class WebInterface(object):
                     try:
                         test_ws = websocket.create_connection(ws_url, header=header)
                         test_ws.close()
-                        logger.debug("Websocket test connection successful.")
+                        logger.debug("Websocket connection test successful.")
                         result['ws'] = True
                     except (websocket.WebSocketException, IOError, Exception) as e:
-                        logger.error("Websocket test connection failed: %s" % e)
+                        logger.error("Websocket connection test failed: %s" % e)
                         result['ws'] = False
 
             return result
