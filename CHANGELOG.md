@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.25 (2018-03-22)
+
+* Monitoring:
+  * Fix: Websocket not reconnecting causing activity monitoring and notifications to not work.
+  * Fix: Error checking for synced streams without Plex Pass.
+
+
 ## v2.0.24 (2018-03-18)
 
 * Monitoring:

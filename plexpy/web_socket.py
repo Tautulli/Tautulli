@@ -25,6 +25,7 @@ import plexpy
 import activity_handler
 import activity_pinger
 import activity_processor
+import database
 import logger
 
 name = 'websocket'
@@ -33,8 +34,14 @@ ws_shutdown = False
 
 
 def start_thread():
-    # Check for any existing sessions on start up
-    activity_pinger.check_active_sessions(ws_request=True)
+    try:
+        # Check for any existing sessions on start up
+        activity_pinger.check_active_sessions(ws_request=True)
+    except Exception as e:
+        logger.error(u"Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
+        logger.warn(u"Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
+        database.delete_sessions()
+
     # Start the websocket listener on it's own thread
     thread = threading.Thread(target=run)
     thread.daemon = True
@@ -67,7 +74,7 @@ def on_disconnect():
 
 
 def reconnect():
-    shutdown()
+    close()
     logger.info(u"Tautulli WebSocket :: Reconnecting websocket...")
     start_thread()
 
@@ -75,7 +82,10 @@ def reconnect():
 def shutdown():
     global ws_shutdown
     ws_shutdown = True
+    close()
 
+
+def close():
     logger.info(u"Tautulli WebSocket :: Disconnecting websocket...")
     plexpy.WEBSOCKET.close()
     plexpy.WS_CONNECTED = False
@@ -122,7 +132,7 @@ def run():
             logger.info(u"Tautulli WebSocket :: Ready")
             plexpy.WS_CONNECTED = True
         except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error(u"Tautulli WebSocket :: %s." % e)
+            logger.error("Tautulli WebSocket :: %s." % e)
 
     if plexpy.WS_CONNECTED:
         on_connect()
@@ -155,18 +165,18 @@ def run():
                     logger.info(u"Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:
-                    logger.error(u"Tautulli WebSocket :: %s." % e)
+                    logger.error("Tautulli WebSocket :: %s." % e)
 
             else:
-                shutdown()
+                close()
                 break
 
         except (websocket.WebSocketException, Exception) as e:
             if ws_shutdown:
                 break
 
-            logger.error(u"Tautulli WebSocket :: %s." % e)
-            shutdown()
+            logger.error("Tautulli WebSocket :: %s." % e)
+            close()
             break
 
     if not plexpy.WS_CONNECTED and not ws_shutdown:

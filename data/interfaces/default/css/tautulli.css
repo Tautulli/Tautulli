@@ -136,9 +136,6 @@ div.form-control .selectize-input {
     text-transform: uppercase;
     font-size: 10px;
 }
-.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values.negative-operator .value-wrapper:not(:first-child):before {
-    content: "and" !important;
-}
 .react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input {
     padding-top: 3px !important;
     padding-bottom: 3px !important;

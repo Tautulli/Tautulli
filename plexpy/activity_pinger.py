@@ -293,8 +293,8 @@ def connect_server(log=True, startup=False):
 
         try:
             web_socket.start_thread()
-        except:
-            logger.error(u"Websocket :: Unable to open connection.")
+        except Exception as e:
+            logger.error(u"Websocket :: Unable to open connection: %s." % e)
 
 
 def check_server_access():
