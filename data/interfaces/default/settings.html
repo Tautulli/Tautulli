@@ -1861,6 +1861,9 @@ $(document).ready(function() {
             $('#pms_url_manual').prop('checked', false);
             $('#pms_url').val('Please verify your server above to retrieve the URL');
             PMSCloudCheck();
+        },
+        onDropdownOpen: function() {
+            this.clear();
         }
     });
     var select_pms = $select_pms[0].selectize;

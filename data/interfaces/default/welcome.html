@@ -374,6 +374,9 @@ $(document).ready(function() {
                 $('#pms_is_remote_checkbox').prop('disabled', false);
                 $('#pms_ssl_checkbox').prop('disabled', false);
             }
+        },
+        onDropdownOpen: function() {
+            this.clear();
         }
     });
     var select_pms = $select_pms[0].selectize;
