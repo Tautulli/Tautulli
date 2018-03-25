@@ -756,7 +756,10 @@ a .users-poster-face:hover {
     transition: all .2s ease-in-out;
     overflow: hidden;
 }
-.dashboard-activity-background-overlay {
+.dashboard-activity-background {
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
     display: -webkit-flex;
     display: flex;
     -webkit-flex-wrap: nowrap;
@@ -765,30 +768,13 @@ a .users-poster-face:hover {
     width: 100%;
     padding: 5px;
     overflow: hidden;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-}
-.dashboard-activity-background {
-    background-color: #282828;
-    background-position: center;
-    background-size: cover;
-    height: 235px;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    opacity: 0.40;
-    -webkit-filter: blur(3px);
-    -moz-filter: blur(3px);
-    filter: blur(3px);
     -webkit-transition: background 1s linear;
     transition: background 1s linear;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    z-index: -1;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .dashboard-activity-poster-container {
     background-color: #282828;
@@ -819,14 +805,14 @@ a .users-poster-face:hover {
     background-size: cover;
     height: 225px;
     width: 150px;
-    -webkit-transition: background .2s ease-in-out;
-    transition: background .2s ease-in-out;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     opacity: 0.60;
     -webkit-filter: blur(3px);
     -moz-filter: blur(3px);
     filter: blur(3px);
+    -webkit-transition: background .2s ease-in-out;
+    transition: background .2s ease-in-out;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     z-index: 2;
 }
 .dashboard-activity-cover {
@@ -1173,7 +1159,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
     transition: all .2s ease-in-out;
     overflow: hidden;
 }
-.dashboard-stats-background-overlay {
+.dashboard-stats-background {
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
     display: -webkit-flex;
     display: flex;
     -webkit-flex-wrap: nowrap;
@@ -1182,30 +1171,13 @@ a .dashboard-activity-metadata-user-thumb:hover {
     width: 100%;
     padding: 5px;
     overflow: hidden;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
-}
-.dashboard-stats-background {
-    background-color: #282828;
-    background-position: center;
-    background-size: cover;
-    height: 160px;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    opacity: 0.40;
-    -webkit-filter: blur(3px);
-    -moz-filter: blur(3px);
-    filter: blur(3px);
     -webkit-transition: background .2s ease-in-out;
     transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    z-index: -1;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .dashboard-stats-background.flat {
     opacity: 1;
@@ -1225,17 +1197,6 @@ a .dashboard-activity-metadata-user-thumb:hover {
     z-index: 1;
 }
 .dashboard-stats-poster {
-    background-position: center;
-    background-size: cover;
-    height: 150px;
-    width: 100px;
-    -webkit-transition: background .2s ease-in-out;
-    transition: background .2s ease-in-out;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    z-index: 2;
-}
-.dashboard-stats-poster-blur {
     background-color: #282828;
     background-position: center;
     background-size: cover;
@@ -1245,10 +1206,6 @@ a .dashboard-activity-metadata-user-thumb:hover {
     transition: background .2s ease-in-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    opacity: 0.60;
-    -webkit-filter: blur(3px);
-    -moz-filter: blur(3px);
-    filter: blur(3px);
     z-index: 2;
 }
 .dashboard-stats-cover {
@@ -3879,6 +3836,90 @@ a:hover .overlay-refresh-image:hover {
 .platform-xbox {
     background-color: #107c10;
     background-image: url(../images/platforms/xbox.svg);
+}
+.platform-android-rgba {
+    background-color: rgba(164, 202, 57, 0.40);
+}
+.platform-atv-rgba {
+    background-color: rgba(133, 132, 135, 0.40);
+}
+.platform-chrome-rgba {
+    background-color: rgba(237, 94, 80, 0.40);
+}
+.platform-chromecast-rgba {
+    background-color: rgba(16, 164, 232, 0.40);
+}
+.platform-default-rgba {
+    background-color: rgba(229, 160, 13, 0.40);
+}
+.platform-dlna-rgba {
+    background-color: rgba(12, 177, 75, 0.40);
+}
+.platform-firefox-rgba {
+    background-color: rgba(230, 120, 23, 0.40);
+}
+.platform-gtv-rgba {
+    background-color: rgba(0, 139, 207, 0.40);
+}
+.platform-ie-rgba {
+    background-color: rgba(0, 89, 158, 0.40);
+}
+.platform-ios-rgba {
+    background-color: rgba(133, 132, 135, 0.40);
+}
+.platform-kodi-rgba {
+    background-color: rgba(49, 175, 225, 0.40);
+}
+.platform-linux-rgba {
+    background-color: rgba(23, 147, 208, 0.40);
+}
+.platform-macos-rgba {
+    background-color: rgba(133, 132, 135, 0.40);
+}
+.platform-msedge-rgba {
+    background-color: rgba(0, 120, 215, 0.40);
+}
+.platform-opera-rgba {
+    background-color: rgba(255, 27, 45, 0.40);
+}
+.platform-playstation-rgba {
+    background-color: rgba(3, 77, 162, 0.40);
+}
+.platform-plex-rgba {
+    background-color: rgba(229, 160, 13, 0.40);
+}
+.platform-plexamp-rgba {
+    background-color: rgba(229, 160, 13, 0.40);
+}
+.platform-roku-rgba {
+    background-color: rgba(109, 60, 151, 0.40);
+}
+.platform-safari-rgba {
+    background-color: rgba(0, 169, 236, 0.40);
+}
+.platform-samsung-rgba {
+    background-color: rgba(3, 78, 162, 0.40);
+}
+.platform-synclounge-rgba {
+    background-color: rgba(21, 25, 36, 0.40);
+}
+.platform-tivo-rgba {
+    background-color: rgba(0, 167, 225, 0.40);
+}
+.platform-wiiu-rgba {
+    background-color: rgba(3, 169, 244, 0.40);
+}
+.platform-windows-rgba {
+    background-color: rgba(47, 192, 245, 0.40);
+}
+.platform-wp-rgba {
+    background-color: rgba(104, 33, 122, 0.40);
+}
+.platform-xbmc-rgba {
+    background-color: rgba(59, 72, 114, 0.40);
+}
+.platform-xbox-rgba {
+    background-color: rgba(16, 124, 16, 0.40);
 }
 .library-movie {
     background-image: url(../images/libraries/movie.svg);

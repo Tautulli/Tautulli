@@ -35,8 +35,7 @@ DOCUMENTATION :: END
 % if section_type in data:
 <div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
     <div class="dashboard-stats-container">
-        <div class="dashboard-stats-background-overlay">
-            <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&fallback=art);"></div>
+        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
             <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
             <div class="dashboard-stats-info-container">
                 <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">

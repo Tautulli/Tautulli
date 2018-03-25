@@ -1653,7 +1653,6 @@ def dbcheck():
     conn_db.commit()
     c_db.close()
 
-
     # Migrate poster_urls to imgur_lookup table
     try:
         db = database.MonitorDatabase()

@@ -79,20 +79,19 @@ DOCUMENTATION :: END
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
-        <div class="dashboard-activity-background-overlay">
-            % if data['channel_stream'] == 0:
-            <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art&refresh=true);"></div>
-            % else:
-                % if (data['art'] and data['art'].startswith('http')) or (data['thumb'] and data['thumb'].startswith('http')):
-                <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(${data['art']});"></div>
-                % else:
-                <!--Hacky solution to escape the image url until I come up with something better-->
-                <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(pms_image_proxy?img=${quote(data['art'] or data['thumb'])}&width=500&height=280&fallback=art&refresh=true&clip=true);"></div>
-                % endif
-            % endif
+        <%
+            if data['channel_stream'] == 0:
+                background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
+            else:
+                if (data['art'] and data['art'].startswith('http')) or (data['thumb'] and data['thumb'].startswith('http')):
+                    background_url = data['art']
+                else:
+                    background_url = 'pms_image_proxy?img=' + quote(data['art'] or data['thumb']) + '&width=500&height=280&fallback=art&refresh=true&clip=true'
+        %>
+        <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(${background_url});">
             <div class="dashboard-activity-poster-container hidden-xs">
                 % if data['media_type'] == 'track':
-                <div id="poster-${sk}-bg" class="dashboard-activity-poster-blur" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
                 % if data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
@@ -117,7 +116,7 @@ DOCUMENTATION :: END
                     <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(${data['channel_icon']});"></div>
                     <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${data['channel_icon']});"></div>
                     % else:
-                    <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                     <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     % endif
                 % endif

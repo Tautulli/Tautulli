@@ -71,22 +71,21 @@ DOCUMENTATION :: END
 %>
 <div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
     <div class="dashboard-stats-container">
-        <div class="dashboard-stats-background-overlay">
-            % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-            % if row0['art']:
-            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&width=500&height=280&fallback=art);"></div>
-            % else:
-            <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);"></div>
-            % endif
-            % elif stat_id == 'top_platforms':
-            <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']} no-image"></div>
-            % else:
-            <div id="stats-background-${stat_id}" class="dashboard-stats-background flat"></div>
-            % endif
+        % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+        % if row0['art']:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
+        % else:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);">
+        % endif
+        % elif stat_id == 'top_platforms':
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
+        % else:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background flat">
+        % endif
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
             <div class="dashboard-stats-poster-container hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster-blur" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&fallback=cover);"></div>
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover);"></div>
                 % endif
                 <% height, type = ('300', 'cover') if stat_id in ('top_music', 'popular_music') else ('450', 'poster') %>
                 <% href = 'info?rating_key={}'.format(row0['rating_key']) if row0['rating_key'] else '#' %>
@@ -200,7 +199,7 @@ DOCUMENTATION :: END
             }).addClass('platform-' + $(elem).data('platform'));
             $('#stats-background-' + stat_id).removeClass(function (index, className) {
                 return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
-            }).addClass('platform-' + $(elem).data('platform'));
+            }).addClass('platform-' + $(elem).data('platform') + '-rgba');
         } else {
             if (rating_key) {
                 href = 'info?rating_key=' + rating_key;
@@ -209,13 +208,13 @@ DOCUMENTATION :: END
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
             if (art) {
-                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&fallback=art)');
+                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art)');
             } else {
                 $('#stats-background-' + stat_id).css('background-image', 'url(images/art.png)');
             }
             if (thumb) {
                 $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&opacity=60&background=282828&blur=3&fallback=' + fallback + ')');
             } else {
                 $('#stats-thumb-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
                 $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(images/' + fallback + '.png)');
