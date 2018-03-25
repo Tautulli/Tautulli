@@ -3716,6 +3716,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def info(self, rating_key=None, source=None, query=None, **kwargs):
+        if rating_key and not str(rating_key).isdigit():
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
         metadata = None
 
         config = {
