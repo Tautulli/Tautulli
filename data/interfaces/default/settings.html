@@ -946,7 +946,7 @@
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
                             <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publically accessible from the internet.</p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface">Web Interface</a>.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
 
                         <div class="padded-header">
@@ -981,7 +981,7 @@
                         </div>
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
                             <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publically accessible from the internet.</p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface">Web Interface</a>.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -1030,7 +1030,7 @@
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Note: Either <a data-tab-destination="tabs-notifications">Image Hosting</a> on Imgur or <a data-tab-destination="tabs-notifications">Self-Hosted Newsletters</a> must be enabled.</span>
+                            Note: Either <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> on Imgur or <a data-tab-destination="tabs-notifications" data-target="#newsletter_self_hosted">Self-Hosted Newsletters</a> must be enabled.</span>
                         </p>
                         <br/>
                         <div id="plexpy-newsletters-table">
@@ -1150,7 +1150,7 @@
                         <p class="form-group">
                             <label>Registered Devices</label>
                             <p class="help-block">Register a new device using a QR code, or configure an existing device by clicking the settings icon on the right.</p>
-                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface">Web Interface</a> to use the app.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface" data-target="#api_enabled">Web Interface</a> to use the app.</p>
                             <div class="row">
                                 <div id="plexpy-mobile-devices-table" class="col-md-12">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
@@ -2558,6 +2558,15 @@ $(document).ready(function() {
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');
         $("a[href=#" + tab + "]").click();
+        var scroll_destination = $(this).data('target');
+        if (scroll_destination) {
+            if ($(scroll_destination).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
+                $('#menu_link_show_advanced_settings').click()
+            }
+            var body_container = $('.body-container')
+            var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
+            body_container.animate({scrollTop: scroll_pos});
+        }
     });
 });
 </script>

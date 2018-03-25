@@ -960,8 +960,8 @@ class ANDROIDAPP(Notifier):
             config_option.append({
                 'label': 'Device',
                 'description': 'No devices registered. '
-                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal">'
-                               'Get the Android App</a> and register a device.',
+                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" '
+                               'data-target="#top">Get the Android App</a> and register a device.',
                 'input_type': 'help'
                 })
         else:
@@ -970,8 +970,8 @@ class ANDROIDAPP(Notifier):
                 'value': self.config['device_id'],
                 'name': 'androidapp_device_id',
                 'description': 'Set your Android app device or '
-                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal">'
-                               'register a new device</a> with Tautulli.',
+                               '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" '
+                               'data-target="#top">register a new device</a> with Tautulli.',
                 'input_type': 'select',
                 'select_options': devices
                 })
@@ -1224,7 +1224,9 @@ class DISCORD(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -1574,7 +1576,9 @@ class FACEBOOK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'facebook_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
@@ -1895,7 +1899,9 @@ class HIPCHAT(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'hipchat_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.<br>'
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.<br>'
                                          'Note: This will change the notification type to HTML and emoticons will no longer work.',
                           'input_type': 'checkbox'
                           },
@@ -2114,7 +2120,9 @@ class JOIN(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'join_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
@@ -3223,7 +3231,9 @@ class SLACK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'slack_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -3455,7 +3465,9 @@ class TWITTER(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'twitter_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Note: Image hosting must be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="tabs-notifications" data-dismiss="modal" '
+                                         'data-target="#notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
                           }
                          ]
