@@ -977,7 +977,7 @@
                                 <p class="help-block">
                                     Enter your Imgur API client ID in order to upload posters.
                                     You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.
-                                </p>>
+                                </p>
                             </div>
                         </div>
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
@@ -2543,7 +2543,7 @@ $(document).ready(function() {
     });
 
     function newsletterUploadEnabled() {
-        if ($('#notify_upload_posters').is(':checked') || $('#newsletter_self_hosted').is(':checked')) {
+        if ($('#notify_upload_posters').val() === '1' || $('#newsletter_self_hosted').is(':checked')) {
             $('#newsletter_upload_warning').hide();
         } else {
             $('#newsletter_upload_warning').show();

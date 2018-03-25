@@ -28,6 +28,7 @@ import math
 import maxminddb
 from operator import itemgetter
 import os
+from ratelimit import rate_limited
 import re
 import socket
 import sys
@@ -75,6 +76,7 @@ def addtoapi(*dargs, **dkwargs):
         return wrapper
 
     return rd
+
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
@@ -161,6 +163,7 @@ def convert_milliseconds(ms):
 
     return minutes
 
+
 def convert_milliseconds_to_minutes(ms):
 
     if str(ms).isdigit():
@@ -171,6 +174,7 @@ def convert_milliseconds_to_minutes(ms):
 
     return 0
 
+
 def convert_seconds(s):
 
     gmtime = time.gmtime(s)
@@ -180,6 +184,7 @@ def convert_seconds(s):
         minutes = time.strftime("%M:%S", gmtime)
 
     return minutes
+
 
 def convert_seconds_to_minutes(s):
 
@@ -200,6 +205,7 @@ def today():
 def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def human_duration(s, sig='dhms'):
 
@@ -232,6 +238,7 @@ def human_duration(s, sig='dhms'):
         hd = '0'
 
     return hd
+
 
 def get_age(date):
 
@@ -385,6 +392,7 @@ def split_string(mystring, splitvar=','):
         mylist.append(each_word.strip())
     return mylist
 
+
 def create_https_certificates(ssl_cert, ssl_key):
     """
     Create a self-signed HTTPS certificate and store in it in
@@ -424,11 +432,13 @@ def cast_to_int(s):
     except (ValueError, TypeError):
         return 0
 
+
 def cast_to_float(s):
     try:
         return float(s)
     except (ValueError, TypeError):
         return 0
+
 
 def convert_xml_to_json(xml):
     o = xmltodict.parse(xml)
@@ -452,11 +462,13 @@ def get_percent(value1, value2):
 
     return math.trunc(percent)
 
+
 def hex_to_int(hex):
     try:
         return int(hex, 16)
     except (ValueError, TypeError):
         return 0
+
 
 def parse_xml(unparsed=None):
     if unparsed:
@@ -473,10 +485,11 @@ def parse_xml(unparsed=None):
         logger.warn("XML parse request made but no data received.")
         return []
 
-"""
-Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
-"""
+
 def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
+    """
+    Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
+    """
     if xml_key.getAttribute(attribute):
         if return_bool:
             return True
@@ -488,6 +501,7 @@ def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
         else:
             return default_return
 
+
 def process_json_kwargs(json_kwargs):
     params = {}
     if json_kwargs:
@@ -495,17 +509,20 @@ def process_json_kwargs(json_kwargs):
 
     return params
 
+
 def sanitize(string):
     if string:
         return unicode(string).replace('<','&lt;').replace('>','&gt;')
     else:
         return ''
 
+
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
     if ip and ip.iptype() == 'PUBLIC':
         return True
     return False
+
 
 def get_ip(host):
     ip_address = ''
@@ -519,6 +536,7 @@ def get_ip(host):
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
     return ip_address
 
+
 def is_valid_ip(address):
     try:
         return IP(address)
@@ -526,6 +544,7 @@ def is_valid_ip(address):
         return False
     except ValueError:
         return False
+
 
 def install_geoip_db():
     maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
@@ -587,6 +606,7 @@ def install_geoip_db():
 
     return True
 
+
 def uninstall_geoip_db():
     logger.debug(u"Tautulli Helpers :: Uninstalling the GeoLite2 database...")
     try:
@@ -599,6 +619,7 @@ def uninstall_geoip_db():
 
     logger.debug(u"Tautulli Helpers :: GeoLite2 database uninstalled successfully.")
     return True
+
 
 def geoip_lookup(ip_address):
     if not plexpy.CONFIG.GEOIP_DB:
@@ -638,6 +659,7 @@ def geoip_lookup(ip_address):
 
     return geo_info
 
+
 def whois_lookup(ip_address):
 
     nets = []
@@ -674,6 +696,7 @@ def whois_lookup(ip_address):
 
     return whois_info
 
+
 # Taken from SickRage
 def anon_url(*url):
     """
@@ -682,6 +705,7 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 
+@rate_limited(450, 3600)
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Imgur """
     client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
@@ -769,6 +793,7 @@ def cache_image(url, image=None):
 
     return imagefile, imagetype
 
+
 def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     """ Builds datatables json data
 
@@ -793,6 +818,7 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
                  }
     return json.dumps(json_data)
 
+
 def humanFileSize(bytes, si=False):
     if str(bytes).isdigit():
         bytes = int(bytes)
@@ -815,6 +841,7 @@ def humanFileSize(bytes, si=False):
         u += 1
 
     return "{0:.1f} {1}".format(bytes, units[u])
+
 
 def parse_condition_logic_string(s, num_cond=0):
     """ Parse a logic string into a nested list
@@ -900,12 +927,14 @@ def parse_condition_logic_string(s, num_cond=0):
 
     return stack.pop()
 
+
 def nested_list_to_string(l):
     for i, x in enumerate(l):
         if isinstance(x, list):
             l[i] = nested_list_to_string(x)
     s = '(' + ' '.join(l) + ')'
     return s
+
 
 def eval_logic_groups_to_bool(logic_groups, eval_conds):
     first_cond = logic_groups[0]
@@ -927,6 +956,7 @@ def eval_logic_groups_to_bool(logic_groups, eval_conds):
             result = result or eval_cond
 
     return result
+
 
 def get_plexpy_url(hostname=None):
     if plexpy.CONFIG.ENABLE_HTTPS:
@@ -960,6 +990,7 @@ def get_plexpy_url(hostname=None):
         root = ''
 
     return scheme + '://' + hostname + port + root
+
 
 def momentjs_to_arrow(format, duration=False):
     invalid_formats = ['Mo', 'DDDo', 'do']
