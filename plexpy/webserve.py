@@ -173,6 +173,7 @@ class WebInterface(object):
             "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
+            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
@@ -2642,6 +2643,7 @@ class WebInterface(object):
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
+            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
