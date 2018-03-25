@@ -27,6 +27,8 @@ from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 from mako import exceptions
 
+import websocket
+
 import plexpy
 import activity_pinger
 import common
@@ -3463,7 +3465,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
-                      get_url=False, **kwargs):
+                      get_url=False, test_websocket=False, **kwargs):
         """ Get the PMS server identifier.
 
             ```
@@ -3519,6 +3521,23 @@ class WebInterface(object):
                                                    pms_url_manual=manual,
                                                    pms_identifier=identifier)
                 result['url'] = server['pms_url']
+                result['ws'] = None
+
+                if test_websocket == 'true':
+                    # Quick test websocket connection
+                    ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
+                    header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
+
+                    logger.debug("Testing websocket connection...")
+                    try:
+                        test_ws = websocket.create_connection(ws_url, header=header)
+                        test_ws.close()
+                        logger.debug("Websocket test connection successful.")
+                        result['ws'] = True
+                    except (websocket.WebSocketException, IOError, Exception) as e:
+                        logger.error("Websocket test connection failed: %s" % e)
+                        result['ws'] = False
+
             return result
         else:
             logger.warn('Unable to retrieve the PMS identifier.')
