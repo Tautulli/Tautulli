@@ -767,6 +767,15 @@
                                     <tr>
                                         % for show in (show_a, show_b):
                                         % if show:
+                                        <%
+                                            if show['season_count'] == 1:
+                                                if show['season'][0]['episode_count'] == 1:
+                                                    link_rating_key = show['season'][0]['episode'][0]['rating_key']
+                                                else:
+                                                    link_rating_key = show['season'][0]['episode'][0]['parent_rating_key']
+                                            else:
+                                                link_rating_key = show['rating_key']
+                                        %>
                                         <td align="center" valign="top" class="card-instance show">
                                             <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});">
                                                 <tbody>
@@ -776,7 +785,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td>
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
@@ -789,7 +798,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td class="card-info-title nowrap">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank">${show['title']}</a>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">${show['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>

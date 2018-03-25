@@ -767,6 +767,15 @@
                                     <tr>
                                         % for show in (show_a, show_b):
                                         % if show:
+                                        <%
+                                            if show['season_count'] == 1:
+                                                if show['season'][0]['episode_count'] == 1:
+                                                    link_rating_key = show['season'][0]['episode'][0]['rating_key']
+                                                else:
+                                                    link_rating_key = show['season'][0]['episode'][0]['parent_rating_key']
+                                            else:
+                                                link_rating_key = show['rating_key']
+                                        %>
                                         <td align="center" valign="top" class="card-instance show" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 3px;width: 502px;min-width: 502px;max-width: 502px;height: 233px;">
                                             <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                 <tbody>
@@ -776,7 +785,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="text-decoration: underline;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank" style="text-decoration: underline;">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://i.imgur.com/AeyPvJ4.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
@@ -789,7 +798,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td class="card-info-title nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.9rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 1.2rem;padding: 5px;">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${show['rating_key']}" title="${show['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${show['title']}</a>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${show['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
