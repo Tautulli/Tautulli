@@ -632,9 +632,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     else:
         poster_thumb = ''
 
-    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 1:
         imgur_info = get_imgur_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
         poster_info = {'poster_title': imgur_info['imgur_title'], 'poster_url': imgur_info['imgur_url']}
+        notify_params.update(poster_info)
+    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 2 and plexpy.CONFIG.HTTP_BASE_URL:
+        img_hash = set_hash_image_info(img=poster_thumb, fallback='poster')
+        poster_info = {'poster_title': poster_title,
+                       'poster_url': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/' + img_hash}
         notify_params.update(poster_info)
 
     if ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT)

@@ -50,9 +50,8 @@
                 <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
                 <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
-                <li role="presentation"><a href="#tabs-newsletters" aria-controls="tabs-newsletters" role="tab" data-toggle="tab">Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
@@ -440,6 +439,18 @@
                                 <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_base_url">Tautulli Public Domain</label>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="http_base_url" name="http_base_url" value="${config['http_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#http_base_url_error"  data-parsley-error-message="Invalid URL">
+                                </div>
+                                <div id=http_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Set your Tautulli public domain for self-hosted notification images and newsletters. (e.g. http://mydomain.com)<br>
+                            </p>
                         </div>
                         <div class="form-group advanced-setting">
                             <label for="http_root">HTTP Root</label>
@@ -924,16 +935,38 @@
                         </div>-->
 
                         <div class="padded-header">
-                            <h3>3rd Party APIs</h3>
+                            <h3>Newsletters</h3>
                         </div>
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Upload Posters to Imgur for Notifications
+                                <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
                             </label>
-                            <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
+                            <p class="help-block">Enable to self-host newsletters on your own domain.</p>
                         </div>
-                        <div id="imgur_upload_options">
+                        <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
+                            <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publically accessible from the internet.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface">Web Interface</a>.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>3rd Party APIs</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notify_upload_posters">Image Hosting</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
+                                        <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
+                                        <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
+                                        <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted public Tautulli domain</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
+                        </div>
+                        <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
                                 <label for="imgur_client_id">Imgur Client ID</label>
                                 <div class="row">
@@ -945,6 +978,10 @@
                                     Enter your Imgur API client ID in order to upload posters.
                                     You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
                             </div>
+                        </div>
+                        <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
+                            <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publically accessible from the internet.</p>
+                            <p class="help-block settings-warning base-url-warning">Warning: Tautulli public domain not set under <a data-tab-destination="tabs-web_interface">Web Interface</a>.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -983,43 +1020,6 @@
 
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="tabs-newsletters">
-
-                        <div class="padded-header">
-                            <h3>Newsletters</h3>
-                        </div>
-
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
-                            </label>
-                            <p class="help-block">Enable to self-host newsletters on your own domain.</p>
-                        </div>
-                        <div id="newsletter_self_hosted_options">
-                            <div class="form-group">
-                                <label for="newsletter_base_url">Newsletter Base URL</label>
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="newsletter_base_url" name="newsletter_base_url" value="${config['newsletter_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#newsletter_base_url_error"  data-parsley-error-message="Invalid URL">
-                                            <span class="input-group-btn">
-                                                <span class="input-group-addon input-group-addon-form">${http_root}newsletter</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div id="newsletter_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
-                                </div>
-                                <p class="help-block">
-                                    Set your Tautulli base URL for self-hosted newsletters. (e.g. http://mydomain.com)<br>
-                                    Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be accessible from the internet.
-                                </p>
-                            </div>
-                        </div>
-
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-
-                    </div>
-
                     <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
 
                         <div class="padded-header">
@@ -1030,7 +1030,7 @@
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Note: Either <a data-tab-destination="tabs-notifications" style="cursor: pointer;">Imgur uploads</a> or <a data-tab-destination="tabs-newsletters" style="cursor: pointer;">self-hosted newsletters</a> must be enabled.</span>
+                            Note: Either <a data-tab-destination="tabs-notifications">Image Hosting</a> on Imgur or <a data-tab-destination="tabs-notifications">Self-Hosted Newsletters</a> must be enabled.</span>
                         </p>
                         <br/>
                         <div id="plexpy-newsletters-table">
@@ -1150,7 +1150,7 @@
                         <p class="form-group">
                             <label>Registered Devices</label>
                             <p class="help-block">Register a new device using a QR code, or configure an existing device by clicking the settings icon on the right.</p>
-                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface" style="cursor: pointer;">Web Interface</a> to use the app.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface">Web Interface</a> to use the app.</p>
                             <div class="row">
                                 <div id="plexpy-mobile-devices-table" class="col-md-12">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
@@ -1815,7 +1815,6 @@ $(document).ready(function() {
     initConfigCheckbox('#enable_https');
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
-    initConfigCheckbox('#notify_upload_posters');
     initConfigCheckbox('#monitor_pms_updates');
     initConfigCheckbox('#newsletter_self_hosted');
 
@@ -2499,11 +2498,11 @@ $(document).ready(function() {
         });
     });
 
-    $('#newsletter_base_url').change(function () {
+    $('#http_base_url').change(function () {
        $(this).val($(this).val().replace(/\/*$/, ''));
     });
 
-    function apiEnabled () {
+    function apiEnabled() {
         var api_enabled = $('#api_enabled').prop('checked');
         $('#app_api_msg').toggle(!(api_enabled));
     }
@@ -2512,7 +2511,37 @@ $(document).ready(function() {
         apiEnabled();
     });
 
-    function newsletterUploadEnabled () {
+    function imageUpload() {
+        var upload_val = $('#notify_upload_posters').val();
+        if (upload_val === '1') {
+            $('#imgur_upload_options').slideDown();
+        } else {
+            $('#imgur_upload_options').slideUp();
+        }
+        if (upload_val === '2') {
+            $('#self_host_image_options').slideDown();
+        } else {
+            $('#self_host_image_options').slideUp();
+        }
+    }
+    $('#notify_upload_posters').change(function () {
+        imageUpload();
+    });
+
+    function baseURLSet() {
+        if ($('#http_base_url').val()) {
+            $('.base-url-warning').hide();
+        } else {
+            $('.base-url-warning').show();
+        }
+    }
+    baseURLSet();
+
+    $('#http_base_url').change(function () {
+       baseURLSet();
+    });
+
+    function newsletterUploadEnabled() {
         if ($('#notify_upload_posters').is(':checked') || $('#newsletter_self_hosted').is(':checked')) {
             $('#newsletter_upload_warning').hide();
         } else {
@@ -2522,6 +2551,7 @@ $(document).ready(function() {
     newsletterUploadEnabled();
 
     $('#notify_upload_posters, #newsletter_self_hosted').change(function () {
+        baseURLSet();
         newsletterUploadEnabled();
     });
 

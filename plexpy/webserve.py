@@ -2678,6 +2678,7 @@ class WebInterface(object):
             "https_key": plexpy.CONFIG.HTTPS_KEY,
             "https_domain": plexpy.CONFIG.HTTPS_DOMAIN,
             "https_ip": plexpy.CONFIG.HTTPS_IP,
+            "http_base_url": plexpy.CONFIG.HTTP_BASE_URL,
             "anon_redirect": plexpy.CONFIG.ANON_REDIRECT,
             "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
             "api_key": plexpy.CONFIG.API_KEY,
@@ -2719,7 +2720,7 @@ class WebInterface(object):
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
-            "notify_upload_posters": checked(plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS),
+            "notify_upload_posters": plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS,
             "notify_recently_added_upgrade": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE),
             "notify_group_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT),
             "notify_group_recently_added_parent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT),
@@ -2747,8 +2748,7 @@ class WebInterface(object):
             "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
-            "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
-            "newsletter_base_url": plexpy.CONFIG.NEWSLETTER_BASE_URL
+            "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2764,7 +2764,7 @@ class WebInterface(object):
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
             "pms_url_manual", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
-            "notify_consecutive", "notify_upload_posters", "notify_recently_added_upgrade",
+            "notify_consecutive", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",

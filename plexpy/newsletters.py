@@ -458,7 +458,7 @@ class Newsletter(object):
     def _build_params(self):
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
-        base_url = plexpy.CONFIG.NEWSLETTER_BASE_URL or helpers.get_plexpy_url()
+        base_url = plexpy.CONFIG.HTTP_BASE_URL or helpers.get_plexpy_url()
 
         parameters = {
             'server_name': plexpy.CONFIG.PMS_NAME,
