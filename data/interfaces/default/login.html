@@ -85,7 +85,7 @@
             dataType: 'json',
             statusCode: {
                 200: function() {
-                   window.location = "${http_root}";
+                   window.location = "${redirect_uri or http_root}";
                 },
                 401: function() {
                    $('#incorrect-login').show();

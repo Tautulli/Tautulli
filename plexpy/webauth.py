@@ -20,6 +20,7 @@
 
 from datetime import datetime, timedelta
 import re
+from urllib import quote, unquote
 
 import cherrypy
 from hashing_passwords import check_hash
@@ -151,7 +152,11 @@ def check_auth(*args, **kwargs):
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         else:
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
+            redirect_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
+            if redirect_uri:
+                redirect_uri = '?redirect_uri=' + quote(redirect_uri)
+
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout" + redirect_uri)
 
 
 def requireAuth(*conditions):
@@ -238,22 +243,22 @@ class AuthController(object):
         """Called on logout"""
         logger.debug(u"Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
     
-    def get_loginform(self):
+    def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
-        return serve_template(templatename="login.html", title="Login")
+        return serve_template(templatename="login.html", title="Login", redirect_uri=unquote(redirect_uri))
     
     @cherrypy.expose
-    def index(self):
+    def index(self, *args, **kwargs):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
 
     @cherrypy.expose
-    def login(self):
+    def login(self, redirect_uri='', *args, **kwargs):
         self.check_auth_enabled()
 
-        return self.get_loginform()
+        return self.get_loginform(redirect_uri=redirect_uri)
 
     @cherrypy.expose
-    def logout(self):
+    def logout(self, redirect_uri='', *args, **kwargs):
         self.check_auth_enabled()
 
         payload = check_jwt_token()
@@ -266,11 +271,15 @@ class AuthController(object):
         cherrypy.response.cookie[jwt_cookie]['path'] = '/'
 
         cherrypy.request.login = None
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
+
+        if redirect_uri:
+            redirect_uri = '?redirect_uri=' + redirect_uri
+
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login" + redirect_uri)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def signin(self, username=None, password=None, remember_me='0', admin_login='0'):
+    def signin(self, username=None, password=None, remember_me='0', admin_login='0', *args, **kwargs):
         if cherrypy.request.method != 'POST':
             cherrypy.response.status = 405
             return {'status': 'error', 'message': 'Sign in using POST.'}
