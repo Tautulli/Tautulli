@@ -1597,13 +1597,16 @@ def dbcheck():
         )
 
     # Rename notifiers in the database
-    logger.debug(u"Altering database. Renaming notifiers.")
-    c_db.execute(
-        'UPDATE notifiers SET agent_label = "Kodi" WHERE agent_label = "XBMC"'
-    )
-    c_db.execute(
-        'UPDATE notifiers SET agent_label = "macOS Notification Center" WHERE agent_label = "OSX Notify"'
-    )
+    result = c_db.execute('SELECT agent_label FROM notifiers '
+                          'WHERE agent_label = "XBMC" OR agent_label = "OSX Notify"').fetchone()
+    if result:
+        logger.debug(u"Altering database. Renaming notifiers.")
+        c_db.execute(
+            'UPDATE notifiers SET agent_label = "Kodi" WHERE agent_label = "XBMC"'
+        )
+        c_db.execute(
+            'UPDATE notifiers SET agent_label = "macOS Notification Center" WHERE agent_label = "OSX Notify"'
+        )
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
