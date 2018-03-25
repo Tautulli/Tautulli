@@ -4140,7 +4140,7 @@ class WebInterface(object):
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_poster_url(rating_key=rating_key)
+        result = data_factory.delete_imgur_info(rating_key=rating_key)
 
         if result:
             return {'result': 'success', 'message': 'Deleted Imgur poster.'}

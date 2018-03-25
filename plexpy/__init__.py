@@ -38,6 +38,7 @@ import activity_handler
 import activity_pinger
 import common
 import database
+import datafactory
 import libraries
 import logger
 import mobile_app
@@ -649,18 +650,6 @@ def dbcheck():
         'uuid TEXT UNIQUE, success INTEGER DEFAULT 0)'
     )
 
-    # poster_urls table :: This table keeps record of the notification poster urls
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, poster_title TEXT, poster_url TEXT, delete_hash TEXT)'
-    )
-
-    # art_urls table :: This table keeps record of the notification art urls
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS art_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, art_title TEXT, art_url TEXT, delete_hash TEXT, blur INTEGER DEFAULT 0)'
-    )
-
     # recently_added table :: This table keeps record of recently added items
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -695,6 +684,12 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'img_hash TEXT, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, '
         'opacity INTEGER, background TEXT, blur INTEGER, fallback TEXT)'
+    )
+
+    # imgur_lookup table :: This table keeps record of the Imgur uploads
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS imgur_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'img_hash TEXT, imgur_title TEXT, imgur_url TEXT, delete_hash TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -1629,15 +1624,6 @@ def dbcheck():
             'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
         )
 
-    # Upgrade poster_urls table from earlier versions
-    try:
-        c_db.execute('SELECT delete_hash FROM poster_urls')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table poster_urls.")
-        c_db.execute(
-            'ALTER TABLE poster_urls ADD COLUMN delete_hash TEXT'
-        )
-
     # Rename notifiers in the database
     logger.debug(u"Altering database. Renaming notifiers.")
     c_db.execute(
@@ -1663,6 +1649,27 @@ def dbcheck():
 
     conn_db.commit()
     c_db.close()
+
+
+    # Migrate poster_urls to imgur_lookup table
+    try:
+        db = database.MonitorDatabase()
+        result = db.select('SELECT SQL FROM sqlite_master WHERE type="table" AND name="poster_urls"')
+        if result:
+            result = db.select('SELECT * FROM poster_urls')
+            logger.debug(u"Altering database. Updating database table imgur_lookup.")
+
+            data_factory = datafactory.DataFactory()
+
+            for row in result:
+                img_hash = notification_handler.set_hash_image_info(
+                    rating_key=row['rating_key'], width=600, height=1000, fallback='poster')
+                data_factory.set_imgur_info(img_hash=img_hash, imgur_title=row['poster_title'],
+                                            imgur_url=row['poster_url'], delete_hash=row['delete_hash'])
+
+            db.action('DROP TABLE poster_urls')
+    except sqlite3.OperationalError:
+        pass
 
 
 def upgrade():

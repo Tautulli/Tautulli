@@ -650,7 +650,7 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def retrieve_data(self):
-        from notification_handler import get_poster_info, set_hash_image_info
+        from notification_handler import get_imgur_info, set_hash_image_info
 
         if not self.config['incl_libraries']:
             logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
@@ -670,17 +670,12 @@ class RecentlyAdded(Newsletter):
 
         if self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
             for item in movies + shows + albums:
-                item['thumb_hash'] = set_hash_image_info(img=item['thumb'],
-                                                         width=150,
-                                                         height=225,
-                                                         fallback='poster')
-                item['art_hash'] = set_hash_image_info(img=item['art'],
-                                                       width=500,
-                                                       height=280,
-                                                       opacity=25,
-                                                       background='282828',
-                                                       blur=3,
-                                                       fallback='art')
+                item['thumb_hash'] = set_hash_image_info(
+                    img=item['thumb'], width=150, height=225, fallback='poster')
+
+                item['art_hash'] = set_hash_image_info(
+                    img=item['art'], width=500, height=280,
+                    opacity=25, background='282828', blur=3, fallback='art')
 
                 item['poster_url'] = ''
                 item['art_url'] = ''
@@ -688,22 +683,17 @@ class RecentlyAdded(Newsletter):
         else:
             # Upload posters and art to Imgur
             for item in movies + shows + albums:
-                poster_info = get_poster_info(poster_thumb=item['thumb'],
-                                              poster_key=item['rating_key'],
-                                              poster_title=item['title'])
-                if poster_info:
-                    item['poster_url'] = poster_info['poster_url'] or common.ONLINE_POSTER_THUMB
+                imgur_info = get_imgur_info(
+                    img=item['thumb'], rating_key=item['rating_key'], title=item['title'],
+                    width=150, height=225, fallback='poster')
 
-                art_info = get_poster_info(poster_thumb=item['art'],
-                                           poster_key=item['rating_key'],
-                                           poster_title=item['title'],
-                                           art=True,
-                                           width='500',
-                                           height='280',
-                                           opacity='25',
-                                           background='282828',
-                                           blur='3')
-                item['art_url'] = art_info.get('art_url', '')
+                item['poster_url'] = imgur_info.get('imgur_url') or common.ONLINE_POSTER_THUMB
+
+                imgur_info = get_imgur_info(
+                    img=item['art'], rating_key=item['rating_key'], title=item['title'],
+                    width=500, height=280, opacity=25, background='282828', blur=3, fallback='art')
+
+                item['art_url'] = imgur_info.get('imgur_url') or common.ONLINE_ART
 
                 item['thumb_hash'] = ''
                 item['art_hash'] = ''

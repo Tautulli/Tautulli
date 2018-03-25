@@ -1132,9 +1132,94 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_info(self, rating_key='', metadata=None, art=False, blur=None):
+    def get_imgur_info(self, img=None, rating_key=None, width=None, height=None,
+                       opacity=None, background=None, blur=None, fallback=None,
+                       order_by=''):
         monitor_db = database.MonitorDatabase()
 
+        imgur_info = []
+
+        where_params = []
+        args = []
+
+        if img is not None:
+            where_params.append('img')
+            args.append(img)
+        if rating_key is not None:
+            where_params.append('rating_key')
+            args.append(rating_key)
+        if width is not None:
+            where_params.append('width')
+            args.append(width)
+        if height is not None:
+            where_params.append('height')
+            args.append(height)
+        if opacity is not None:
+            where_params.append('opacity')
+            args.append(opacity)
+        if background is not None:
+            where_params.append('background')
+            args.append(background)
+        if blur is not None:
+            where_params.append('blur')
+            args.append(blur)
+        if fallback is not None:
+            where_params.append('fallback')
+            args.append(fallback)
+
+        where = ''
+        if where_params:
+            where = 'WHERE ' + ' AND '.join([w + ' = ?' for w in where_params])
+
+        if order_by:
+            order_by = 'ORDER BY ' + order_by + ' DESC'
+
+        query = 'SELECT imgur_title, imgur_url FROM imgur_lookup ' \
+                'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
+                '%s %s' % (where, order_by)
+
+        try:
+            imgur_info = monitor_db.select(query, args=args)
+        except Exception as e:
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_imgur_info: %s." % e)
+
+        return imgur_info
+
+    def set_imgur_info(self, img_hash=None, imgur_title=None, imgur_url=None, delete_hash=None):
+        monitor_db = database.MonitorDatabase()
+
+        keys = {'img_hash': img_hash}
+        values = {'imgur_title': imgur_title,
+                  'imgur_url': imgur_url,
+                  'delete_hash': delete_hash}
+
+        monitor_db.upsert('imgur_lookup', key_dict=keys, value_dict=values)
+
+    def delete_imgur_info(self, rating_key=None):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            query = 'SELECT imgur_title, delete_hash, fallback FROM imgur_lookup ' \
+                    'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
+                    'WHERE rating_key = ? '
+            args = [rating_key]
+            results = monitor_db.select(query, args=args)
+
+            for imgur_info in results:
+                if imgur_info['delete_hash']:
+                    helpers.delete_from_imgur(delete_hash=imgur_info['delete_hash'],
+                                              img_title=imgur_info['imgur_title'],
+                                              fallback=imgur_info['fallback'])
+
+            logger.info(u"Tautulli DataFactory :: Deleting Imgur info for rating_key %s from the database."
+                        % rating_key)
+            result = monitor_db.action('DELETE FROM imgur_lookup WHERE img_hash '
+                                       'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
+                                       [rating_key])
+
+            return True if result else False
+
+    def get_poster_info(self, rating_key='', metadata=None):
         poster_key = ''
         if str(rating_key).isdigit():
             poster_key = rating_key
@@ -1149,55 +1234,12 @@ class DataFactory(object):
         poster_info = {}
 
         if poster_key:
-            try:
-                if art:
-                    query = 'SELECT art_title, art_url, blur FROM art_urls ' \
-                            'WHERE rating_key = ? AND blur = ?'
-                    args = [poster_key, int(blur is not None)]
-                else:
-                    query = 'SELECT poster_title, poster_url FROM poster_urls ' \
-                            'WHERE rating_key = ?'
-                    args = [poster_key]
-                poster_info = monitor_db.select_single(query, args=args)
-            except Exception as e:
-                logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
+            imgur_info = self.get_imgur_info(rating_key=poster_key, order_by='height', fallback='poster')
+            if imgur_info:
+                poster_info = {'poster_title': imgur_info[0]['imgur_title'],
+                               'poster_url': imgur_info[0]['imgur_url']}
 
         return poster_info
-
-    def set_poster_url(self, rating_key='', poster_title='', poster_url='', delete_hash='', art=False, blur=None):
-        monitor_db = database.MonitorDatabase()
-
-        if str(rating_key).isdigit():
-            keys = {'rating_key': int(rating_key)}
-
-            if art:
-                keys['blur'] = int(blur is not None)
-                table = 'art_urls'
-                values = {'art_title': poster_title,
-                          'art_url': poster_url,
-                          'delete_hash': delete_hash}
-            else:
-                table = 'poster_urls'
-                values = {'poster_title': poster_title,
-                          'poster_url': poster_url,
-                          'delete_hash': delete_hash}
-
-            monitor_db.upsert(table_name=table, key_dict=keys, value_dict=values)
-
-    def delete_poster_url(self, rating_key=''):
-        monitor_db = database.MonitorDatabase()
-
-        if rating_key:
-            poster_info = monitor_db.select_single('SELECT poster_title, delete_hash '
-                                                   'FROM poster_urls WHERE rating_key = ?',
-                                                   [rating_key])
-            if poster_info['delete_hash']:
-                helpers.delete_from_imgur(poster_info['delete_hash'], poster_info['poster_title'])
-
-            logger.info(u"Tautulli DataFactory :: Deleting poster_url for '%s' (rating_key %s) from the database."
-                        % (poster_info['poster_title'], rating_key))
-            result = monitor_db.action('DELETE FROM poster_urls WHERE rating_key = ?', [rating_key])
-            return True if result else False
 
     def get_lookup_info(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()

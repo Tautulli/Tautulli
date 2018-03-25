@@ -681,7 +681,8 @@ def anon_url(*url):
     """
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
-def upload_to_imgur(imgPath, imgTitle=''):
+
+def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Imgur """
     client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
     img_url = delete_hash = ''
@@ -690,41 +691,33 @@ def upload_to_imgur(imgPath, imgTitle=''):
         logger.error(u"Tautulli Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
         return img_url, delete_hash
 
-    try:
-        with open(imgPath, 'rb') as imgFile:
-            img = imgFile.read()
-    except IOError as e:
-        logger.error(u"Tautulli Helpers :: Unable to read image file for Imgur: %s" % e)
-        return img_url, delete_hash
-
     headers = {'Authorization': 'Client-ID %s' % client_id}
-    data = {'type': 'base64',
-            'image': base64.b64encode(img)}
-    if imgTitle:
-        data['title'] = imgTitle.encode('utf-8')
-        data['name'] = imgTitle.encode('utf-8') + '.jpg'
+    data = {'image': base64.b64encode(img_data),
+            'title': img_title.encode('utf-8'),
+            'name': str(rating_key) + '.png',
+            'type': 'png'}
 
     response, err_msg, req_msg = request.request_response2('https://api.imgur.com/3/image', 'POST',
                                                            headers=headers, data=data)
 
     if response and not err_msg:
-        t = '\'' + imgTitle + '\' ' if imgTitle else ''
-        logger.debug(u"Tautulli Helpers :: Image {}uploaded to Imgur.".format(t))
+        logger.debug(u"Tautulli Helpers :: Image '{}' ({}) uploaded to Imgur.".format(img_title, fallback))
         imgur_response_data = response.json().get('data')
         img_url = imgur_response_data.get('link', '').replace('http://', 'https://')
         delete_hash = imgur_response_data.get('deletehash', '')
     else:
         if err_msg:
-            logger.error(u"Tautulli Helpers :: Unable to upload image to Imgur: {}".format(err_msg))
+            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' to Imgur: {}".format(img_title, err_msg))
         else:
-            logger.error(u"Tautulli Helpers :: Unable to upload image to Imgur.")
+            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' to Imgur.".format(img_title))
 
         if req_msg:
             logger.debug(u"Tautulli Helpers :: Request response: {}".format(req_msg))
 
     return img_url, delete_hash
 
-def delete_from_imgur(delete_hash, imgTitle=''):
+
+def delete_from_imgur(delete_hash, img_title='', fallback=''):
     """ Deletes an image from Imgur """
     client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
 
@@ -734,15 +727,15 @@ def delete_from_imgur(delete_hash, imgTitle=''):
                                                            headers=headers)
 
     if response and not err_msg:
-        t = '\'' + imgTitle + '\' ' if imgTitle else ''
-        logger.debug(u"Tautulli Helpers :: Image {}deleted from Imgur.".format(t))
+        logger.debug(u"Tautulli Helpers :: Image '{}' ({}) deleted from Imgur.".format(img_title, fallback))
         return True
     else:
         if err_msg:
-            logger.error(u"Tautulli Helpers :: Unable to delete image from Imgur: {}".format(err_msg))
+            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' from Imgur: {}".format(img_title, err_msg))
         else:
-            logger.error(u"Tautulli Helpers :: Unable to delete image from Imgur.")
+            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' from Imgur.".format(img_title))
         return False
+
 
 def cache_image(url, image=None):
     """

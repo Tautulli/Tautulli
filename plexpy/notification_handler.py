@@ -633,7 +633,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_thumb = ''
 
     if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-        poster_info = get_poster_info(poster_thumb=poster_thumb, poster_key=poster_key, poster_title=poster_title)
+        imgur_info = get_imgur_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
+        poster_info = {'poster_title': imgur_info['imgur_title'], 'poster_url': imgur_info['imgur_url']}
         notify_params.update(poster_info)
 
     if ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT)
@@ -1069,69 +1070,55 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_poster_info(poster_thumb='', poster_key='', poster_title='', art=False,
-                    width='', height='', opacity=None, background=None, blur=None):
-    default_poster_info = {'poster_title': '', 'poster_url': ''}
-    default_art_info = {'art_title': '', 'art_url': ''}
+def get_imgur_info(img=None, rating_key=None, title='', width=600, height=1000,
+                   opacity=100, background='000000', blur=0, fallback=None):
+    imgur_info = {'imgur_title': '', 'imgur_url': ''}
+
+    image_info = {'img': img,
+                  'rating_key': rating_key,
+                  'width': width,
+                  'height': height,
+                  'opacity': opacity,
+                  'background': background,
+                  'blur': blur,
+                  'fallback': fallback}
 
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
-    poster_info = data_factory.get_poster_info(rating_key=poster_key, art=art, blur=blur)
+    database_imgur_info = data_factory.get_imgur_info(**image_info)
 
-    # If no previous poster info
-    if not poster_info and poster_thumb:
-        try:
-            thread_name = str(threading.current_thread().ident)
-            poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-image-%s.png' % thread_name)
+    if database_imgur_info:
+        imgur_info = database_imgur_info[0]
 
-            # Retrieve the poster from Plex and cache to file
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_image(img=poster_thumb,
-                                           width=width,
-                                           height=height,
-                                           opacity=opacity,
-                                           background=background,
-                                           blur=blur)
-            if result and result[0]:
-                with open(poster_file, 'wb') as f:
-                    f.write(result[0])
-            else:
-                raise Exception(u'PMS image request failed')
+    elif not database_imgur_info and img:
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_image(**image_info)
 
-            # Upload poster_thumb to Imgur and get link
-            poster_url, delete_hash = helpers.upload_to_imgur(poster_file, poster_title)
+        if result and result[0]:
+            imgur_url, delete_hash = helpers.upload_to_imgur(img_data=result[0],
+                                                             img_title=title,
+                                                             rating_key=rating_key,
+                                                             fallback=fallback)
 
-            if poster_url:
-                # Create poster info
-                if art:
-                    poster_info = {'art_title': poster_title, 'art_url': poster_url}
-                else:
-                    poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
+            if imgur_url:
+                img_hash = set_hash_image_info(**image_info)
+                data_factory.set_imgur_info(img_hash=img_hash,
+                                            imgur_title=title,
+                                            imgur_url=imgur_url,
+                                            delete_hash=delete_hash)
 
-                # Save the poster url in the database
-                data_factory.set_poster_url(rating_key=poster_key,
-                                            poster_title=poster_title,
-                                            poster_url=poster_url,
-                                            delete_hash=delete_hash,
-                                            art=art,
-                                            blur=blur)
+                imgur_info = {'imgur_title': title, 'imgur_url': imgur_url}
 
-            # Delete the cached poster
-            os.remove(poster_file)
-        except Exception as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to retrieve poster for rating_key %s: %s."
-                         % (poster_key, e))
-
-    if art:
-        return poster_info or default_art_info
-    else:
-        return poster_info or default_poster_info
+    return imgur_info
 
 
 def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,
                         opacity=100, background='000000', blur=0, fallback=None):
     if rating_key and not img:
-        img = '/library/metadata/{}/thumb'.format(rating_key)
+        if fallback == 'art':
+            img = '/library/metadata/{}/art'.format(rating_key)
+        else:
+            img = '/library/metadata/{}/thumb'.format(rating_key)
 
     img_split = img.split('/')
     img = '/'.join(img_split[:5])
