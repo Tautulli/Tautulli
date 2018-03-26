@@ -286,7 +286,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def set_home_stats_config(self, time_range=None, stats_type=None, stats_count=None, recently_added_count=None, **kwargs):
+    def set_home_stats_config(self, refresh_interval=None, time_range=None, stats_type=None, stats_count=None,
+                              recently_added_count=None, **kwargs):
+        if refresh_interval:
+            plexpy.CONFIG.__setattr__('HOME_REFRESH_INTERVAL', refresh_interval)
+            plexpy.CONFIG.write()
         if time_range:
             plexpy.CONFIG.__setattr__('HOME_STATS_LENGTH', time_range)
             plexpy.CONFIG.write()
@@ -2643,7 +2647,6 @@ class WebInterface(object):
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
-            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
