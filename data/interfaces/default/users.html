@@ -94,7 +94,7 @@
                     json_data: JSON.stringify(d)
                 };
             }
-        }
+        };
 
         users_list_table = $('#users_list_table').DataTable(users_list_table_options);
         var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });

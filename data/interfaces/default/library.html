@@ -374,7 +374,7 @@ DOCUMENTATION :: END
         // Build watch history table
         history_table_options.ajax = {
             url: 'get_history',
-            type: 'post',
+            type: 'POST',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
@@ -406,7 +406,7 @@ DOCUMENTATION :: END
         // Build media info table
         media_info_table_options.ajax = {
             url: 'get_library_media_info',
-            type: 'post',
+            type: 'POST',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),

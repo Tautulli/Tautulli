@@ -113,7 +113,7 @@
         // Load user ids and names (for the selector)
         $.ajax({
             url: 'get_user_names',
-            type: 'get',
+            type: 'GET',
             dataType: 'json',
             success: function (data) {
                 var select = $('#history-user');
@@ -130,6 +130,7 @@
         function loadHistoryTable(media_type, selected_user_id) {
             history_table_options.ajax = {
                 url: 'get_history',
+                type: 'POST',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d),
