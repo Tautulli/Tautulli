@@ -64,7 +64,7 @@ DOCUMENTATION :: END
     from collections import defaultdict
     from urllib import quote
     from plexpy import helpers
-    from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES
+    from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
 <%
@@ -108,7 +108,11 @@ DOCUMENTATION :: END
                         <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        % if data['extra_type']:
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['art'].replace('/art', '/thumb') or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        % else:
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        % endif
                     % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/art.png);"></div>
                     % endif
@@ -301,14 +305,13 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Bandwidth</div>
                                 <div class="sub-value time-right">
-                                    % if data['media_type'] != 'photo' and helpers.cast_to_int(data['bandwidth']):
+                                    % if data['media_type'] != 'photo' and data['bandwidth'] != 'Unknown':
                                     <%
                                         bw = helpers.cast_to_int(data['bandwidth'])
-                                        if bw != "Unknown":
-                                            if bw > 1000:
-                                                bw = str(round(bw / 1000.0, 1)) + ' Mbps'
-                                            else:
-                                                bw = str(bw) + ' kbps'
+                                        if bw > 1000:
+                                            bw = str(round(bw / 1000.0, 1)) + ' Mbps'
+                                        else:
+                                            bw = str(bw) + ' kbps'
                                     %>
                                     <span id="stream-bandwidth-${sk}">${bw}</span>
                                     <span id="streaming-brain-${sk}" data-toggle="tooltip" title="Streaming Brain Estimate (Required Bandwidth)"><i class="fa fa-info-circle"></i></span>
@@ -440,7 +443,12 @@ DOCUMENTATION :: END
                     % elif data['media_type'] == 'photo':
                     <span title="${data['title']}" class="sub-heading">${data['title']}</span>
                     % else:
-                    <span title="${data['year']}" class="sub-heading">${data['year']}</span>
+                        % if data['extra_type']:
+                        <% extra_type = EXTRA_TYPES.get(data['extra_type'], data['sub_type'].capitalize()) %>
+                        <span title="${data['year']} (${extra_type})" class="sub-heading">${data['year']} (${extra_type})</span>
+                        % else:
+                        <span title="${data['year']}" class="sub-heading">${data['year']}</span>
+                        % endif
                     % endif
                 % elif data['channel_title']:
                 <span title="${data['channel_title']}" class="sub-heading">${data['channel_title']}</span>

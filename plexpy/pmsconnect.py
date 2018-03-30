@@ -1096,7 +1096,9 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
-                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'extra_type': helpers.get_xml_attr(metadata_main, 'extraType'),
+                        'sub_type': helpers.get_xml_attr(metadata_main, 'subtype')
                         }
 
         else:
@@ -1687,7 +1689,9 @@ class PmsConnect(object):
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
                                 'channel_title': helpers.get_xml_attr(session, 'sourceTitle'),
-                                'live': int(helpers.get_xml_attr(session, 'live') == '1')
+                                'live': int(helpers.get_xml_attr(session, 'live') == '1'),
+                                'extra_type': helpers.get_xml_attr(session, 'extraType'),
+                                'sub_type': helpers.get_xml_attr(session, 'subtype')
                                 }
         else:
             channel_stream = 0
