@@ -1129,8 +1129,8 @@ def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,
     img = '/'.join(img_split[:5])
     rating_key = rating_key or img_split[3]
 
-    img_string = '{}{}{}{}{}{}{}{}'.format(plexpy.CONFIG.PMS_UUID, img, rating_key, width, height,
-                                           opacity, background, blur, fallback)
+    img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
+        plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
     img_hash = hashlib.sha256(img_string).hexdigest()
 
     keys = {'img_hash': img_hash}
