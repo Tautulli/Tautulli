@@ -3307,10 +3307,17 @@ class TELEGRAM(Notifier):
             if poster_content:
                 poster_filename = 'poster_{}.jpg'.format(pretty_metadata.parameters['rating_key'])
                 files = {'photo': (poster_filename, poster_content, 'image/jpeg')}
-                data['caption'] = text
 
-                return self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
-                                         data=data, files=files)
+                if len(text) > 200:
+                    data['disable_notification'] = True
+                else:
+                    data['caption'] = text
+
+                r = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                                      data=data, files=files)
+
+                if not data.pop('disable_notification', None):
+                    return r
 
         data['text'] = text
 
