@@ -626,11 +626,11 @@
                         </td>
                     </tr>
 
-                    % if body:
+                    % if message:
                     <tr>
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
-                            <div class="body-message" style="font-size: 20px;text-align: center;width: 80%;margin-left: auto;margin-right: auto;">${'<br>'.join(l for l in body.splitlines()) | n}</div>
+                            <div class="body-message" style="font-size: 20px;text-align: center;width: 80%;margin-left: auto;margin-right: auto;">${'<br>'.join(l for l in message.splitlines()) | n}</div>
                         </td>
                     </tr>
                     % endif

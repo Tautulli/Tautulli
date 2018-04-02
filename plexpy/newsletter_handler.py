@@ -80,21 +80,26 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     if notify_action in ('test', 'api'):
         subject = kwargs.pop('subject', None) or newsletter_config['subject']
         body = kwargs.pop('body', None) or newsletter_config['body']
+        message = kwargs.pop('message', None) or newsletter_config['message']
     else:
         subject = newsletter_config['subject']
         body = newsletter_config['body']
+        message = newsletter_config['message']
 
     newsletter_agent = newsletters.get_agent_class(agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],
                                                    email_config=newsletter_config['email_config'],
                                                    subject=subject,
-                                                   body=body)
+                                                   body=body,
+                                                   message=message
+                                                   )
 
     # Set the newsletter state in the db
     newsletter_log_id = set_notify_state(newsletter=newsletter_config,
                                          notify_action=notify_action,
                                          subject=newsletter_agent.subject_formatted,
                                          body=newsletter_agent.body_formatted,
+                                         message=newsletter_agent.message_formatted,
                                          start_date=newsletter_agent.start_date.format('YYYY-MM-DD'),
                                          end_date=newsletter_agent.end_date.format('YYYY-MM-DD'),
                                          newsletter_uuid=newsletter_agent.uuid)
@@ -107,7 +112,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         return True
 
 
-def set_notify_state(newsletter, notify_action, subject, body, start_date, end_date, newsletter_uuid):
+def set_notify_state(newsletter, notify_action, subject, body, message, start_date, end_date, newsletter_uuid):
 
     if newsletter and notify_action:
         db = database.MonitorDatabase()
@@ -121,6 +126,7 @@ def set_notify_state(newsletter, notify_action, subject, body, start_date, end_d
                   'notify_action': notify_action,
                   'subject_text': subject,
                   'body_text': body,
+                  'message_text': message,
                   'start_date': start_date,
                   'end_date': end_date}
 

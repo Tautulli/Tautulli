@@ -626,11 +626,11 @@
                         </td>
                     </tr>
 
-                    % if body:
+                    % if message:
                     <tr>
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
-                            <div class="body-message">${'<br>'.join(l for l in body.splitlines()) | n}</div>
+                            <div class="body-message">${'<br>'.join(l for l in message.splitlines()) | n}</div>
                         </td>
                     </tr>
                     % endif

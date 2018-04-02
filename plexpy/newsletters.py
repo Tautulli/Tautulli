@@ -54,6 +54,7 @@ def available_notification_actions():
                 'description': 'Trigger a notification on a certain schedule.',
                 'subject': 'Tautulli Newsletter',
                 'body': 'Tautulli Newsletter',
+                'message': '',
                 'icon': 'fa-calendar',
                 'media_types': ('newsletter',)
                 }
@@ -63,7 +64,7 @@ def available_notification_actions():
 
 
 def get_agent_class(agent_id=None, config=None, email_config=None, start_date=None, end_date=None,
-                    subject=None, body=None):
+                    subject=None, body=None, message=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
@@ -72,7 +73,8 @@ def get_agent_class(agent_id=None, config=None, email_config=None, start_date=No
                   'start_date': start_date,
                   'end_date': end_date,
                   'subject': subject,
-                  'body': body}
+                  'body': body,
+                  'message': message}
 
         if agent_id == 0:
             return RecentlyAdded(**kwargs)
@@ -135,14 +137,16 @@ def get_newsletter_config(newsletter_id=None):
         email_config = json.loads(result.pop('email_config', '{}'))
         subject = result.pop('subject')
         body = result.pop('body')
+        message = result.pop('message')
         newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config,
-                                           subject=subject, body=body)
+                                           subject=subject, body=body, message=message)
     except Exception as e:
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
     result['subject'] = newsletter_agent.subject
     result['body'] = newsletter_agent.body
+    result['message'] = newsletter_agent.message
     result['config'] = newsletter_agent.config
     result['email_config'] = newsletter_agent.email_config
     result['config_options'] = newsletter_agent.return_config_options()
@@ -176,7 +180,8 @@ def add_newsletter_config(agent_id=None, **kwargs):
               'newsletter_config': json.dumps(agent_class.config),
               'email_config': json.dumps(agent_class.email_config),
               'subject': agent_class.subject,
-              'body': agent_class.body
+              'body': agent_class.body,
+              'message': agent_class.message
               }
 
     db = database.MonitorDatabase()
@@ -216,9 +221,10 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
 
     subject = kwargs.pop('subject')
     body = kwargs.pop('body')
+    message = kwargs.pop('message')
 
     agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config,
-                                  subject=subject, body=body)
+                                  subject=subject, body=body, message=message)
 
     keys = {'id': newsletter_id}
     values = {'agent_id': agent['id'],
@@ -229,8 +235,8 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
               'email_config': json.dumps(agent_class.email_config),
               'subject': agent_class.subject,
               'body': agent_class.body,
+              'message': agent_class.message,
               'cron': kwargs.get('cron'),
-              'cron_type': kwargs.get('cron_type'),
               'active': kwargs.get('active')
               }
 
@@ -246,14 +252,15 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_newsletter(newsletter_id=None, subject=None, body=None, newsletter_log_id=None, **kwargs):
+def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, newsletter_log_id=None, **kwargs):
     newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
     if newsletter_config:
         agent = get_agent_class(agent_id=newsletter_config['agent_id'],
                                 config=newsletter_config['config'],
                                 email_config=newsletter_config['email_config'],
                                 subject=subject,
-                                body=body)
+                                body=body,
+                                messsage=message)
         return agent.send()
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
@@ -288,18 +295,21 @@ def generate_newsletter_uuid():
 
 class Newsletter(object):
     NAME = ''
-    _DEFAULT_CONFIG = {'last_days': 7,
+    _DEFAULT_CONFIG = {'custom_cron': 0,
+                       'last_days': 7,
                        'formatted': 1,
                        'notifier_id': 0}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier_id'] = 0
     _DEFAULT_SUBJECT = 'Tautulli Newsletter'
-    _DEFAULT_BODY = ''
+    _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
+    _DEFAULT_MESSAGE = ''
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None, subject=None, body=None):
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None,
+                 subject=None, body=None, message=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
         self.uuid = generate_newsletter_uuid()
@@ -331,7 +341,8 @@ class Newsletter(object):
         self.parameters = self.build_params()
         self.subject = subject or self._DEFAULT_SUBJECT
         self.body = body or self._DEFAULT_BODY
-        self.subject_formatted, self.body_formatted = self.build_text()
+        self.message = message or self._DEFAULT_MESSAGE
+        self.subject_formatted, self.body_formatted, self.message_formatted = self.build_text()
 
         self.data = {}
         self.newsletter = None
@@ -392,6 +403,7 @@ class Newsletter(object):
             uuid=self.uuid,
             subject=self.subject_formatted,
             body=self.body_formatted,
+            message=self.message_formatted,
             parameters=self.parameters,
             data=self.data,
             preview=self.is_preview
@@ -498,7 +510,18 @@ class Newsletter(object):
                 u"Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
             body = unicode(self._DEFAULT_BODY).format(**self.parameters)
 
-        return subject, body
+        try:
+            message = custom_formatter.format(unicode(self.message), **self.parameters)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
+            message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
+            message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
+
+        return subject, body, message
 
     def return_config_options(self):
         return self._return_config_options()
@@ -530,7 +553,8 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_CONFIG = Newsletter._DEFAULT_CONFIG.copy()
     _DEFAULT_CONFIG['incl_libraries'] = []
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
-    _DEFAULT_BODY = ''
+    _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
+    _DEFAULT_MESSAGE = ''
     _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 

@@ -5564,7 +5564,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("notify_newsletter")
-    def send_newsletter(self, newsletter_id=None, subject='', body='', notify_action='', **kwargs):
+    def send_newsletter(self, newsletter_id=None, subject='', body='', message='', notify_action='', **kwargs):
         """ Send a newsletter using Tautulli.
 
             ```
@@ -5591,6 +5591,7 @@ class WebInterface(object):
                                                        notify_action=notify_action,
                                                        subject=subject,
                                                        body=body,
+                                                       message=message,
                                                         **kwargs)
                 return {'result': 'success', 'message': 'Newsletter queued.'}
             else:
@@ -5638,7 +5639,8 @@ class WebInterface(object):
                                                                start_date=start_date,
                                                                end_date=end_date,
                                                                subject=newsletter['subject'],
-                                                               body=newsletter['body'])
+                                                               body=newsletter['body'],
+                                                               message=newsletter['message'])
                 preview = (preview == 'true')
                 master = (master == 'true')
                 raw = (raw == 'true')

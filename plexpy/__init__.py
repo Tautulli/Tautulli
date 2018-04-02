@@ -639,14 +639,15 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
         'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
-        'subject TEXT, body TEXT, cron TEXT NOT NULL DEFAULT "0 0 * * 0", cron_type TEXT, active INTEGER DEFAULT 0)'
+        'subject TEXT, body TEXT, message TEXT, '
+        'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
     )
 
     # newsletter_log table :: This is a table which logs newsletters sent
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, start_date TEXT, end_date TEXT, '
+        'subject_text TEXT, body_text TEXT, message_text TEXT, start_date TEXT, end_date TEXT, '
         'uuid TEXT UNIQUE, success INTEGER DEFAULT 0)'
     )
 

@@ -19,8 +19,8 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-newsletter_config" aria-controls="tabs-newsletter_config" role="tab" data-toggle="tab">Configuration</a></li>
-                        <li role="presentation"><a href="#tabs-newsletter_text" aria-controls="tabs-newsletter_text" role="tab" data-toggle="tab">Newsletter Text</a></li>
                         <li role="presentation"><a href="#tabs-newsletter_agent" aria-controls="tabs-newsletter_agent" role="tab" data-toggle="tab">Notification Agent</a></li>
+                        <li role="presentation"><a href="#tabs-newsletter_text" aria-controls="tabs-newsletter_text" role="tab" data-toggle="tab">Newsletter Text</a></li>
                         <li role="presentation"><a href="#tabs-test_newsletter" aria-controls="tabs-test_newsletter" role="tab" data-toggle="tab">Test Newsletter</a></li>
                     </ul>
                 </div>
@@ -41,7 +41,7 @@
                                             <div class="col-md-12">
                                                 <div id="cron-widget"></div>
                                                 <input type="text" id="cron_value" name="cron" value="${newsletter['cron']}" />
-                                                <input type="hidden" id="cron_type" name="cron_type" value="${newsletter['cron_type']}" />
+                                                <input type="hidden" id="custom_cron" name="newsletter_config_custom_cron" value="${newsletter['config']['custom_cron']}" />
                                             </div>
                                         </div>
                                         <p class="help-block">Set the schedule for the newsletter</p>
@@ -151,43 +151,6 @@
                                             </div>
                                         </div>
                                         <p class="help-block">Optional: Enter a description to help identify this newsletter in the newsletters list.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_text">
-                            <label>Newsletter Text</label>
-                            <p class="help-block">
-                                Set the custom formatted text for each type of notification.
-                                <a href="#newsletter-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
-                            </p>
-                            <p class="help-block">
-                                You can also add text modifiers to change the case or slice parameters with a list of items.
-                                <a href="#notify-text-modifiers-modal" data-toggle="modal">Click here</a> to view usage information.
-                            </p>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="subject">Subject</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <input type="text" class="form-control" id="subject" name="subject" value="${newsletter['subject']}" size="30">
-                                            </div>
-                                        </div>
-                                        <p class="help-block">
-                                            Enter a custom subject line for the newsletter. Leave blank for default.
-                                        </p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="body">Body</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <textarea class="form-control"  id="body" name="body" value="${newsletter['body']}" data-autoresize>${newsletter['body']}</textarea>
-                                            </div>
-                                        </div>
-                                        <p class="help-block">
-                                            Enter a custom body line for the newsletter.
-                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -342,6 +305,54 @@
                                 </div>
                             </div>
                         </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_text">
+                            <label>Newsletter Text</label>
+                            <p class="help-block">
+                                Set the custom formatted text for each type of notification.
+                                <a href="#newsletter-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
+                            </p>
+                            <p class="help-block">
+                                You can also add text modifiers to change the case or slice parameters with a list of items.
+                                <a href="#notify-text-modifiers-modal" data-toggle="modal">Click here</a> to view usage information.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="subject">Subject</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="text" class="form-control" id="subject" name="subject" value="${newsletter['subject']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Enter a custom subject line for the newsletter. Leave blank for default.
+                                        </p>
+                                    </div>
+                                    <div class="form-group" id="newsletter_body">
+                                        <label for="body">Body</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <textarea class="form-control"  id="body" name="body" data-autoresize>${newsletter['body']}</textarea>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Enter a custom body line for the newsletter notification. Leave blank for default.
+                                        </p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="message">Message</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <textarea class="form-control"  id="message" name="message" data-autoresize>${newsletter['message']}</textarea>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Enter a custom message to include on the newsletter.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-test_newsletter">
                             <label>Preview Newsletter</label>
                             <p class="help-block">
@@ -392,24 +403,21 @@
             'custom crontab' : 'custom'
         },
         onChange: function() {
-            var cron_type = $(this).find('select[name=cron-period]').val();
-            if(cron_type == 'custom') {
-                $('#cron_type').val(cron_type);
+            var cron_period = $(this).find('select[name=cron-period]').val();
+            $('#custom_cron').val(cron_period === 'custom' ? 1 : 0);
+            if(cron_period === 'custom') {
                 $("#cron_value").show();
             } else {
-                $('#cron_type').val('widget');
                 $("#cron_value").hide().val($(this).cron('value'));
             }
         }
     });
 
-    if ('${newsletter['cron_type']}' === 'custom') {
+    if (${newsletter['config']['custom_cron']}) {
         $('#cron-widget').find('select[name=cron-period]').val('custom');
-        $('#cron_type').val('${newsletter['cron_type']}');
-        $("#cron_value").val('${newsletter['cron']}').show();
+        $('#cron_value').val('${newsletter['cron']}').show();
     } else {
-        $('#cron_type').val('${newsletter['cron_type']}');
-        $("#cron_value").hide();
+        $('#cron_value').hide();
         cron_widget.cron('value', '${newsletter['cron']}');
     }
 
@@ -444,10 +452,12 @@
 
     function toggleEmailSelect () {
         if ($('#newsletter_config_formatted_checkbox').is(':checked')) {
+            $('#newsletter_body').hide();
             $('#email_notifier_select').show();
             $('#other_notifier_select').hide();
             toggleNewEmailConfig();
         } else {
+            $('#newsletter_body').show();
             $('#email_notifier_select').hide();
             $('#other_notifier_select').show();
             $('#newsletter-email-config').hide();
