@@ -11,15 +11,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="home-padded-header padded-header" id="current-activity-header">
-                <h3 class="pull-left"><span id="sessions-shortcut">Current Activity</span></h3>
-                <div class="button-bar">
-                    <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="activity-refresh-interval-selection">
-                        <span class="input-group-addon btn-dark inactive">Refresh Every</span>
-                        <input type="number" class="form-control number-input" name="activity-refresh-interval" id="activity-refresh-interval" value="${config['home_refresh_interval']}" min="2" data-default="2" data-toggle="tooltip" title="Min: 2 seconds" />
-                        <span class="input-group-addon btn-dark inactive">seconds</span>
-                    </div>
-                </div>
-                <div class="info-bar">
+                <h3><span id="sessions-shortcut">Activity</span> &nbsp;&nbsp;
                     <small>
                         <span id="currentActivityHeader" style="display: none;">
                             Streams: <span id="currentActivityHeader-streams"></span> |
@@ -27,7 +19,7 @@
                             <span id="currentActivityHeader-bandwidth-tooltip" data-toggle="tooltip" title="Streaming Brain Estimate (Required Bandwidth)"><i class="fa fa-info-circle"></i></span>
                         </span>
                     </small>
-                </div>
+                </h3>
             </div>
             <div id="currentActivity">
                 <% from plexpy import PLEX_SERVER_UP %>
@@ -591,16 +583,11 @@
     }
 
     getCurrentActivity();
-
-    function refreshActivity(seconds) {
-        return setInterval(function () {
-            if (!(create_instances.length) && activity_ready) {
-                getCurrentActivity();
-            }
-        }, seconds * 1000);
-    }
-    var refresh_interval = $('#activity-refresh-interval').val();
-    var activityRefresh = refreshActivity(refresh_interval);
+    setInterval(function () {
+        if (!(create_instances.length) && activity_ready) {
+            getCurrentActivity();
+        }
+    }, ${config['home_refresh_interval'] * 1000});
 
     setInterval(function(){
         $('.progress_time_offset').each(function () {
@@ -696,16 +683,6 @@
            window.open(sessions_url, '_blank');
         });
     });
-
-    $('#activity-refresh-interval').change(function () {
-        forceMinMax($(this));
-        clearInterval(activityRefresh);
-        refresh_interval = $(this).val();
-        activityRefresh = refreshActivity(refresh_interval);
-        $.post('set_home_stats_config', { refresh_interval: refresh_interval });
-    });
-
-    $('#activity-refresh-interval').tooltip({ container: 'body', placement: 'top', html: true });
     % endif
 </script>
 % endif

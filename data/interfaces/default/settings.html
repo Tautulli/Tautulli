@@ -271,6 +271,17 @@
                             <h3>Activity</h3>
                         </div>
 
+                        <div class="form-group">
+                            <label for="home_refresh_interval">Activty Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_refresh_interval" name="home_refresh_interval" value="${config['home_refresh_interval']}" size="5" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#home_refresh_interval_error" required>
+                                </div>
+                                <div id="home_refresh_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the interval (in seconds) to refresh the current activity on the homepage. Minimum 2.</p>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Sections</h3>
                         </div>
