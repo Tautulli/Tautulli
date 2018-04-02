@@ -40,7 +40,8 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <div id="cron-widget"></div>
-                                                <input type="hidden" id="cron_value" name="cron" />
+                                                <input type="text" id="cron_value" name="cron" value="${newsletter['cron']}" />
+                                                <input type="hidden" id="cron_type" name="cron_type" value="${newsletter['cron_type']}" />
                                             </div>
                                         </div>
                                         <p class="help-block">Set the schedule for the newsletter</p>
@@ -385,13 +386,34 @@
 
     $('#newsletter-config-modal').unbind('hidden.bs.modal');
 
-    $('#cron-widget').cron({
-        initial: "${newsletter['cron']}",
-        classes: "form-control cron-select",
+    var cron_widget = $('#cron-widget').cron({
+        classes: 'form-control cron-select',
+        customValues: {
+            'custom crontab' : 'custom'
+        },
         onChange: function() {
-            $("#cron_value").val($(this).cron("value"));
+            var cron_type = $(this).find('select[name=cron-period]').val();
+            if(cron_type == 'custom') {
+                $('#cron_type').val(cron_type);
+                $("#cron_value").show();
+            } else {
+                $('#cron_type').val('widget');
+                $("#cron_value").hide().val($(this).cron('value'));
+            }
         }
-    }); // apply cron with default options
+    });
+
+    if ('${newsletter['cron_type']}' === 'custom') {
+        $('#cron-widget').find('select[name=cron-period]').val('custom');
+        $('#cron_type').val('${newsletter['cron_type']}');
+        $("#cron_value").val('${newsletter['cron']}').show();
+    } else {
+        $('#cron_type').val('${newsletter['cron_type']}');
+        $("#cron_value").hide();
+        cron_widget.cron('value', '${newsletter['cron']}');
+    }
+
+    // apply cron with default options
 
     var $incl_libraries = $('#newsletter_config_incl_libraries').selectize({
         plugins: ['remove_button'],

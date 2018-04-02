@@ -639,7 +639,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
         'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
-        'subject TEXT, body TEXT, cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
+        'subject TEXT, body TEXT, cron TEXT NOT NULL DEFAULT "0 0 * * 0", cron_type TEXT, active INTEGER DEFAULT 0)'
     )
 
     # newsletter_log table :: This is a table which logs newsletters sent

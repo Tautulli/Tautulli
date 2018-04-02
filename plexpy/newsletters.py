@@ -230,6 +230,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
               'subject': agent_class.subject,
               'body': agent_class.body,
               'cron': kwargs.get('cron'),
+              'cron_type': kwargs.get('cron_type'),
               'active': kwargs.get('active')
               }
 
