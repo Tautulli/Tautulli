@@ -415,7 +415,9 @@
     if (${newsletter['config']['custom_cron']}) {
         $('#cron_value').val('${newsletter['cron']}');
     } else {
-        cron_widget.cron('value', '${newsletter['cron']}');
+        try {
+            cron_widget.cron('value', '${newsletter['cron']}');
+        } catch (e) {}
     }
 
     function toggleCustomCron() {
