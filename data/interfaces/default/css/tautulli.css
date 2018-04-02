@@ -3678,16 +3678,26 @@ a:hover .overlay-refresh-image:hover {
     border: 1px solid #444;
     border-bottom-color: transparent;
 }
+#newsletter-config-modal #custom_cron {
+    display: inline-block;
+    width: initial;
+    height: 32px;
+    margin-right: 5px;
+    margin-top: 4px;
+}
 #newsletter-config-modal #cron-widget {
     display: inline-block;
+    margin-top: 1px;
 }
 #newsletter-config-modal #cron-widget select.cron-select {
     width: initial;
     display: inline;
+    height: 32px;
+    margin-top: 4px;
 }
 #newsletter-config-modal #cron-widget select.cron-select[name=cron-period] option[value=minute],
 #newsletter-config-modal #cron-widget select.cron-select[name=cron-period] option[value=hour] {
-    display: none;
+    display: none !important;
 }
 .git-group input.form-control {
     width: 50%;

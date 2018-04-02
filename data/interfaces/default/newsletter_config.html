@@ -1,7 +1,8 @@
 % if newsletter:
 <%!
     import json
-    from plexpy import helpers, notifiers
+    from plexpy import notifiers
+    from plexpy.helpers import anon_url, checked
 
     all_notifiers = sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id']))
     email_notifiers = [n for n in all_notifiers if n['agent_name'] == 'email']
@@ -31,20 +32,26 @@
                                 <div class="col-md-12">
                                     <div class="checkbox" style="margin-bottom: 20px;">
                                         <label>
-                                            <input type="checkbox" data-id="active_value" class="checkboxes" value="1" ${helpers.checked(newsletter['active'])}> Enable the newsletter
+                                            <input type="checkbox" data-id="active_value" class="checkboxes" value="1" ${checked(newsletter['active'])}> Enable the Newsletter
                                         </label>
                                         <input type="hidden" id="active_value" name="active" value="${newsletter['active']}">
                                     </div>
                                     <div class="form-group">
-                                        <label for="cron">Schedule</label>
+                                        <label for="custom_cron">Schedule</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <div id="cron-widget"></div>
+                                                <select class="form-control" id="custom_cron" name="newsletter_config_custom_cron">
+                                                    <option value="0" ${'selected' if newsletter['config']['custom_cron'] == 0 else ''}>Simple</option>
+                                                    <option value="1" ${'selected' if newsletter['config']['custom_cron'] == 1 else ''}>Custom</option>
+                                                </select>
                                                 <input type="text" id="cron_value" name="cron" value="${newsletter['cron']}" />
-                                                <input type="hidden" id="custom_cron" name="newsletter_config_custom_cron" value="${newsletter['config']['custom_cron']}" />
+                                                <div id="cron-widget"></div>
                                             </div>
                                         </div>
-                                        <p class="help-block">Set the schedule for the newsletter</p>
+                                        <p class="help-block">
+                                            <span id="simple_cron_message">Set the schedule for the newsletter.</span>
+                                            <span id="custom_cron_message">Set the schedule for the newsletter using a custom crontab. Only <a href="${anon_url('https://crontab.guru/')}" target="_blank">standard cron values</a> are valid.</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
@@ -89,7 +96,7 @@
                                     % elif item['input_type'] == 'checkbox':
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
+                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
                                         </label>
                                         <p class="help-block">${item['description'] | n}</p>
                                         <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
@@ -160,7 +167,7 @@
                                 <div class="col-md-12">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${helpers.checked(newsletter['config']['formatted'])}> Send newsletter as a HTML formatted Email
+                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send newsletter as a HTML formatted Email
                                         </label>
                                         <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
                                         <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
@@ -249,7 +256,7 @@
                                     % elif item['input_type'] == 'checkbox' and item['name'] != 'newsletter_email_html_support':
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
+                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
                                         </label>
                                         <p class="help-block">${item['description'] | n}</p>
                                         <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
@@ -398,30 +405,37 @@
     $('#newsletter-config-modal').unbind('hidden.bs.modal');
 
     var cron_widget = $('#cron-widget').cron({
+        initial: '0 0 * * 0',
         classes: 'form-control cron-select',
-        customValues: {
-            'custom crontab' : 'custom'
-        },
         onChange: function() {
-            var cron_period = $(this).find('select[name=cron-period]').val();
-            $('#custom_cron').val(cron_period === 'custom' ? 1 : 0);
-            if(cron_period === 'custom') {
-                $("#cron_value").show();
-            } else {
-                $("#cron_value").hide().val($(this).cron('value'));
-            }
+            $("#cron_value").val($(this).cron('value'));
         }
     });
 
     if (${newsletter['config']['custom_cron']}) {
-        $('#cron-widget').find('select[name=cron-period]').val('custom');
-        $('#cron_value').val('${newsletter['cron']}').show();
+        $('#cron_value').val('${newsletter['cron']}');
     } else {
-        $('#cron_value').hide();
         cron_widget.cron('value', '${newsletter['cron']}');
     }
 
-    // apply cron with default options
+    function toggleCustomCron() {
+       if ($('#custom_cron').val() === '1'){
+           $('#cron-widget').hide();
+           $('#cron_value').show();
+           $('#simple_cron_message').hide();
+           $('#custom_cron_message').show();
+       } else {
+           $('#cron-widget').show();
+           $('#cron_value').hide();
+           $('#simple_cron_message').show();
+           $('#custom_cron_message').hide();
+       }
+    }
+    toggleCustomCron();
+
+    $('#custom_cron').change(function () {
+        toggleCustomCron();
+    });
 
     var $incl_libraries = $('#newsletter_config_incl_libraries').selectize({
         plugins: ['remove_button'],
