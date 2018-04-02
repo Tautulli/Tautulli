@@ -27,6 +27,8 @@ from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 from mako import exceptions
 
+import websocket
+
 import plexpy
 import activity_pinger
 import common
@@ -173,6 +175,7 @@ class WebInterface(object):
             "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
+            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
@@ -2730,6 +2733,7 @@ class WebInterface(object):
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
+            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
@@ -3556,7 +3560,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
-                      get_url=False, **kwargs):
+                      get_url=False, test_websocket=False, **kwargs):
         """ Get the PMS server identifier.
 
             ```
@@ -3612,6 +3616,23 @@ class WebInterface(object):
                                                    pms_url_manual=manual,
                                                    pms_identifier=identifier)
                 result['url'] = server['pms_url']
+                result['ws'] = None
+
+                if test_websocket == 'true':
+                    # Quick test websocket connection
+                    ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
+                    header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
+
+                    logger.debug("Testing websocket connection...")
+                    try:
+                        test_ws = websocket.create_connection(ws_url, header=header)
+                        test_ws.close()
+                        logger.debug("Websocket connection test successful.")
+                        result['ws'] = True
+                    except (websocket.WebSocketException, IOError, Exception) as e:
+                        logger.error("Websocket connection test failed: %s" % e)
+                        result['ws'] = False
+
             return result
         else:
             logger.warn('Unable to retrieve the PMS identifier.')
@@ -3790,6 +3811,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def info(self, rating_key=None, source=None, query=None, **kwargs):
+        if rating_key and not str(rating_key).isdigit():
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
         metadata = None
 
         config = {

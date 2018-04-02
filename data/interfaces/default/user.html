@@ -413,7 +413,7 @@ DOCUMENTATION :: END
         // Build watch history table
         history_table_options.ajax = {
             url: 'get_history',
-            type: 'post',
+            type: 'POST',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
@@ -442,7 +442,8 @@ DOCUMENTATION :: END
     function loadSyncTable() {
         // Build user sync table
         sync_table_options.ajax = {
-             url: 'get_sync?user_id=' + user_id
+             url: 'get_sync?user_id=' + user_id,
+            type: 'POST'
         };
         sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
         sync_table.column(2).visible(false);
@@ -457,7 +458,7 @@ DOCUMENTATION :: END
         // Build user IP table
         user_ip_table_options.ajax = {
             url: 'get_user_ips',
-            type: 'post',
+            type: 'POST',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
@@ -474,6 +475,7 @@ DOCUMENTATION :: END
         // Build user login table
         login_log_table_options.ajax = {
             url: 'get_user_logins',
+            type: 'POST',
             data: function(d) {
                 return {
                     json_data: JSON.stringify(d),

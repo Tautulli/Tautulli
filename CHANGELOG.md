@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.0.28 (2018-04-02)
+
+* Monitoring:
+  * Fix: Homepage activity header text.
+
+
+## v2.0.27 (2018-04-02)
+
+* Monitoring:
+  * Change: Move activity refresh interval setting to the settings page.
+
+
+## v2.0.26-beta (2018-03-30)
+
+* Monitoring:
+  * New: Setting to change the refresh interval on the homepage.
+  * Fix: Identify extras correctly on the activity cards.
+* Notifications:
+  * Change: Send Telegram image and text separately if the caption is longer than 200 characters.
+* UI:
+  * Fix: Error when clicking on synced playlist links.
+
+
 ## v2.0.25 (2018-03-22)
 
 * Monitoring:

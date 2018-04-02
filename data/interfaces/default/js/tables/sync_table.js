@@ -37,7 +37,6 @@ sync_table_options = {
             "data": "state",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 'pending') {
-                    $(td).addClass('currentlyWatching');
                     $(td).html('Pending...');
                 } else {
                     $(td).html(cellData.toProperCase());
@@ -66,7 +65,7 @@ sync_table_options = {
             "data": "sync_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['metadata_type'] !== '') {
+                    if (rowData['rating_key']) {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     } else {
                         $(td).html(cellData);
@@ -74,7 +73,7 @@ sync_table_options = {
                 }
             },
             "className": "datatable-wrap"
-},
+        },
         {
             "targets": [4],
             "data": "metadata_type",
@@ -150,6 +149,11 @@ sync_table_options = {
     "preDrawCallback": function (settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
         showMsg(msg, false, false, 0)
+    },
+    "rowCallback": function (row, rowData, rowIndex) {
+        if (rowData['state'] === 'pending') {
+            $(row).addClass('current-activity-row');
+        }
     }
 };
 

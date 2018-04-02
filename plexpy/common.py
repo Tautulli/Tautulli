@@ -175,6 +175,16 @@ HW_ENCODERS = [
     'nvenc'
 ]
 
+EXTRA_TYPES = {
+    '1': 'Trailer',
+    '2': 'Deleted Scene',
+    '3': 'Interview',
+    '5': 'Behind the Scenes',
+    '6': 'Scene',
+    '10': 'Featurette',
+    '11': 'Short'
+}
+
 SCHEDULER_LIST = [
     'Check GitHub for updates',
     'Check for server response',

@@ -507,17 +507,15 @@
 
                         $('#location-' + key).html(s.location.toUpperCase());
 
-                        if (s.media_type !== 'photo' && parseInt(s.bandwidth)) {
-                            var bw = parseInt(s.bandwidth);
-                            if (bw !== "Unknown") {
-                                if (bw > 1000) {
-                                    bw = (bw / 1000).toFixed(1) + ' Mbps';
-                                } else {
-                                    bw = bw + ' kbps'
-                                }
+                        if (s.media_type !== 'photo' && s.bandwidth !== 'Unknown') {
+                            var bw = parseInt(s.bandwidth) || 0;
+                            if (bw > 1000) {
+                                bw = (bw / 1000).toFixed(1) + ' Mbps';
+                            } else {
+                                bw = bw + ' kbps'
                             }
                             $('#stream-bandwidth-' + key).html(bw);
-                        }
+                        };
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
@@ -589,7 +587,7 @@
         if (!(create_instances.length) && activity_ready) {
             getCurrentActivity();
         }
-    }, 2000);
+    }, ${config['home_refresh_interval'] * 1000});
 
     setInterval(function(){
         $('.progress_time_offset').each(function () {
@@ -604,7 +602,7 @@
             if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                 var view_offset = parseInt($(this).data('view_offset'));
                 var stream_duration = parseInt($(this).data('stream_duration'));
-                var progress_percent = Math.min(Math.trunc(view_offset / stream_duration * 100), 100)
+                var progress_percent = Math.min(Math.trunc(view_offset / stream_duration * 100), 100);
                 $(this).width(progress_percent - 3 + '%').html(progress_percent + '%')
                     .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
                     .data('view_offset', Math.min(view_offset + 1000, stream_duration));

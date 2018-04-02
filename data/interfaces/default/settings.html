@@ -270,6 +270,21 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-homepage">
 
                         <div class="padded-header">
+                            <h3>Activity</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="home_refresh_interval">Activty Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_refresh_interval" name="home_refresh_interval" value="${config['home_refresh_interval']}" size="5" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#home_refresh_interval_error" required>
+                                </div>
+                                <div id="home_refresh_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the interval (in seconds) to refresh the current activity on the homepage. Minimum 2.</p>
+                        </div>
+
+                        <div class="padded-header">
                             <h3>Sections</h3>
                         </div>
 
@@ -680,12 +695,7 @@
                             <label for="pms_url">Plex Server URL</label>
                             <div class="row">
                                 <div class="col-md-9">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_url" name="pms_url" value="${config['pms_url']}" size="30" readonly>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="test_pms_url_button">Test URL</button>
-                                        </span>
-                                    </div>
+                                    <input type="text" class="form-control" id="pms_url" name="pms_url" value="${config['pms_url']}" size="30" readonly>
                                 </div>
                             </div>
                             <p class="help-block">
@@ -2031,6 +2041,9 @@ $(document).ready(function() {
             $('#pms_url_manual').prop('checked', false);
             $('#pms_url').val('Please verify your server above to retrieve the URL');
             PMSCloudCheck();
+        },
+        onDropdownOpen: function() {
+            this.clear();
         }
     });
     var select_pms = $select_pms[0].selectize;
@@ -2104,11 +2117,11 @@ $(document).ready(function() {
                 data: {
                     hostname: pms_ip,
                     port: pms_port,
-                    identifier: pms_identifier,
                     ssl: pms_ssl,
                     remote: pms_is_remote,
                     manual: pms_url_manual,
-                    get_url: serverChanged
+                    get_url: true,
+                    test_websocket: true
                 },
                 cache: true,
                 async: true,
@@ -2121,15 +2134,23 @@ $(document).ready(function() {
                     var result = xhr;
                     var identifier = result.identifier;
                     var url = result.url;
+                    var ws = result.ws;
                     if (identifier) {
                         $("#pms_identifier").val(identifier);
+
                         if (url) {
                             $("#pms_url").val(url);
                         }
-                        $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-                        $("#pms_ip_group").removeClass("has-error");
 
-                        serverChanged = false;
+                        if (ws === false) {
+                            $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+                            $("#pms_ip_group").addClass("has-error");
+                            showMsg('<i class="fa fa-exclamation-circle"></i> Server found but unable to connect websocket.<br>Check the <a href="logs">logs</a> for errors.', false, true, 5000, true)
+                        } else {
+                            $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
+                            $("#pms_ip_group").removeClass("has-error");
+                            serverChanged = false;
+                        }
 
                         if (_callback) {
                             _callback();
@@ -2156,13 +2177,6 @@ $(document).ready(function() {
         var pms_web_url = $.trim($("#pms_web_url").val());
         $("#pms_web_url").val(pms_web_url || 'https://app.plex.tv/desktop');
     }
-
-    $('#test_pms_url_button').on('click', function(){
-        var pms_url = $.trim($("#pms_url").val());
-        if (pms_url.startsWith('http')) {
-            window.open(pms_url + '/web', '_blank');
-        }
-    });
 
     $('#test_pms_web_button').on('click', function(){
         var pms_web_url = $.trim($("#pms_web_url").val());

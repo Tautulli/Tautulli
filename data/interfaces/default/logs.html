@@ -251,8 +251,8 @@
         var selected_log_level = null;
         function loadtautullilogs(logfile, selected_log_level) {
             log_table_options.ajax = {
-                url: "get_log",
-                type: 'post',
+                url: 'get_log',
+                type: 'POST',
                 data: function (d) {
                     return {
                         logfile: logfile,
@@ -271,7 +271,8 @@
 
         function loadPlexLogs() {
             plex_log_table_options.ajax = {
-                url: "get_plex_log?log_type=server"
+                url: 'get_plex_log?log_type=server',
+                type: 'POST'
             };
             plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
@@ -279,7 +280,8 @@
 
         function loadPlexScannerLogs() {
             plex_log_table_options.ajax = {
-                url: "get_plex_log?log_type=scanner"
+                url: 'get_plex_log?log_type=scanner',
+                type: 'POST'
             };
             plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_scanner_log_table = $('#plex_scanner_log_table').DataTable(plex_log_table_options);
@@ -287,7 +289,8 @@
 
         function loadNotificationLogs() {
             notification_log_table_options.ajax = {
-                url: "get_notification_log",
+                url: 'get_notification_log',
+                type: 'POST',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d)
@@ -312,7 +315,8 @@
         function loadLoginLogs() {
             login_log_table_options.pageLength = 50;
             login_log_table_options.ajax = {
-                url: "get_user_logins",
+                url: 'get_user_logins',
+                type: 'POST',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d)

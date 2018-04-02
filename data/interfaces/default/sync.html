@@ -100,7 +100,7 @@
         // Load user ids and names (for the selector)
         $.ajax({
             url: 'get_user_names',
-            type: 'get',
+            type: 'GET',
             dataType: 'json',
             success: function (data) {
                 var select = $('#sync-user');
@@ -116,7 +116,8 @@
 
         function loadSyncTable(selected_user_id) {
             sync_table_options.ajax = {
-                url: 'get_sync?user_id=' + selected_user_id
+                url: 'get_sync?user_id=' + selected_user_id,
+                type: 'POST'
             };
             sync_table = $('#sync_table').DataTable(sync_table_options);
             var colvis = new $.fn.dataTable.ColVis(sync_table, {
