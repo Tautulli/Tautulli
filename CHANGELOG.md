@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.28 (2018-04-02)
+
+* Monitoring:
+  * Fix: Homepage activity header text.
+
+
 ## v2.0.27 (2018-04-02)
 
 * Monitoring:
