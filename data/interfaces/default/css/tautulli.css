@@ -294,10 +294,6 @@ object {
     font-weight: bold;
     text-transform: uppercase;
 }
-.padded-header h3 small {
-    font-size: 13px;
-    text-transform: none;
-}
 .btn {
     outline:0px !important;
 }
@@ -2376,6 +2372,10 @@ a .library-user-instance-box:hover {
 .home-padded-header h3 {
     margin-top: 9px;
     width: 175px;
+}
+.home-padded-header h3 small {
+    font-size: 13px;
+    text-transform: none;
 }
 .home-padded-header .button-bar {
     float: left;
