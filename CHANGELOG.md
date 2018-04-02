@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.27 (2018-04-02)
+
+* Monitoring:
+  * Change: Move activity refresh interval setting to the settings page.
+
+
 ## v2.0.26-beta (2018-03-30)
 
 * Monitoring:
