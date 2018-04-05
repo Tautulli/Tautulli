@@ -167,7 +167,7 @@
                                 <div class="col-md-12">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send newsletter as a HTML formatted Email
+                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send newsletter as an HTML formatted Email
                                         </label>
                                         <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
                                         <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
@@ -190,7 +190,10 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <p class="help-block">Select an existing Email notification agent or enter a new configuration below.</p>
+                                        <p class="help-block">
+                                            Select an existing Email notification agent or enter a new configuration below.<br>
+                                            Note: Make sure HTML support is enabled for the Email notification agent.
+                                        </p>
                                     </div>
                                     <div class="form-group" id="other_notifier_select">
                                         <label for="newsletter_config_notifier_id">Notification Agent</label>
