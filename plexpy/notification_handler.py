@@ -1119,6 +1119,9 @@ def get_imgur_info(img=None, rating_key=None, title='', width=600, height=1000,
 
 def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,
                         opacity=100, background='000000', blur=0, fallback=None):
+    if not rating_key and not img:
+        return fallback
+
     if rating_key and not img:
         if fallback == 'art':
             img = '/library/metadata/{}/art'.format(rating_key)

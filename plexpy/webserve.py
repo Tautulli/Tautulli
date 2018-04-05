@@ -4021,6 +4021,18 @@ class WebInterface(object):
     def image(self, *args, **kwargs):
         if args:
             img_hash = args[0]
+
+            if img_hash in ('poster', 'cover', 'art'):
+                if img_hash == 'poster':
+                    fbi = common.DEFAULT_POSTER_THUMB
+                elif img_hash == 'cover':
+                    fbi = common.DEFAULT_COVER_THUMB
+                elif img_hash == 'art':
+                    fbi = common.DEFAULT_ART
+
+                fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                return serve_file(path=fp, content_type='image/png')
+
             img_info = notification_handler.get_hash_image_info(img_hash=img_hash)
 
             if img_info:

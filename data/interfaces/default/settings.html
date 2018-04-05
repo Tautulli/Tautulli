@@ -952,7 +952,7 @@
                             <label>
                                 <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
                             </label>
-                            <p class="help-block">Enable to host newsletters on your own domain. </p>
+                            <p class="help-block">Enable to host newsletters on your own domain. This will generate a link to an HTML page where you can view the newsletter.</p>
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
                             <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.</p>

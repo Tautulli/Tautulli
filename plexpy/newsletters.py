@@ -698,9 +698,12 @@ class RecentlyAdded(Newsletter):
                 item['thumb_hash'] = set_hash_image_info(
                     img=item['thumb'], width=150, height=225, fallback='poster')
 
-                item['art_hash'] = set_hash_image_info(
-                    img=item['art'], width=500, height=280,
-                    opacity=25, background='282828', blur=3, fallback='art')
+                if item['art']:
+                    item['art_hash'] = set_hash_image_info(
+                        img=item['art'], width=500, height=280,
+                        opacity=25, background='282828', blur=3, fallback='art')
+                else:
+                    item['art_hash'] = ''
 
                 item['poster_url'] = ''
                 item['art_url'] = ''
