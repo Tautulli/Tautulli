@@ -540,3 +540,8 @@ class ActivityProcessor(object):
             session = self.get_session_by_key(session_key=session_key)
             self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
                            [session['write_attempts'] + 1, session_key])
+
+    def set_watched(self, session_key=None):
+        self.db.action('UPDATE sessions SET watched = ?'
+                       'WHERE session_key = ?',
+                       [1, session_key])

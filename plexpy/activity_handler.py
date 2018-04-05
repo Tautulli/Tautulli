@@ -271,7 +271,7 @@ class ActivityHandler(object):
 
                 # Monitor if the stream has reached the watch percentage for notifications
                 # The only purpose of this is for notifications
-                if this_state != 'buffering':
+                if not db_session['watched'] and this_state != 'buffering':
                     progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
                     watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
                                        'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
@@ -280,12 +280,12 @@ class ActivityHandler(object):
                                        }
 
                     if progress_percent >= watched_percent.get(db_session['media_type'], 101):
+                        logger.debug(u"Tautulli ActivityHandler :: Session %s watched."
+                                     % str(self.get_session_key()))
+                        ap.set_watched(session_key=self.get_session_key())
+
                         watched_notifiers = notification_handler.get_notify_state_enabled(
                             session=db_session, notify_action='on_watched', notified=False)
-
-                        if watched_notifiers:
-                            logger.debug(u"Tautulli ActivityHandler :: Session %s watched."
-                                         % str(self.get_session_key()))
 
                         for d in watched_notifiers:
                             plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(),

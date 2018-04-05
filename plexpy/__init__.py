@@ -529,8 +529,8 @@ def dbcheck():
         'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
-        'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0, '
-        'raw_stream_info TEXT)'
+        'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
+        'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -1036,6 +1036,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN transcode_hw_encoding INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT watched FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0'
         )
 
     # Upgrade session_history table from earlier versions
