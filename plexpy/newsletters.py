@@ -721,7 +721,7 @@ class RecentlyAdded(Newsletter):
                     img=item['art'], rating_key=item['rating_key'], title=item['title'],
                     width=500, height=280, opacity=25, background='282828', blur=3, fallback='art')
 
-                item['art_url'] = imgur_info.get('imgur_url') or common.ONLINE_ART
+                item['art_url'] = imgur_info.get('imgur_url')
 
                 item['thumb_hash'] = ''
                 item['art_hash'] = ''
