@@ -2316,8 +2316,8 @@ class WebInterface(object):
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    l = '&nbsp;' * (2 * n) + l[n:]
-                    filt[tl][2] += '<br>' + l
+                    ll = '&nbsp;' * (2 * n) + unicode(l[n:], 'utf-8')
+                    filt[tl][2] += '<br>' + ll
                     continue
 
         log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
