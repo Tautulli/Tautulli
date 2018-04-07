@@ -146,7 +146,7 @@
                                     % for action in available_notification_actions:
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${helpers.checked(notifier['actions'][action['name']])}> Notify on ${action['label']}
+                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${helpers.checked(notifier['actions'][action['name']])}> ${action['label']}
                                         </label>
                                         <p class="help-block">${action['description'] | n}</p>
                                         <input type="hidden" id="${action['name']}" name="${action['name']}" value="${notifier['actions'][action['name']]}">
