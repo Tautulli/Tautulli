@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.1.0-beta (2018-04-07)
+
+* Newsletters:
+  * New: A completely new scheduled newsletter system.
+    * Beautiful HTML formatted newsletter for recently added movies, TV shows, or music.
+    * Send newsletters on a daily, weekly, or monthly schedule to your users.
+    * Customize the number of days of recently added content and the libraries to include on the newsletter.
+    * Add a custom message to be included on the newsletter.
+    * Option to either send an HTML formatted email, or a link to a self-hosted newsletter on your own domain to any notification agent.
+* Notifications:
+  * New: Ability to use self-hosted images on your own domain instead of using Imgur.
+
+
 ## v2.0.28 (2018-04-02)
 
 * Monitoring:
