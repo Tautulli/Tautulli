@@ -489,7 +489,7 @@
     });
 
     function toggleNewEmailConfig () {
-        if ($('#newsletter_email_notifier_id').val() === '0') {
+        if ($('#newsletter_config_formatted_checkbox').is(':checked') && $('#newsletter_email_notifier_id').val() === '0') {
             $('#newsletter-email-config').show();
         } else {
             $('#newsletter-email-config').hide();
