@@ -2310,13 +2310,13 @@ class WebInterface(object):
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
                     loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = unicode(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8')
+                    msg = helpers.sanitize(unicode(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8'))
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    ll = '&nbsp;' * (2 * n) + unicode(l[n:], 'utf-8')
+                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(unicode(l[n:], 'utf-8'))
                     filt[tl][2] += '<br>' + ll
                     continue
 

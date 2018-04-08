@@ -2933,6 +2933,8 @@ class SCRIPTS(Notifier):
                             '.sh': ''
                             }
 
+        self.arg_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
+
     def list_scripts(self):
         scriptdir = self.config['script_folder']
         scripts = {'': ''}
@@ -2994,12 +2996,12 @@ class SCRIPTS(Notifier):
             return False
 
         if error:
-            err = '\n  '.join([helpers.sanitize(l) for l in error.splitlines()])
+            err = '\n  '.join([l for l in error.splitlines()])
             logger.error(u"Tautulli Notifiers :: Script error: \n  %s" % err)
             return False
 
         if output:
-            out = '\n  '.join([helpers.sanitize(l) for l in output.splitlines()])
+            out = '\n  '.join([l for l in output.splitlines()])
             logger.debug(u"Tautulli Notifiers :: Script returned: \n  %s" % out)
 
         if not self.script_killed:
@@ -3055,7 +3057,7 @@ class SCRIPTS(Notifier):
 
         # Allow overrides for shitty systems
         if prefix and script_args:
-            if script_args[0] in ('python2', 'python', 'pythonw', 'php', 'ruby', 'perl'):
+            if script_args[0] in self.arg_overrides:
                 script[0] = script_args[0]
                 del script_args[0]
 
