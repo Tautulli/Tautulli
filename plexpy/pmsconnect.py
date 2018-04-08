@@ -1454,6 +1454,8 @@ class PmsConnect(object):
 
         # Get the transcode details
         if session.getElementsByTagName('TranscodeSession'):
+            transcode_session = True
+
             transcode_info = session.getElementsByTagName('TranscodeSession')[0]
 
             transcode_progress = helpers.get_xml_attr(transcode_info, 'progress')
@@ -1482,6 +1484,8 @@ class PmsConnect(object):
                                  'throttled': '1' if helpers.get_xml_attr(transcode_info, 'throttled') == '1' else '0'  # Keep for backwards compatibility
                                  }
         else:
+            transcode_session = False
+
             transcode_details = {'transcode_key': '',
                                  'transcode_throttled': 0,
                                  'transcode_progress': 0,
@@ -1795,7 +1799,7 @@ class PmsConnect(object):
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
 
         # Overrides for live sessions
-        if metadata_details.get('live') and transcode_decision == 'transcode':
+        if metadata_details.get('live') and transcode_session:
             stream_details['stream_container_decision'] = 'transcode'
             stream_details['stream_container'] = transcode_details['transcode_container']
 
