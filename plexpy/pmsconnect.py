@@ -1626,7 +1626,9 @@ class PmsConnect(object):
                                 }
 
         # Generate a combined transcode decision value
-        if video_details['stream_video_decision'] == 'transcode' or audio_details['stream_audio_decision'] == 'transcode':
+        if video_details['stream_video_decision'] == 'transcode' or \
+                audio_details['stream_audio_decision'] == 'transcode' or \
+                or transcode_session:
             transcode_decision = 'transcode'
         elif video_details['stream_video_decision'] == 'copy' or audio_details['stream_audio_decision'] == 'copy':
             transcode_decision = 'copy'
