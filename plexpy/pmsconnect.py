@@ -1625,16 +1625,6 @@ class PmsConnect(object):
                                 'stream_subtitle_decision': ''
                                 }
 
-        # Generate a combined transcode decision value
-        if video_details['stream_video_decision'] == 'transcode' or \
-                audio_details['stream_audio_decision'] == 'transcode' or \
-                or transcode_session:
-            transcode_decision = 'transcode'
-        elif video_details['stream_video_decision'] == 'copy' or audio_details['stream_audio_decision'] == 'copy':
-            transcode_decision = 'copy'
-        else:
-            transcode_decision = 'direct play'
-
         # Get the bif thumbnail
         indexes = helpers.get_xml_attr(stream_media_parts_info, 'indexes')
         view_offset = helpers.get_xml_attr(session, 'viewOffset')
@@ -1665,7 +1655,6 @@ class PmsConnect(object):
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
                           'stream_container_decision': 'direct play' if sync_id else helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
-                          'transcode_decision': transcode_decision,
                           'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
                           'synced_version': 1 if sync_id else 0,
@@ -1814,6 +1803,16 @@ class PmsConnect(object):
             stream_details['stream_audio_channels'] = transcode_details['transcode_audio_channels']
             stream_details['stream_audio_channel_layout'] = common.AUDIO_CHANNELS.get(
                 transcode_details['transcode_audio_channels'], transcode_details['transcode_audio_channels'])
+
+        # Generate a combined transcode decision value
+        if video_details['stream_video_decision'] == 'transcode' or audio_details['stream_audio_decision'] == 'transcode':
+            transcode_decision = 'transcode'
+        elif video_details['stream_video_decision'] == 'copy' or audio_details['stream_audio_decision'] == 'copy':
+            transcode_decision = 'copy'
+        else:
+            transcode_decision = 'direct play'
+
+        stream_details['transcode_decision'] = transcode_decision
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
