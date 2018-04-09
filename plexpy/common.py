@@ -519,7 +519,7 @@ NEWSLETTER_PARAMETERS = [
         'parameters': [
             {'name': 'Server Name', 'type': 'str', 'value': 'server_name', 'description': 'The name of your Plex Server.'},
             {'name': 'Start Date', 'type': 'str', 'value': 'start_date', 'description': 'The start date of the newesletter.'},
-            {'name': 'Week Number', 'type': 'int', 'value': 'newsletter_week_number', 'description': 'The week number of current week.'},
+            {'name': 'Week Number', 'type': 'int', 'value': 'week_number', 'description': 'The week number of current week.'},
             {'name': 'End Date', 'type': 'str', 'value': 'end_date', 'description': 'The end date of the newesletter.'},
             {'name': 'Newsletter Days', 'type': 'int', 'value': 'newsletter_days', 'description': 'The past number of days included in the newsletter.'},
             {'name': 'Newsletter URL', 'type': 'str', 'value': 'newsletter_url', 'description': 'The self-hosted URL to the newsletter.'},
