@@ -26,6 +26,7 @@ import re
 from string import Formatter
 import threading
 import time
+from datetime import date
 
 import plexpy
 import activity_processor
@@ -702,6 +703,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
         'tautulli_commit': plexpy.CURRENT_VERSION,
+        'week_number': int(datetime.date.today().strftime("%W")),
         'server_name': plexpy.CONFIG.PMS_NAME,
         'server_ip': plexpy.CONFIG.PMS_IP,
         'server_port': plexpy.CONFIG.PMS_PORT,

@@ -19,7 +19,7 @@ from itertools import groupby
 from mako.lookup import TemplateLookup
 from mako import exceptions
 import os
-
+import datetime
 import plexpy
 import common
 import database
@@ -308,13 +308,14 @@ class Newsletter(object):
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None,
+    def __init__(self, config=None, email_config=None, start_date=None, week_number=None, end_date=None,
                  subject=None, body=None, message=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
         self.uuid = generate_newsletter_uuid()
 
         self.start_date = None
+        self.week_number = None
         self.end_date = None
 
         if end_date:
@@ -331,6 +332,9 @@ class Newsletter(object):
                 self.start_date = arrow.get(start_date, 'YYYY-MM-DD', tzinfo='local').floor('day')
             except ValueError:
                 pass
+
+        if week_number is None:
+            self.week_number = int(datetime.date.today().strftime("%W"))
 
         if self.start_date is None:
             self.start_date = self.end_date.shift(days=-self.config['last_days']+1).floor('day')
@@ -477,6 +481,7 @@ class Newsletter(object):
             'server_name': plexpy.CONFIG.PMS_NAME,
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
+            'week_number': self.week_number,
             'newsletter_days': self.config['last_days'],
             'newsletter_url': base_url.rstrip('/') + plexpy.HTTP_ROOT + 'newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
