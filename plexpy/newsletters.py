@@ -308,7 +308,7 @@ class Newsletter(object):
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None, start_date=None, week_number=None, end_date=None,
+    def __init__(self, config=None, email_config=None, start_date=None, end_date=None,
                  subject=None, body=None, message=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
@@ -332,9 +332,6 @@ class Newsletter(object):
                 self.start_date = arrow.get(start_date, 'YYYY-MM-DD', tzinfo='local').floor('day')
             except ValueError:
                 pass
-
-        if week_number is None:
-            self.week_number = int(datetime.date.today().strftime("%W"))
 
         if self.start_date is None:
             self.start_date = self.end_date.shift(days=-self.config['last_days']+1).floor('day')

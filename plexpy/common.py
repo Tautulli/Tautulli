@@ -304,6 +304,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Server Version', 'type': 'str', 'value': 'server_version', 'description': 'The current version of your Plex Server.'},
              {'name': 'Server ID', 'type': 'str', 'value': 'server_machine_id', 'description': 'The unique identifier for your Plex Server.'},
              {'name': 'Action', 'type': 'str', 'value': 'action', 'description': 'The action that triggered the notification.'},
+             {'name': 'Week Number', 'type': 'int', 'value': 'week_number', 'description': 'The week number when the notfication was triggered.'},
              {'name': 'Datestamp', 'type': 'str', 'value': 'datestamp', 'description': 'The date (in date format) when the notification was triggered.'},
              {'name': 'Timestamp', 'type': 'str', 'value': 'timestamp', 'description': 'The time (in time format) when the notification was triggered.'},
              {'name': 'Unix Time', 'type': 'int', 'value': 'unixtime', 'description': 'The unix timestamp when the notification was triggered.'},
