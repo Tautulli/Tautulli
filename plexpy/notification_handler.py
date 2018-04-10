@@ -26,7 +26,6 @@ import re
 from string import Formatter
 import threading
 import time
-from datetime import date
 
 import plexpy
 import activity_processor

@@ -19,7 +19,7 @@ from itertools import groupby
 from mako.lookup import TemplateLookup
 from mako import exceptions
 import os
-import datetime
+
 import plexpy
 import common
 import database
