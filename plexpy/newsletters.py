@@ -416,6 +416,10 @@ class Newsletter(object):
     def send(self):
         self.newsletter = self.generate_newsletter()
 
+        if not self._has_data():
+            logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
+            return False
+
         self._save()
         return self._send()
 
@@ -442,10 +446,6 @@ class Newsletter(object):
                          % (self.NAME, newsletter_file, e))
 
     def _send(self):
-        if not self._has_data():
-            logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
-            return False
-
         if self.config['formatted']:
             if self.email_config['notifier_id']:
                 return send_notification(
