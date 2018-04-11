@@ -648,7 +648,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
         'subject_text TEXT, body_text TEXT, message_text TEXT, start_date TEXT, end_date TEXT, '
-        'uuid TEXT UNIQUE, success INTEGER DEFAULT 0)'
+        'start_time INTEGER, end_time INTEGER, uuid TEXT UNIQUE, success INTEGER DEFAULT 0)'
     )
 
     # recently_added table :: This table keeps record of recently added items
@@ -1475,6 +1475,18 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE notify_log SET success = 1'
+        )
+
+    # Upgrade newsletter_log table from earlier versions
+    try:
+        c_db.execute('SELECT start_time FROM newsletter_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table newsletter_log.")
+        c_db.execute(
+            'ALTER TABLE newsletter_log ADD COLUMN start_time INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE newsletter_log ADD COLUMN end_time INTEGER'
         )
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)

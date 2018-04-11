@@ -102,6 +102,8 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
                                          message=newsletter_agent.message_formatted,
                                          start_date=newsletter_agent.start_date.format('YYYY-MM-DD'),
                                          end_date=newsletter_agent.end_date.format('YYYY-MM-DD'),
+                                         start_time=newsletter_agent.start_time,
+                                         end_time=newsletter_agent.end_time,
                                          newsletter_uuid=newsletter_agent.uuid)
 
     # Send the notification
@@ -112,7 +114,8 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         return True
 
 
-def set_notify_state(newsletter, notify_action, subject, body, message, start_date, end_date, newsletter_uuid):
+def set_notify_state(newsletter, notify_action, subject, body, message,
+                     start_date, end_date, start_time, end_time, newsletter_uuid):
 
     if newsletter and notify_action:
         db = database.MonitorDatabase()
@@ -128,7 +131,9 @@ def set_notify_state(newsletter, notify_action, subject, body, message, start_da
                   'body_text': body,
                   'message_text': message,
                   'start_date': start_date,
-                  'end_date': end_date}
+                  'end_date': end_date,
+                  'start_time': start_time,
+                  'end_time': end_time}
 
         db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
         return db.last_insert_id()
