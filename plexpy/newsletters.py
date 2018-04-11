@@ -296,7 +296,8 @@ def generate_newsletter_uuid():
 class Newsletter(object):
     NAME = ''
     _DEFAULT_CONFIG = {'custom_cron': 0,
-                       'last_days': 7,
+                       'time_frame': 7,
+                       'time_frame_units': 'days',
                        'formatted': 1,
                        'notifier_id': 0}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
@@ -324,7 +325,7 @@ class Newsletter(object):
                 pass
 
         if self.end_date is None:
-            self.end_date = arrow.now().ceil('day')
+            self.end_date = arrow.now()
 
         if start_date:
             try:
@@ -333,7 +334,10 @@ class Newsletter(object):
                 pass
 
         if self.start_date is None:
-            self.start_date = self.end_date.shift(days=-self.config['last_days']+1).floor('day')
+            if self.config['time_frame_units'] == 'days':
+                self.start_date = self.end_date.shift(days=-self.config['time_frame']+1).floor('day')
+            else:
+                self.start_date = self.end_date.shift(hours=-self.config['time_frame']).floor('hour')
 
         self.end_time = self.end_date.timestamp
         self.start_time = self.start_date.timestamp
@@ -478,7 +482,8 @@ class Newsletter(object):
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'week_number': self.start_date.isocalendar()[1],
-            'newsletter_days': self.config['last_days'],
+            'newsletter_time_frame': self.config['time_frame'],
+            'newsletter_time_frame_units': self.config['time_frame_units'],
             'newsletter_url': base_url.rstrip('/') + plexpy.HTTP_ROOT + 'newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
         }
@@ -528,14 +533,7 @@ class Newsletter(object):
         return self._return_config_options()
 
     def _return_config_options(self):
-        config_options = [
-            {'label': 'Number of Days',
-             'value': self.config['last_days'],
-             'name': 'newsletter_config_last_days',
-             'description': 'The past number of days to include in the newsletter.',
-             'input_type': 'number'
-             }
-        ]
+        config_options = []
 
         return config_options
 

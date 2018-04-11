@@ -4046,6 +4046,19 @@ a:hover .overlay-refresh-image:hover {
     -webkit-appearance: none;
     margin: 0;
 }
+.newsletter-time_frame .input-group-addon {
+    height: 32px;
+    width: 52px;
+    margin-top: 5px;
+    line-height: 1.42857143;
+}
+.newsletter-time_frame input.form-control {
+    width: calc(50% - 37px);
+}
+.newsletter-time_frame select.form-control  {
+    width: calc(50% - 15px);
+    height: 32px;
+}
 .newsletter-loader-container {
     font-family: 'Open Sans', Arial, sans-serif;
     position: absolute;

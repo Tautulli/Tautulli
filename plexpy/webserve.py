@@ -5521,7 +5521,8 @@ class WebInterface(object):
                      "friendly_name": "",
                      "cron": "0 0 * * 1",
                      "active": 1
-                     "config": {"last_days": 7,
+                     "config": {"time_frame": 7,
+                                "time_frame_units": "days",
                                 "incl_libraries": [1, 2]
                                 },
                      "email_config": {...},

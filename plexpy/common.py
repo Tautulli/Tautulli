@@ -522,7 +522,8 @@ NEWSLETTER_PARAMETERS = [
             {'name': 'Start Date', 'type': 'str', 'value': 'start_date', 'description': 'The start date of the newesletter.'},
             {'name': 'End Date', 'type': 'str', 'value': 'end_date', 'description': 'The end date of the newesletter.'},
             {'name': 'Week Number', 'type': 'int', 'value': 'week_number', 'description': 'The week number of the newsletter.'},
-            {'name': 'Newsletter Days', 'type': 'int', 'value': 'newsletter_days', 'description': 'The past number of days included in the newsletter.'},
+            {'name': 'Newsletter Time Frame', 'type': 'int', 'value': 'newsletter_time_frame', 'description': 'The time frame included in the newsletter.'},
+            {'name': 'Newsletter Time Frame Units', 'type': 'str', 'value': 'newsletter_time_frame_units', 'description': 'The time frame units included in the newsletter.'},
             {'name': 'Newsletter URL', 'type': 'str', 'value': 'newsletter_url', 'description': 'The self-hosted URL to the newsletter.'},
             {'name': 'Newsletter UUID', 'type': 'str', 'value': 'newsletter_uuid', 'description': 'The unique identifier for the newsletter.'},
         ]

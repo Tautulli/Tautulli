@@ -57,6 +57,22 @@
                                 <div class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
                                     <input type="hidden" id="newsletter_id" name="newsletter_id" value="${newsletter['id']}" />
                                     <input type="hidden" id="agent_id" name="agent_id" value="${newsletter['agent_id']}" />
+                                    <div class="form-group">
+                                        <label for="time_frame">Time Frame</label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="input-group newsletter-time_frame">
+                                                    <span class="input-group-addon form-control btn-dark inactive">Last</span>
+                                                    <input type="number" class="form-control" id="newsletter_config_time_frame" name="newsletter_config_time_frame" value="${newsletter['config']['time_frame']}">
+                                                    <select class="form-control" id="newsletter_config_time_frame_units" name="newsletter_config_time_frame_units">
+                                                        <option value="days" ${'selected' if newsletter['config']['time_frame_units'] == 'days' else ''}>days</option>
+                                                        <option value="hours" ${'selected' if newsletter['config']['time_frame_units'] == 'hours' else ''}>hours</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">The time frame to include in the newsletter. Note: Days uses calendar days (i.e. since midnight).</p>
+                                    </div>
                                     % for item in newsletter['config_options']:
                                     % if item['input_type'] == 'help':
                                     <div class="form-group">
