@@ -448,6 +448,7 @@
         }
         .card-info-body > p {
             max-width: 325px;
+            color: #ffffff;
         }
         .card-instance.movie .card-info-body,
         .card-instance.show .card-info-body {
@@ -499,6 +500,7 @@
             border-radius: 2px;
             text-overflow: ellipsis;
             overflow: hidden;
+            color: #ffffff;
         }
 
         /* -------------------------------------
@@ -697,11 +699,11 @@
                                                                                     <tr>
                                                                                         <td class="card-info-body" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.75rem;vertical-align: top;padding: 5px;height: 100%;">
                                                                                             % if movie['tagline']:
-                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;">
+                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                                 <em>${movie['tagline']}</em>
                                                                                             </p>
                                                                                             % endif
-                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;">
+                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;color: #ffffff;">
                                                                                                 ${movie['summary'][:450] + (movie['summary'][450:] and '...')}
                                                                                             </p>
                                                                                         </td>
@@ -713,15 +715,15 @@
                                                                                                     <tr>
                                                                                                         <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                                             % if movie['year']:
-                                                                                                            <span class="badge" title="${movie['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${movie['year']}</span>
+                                                                                                            <span class="badge" title="${movie['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${movie['year']}</span>
                                                                                                             % endif
                                                                                                             % if movie['duration']:
                                                                                                             <% duration = int(int(movie['duration'])/60000) %>
-                                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${duration} mins</span>
+                                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${duration} mins</span>
                                                                                                             % endif
                                                                                                             % if movie['genres']:
                                                                                                             % for genre in movie['genres'][:2]:
-                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${genre}</span>
                                                                                                             % endfor
                                                                                                             % endif
                                                                                                         </td>
@@ -829,14 +831,14 @@
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <td class="card-info-body" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.75rem;vertical-align: top;padding: 5px;height: 100%;">
-                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;">
+                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                                 % if show['season_count'] > 1:
                                                                                                     <em>${show['season_count']} seasons /</em>
                                                                                                 % endif
                                                                                                 <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
                                                                                                 <em>${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}</em>
                                                                                             </p>
-                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;">
+                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                                 % for i, season in enumerate(show['season'][:8]):
                                                                                                     Season ${season['media_index']} &middot;
                                                                                                     % if season['episode_count'] == 1:
@@ -851,7 +853,7 @@
                                                                                                     % endif
                                                                                                 % endfor
                                                                                             </p>
-                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;">
+                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;color: #ffffff;">
                                                                                                 % if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
                                                                                                 ${show['season'][0]['episode'][0]['summary'][:350] + (show['season'][0]['episode'][0]['summary'][350:] and '...')}
                                                                                                 % else:
@@ -870,15 +872,15 @@
                                                                                                     <tr>
                                                                                                         <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                                             % if show['year']:
-                                                                                                            <span class="badge" title="${show['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${show['year']}</span>
+                                                                                                            <span class="badge" title="${show['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${show['year']}</span>
                                                                                                             % endif
                                                                                                             % if show['duration']:
                                                                                                             <% duration = int(int(show['duration'])/60000) %>
-                                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${duration} mins</span>
+                                                                                                            <span class="badge" title="${duration} mins" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${duration} mins</span>
                                                                                                             % endif
                                                                                                             % if show['genres']:
                                                                                                             % for genre in show['genres'][:2]:
-                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${genre}</span>
                                                                                                             % endfor
                                                                                                             % endif
                                                                                                         </td>
@@ -977,11 +979,11 @@
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <td class="card-info-body" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.75rem;vertical-align: top;padding: 5px;height: 82px;min-height: 82px;">
-                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;">
+                                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                                 <em>${album['parent_title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
                                                                                             </p>
                                                                                             % if artist['title'].lower() != 'various artists':
-                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;">
+                                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;color: #ffffff;">
                                                                                                 ${album['summary'][:200] + (album['summary'][200:] and '...')}
                                                                                             </p>
                                                                                             % endif
@@ -994,11 +996,11 @@
                                                                                                     <tr>
                                                                                                         <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 265px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
                                                                                                             % if album['year']:
-                                                                                                            <span class="badge" title="${album['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${album['year']}</span>
+                                                                                                            <span class="badge" title="${album['year']}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${album['year']}</span>
                                                                                                             % endif
                                                                                                             % if album['genres']:
                                                                                                             % for genre in album['genres'][:2]:
-                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;">${genre}</span>
+                                                                                                            <span class="badge" title="${genre}" style="display: inline-block;min-width: 10px;padding: 3px 7px;font-size: 11px;line-height: 1;text-align: center;white-space: nowrap;vertical-align: middle;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${genre}</span>
                                                                                                             % endfor
                                                                                                             % endif
                                                                                                         </td>
