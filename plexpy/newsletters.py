@@ -694,8 +694,15 @@ class RecentlyAdded(Newsletter):
 
         if self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
             for item in movies + shows + albums:
+                if item['media_type'] == 'album':
+                    height = 150
+                    fallback = 'cover'
+                else:
+                    height = 225
+                    fallback = 'poster'
+
                 item['thumb_hash'] = set_hash_image_info(
-                    img=item['thumb'], width=150, height=225, fallback='poster')
+                    img=item['thumb'], width=150, height=height, fallback=fallback)
 
                 if item['art']:
                     item['art_hash'] = set_hash_image_info(
