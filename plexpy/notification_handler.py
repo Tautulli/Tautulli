@@ -710,6 +710,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'server_platform': plexpy.CONFIG.PMS_PLATFORM,
         'server_version': plexpy.CONFIG.PMS_VERSION,
         'action': notify_action.lstrip('on_'),
+        'week_number': arrow.now().isocalendar()[1],
         'datestamp': arrow.now().format(date_format),
         'timestamp': arrow.now().format(time_format),
         'unixtime': int(time.time()),

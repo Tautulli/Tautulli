@@ -477,6 +477,7 @@ class Newsletter(object):
             'server_name': plexpy.CONFIG.PMS_NAME,
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
+            'week_number': self.start_date.isocalendar()[1],
             'newsletter_days': self.config['last_days'],
             'newsletter_url': base_url.rstrip('/') + plexpy.HTTP_ROOT + 'newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
