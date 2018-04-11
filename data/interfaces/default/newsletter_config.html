@@ -53,10 +53,6 @@
                                             <span id="custom_cron_message">Set the schedule for the newsletter using a <a href="${anon_url('https://crontab.guru')}" target="_blank">custom crontab</a>. Only standard cron values are valid.</span>
                                         </p>
                                     </div>
-                                </div>
-                                <div class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
-                                    <input type="hidden" id="newsletter_id" name="newsletter_id" value="${newsletter['id']}" />
-                                    <input type="hidden" id="agent_id" name="agent_id" value="${newsletter['agent_id']}" />
                                     <div class="form-group">
                                         <label for="time_frame">Time Frame</label>
                                         <div class="row">
@@ -71,8 +67,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <p class="help-block">The time frame to include in the newsletter. Note: Days uses calendar days (i.e. since midnight).</p>
+                                        <p class="help-block">Set the time frame to include in the newsletter. Note: Days uses calendar days (i.e. since midnight).</p>
                                     </div>
+                                </div>
+                                <div class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
+                                    <input type="hidden" id="newsletter_id" name="newsletter_id" value="${newsletter['id']}" />
+                                    <input type="hidden" id="agent_id" name="agent_id" value="${newsletter['agent_id']}" />
                                     % for item in newsletter['config_options']:
                                     % if item['input_type'] == 'help':
                                     <div class="form-group">
