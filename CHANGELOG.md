@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.1.1-beta (2018-04-11)
+
+* Monitoring:
+  * Fix: Live TV transcoding showing incorrectly as direct play.
+* Newsletters:
+  * New: Added week number as parameter. (Thanks @samip5)
+  * Fix: Fallback to cover art on the newsletter cards.
+  * Change: Option to set newsletter time frame by calendar days or hours.
+* Notifications:
+  * New: Added week number as parameter. (Thanks @samip5)
+* Other:
+  * New: Added plexapi library for custom scripts.
+
+
 ## v2.1.0-beta (2018-04-07)
 
 * Newsletters:
