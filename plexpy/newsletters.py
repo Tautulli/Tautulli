@@ -717,9 +717,16 @@ class RecentlyAdded(Newsletter):
         else:
             # Upload posters and art to Imgur
             for item in movies + shows + albums:
+                if item['media_type'] == 'album':
+                    height = 150
+                    fallback = 'cover'
+                else:
+                    height = 225
+                    fallback = 'poster'
+
                 imgur_info = get_imgur_info(
                     img=item['thumb'], rating_key=item['rating_key'], title=item['title'],
-                    width=150, height=225, fallback='poster')
+                    width=150, height=height, fallback=fallback)
 
                 item['poster_url'] = imgur_info.get('imgur_url') or common.ONLINE_POSTER_THUMB
 

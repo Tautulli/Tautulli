@@ -731,9 +731,9 @@ def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
         delete_hash = imgur_response_data.get('deletehash', '')
     else:
         if err_msg:
-            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' to Imgur: {}".format(img_title, err_msg))
+            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' ({}) to Imgur: {}".format(img_title, fallback, err_msg))
         else:
-            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' to Imgur.".format(img_title))
+            logger.error(u"Tautulli Helpers :: Unable to upload image '{}' ({}) to Imgur.".format(img_title, fallback))
 
         if req_msg:
             logger.debug(u"Tautulli Helpers :: Request response: {}".format(req_msg))
@@ -755,9 +755,9 @@ def delete_from_imgur(delete_hash, img_title='', fallback=''):
         return True
     else:
         if err_msg:
-            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' from Imgur: {}".format(img_title, err_msg))
+            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' ({}) from Imgur: {}".format(img_title, fallback, err_msg))
         else:
-            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' from Imgur.".format(img_title))
+            logger.error(u"Tautulli Helpers :: Unable to delete image '{}' ({}) from Imgur.".format(img_title, fallback))
         return False
 
 
