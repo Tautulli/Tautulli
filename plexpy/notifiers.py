@@ -1290,6 +1290,7 @@ class EMAIL(Notifier):
         else:
             msg = MIMEText(body, 'plain', 'utf-8')
 
+        msg['Message-ID'] = email.utils.make_msgid()
         msg['Date'] = email.utils.formatdate(localtime=True)
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
