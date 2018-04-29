@@ -2796,24 +2796,53 @@ class PUSHOVER(Notifier):
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
     def get_sounds(self):
-        if self.config['api_token']:
-            params = {'token': self.config['api_token']}
+        sounds = {
+            '': '',
+            'alien': 'Alien Alarm (long)',
+            'bike': 'Bike',
+            'bugle': 'Bugle',
+            'cashregister': 'Cash Register',
+            'classical': 'Classical',
+            'climb': 'Climb (long)',
+            'cosmic': 'Cosmic',
+            'echo': 'Pushover Echo (long)',
+            'falling': 'Falling',
+            'gamelan': 'Gamelan',
+            'incoming': 'Incoming',
+            'intermission': 'Intermission',
+            'magic': 'Magic',
+            'mechanical': 'Mechanical',
+            'none': 'None (silent)',
+            'persistent': 'Persistent (long)',
+            'pianobar': 'Piano Bar',
+            'pushover': 'Pushover (default)',
+            'siren': 'Siren',
+            'spacealarm': 'Space Alarm',
+            'tugboat': 'Tug Boat',
+            'updown': 'Up Down (long)'
+        }
 
-            r = requests.get('https://api.pushover.net/1/sounds.json', params=params)
+        return sounds
 
-            if r.status_code == 200:
-                response_data = r.json()
-                sounds = response_data.get('sounds', {})
-                sounds.update({'': ''})
-                return sounds
-            else:
-                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} sounds list: "
-                             u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                return {'': ''}
-
-        else:
-            return {'': ''}
+        # if self.config['api_token']:
+        #     params = {'token': self.config['api_token']}
+        #
+        #     r = requests.get('https://api.pushover.net/1/sounds.json', params=params)
+        #
+        #     if r.status_code == 200:
+        #         response_data = r.json()
+        #         sounds = response_data.get('sounds', {})
+        #         sounds.update({'': ''})
+        #         print sounds
+        #         return sounds
+        #     else:
+        #         logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} sounds list: "
+        #                      u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+        #         logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
+        #         return {'': ''}
+        #
+        # else:
+        #     return {'': ''}
 
     def return_config_options(self):
         config_option = [{'label': 'Pushover API Token',
