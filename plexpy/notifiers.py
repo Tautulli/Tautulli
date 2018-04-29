@@ -2935,6 +2935,7 @@ class SCRIPTS(Notifier):
                             }
 
         self.arg_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
+        self.script_killed = False
 
     def list_scripts(self):
         scriptdir = self.config['script_folder']
@@ -2954,12 +2955,6 @@ class SCRIPTS(Notifier):
         return scripts
 
     def run_script(self, script):
-        def kill_script(process):
-            logger.warn(u"Tautulli Notifiers :: Script exceeded timeout limit of %d seconds. "
-                        "Script killed." % self.config['timeout'])
-            process.kill()
-            self.script_killed = True
-
         # Common environment variables
         env = {'PLEX_URL': plexpy.CONFIG.PMS_URL,
                'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
@@ -2968,8 +2963,6 @@ class SCRIPTS(Notifier):
                }
         env.update(os.environ)
 
-        self.script_killed = False
-        output = error = ''
         try:
             process = subprocess.Popen(script,
                                        stdin=subprocess.PIPE,
@@ -2979,7 +2972,7 @@ class SCRIPTS(Notifier):
                                        env=env)
 
             if self.config['timeout'] > 0:
-                timer = threading.Timer(self.config['timeout'], kill_script, (process,))
+                timer = threading.Timer(self.config['timeout'], self.kill_script, (process,))
             else:
                 timer = None
 
@@ -3008,6 +3001,12 @@ class SCRIPTS(Notifier):
         if not self.script_killed:
             logger.info(u"Tautulli Notifiers :: Script notification sent.")
             return True
+
+    def kill_script(self, process):
+        process.kill()
+        self.script_killed = True
+        logger.warn(u"Tautulli Notifiers :: Script exceeded timeout limit of %d seconds. "
+                    "Script killed." % self.config['timeout'])
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         """
