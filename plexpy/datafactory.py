@@ -1132,12 +1132,12 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_imgur_info(self, img=None, rating_key=None, width=None, height=None,
-                       opacity=None, background=None, blur=None, fallback=None,
-                       order_by=''):
+    def get_img_info(self, img=None, rating_key=None, width=None, height=None,
+                     opacity=None, background=None, blur=None, fallback=None,
+                     order_by='', service=None):
         monitor_db = database.MonitorDatabase()
 
-        imgur_info = []
+        img_info = []
 
         where_params = []
         args = []
@@ -1174,26 +1174,46 @@ class DataFactory(object):
         if order_by:
             order_by = 'ORDER BY ' + order_by + ' DESC'
 
-        query = 'SELECT imgur_title, imgur_url FROM imgur_lookup ' \
-                'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
-                '%s %s' % (where, order_by)
+        if service == 'imgur':
+            query = 'SELECT imgur_title AS img_title, imgur_url AS img_url FROM imgur_lookup ' \
+                    'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
+                    '%s %s' % (where, order_by)
+        elif service == 'cloudinary':
+            query = 'SELECT cloudinary_title AS img_title, cloudinary_url AS img_url FROM cloudinary_lookup ' \
+                    'JOIN image_hash_lookup ON cloudinary_lookup.img_hash = image_hash_lookup.img_hash ' \
+                    '%s %s' % (where, order_by)
+        else:
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_img_info: "
+                        "service not provided.")
+            return img_info
 
         try:
-            imgur_info = monitor_db.select(query, args=args)
+            img_info = monitor_db.select(query, args=args)
         except Exception as e:
-            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_imgur_info: %s." % e)
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_img_info: %s." % e)
 
-        return imgur_info
+        return img_info
 
-    def set_imgur_info(self, img_hash=None, imgur_title=None, imgur_url=None, delete_hash=None):
+    def set_img_info(self, img_hash=None, img_title=None, img_url=None, delete_hash=None, service=None):
         monitor_db = database.MonitorDatabase()
 
         keys = {'img_hash': img_hash}
-        values = {'imgur_title': imgur_title,
-                  'imgur_url': imgur_url,
-                  'delete_hash': delete_hash}
 
-        monitor_db.upsert('imgur_lookup', key_dict=keys, value_dict=values)
+        if service == 'imgur':
+            table = 'imgur_lookup'
+            values = {'imgur_title': img_title,
+                      'imgur_url': img_url,
+                      'delete_hash': delete_hash}
+        elif service == 'cloudinary':
+            table = 'cloudinary_lookup'
+            values = {'cloudinary_title': img_title,
+                      'cloudinary_url': img_url}
+        else:
+            logger.warn(u"Tautulli DataFactory :: Unable to execute database query for set_img_info: "
+                        "service not provided.")
+            return
+
+        monitor_db.upsert(table, key_dict=keys, value_dict=values)
 
     def delete_imgur_info(self, rating_key=None):
         monitor_db = database.MonitorDatabase()
@@ -1234,7 +1254,7 @@ class DataFactory(object):
         poster_info = {}
 
         if poster_key:
-            imgur_info = self.get_imgur_info(rating_key=poster_key, order_by='height', fallback='poster')
+            imgur_info = self.get_img_info(rating_key=poster_key, order_by='height', fallback='poster', service='imgur')
             if imgur_info:
                 poster_info = {'poster_title': imgur_info[0]['imgur_title'],
                                'poster_url': imgur_info[0]['imgur_url']}

@@ -632,9 +632,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     else:
         poster_thumb = ''
 
-    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 1:
-        imgur_info = get_imgur_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
-        poster_info = {'poster_title': imgur_info['imgur_title'], 'poster_url': imgur_info['imgur_url']}
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS in (1, 3):
+        img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
+        poster_info = {'poster_title': img_info['img_title'], 'poster_url': img_info['img_url']}
         notify_params.update(poster_info)
     elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 2 and plexpy.CONFIG.HTTP_BASE_URL:
         img_hash = set_hash_image_info(img=poster_thumb, fallback='poster')
@@ -1076,9 +1076,22 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_imgur_info(img=None, rating_key=None, title='', width=600, height=1000,
-                   opacity=100, background='000000', blur=0, fallback=None):
-    imgur_info = {'imgur_title': '', 'imgur_url': ''}
+def get_img_info(img=None, rating_key=None, title='', width=600, height=1000,
+                 opacity=100, background='000000', blur=0, fallback=None):
+    img_info = {'img_title': '', 'img_url': ''}
+
+    if not rating_key and not img:
+        return img_info
+
+    if rating_key and not img:
+        if fallback == 'art':
+            img = '/library/metadata/{}/art'.format(rating_key)
+        else:
+            img = '/library/metadata/{}/thumb'.format(rating_key)
+
+    img_split = img.split('/')
+    img = '/'.join(img_split[:5])
+    rating_key = rating_key or img_split[3]
 
     image_info = {'img': img,
                   'rating_key': rating_key,
@@ -1089,33 +1102,49 @@ def get_imgur_info(img=None, rating_key=None, title='', width=600, height=1000,
                   'blur': blur,
                   'fallback': fallback}
 
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 1:
+        service = 'imgur'
+    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 3:
+        service = 'cloudinary'
+    else:
+        service = None
+
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
-    database_imgur_info = data_factory.get_imgur_info(**image_info)
+    database_img_info = data_factory.get_img_info(service=service, **image_info)
 
-    if database_imgur_info:
-        imgur_info = database_imgur_info[0]
+    if database_img_info:
+        img_info = database_img_info[0]
 
-    elif not database_imgur_info and img:
+    elif not database_img_info and img:
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_image(**image_info)
 
         if result and result[0]:
-            imgur_url, delete_hash = helpers.upload_to_imgur(img_data=result[0],
-                                                             img_title=title,
-                                                             rating_key=rating_key,
-                                                             fallback=fallback)
+            img_url = delete_hash = ''
 
-            if imgur_url:
+            if service == 'imgur':
+                img_url, delete_hash = helpers.upload_to_imgur(img_data=result[0],
+                                                               img_title=title,
+                                                               rating_key=rating_key,
+                                                               fallback=fallback)
+            elif service == 'cloudinary':
+                img_url = helpers.upload_to_cloudinary(img_data=result[0],
+                                                       img_title=title,
+                                                       rating_key=rating_key,
+                                                       fallback=fallback)
+
+            if img_url:
                 img_hash = set_hash_image_info(**image_info)
-                data_factory.set_imgur_info(img_hash=img_hash,
-                                            imgur_title=title,
-                                            imgur_url=imgur_url,
-                                            delete_hash=delete_hash)
+                data_factory.set_img_info(img_hash=img_hash,
+                                          img_title=title,
+                                          img_url=img_url,
+                                          delete_hash=delete_hash,
+                                          service=service)
 
-                imgur_info = {'imgur_title': title, 'imgur_url': imgur_url}
+                img_info = {'img_title': title, 'img_url': img_url}
 
-    return imgur_info
+    return img_info
 
 
 def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,

@@ -693,6 +693,12 @@ def dbcheck():
         'img_hash TEXT, imgur_title TEXT, imgur_url TEXT, delete_hash TEXT)'
     )
 
+    # cloudinary_lookup table :: This table keeps record of the Cloudinary uploads
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS cloudinary_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'img_hash TEXT, cloudinary_title TEXT, cloudinary_url TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')
@@ -1689,7 +1695,8 @@ def dbcheck():
                 img_hash = notification_handler.set_hash_image_info(
                     rating_key=row['rating_key'], width=600, height=1000, fallback='poster')
                 data_factory.set_imgur_info(img_hash=img_hash, imgur_title=row['poster_title'],
-                                            imgur_url=row['poster_url'], delete_hash=row['delete_hash'])
+                                            imgur_url=row['poster_url'], delete_hash=row['delete_hash'],
+                                            service='imgur')
 
             db.action('DROP TABLE poster_urls')
     except sqlite3.OperationalError:

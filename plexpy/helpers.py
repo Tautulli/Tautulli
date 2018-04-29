@@ -14,6 +14,8 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+import cloudinary
+from cloudinary.uploader import upload
 import datetime
 from functools import wraps
 import geoip2.database, geoip2.errors
@@ -28,7 +30,6 @@ import math
 import maxminddb
 from operator import itemgetter
 import os
-from ratelimit import rate_limited
 import re
 import socket
 import sys
@@ -705,14 +706,13 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 
-@rate_limited(450, 3600)
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Imgur """
     client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
     img_url = delete_hash = ''
 
     if not client_id:
-        logger.error(u"Tautulli Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
+        logger.error(u"Tautulli Helpers :: Cannot upload image to Imgur. No Imgur client id specified in the settings.")
         return img_url, delete_hash
 
     headers = {'Authorization': 'Client-ID %s' % client_id}
@@ -759,6 +759,32 @@ def delete_from_imgur(delete_hash, img_title='', fallback=''):
         else:
             logger.error(u"Tautulli Helpers :: Unable to delete image '{}' ({}) from Imgur.".format(img_title, fallback))
         return False
+
+
+def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
+    """ Uploads an image to Cloudinary """
+    cloudinary.config(
+        cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
+        api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
+        api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
+    )
+    img_url = ''
+
+    if not plexpy.CONFIG.CLOUDINARY_CLOUD_NAME or not plexpy.CONFIG.CLOUDINARY_API_KEY or not plexpy.CONFIG.CLOUDINARY_API_SECRET:
+        logger.error(u"Tautulli Helpers :: Cannot upload image to Cloudinary. Cloudinary settings not specified in the settings.")
+        return img_url
+
+    try:
+        response = upload('data:image/png;base64,{}'.format(base64.b64encode(img_data)),
+                          public_id='{}_{}'.format(fallback, rating_key),
+                          tags=[fallback, rating_key],
+                          context={'title': img_title, 'rating_key': rating_key, 'fallback': fallback})
+        logger.debug(u"Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
+        img_url = response.get('url', '')
+    except Exception as e:
+        logger.error(u"Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title, fallback, e))
+
+    return img_url
 
 
 def cache_image(url, image=None):

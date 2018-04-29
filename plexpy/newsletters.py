@@ -674,7 +674,7 @@ class RecentlyAdded(Newsletter):
         return recently_added
 
     def retrieve_data(self):
-        from notification_handler import get_imgur_info, set_hash_image_info
+        from notification_handler import get_img_info, set_hash_image_info
 
         if not self.config['incl_libraries']:
             logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
@@ -715,7 +715,7 @@ class RecentlyAdded(Newsletter):
                 item['art_url'] = ''
 
         else:
-            # Upload posters and art to Imgur
+            # Upload posters and art to image hosting service
             for item in movies + shows + albums:
                 if item['media_type'] == 'album':
                     height = 150
@@ -724,17 +724,17 @@ class RecentlyAdded(Newsletter):
                     height = 225
                     fallback = 'poster'
 
-                imgur_info = get_imgur_info(
+                img_info = get_img_info(
                     img=item['thumb'], rating_key=item['rating_key'], title=item['title'],
                     width=150, height=height, fallback=fallback)
 
-                item['poster_url'] = imgur_info.get('imgur_url') or common.ONLINE_POSTER_THUMB
+                item['poster_url'] = img_info.get('img_url') or common.ONLINE_POSTER_THUMB
 
-                imgur_info = get_imgur_info(
+                img_info = get_img_info(
                     img=item['art'], rating_key=item['rating_key'], title=item['title'],
                     width=500, height=280, opacity=25, background='282828', blur=3, fallback='art')
 
-                item['art_url'] = imgur_info.get('imgur_url')
+                item['art_url'] = img_info.get('img_url')
 
                 item['thumb_hash'] = ''
                 item['art_hash'] = ''

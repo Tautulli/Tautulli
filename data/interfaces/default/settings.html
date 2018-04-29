@@ -955,7 +955,10 @@
                             <p class="help-block">Enable to host newsletters on your own domain. This will generate a link to an HTML page where you can view the newsletter.</p>
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
-                            <p class="help-block" id="self_host_newsletter_message">Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.</p>
+                            <p class="help-block" id="self_host_newsletter_message">
+                                Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.<br>
+                                Note: Newsletter images will be self-hosted regardless of the Image Hosting setting below.<br>
+                            </p>
                             <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
 
@@ -970,6 +973,7 @@
                                     <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
                                         <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
                                         <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
+                                        <option value="3" ${'selected' if config['notify_upload_posters'] == 3 else ''}>Cloudinary</option>
                                         <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted on public Tautulli domain</option>
                                     </select>
                                 </div>
@@ -977,6 +981,7 @@
                             <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
                         </div>
                         <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
+                            <p class="help-block" id="imgur_upload_message">Warning: Imgur uploads are rate-limited and newsletters may exceed the limit.</p>
                             <div class="form-group">
                                 <label for="imgur_client_id">Imgur Client ID</label>
                                 <div class="row">
@@ -993,6 +998,41 @@
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
                             <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
                             <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                        </div>
+                        <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
+                            <div class="form-group">
+                                <label for="cloudinary_cloud_name">Cloudinary Cloud Name</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_cloud_name" name="cloudinary_cloud_name" value="${config['cloudinary_cloud_name']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary Cloud Name.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="cloudinary_api_key">Cloudinary API Key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_api_key" name="cloudinary_api_key" value="${config['cloudinary_api_key']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary API Key.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="cloudinary_api_secret">Cloudinary API Secret</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_api_secret" name="cloudinary_api_secret" value="${config['cloudinary_api_secret']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary API Secret.
+                                </p>
+                            </div>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -1041,7 +1081,7 @@
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Note: Either <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> on Imgur or <a data-tab-destination="tabs-notifications" data-target="#newsletter_self_hosted">Self-Hosted Newsletters</a> must be enabled.</span>
+                            Note: Either <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> or <a data-tab-destination="tabs-notifications" data-target="#newsletter_self_hosted">Self-Hosted Newsletters</a> must be enabled.</span>
                         </p>
                         <br/>
                         <div id="plexpy-newsletters-table">
@@ -2538,6 +2578,11 @@ $(document).ready(function() {
         } else {
             $('#self_host_image_options').slideUp();
         }
+        if (upload_val === '3') {
+            $('#cloudinary_upload_options').slideDown();
+        } else {
+            $('#cloudinary_upload_options').slideUp();
+        }
     }
     $('#notify_upload_posters').change(function () {
         imageUpload();
@@ -2557,7 +2602,7 @@ $(document).ready(function() {
     });
 
     function newsletterUploadEnabled() {
-        if ($('#notify_upload_posters').val() === '1' || $('#newsletter_self_hosted').is(':checked')) {
+        if ($('#notify_upload_posters').val() !== '2' || $('#newsletter_self_hosted').is(':checked')) {
             $('#newsletter_upload_warning').hide();
         } else {
             $('#newsletter_upload_warning').show();
