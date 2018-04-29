@@ -3699,7 +3699,7 @@ class WebInterface(object):
                     }
             ```
         """
-        versioncheck.checkGithub()
+        versioncheck.check_github()
 
         if not plexpy.CURRENT_VERSION:
             return {'result': 'error',

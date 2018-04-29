@@ -131,7 +131,7 @@ def getVersion():
             return None, 'origin', common.BRANCH
 
 
-def checkGithub(auto_update=False):
+def check_github(auto_update=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
 
     # Get the latest version available from github
@@ -198,8 +198,11 @@ def checkGithub(auto_update=False):
 
         plexpy.LATEST_RELEASE = release['tag_name']
 
-        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
-                                 'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
+        if notify:
+            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate',
+                                     'plexpy_download_info': release,
+                                     'plexpy_update_commit': plexpy.LATEST_VERSION,
+                                     'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
         if auto_update:
             logger.info('Running automatic update.')

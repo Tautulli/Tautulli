@@ -243,7 +243,7 @@ def initialize(config_file):
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
-                LATEST_VERSION = versioncheck.checkGithub()
+                LATEST_VERSION = versioncheck.check_github()
             except:
                 logger.exception(u"Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION
@@ -378,8 +378,8 @@ def initialize_scheduler():
         # Update check
         github_minutes = CONFIG.CHECK_GITHUB_INTERVAL if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB else 0
 
-        schedule_job(versioncheck.checkGithub, 'Check GitHub for updates',
-                     hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE),))
+        schedule_job(versioncheck.check_github, 'Check GitHub for updates',
+                     hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE), True))
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
