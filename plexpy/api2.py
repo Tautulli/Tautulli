@@ -530,7 +530,7 @@ General optional parameters:
         return data
 
     def _api_responds(self, result_type='error', data=None, msg=''):
-        """ Formats the result to a predefined dict so we can hange it the to
+        """ Formats the result to a predefined dict so we can change it the to
             the desired output by _api_out_as """
 
         if data is None:
@@ -637,19 +637,19 @@ General optional parameters:
                 except:
                     pass
 
-        # Fallback if we cant "parse the reponse"
+        # Fallback if we cant "parse the response"
         if ret is None:
             ret = result
 
-        if ret or self._api_result_type == 'success':
+        if ret is not None or self._api_result_type == 'success':
             # To allow override for restart etc
             # if the call returns some data we are gonna assume its a success
             self._api_result_type = 'success'
         else:
             self._api_result_type = 'error'
 
-        # Since some of them metods use a api like response for the ui
-        # {result: error, message: 'Some shit happend'}
+        # Since some of them methods use a api like response for the ui
+        # {result: error, message: 'Some shit happened'}
         if isinstance(ret, dict):
             if ret.get('message'):
                 self._api_msg = ret.pop('message', None)
