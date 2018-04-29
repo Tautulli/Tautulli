@@ -25,6 +25,8 @@
                 <% from plexpy import PLEX_SERVER_UP %>
                 % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                % elif config['pms_is_cloud']:
+                <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
                 % else:
                 <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
                     % if _session['user_group'] == 'admin':
