@@ -1254,10 +1254,10 @@ class DataFactory(object):
         poster_info = {}
 
         if poster_key:
-            imgur_info = self.get_img_info(rating_key=poster_key, order_by='height', fallback='poster', service='imgur')
-            if imgur_info:
-                poster_info = {'poster_title': imgur_info[0]['imgur_title'],
-                               'poster_url': imgur_info[0]['imgur_url']}
+            img_info = self.get_img_info(rating_key=poster_key, order_by='height', fallback='poster', service='imgur')
+            if img_info:
+                poster_info = {'poster_title': img_info[0]['img_title'],
+                               'poster_url': img_info[0]['img_url']}
 
         return poster_info
 
