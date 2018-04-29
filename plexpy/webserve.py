@@ -4020,7 +4020,7 @@ class WebInterface(object):
     @cherrypy.expose
     def image(self, *args, **kwargs):
         if args:
-            img_hash = args[0]
+            img_hash = args[0].split('.')[0]
 
             if img_hash in ('poster', 'cover', 'art'):
                 if img_hash == 'poster':

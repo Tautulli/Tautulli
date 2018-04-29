@@ -3434,6 +3434,10 @@ class TWITTER(Notifier):
             parameters = kwargs['parameters']
             poster_url = parameters.get('poster_url','')
 
+        # Hack to add media type to attachment
+        if poster_url:
+            poster_url += '.png'
+
         if self.config['incl_subject']:
             return self._send_tweet(subject + '\r\n' + body, attachment=poster_url)
         else:
