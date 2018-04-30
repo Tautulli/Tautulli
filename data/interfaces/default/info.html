@@ -400,14 +400,14 @@ DOCUMENTATION :: END
                             % if data.get('poster_url'):
                             <div class="btn-group">
                                 % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
+                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
                                 % else:
-                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
                                 % endif
-                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-imgur-poster"
+                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-hosted-poster"
                                             data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}"
                                             data-title="${data["poster_title"]}">
-                                        <i class="fa fa-picture-o"></i> Delete Imgur Poster
+                                        <i class="fa fa-picture-o"></i> Delete ${data['img_service']} Poster
                                     </button>
                                 </span>
                             </div>
@@ -705,7 +705,7 @@ DOCUMENTATION :: END
 </script>
 % if data.get('poster_url'):
 <script>
-    $('.imgur-poster-tooltip').popover({
+    $('.hosted-poster-tooltip').popover({
         html: true,
         container: 'body',
         trigger: 'hover',
@@ -716,14 +716,14 @@ DOCUMENTATION :: END
         }
     });
 
-    $('#delete-imgur-poster').on('click', function () {
-        var msg = 'Are you sure you want to delete the Imgur poster for <strong>' + $(this).data('title') + '</strong>?<br><br>' +
+    $('#delete-hosted-poster').on('click', function () {
+        var msg = 'Are you sure you want to delete the ${data['img_service']} poster for <strong>' + $(this).data('title') + '</strong>?<br><br>' +
                   'All previous links to this image will no longer work.';
-        var url = 'delete_imgur_poster';
+        var url = 'delete_hosted_images';
         var data = { rating_key: $(this).data('id') };
         var callback = function () {
-            $('.imgur-poster-tooltip').popover('destroy');
-            $('#delete-imgur-poster').closest('.btn-group').remove();
+            $('.hosted-poster-tooltip').popover('destroy');
+            $('#delete-hosted-poster').closest('.btn-group').remove();
         };
         confirmAjaxCall(url, msg, data, false, callback);
     });

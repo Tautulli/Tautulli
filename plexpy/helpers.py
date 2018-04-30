@@ -15,6 +15,7 @@
 
 import base64
 import cloudinary
+from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 import datetime
 from functools import wraps
@@ -706,6 +707,17 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 
+def get_img_service(include_self=False):
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 1:
+        return 'imgur'
+    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 2 and include_self:
+        return 'self-hosted'
+    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 3:
+        return 'cloudinary'
+    else:
+        return None
+
+
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Imgur """
     client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
@@ -785,6 +797,20 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
         logger.error(u"Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title, fallback, e))
 
     return img_url
+
+
+def delete_from_cloudinary(rating_key):
+    """ Deletes an image from Cloudinary """
+    cloudinary.config(
+        cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
+        api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
+        api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
+    )
+
+    delete_resources_by_tag(str(rating_key))
+
+    logger.debug(u"Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
+    return True
 
 
 def cache_image(url, image=None):

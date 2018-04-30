@@ -4161,30 +4161,31 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_imgur_poster(self, rating_key='', **kwargs):
-        """ Delete the Imgur poster.
+    def delete_hosted_images(self, rating_key='', service='', **kwargs):
+        """ Delete the images uploaded to image hosting services.
 
             ```
             Required parameters:
                 rating_key (int):       1234
                                         (Note: Must be the movie, show, season, artist, or album rating key)
             Optional parameters:
-                None
+                service (str):          imgur or cloudinary
+                                        (Note: Defaults to service in Image Hosting setting)
 
             Returns:
                 json:
                     {"result": "success",
-                     "message": "Deleted Imgur poster."}
+                     "message": "Deleted hosted images from Imgur."}
             ```
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_imgur_info(rating_key=rating_key)
+        result = data_factory.delete_img_info(rating_key=rating_key, service=service)
 
         if result:
-            return {'result': 'success', 'message': 'Deleted Imgur poster.'}
+            return {'result': 'success', 'message': 'Deleted hosted images from %s.' % result.capitalize()}
         else:
-            return {'result': 'error', 'message': 'Failed to delete Imgur poster.'}
+            return {'result': 'error', 'message': 'Failed to delete hosted images.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

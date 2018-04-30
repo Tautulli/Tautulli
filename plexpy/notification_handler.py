@@ -632,11 +632,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     else:
         poster_thumb = ''
 
-    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS in (1, 3):
+    img_service = helpers.get_img_service(include_self=True)
+    if img_service not in (None, 'self-hosted'):
         img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
         poster_info = {'poster_title': img_info['img_title'], 'poster_url': img_info['img_url']}
         notify_params.update(poster_info)
-    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 2 and plexpy.CONFIG.HTTP_BASE_URL:
+    elif img_service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
         img_hash = set_hash_image_info(img=poster_thumb, fallback='poster')
         poster_info = {'poster_title': poster_title,
                        'poster_url': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/' + img_hash}
@@ -1102,12 +1103,7 @@ def get_img_info(img=None, rating_key=None, title='', width=600, height=1000,
                   'blur': blur,
                   'fallback': fallback}
 
-    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 1:
-        service = 'imgur'
-    elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 3:
-        service = 'cloudinary'
-    else:
-        service = None
+    service = helpers.get_img_service()
 
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()

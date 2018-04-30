@@ -1215,31 +1215,53 @@ class DataFactory(object):
 
         monitor_db.upsert(table, key_dict=keys, value_dict=values)
 
-    def delete_imgur_info(self, rating_key=None):
+    def delete_img_info(self, rating_key=None, service=None):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            query = 'SELECT imgur_title, delete_hash, fallback FROM imgur_lookup ' \
-                    'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
-                    'WHERE rating_key = ? '
-            args = [rating_key]
-            results = monitor_db.select(query, args=args)
+            service = service or helpers.get_img_service()
 
-            for imgur_info in results:
-                if imgur_info['delete_hash']:
-                    helpers.delete_from_imgur(delete_hash=imgur_info['delete_hash'],
-                                              img_title=imgur_info['imgur_title'],
-                                              fallback=imgur_info['fallback'])
+            if service == 'imgur':
+                # Delete from Imgur
+                query = 'SELECT imgur_title, delete_hash, fallback FROM imgur_lookup ' \
+                        'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
+                        'WHERE rating_key = ? '
+                args = [rating_key]
+                results = monitor_db.select(query, args=args)
 
-            logger.info(u"Tautulli DataFactory :: Deleting Imgur info for rating_key %s from the database."
-                        % rating_key)
-            result = monitor_db.action('DELETE FROM imgur_lookup WHERE img_hash '
-                                       'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
-                                       [rating_key])
+                for imgur_info in results:
+                    if imgur_info['delete_hash']:
+                        helpers.delete_from_imgur(delete_hash=imgur_info['delete_hash'],
+                                                  img_title=imgur_info['imgur_title'],
+                                                  fallback=imgur_info['fallback'])
 
-            return True if result else False
+                logger.info(u"Tautulli DataFactory :: Deleting Imgur info for rating_key %s from the database."
+                            % rating_key)
+                result = monitor_db.action('DELETE FROM imgur_lookup WHERE img_hash '
+                                           'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
+                                           [rating_key])
 
-    def get_poster_info(self, rating_key='', metadata=None):
+            elif service == 'cloudinary':
+                # Delete from Cloudinary
+                helpers.delete_from_cloudinary(rating_key=rating_key)
+
+                logger.info(u"Tautulli DataFactory :: Deleting Cloudinary info for rating_key %s from the database."
+                            % rating_key)
+                result = monitor_db.action('DELETE FROM cloudinary_lookup WHERE img_hash '
+                                           'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
+                                           [rating_key])
+
+            else:
+                logger.error(u"Tautulli DataFactory :: Unable to delete hosted images: invalid service '%s' provided."
+                             % service)
+
+            return service
+
+        else:
+            logger.error(u"Tautulli DataFactory :: Unable to delete hosted images: rating_key not provided.")
+            return False
+
+    def get_poster_info(self, rating_key='', metadata=None, service=None):
         poster_key = ''
         if str(rating_key).isdigit():
             poster_key = rating_key
@@ -1254,10 +1276,17 @@ class DataFactory(object):
         poster_info = {}
 
         if poster_key:
-            img_info = self.get_img_info(rating_key=poster_key, order_by='height', fallback='poster', service='imgur')
-            if img_info:
-                poster_info = {'poster_title': img_info[0]['img_title'],
-                               'poster_url': img_info[0]['img_url']}
+            service = service or helpers.get_img_service()
+
+            if service:
+                img_info = self.get_img_info(rating_key=poster_key,
+                                             order_by='height',
+                                             fallback='poster',
+                                             service=service)
+                if img_info:
+                    poster_info = {'poster_title': img_info[0]['img_title'],
+                                   'poster_url': img_info[0]['img_url'],
+                                   'img_service': service.capitalize()}
 
         return poster_info
 
