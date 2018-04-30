@@ -2435,7 +2435,7 @@ class PmsConnect(object):
 
         return labels_list
 
-    def get_image(self, img=None, width=600, height=1000, opacity=None, background=None, blur=None,
+    def get_image(self, img=None, width=1000, height=1500, opacity=None, background=None, blur=None,
                   img_format='png', clip=False, **kwargs):
         """
         Return image data as array.
@@ -2450,8 +2450,8 @@ class PmsConnect(object):
         Output: array
         """
 
-        width = width or 600
-        height = height or 1000
+        width = width or 1000
+        height = height or 1500
 
         if img:
             if clip:

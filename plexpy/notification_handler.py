@@ -1077,7 +1077,7 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_img_info(img=None, rating_key=None, title='', width=600, height=1000,
+def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
                  opacity=100, background='000000', blur=0, fallback=None):
     img_info = {'img_title': '', 'img_url': ''}
 
@@ -1094,16 +1094,34 @@ def get_img_info(img=None, rating_key=None, title='', width=600, height=1000,
     img = '/'.join(img_split[:5])
     rating_key = rating_key or img_split[3]
 
-    image_info = {'img': img,
-                  'rating_key': rating_key,
-                  'width': width,
-                  'height': height,
-                  'opacity': opacity,
-                  'background': background,
-                  'blur': blur,
-                  'fallback': fallback}
-
     service = helpers.get_img_service()
+
+    if service == 'cloudinary':
+        if fallback == 'cover':
+            w, h = 1000, 1000
+        elif fallback == 'art':
+            w, h = 1920, 1080
+        else:
+            w, h = 1000, 1500
+
+        image_info = {'img': img,
+                      'rating_key': rating_key,
+                      'width': w,
+                      'height': h,
+                      'opacity': 100,
+                      'background': '000000',
+                      'blur': 0,
+                      'fallback': fallback}
+
+    else:
+        image_info = {'img': img,
+                      'rating_key': rating_key,
+                      'width': width,
+                      'height': height,
+                      'opacity': opacity,
+                      'background': background,
+                      'blur': blur,
+                      'fallback': fallback}
 
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
@@ -1140,10 +1158,25 @@ def get_img_info(img=None, rating_key=None, title='', width=600, height=1000,
 
                 img_info = {'img_title': title, 'img_url': img_url}
 
+    if img_info['img_url'] and service == 'cloudinary':
+        # Transform image using Cloudinary
+        image_info = {'rating_key': rating_key,
+                      'width': width,
+                      'height': height,
+                      'opacity': opacity,
+                      'background': background,
+                      'blur': blur,
+                      'fallback': fallback,
+                      'img_title': title}
+
+        transformed_url = helpers.cloudinary_transform(**image_info)
+        if transformed_url:
+            img_info['img_url'] = transformed_url
+
     return img_info
 
 
-def set_hash_image_info(img=None, rating_key=None, width=600, height=1000,
+def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
                         opacity=100, background='000000', blur=0, fallback=None):
     if not rating_key and not img:
         return fallback

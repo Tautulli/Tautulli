@@ -17,6 +17,7 @@ import base64
 import cloudinary
 from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
+from cloudinary.utils import cloudinary_url
 import datetime
 from functools import wraps
 import geoip2.database, geoip2.errors
@@ -720,14 +721,13 @@ def get_img_service(include_self=False):
 
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Imgur """
-    client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
     img_url = delete_hash = ''
 
-    if not client_id:
+    if not plexpy.CONFIG.IMGUR_CLIENT_ID:
         logger.error(u"Tautulli Helpers :: Cannot upload image to Imgur. No Imgur client id specified in the settings.")
         return img_url, delete_hash
 
-    headers = {'Authorization': 'Client-ID %s' % client_id}
+    headers = {'Authorization': 'Client-ID %s' % plexpy.CONFIG.IMGUR_CLIENT_ID}
     data = {'image': base64.b64encode(img_data),
             'title': img_title.encode('utf-8'),
             'name': str(rating_key) + '.png',
@@ -755,9 +755,11 @@ def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
 
 def delete_from_imgur(delete_hash, img_title='', fallback=''):
     """ Deletes an image from Imgur """
-    client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
+    if not plexpy.CONFIG.IMGUR_CLIENT_ID:
+        logger.error(u"Tautulli Helpers :: Cannot delete image from Imgur. No Imgur client id specified in the settings.")
+        return False
 
-    headers = {'Authorization': 'Client-ID %s' % client_id}
+    headers = {'Authorization': 'Client-ID %s' % plexpy.CONFIG.IMGUR_CLIENT_ID}
 
     response, err_msg, req_msg = request.request_response2('https://api.imgur.com/3/image/%s' % delete_hash, 'DELETE',
                                                            headers=headers)
@@ -775,16 +777,17 @@ def delete_from_imgur(delete_hash, img_title='', fallback=''):
 
 def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
     """ Uploads an image to Cloudinary """
-    cloudinary.config(
-        cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
-        api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
-        api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
-    )
     img_url = ''
 
     if not plexpy.CONFIG.CLOUDINARY_CLOUD_NAME or not plexpy.CONFIG.CLOUDINARY_API_KEY or not plexpy.CONFIG.CLOUDINARY_API_SECRET:
         logger.error(u"Tautulli Helpers :: Cannot upload image to Cloudinary. Cloudinary settings not specified in the settings.")
         return img_url
+
+    cloudinary.config(
+        cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
+        api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
+        api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
+    )
 
     try:
         response = upload('data:image/png;base64,{}'.format(base64.b64encode(img_data)),
@@ -801,6 +804,10 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
 
 def delete_from_cloudinary(rating_key):
     """ Deletes an image from Cloudinary """
+    if not plexpy.CONFIG.CLOUDINARY_CLOUD_NAME or not plexpy.CONFIG.CLOUDINARY_API_KEY or not plexpy.CONFIG.CLOUDINARY_API_SECRET:
+        logger.error(u"Tautulli Helpers :: Cannot delete image from Cloudinary. Cloudinary settings not specified in the settings.")
+        return False
+
     cloudinary.config(
         cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
         api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
@@ -811,6 +818,47 @@ def delete_from_cloudinary(rating_key):
 
     logger.debug(u"Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
     return True
+
+
+def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, background='000000', blur=0,
+                         img_format='png', img_title='', fallback=None):
+    url = ''
+
+    if not plexpy.CONFIG.CLOUDINARY_CLOUD_NAME or not plexpy.CONFIG.CLOUDINARY_API_KEY or not plexpy.CONFIG.CLOUDINARY_API_SECRET:
+        logger.error(u"Tautulli Helpers :: Cannot transform image on Cloudinary. Cloudinary settings not specified in the settings.")
+        return url
+
+    cloudinary.config(
+        cloud_name=plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
+        api_key=plexpy.CONFIG.CLOUDINARY_API_KEY,
+        api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
+    )
+
+    img_options = {}
+
+    if width != 1000:
+        img_options['width'] = width
+        img_options['crop'] = 'fill'
+    if height != 1500:
+        img_options['height'] = height
+        img_options['crop'] = 'fill'
+    if opacity != 100:
+        img_options['opacity'] = opacity
+    if background != '000000':
+        img_options['background'] = 'rgb:{}'.format(background)
+    if blur != 0:
+        img_options['effect'] = 'blur:{}'.format(blur * 100)
+
+    if img_options:
+        img_options['format'] = img_format
+
+        try:
+            url, options = cloudinary_url('{}_{}'.format(fallback, rating_key), **img_options)
+            logger.debug(u"Tautulli Helpers :: Image '{}' ({}) transformed on Cloudinary.".format(img_title, fallback))
+        except Exception as e:
+            logger.error(u"Tautulli Helpers :: Unable to transform image '{}' ({}) on Cloudinary: {}".format(img_title, fallback, e))
+
+    return url
 
 
 def cache_image(url, image=None):
