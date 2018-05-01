@@ -1072,7 +1072,10 @@ def get_plexpy_url(hostname=None):
             s.connect(('<broadcast>', 0))
             hostname = s.getsockname()[0]
         except socket.error:
-            hostname = socket.gethostbyname(socket.gethostname())
+            try:
+                hostname = socket.gethostbyname(socket.gethostname())
+            except socket.gaierror:
+                pass
 
         if not hostname:
             hostname = 'localhost'
