@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.1.2-beta (2018-05-01)
+
+* Newsletters:
+  * New: Added Cloudinary option for image hosting.
+* Notifications:
+  * New: Added Message-ID to Email header (Thanks @Dam64)
+  * Fix: Posters not showing up on Twitter with self-hosted images.
+  * Fix: Incorrect action parameter for new device notifications.
+  * Change: Hardcode Pushover sound list instead of fetching the list every time.
+* API:
+  * Fix: Success result for empty response data.
+  * Change: Do not send notification when checking for Tautulli updates via the API.
+
+
 ## v2.1.1-beta (2018-04-11)
 
 * Monitoring:
