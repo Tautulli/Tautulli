@@ -475,7 +475,10 @@ class Newsletter(object):
     def _build_params(self):
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
-        base_url = plexpy.CONFIG.HTTP_BASE_URL or helpers.get_plexpy_url()
+        if plexpy.CONFIG.HTTP_BASE_URL.rstrip('/'):
+            base_url = plexpy.CONFIG.HTTP_BASE_URL.rstrip('/') + plexpy.HTTP_ROOT.strip('/')
+        else:
+            base_url = helpers.get_plexpy_url()
 
         parameters = {
             'server_name': plexpy.CONFIG.PMS_NAME,
@@ -484,7 +487,7 @@ class Newsletter(object):
             'week_number': self.start_date.isocalendar()[1],
             'newsletter_time_frame': self.config['time_frame'],
             'newsletter_time_frame_units': self.config['time_frame_units'],
-            'newsletter_url': base_url.rstrip('/') + plexpy.HTTP_ROOT + 'newsletter/' + self.uuid,
+            'newsletter_url': base_url + '/newsletter/' + self.uuid,
             'newsletter_uuid': self.uuid
         }
 
