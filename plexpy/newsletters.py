@@ -476,7 +476,7 @@ class Newsletter(object):
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
         if plexpy.CONFIG.HTTP_BASE_URL.rstrip('/'):
-            base_url = plexpy.CONFIG.HTTP_BASE_URL.rstrip('/') + plexpy.HTTP_ROOT.strip('/')
+            base_url = plexpy.CONFIG.HTTP_BASE_URL.rstrip('/') + '/' + plexpy.HTTP_ROOT.strip('/')
         else:
             base_url = helpers.get_plexpy_url()
 
