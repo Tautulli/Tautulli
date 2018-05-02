@@ -2544,7 +2544,7 @@ class PmsConnect(object):
                         metadata = self.get_metadata_details(rating_key=rating_key)
                         search_results_list[metadata['media_type']].append(metadata)
 
-        output = {'results_count': sum(len(s) for s in search_results_list.items()),
+        output = {'results_count': sum(len(s) for s in search_results_list.values()),
                   'results_list': search_results_list
                   }
 

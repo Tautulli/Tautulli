@@ -188,7 +188,7 @@ DOCUMENTATION :: END
             },
             complete: function (xhr, status) {
                 $('#search-results-list').html(xhr.responseText);
-                $('#update_query_title').html(query_string)
+                $('#update_query_title').text(query_string)
             }
         });
     }
