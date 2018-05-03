@@ -792,8 +792,8 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
     try:
         response = upload('data:image/png;base64,{}'.format(base64.b64encode(img_data)),
                           public_id='{}_{}'.format(fallback, rating_key),
-                          tags=[fallback, rating_key],
-                          context={'title': img_title, 'rating_key': rating_key, 'fallback': fallback})
+                          tags=[fallback, str(rating_key)],
+                          context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
         logger.debug(u"Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
@@ -837,10 +837,10 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
     img_options = {}
 
     if width != 1000:
-        img_options['width'] = width
+        img_options['width'] = str(width)
         img_options['crop'] = 'fill'
     if height != 1500:
-        img_options['height'] = height
+        img_options['height'] = str(height)
         img_options['crop'] = 'fill'
     if opacity != 100:
         img_options['opacity'] = opacity
