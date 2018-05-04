@@ -793,7 +793,7 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
         response = upload('data:image/png;base64,{}'.format(base64.b64encode(img_data)),
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=[fallback, str(rating_key)],
-                          context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
+                          context={'title': img_title.encode('utf-8'), 'rating_key': str(rating_key), 'fallback': fallback})
         logger.debug(u"Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
