@@ -256,7 +256,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
                 elif parameter_type == 'float':
                     values = [helpers.cast_to_float(v) for v in values]
-            
+
             except ValueError as e:
                 logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s', values '%s', to type '%s'."
                              % (parameter, values, parameter_type))
@@ -317,7 +317,9 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
         else:
             evaluated_logic = all(evaluated_conditions[1:])
 
-        logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
+        logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '{}'. Conditions: {}.".format(
+            evaluated_logic, evaluated_conditions[1:]))
+
         return evaluated_logic
 
     return True
