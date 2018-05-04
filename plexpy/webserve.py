@@ -3962,13 +3962,20 @@ class WebInterface(object):
             return
 
         if rating_key and not img:
-            img = '/library/metadata/%s/thumb/1337' % rating_key
+            if fallback == 'art':
+                img = '/library/metadata/{}/art'.format(rating_key)
+            else:
+                img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        img_string = img.rsplit('/', 1)[0] if '/library/metadata' in img else img
-        img_string = '{}{}{}{}{}{}'.format(img_string, width, height, opacity, background, blur)
+        img_split = img.split('/')
+        img = '/'.join(img_split[:5])
+        rating_key = rating_key or img_split[3]
 
-        fp = hashlib.md5(img_string).hexdigest()
-        fp += '.%s' % img_format  # we want to be able to preview the thumbs
+        img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
+            plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
+        img_hash = hashlib.sha256(img_string).hexdigest()
+
+        fp = '{}.{}'.format(img_hash, img_format)  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
         ffp = os.path.join(c_dir, fp)
 
@@ -3994,7 +4001,8 @@ class WebInterface(object):
                                                background=background,
                                                blur=blur,
                                                img_format=img_format,
-                                               clip=clip)
+                                               clip=clip,
+                                               refresh=refresh)
 
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]

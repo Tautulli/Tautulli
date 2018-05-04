@@ -2436,7 +2436,7 @@ class PmsConnect(object):
         return labels_list
 
     def get_image(self, img=None, width=1000, height=1500, opacity=None, background=None, blur=None,
-                  img_format='png', clip=False, **kwargs):
+                  img_format='png', clip=False, refresh=False, **kwargs):
         """
         Return image data as array.
         Array contains the image content type and image binary
@@ -2454,6 +2454,9 @@ class PmsConnect(object):
         height = height or 1500
 
         if img:
+            if refresh:
+                img = '{}/{}'.format(img.rstrip('/'), int(time.time()))
+
             if clip:
                 params = {'url': '%s&%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
             else:
