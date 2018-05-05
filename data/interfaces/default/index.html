@@ -5,6 +5,7 @@
 </%def>
 
 <%def name="body()">
+<% from plexpy import PLEX_SERVER_UP %>
 <div class="container-fluid">
     % for section in config['home_sections']:
     % if section == 'current_activity':
@@ -22,7 +23,6 @@
                 </h3>
             </div>
             <div id="currentActivity">
-                <% from plexpy import PLEX_SERVER_UP %>
                 % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
                 % elif config['pms_is_cloud']:
@@ -135,7 +135,17 @@
     <div class="row">
         <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
+                % if PLEX_SERVER_UP:
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+                % elif config['pms_is_cloud']:
+                <div class="text-muted">Plex Cloud server is sleeping.</div>
+                % else:
+                <div class="text-muted">There was an error communicating with your Plex Server.
+                    % if _session['user_group'] == 'admin':
+                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
+                    % endif
+                </div>
+                % endif
                 <br>
             </div>
         </div>
@@ -222,6 +232,7 @@
 </%def>
 
 <%def name="javascriptIncludes()">
+<% from plexpy import PLEX_SERVER_UP %>
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
 <script src="${http_root}js/jquery.mousewheel.min.js"></script>
@@ -254,7 +265,6 @@
         });
     }
 </script>
-<% from plexpy import PLEX_SERVER_UP %>
 % if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     var defaultHandler = {
@@ -746,7 +756,7 @@
     getLibraryStats();
 </script>
 % endif
-% if 'recently_added' in config['home_sections']:
+% if 'recently_added' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     function recentlyAdded(recently_added_count, recently_added_type) {
         showMsg("Loading recently added items...", true, false, 0);
