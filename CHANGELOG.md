@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.4 (2018-05-05)
+
+* Newsletters:
+  * Fix: Newsletter URL without an HTTP root.
+
+
 ## v2.1.3-beta (2018-05-04)
 
 * Newsletters:
