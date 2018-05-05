@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.3-beta (2018-05-04)
+
+* Newsletters:
+  * Fix: HTTP root doubled in newsletter URL.
+  * Fix: Configuration would not open with failed hostname resolution.
+  * Fix: Schedule one day off when using weekday names in cron.
+  * Fix: Images not refreshing when changed in Plex.
+  * Fix: Cloudinary upload with non-ASCII image titles.
+* Other:
+  * Fix: Potential XSS vulnerability in search.
+
+
 ## v2.1.2-beta (2018-05-01)
 
 * Newsletters:
