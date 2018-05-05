@@ -1098,7 +1098,10 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
 
     service = helpers.get_img_service()
 
-    if service == 'cloudinary':
+    if service is None:
+        return img_info
+
+    elif service == 'cloudinary':
         if fallback == 'cover':
             w, h = 1000, 1000
         elif fallback == 'art':
