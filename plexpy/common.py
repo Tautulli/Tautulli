@@ -519,8 +519,8 @@ NEWSLETTER_PARAMETERS = [
         'category': 'Global',
         'parameters': [
             {'name': 'Server Name', 'type': 'str', 'value': 'server_name', 'description': 'The name of your Plex Server.'},
-            {'name': 'Start Date', 'type': 'str', 'value': 'start_date', 'description': 'The start date of the newesletter.'},
-            {'name': 'End Date', 'type': 'str', 'value': 'end_date', 'description': 'The end date of the newesletter.'},
+            {'name': 'Start Date', 'type': 'str', 'value': 'start_date', 'description': 'The start date of the newsletter.'},
+            {'name': 'End Date', 'type': 'str', 'value': 'end_date', 'description': 'The end date of the newsletter.'},
             {'name': 'Week Number', 'type': 'int', 'value': 'week_number', 'description': 'The week number of the year.'},
             {'name': 'Newsletter Time Frame', 'type': 'int', 'value': 'newsletter_time_frame', 'description': 'The time frame included in the newsletter.'},
             {'name': 'Newsletter Time Frame Units', 'type': 'str', 'value': 'newsletter_time_frame_units', 'description': 'The time frame units included in the newsletter.'},
