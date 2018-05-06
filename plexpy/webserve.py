@@ -5661,6 +5661,7 @@ class WebInterface(object):
                     except NotFound:
                         return
 
+                cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
                 return self.image(args[1], refresh=True)
 
             newsletter_uuid = args[0]
