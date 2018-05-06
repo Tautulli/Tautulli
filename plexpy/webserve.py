@@ -2755,7 +2755,8 @@ class WebInterface(object):
             "tvmaze_lookup": checked(plexpy.CONFIG.TVMAZE_LOOKUP),
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
-            "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED)
+            "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
+            "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)

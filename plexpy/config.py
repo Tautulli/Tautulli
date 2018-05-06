@@ -312,6 +312,7 @@ _CONFIG_DEFINITIONS = {
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
     'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
+    'NEWSLETTER_CUSTOM_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_TEMPLATES': (str, 'Newsletter', 'newsletters'),
     'NEWSLETTER_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_SELF_HOSTED': (int, 'Newsletter', 0),
