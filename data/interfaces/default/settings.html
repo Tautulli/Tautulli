@@ -956,8 +956,7 @@
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
                             <p class="help-block" id="self_host_newsletter_message">
-                                Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.<br>
-                                Note: Newsletter images will be self-hosted regardless of the Image Hosting setting below.<br>
+                                Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
                             </p>
                             <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
@@ -1084,7 +1083,7 @@
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Warning: Either <em>online</em> <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> or <a data-tab-destination="tabs-notifications" data-target="#newsletter_self_hosted">Self-Hosted Newsletters</a> must be enabled.</span>
+                            Warning: <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> must be enabled for images to display on the newsletter.</span>
                         </p>
                         <br/>
                         <div id="plexpy-newsletters-table">
@@ -2605,10 +2604,10 @@ $(document).ready(function() {
     });
 
     function newsletterUploadEnabled() {
-        if ($('#notify_upload_posters').val() !== '2' || $('#newsletter_self_hosted').is(':checked')) {
-            $('#newsletter_upload_warning').hide();
-        } else {
+        if ($('#notify_upload_posters').val() === '0') {
             $('#newsletter_upload_warning').show();
+        } else {
+            $('#newsletter_upload_warning').hide();
         }
     }
     newsletterUploadEnabled();

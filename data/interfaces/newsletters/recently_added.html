@@ -1,17 +1,23 @@
 ﻿% if data:
 <%
     import plexpy
-    from plexpy.helpers import grouper
+    from plexpy.helpers import grouper, get_img_service
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
         base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
-        base_url_image = base_url + 'image/'
     elif preview:
         base_url = 'newsletter/'
-        base_url_image = base_url + 'image/'
     else:
-        base_url = base_url_image = ''
+        base_url = ''
+
+    if get_img_service(include_self=True) == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
+        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
+    elif preview:
+        base_url_image = 'newsletter/image/'
+    else:
+        base_url_image = ''
+
 %>
 <!doctype html>
 <html>

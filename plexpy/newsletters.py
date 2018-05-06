@@ -695,7 +695,7 @@ class RecentlyAdded(Newsletter):
         artists = recently_added.get('artist', [])
         albums = [a for artist in artists for a in artist['album']]
 
-        if self.is_preview or plexpy.CONFIG.NEWSLETTER_SELF_HOSTED:
+        if self.is_preview or helpers.get_img_service(include_self=True) == 'self-hosted':
             for item in movies + shows + albums:
                 if item['media_type'] == 'album':
                     height = 150
@@ -717,7 +717,7 @@ class RecentlyAdded(Newsletter):
                 item['poster_url'] = ''
                 item['art_url'] = ''
 
-        else:
+        elif helpers.get_img_service():
             # Upload posters and art to image hosting service
             for item in movies + shows + albums:
                 if item['media_type'] == 'album':
