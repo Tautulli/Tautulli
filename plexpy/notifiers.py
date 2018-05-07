@@ -1310,26 +1310,30 @@ class EMAIL(Notifier):
 
         recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
+        success = False
+        mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+
         try:
-            mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+            mailserver.ehlo()
 
             if self.config['tls']:
                 mailserver.starttls()
-
-            mailserver.ehlo()
+                mailserver.ehlo()
 
             if self.config['smtp_user']:
                 mailserver.login(str(self.config['smtp_user']), str(self.config['smtp_password']))
 
             mailserver.sendmail(self.config['from'], recipients, msg.as_string())
-            mailserver.quit()
-
-            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
-            return True
+            success = True
 
         except Exception as e:
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
-            return False
+
+        finally:
+            mailserver.quit()
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
+
+        return success
 
     def get_user_emails(self):
         emails = {u['email']: u['friendly_name'] for u in users.Users().get_users() if u['email']}
