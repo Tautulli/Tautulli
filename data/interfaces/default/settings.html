@@ -702,6 +702,17 @@
                                 The server URL that Tautulli will use to connect to your Plex server. Retrieved automatically.
                             </p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="pms_url">Plex Server Identifier</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}" size="30" readonly>
+                                </div>
+                            </div>
+                            <p class="help-block">
+                                The unique identifier for your Plex server. Retrieved automatically.
+                            </p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="pms-settings" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
@@ -728,7 +739,6 @@
                         </div>
 
                         <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
-                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
                         <div class="form-group advanced-setting">
