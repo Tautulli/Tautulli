@@ -1137,7 +1137,7 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
 
     elif not database_img_info and img:
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_image(**image_info)
+        result = pms_connect.get_image(refresh=True, **image_info)
 
         if result and result[0]:
             img_url = delete_hash = ''
