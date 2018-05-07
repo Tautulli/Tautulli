@@ -834,7 +834,8 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
         api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
     )
 
-    img_options = {}
+    img_options = {'format': img_format,
+                   'version': int(time.time())}
 
     if width != 1000:
         img_options['width'] = str(width)
@@ -849,14 +850,11 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
     if blur != 0:
         img_options['effect'] = 'blur:{}'.format(blur * 100)
 
-    if img_options:
-        img_options['format'] = img_format
-
-        try:
-            url, options = cloudinary_url('{}_{}'.format(fallback, rating_key), **img_options)
-            logger.debug(u"Tautulli Helpers :: Image '{}' ({}) transformed on Cloudinary.".format(img_title, fallback))
-        except Exception as e:
-            logger.error(u"Tautulli Helpers :: Unable to transform image '{}' ({}) on Cloudinary: {}".format(img_title, fallback, e))
+    try:
+        url, options = cloudinary_url('{}_{}'.format(fallback, rating_key), **img_options)
+        logger.debug(u"Tautulli Helpers :: Image '{}' ({}) transformed on Cloudinary.".format(img_title, fallback))
+    except Exception as e:
+        logger.error(u"Tautulli Helpers :: Unable to transform image '{}' ({}) on Cloudinary: {}".format(img_title, fallback, e))
 
     return url
 
