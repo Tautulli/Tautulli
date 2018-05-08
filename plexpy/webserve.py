@@ -5665,8 +5665,15 @@ class WebInterface(object):
                 cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
                 return self.image(args[1], refresh=True)
 
-            newsletter_uuid = args[0]
-            newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid)
+            if len(args) >= 2 and args[0] == 'id':
+                newsletter_id = args[1]
+                newsletter_uuid = None
+            else:
+                newsletter_id = None
+                newsletter_uuid = args[0]
+
+            newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid,
+                                                           newsletter_id=newsletter_id)
             return newsletter
 
     @cherrypy.expose
@@ -5685,7 +5692,8 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'],
+                newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
+                                                               agent_id=newsletter['agent_id'],
                                                                config=newsletter['config'],
                                                                start_date=start_date,
                                                                end_date=end_date,

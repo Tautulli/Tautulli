@@ -63,12 +63,13 @@ def available_notification_actions():
     return actions
 
 
-def get_agent_class(agent_id=None, config=None, email_config=None, start_date=None, end_date=None,
+def get_agent_class(newsletter_id=None, agent_id=None, config=None, email_config=None, start_date=None, end_date=None,
                     subject=None, body=None, message=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
-        kwargs = {'config': config,
+        kwargs = {'newsletter_id': newsletter_id,
+                  'config': config,
                   'email_config': email_config,
                   'start_date': start_date,
                   'end_date': end_date,
@@ -138,7 +139,8 @@ def get_newsletter_config(newsletter_id=None):
         subject = result.pop('subject')
         body = result.pop('body')
         message = result.pop('message')
-        newsletter_agent = get_agent_class(agent_id=result['agent_id'], config=config, email_config=email_config,
+        newsletter_agent = get_agent_class(newsletter_id=newsletter_id, agent_id=result['agent_id'],
+                                           config=config, email_config=email_config,
                                            subject=subject, body=body, message=message)
     except Exception as e:
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
@@ -223,7 +225,8 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     body = kwargs.pop('body')
     message = kwargs.pop('message')
 
-    agent_class = get_agent_class(agent_id=agent['id'], config=newsletter_config, email_config=email_config,
+    agent_class = get_agent_class(newsletter_id=newsletter_id, agent_id=agent['id'],
+                                  config=newsletter_config, email_config=email_config,
                                   subject=subject, body=body, message=message)
 
     keys = {'id': newsletter_id}
@@ -312,12 +315,13 @@ class Newsletter(object):
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, config=None, email_config=None, start_date=None, end_date=None,
+    def __init__(self, newsletter_id=None, config=None, email_config=None, start_date=None, end_date=None,
                  subject=None, body=None, message=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
         self.uuid = generate_newsletter_uuid()
 
+        self.newsletter_id = newsletter_id
         self.start_date = None
         self.end_date = None
 
@@ -479,9 +483,9 @@ class Newsletter(object):
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
         if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
-            base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT
+            base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
         else:
-            base_url = helpers.get_plexpy_url() + '/'
+            base_url = helpers.get_plexpy_url() + '/newsletter/'
 
         parameters = {
             'server_name': plexpy.CONFIG.PMS_NAME,
@@ -490,8 +494,10 @@ class Newsletter(object):
             'week_number': self.start_date.isocalendar()[1],
             'newsletter_time_frame': self.config['time_frame'],
             'newsletter_time_frame_units': self.config['time_frame_units'],
-            'newsletter_url': base_url + 'newsletter/' + self.uuid,
-            'newsletter_uuid': self.uuid
+            'newsletter_url': base_url + self.uuid,
+            'newsletter_latest_url': base_url + 'id/' + str(self.newsletter_id),
+            'newsletter_uuid': self.uuid,
+            'newsletter_id': self.newsletter_id
         }
 
         return parameters
