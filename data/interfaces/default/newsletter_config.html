@@ -192,7 +192,14 @@
                                 <div class="col-md-12">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send newsletter as an HTML formatted Email
+                                            <input type="checkbox" id="newsletter_config_save_only_checkbox" data-id="newsletter_config_save_only" class="checkboxes" value="1" ${checked(newsletter['config']['save_only'])}> Save Newsletter File Only
+                                        </label>
+                                        <p class="help-block">Enable to save the newsletter file without sending it to any notification agent.</p>
+                                        <input type="hidden" id="newsletter_config_save_only" name="newsletter_config_save_only" value="${newsletter['config']['save_only']}">
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send Newsletter as an HTML Formatted Email
                                         </label>
                                         <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
                                         <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">

@@ -306,7 +306,8 @@ class Newsletter(object):
                        'time_frame_units': 'days',
                        'formatted': 1,
                        'notifier_id': 0,
-                       'filename': ''}
+                       'filename': '',
+                       'save_only': 0}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier_id'] = 0
@@ -436,6 +437,10 @@ class Newsletter(object):
             return False
 
         self._save()
+
+        if self.config['save_only']:
+            return True
+
         return self._send()
 
     def _save(self):
