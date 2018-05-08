@@ -173,7 +173,7 @@
                                                 <input type="text" class="form-control" id="id_name" name="id_name" value="${newsletter['id_name']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">/newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
+                                        <p class="help-block">Optional: Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">/newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="newsletter_config_filename">Filename</label>
@@ -182,7 +182,7 @@
                                                 <input type="text" class="form-control" id="newsletter_config_filename" name="newsletter_config_filename" value="${newsletter['config']['filename']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">The filename to use when saving the newsletter (ending with <span class="inline-pre">.html</span>). You may use any of the <a href="#newsletter-text-sub-modal" data-toggle="modal">newsletter text parameters</a>. Leave blank for default.</p>
+                                        <p class="help-block">Optional: Enter the filename to use when saving the newsletter (ending with <span class="inline-pre">.html</span>). You may use any of the <a href="#newsletter-text-sub-modal" data-toggle="modal">newsletter text parameters</a>. Leave blank for default.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
