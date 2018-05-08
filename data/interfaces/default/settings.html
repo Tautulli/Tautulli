@@ -980,6 +980,15 @@
                             </div>
                             <p class="help-block">Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="newsletter_dir">Newsletter Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}">
+                                </div>
+                            </div>
+                            <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>3rd Party APIs</h3>
@@ -1189,14 +1198,6 @@
                                         <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
                                         <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="newsletter_dir">Newsletter Directory</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}">
                                 </div>
                             </div>
                         </div>

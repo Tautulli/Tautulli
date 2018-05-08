@@ -305,13 +305,15 @@ class Newsletter(object):
                        'time_frame': 7,
                        'time_frame_units': 'days',
                        'formatted': 1,
-                       'notifier_id': 0}
+                       'notifier_id': 0,
+                       'filename': ''}
     _DEFAULT_EMAIL_CONFIG = EMAIL().return_default_config()
     _DEFAULT_EMAIL_CONFIG['from_name'] = 'Tautulli Newsletter'
     _DEFAULT_EMAIL_CONFIG['notifier_id'] = 0
     _DEFAULT_SUBJECT = 'Tautulli Newsletter'
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _DEFAULT_MESSAGE = ''
+    _DEFAULT_FILENAME = 'newsletter_{newsletter_uuid}.html'
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
@@ -353,7 +355,13 @@ class Newsletter(object):
         self.subject = subject or self._DEFAULT_SUBJECT
         self.body = body or self._DEFAULT_BODY
         self.message = message or self._DEFAULT_MESSAGE
+        self.filename = self.config['filename'] or self._DEFAULT_FILENAME
+
+        if not self.filename.endswith('.html'):
+            self.filename += '.html'
+
         self.subject_formatted, self.body_formatted, self.message_formatted = self.build_text()
+        self.filename_formatted = self.build_filename()
 
         self.data = {}
         self.newsletter = None
@@ -431,10 +439,8 @@ class Newsletter(object):
         return self._send()
 
     def _save(self):
-        newsletter_file = 'newsletter_%s-%s_%s.html' % (self.start_date.format('YYYYMMDD'),
-                                                        self.end_date.format('YYYYMMDD'),
-                                                        self.uuid)
-        newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR
+        newsletter_file = self.filename_formatted
+        newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR or os.path.join(plexpy.DATA_DIR, 'newsletters')
         newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
 
         # In case the user has deleted it manually
@@ -540,6 +546,23 @@ class Newsletter(object):
             message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
 
         return subject, body, message
+
+    def build_filename(self):
+        from notification_handler import CustomFormatter
+        custom_formatter = CustomFormatter()
+
+        try:
+            filename = custom_formatter.format(unicode(self.filename), **self.parameters)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
+            filename = unicode(self._DEFAULT_FILENAME).format(**self.parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            filename = unicode(self._DEFAULT_FILENAME).format(**self.parameters)
+
+        return filename
 
     def return_config_options(self):
         return self._return_config_options()
@@ -809,4 +832,4 @@ class RecentlyAdded(Newsletter):
              }
         ]
 
-        return config_options + additional_config
+        return additional_config + config_options
