@@ -11,10 +11,10 @@
     else:
         base_url = ''
 
-    service = get_img_service()
-    if get_img_service(include_self=True) == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
+    service = get_img_service(include_self=True)
+    if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
         base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif service and preview:
+    elif service and service != 'self-hosted' and preview:
         base_url_image = 'newsletter/image/'
     else:
         base_url_image = ''
@@ -624,7 +624,9 @@
 </head>
 <body class="" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;-webkit-font-smoothing: antialiased;font-size: 14px;line-height: 1.4;margin: 0;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
 % if preview and service:
-<div class="local-preview-note" style="text-align: center;padding-top: 10px;"><p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;color: #282A2D;font-size: 12px;">Note: Local preview only - images have not been uploaded to ${service.capitalize()}</p></div>  <!-- IGNORE SAVE -->
+<div class="local-preview-note" style="text-align: center;padding-top: 10px;"><p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;color: #282A2D;font-size: 12px;">Note: Local preview images only - images will be uploaded to ${service.capitalize()} when the newsletter is sent.</p></div>  <!-- IGNORE SAVE -->
+% elif preview and not service:
+<div class="local-preview-note" style="text-align: center;padding-top: 10px;"><p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;color: #282A2D;font-size: 12px;">Warning: The Image Hosting setting must be enabled for images to display on the newsletter.</p></div>  <!-- IGNORE SAVE -->
 % endif
 <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
     <tr>
