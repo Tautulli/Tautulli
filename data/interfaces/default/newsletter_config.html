@@ -173,7 +173,7 @@
                                                 <input type="text" class="form-control" id="id_name" name="id_name" value="${newsletter['id_name']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">Optional: Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">/newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
+                                        <p class="help-block">Optional: Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">${http_root}newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="newsletter_config_filename">Filename</label>
