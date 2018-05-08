@@ -527,7 +527,8 @@ NEWSLETTER_PARAMETERS = [
             {'name': 'Newsletter URL', 'type': 'str', 'value': 'newsletter_url', 'description': 'The self-hosted URL to the newsletter.'},
             {'name': 'Newsletter Static URL', 'type': 'str', 'value': 'newsletter_static_url', 'description': 'The static self-hosted URL to the latest scheduled newsletter for the agent.'},
             {'name': 'Newsletter UUID', 'type': 'str', 'value': 'newsletter_uuid', 'description': 'The unique identifier for the newsletter.'},
-            {'name': 'Newsletter ID', 'type': 'int', 'value': 'newsletter_id', 'description': 'The ID number for the newsletter agent.'},
+            {'name': 'Newsletter ID', 'type': 'int', 'value': 'newsletter_id', 'description': 'The unique ID number for the newsletter agent.'},
+            {'name': 'Newsletter ID Name', 'type': 'int', 'value': 'newsletter_id_name', 'description': 'The unique ID name for the newsletter agent.'},
         ]
      },
     {

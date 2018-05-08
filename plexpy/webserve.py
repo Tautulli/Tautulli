@@ -2756,7 +2756,6 @@ class WebInterface(object):
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
             "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
-            "newsletter_static_url": checked(plexpy.CONFIG.NEWSLETTER_STATIC_URL),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
         }
 
@@ -2779,7 +2778,7 @@ class WebInterface(object):
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
-            "newsletter_self_hosted", "newsletter_static_url"
+            "newsletter_self_hosted"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -5666,15 +5665,15 @@ class WebInterface(object):
                 cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
                 return self.image(args[1], refresh=True)
 
-            if plexpy.CONFIG.NEWSLETTER_STATIC_URL and len(args) >= 2 and args[0] == 'id':
-                newsletter_id = args[1]
+            if len(args) >= 2 and args[0] == 'id':
+                newsletter_id_name = args[1]
                 newsletter_uuid = None
             else:
-                newsletter_id = None
+                newsletter_id_name = None
                 newsletter_uuid = args[0]
 
             newsletter = newsletter_handler.get_newsletter(newsletter_uuid=newsletter_uuid,
-                                                           newsletter_id=newsletter_id)
+                                                           newsletter_id_name=newsletter_id_name)
             return newsletter
 
     @cherrypy.expose
@@ -5694,6 +5693,7 @@ class WebInterface(object):
 
             if newsletter:
                 newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
+                                                               newsletter_id_name=newsletter['id_name'],
                                                                agent_id=newsletter['agent_id'],
                                                                config=newsletter['config'],
                                                                start_date=start_date,
