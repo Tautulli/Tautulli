@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.5-beta (2018-05-07)
+
+* Newsletters:
+  * New: Added setting for a custom newsletter template folder.
+  * New: Added option to enable static newsletter URLs to retrieve the last sent scheduled newsletter.
+  * New: Added ability to change the newsletter output directory and filenames.
+  * New: Added option to save the newsletter file without sending it to a notification agent.
+  * Fix: Check for disabled image hosting setting.
+  * Fix: Cache newsletter images when refreshing the page.
+  * Fix: Refresh image from the Plex server when uploading to image hosting.
+  * Change: Allow all image hosting options with self-hosted newsletters.
+* UI:
+  * Change: Don't retrieve recently added on the homepage if the Plex Cloud server is sleeping.
+* Other:
+  * Fix: Imgur database upgrade migration.
+
+
 ## v2.1.4 (2018-05-05)
 
 * Newsletters:
