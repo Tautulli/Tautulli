@@ -63,12 +63,13 @@ def available_notification_actions():
     return actions
 
 
-def get_agent_class(newsletter_id=None, agent_id=None, config=None, email_config=None, start_date=None, end_date=None,
-                    subject=None, body=None, message=None):
+def get_agent_class(newsletter_id=None, newsletter_id_name=None, agent_id=None, config=None, email_config=None,
+                    start_date=None, end_date=None, subject=None, body=None, message=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
         kwargs = {'newsletter_id': newsletter_id,
+                  'newsletter_id_name': newsletter_id_name,
                   'config': config,
                   'email_config': email_config,
                   'start_date': start_date,
@@ -139,7 +140,8 @@ def get_newsletter_config(newsletter_id=None):
         subject = result.pop('subject')
         body = result.pop('body')
         message = result.pop('message')
-        newsletter_agent = get_agent_class(newsletter_id=newsletter_id, agent_id=result['agent_id'],
+        newsletter_agent = get_agent_class(newsletter_id=newsletter_id, newsletter_id_name=result['id_name'],
+                                           agent_id=result['agent_id'],
                                            config=config, email_config=email_config,
                                            subject=subject, body=body, message=message)
     except Exception as e:
@@ -178,6 +180,7 @@ def add_newsletter_config(agent_id=None, **kwargs):
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
               'agent_label': agent['label'],
+              'id_name': '',
               'friendly_name': '',
               'newsletter_config': json.dumps(agent_class.config),
               'email_config': json.dumps(agent_class.email_config),
@@ -225,7 +228,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     body = kwargs.pop('body')
     message = kwargs.pop('message')
 
-    agent_class = get_agent_class(newsletter_id=newsletter_id, agent_id=agent['id'],
+    agent_class = get_agent_class(agent_id=agent['id'],
                                   config=newsletter_config, email_config=email_config,
                                   subject=subject, body=body, message=message)
 
@@ -233,6 +236,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
               'agent_label': agent['label'],
+              'id_name': kwargs.get('id_name', ''),
               'friendly_name': kwargs.get('friendly_name', ''),
               'newsletter_config': json.dumps(agent_class.config),
               'email_config': json.dumps(agent_class.email_config),
@@ -318,13 +322,14 @@ class Newsletter(object):
     _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
-    def __init__(self, newsletter_id=None, config=None, email_config=None, start_date=None, end_date=None,
-                 subject=None, body=None, message=None):
+    def __init__(self, newsletter_id=None, newsletter_id_name=None, config=None, email_config=None,
+                 start_date=None, end_date=None, subject=None, body=None, message=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
         self.uuid = generate_newsletter_uuid()
 
         self.newsletter_id = newsletter_id
+        self.newsletter_id_name = newsletter_id_name
         self.start_date = None
         self.end_date = None
 
@@ -506,9 +511,10 @@ class Newsletter(object):
             'newsletter_time_frame': self.config['time_frame'],
             'newsletter_time_frame_units': self.config['time_frame_units'],
             'newsletter_url': base_url + self.uuid,
-            'newsletter_static_url': base_url + 'id/' + str(self.newsletter_id),
+            'newsletter_static_url': base_url + 'id/' + self.newsletter_id_name,
             'newsletter_uuid': self.uuid,
-            'newsletter_id': self.newsletter_id
+            'newsletter_id': self.newsletter_id,
+            'newsletter_id_name': self.newsletter_id_name
         }
 
         return parameters

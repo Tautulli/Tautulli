@@ -637,7 +637,7 @@ def dbcheck():
     # newsletters table :: This table keeps record of the newsletter settings
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, '
+        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL DEFAULT "", '
         'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
         'subject TEXT, body TEXT, message TEXT, '
         'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
@@ -1502,6 +1502,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table newsletter_log.")
         c_db.execute(
             'ALTER TABLE newsletter_log ADD COLUMN filename TEXT'
+        )
+
+    # Upgrade newsletters table from earlier versions
+    try:
+        c_db.execute('SELECT id_name FROM newsletters')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table newsletters.")
+        c_db.execute(
+            'ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL DEFAULT ""'
         )
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)

@@ -87,6 +87,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         message = newsletter_config['message']
 
     newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
+                                                   newsletter_id_name=newsletter_config['id_name'],
                                                    agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],
                                                    email_config=newsletter_config['email_config'],
@@ -152,21 +153,21 @@ def set_notify_success(newsletter_log_id):
     db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
 
 
-def get_newsletter(newsletter_uuid=None, newsletter_id=None):
+def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):
     db = database.MonitorDatabase()
 
     if newsletter_uuid:
-        result = db.select_single('SELECT newsletter_id, start_date, end_date, uuid, filename FROM newsletter_log '
+        result = db.select_single('SELECT start_date, end_date, uuid, filename FROM newsletter_log '
                                   'WHERE uuid = ?', [newsletter_uuid])
-    elif newsletter_id:
-        result = db.select_single('SELECT newsletter_id, start_date, end_date, uuid, filename FROM newsletter_log '
-                                  'WHERE newsletter_id = ? AND notify_action != "test" '
-                                  'ORDER BY timestamp DESC LIMIT 1', [newsletter_id])
+    elif newsletter_id_name:
+        result = db.select_single('SELECT start_date, end_date, uuid, filename FROM newsletter_log '
+                                  'JOIN newsletters ON newsletters.id = newsletter_log.newsletter_id '
+                                  'WHERE id_name = ? AND notify_action != "test" '
+                                  'ORDER BY timestamp DESC LIMIT 1', [newsletter_id_name])
     else:
         result = None
 
     if result:
-        newsletter_id = result['newsletter_id']
         newsletter_uuid = result['uuid']
         start_date = result['start_date']
         end_date = result['end_date']

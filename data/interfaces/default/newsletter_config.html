@@ -167,6 +167,15 @@
                                 </div>
                                 <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                                     <div class="form-group">
+                                        <label for="id_name">Unique ID Name</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="text" class="form-control" id="id_name" name="id_name" value="${newsletter['id_name']}" size="30">
+                                            </div>
+                                        </div>
+                                        <p class="help-block">Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">/newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
+                                    </div>
+                                    <div class="form-group">
                                         <label for="newsletter_config_filename">Filename</label>
                                         <div class="row">
                                             <div class="col-md-12">
@@ -483,6 +492,17 @@
             return true;
         }
     }
+
+    function validateIDName() {
+        var id_name = $('#id_name').val();
+        if (/^[a-zA-Z0-9_-]*$/.test(id_name)) {
+            return true;
+        } else {
+            showMsg('<i class="fa fa-times"></i> Failed to save newsletter. Invalid unique ID name.', false, true, 5000, true);
+            return false;
+        }
+    }
+
     var $incl_libraries = $('#newsletter_config_incl_libraries').selectize({
         plugins: ['remove_button'],
         maxItems: null,
@@ -668,7 +688,7 @@
         if ($('#custom_cron').val() === '0'){
             $("#cron_value").val(cron_widget.cron('value'));
         }
-        if (validateFilename()){
+        if (validateFilename() && validateIDName()){
             doAjaxCall('set_newsletter_config', $(this), 'tabs', true, true, saveCallback);
         }
     }
