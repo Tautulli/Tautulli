@@ -11,9 +11,10 @@
     else:
         base_url = ''
 
+    service = get_img_service()
     if get_img_service(include_self=True) == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
         base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif preview:
+    elif service and preview:
         base_url_image = 'newsletter/image/'
     else:
         base_url_image = ''
@@ -89,6 +90,14 @@
         /* -------------------------------------
             HEADER, FOOTER, MAIN
         ------------------------------------- */
+        .local-preview-note {
+            text-align: center;
+            padding-top: 10px;
+        }
+        .local-preview-note p {
+            color: #282A2D;
+            font-size: 12px;
+        }
         .main {
             background: #282A2D;
             border-radius: 3px;
@@ -614,6 +623,9 @@
     </style>
 </head>
 <body class="">
+% if preview and service:
+<div class="local-preview-note"><p>Note: Local preview only - images have not been uploaded to ${service.capitalize()}</p></div>  <!-- IGNORE SAVE -->
+% endif
 <table border="0" cellpadding="0" cellspacing="0" class="body">
     <tr>
         <td class="container">
