@@ -329,7 +329,7 @@ class Newsletter(object):
         self.uuid = generate_newsletter_uuid()
 
         self.newsletter_id = newsletter_id
-        self.newsletter_id_name = newsletter_id_name
+        self.newsletter_id_name = newsletter_id_name or ''
         self.start_date = None
         self.end_date = None
 
