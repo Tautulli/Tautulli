@@ -525,7 +525,7 @@ NEWSLETTER_PARAMETERS = [
             {'name': 'Newsletter Time Frame', 'type': 'int', 'value': 'newsletter_time_frame', 'description': 'The time frame included in the newsletter.'},
             {'name': 'Newsletter Time Frame Units', 'type': 'str', 'value': 'newsletter_time_frame_units', 'description': 'The time frame units included in the newsletter.'},
             {'name': 'Newsletter URL', 'type': 'str', 'value': 'newsletter_url', 'description': 'The self-hosted URL to the newsletter.'},
-            {'name': 'Newsletter Latest URL', 'type': 'str', 'value': 'newsletter_latest_url', 'description': 'The self-hosted URL to the latest scheduled newsletter for the agent.'},
+            {'name': 'Newsletter Static URL', 'type': 'str', 'value': 'newsletter_static_url', 'description': 'The static self-hosted URL to the latest scheduled newsletter for the agent.'},
             {'name': 'Newsletter UUID', 'type': 'str', 'value': 'newsletter_uuid', 'description': 'The unique identifier for the newsletter.'},
             {'name': 'Newsletter ID', 'type': 'int', 'value': 'newsletter_id', 'description': 'The ID number for the newsletter agent.'},
         ]

@@ -316,6 +316,7 @@ _CONFIG_DEFINITIONS = {
     'NEWSLETTER_TEMPLATES': (str, 'Newsletter', 'newsletters'),
     'NEWSLETTER_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_SELF_HOSTED': (int, 'Newsletter', 0),
+    'NEWSLETTER_STATIC_URL': (int, 'Newsletter', 0),
     'NMA_APIKEY': (str, 'NMA', ''),
     'NMA_ENABLED': (int, 'NMA', 0),
     'NMA_PRIORITY': (int, 'NMA', 0),

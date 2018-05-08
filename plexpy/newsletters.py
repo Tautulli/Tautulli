@@ -453,9 +453,9 @@ class Newsletter(object):
                     if '<!-- IGNORE SAVE -->' not in line:
                         n_file.write(line + '\r\n')
 
-            logger.info(u"Tautulli Newsletters :: %s newsletter saved to %s" % (self.NAME, newsletter_file))
+            logger.info(u"Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
         except OSError as e:
-            logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to %s: %s"
+            logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to '%s': %s"
                          % (self.NAME, newsletter_file, e))
 
     def _send(self):
@@ -501,7 +501,7 @@ class Newsletter(object):
             'newsletter_time_frame': self.config['time_frame'],
             'newsletter_time_frame_units': self.config['time_frame_units'],
             'newsletter_url': base_url + self.uuid,
-            'newsletter_latest_url': base_url + 'id/' + str(self.newsletter_id),
+            'newsletter_static_url': base_url + 'id/' + str(self.newsletter_id),
             'newsletter_uuid': self.uuid,
             'newsletter_id': self.newsletter_id
         }
