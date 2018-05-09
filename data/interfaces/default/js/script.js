@@ -1,34 +1,17 @@
-function initConfigCheckbox(elem, reverse) {
+function initConfigCheckbox(elem, reverse = false) {
     var config = $(elem).closest('div').next();
     config.css('overflow', 'hidden');
-    if (reverse) {
-        if ($(elem).is(":checked")) {
-            config.hide();
-        } else {
-            config.show();
-        }
+    if ($(elem).is(":checked")) {
+        config.toggle(!reverse);
     } else {
-        if ($(elem).is(":checked")) {
-            config.show();
-        } else {
-            config.hide();
-        }
+        config.toggle(reverse);
     }
     $(elem).click(function () {
         var config = $(this).closest('div').next();
-        if (reverse) {
-            if ($(this).is(":checked")) {
-                config.slideUp();
-            } else {
-                config.slideDown();
-            }
-
+        if ($(this).is(":checked")) {
+            config.slideToggleBool(!reverse);
         } else {
-            if ($(this).is(":checked")) {
-                config.slideDown();
-            } else {
-                config.slideUp();
-            }
+            config.slideToggleBool(reverse);
         }
     });
 }
@@ -466,4 +449,8 @@ function forceMinMax(elem) {
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+$.fn.slideToggleBool = function(bool, options) {
+  return bool ? $(this).slideDown(options) : $(this).slideUp(options);
 }
