@@ -1,5 +1,5 @@
-function initConfigCheckbox(elem, reverse = false) {
-    var config = $(elem).closest('div').next();
+function initConfigCheckbox(elem, toggleElem = null, reverse = false) {
+    var config = toggleElem ? $(toggleElem) : $(elem).closest('div').next();
     config.css('overflow', 'hidden');
     if ($(elem).is(":checked")) {
         config.toggle(!reverse);
@@ -7,7 +7,7 @@ function initConfigCheckbox(elem, reverse = false) {
         config.toggle(reverse);
     }
     $(elem).click(function () {
-        var config = $(this).closest('div').next();
+        var config = toggleElem ? $(toggleElem) : $(this).closest('div').next();
         if ($(this).is(":checked")) {
             config.slideToggleBool(!reverse);
         } else {

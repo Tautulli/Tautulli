@@ -4093,3 +4093,8 @@ a:hover .overlay-refresh-image:hover {
 a[data-tab-destination] {
     cursor: pointer;
 }
+.modal-config-section {
+    margin-top: 10px !important;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}

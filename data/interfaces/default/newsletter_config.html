@@ -20,7 +20,7 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-newsletter_config" aria-controls="tabs-newsletter_config" role="tab" data-toggle="tab">Configuration</a></li>
-                        <li role="presentation"><a href="#tabs-newsletter_agent" aria-controls="tabs-newsletter_agent" role="tab" data-toggle="tab">Notification Agent</a></li>
+                        <li role="presentation"><a href="#tabs-newsletter_saving_sending" aria-controls="tabs-newsletter_saving_sending" role="tab" data-toggle="tab">Saving & Sending</a></li>
                         <li role="presentation"><a href="#tabs-newsletter_text" aria-controls="tabs-newsletter_text" role="tab" data-toggle="tab">Newsletter Text</a></li>
                         <li role="presentation"><a href="#tabs-test_newsletter" aria-controls="tabs-test_newsletter" role="tab" data-toggle="tab">Test Newsletter</a></li>
                     </ul>
@@ -70,7 +70,7 @@
                                         <p class="help-block">Set the time frame to include in the newsletter. Note: Days uses calendar days (i.e. since midnight).</p>
                                     </div>
                                 </div>
-                                <div class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
+                                <div class="col-md-12 modal-config-section">
                                     <input type="hidden" id="newsletter_id" name="newsletter_id" value="${newsletter['id']}" />
                                     <input type="hidden" id="agent_id" name="agent_id" value="${newsletter['agent_id']}" />
                                     % for item in newsletter['config_options']:
@@ -165,7 +165,7 @@
                                     % endif
                                     % endfor
                                 </div>
-                                <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                                <div class="col-md-12 modal-config-section">
                                     <div class="form-group">
                                         <label for="id_name">Unique ID Name</label>
                                         <div class="row">
@@ -174,15 +174,6 @@
                                             </div>
                                         </div>
                                         <p class="help-block">Optional: Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">${http_root}newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="newsletter_config_filename">Filename</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <input type="text" class="form-control" id="newsletter_config_filename" name="newsletter_config_filename" value="${newsletter['config']['filename']}" size="30">
-                                            </div>
-                                        </div>
-                                        <p class="help-block">Optional: Enter the filename to use when saving the newsletter (ending with <span class="inline-pre">.html</span>). You may use any of the <a href="#newsletter-text-sub-modal" data-toggle="modal">newsletter text parameters</a>. Leave blank for default.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
@@ -196,165 +187,176 @@
                                 </div>
                             </div>
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agent">
+                        <div role="tabpanel" class="tab-pane" id="tabs-newsletter_saving_sending">
                             <div class="row">
                                 <div class="col-md-12">
+                                    <label>Saving</label>
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="newsletter_config_save_only_checkbox" data-id="newsletter_config_save_only" class="checkboxes" value="1" ${checked(newsletter['config']['save_only'])}> Save Newsletter File Only
+                                            <input type="checkbox" id="newsletter_config_save_only_checkbox" data-id="newsletter_config_save_only" class="checkboxes" value="1" ${checked(newsletter['config']['save_only'])}> Save HTML File Only
                                         </label>
-                                        <p class="help-block">Enable to save the newsletter file without sending it to any notification agent.</p>
+                                        <p class="help-block">Enable to save the newsletter HTML file without sending it to any notification agent.</p>
                                         <input type="hidden" id="newsletter_config_save_only" name="newsletter_config_save_only" value="${newsletter['config']['save_only']}">
                                     </div>
-                                    <div id="newsletter_agent_options">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send Newsletter as an HTML Formatted Email
-                                            </label>
-                                            <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
-                                            <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
-                                        </div>
-                                        <div class="form-group" id="email_notifier_select">
-                                            <label for="newsletter_email_notifier_id">Email Notification Agent</label>
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <select class="form-control" id="newsletter_email_notifier_id" name="newsletter_email_notifier_id">
-                                                        % for notifier in email_notifiers:
-                                                        <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier_id'] else '' %>
-                                                        % if notifier['friendly_name']:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
-                                                        % elif notifier['id']:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
-                                                        % else:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
-                                                        % endif
-                                                        % endfor
-                                                    </select>
-                                                </div>
+                                    <div class="form-group">
+                                        <label for="newsletter_config_filename">HTML File Name</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="text" class="form-control" id="newsletter_config_filename" name="newsletter_config_filename" value="${newsletter['config']['filename']}" size="30">
                                             </div>
-                                            <p class="help-block">
-                                                Select an existing Email notification agent or enter a new configuration below.<br>
-                                                Note: Make sure HTML support is enabled for the Email notification agent.
-                                            </p>
                                         </div>
-                                        <div class="form-group" id="other_notifier_select">
-                                            <label for="newsletter_config_notifier_id">Notification Agent</label>
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <select class="form-control" id="newsletter_config_notifier_id" name="newsletter_config_notifier_id">
-                                                        % for notifier in other_notifiers:
-                                                        <% selected = 'selected' if notifier['id'] == newsletter['config']['notifier_id'] else '' %>
-                                                        % if notifier['friendly_name']:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
-                                                        % elif notifier['id']:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
-                                                        % else:
-                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
-                                                        % endif
-                                                        % endfor
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <p class="help-block">
-                                                Select an existing notification agent where the subject and body text will be sent.<br>
-                                                Note: Self-hosted newsletters must be enabled under <a data-tab-destination="tabs-notifications" data-dismiss="modal" data-target="#newsletter_self_hosted">Newsletters</a> to include a link to the newsletter.
-                                            </p>
-                                        </div>
+                                        <p class="help-block">Optional: Enter the file name to use when saving the newsletter (ending with <span class="inline-pre">.html</span>). You may use any of the <a href="#newsletter-text-sub-modal" data-toggle="modal">newsletter text parameters</a>. Leave blank for default.</p>
                                     </div>
                                 </div>
-                                <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
-                                    % for item in newsletter['email_config_options']:
-                                    % if item['input_type'] == 'help':
-                                    <div class="form-group">
-                                        <label>${item['label']}</label>
-                                        <p class="help-block">${item['description'] | n}</p>
-                                    </div>
-                                    % elif item['input_type'] == 'text' or item['input_type'] == 'password':
-                                    <div class="form-group">
-                                        <label for="${item['name']}">${item['label']}</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
-                                            </div>
-                                        </div>
-                                        <p class="help-block">${item['description'] | n}</p>
-                                    </div>
-                                    % elif item['input_type'] == 'number':
-                                    <div class="form-group">
-                                        <label for="${item['name']}">${item['label']}</label>
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
-                                            </div>
-                                        </div>
-                                        <p class="help-block">${item['description'] | n}</p>
-                                    </div>
-                                    % elif item['input_type'] == 'button':
-                                    <div class="form-group">
-                                        <label for="${item['name']}">${item['label']}</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
-                                            </div>
-                                        </div>
-                                        <p class="help-block">${item['description'] | n}</p>
-                                    </div>
-                                    % elif item['input_type'] == 'checkbox' and item['name'] != 'newsletter_email_html_support':
+                                <div class="col-md-12 modal-config-section" id="newsletter_agent_options">
+                                    <label>Sending</label>
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
+                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send Newsletter as an HTML Formatted Email
                                         </label>
-                                        <p class="help-block">${item['description'] | n}</p>
-                                        <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                        <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
+                                        <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
                                     </div>
-                                    % elif item['input_type'] == 'select':
-                                    <div class="form-group">
-                                        <label for="${item['name']}">${item['label']}</label>
+                                    <div class="form-group" id="email_notifier_select">
+                                        <label for="newsletter_email_notifier_id">Email Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
-                                                    % for key, value in sorted(item['select_options'].iteritems()):
-                                                    % if key == item['value']:
-                                                    <option value="${key}" selected>${value}</option>
+                                                <select class="form-control" id="newsletter_email_notifier_id" name="newsletter_email_notifier_id">
+                                                    % for notifier in email_notifiers:
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier_id'] else '' %>
+                                                    % if notifier['friendly_name']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                    % elif notifier['id']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
                                                     % else:
-                                                    <option value="${key}">${value}</option>
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
                                                     % endif
                                                     % endfor
                                                 </select>
                                             </div>
                                         </div>
-                                        <p class="help-block">${item['description'] | n}</p>
+                                        <p class="help-block">
+                                            Select an existing Email notification agent or enter a new configuration below.<br>
+                                            Note: Make sure HTML support is enabled for the Email notification agent.
+                                        </p>
                                     </div>
-                                    % elif item['input_type'] == 'selectize':
-                                    <div class="form-group">
-                                        <label for="${item['name']}">${item['label']}</label>
+                                    <div class="form-group" id="other_notifier_select">
+                                        <label for="newsletter_config_notifier_id">Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
-                                                    <option value="select-all">Select All</option>
-                                                    <option value="remove-all">Remove All</option>
-                                                    % if isinstance(item['select_options'], dict):
-                                                    % for section, options in item['select_options'].iteritems():
-                                                    <optgroup label="${section}">
-                                                        % for option in sorted(options, key=lambda x: x['text'].lower()):
+                                                <select class="form-control" id="newsletter_config_notifier_id" name="newsletter_config_notifier_id">
+                                                    % for notifier in other_notifiers:
+                                                    <% selected = 'selected' if notifier['id'] == newsletter['config']['notifier_id'] else '' %>
+                                                    % if notifier['friendly_name']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                    % elif notifier['id']:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
+                                                    % else:
+                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
+                                                    % endif
+                                                    % endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">
+                                            Select an existing notification agent where the subject and body text will be sent.<br>
+                                            Note: Self-hosted newsletters must be enabled under <a data-tab-destination="tabs-notifications" data-dismiss="modal" data-target="#newsletter_self_hosted">Newsletters</a> to include a link to the newsletter.
+                                        </p>
+                                    </div>
+                                    <div id="newsletter-email-config">
+                                        % for item in newsletter['email_config_options']:
+                                        % if item['input_type'] == 'help':
+                                        <div class="form-group">
+                                            <label>${item['label']}</label>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                        </div>
+                                        % elif item['input_type'] == 'text' or item['input_type'] == 'password':
+                                        <div class="form-group">
+                                            <label for="${item['name']}">${item['label']}</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                </div>
+                                            </div>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                        </div>
+                                        % elif item['input_type'] == 'number':
+                                        <div class="form-group">
+                                            <label for="${item['name']}">${item['label']}</label>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
+                                                </div>
+                                            </div>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                        </div>
+                                        % elif item['input_type'] == 'button':
+                                        <div class="form-group">
+                                            <label for="${item['name']}">${item['label']}</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <input type="button" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                                </div>
+                                            </div>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                        </div>
+                                        % elif item['input_type'] == 'checkbox' and item['name'] != 'newsletter_email_html_support':
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
+                                            </label>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                            <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                        </div>
+                                        % elif item['input_type'] == 'select':
+                                        <div class="form-group">
+                                            <label for="${item['name']}">${item['label']}</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                        % for key, value in sorted(item['select_options'].iteritems()):
+                                                        % if key == item['value']:
+                                                        <option value="${key}" selected>${value}</option>
+                                                        % else:
+                                                        <option value="${key}">${value}</option>
+                                                        % endif
+                                                        % endfor
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <p class="help-block">${item['description'] | n}</p>
+                                        </div>
+                                        % elif item['input_type'] == 'selectize':
+                                        <div class="form-group">
+                                            <label for="${item['name']}">${item['label']}</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                        <option value="select-all">Select All</option>
+                                                        <option value="remove-all">Remove All</option>
+                                                        % if isinstance(item['select_options'], dict):
+                                                        % for section, options in item['select_options'].iteritems():
+                                                        <optgroup label="${section}">
+                                                            % for option in sorted(options, key=lambda x: x['text'].lower()):
+                                                                <option value="${option['value']}">${option['text']}</option>
+                                                            % endfor
+                                                        </optgroup>
+                                                        % endfor
+                                                        % else:
+                                                        <option value="border-all"></option>
+                                                        % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
                                                             <option value="${option['value']}">${option['text']}</option>
                                                         % endfor
-                                                    </optgroup>
-                                                    % endfor
-                                                    % else:
-                                                    <option value="border-all"></option>
-                                                    % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
-                                                        <option value="${option['value']}">${option['text']}</option>
-                                                    % endfor
-                                                    % endif
-                                                </select>
+                                                        % endif
+                                                    </select>
+                                                </div>
                                             </div>
+                                            <p class="help-block">${item['description'] | n}</p>
                                         </div>
-                                        <p class="help-block">${item['description'] | n}</p>
+                                        % endif
+                                        % endfor
+                                        <input type="hidden" id="newsletter_email_html_support" name="newsletter_email_html_support" value="1">
                                     </div>
-                                    % endif
-                                    % endfor
-                                    <input type="hidden" id="newsletter_email_html_support" name="newsletter_email_html_support" value="1">
                                 </div>
                             </div>
                         </div>
@@ -488,7 +490,7 @@
     function validateFilename() {
         var filename = $('#newsletter_config_filename').val();
         if (filename !== '' && !(filename.endsWith('.html'))) {
-            showMsg('<i class="fa fa-times"></i> Failed to save newsletter. Invalid filename.', false, true, 5000, true);
+            showMsg('<i class="fa fa-times"></i> Failed to save newsletter. Invalid file name.', false, true, 5000, true);
             return false;
         } else {
             return true;
@@ -532,7 +534,7 @@
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
-    initConfigCheckbox('#newsletter_config_save_only_checkbox', true);
+    initConfigCheckbox('#newsletter_config_save_only_checkbox', '#newsletter_agent_options', true);
 
     function toggleEmailSelect () {
         if ($('#newsletter_config_formatted_checkbox').is(':checked')) {
