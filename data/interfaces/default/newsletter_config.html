@@ -206,58 +206,60 @@
                                         <p class="help-block">Enable to save the newsletter file without sending it to any notification agent.</p>
                                         <input type="hidden" id="newsletter_config_save_only" name="newsletter_config_save_only" value="${newsletter['config']['save_only']}">
                                     </div>
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send Newsletter as an HTML Formatted Email
-                                        </label>
-                                        <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
-                                        <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
-                                    </div>
-                                    <div class="form-group" id="email_notifier_select">
-                                        <label for="newsletter_email_notifier_id">Email Notification Agent</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <select class="form-control" id="newsletter_email_notifier_id" name="newsletter_email_notifier_id">
-                                                    % for notifier in email_notifiers:
-                                                    <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier_id'] else '' %>
-                                                    % if notifier['friendly_name']:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
-                                                    % elif notifier['id']:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
-                                                    % else:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
-                                                    % endif
-                                                    % endfor
-                                                </select>
-                                            </div>
+                                    <div id="newsletter_agent_options">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" id="newsletter_config_formatted_checkbox" data-id="newsletter_config_formatted" class="checkboxes" value="1" ${checked(newsletter['config']['formatted'])}> Send Newsletter as an HTML Formatted Email
+                                            </label>
+                                            <p class="help-block">Enable to send the newsletter as an HTML formatted Email. Disable to only send a subject and body message to a different notification agent.</p>
+                                            <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
                                         </div>
-                                        <p class="help-block">
-                                            Select an existing Email notification agent or enter a new configuration below.<br>
-                                            Note: Make sure HTML support is enabled for the Email notification agent.
-                                        </p>
-                                    </div>
-                                    <div class="form-group" id="other_notifier_select">
-                                        <label for="newsletter_config_notifier_id">Notification Agent</label>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <select class="form-control" id="newsletter_config_notifier_id" name="newsletter_config_notifier_id">
-                                                    % for notifier in other_notifiers:
-                                                    <% selected = 'selected' if notifier['id'] == newsletter['config']['notifier_id'] else '' %>
-                                                    % if notifier['friendly_name']:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
-                                                    % elif notifier['id']:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
-                                                    % else:
-                                                    <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
-                                                    % endif
-                                                    % endfor
-                                                </select>
+                                        <div class="form-group" id="email_notifier_select">
+                                            <label for="newsletter_email_notifier_id">Email Notification Agent</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <select class="form-control" id="newsletter_email_notifier_id" name="newsletter_email_notifier_id">
+                                                        % for notifier in email_notifiers:
+                                                        <% selected = 'selected' if notifier['id'] == newsletter['email_config']['notifier_id'] else '' %>
+                                                        % if notifier['friendly_name']:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                        % elif notifier['id']:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
+                                                        % else:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
+                                                        % endif
+                                                        % endfor
+                                                    </select>
+                                                </div>
                                             </div>
+                                            <p class="help-block">
+                                                Select an existing Email notification agent or enter a new configuration below.<br>
+                                                Note: Make sure HTML support is enabled for the Email notification agent.
+                                            </p>
                                         </div>
-                                        <p class="help-block">
-                                            Select an existing notification agent where the subject and body text will be sent.<br>
-                                            Note: Self-hosted newsletters must be enabled under <a data-tab-destination="tabs-notifications" data-dismiss="modal" data-target="#newsletter_self_hosted">Newsletters</a> to include a link to the newsletter.
-                                        </p>
+                                        <div class="form-group" id="other_notifier_select">
+                                            <label for="newsletter_config_notifier_id">Notification Agent</label>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <select class="form-control" id="newsletter_config_notifier_id" name="newsletter_config_notifier_id">
+                                                        % for notifier in other_notifiers:
+                                                        <% selected = 'selected' if notifier['id'] == newsletter['config']['notifier_id'] else '' %>
+                                                        % if notifier['friendly_name']:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']} - ${notifier['friendly_name']})</option>
+                                                        % elif notifier['id']:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']} (${notifier['id']})</option>
+                                                        % else:
+                                                        <option value="${notifier['id']}" ${selected}>${notifier['agent_label']}</option>
+                                                        % endif
+                                                        % endfor
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <p class="help-block">
+                                                Select an existing notification agent where the subject and body text will be sent.<br>
+                                                Note: Self-hosted newsletters must be enabled under <a data-tab-destination="tabs-notifications" data-dismiss="modal" data-target="#newsletter_self_hosted">Newsletters</a> to include a link to the newsletter.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div id="newsletter-email-config" class="col-md-12" style="padding-top: 10px; border-top: 1px solid #444;">
@@ -529,6 +531,8 @@
     });
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
+
+    initConfigCheckbox('#newsletter_config_save_only_checkbox', true);
 
     function toggleEmailSelect () {
         if ($('#newsletter_config_formatted_checkbox').is(':checked')) {
