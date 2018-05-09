@@ -1,17 +1,34 @@
-function initConfigCheckbox(elem) {
+function initConfigCheckbox(elem, reverse) {
     var config = $(elem).closest('div').next();
     config.css('overflow', 'hidden');
-    if ($(elem).is(":checked")) {
-        config.show();
+    if (reverse) {
+        if ($(elem).is(":checked")) {
+            config.hide();
+        } else {
+            config.show();
+        }
     } else {
-        config.hide();
+        if ($(elem).is(":checked")) {
+            config.show();
+        } else {
+            config.hide();
+        }
     }
     $(elem).click(function () {
         var config = $(this).closest('div').next();
-        if ($(this).is(":checked")) {
-            config.slideDown();
+        if (reverse) {
+            if ($(this).is(":checked")) {
+                config.slideUp();
+            } else {
+                config.slideDown();
+            }
+
         } else {
-            config.slideUp();
+            if ($(this).is(":checked")) {
+                config.slideDown();
+            } else {
+                config.slideUp();
+            }
         }
     });
 }
