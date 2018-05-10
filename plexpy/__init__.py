@@ -152,6 +152,17 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
 
+        logger.info(u"Starting Tautulli {}".format(
+            common.RELEASE
+        ))
+        logger.info(u"{} {} ({}{})".format(
+            common.PLATFORM, common.PLATFROM_RELEASE, common.PLATFORM_VERSION,
+            ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
+        ))
+        logger.info(u"Python {}".format(
+            sys.version
+        ))
+
         if not CONFIG.BACKUP_DIR:
             CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
         if not os.path.exists(CONFIG.BACKUP_DIR):
@@ -1812,7 +1823,7 @@ def initialize_tracker():
         'appVersion': common.RELEASE,
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
-        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_VERSION),  # App Platform
+        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFROM_RELEASE),  # App Platform
         'userLanguage': plexpy.SYS_LANGUAGE,
         'documentEncoding': plexpy.SYS_ENCODING,
         'noninteractive': True

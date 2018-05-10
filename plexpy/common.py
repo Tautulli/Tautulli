@@ -20,11 +20,13 @@ import version
 
 # Identify Our Application
 PLATFORM = platform.system()
-PLATFORM_VERSION = platform.release()
+PLATFROM_RELEASE = platform.release()
+PLATFORM_VERSION = platform.version()
+PLATFORM_LINUX_DISTRO = ' '.join(x for x in platform.linux_distribution() if x)
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
 
-USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFORM_VERSION)
+USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFROM_RELEASE)
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
