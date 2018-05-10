@@ -43,7 +43,7 @@ class HTTPHandler(object):
                         'X-Plex-Product': 'Tautulli',
                         'X-Plex-Version': plexpy.common.RELEASE,
                         'X-Plex-Platform': plexpy.common.PLATFORM,
-                        'X-Plex-Platform-Version': plexpy.common.PLATFROM_RELEASE,
+                        'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
                         'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
                         }
 
