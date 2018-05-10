@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.1.6-beta (2018-05-09)
+
+* Newsletters:
+  * Change: Setting to specify static URL ID name instead of using the newsletter ID number.
+  * Change: Reorganize newsletter config options.
+
+
 ## v2.1.5-beta (2018-05-07)
 
 * Newsletters:
