@@ -156,7 +156,7 @@ def initialize(config_file):
             common.RELEASE
         ))
         logger.info(u"{} {} ({}{})".format(
-            common.PLATFORM, common.PLATFROM_RELEASE, common.PLATFORM_VERSION,
+            common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info(u"Python {}".format(
@@ -1823,7 +1823,7 @@ def initialize_tracker():
         'appVersion': common.RELEASE,
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
-        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFROM_RELEASE),  # App Platform
+        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_RELEASE),  # App Platform
         'dimension2': common.PLATFORM_LINUX_DISTRO,  # Linux Distro
         'userLanguage': plexpy.SYS_LANGUAGE,
         'documentEncoding': plexpy.SYS_ENCODING,
