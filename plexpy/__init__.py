@@ -1824,6 +1824,7 @@ def initialize_tracker():
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
         'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFROM_RELEASE),  # App Platform
+        'dimension2': common.PLATFORM_LINUX_DISTRO,  # Linux Distro
         'userLanguage': plexpy.SYS_LANGUAGE,
         'documentEncoding': plexpy.SYS_ENCODING,
         'noninteractive': True
