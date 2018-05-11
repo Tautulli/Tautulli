@@ -5733,6 +5733,17 @@ class WebInterface(object):
     @cherrypy.expose
     def newsletter(self, *args, **kwargs):
         if args:
+            # Keep this for backwards compatibility for images through /newsletter/image
+            if len(args) >= 2 and args[0] == 'image':
+                if args[1] == 'images':
+                    resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                    try:
+                        return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+                    except NotFound:
+                        return
+
+                return self.image(args[1])
+
             if len(args) >= 2 and args[0] == 'id':
                 newsletter_id_name = args[1]
                 newsletter_uuid = None
