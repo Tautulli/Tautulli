@@ -13,9 +13,9 @@
 
     service = get_img_service(include_self=True)
     if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif service and service != 'self-hosted' and preview:
-        base_url_image = 'newsletter/image/'
+        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
+    elif preview and service and service != 'self-hosted':
+        base_url_image = 'image/'
     else:
         base_url_image = ''
 
@@ -623,7 +623,7 @@
     </style>
 </head>
 <body class="">
-% if preview and service:
+% if preview and service and service != 'self-hosted':
 <div class="local-preview-note"><p>Note: Local preview images only - images will be uploaded to ${service.capitalize()} when the newsletter is sent.</p></div>  <!-- IGNORE SAVE -->
 % elif preview and not service:
 <div class="local-preview-note"><p>Warning: The Image Hosting setting must be enabled for images to display on the newsletter.</p></div>  <!-- IGNORE SAVE -->

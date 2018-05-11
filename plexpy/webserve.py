@@ -4032,6 +4032,15 @@ class WebInterface(object):
     @cherrypy.expose
     def image(self, *args, **kwargs):
         if args:
+            cherrypy.response.headers['Cache-Control'] = 'max-age=3600'  # 1 hour
+
+            if len(args) >= 2 and args[0] == 'images':
+                resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                try:
+                    return serve_file(path=os.path.join(resource_dir, *args), content_type='image/png')
+                except NotFound:
+                    return
+
             img_hash = args[0].split('.')[0]
 
             if img_hash in ('poster', 'cover', 'art'):
@@ -4049,7 +4058,7 @@ class WebInterface(object):
 
             if img_info:
                 kwargs.update(img_info)
-                return self.real_pms_image_proxy(**kwargs)
+                return self.real_pms_image_proxy(refresh=True, **kwargs)
 
         return
 
@@ -5654,17 +5663,6 @@ class WebInterface(object):
     @cherrypy.expose
     def newsletter(self, *args, **kwargs):
         if args:
-            if len(args) >= 2 and args[0] == 'image':
-                if args[1] == 'images':
-                    resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
-                    try:
-                        return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
-                    except NotFound:
-                        return
-
-                cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
-                return self.image(args[1], refresh=True)
-
             if len(args) >= 2 and args[0] == 'id':
                 newsletter_id_name = args[1]
                 newsletter_uuid = None

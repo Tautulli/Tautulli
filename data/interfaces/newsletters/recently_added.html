@@ -13,9 +13,9 @@
 
     service = get_img_service(include_self=True)
     if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/image/'
-    elif service and service != 'self-hosted' and preview:
-        base_url_image = 'newsletter/image/'
+        base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
+    elif preview and service and service != 'self-hosted':
+        base_url_image = 'image/'
     else:
         base_url_image = ''
 
@@ -623,7 +623,7 @@
     </style>
 </head>
 <body class="" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;-webkit-font-smoothing: antialiased;font-size: 14px;line-height: 1.4;margin: 0;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-% if preview and service:
+% if preview and service and service != 'self-hosted' :
 <div class="local-preview-note" style="text-align: center;padding-top: 10px;"><p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;color: #282A2D;font-size: 12px;">Note: Local preview images only - images will be uploaded to ${service.capitalize()} when the newsletter is sent.</p></div>  <!-- IGNORE SAVE -->
 % elif preview and not service:
 <div class="local-preview-note" style="text-align: center;padding-top: 10px;"><p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;color: #282A2D;font-size: 12px;">Warning: The Image Hosting setting must be enabled for images to display on the newsletter.</p></div>  <!-- IGNORE SAVE -->
