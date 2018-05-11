@@ -93,25 +93,26 @@ Returns:
 Delete and recreate the cache directory.
 
 
-### delete_image_cache
-Delete and recreate the image cache directory.
-
-
-### delete_imgur_poster
-Delete the Imgur poster.
+### delete_hosted_images
+Delete the images uploaded to image hosting services.
 
 ```
 Required parameters:
     rating_key (int):       1234
                             (Note: Must be the movie, show, season, artist, or album rating key)
 Optional parameters:
-    None
+    service (str):          imgur or cloudinary
+                            (Note: Defaults to service in Image Hosting setting)
 
 Returns:
     json:
         {"result": "success",
-         "message": "Deleted Imgur poster."}
+         "message": "Deleted hosted images from Imgur."}
 ```
+
+
+### delete_image_cache
+Delete and recreate the image cache directory.
 
 
 ### delete_library
@@ -916,9 +917,9 @@ Optional parameters:
 
 Returns:
     json:
-        [{"section_id": 1, "section_name": "Movies"},
-         {"section_id": 7, "section_name": "Music"},
-         {"section_id": 2, "section_name": "TV Shows"},
+        [{"section_id": 1, "section_name": "Movies", "section_type": "movie"},
+         {"section_id": 7, "section_name": "Music", "section_type": "artist"},
+         {"section_id": 2, "section_name": "TV Shows", "section_type": "show"},
          {...}
          ]
 ```
@@ -1174,8 +1175,8 @@ Required parameters:
     None
 
 Optional parameters:
-    order_column (str):             "timestamp", "agent_name", "notify_action",
-                                    "subject_text", "body_text", "script_args"
+    order_column (str):             "timestamp", "notifier_id", "agent_name", "notify_action",
+                                    "subject_text", "body_text",
     order_dir (str):                "desc" or "asc"
     start (int):                    Row to start from, 0
     length (int):                   Number of items to return, 25
@@ -1188,15 +1189,14 @@ Returns:
          "recordsFiltered": 163,
          "data":
             [{"agent_id": 13,
-              "agent_name": "Telegram",
-              "body_text": "Game of Thrones - S06E01 - The Red Woman [Transcode].",
+              "agent_name": "telegram",
+              "body_text": "DanyKhaleesi69 started playing The Red Woman.",
               "id": 1000,
-              "notify_action": "play",
-              "poster_url": "http://i.imgur.com/ZSqS8Ri.jpg",
+              "notify_action": "on_play",
               "rating_key": 153037,
-              "script_args": "[]",
               "session_key": 147,
               "subject_text": "Tautulli (Winterfell-Server)",
+              "success": 1,
               "timestamp": 1462253821,
               "user": "DanyKhaleesi69",
               "user_id": 8008135
@@ -1777,6 +1777,68 @@ Returns:
 ```
 
 
+### get_stream_data
+Get the stream details from history or current stream.
+
+```
+Required parameters:
+    row_id (int):       The row ID number for the history item, OR
+    session_key (int):  The session key of the current stream
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"aspect_ratio": "2.35",
+         "audio_bitrate": 231,
+         "audio_channels": 6,
+         "audio_codec": "aac",
+         "audio_decision": "transcode",
+         "bitrate": 2731,
+         "container": "mp4",
+         "current_session": "",
+         "grandparent_title": "",
+         "media_type": "movie",
+         "optimized_version": "",
+         "optimized_version_profile": "",
+         "optimized_version_title": "",
+         "pre_tautulli": "",
+         "quality_profile": "1.5 Mbps 480p",
+         "stream_audio_bitrate": 203,
+         "stream_audio_channels": 2,
+         "stream_audio_codec": "aac",
+         "stream_audio_decision": "transcode",
+         "stream_bitrate": 730,
+         "stream_container": "mkv",
+         "stream_container_decision": "transcode",
+         "stream_subtitle_codec": "",
+         "stream_subtitle_decision": "",
+         "stream_video_bitrate": 527,
+         "stream_video_codec": "h264",
+         "stream_video_decision": "transcode",
+         "stream_video_framerate": "24p",
+         "stream_video_height": 306,
+         "stream_video_resolution": "SD",
+         "stream_video_width": 720,
+         "subtitle_codec": "",
+         "subtitles": "",
+         "synced_version": "",
+         "synced_version_profile": "",
+         "title": "Frozen",
+         "transcode_hw_decoding": "",
+         "transcode_hw_encoding": "",
+         "video_bitrate": 2500,
+         "video_codec": "h264",
+         "video_decision": "transcode",
+         "video_framerate": "24p",
+         "video_height": 816,
+         "video_resolution": "1080",
+         "video_width": 1920
+         }
+```
+
+
 ### get_stream_type_by_top_10_platforms
 Get graph data by stream type by top 10 platforms.
 
@@ -2244,8 +2306,12 @@ Required parameters:
     rating_key (str):       54321
 
 Optional parameters:
-    width (str):            150
-    height (str):           255
+    width (str):            300
+    height (str):           450
+    opacity (str):          25
+    background (str):       282828
+    blur (str):             3
+    img_format (str):       png
     fallback (str):         "poster", "cover", "art"
     refresh (bool):         True or False whether to refresh the image cache
 

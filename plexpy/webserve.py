@@ -1716,6 +1716,76 @@ class WebInterface(object):
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi('get_stream_data')
+    def get_stream_data_api(self, row_id=None, session_key=None, **kwargs):
+        """ Get the stream details from history or current stream.
+
+            ```
+            Required parameters:
+                row_id (int):       The row ID number for the history item, OR
+                session_key (int):  The session key of the current stream
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"aspect_ratio": "2.35",
+                     "audio_bitrate": 231,
+                     "audio_channels": 6,
+                     "audio_codec": "aac",
+                     "audio_decision": "transcode",
+                     "bitrate": 2731,
+                     "container": "mp4",
+                     "current_session": "",
+                     "grandparent_title": "",
+                     "media_type": "movie",
+                     "optimized_version": "",
+                     "optimized_version_profile": "",
+                     "optimized_version_title": "",
+                     "pre_tautulli": "",
+                     "quality_profile": "1.5 Mbps 480p",
+                     "stream_audio_bitrate": 203,
+                     "stream_audio_channels": 2,
+                     "stream_audio_codec": "aac",
+                     "stream_audio_decision": "transcode",
+                     "stream_bitrate": 730,
+                     "stream_container": "mkv",
+                     "stream_container_decision": "transcode",
+                     "stream_subtitle_codec": "",
+                     "stream_subtitle_decision": "",
+                     "stream_video_bitrate": 527,
+                     "stream_video_codec": "h264",
+                     "stream_video_decision": "transcode",
+                     "stream_video_framerate": "24p",
+                     "stream_video_height": 306,
+                     "stream_video_resolution": "SD",
+                     "stream_video_width": 720,
+                     "subtitle_codec": "",
+                     "subtitles": "",
+                     "synced_version": "",
+                     "synced_version_profile": "",
+                     "title": "Frozen",
+                     "transcode_hw_decoding": "",
+                     "transcode_hw_encoding": "",
+                     "video_bitrate": 2500,
+                     "video_codec": "h264",
+                     "video_decision": "transcode",
+                     "video_framerate": "24p",
+                     "video_height": 816,
+                     "video_resolution": "1080",
+                     "video_width": 1920
+                     }
+            ```
+        """
+        data_factory = datafactory.DataFactory()
+        stream_data = data_factory.get_stream_details(row_id, session_key)
+
+        return stream_data
+
+    @cherrypy.expose
     @requireAuth()
     def get_ip_address_details(self, ip_address=None, **kwargs):
         if not helpers.is_valid_ip(ip_address):
