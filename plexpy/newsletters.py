@@ -456,6 +456,7 @@ class Newsletter(object):
                 for line in self.newsletter.encode('utf-8').splitlines():
                     if '<!-- IGNORE SAVE -->' not in line:
                         n_file.write(line + '\r\n')
+                        #n_file.write(line.strip())
 
             logger.info(u"Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
         except OSError as e:
@@ -464,18 +465,20 @@ class Newsletter(object):
 
     def _send(self):
         if self.config['formatted']:
+            newsletter_stripped = ''.join(l.strip() for l in self.newsletter.splitlines())
+
             if self.email_config['notifier_id']:
                 return send_notification(
                     notifier_id=self.email_config['notifier_id'],
                     subject=self.subject_formatted,
-                    body=self.newsletter
+                    body=newsletter_stripped
                 )
 
             else:
                 email = EMAIL(config=self.email_config)
                 return email.notify(
                     subject=self.subject_formatted,
-                    body=self.newsletter
+                    body=newsletter_stripped
                 )
         elif self.config['notifier_id']:
             return send_notification(
