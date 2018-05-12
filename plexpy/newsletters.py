@@ -470,18 +470,24 @@ class Newsletter(object):
         if self.config['formatted']:
             newsletter_stripped = ''.join(l.strip() for l in self.newsletter.splitlines())
 
+            plaintext = 'HTML email support is required to view the newsletter.\n'
+            if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
+                plaintext += self._DEFAULT_BODY.format(**self.parameters)
+
             if self.email_config['notifier_id']:
                 return send_notification(
                     notifier_id=self.email_config['notifier_id'],
                     subject=self.subject_formatted,
-                    body=newsletter_stripped
+                    body=newsletter_stripped,
+                    plaintext=plaintext
                 )
 
             else:
                 email = EMAIL(config=self.email_config)
                 return email.notify(
                     subject=self.subject_formatted,
-                    body=newsletter_stripped
+                    body=newsletter_stripped,
+                    plaintext=plaintext
                 )
         elif self.config['notifier_id']:
             return send_notification(
