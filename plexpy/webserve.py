@@ -5766,7 +5766,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def real_newsletter(self, newsletter_id=None, start_date=None, end_date=None,
-                        preview=False, master=False, raw=False, **kwargs):
+                        preview=False, raw=False, **kwargs):
         if newsletter_id and newsletter_id != 'None':
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
@@ -5781,14 +5781,13 @@ class WebInterface(object):
                                                                body=newsletter['body'],
                                                                message=newsletter['message'])
                 preview = (preview == 'true')
-                master = (master == 'true')
                 raw = (raw == 'true')
 
                 if raw:
                     cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
                     return json.dumps(newsletter_agent.raw_data(preview=preview))
 
-                return newsletter_agent.generate_newsletter(preview=preview, master=master)
+                return newsletter_agent.generate_newsletter(preview=preview)
 
             logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
             return "Failed to retrieve newsletter: invalid newsletter_id parameter"
