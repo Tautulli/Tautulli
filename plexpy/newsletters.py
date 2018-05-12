@@ -280,6 +280,9 @@ def serve_template(templatename, **kwargs):
         interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
         template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
 
+        if not plexpy.CONFIG.NEWSLETTER_INLINE_STYLES:
+            templatename = templatename.replace('.html', '.internal.html')
+
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
     try:
@@ -597,7 +600,6 @@ class RecentlyAdded(Newsletter):
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _DEFAULT_MESSAGE = ''
-    _TEMPLATE_MASTER = 'recently_added_master.html'
     _TEMPLATE = 'recently_added.html'
 
     def _get_recently_added(self, media_type=None):

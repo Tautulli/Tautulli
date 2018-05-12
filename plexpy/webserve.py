@@ -2826,6 +2826,7 @@ class WebInterface(object):
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
             "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
+            "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
         }
 
@@ -2848,7 +2849,7 @@ class WebInterface(object):
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
-            "newsletter_self_hosted"
+            "newsletter_self_hosted", "newsletter_inline_styles"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

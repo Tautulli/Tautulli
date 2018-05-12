@@ -313,6 +313,7 @@ _CONFIG_DEFINITIONS = {
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
     'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
     'NEWSLETTER_CUSTOM_DIR': (str, 'Newsletter', ''),
+    'NEWSLETTER_INLINE_STYLES': (int, 'Newsletter', 1),
     'NEWSLETTER_TEMPLATES': (str, 'Newsletter', 'newsletters'),
     'NEWSLETTER_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_SELF_HOSTED': (int, 'Newsletter', 0),
