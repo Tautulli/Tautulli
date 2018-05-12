@@ -971,6 +971,15 @@
                             <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
                         </div>
 
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="newsletter_inline_styles" name="newsletter_inline_styles" value="1" ${config['newsletter_inline_styles']}> Use Inline Styles Template
+                            </label>
+                            <p class="help-block">
+                                Enable to use newsletter templates with inline CSS styles. Inline styles render better in email clients, but are larger in size which may cause long newsletters to be clipped.<br>
+                                Note: This setting does not affect custom templates. CSS styles will depend on your own template.
+                            </p>
+                        </div>
                         <div class="form-group advanced-setting">
                             <label for="newsletter_dir">Custom Newsletter Templates Folder</label>
                             <div class="row">
