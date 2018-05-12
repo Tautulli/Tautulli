@@ -1295,11 +1295,19 @@ class EMAIL(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['html_support']:
+            plain = MIMEText(None, 'plain', 'utf-8')
+            plain.replace_header('Content-Transfer-Encoding', 'quoted-printable')
+            plain.set_payload(kwargs.get('plaintext', bleach.clean(body, strip=True)), 'utf-8')
+
+            html = MIMEText(body, 'html', 'utf-8')
+
             msg = MIMEMultipart('alternative')
-            msg.attach(MIMEText(bleach.clean(body, strip=True), 'plain', 'utf-8'))
-            msg.attach(MIMEText(body, 'html', 'utf-8'))
+            msg.attach(plain)
+            msg.attach(html)
         else:
-            msg = MIMEText(body, 'plain', 'utf-8')
+            msg = MIMEText(None, 'plain', 'utf-8')
+            msg.replace_header('Content-Transfer-Encoding', 'quoted-printable')
+            msg.set_payload(body, 'utf-8')
 
         msg['Message-ID'] = email.utils.make_msgid()
         msg['Date'] = email.utils.formatdate(localtime=True)
