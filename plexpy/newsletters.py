@@ -319,7 +319,6 @@ class Newsletter(object):
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
     _DEFAULT_MESSAGE = ''
     _DEFAULT_FILENAME = 'newsletter_{newsletter_uuid}.html'
-    _TEMPLATE_MASTER = ''
     _TEMPLATE = ''
 
     def __init__(self, newsletter_id=None, newsletter_id_name=None, config=None, email_config=None,
@@ -412,19 +411,14 @@ class Newsletter(object):
                 'parameters': self.parameters,
                 'data': self.data}
 
-    def generate_newsletter(self, preview=False, master=False):
+    def generate_newsletter(self, preview=False):
         if preview:
             self.is_preview = True
-
-        if master:
-            template = self._TEMPLATE_MASTER
-        else:
-            template = self._TEMPLATE
 
         self.retrieve_data()
 
         return serve_template(
-            templatename=template,
+            templatename=self._TEMPLATE,
             uuid=self.uuid,
             subject=self.subject_formatted,
             body=self.body_formatted,
