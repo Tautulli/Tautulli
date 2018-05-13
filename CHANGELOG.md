@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.1.7-beta (2018-05-13)
+
+* Newsletters:
+  * New: Option to toggle between inline or internal CSS style templates.
+  * New: Button to delete all uploaded images from Imgur/Cloudinary.
+  * Fix: Long titles overflowing the newsletter cards.
+  * Change: Self-hosted images on newsletters to use the /image endpoint instead of proxying through /newsletter/image.
+  * Change: Strip whitespace from newsletter for smaller file size before sending to email.
+* API:
+  * New: Added get_stream_data command to API.
+  * New: Added newsletter API commands to documentation.
+
+
 ## v2.1.6-beta (2018-05-09)
 
 * Newsletters:
