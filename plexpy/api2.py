@@ -37,6 +37,8 @@ import logger
 import mobile_app
 import notification_handler
 import notifiers
+import newsletter_handler
+import newsletters
 import users
 
 
@@ -439,6 +441,51 @@ class API2:
             self._api_result_type = 'success'
         else:
             self._api_msg = 'Notification failed.'
+            self._api_result_type = 'error'
+
+        return
+
+    def notify_newsletter(self, newsletter_id='', subject='', body='', message='', **kwargs):
+        """ Send a newsletter using Tautulli.
+
+            ```
+            Required parameters:
+                newsletter_id (int):    The ID number of the newsletter agent
+
+            Optional parameters:
+                subject (str):          The subject of the newsletter
+                body (str):             The body of the newsletter
+                message (str):          The message of the newsletter
+
+            Returns:
+                None
+            ```
+        """
+        if not newsletter_id:
+            self._api_msg = 'Newsletter failed: no newsletter id provided.'
+            self._api_result_type = 'error'
+            return
+
+        newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+
+        if not newsletter:
+            self._api_msg = 'Newsletter failed: invalid newsletter_id provided %s.' % newsletter_id
+            self._api_result_type = 'error'
+            return
+
+        logger.api_debug(u'Tautulli APIv2 :: Sending newsletter.')
+        success = newsletter_handler.notify(newsletter_id=newsletter_id,
+                                            notify_action='api',
+                                            subject=subject,
+                                            body=body,
+                                            message=message,
+                                            **kwargs)
+
+        if success:
+            self._api_msg = 'Newsletter sent.'
+            self._api_result_type = 'success'
+        else:
+            self._api_msg = 'Newsletter failed.'
             self._api_result_type = 'error'
 
         return
