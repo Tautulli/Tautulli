@@ -5552,7 +5552,7 @@ class WebInterface(object):
             Returns:
                 json:
                     [{"id": 1,
-                      "agent_id": 13,
+                      "agent_id": 0,
                       "agent_name": "recently_added",
                       "agent_label": "Recently Added",
                       "friendly_name": "",
@@ -5612,15 +5612,24 @@ class WebInterface(object):
             Returns:
                 json:
                     {"id": 1,
-                     "agent_id": 13,
+                     "agent_id": 0,
                      "agent_name": "recently_added",
                      "agent_label": "Recently Added",
                      "friendly_name": "",
+                     "id_name": "",
                      "cron": "0 0 * * 1",
-                     "active": 1
-                     "config": {"time_frame": 7,
-                                "time_frame_units": "days",
-                                "incl_libraries": [1, 2]
+                     "active": 1,
+                     "subject": "Recently Added to {server_name}! ({end_date})",
+                     "body": "View the newsletter here: {newsletter_url}",
+                     "message": "",
+                     "config": {"custom_cron": 0,
+                                "filename": "newsletter_{newsletter_uuid}.html",
+                                "formatted": 1,
+                                "incl_libraries": ["1", "2"],
+                                "notifier_id": 1,
+                                "save_only": 0,
+                                "time_frame": 7,
+                                "time_frame_units": "days"
                                 },
                      "email_config": {...},
                      "config_options": [{...}, ...],
@@ -5667,19 +5676,15 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_newsletter_config(self, newsletter_id=None, agent_id=None, **kwargs):
-        """ Configure an exisitng notificaiton agent.
+        """ Configure an exisitng newsletter agent.
 
             ```
             Required parameters:
-                newsletter_id (int):            The newsletter config to update
-                agent_id (int):       The newsletter type of the newsletter
+                newsletter_id (int):    The newsletter config to update
+                agent_id (int):         The newsletter type of the newsletter
 
             Optional parameters:
-                Pass all the config options for the agent with the agent prefix:
-                    e.g. For Recently Added: recently_added_last_days
-                                             recently_added_incl_movies
-                                             recently_added_incl_shows
-                                             recently_added_incl_artists
+                Pass all the config options for the agent with the 'newsletter_config_' and 'newsletter_email_' prefix.
 
             Returns:
                 None
@@ -5697,7 +5702,6 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi("notify_newsletter")
     def send_newsletter(self, newsletter_id=None, subject='', body='', message='', notify_action='', **kwargs):
         """ Send a newsletter using Tautulli.
 

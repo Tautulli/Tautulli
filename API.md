@@ -32,6 +32,21 @@ General optional parameters:
 
 ## API methods
 
+### add_newsletter_config
+Add a new notification agent.
+
+```
+Required parameters:
+    agent_id (int):           The newsletter type to add
+
+Optional parameters:
+    None
+
+Returns:
+    None
+```
+
+
 ### add_notifier_config
 Add a new notification agent.
 
@@ -98,11 +113,13 @@ Delete the images uploaded to image hosting services.
 
 ```
 Required parameters:
+    None
+
+Optional parameters:
     rating_key (int):       1234
                             (Note: Must be the movie, show, season, artist, or album rating key)
-Optional parameters:
-    service (str):          imgur or cloudinary
-                            (Note: Defaults to service in Image Hosting setting)
+    service (str):          'imgur' or 'cloudinary'
+    delete_all (bool):      'true' to delete all images form the service
 
 Returns:
     json:
@@ -183,6 +200,36 @@ Remove a mobile device from the database.
 ```
 Required parameters:
     mobile_device_id (int):        The device id to delete
+
+Optional parameters:
+    None
+
+Returns:
+    None
+```
+
+
+### delete_newsletter
+Remove a newsletter from the database.
+
+```
+Required parameters:
+    newsletter_id (int):        The newsletter to delete
+
+Optional parameters:
+    None
+
+Returns:
+    None
+```
+
+
+### delete_newsletter_log
+Delete the Tautulli newsletter logs.
+
+```
+Required paramters:
+    None
 
 Optional parameters:
     None
@@ -1164,6 +1211,109 @@ Optional parameters:
 Returns:
     json:
         {}
+```
+
+
+### get_newsletter_config
+Get the configuration for an existing notification agent.
+
+```
+Required parameters:
+    newsletter_id (int):        The newsletter config to retrieve
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"id": 1,
+         "agent_id": 0,
+         "agent_name": "recently_added",
+         "agent_label": "Recently Added",
+         "friendly_name": "",
+         "id_name": "",
+         "cron": "0 0 * * 1",
+         "active": 1,
+         "subject": "Recently Added to {server_name}! ({end_date})",
+         "body": "View the newsletter here: {newsletter_url}",
+         "message": "",
+         "config": {"custom_cron": 0,
+                    "filename": "newsletter_{newsletter_uuid}.html",
+                    "formatted": 1,
+                    "incl_libraries": ["1", "2"],
+                    "notifier_id": 1,
+                    "save_only": 0,
+                    "time_frame": 7,
+                    "time_frame_units": "days"
+                    },
+         "email_config": {...},
+         "config_options": [{...}, ...],
+         "email_config_options": [{...}, ...]
+         }
+```
+
+
+### get_newsletter_log
+Get the data on the Tautulli newsletter logs table.
+
+```
+Required parameters:
+    None
+
+Optional parameters:
+    order_column (str):             "timestamp", "newsletter_id", "agent_name", "notify_action",
+                                    "subject_text", "start_date", "end_date", "uuid"
+    order_dir (str):                "desc" or "asc"
+    start (int):                    Row to start from, 0
+    length (int):                   Number of items to return, 25
+    search (str):                   A string to search for, "Telegram"
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 1039,
+         "recordsFiltered": 163,
+         "data":
+            [{"agent_id": 0,
+              "agent_name": "recently_added",
+              "end_date": "2018-03-18",
+              "id": 7,
+              "newsletter_id": 1,
+              "notify_action": "on_cron",
+              "start_date": "2018-03-05",
+              "subject_text": "Recently Added to Plex (Winterfell-Server)! (2018-03-18)",
+              "success": 1,
+              "timestamp": 1462253821,
+              "uuid": "7fe4g65i"
+              },
+             {...},
+             {...}
+             ]
+         }
+```
+
+
+### get_newsletters
+Get a list of configured newsletters.
+
+```
+Required parameters:
+    None
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"id": 1,
+          "agent_id": 0,
+          "agent_name": "recently_added",
+          "agent_label": "Recently Added",
+          "friendly_name": "",
+          "cron": "0 0 * * 1",
+          "active": 1
+          }
+         ]
 ```
 
 
@@ -2277,6 +2427,23 @@ Returns:
 ```
 
 
+### notify_newsletter
+Send a newsletter using Tautulli.
+
+```
+Required parameters:
+    newsletter_id (int):    The ID number of the newsletter agent
+
+Optional parameters:
+    subject (str):          The subject of the newsletter
+    body (str):             The body of the newsletter
+    message (str):          The message of the newsletter
+
+Returns:
+    None
+```
+
+
 ### notify_recently_added
 Send a recently added notification using Tautulli.
 
@@ -2386,6 +2553,22 @@ Required parameters:
 
 Optional parameters:
     friendly_name (str):           A friendly name to identify the mobile device
+
+Returns:
+    None
+```
+
+
+### set_newsletter_config
+Configure an exisitng newsletter agent.
+
+```
+Required parameters:
+    newsletter_id (int):    The newsletter config to update
+    agent_id (int):         The newsletter type of the newsletter
+
+Optional parameters:
+    Pass all the config options for the agent with the 'newsletter_config_' and 'newsletter_email_' prefix.
 
 Returns:
     None
