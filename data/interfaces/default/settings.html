@@ -1007,12 +1007,19 @@
                             <label for="notify_upload_posters">Image Hosting</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
-                                        <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
-                                        <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
-                                        <option value="3" ${'selected' if config['notify_upload_posters'] == 3 else ''}>Cloudinary</option>
-                                        <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted on public Tautulli domain</option>
-                                    </select>
+                                    <div class="${'input-group' if config['notify_upload_posters'] in (1, 3) else ''}">
+                                        <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
+                                            <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
+                                            <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
+                                            <option value="3" ${'selected' if config['notify_upload_posters'] == 3 else ''}>Cloudinary</option>
+                                            <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted on public domain</option>
+                                        </select>
+                                        % if config['notify_upload_posters'] in (1, 3):
+                                        <span class="input-group-btn" id="delete_all_uploads_container">
+                                            <button class="btn btn-form" type="button" id="delete_all_uploads">Delete All Uploads</button>
+                                        </span>
+                                        % endif
+                                    </div>
                                 </div>
                             </div>
                             <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
@@ -2615,9 +2622,35 @@ $(document).ready(function() {
         } else {
             $('#cloudinary_upload_options').slideUp();
         }
+        var parent;
+        if (upload_val === '1' || upload_val === '3') {
+            parent = $('#notify_upload_posters').parent();
+            if ($('#delete_all_uploads_container').length === 0){
+                parent.addClass('input-group');
+                parent.append(
+                    '<span class="input-group-btn" id="delete_all_uploads_container">' +
+                    '<button class="btn btn-form" type="button" id="delete_all_uploads">Delete All Uploads</button>' +
+                    '</span>');
+            }
+        } else {
+            parent = $('#notify_upload_posters').parent();
+            parent.removeClass('input-group');
+            $('#delete_all_uploads_container').remove();
+        }
     }
     $('#notify_upload_posters').change(function () {
         imageUpload();
+    });
+
+    $('body').on('click', '#delete_all_uploads', function () {
+        var image_hosting_option = $('#notify_upload_posters').find(':selected');
+        var name = image_hosting_option.text();
+
+        var msg = 'Are you sure you want to delete all uploaded images on <strong>' + name + '</strong>?' +
+            '<br />All previous links to the images will no longer work. This cannot be undone!';
+        var url = 'delete_hosted_images';
+        var data = { service: name, delete_all: true };
+        confirmAjaxCall(url, msg, data, false);
     });
 
     function baseURLSet() {
