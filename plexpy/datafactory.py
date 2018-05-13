@@ -1215,51 +1215,63 @@ class DataFactory(object):
 
         monitor_db.upsert(table, key_dict=keys, value_dict=values)
 
-    def delete_img_info(self, rating_key=None, service=None):
+    def delete_img_info(self, rating_key=None, service='', delete_all=False):
         monitor_db = database.MonitorDatabase()
 
-        if rating_key:
-            service = service or helpers.get_img_service()
+        if not delete_all:
+            service = helpers.get_img_service()
 
-            if service == 'imgur':
-                # Delete from Imgur
-                query = 'SELECT imgur_title, delete_hash, fallback FROM imgur_lookup ' \
-                        'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash ' \
-                        'WHERE rating_key = ? '
-                args = [rating_key]
-                results = monitor_db.select(query, args=args)
-
-                for imgur_info in results:
-                    if imgur_info['delete_hash']:
-                        helpers.delete_from_imgur(delete_hash=imgur_info['delete_hash'],
-                                                  img_title=imgur_info['imgur_title'],
-                                                  fallback=imgur_info['fallback'])
-
-                logger.info(u"Tautulli DataFactory :: Deleting Imgur info for rating_key %s from the database."
-                            % rating_key)
-                result = monitor_db.action('DELETE FROM imgur_lookup WHERE img_hash '
-                                           'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
-                                           [rating_key])
-
-            elif service == 'cloudinary':
-                # Delete from Cloudinary
-                helpers.delete_from_cloudinary(rating_key=rating_key)
-
-                logger.info(u"Tautulli DataFactory :: Deleting Cloudinary info for rating_key %s from the database."
-                            % rating_key)
-                result = monitor_db.action('DELETE FROM cloudinary_lookup WHERE img_hash '
-                                           'IN (SELECT img_hash FROM image_hash_lookup WHERE rating_key = ?)',
-                                           [rating_key])
-
-            else:
-                logger.error(u"Tautulli DataFactory :: Unable to delete hosted images: invalid service '%s' provided."
-                             % service)
-
-            return service
-
-        else:
+        if not rating_key and not delete_all:
             logger.error(u"Tautulli DataFactory :: Unable to delete hosted images: rating_key not provided.")
             return False
+
+        where = ''
+        args = []
+        log_msg = ''
+        if rating_key:
+            where = 'WHERE rating_key = ?'
+            args = [rating_key]
+            log_msg = ' for rating_key %s' % rating_key
+
+        if service.lower() == 'imgur':
+            # Delete from Imgur
+            query = 'SELECT imgur_title, delete_hash, fallback FROM imgur_lookup ' \
+                    'JOIN image_hash_lookup ON imgur_lookup.img_hash = image_hash_lookup.img_hash %s' % where
+            results = monitor_db.select(query, args=args)
+
+            for imgur_info in results:
+                if imgur_info['delete_hash']:
+                    helpers.delete_from_imgur(delete_hash=imgur_info['delete_hash'],
+                                              img_title=imgur_info['imgur_title'],
+                                              fallback=imgur_info['fallback'])
+
+            logger.info(u"Tautulli DataFactory :: Deleting Imgur info%s from the database."
+                        % log_msg)
+            result = monitor_db.action('DELETE FROM imgur_lookup WHERE img_hash '
+                                       'IN (SELECT img_hash FROM image_hash_lookup %s)' % where,
+                                       args)
+
+        elif service.lower() == 'cloudinary':
+            # Delete from Cloudinary
+            query = 'SELECT cloudinary_title, rating_key, fallback FROM cloudinary_lookup ' \
+                    'JOIN image_hash_lookup ON cloudinary_lookup.img_hash = image_hash_lookup.img_hash %s ' \
+                    'GROUP BY rating_key' % where
+            results = monitor_db.select(query, args=args)
+
+            for cloudinary_info in results:
+                helpers.delete_from_cloudinary(rating_key=cloudinary_info['rating_key'])
+
+            logger.info(u"Tautulli DataFactory :: Deleting Cloudinary info%s from the database."
+                        % log_msg)
+            result = monitor_db.action('DELETE FROM cloudinary_lookup WHERE img_hash '
+                                       'IN (SELECT img_hash FROM image_hash_lookup %s)' % where,
+                                       args)
+
+        else:
+            logger.error(u"Tautulli DataFactory :: Unable to delete hosted images: invalid service '%s' provided."
+                         % service)
+
+        return service
 
     def get_poster_info(self, rating_key='', metadata=None, service=None):
         poster_key = ''

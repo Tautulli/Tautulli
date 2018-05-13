@@ -4250,16 +4250,18 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_hosted_images(self, rating_key='', service='', **kwargs):
+    def delete_hosted_images(self, rating_key='', service='', delete_all=False, **kwargs):
         """ Delete the images uploaded to image hosting services.
 
             ```
             Required parameters:
+                None
+
+            Optional parameters:
                 rating_key (int):       1234
                                         (Note: Must be the movie, show, season, artist, or album rating key)
-            Optional parameters:
-                service (str):          imgur or cloudinary
-                                        (Note: Defaults to service in Image Hosting setting)
+                service (str):          'imgur' or 'cloudinary'
+                delete_all (bool):      'true' to delete all images form the service
 
             Returns:
                 json:
@@ -4268,8 +4270,10 @@ class WebInterface(object):
             ```
         """
 
+        delete_all = (delete_all == 'true')
+
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_img_info(rating_key=rating_key, service=service)
+        result = data_factory.delete_img_info(rating_key=rating_key, service=service, delete_all=delete_all)
 
         if result:
             return {'result': 'success', 'message': 'Deleted hosted images from %s.' % result.capitalize()}
