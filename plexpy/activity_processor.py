@@ -180,8 +180,9 @@ class ActivityProcessor(object):
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
             else:
-                logger.debug(u"Tautulli ActivityProcessor :: ratingKey %s not logged. Does not meet logging criteria. "
-                             u"Media type is '%s'" % (session['rating_key'], session['media_type']))
+                logger.debug(u"Tautulli ActivityProcessor :: Session %s ratingKey %s not logged. "
+                             u"Does not meet logging criteria. Media type is '%s'" %
+                             (session['session_key'], session['rating_key'], session['media_type']))
                 return session['id']
 
             if str(session['paused_counter']).isdigit():
@@ -193,15 +194,16 @@ class ActivityProcessor(object):
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
-                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
-                                 u"seconds, so we're not logging it." %
-                                 (session['rating_key'], str(real_play_time), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs "
+                                 u"which is less than %s seconds, so we're not logging it." %
+                                 (session['session_key'], session['rating_key'], str(real_play_time),
+                                  plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             if not is_import and session['media_type'] == 'track':
                 if real_play_time < 15 and session['duration'] >= 30:
                     logging_enabled = False
-                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs, "
+                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
                                  u"looks like it was skipped so we're not logging it" %
-                                 (session['rating_key'], str(real_play_time)))
+                                 (session['session_key'], session['rating_key'], str(real_play_time)))
             elif is_import and import_ignore_interval:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(import_ignore_interval)):
