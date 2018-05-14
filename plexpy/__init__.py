@@ -1723,8 +1723,8 @@ def dbcheck():
             for row in result:
                 img_hash = notification_handler.set_hash_image_info(
                     rating_key=row['rating_key'], width=1000, height=1500, fallback='poster')
-                data_factory.set_img_info(img_hash=img_hash, imgur_title=row['poster_title'],
-                                          imgur_url=row['poster_url'], delete_hash=row['delete_hash'],
+                data_factory.set_img_info(img_hash=img_hash, img_title=row['poster_title'],
+                                          img_url=row['poster_url'], delete_hash=row['delete_hash'],
                                           service='imgur')
 
             db.action('DROP TABLE poster_urls')
