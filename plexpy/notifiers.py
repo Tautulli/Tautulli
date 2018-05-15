@@ -3476,7 +3476,7 @@ class TWITTER(Notifier):
             poster_url = parameters.get('poster_url','')
 
         # Hack to add media type to attachment
-        if poster_url:
+        if poster_url and not helpers.get_img_service():
             poster_url += '.png'
 
         if self.config['incl_subject']:
