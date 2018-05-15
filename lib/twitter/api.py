@@ -1103,10 +1103,10 @@ class Api(object):
         except KeyError:
             raise TwitterError({'message': 'Media could not be uploaded'})
 
-        boundary = bytes("--{0}".format(uuid4()), 'utf-8')
+        boundary = bytes("--{0}".format(uuid4())).encode('utf-8')
         media_id_bytes = bytes(str(media_id).encode('utf-8'))
         headers = {'Content-Type': 'multipart/form-data; boundary={0}'.format(
-            str(boundary[2:], 'utf-8'))}
+            str(boundary[2:]).encode('utf-8'))}
 
         segment_id = 0
         while True:
