@@ -21,7 +21,7 @@
 
 %>
 <!doctype html>
-<html>
+<html xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
     <meta name="viewport" content="width=device-width">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -597,9 +597,16 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+																			<!--[if gte mso 9]>
+																				<v:rect fill="true" stroke="false" style="width:150px; height:225px; left: 0px; top: 0px">
+																					<v:fill type="frame" src="${(base_url_image + movie['thumb_hash']) if base_url_image else movie['poster_url']}" color="#7bceeb" />
+																			<![endif]-->
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="text-decoration: underline;">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
+																			<!--[if gte mso 9]>
+																				</v:rect>
+																			<![endif]-->
                                                                         </td>
                                                                     </tr>
                                                                 </table>
@@ -726,9 +733,16 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+																			<!--[if gte mso 9]>
+																				<v:rect fill="true" stroke="false" style="width:150px; height:225px; left: 0px; top: 0px">
+																					<v:fill type="frame" src="${(base_url_image + show['thumb_hash']) if base_url_image else show['poster_url']}" color="#7bceeb" />
+																			<![endif]-->
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank" style="text-decoration: underline;">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
+																			<!--[if gte mso 9]>
+																				</v:rect>
+																			<![endif]-->
                                                                         </td>
                                                                     </tr>
                                                                 </table>
@@ -869,9 +883,16 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['poster_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+																			<!--[if gte mso 9]>
+																				<v:rect fill="true" stroke="false" style="width:150px; height:225px; left: 0px; top: 0px">
+																					<v:fill type="frame" src="${(base_url_image + album['thumb_hash']) if base_url_image else album['poster_url']}" color="#7bceeb" />
+																			<![endif]-->
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="text-decoration: underline;">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
+																			<!--[if gte mso 9]>
+																				</v:rect>
+																			<![endif]-->
                                                                         </td>
                                                                     </tr>
                                                                 </table>
