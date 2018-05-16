@@ -552,7 +552,7 @@
                     <tr>
                         <td class="wrapper">
                             <div class="header">
-                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'http://tautulli.com/images/newsletter/newsletter-header.png'}" class="header-img" width="492" height="90"/>
+                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://tautulli.com/images/newsletter/newsletter-header.png'}" class="header-img" width="492" height="90"/>
                             </div>
                             <div class="server-name">${parameters['server_name']}</div>
                             <div class="dates">${parameters['start_date']} - ${parameters['end_date']}</div>
@@ -571,7 +571,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Movies
+                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'https://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Movies
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['movie'])}</span> <span class="count-units">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -599,7 +599,7 @@
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -689,7 +689,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
+                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'https://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -728,7 +728,7 @@
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -841,7 +841,7 @@
                         <td class="wrapper">
                             <div class="sub-header-bar"></div>
                             <div class="sub-header-title">
-                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Music
+                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'https://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Music
                             </div>
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -871,7 +871,7 @@
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -956,7 +956,7 @@
                         <td class="footer">
                             <div class="footer-bar"></div>
                             <div class="content-block powered-by">
-                                Newsletter generated by <a href="http://tautulli.com" target="_blank">Tautulli</a>.
+                                Newsletter generated by <a href="https://tautulli.com" target="_blank">Tautulli</a>.
                             </div>
                         </td>
                     </tr>

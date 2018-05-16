@@ -661,9 +661,9 @@ class PrettyMetadata(object):
         poster_url = self.parameters['poster_url']
         if not poster_url:
             if self.media_type in ('artist', 'album', 'track'):
-                poster_url = 'http://tautulli.com/images/cover.png'
+                poster_url = common.ONLINE_COVER_THUMB
             else:
-                poster_url = 'http://tautulli.com/images/poster.png'
+                poster_url = common.ONLINE_POSTER_THUMB
         return poster_url
 
     def get_provider_name(self, provider):
