@@ -33,9 +33,9 @@ DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
 
-ONLINE_POSTER_THUMB = "http://tautulli.com/images/poster.png"
-ONLINE_COVER_THUMB = "http://tautulli.com/images/cover.png"
-ONLINE_ART = "http://tautulli.com/images/art.png"
+ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
+ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
+ONLINE_ART = "https://tautulli.com/images/art.png"
 
 MEDIA_TYPE_HEADERS = {
     'movie': 'Movies',
