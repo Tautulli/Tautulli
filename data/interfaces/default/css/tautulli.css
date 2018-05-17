@@ -3525,8 +3525,7 @@ a.no-highlight:hover {
 }
 .login-logo {
     margin: 0 auto 50px auto;
-    width: 340px;
-    height: 100px;
+    text-align: center;
 }
 .login-container .form-group {
     margin-bottom: 20px;
@@ -4098,4 +4097,8 @@ a[data-tab-destination] {
     margin-top: 10px !important;
     padding-top: 10px;
     border-top: 1px solid #444;
+}
+.newsletter-logo {
+    margin: 0 auto 50px auto;
+    text-align: center;
 }

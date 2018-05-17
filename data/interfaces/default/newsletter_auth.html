@@ -1,0 +1,43 @@
+﻿<%
+    import urllib
+%>
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="body-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="login-container">
+                <div class="newsletter-logo">
+                    <img src="${http_root}images/newsletter/newsletter-header.png" height="100" alt="PlexPy">
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <form action="${uri}" method="post" id="newsletter-form">
+                            <div class="form-group">
+                                <label for="password" class="control-label">
+                                    Password
+                                </label>
+                                <input type="password" id="key" name="key" class="form-control" autofocus>
+                            </div>
+                            <button id="enter" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Enter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

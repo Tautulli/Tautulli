@@ -965,10 +965,35 @@
                             <p class="help-block">Enable to host newsletters on your own domain. This will generate a link to an HTML page where you can view the newsletter.</p>
                         </div>
                         <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
-                            <p class="help-block" id="self_host_newsletter_message">
-                                Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
-                            </p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            <div class="form-group">
+                                <p class="help-block" id="self_host_newsletter_message">
+                                    Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
+                                </p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="newsletter_auth">Newsletter Authentication</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-control" id="newsletter_auth" name="newsletter_auth">
+                                            <option value="0" ${'selected' if config['newsletter_auth'] == 0 else ''}>Disabled</option>
+                                            <option value="1" ${'selected' if config['newsletter_auth'] == 1 else ''}>Password</option>
+                                            <option value="2" ${'selected' if config['newsletter_auth'] == 2 else ''}>Tautulli Guest Access</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="help-block">Select the authentication method to use for self-hosted newsletters.</p>
+                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="tabs-web_interface" data-target="#allow_guest_access">Web Interface</a>.</p>
+                            </div>
+                            <div class="form-group" id="newsletter_password_option">
+                                <label for="newsletter_password">Newsletter Password</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="newsletter_password" name="newsletter_password" value="${config['newsletter_password']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter the password that will be required to view self-hosted newsletters.</p>
+                            </div>
                         </div>
 
                         <div class="checkbox advanced-setting">
@@ -1025,10 +1050,12 @@
                             <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
                         </div>
                         <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
-                            <p class="help-block" id="imgur_upload_message">
-                                You can register a new Imgur application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br>
-                                Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
-                            </p>
+                            <div class="form-group">
+                                <p class="help-block" id="imgur_upload_message">
+                                    You can register a new Imgur application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br>
+                                    Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
+                                </p>
+                            </div>
                             <div class="form-group">
                                 <label for="imgur_client_id">Imgur Client ID</label>
                                 <div class="row">
@@ -1040,13 +1067,17 @@
                             </div>
                         </div>
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
-                            <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
-                            <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            <div class="form-group">
+                                <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            </div>
                         </div>
                         <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
-                            <p class="help-block" id="imgur_upload_message">
-                                You can sign up for Cloudinary <a href="${anon_url('https://cloudinary.com')}" target="_blank">here</a>.<br>
-                            </p>
+                            <div class="form-group">
+                                <p class="help-block" id="imgur_upload_message">
+                                    You can sign up for Cloudinary <a href="${anon_url('https://cloudinary.com')}" target="_blank">here</a>.<br>
+                                </p>
+                            </div>
                             <div class="form-group">
                                 <label for="cloudinary_cloud_name">Cloudinary Cloud Name</label>
                                 <div class="row">
@@ -2679,6 +2710,28 @@ $(document).ready(function() {
         baseURLSet();
         newsletterUploadEnabled();
     });
+
+    function newsletterPasswordEnabled() {
+        if ($('#newsletter_auth').val() === '1') {
+            $('#newsletter_password_option').slideDown();
+        } else {
+            $('#newsletter_password_option').slideUp();
+        }
+        if ($('#newsletter_auth').val() === '2' && !($('#allow_guest_access').is(':checked'))) {
+            $('.newsletter-guest-access-warning').show();
+        } else {
+            $('.newsletter-guest-access-warning').hide();
+        }
+    }
+    newsletterPasswordEnabled();
+
+    $('#newsletter_auth').change(function () {
+        newsletterPasswordEnabled();
+    });
+
+    $('#allow_guest_access').click(function () {
+        newsletterPasswordEnabled();
+    })
 
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');
