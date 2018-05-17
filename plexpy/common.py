@@ -531,6 +531,7 @@ NEWSLETTER_PARAMETERS = [
             {'name': 'Newsletter UUID', 'type': 'str', 'value': 'newsletter_uuid', 'description': 'The unique identifier for the newsletter.'},
             {'name': 'Newsletter ID', 'type': 'int', 'value': 'newsletter_id', 'description': 'The unique ID number for the newsletter agent.'},
             {'name': 'Newsletter ID Name', 'type': 'int', 'value': 'newsletter_id_name', 'description': 'The unique ID name for the newsletter agent.'},
+            {'name': 'Newsletter Password', 'type': 'str', 'value': 'newsletter_password', 'description': 'The password required to view the newsletter if enabled.'},
         ]
      },
     {
