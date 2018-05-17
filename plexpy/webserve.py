@@ -5749,7 +5749,9 @@ class WebInterface(object):
             raise cherrypy.HTTPRedirect(redirect_uri)
 
         elif plexpy.CONFIG.NEWSLETTER_AUTH == 1 and plexpy.CONFIG.NEWSLETTER_PASSWORD:
-            if kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
+            if len(args) >= 2 and args[0] == 'image':
+                return self.newsletter_auth(*args, **kwargs)
+            elif kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
                 return self.newsletter_auth(*args, **kwargs)
             else:
                 return serve_template(templatename="newsletter_auth.html",
