@@ -56,7 +56,7 @@ import web_socket
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-from plexpy.webauth import AuthController, requireAuth, member_of, name_is
+from plexpy.webauth import AuthController, requireAuth, member_of
 
 
 def serve_template(templatename, **kwargs):
@@ -2826,6 +2826,8 @@ class WebInterface(object):
             "show_advanced_settings": plexpy.CONFIG.SHOW_ADVANCED_SETTINGS,
             "newsletter_dir": plexpy.CONFIG.NEWSLETTER_DIR,
             "newsletter_self_hosted": checked(plexpy.CONFIG.NEWSLETTER_SELF_HOSTED),
+            "newsletter_auth": plexpy.CONFIG.NEWSLETTER_AUTH,
+            "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
         }
@@ -5741,6 +5743,25 @@ class WebInterface(object):
 
     @cherrypy.expose
     def newsletter(self, *args, **kwargs):
+        request_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
+        if plexpy.CONFIG.NEWSLETTER_AUTH == 2:
+            redirect_uri = request_uri.replace('/newsletter', '/newsletter_auth')
+            raise cherrypy.HTTPRedirect(redirect_uri)
+
+        elif plexpy.CONFIG.NEWSLETTER_AUTH == 1 and plexpy.CONFIG.NEWSLETTER_PASSWORD:
+            if kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
+                return self.newsletter_auth(*args, **kwargs)
+            else:
+                return serve_template(templatename="newsletter_auth.html",
+                                      title="Newsletter Login",
+                                      uri=request_uri)
+
+        else:
+            return self.newsletter_auth(*args, **kwargs)
+
+    @cherrypy.expose
+    @requireAuth()
+    def newsletter_auth(self, *args, **kwargs):
         if args:
             # Keep this for backwards compatibility for images through /newsletter/image
             if len(args) >= 2 and args[0] == 'image':

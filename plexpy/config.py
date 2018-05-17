@@ -312,6 +312,8 @@ _CONFIG_DEFINITIONS = {
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
     'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
+    'NEWSLETTER_AUTH': (int, 'Newsletter', 0),
+    'NEWSLETTER_PASSWORD': (str, 'Newsletter', ''),
     'NEWSLETTER_CUSTOM_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_INLINE_STYLES': (int, 'Newsletter', 1),
     'NEWSLETTER_TEMPLATES': (str, 'Newsletter', 'newsletters'),
