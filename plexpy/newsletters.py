@@ -520,7 +520,8 @@ class Newsletter(object):
             'newsletter_static_url': base_url + 'id/' + self.newsletter_id_name,
             'newsletter_uuid': self.uuid,
             'newsletter_id': self.newsletter_id,
-            'newsletter_id_name': self.newsletter_id_name
+            'newsletter_id_name': self.newsletter_id_name,
+            'newsletter_password': plexpy.CONFIG.NEWSLETTER_PASSWORD
         }
 
         return parameters
