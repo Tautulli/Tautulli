@@ -1464,7 +1464,7 @@ class FACEBOOK(Notifier):
 
         return facebook.auth_url(app_id=app_id,
                                  canvas_url=redirect_uri,
-                                 perms=['user_managed_groups','publish_actions'])
+                                 perms=['publish_to_groups'])
 
     def _get_credentials(self, code=''):
         logger.info(u"Tautulli Notifiers :: Requesting access token from {name}.".format(name=self.NAME))
