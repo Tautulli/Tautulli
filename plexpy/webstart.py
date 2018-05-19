@@ -48,6 +48,7 @@ def initialize(options):
     options_dict = {
         'server.socket_port': options['http_port'],
         'server.socket_host': options['http_host'],
+        'tools.proxy.on': bool(options['http_proxy']),  # honor X-Forwarded-Proto header
         'environment': options['http_environment'],
         'server.thread_pool': 10,
         'tools.encode.on': True,
@@ -94,7 +95,6 @@ def initialize(options):
     conf = {
         '/': {
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
-            'tools.proxy.on': options['http_proxy'],  # pay attention to X-Forwarded-Proto header
             'tools.gzip.on': True,
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',

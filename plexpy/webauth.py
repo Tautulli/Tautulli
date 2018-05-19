@@ -149,14 +149,16 @@ def check_auth(*args, **kwargs):
             for condition in conditions:
                 # A condition is just a callable that returns true or false
                 if not condition():
-                    raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+                    from plexpy.webserve import redirect
+                    redirect(plexpy.HTTP_ROOT)
 
         else:
             redirect_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
             if redirect_uri:
                 redirect_uri = '?redirect_uri=' + quote(redirect_uri)
 
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout" + redirect_uri)
+            from plexpy.webserve import redirect
+            redirect(plexpy.HTTP_ROOT + "auth/logout" + redirect_uri)
 
 
 def requireAuth(*conditions):
@@ -218,7 +220,8 @@ class AuthController(object):
     def check_auth_enabled(self):
         if not plexpy.CONFIG.HTTP_BASIC_AUTH and plexpy.CONFIG.HTTP_PASSWORD:
             return
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+        from plexpy.webserve import redirect
+        redirect(plexpy.HTTP_ROOT)
 
     def on_login(self, username, user_id=None, user_group=None, success=0):
         """Called on successful login"""
@@ -249,7 +252,8 @@ class AuthController(object):
     
     @cherrypy.expose
     def index(self, *args, **kwargs):
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
+        from plexpy.webserve import redirect
+        redirect(plexpy.HTTP_ROOT + "auth/login")
 
     @cherrypy.expose
     def login(self, redirect_uri='', *args, **kwargs):
@@ -275,7 +279,8 @@ class AuthController(object):
         if redirect_uri:
             redirect_uri = '?redirect_uri=' + redirect_uri
 
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login" + redirect_uri)
+        from plexpy.webserve import redirect
+        redirect(plexpy.HTTP_ROOT + "auth/login" + redirect_uri)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
