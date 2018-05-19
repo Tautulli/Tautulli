@@ -12,6 +12,8 @@ from dateutil import tz as dateutil_tz
 from dateutil.relativedelta import relativedelta
 import calendar
 import sys
+import warnings
+
 
 from arrow import util, locales, parser, formatter
 
@@ -45,6 +47,7 @@ class Arrow(object):
 
     _ATTRS = ['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond']
     _ATTRS_PLURAL = ['{0}s'.format(a) for a in _ATTRS]
+    _MONTHS_PER_QUARTER = 3
 
     def __init__(self, year, month, day, hour=0, minute=0, second=0, microsecond=0,
                  tzinfo=None):
@@ -306,6 +309,9 @@ class Arrow(object):
         if name == 'week':
             return self.isocalendar()[1]
 
+        if name == 'quarter':
+            return int((self.month-1)/self._MONTHS_PER_QUARTER) + 1
+
         if not name.startswith('_'):
             value = getattr(self._datetime, name, None)
 
@@ -378,15 +384,15 @@ class Arrow(object):
         >>> arw.replace(year=2014, month=6)
         <Arrow [2014-06-11T22:27:34.787885+00:00]>
 
-        Use plural property names to shift their current value relatively:
-
-        >>> arw.replace(years=1, months=-1)
-        <Arrow [2014-04-11T22:27:34.787885+00:00]>
-
         You can also provide a timezone expression can also be replaced:
 
         >>> arw.replace(tzinfo=tz.tzlocal())
         <Arrow [2013-05-11T22:27:34.787885-07:00]>
+
+       Use plural property names to shift their current value relatively (**deprecated**):
+
+       >>> arw.replace(years=1, months=-1)
+       <Arrow [2014-04-11T22:27:34.787885+00:00]>
 
         Recognized timezone expressions:
 
@@ -398,21 +404,29 @@ class Arrow(object):
         '''
 
         absolute_kwargs = {}
-        relative_kwargs = {}
+        relative_kwargs = {}  # TODO: DEPRECATED; remove in next release
 
         for key, value in kwargs.items():
 
             if key in self._ATTRS:
                 absolute_kwargs[key] = value
-            elif key in self._ATTRS_PLURAL or key == 'weeks':
+            elif key in self._ATTRS_PLURAL or key in ['weeks', 'quarters']:
+                # TODO: DEPRECATED
+                warnings.warn("replace() with plural property to shift value"
+                              "is deprecated, use shift() instead",
+                              DeprecationWarning)
                 relative_kwargs[key] = value
-            elif key == 'week':
-                raise AttributeError('setting absolute week is not supported')
+            elif key in ['week', 'quarter']:
+                raise AttributeError('setting absolute {0} is not supported'.format(key))
             elif key !='tzinfo':
-                raise AttributeError()
+                raise AttributeError('unknown attribute: "{0}"'.format(key))
+
+        # core datetime does not support quarters, translate to months.
+        relative_kwargs.setdefault('months', 0)
+        relative_kwargs['months'] += relative_kwargs.pop('quarters', 0) * self._MONTHS_PER_QUARTER
 
         current = self._datetime.replace(**absolute_kwargs)
-        current += relativedelta(**relative_kwargs)
+        current += relativedelta(**relative_kwargs) # TODO: DEPRECATED
 
         tzinfo = kwargs.get('tzinfo')
 
@@ -422,9 +436,41 @@ class Arrow(object):
 
         return self.fromdatetime(current)
 
+    def shift(self, **kwargs):
+        ''' Returns a new :class:`Arrow <arrow.arrow.Arrow>` object with attributes updated
+        according to inputs.
+
+        Use plural property names to shift their current value relatively:
+
+        >>> import arrow
+        >>> arw = arrow.utcnow()
+        >>> arw
+        <Arrow [2013-05-11T22:27:34.787885+00:00]>
+        >>> arw.shift(years=1, months=-1)
+        <Arrow [2014-04-11T22:27:34.787885+00:00]>
+
+        '''
+
+        relative_kwargs = {}
+
+        for key, value in kwargs.items():
+
+            if key in self._ATTRS_PLURAL or key in ['weeks', 'quarters']:
+                relative_kwargs[key] = value
+            else:
+                raise AttributeError()
+
+        # core datetime does not support quarters, translate to months.
+        relative_kwargs.setdefault('months', 0)
+        relative_kwargs['months'] += relative_kwargs.pop('quarters', 0) * self._MONTHS_PER_QUARTER
+
+        current = self._datetime + relativedelta(**relative_kwargs)
+
+        return self.fromdatetime(current)
+
     def to(self, tz):
-        ''' Returns a new :class:`Arrow <arrow.arrow.Arrow>` object, converted to the target
-        timezone.
+        ''' Returns a new :class:`Arrow <arrow.arrow.Arrow>` object, converted
+        to the target timezone.
 
         :param tz: an expression representing a timezone.
 
@@ -587,6 +633,7 @@ class Arrow(object):
             Defaults to now in the current :class:`Arrow <arrow.arrow.Arrow>` object's timezone.
         :param locale: (optional) a ``str`` specifying a locale.  Defaults to 'en_us'.
         :param only_distance: (optional) returns only time difference eg: "11 seconds" without "in" or "ago" part.
+
         Usage::
 
             >>> earlier = arrow.utcnow().replace(hours=-2)
@@ -651,7 +698,8 @@ class Arrow(object):
         elif diff < 29808000:
             self_months = self._datetime.year * 12 + self._datetime.month
             other_months = dt.year * 12 + dt.month
-            months = sign * abs(other_months - self_months)
+
+            months = sign * int(max(abs(other_months - self_months), 2))
 
             return locale.describe('months', months, only_distance=only_distance)
 
@@ -676,7 +724,7 @@ class Arrow(object):
 
     def __sub__(self, other):
 
-        if isinstance(other, timedelta):
+        if isinstance(other, (timedelta, relativedelta)):
             return self.fromdatetime(self._datetime - other, self._datetime.tzinfo)
 
         elif isinstance(other, datetime):
@@ -688,7 +736,11 @@ class Arrow(object):
         raise TypeError()
 
     def __rsub__(self, other):
-        return self.__sub__(other)
+
+        if isinstance(other, datetime):
+            return other - self._datetime
+
+        raise TypeError()
 
 
     # comparisons
@@ -701,8 +753,6 @@ class Arrow(object):
 
         if not isinstance(other, (Arrow, datetime)):
             return False
-
-        other = self._get_datetime(other)
 
         return self._datetime == self._get_datetime(other)
 
@@ -882,7 +932,9 @@ class Arrow(object):
             return cls.max, limit
 
         else:
-            return end, sys.maxsize
+            if limit is None:
+                return end, sys.maxsize
+            return end, limit
 
     @staticmethod
     def _get_timestamp_from_input(timestamp):

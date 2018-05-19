@@ -31,6 +31,7 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
+% if data:
 <div class="dashboard-recent-media-row">
     <div id="recently-added-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
@@ -59,11 +60,38 @@ DOCUMENTATION :: END
                             <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                         </h3>
                         <h3 class="text-muted">${item['year']}</h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+                    % elif item['media_type'] == 'show':
+                    <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            ${item['child_count']} Seasons
+                        </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
                     </div>
                     % elif item['media_type'] == 'season':
                     <a href="info?rating_key=${item['rating_key']}" title="${item['parent_title']}">
                         <div class="dashboard-recent-media-poster">
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['parent_thumb']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb'] or item['parent_thumb']}&width=300&height=450&fallback=poster);">
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                         <script>
@@ -83,6 +111,37 @@ DOCUMENTATION :: END
                         </h3>
                         <h3 class="text-muted">
                             <a class="text-muted" href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+                    % elif item['media_type'] == 'episode':
+                    <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['grandparent_thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a href="info?rating_key=${item['parent_rating_key']}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                            &middot;
+                            <a href="info?rating_key=${item['rating_key']}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                         </h3>
                     </div>
 				    % elif item['media_type'] == 'album':
@@ -109,6 +168,7 @@ DOCUMENTATION :: END
                         <h3 class="text-muted">
                             <a class="text-muted" href="info?rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
                         </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
                     </div>
 				    % endif
                 </li>
@@ -117,6 +177,9 @@ DOCUMENTATION :: END
         </ul>
     </div>
 </div>
+% else:
+<div id="dashboard-no-recently-added" class="text-muted" style="height: 288px; margin-bottom: 25px;">No recently added items.</div>
+% endif
 % else:
 <div class="text-muted">There was an error communicating with your Plex Server.</div><br>
 % endif

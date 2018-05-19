@@ -39,7 +39,7 @@ class BleachSanitizerMixin(HTMLSanitizerMixin):
                     if isinstance(self.allowed_attributes, dict):
                         allowed_attributes = self.allowed_attributes.get(
                             token['name'], [])
-                        print callable(allowed_attributes)
+                        #print callable(allowed_attributes)
                         if not callable(allowed_attributes):
                             allowed_attributes += self.wildcard_attributes
                     else:

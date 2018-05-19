@@ -28,9 +28,7 @@ libraries_list_table_options = {
                 $(td).html('<div class="edit-library-toggles">' +
                     '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="do_notify-' + rowData['section_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="do_notify_created-' + rowData['section_id'] + '" name="do_notify_created" value="1" ' + rowData['do_notify_created'] + '><label class="edit-tooltip" for="do_notify_created-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Recently Added"><i class="fa fa-download fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -46,7 +44,7 @@ libraries_list_table_options = {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
                     } else {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=cover);"></div></a>');
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face svg-icon library-' + rowData['section_type'] + '"></div></a>');
                     }
                 } else {
                     $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);"></div></a>');
@@ -77,7 +75,7 @@ libraries_list_table_options = {
             "data": "section_type",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html(cellData);
+                    $(td).html(capitalizeFirstLetter(cellData));
                 }
             },
             "width": "10%",
@@ -217,11 +215,12 @@ libraries_list_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.purge-tooltip').tooltip({ container: 'body' });
-        $('.edit-tooltip').tooltip({ container: 'body' });
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',
@@ -257,15 +256,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     var row = libraries_list_table.row(tr);
     var rowData = row.data();
 
-    var do_notify = 0;
-    var do_notify_created = 0;
     var keep_history = 0;
-    if ($('#do_notify-' + rowData['section_id']).is(':checked')) {
-        do_notify = 1;
-    }
-    if ($('#do_notify_created-' + rowData['section_id']).is(':checked')) {
-        do_notify_created = 1;
-    }
     if ($('#keep_history-' + rowData['section_id']).is(':checked')) {
         keep_history = 1;
     }
@@ -279,8 +270,6 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
         url: 'edit_library',
         data: {
             section_id: rowData['section_id'],
-            do_notify: do_notify,
-            do_notify_created: do_notify_created,
             keep_history: keep_history,
             custom_thumb: custom_thumb
         },

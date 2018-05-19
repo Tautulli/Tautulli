@@ -18,21 +18,29 @@
         </div>
     </div>
     <div class='table-card-back'>
-        <div id="search-results-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading search results...</div>
+        <div id="search-results-list" class="search-results-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading search results...</div>
     </div>
 </div>
 </%def>
 
+<%def name="modalIncludes()">
+</%def>
+
 <%def name="javascriptIncludes()">
 <script>
+    var query_string = "${query.replace('"','\\"').replace('/','\\/') | n}";
+
     $('#search_button').removeClass('btn-inactive');
-    $('#query').val("${query.replace('"','\\"')}").css({ right: '0', width: '250px' }).addClass('active');
+    $('#query').val(query_string).css({ right: '0', width: '250px' }).addClass('active');
 
     $.ajax({
         url: 'get_search_results_children',
-        type: "GET",
+        type: "POST",
         async: true,
-        data: {'query': "${query.replace('"','\\"')}"},
+        data: {
+            query: query_string,
+            limit: 30
+        },
         complete: function (xhr, status) {
             $("#search-results-list").html(xhr.responseText);
         }

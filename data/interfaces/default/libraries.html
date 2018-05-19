@@ -3,22 +3,11 @@
 <%def name="headIncludes()">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
-<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 </%def>
 
 <%def name="body()">
 <div class='container-fluid'>
-    % if config['update_section_ids'] == 1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-exclamation-triangle"></i> PlexPy needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
-    </div>
-    % elif config['update_section_ids'] == -1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.
-        <br />
-        You may leave this page and come back later.
-    </div>
-    % endif
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-book"></i> All Libraries</span>
@@ -31,15 +20,9 @@
                     <i class="fa fa-pencil"></i> Edit mode
                 </button>&nbsp
             </div>
-            % if config['update_section_ids'] == -1:
-            <div class="btn-group">
-                <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
-            </div>
-            % else:
             <div class="btn-group">
                 <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list"><i class="fa fa-refresh"></i> Refresh libraries</button>
             </div>
-            % endif
             % endif
             <div class="btn-group colvis-button-bar"></div>
         </div>
@@ -58,34 +41,37 @@
                 <th align="left" id="last_accessed">Last Accessed</th>
                 <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
-                <th align="left" id="total_duration">Total Duration</th>
+                <th align="left" id="total_duration">Total Played Duration</th>
             </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
-        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
-                    </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <ul id="libraries-to-delete" class="list-unstyled"></ul>
-                        <ul id="libraries-to-purge" class="list-unstyled"></ul>
-                        <p>This is permanent and cannot be undone!</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
-                    </div>
-                </div>
+    </div>
+</div>
+
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <ul id="libraries-to-delete" class="list-unstyled"></ul>
+                <ul id="libraries-to-purge" class="list-unstyled"></ul>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
             </div>
         </div>
     </div>
 </div>
-
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -94,7 +80,7 @@
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
-<script src="${http_root}js/tables/libraries.js"></script>
+<script src="${http_root}js/tables/libraries.js${cache_param}"></script>
 <script>
     $(document).ready(function () {
         libraries_list_table_options.ajax = {
@@ -105,7 +91,7 @@
                     json_data: JSON.stringify(d)
                 };
             }
-        }
+        };
 
         libraries_list_table = $('#libraries_list_table').DataTable(libraries_list_table_options);
         var colvis = new $.fn.dataTable.ColVis(libraries_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
@@ -145,10 +131,11 @@
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                        libraries_to_delete.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_library',
-                                data: { section_id: libraries_to_delete[i] },
+                                type: 'POST',
+                                data: { section_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -156,11 +143,12 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
-                        for (var i = 0; i < libraries_to_purge.length; i++) {
+                        });
+                        libraries_to_purge.forEach(function(row, idx) {
                             $.ajax({
                                 url: 'delete_all_library_history',
-                                data: { section_id: libraries_to_purge[i] },
+                                type: 'POST',
+                                data: { section_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -168,7 +156,7 @@
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
-                        }
+                        });
                         libraries_list_table.draw();
                     });
                 }
@@ -192,26 +180,20 @@
 
     % if _session['user_group'] == 'admin':
     $("#refresh-libraries-list").click(function () {
-        if ("${config['update_section_ids']}" == "1") {
-            $('#update_section_ids_message').html(
-                '<i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.' +
-                '<br />' + 
-                'You may leave this page and come back later.');
-            $(this).prop('disabled', true);
-        }
-
+        showMsg('Refreshing libraries list...', true, false);
         $.ajax({
             url: 'refresh_libraries_list',
             cache: false,
             async: true,
-            success: function (data) {
-                showMsg('<i class="fa fa-refresh"></i>&nbspLibraries list refresh started...', false, true, 2000, false);
-            },
-            complete: function (data) {
-                showMsg('<i class="fa fa-check"></i>&nbspLibraries list refreshed.', false, true, 2000, false);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh libraries list.', false, true, 2000, true);
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 2000, false);
+                    libraries_list_table.draw();
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 2000, true);
+                }
             }
         });
     });

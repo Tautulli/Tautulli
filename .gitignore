@@ -12,17 +12,20 @@
 *.db*
 *.db-journal
 *.ini
+release.lock
 version.lock
 logs/*
+backups/*
 cache/*
+newsletters/*
 *.mmdb
 
 # HTTPS Cert/Key #
 ##################
-*.crt
-*.key
-*.csr
-*.pem
+/*.crt
+/*.key
+/*.csr
+/*.pem
 
 # Mergetool
 *.orgin

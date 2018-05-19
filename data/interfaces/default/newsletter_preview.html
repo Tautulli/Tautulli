@@ -1,0 +1,48 @@
+﻿<%
+    import urllib
+%>
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title} | ${server_name}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <style>
+        * {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+<div id="loader" class="newsletter-loader-container">
+    <div class="newsletter-loader-message">
+        <div class="newsletter-loader"></div>
+        <br>
+        Generating Newsletter
+        <br>
+        Please wait, this may take a few minutes...
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script>
+$(document).ready(function () {
+    var frame = $('<iframe></iframe>', {
+        src: 'real_newsletter?${urllib.urlencode(kwargs) | n}',
+        frameborder: '0',
+        style: 'display: none; height: 100vh; width: 100vw;'
+    });
+    frame.on('load', function (e) {
+        $(e.target).fadeIn();
+        $('#loader').fadeOut();
+    });
+    $('body').append(frame);
+});
+</script>
+
+</body>
+</html>

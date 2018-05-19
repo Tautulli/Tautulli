@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from datetime import timedelta
 from functools import wraps
 
@@ -22,6 +23,8 @@ class TornadoScheduler(BaseScheduler):
     """
     A scheduler that runs on a Tornado IOLoop.
 
+    The default executor can run jobs based on native coroutines (``async def``).
+
     =========== ===============================================================
     ``io_loop`` Tornado IOLoop instance to use (defaults to the global IO loop)
     =========== ===============================================================
@@ -29,10 +32,6 @@ class TornadoScheduler(BaseScheduler):
 
     _ioloop = None
     _timeout = None
-
-    def start(self):
-        super(TornadoScheduler, self).start()
-        self.wakeup()
 
     @run_in_ioloop
     def shutdown(self, wait=True):
@@ -52,6 +51,10 @@ class TornadoScheduler(BaseScheduler):
         if self._timeout:
             self._ioloop.remove_timeout(self._timeout)
             del self._timeout
+
+    def _create_default_executor(self):
+        from apscheduler.executors.tornado import TornadoExecutor
+        return TornadoExecutor()
 
     @run_in_ioloop
     def wakeup(self):

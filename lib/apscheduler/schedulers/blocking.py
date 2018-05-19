@@ -1,21 +1,21 @@
 from __future__ import absolute_import
+
 from threading import Event
 
-from apscheduler.schedulers.base import BaseScheduler
+from apscheduler.schedulers.base import BaseScheduler, STATE_STOPPED
+from apscheduler.util import TIMEOUT_MAX
 
 
 class BlockingScheduler(BaseScheduler):
     """
-    A scheduler that runs in the foreground (:meth:`~apscheduler.schedulers.base.BaseScheduler.start` will block).
+    A scheduler that runs in the foreground
+    (:meth:`~apscheduler.schedulers.base.BaseScheduler.start` will block).
     """
-
-    MAX_WAIT_TIME = 4294967  # Maximum value accepted by Event.wait() on Windows
-
     _event = None
 
-    def start(self):
-        super(BlockingScheduler, self).start()
+    def start(self, *args, **kwargs):
         self._event = Event()
+        super(BlockingScheduler, self).start(*args, **kwargs)
         self._main_loop()
 
     def shutdown(self, wait=True):
@@ -23,10 +23,11 @@ class BlockingScheduler(BaseScheduler):
         self._event.set()
 
     def _main_loop(self):
-        while self.running:
-            wait_seconds = self._process_jobs()
-            self._event.wait(wait_seconds if wait_seconds is not None else self.MAX_WAIT_TIME)
+        wait_seconds = TIMEOUT_MAX
+        while self.state != STATE_STOPPED:
+            self._event.wait(wait_seconds)
             self._event.clear()
+            wait_seconds = self._process_jobs()
 
     def wakeup(self):
         self._event.set()

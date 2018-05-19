@@ -1,25 +1,33 @@
-__all__ = ('EVENT_SCHEDULER_START', 'EVENT_SCHEDULER_SHUTDOWN', 'EVENT_EXECUTOR_ADDED', 'EVENT_EXECUTOR_REMOVED',
-           'EVENT_JOBSTORE_ADDED', 'EVENT_JOBSTORE_REMOVED', 'EVENT_ALL_JOBS_REMOVED', 'EVENT_JOB_ADDED',
-           'EVENT_JOB_REMOVED', 'EVENT_JOB_MODIFIED', 'EVENT_JOB_EXECUTED', 'EVENT_JOB_ERROR', 'EVENT_JOB_MISSED',
+__all__ = ('EVENT_SCHEDULER_STARTED', 'EVENT_SCHEDULER_SHUTDOWN', 'EVENT_SCHEDULER_PAUSED',
+           'EVENT_SCHEDULER_RESUMED', 'EVENT_EXECUTOR_ADDED', 'EVENT_EXECUTOR_REMOVED',
+           'EVENT_JOBSTORE_ADDED', 'EVENT_JOBSTORE_REMOVED', 'EVENT_ALL_JOBS_REMOVED',
+           'EVENT_JOB_ADDED', 'EVENT_JOB_REMOVED', 'EVENT_JOB_MODIFIED', 'EVENT_JOB_EXECUTED',
+           'EVENT_JOB_ERROR', 'EVENT_JOB_MISSED', 'EVENT_JOB_SUBMITTED', 'EVENT_JOB_MAX_INSTANCES',
            'SchedulerEvent', 'JobEvent', 'JobExecutionEvent')
 
 
-EVENT_SCHEDULER_START = 1
-EVENT_SCHEDULER_SHUTDOWN = 2
-EVENT_EXECUTOR_ADDED = 4
-EVENT_EXECUTOR_REMOVED = 8
-EVENT_JOBSTORE_ADDED = 16
-EVENT_JOBSTORE_REMOVED = 32
-EVENT_ALL_JOBS_REMOVED = 64
-EVENT_JOB_ADDED = 128
-EVENT_JOB_REMOVED = 256
-EVENT_JOB_MODIFIED = 512
-EVENT_JOB_EXECUTED = 1024
-EVENT_JOB_ERROR = 2048
-EVENT_JOB_MISSED = 4096
-EVENT_ALL = (EVENT_SCHEDULER_START | EVENT_SCHEDULER_SHUTDOWN | EVENT_JOBSTORE_ADDED | EVENT_JOBSTORE_REMOVED |
+EVENT_SCHEDULER_STARTED = EVENT_SCHEDULER_START = 2 ** 0
+EVENT_SCHEDULER_SHUTDOWN = 2 ** 1
+EVENT_SCHEDULER_PAUSED = 2 ** 2
+EVENT_SCHEDULER_RESUMED = 2 ** 3
+EVENT_EXECUTOR_ADDED = 2 ** 4
+EVENT_EXECUTOR_REMOVED = 2 ** 5
+EVENT_JOBSTORE_ADDED = 2 ** 6
+EVENT_JOBSTORE_REMOVED = 2 ** 7
+EVENT_ALL_JOBS_REMOVED = 2 ** 8
+EVENT_JOB_ADDED = 2 ** 9
+EVENT_JOB_REMOVED = 2 ** 10
+EVENT_JOB_MODIFIED = 2 ** 11
+EVENT_JOB_EXECUTED = 2 ** 12
+EVENT_JOB_ERROR = 2 ** 13
+EVENT_JOB_MISSED = 2 ** 14
+EVENT_JOB_SUBMITTED = 2 ** 15
+EVENT_JOB_MAX_INSTANCES = 2 ** 16
+EVENT_ALL = (EVENT_SCHEDULER_STARTED | EVENT_SCHEDULER_SHUTDOWN | EVENT_SCHEDULER_PAUSED |
+             EVENT_SCHEDULER_RESUMED | EVENT_EXECUTOR_ADDED | EVENT_EXECUTOR_REMOVED |
+             EVENT_JOBSTORE_ADDED | EVENT_JOBSTORE_REMOVED | EVENT_ALL_JOBS_REMOVED |
              EVENT_JOB_ADDED | EVENT_JOB_REMOVED | EVENT_JOB_MODIFIED | EVENT_JOB_EXECUTED |
-             EVENT_JOB_ERROR | EVENT_JOB_MISSED)
+             EVENT_JOB_ERROR | EVENT_JOB_MISSED | EVENT_JOB_SUBMITTED | EVENT_JOB_MAX_INSTANCES)
 
 
 class SchedulerEvent(object):
@@ -55,9 +63,21 @@ class JobEvent(SchedulerEvent):
         self.jobstore = jobstore
 
 
+class JobSubmissionEvent(JobEvent):
+    """
+    An event that concerns the submission of a job to its executor.
+
+    :ivar scheduled_run_times: a list of datetimes when the job was intended to run
+    """
+
+    def __init__(self, code, job_id, jobstore, scheduled_run_times):
+        super(JobSubmissionEvent, self).__init__(code, job_id, jobstore)
+        self.scheduled_run_times = scheduled_run_times
+
+
 class JobExecutionEvent(JobEvent):
     """
-    An event that concerns the execution of individual jobs.
+    An event that concerns the running of a job within its executor.
 
     :ivar scheduled_run_time: the time when the job was scheduled to be run
     :ivar retval: the return value of the successfully executed job
@@ -65,7 +85,8 @@ class JobExecutionEvent(JobEvent):
     :ivar traceback: a formatted traceback for the exception
     """
 
-    def __init__(self, code, job_id, jobstore, scheduled_run_time, retval=None, exception=None, traceback=None):
+    def __init__(self, code, job_id, jobstore, scheduled_run_time, retval=None, exception=None,
+                 traceback=None):
         super(JobExecutionEvent, self).__init__(code, job_id, jobstore)
         self.scheduled_run_time = scheduled_run_time
         self.retval = retval

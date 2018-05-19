@@ -1,0 +1,42 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           notifiers_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<ul class="stacked-configs list-unstyled">
+    % for notifier in sorted(notifiers_list, key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id'])):
+    <li class="notification-agent" data-id="${notifier['id']}">
+        <span>
+            <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers ${'active' if notifier['active'] else 'inactive'}"><i class="fa fa-lg fa-bell"></i></span>
+            % if notifier['friendly_name']:
+            ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']} - ${notifier['friendly_name']})</span>
+            % else:
+            ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']})</span>
+            % endif
+            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+        </span>
+    </li>
+    % endfor
+    <li class="add-notification-agent" id="add-notification-agent" data-target="#add-notifier-modal" data-toggle="modal">
+        <span>
+            <span class="toggle-left"><i class="fa fa-lg fa-bell"></i></span> Add a new notification agent
+            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
+        </span>
+    </li>
+</ul>
+
+<script>
+    // Load notification agent config modal
+    $(".notification-agent").click(function () {
+        var notifier_id = $(this).data('id');
+        loadNotifierConfig(notifier_id);
+    });
+
+    $('.trigger-tooltip').tooltip();
+</script>

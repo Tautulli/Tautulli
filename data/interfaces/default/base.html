@@ -2,135 +2,40 @@
     import plexpy
     from plexpy import version
     from plexpy.helpers import anon_url
+    from plexpy.notifiers import BROWSER_NOTIFIERS
 %>
 <!doctype html>
 
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PlexPy - ${title} | ${server_name}</title>
+    <title>Tautulli - ${title} | ${server_name}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
-    <link href="${http_root}css/plexpy.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}
 
-    <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
-    <link rel="shortcut icon" href="${http_root}images/favicon.png">
-
-    <!-- Allow web app to be run in full-screen mode. -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- Configure the status bar. -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <!-- Set the viewport. -->
-    <meta name="viewport" content="initial-scale=1">
-    <!-- Disable automatic phone number detection. -->
-    <meta name="format-detection" content="telephone=no">
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.5">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.5">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.5">
 
     <!-- ICONS -->
-    <!-- IE10 icon --> 
-    <meta name="application-name" content="PlexPy" />
-    <meta name="msapplication-config" content="${http_root}xml/IEconfig.xml"/>
-    <!-- Android >M39 icon -->
-    <link rel="manifest" href="${http_root}json/Android-manifest.json">
-    <!-- iPad retina icon -->
-    <link href="${http_root}images/res/ios/icon-76@2x.png" sizes="152x152" rel="apple-touch-icon-precomposed">
-    <!-- iPad retina icon (iOS < 7) -->
-    <link href="${http_root}images/res/ios/icon-72@2x.png" sizes="144x144" rel="apple-touch-icon-precomposed">
-    <!-- iPad non-retina icon -->
-    <link href="${http_root}images/res/ios/icon-76.png" sizes="76x76" rel="apple-touch-icon-precomposed">
-    <!-- iPad non-retina icon (iOS < 7) -->
-    <link href="${http_root}images/res/ios/icon-72.png" sizes="72x72" rel="apple-touch-icon-precomposed">
-    <!-- iPhone 6 Plus icon -->
-    <link href="${http_root}images/res/ios/icon-60@2x.png" sizes="120x120" rel="apple-touch-icon-precomposed">
-    <!-- iPhone retina icon (iOS < 7) -->
-    <link href="${http_root}images/res/ios/icon@2x.png" sizes="114x114" rel="apple-touch-icon-precomposed">
-    <!-- iPhone non-retina icon (iOS < 7) -->
-    <link href="${http_root}images/res/ios/icon.png" sizes="57x57" rel="apple-touch-icon-precomposed">
-    <!-- iPhone / iPod Touch  -->
-    <link href="${http_root}images/res/ios/icon-60@3x.png" sizes="180x180" rel="apple-touch-icon-precomposed">
-    <link href="${http_root}images/res/ios/icon-60.png" sizes="60x60" rel="apple-touch-icon-precomposed">
-    <!-- Spotlight Icon -->
-    <link href="${http_root}images/res/ios/icon-40.png" sizes="40x40" rel="apple-touch-icon-precomposed">
-    <link href="${http_root}images/res/ios/icon-40@2x.png" sizes="80x80" rel="apple-touch-icon-precomposed">
-    <!-- iPhone Spotlight and Settings Icon -->
-    <link href="${http_root}images/res/ios/icon-small.png" sizes="29x29" rel="apple-touch-icon-precomposed">
-    <link href="${http_root}images/res/ios/icon-small@2x.png" sizes="58x58" rel="apple-touch-icon-precomposed">
-    <!-- iPad Spotlight and Settings Icon -->
-    <link href="${http_root}images/res/ios/icon-50.png" sizes="50x50" rel="apple-touch-icon-precomposed">
-    <link href="${http_root}images/res/ios/icon-50@2x.png" sizes="100x100" rel="apple-touch-icon-precomposed">
-            
-    <!-- STARTUP IMAGES -->
-    <!-- iPad retina portrait startup image -->
-    <link href="${http_root}images/res/ios/Default-Portrait@2x~ipad.png"
-          media="(device-width: 768px) and (device-height: 1024px)
-                 and (-webkit-device-pixel-ratio: 2)
-                 and (orientation: portrait)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPad retina landscape startup image -->
-    <link href="${http_root}images/res/ios/Default-Landscape@2x~ipad.png"
-          media="(device-width: 768px) and (device-height: 1024px)
-                 and (-webkit-device-pixel-ratio: 2)
-                 and (orientation: landscape)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPad non-retina portrait startup image -->
-    <link href="${http_root}images/res/ios/Default-Portrait~ipad.png"
-          media="(device-width: 768px) and (device-height: 1024px)
-                 and (-webkit-device-pixel-ratio: 1)
-                 and (orientation: portrait)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPad non-retina landscape startup image -->
-    <link href="${http_root}images/res/ios/Default-Landscape~ipad.png"
-          media="(device-width: 768px) and (device-height: 1024px)
-                 and (-webkit-device-pixel-ratio: 1)
-                 and (orientation: landscape)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone 6 Plus portrait startup image -->
-    <link href="${http_root}images/res/ios/Default-736h.png"
-          media="(device-width: 414px) and (device-height: 736px)
-                 and (-webkit-device-pixel-ratio: 3)
-                 and (orientation: portrait)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone 6 Plus landscape startup image -->
-    <link href="${http_root}images/res/ios/Default-Landscape-736h.png"
-          media="(device-width: 414px) and (device-height: 736px)
-                 and (-webkit-device-pixel-ratio: 3)
-                 and (orientation: landscape)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone 6 startup image -->
-    <link href="${http_root}images/res/ios/Default-667h.png"
-          media="(device-width: 375px) and (device-height: 667px)
-                 and (-webkit-device-pixel-ratio: 2)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone 5 startup image -->
-    <link href="${http_root}images/res/ios/Default-568h@2x~iphone5.jpg"
-          media="(device-width: 320px) and (device-height: 568px)
-                 and (-webkit-device-pixel-ratio: 2)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone < 5 retina startup image -->
-    <link href="${http_root}images/res/ios/Default@2x~iphone.png"
-          media="(device-width: 320px) and (device-height: 480px)
-                 and (-webkit-device-pixel-ratio: 2)"
-          rel="apple-touch-startup-image">
-
-    <!-- iPhone < 5 non-retina startup image -->
-    <link href="${http_root}images/res/ios/Default~iphone.png"
-          media="(device-width: 320px) and (device-height: 480px)
-                 and (-webkit-device-pixel-ratio: 1)"
-          rel="apple-touch-startup-image">
-
+    <!-- Android -->
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5">
+    <meta name="theme-color" content="#282a2d">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.5">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.5" color="#282a2d">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <!-- Microsoft -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.0.5">
 </head>
 
 <body class="content">
@@ -139,16 +44,24 @@
     % if _session['user_group'] == 'admin':
     % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
     <div id="updatebar" style="display: none;">
-        You're running an unknown version of PlexPy.<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>
+        You are running an unknown version of Tautulli.<br />
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
     <div id="updatebar" style="display: none;">
-        A <a href="${anon_url('https://github.com/%s/plexpy/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
-        newer version</a> is available.<br />
-        You're ${plexpy.COMMITS_BEHIND} commits behind.<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>
+        A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
+        new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.INSTALL_TYPE != 'win':
+    <div id="updatebar" style="display: none;">
+        A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
+        newer version</a> of Tautulli is available!<br />
+        You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
+        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
+    </div>
+    % else:
+    <div id="updatebar" style="display: none;"></div>
     % endif
     % endif
     <nav class="navbar navbar-fixed-top">
@@ -160,8 +73,8 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="home">
-                    <img alt="PlexPy" src="${http_root}images/logo-plexpy@2x.png" height="40">
+                <a class="navbar-brand" href="home" title="Tautulli">
+                    <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="PlexPy">
                 </a>
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
@@ -220,7 +133,7 @@
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
-                            <li><a href="${anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)' % plexpy.CONFIG.GIT_USER)}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
+                            <li><a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
                             <li><a href="settings?support=true"><i class="fa fa-fw fa-comment"></i> Support</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
@@ -234,7 +147,7 @@
                             <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
                             <li role="separator" class="divider"></li>
                             % endif
-                            % if _session['expiry']:
+                            % if _session['exp']:
                             <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Sign Out</a></li>
                             % endif
                         </ul>
@@ -245,30 +158,19 @@
     </nav>
 </div>
 
-<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Confirm</h4>
-            </div>
-            <div class="modal-body">
-                <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
-            </div>
-        </div>
-    </div>
+${next.headerIncludes()}
+
+<div class="body-container">
+    ${next.body()}
 </div>
+
+${next.modalIncludes()}
 
 % if _session['user_group'] != 'admin':
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="${http_root}auth/login" method="post">
+            <form id="login-form">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
                     <h4 class="modal-title">Admin Login</h4>
@@ -297,7 +199,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                    <span id="incorrect-login" style="padding-right: 25px; display: none;">Incorrect username or password.</span>
+                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
                 </div>
                 <input type="hidden" id="admin_login" name="admin_login" value="1" />
             </form>
@@ -310,13 +213,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">PlexPy Donation</h4>
+                <h4 class="modal-title">Tautulli Donation</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-12" style="text-align: center;">
                         <h4>
-                            <strong>Thank you for supporting PlexPy!</strong>
+                            <strong>Thank you for supporting Tautulli!</strong>
                         </h4>
                         <p>
                             Please select a donation method.
@@ -324,28 +227,28 @@
                     </div>
                 </div>
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
-                    <li class="active"><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
-                    <li><a href="#flattr-donation" role="tab" data-toggle="tab">Flattr</a></li>
+                    <li class="active"><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
+                    <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoin" data-name="Bitcoin" data-address="3FdfJAyNWU15Sf11U9FTgPHuP1hPz32eEN">Bitcoin</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoincash" data-name="Bitcoin Cash" data-address="1H2atabxAQGaFAWYQEiLkXKSnK9CZZvt2n">Bitcoin Cash</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="ethereum" data-name="Ethereum" data-address="0x77ae4c2b8de1a1ccfa93553db39971da58c873d3">Ethereum</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="litecoin" data-name="Litecoin" data-address="LWpPmUqQYHBhMV83XSCsHzPmKLhJt6r57J">Litecoin</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="paypal-donation" style="text-align: center">
+                    <div role="tabpanel" class="tab-pane active" id="patreon-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Patreon.
+                        </p>
+                        <a href="${anon_url('https://www.patreon.com/bePatron?u=10078609')}" target="_blank">
+                            <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
-                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=PlexPy&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
+                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
-                        </a>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="flattr-donation" style="text-align: center">
-                        <p>
-                            Click the button below to continue to Flattr.
-                        </p>
-                        <a href="${anon_url('https://flattr.com/submit/auto?user_id=JonnyWong16&url=https://github.com/JonnyWong16/plexpy&title=PlexPy&language=en_GB&tags=github&category=software')}" target="_blank">
-                            <img src="images/flattr-badge-large.png" alt="Flattr">
                         </a>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="crypto-donation">
@@ -364,35 +267,82 @@
 </div>
 % endif
 
-${next.headerIncludes()}
-<div class="body-container">
-    ${next.body()}
+<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
-<script src="${http_root}js/script.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
-% if _session['user_group'] == 'admin' and plexpy.CONFIG.BROWSER_ENABLED:
+% if _session['user_group'] == 'admin' and BROWSER_NOTIFIERS:
 <script src="${http_root}js/ajaxNotifications.js"></script>
-% else:
 % endif
 <script>
     % if _session['user_group'] == 'admin':
-    $('#updateDismiss').click(function() {
-        $('#updatebar').slideUp('slow');
+    $('body').on('click', '#updateDismiss', function() {
+        $('#updatebar').fadeOut();
         // Set cookie to remember dismiss decision for 1 hour.
         setCookie('updateDismiss', 'true', 1/24);
     });
 
     if (!getCookie('updateDismiss')) {
-        $('#updatebar').show();
+        if ($('#updatebar').html().length > 0) {
+            $('#updatebar').show();
+        }
+    }
+
+    function checkUpdate(_callback) {
+        // Allow the update bar to show again if previously dismissed.
+        setCookie('updateDismiss', 'true', 0);
+        $.ajax({
+            url: 'update_check',
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = '';
+                if (result.update === null) {
+                    msg = 'You are running an unknown version of Tautulli.<br />' +
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    $('#updatebar').html(msg).fadeIn();
+                } else if (result.update === true && result.release === true) {
+                    msg = 'A <a href="' + result.release_url + '" target="_blank">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />' +
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    $('#updatebar').html(msg).fadeIn();
+                } else if (result.update === true && result.release === false) {
+                    msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
+                        'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />' +
+                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    $('#updatebar').html(msg).fadeIn();
+                } else if (result.update === false) {
+                    showMsg('<i class="fa fa-check"></i> ' + result.message, false, true, 2000);
+                }
+
+                if (_callback) {
+                    _callback();
+                }
+            }
+        });
     }
 
     $("#nav-shutdown").click(function() {
-        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $("#confirm-message").text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "shutdown";
@@ -400,18 +350,16 @@ ${next.headerIncludes()}
     });
 
     $("#nav-restart").click(function() {
-        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "restart";
         });
     });
 
-    $("#nav-update").first().one("click", function () {
-        // Allow the update bar to show again if previously dismissed.
-        setCookie('updateDismiss', 'true', 0);
-        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
-        window.location.href = "checkGithub";
+    $('#nav-update').click(function () {
+        $(this).html('<i class="fa fa-fw fa-spin fa-refresh"></i> Checking');
+        checkUpdate(function () { $('#nav-update').html('<i class="fa fa-fw fa-arrow-circle-up"></i> Check for Updates'); });
     });
 
     $('#donation_type a.crypto-donation').on('shown.bs.tab', function () {
@@ -465,18 +413,54 @@ ${next.headerIncludes()}
                 }
             });
         }
+
+        // Allow stacked bootstrap modals
+        $(document).on('show.bs.modal', '.modal', function (event) {
+            var zIndex = 1040 + (10 * $('.modal:visible').length);
+            $(this).css('z-index', zIndex);
+            setTimeout(function() {
+                $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+            }, 0);
+        });
+        $(document).on('hidden.bs.modal', '.modal', function () {
+            $('.modal:visible').length && $(document.body).addClass('modal-open');
+        });
     });
 
     % if _session['user_group'] != 'admin':
     $('#admin-login-modal').on('shown.bs.modal', function () {
         $('#admin-login-modal #username').focus()
     })
+
+    $('#login-form').submit(function(event) {
+        event.preventDefault();
+        $('#sign-in').prop('disabled', true).html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        $.ajax({
+            url: '${http_root}auth/signin',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            statusCode: {
+                200: function() {
+                   window.location = "${http_root}";
+                },
+                401: function() {
+                   $('#incorrect-login').show();
+                   $('#username').focus();
+                }
+            },
+            complete: function() {
+                $('#sign-in').prop('disabled', false).html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+            }
+        });
+    });
     % endif
 </script>
 ${next.javascriptIncludes()}
 </body>
 </html>
 
+<%def name="modalIncludes()"></%def>
 <%def name="javascriptIncludes()"></%def>
 <%def name="headIncludes()"></%def>
 <%def name="headerIncludes()"></%def>

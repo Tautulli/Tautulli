@@ -1,17 +1,17 @@
-﻿# This file is part of PlexPy.
+﻿# This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import arrow
 import sqlite3
@@ -23,7 +23,6 @@ import activity_processor
 import database
 import helpers
 import logger
-import plextv
 import users
 
 
@@ -33,13 +32,13 @@ def extract_plexivity_xml(xml=None):
     try:
         xml_parse = minidom.parseString(clean_xml)
     except:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexivity database.")
+        logger.warn(u"Tautulli Importer :: Error parsing XML for Plexivity database.")
         return None
 
     # I think Plexivity only tracked videos and not music?
     xml_head = xml_parse.getElementsByTagName('Video')
     if not xml_head:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexivity database.")
+        logger.warn(u"Tautulli Importer :: Error parsing XML for Plexivity database.")
         return None
 
     for a in xml_head:
@@ -238,23 +237,23 @@ def validate_database(database=None, table_name=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
     except sqlite3.OperationalError:
-        logger.error(u"PlexPy Importer :: Invalid database specified.")
+        logger.error(u"Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except ValueError:
-        logger.error(u"PlexPy Importer :: Invalid database specified.")
+        logger.error(u"Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.error(u"Tautulli Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     try:
         connection.execute('SELECT xml from %s' % table_name)
         connection.close()
     except sqlite3.OperationalError:
-        logger.error(u"PlexPy Importer :: Invalid database specified.")
+        logger.error(u"Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.error(u"Tautulli Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     return 'success'
@@ -265,36 +264,28 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
         connection = sqlite3.connect(database, timeout=20)
         connection.row_factory = sqlite3.Row
     except sqlite3.OperationalError:
-        logger.error(u"PlexPy Importer :: Invalid filename.")
+        logger.error(u"Tautulli Importer :: Invalid filename.")
         return None
     except ValueError:
-        logger.error(u"PlexPy Importer :: Invalid filename.")
+        logger.error(u"Tautulli Importer :: Invalid filename.")
         return None
 
     try:
         connection.execute('SELECT xml from %s' % table_name)
     except sqlite3.OperationalError:
-        logger.error(u"PlexPy Importer :: Database specified does not contain the required fields.")
+        logger.error(u"Tautulli Importer :: Database specified does not contain the required fields.")
         return None
 
-    logger.debug(u"PlexPy Importer :: Plexivity data import in progress...")
-
-    logger.debug(u"PlexPy Importer :: Disabling monitoring while import in progress.")
-    plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                        hours=0, minutes=0, seconds=0)
-    plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                        hours=0, minutes=0, seconds=0)
-    plexpy.schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
-                        hours=0, minutes=0, seconds=0)
+    logger.debug(u"Tautulli Importer :: Plexivity data import in progress...")
 
     ap = activity_processor.ActivityProcessor()
     user_data = users.Users()
 
     # Get the latest friends list so we can pull user id's
     try:
-        plextv.refresh_users()
+        users.refresh_users()
     except:
-        logger.debug(u"PlexPy Importer :: Unable to refresh the users list. Aborting import.")
+        logger.debug(u"Tautulli Importer :: Unable to refresh the users list. Aborting import.")
         return None
 
     query = 'SELECT id AS id, ' \
@@ -327,13 +318,13 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
 
         # If we get back None from our xml extractor skip over the record and log error.
         if not extracted_xml:
-            logger.error(u"PlexPy Importer :: Skipping record with id %s due to malformed xml."
+            logger.error(u"Tautulli Importer :: Skipping record with id %s due to malformed xml."
                          % str(row['id']))
             continue
 
         # Skip line if we don't have a ratingKey to work with
         #if not row['rating_key']:
-        #    logger.error(u"PlexPy Importer :: Skipping record due to null ratingKey.")
+        #    logger.error(u"Tautulli Importer :: Skipping record due to null ratingKey.")
         #    continue
 
         # If the user_id no longer exists in the friends list, pull it from the xml.
@@ -435,16 +426,13 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
                                      is_import=True,
                                      import_ignore_interval=import_ignore_interval)
         else:
-            logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
+            logger.debug(u"Tautulli Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 
-    logger.debug(u"PlexPy Importer :: Plexivity data import complete.")
+    logger.debug(u"Tautulli Importer :: Plexivity data import complete.")
     import_users()
 
-    logger.debug(u"PlexPy Importer :: Re-enabling monitoring.")
-    plexpy.initialize_scheduler()
-
 def import_users():
-    logger.debug(u"PlexPy Importer :: Importing Plexivity Users...")
+    logger.debug(u"Tautulli Importer :: Importing Plexivity Users...")
     monitor_db = database.MonitorDatabase()
 
     query = 'INSERT OR IGNORE INTO users (user_id, username) ' \
@@ -453,6 +441,6 @@ def import_users():
 
     try:
         monitor_db.action(query)
-        logger.debug(u"PlexPy Importer :: Users imported.")
+        logger.debug(u"Tautulli Importer :: Users imported.")
     except:
-        logger.debug(u"PlexPy Importer :: Failed to import users.")
+        logger.debug(u"Tautulli Importer :: Failed to import users.")

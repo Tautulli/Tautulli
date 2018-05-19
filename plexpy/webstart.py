@@ -1,17 +1,17 @@
-#  This file is part of PlexPy.
+#  This file is part of Tautulli.
 #
-#  PlexPy is free software: you can redistribute it and/or modify
+#  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PlexPy is distributed in the hope that it will be useful,
+#  Tautulli is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
@@ -29,18 +29,20 @@ def initialize(options):
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
     https_cert = options['https_cert']
+    https_cert_chain = options['https_cert_chain']
     https_key = options['https_key']
 
     if enable_https:
         # If either the HTTPS certificate or key do not exist, try to make self-signed ones.
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
-            (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
+                (not (https_cert and os.path.exists(https_cert)) or
+                 not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
-                logger.warn(u"PlexPy WebStart :: Unable to create certificate and key. Disabling HTTPS")
+                logger.warn(u"Tautulli WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
 
         if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.warn(u"PlexPy WebStart :: Disabled HTTPS because of missing certificate and key.")
+            logger.warn(u"Tautulli WebStart :: Disabled HTTPS because of missing certificate and key.")
             enable_https = False
 
     options_dict = {
@@ -59,27 +61,33 @@ def initialize(options):
 
     if enable_https:
         options_dict['server.ssl_certificate'] = https_cert
+        options_dict['server.ssl_certificate_chain'] = https_cert_chain
         options_dict['server.ssl_private_key'] = https_key
         protocol = "https"
     else:
         protocol = "http"
 
     if options['http_password']:
-        logger.info(u"PlexPy WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
+        login_allowed = ["Tautulli admin (username is '%s')" % options['http_username']]
+        if plexpy.CONFIG.HTTP_PLEX_ADMIN:
+            login_allowed.append("Plex admin")
+
+        logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s.", ' and '.join(login_allowed))
+
         if options['http_basic_auth']:
-            auth_enabled = session_enabled = False
+            auth_enabled = False
             basic_auth_enabled = True
         else:
-            options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
+            auth_enabled = True
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
-        auth_enabled = session_enabled = basic_auth_enabled = False
+        auth_enabled = basic_auth_enabled = False
 
-    if not options['http_root'] or options['http_root'] == '/':
-        plexpy.HTTP_ROOT = options['http_root'] = '/'
-    else:
+    if options['http_root'].strip('/'):
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
+    else:
+        plexpy.HTTP_ROOT = options['http_root'] = '/'
 
     cherrypy.config.update(options_dict)
 
@@ -87,15 +95,14 @@ def initialize(options):
         '/': {
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
             'tools.proxy.on': options['http_proxy'],  # pay attention to X-Forwarded-Proto header
+            'tools.proxy.local': options['http_proxy_host'],  # support for different X-Forwarded-Host headers (nginx: Host, Lighttpd: X-Host)
             'tools.gzip.on': True,
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
             'tools.auth.on': auth_enabled,
-            'tools.sessions.on': session_enabled,
-            'tools.sessions.timeout': 30 * 24 * 60,  # 30 days
             'tools.auth_basic.on': basic_auth_enabled,
-            'tools.auth_basic.realm': 'PlexPy web server',
+            'tools.auth_basic.realm': 'Tautulli web server',
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
                 options['http_username']: options['http_password']})
         },
@@ -110,19 +117,20 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/images': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/images",
+            'tools.staticdir.content_types': {'svg': 'image/svg+xml'},
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/css': {
             'tools.staticdir.on': True,
@@ -132,8 +140,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/fonts': {
             'tools.staticdir.on': True,
@@ -143,8 +151,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/js': {
             'tools.staticdir.on': True,
@@ -154,30 +162,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
-        },
-        '/json': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/json",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
-        },
-        '/xml': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/xml",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         '/cache': {
             'tools.staticdir.on': True,
@@ -187,8 +173,8 @@ def initialize(options):
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         },
         #'/pms_image_proxy': {
         #    'tools.staticdir.on': True,
@@ -203,14 +189,14 @@ def initialize(options):
         #},
         '/favicon.ico': {
             'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico')),
+            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon/favicon.ico')),
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.auth.on': False,
-            'tools.sessions.on': False
+            'tools.sessions.on': False,
+            'tools.auth.on': False
         }
     }
 
@@ -219,7 +205,7 @@ def initialize(options):
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
 
     try:
-        logger.info(u"PlexPy WebStart :: Starting PlexPy web server on %s://%s:%d%s", protocol,
+        logger.info(u"Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:

@@ -45,7 +45,6 @@ users_list_table_options = {
                 $(td).html('<div class="edit-user-toggles">' + 
                     '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
@@ -105,15 +104,12 @@ users_list_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    if (isPrivateIP(cellData)) {
-                        if (cellData != '') {
-                            $(td).html(cellData);
-                        } else {
-                            $(td).html('n/a');
-                        }
-                    } else {
-                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="fa fa-map-marker"></i></span>&nbsp' + cellData + '</a>');
-                    }
+                    isPrivateIP(cellData).then(function () {
+                        $(td).html(cellData || 'n/a');
+                    }, function () {
+                        external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
+                    });
                 } else {
                     $(td).html('n/a');
                 }
@@ -220,12 +216,12 @@ users_list_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.purge-tooltip').tooltip({ container: 'body' });
-        $('.edit-tooltip').tooltip({ container: 'body' });
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.watched-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',
@@ -262,18 +258,12 @@ $('#users_list_table').on('click', 'td.modal-control', function () {
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    function showStreamDetails() {
-        $.ajax({
-            url: 'get_stream_data',
-            data: { row_id: rowData['id'], user: rowData['friendly_name'] },
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                $("#info-modal").html(xhr.responseText);
-            }
-        });
-    }
-    showStreamDetails();
+    $.get('get_stream_data', {
+        row_id: rowData['id'],
+        user: rowData['friendly_name']
+    }).then(function (jqXHR) {
+        $("#info-modal").html(jqXHR);
+    });
 });
 
 $('#users_list_table').on('click', 'td.modal-control-ip', function () {
@@ -281,22 +271,11 @@ $('#users_list_table').on('click', 'td.modal-control-ip', function () {
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    function getUserLocation(ip_address) {
-        if (isPrivateIP(ip_address)) {
-            return "n/a"
-        } else {
-            $.ajax({
-                url: 'get_ip_address_details',
-                data: { ip_address: ip_address },
-                async: true,
-                complete: function (xhr, status) {
-                    $("#ip-info-modal").html(xhr.responseText);
-                }
-            });
-        }
-    }
-
-    getUserLocation(rowData['ip_address']);
+    $.get('get_ip_address_details', {
+        ip_address: rowData['ip_address']
+    }).then(function (jqXHR) {
+        $("#ip-info-modal").html(jqXHR);
+    });
 });
 
 $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > input, td.edit-user-control > .edit-user-name > input', function () {
@@ -304,12 +283,8 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    var do_notify = 0;
     var keep_history = 0;
     var allow_guest = 0;
-    if ($('#do_notify-' + rowData['user_id']).is(':checked')) {
-        do_notify = 1;
-    }
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
     }
@@ -324,7 +299,6 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
         data: {
             user_id: rowData['user_id'],
             friendly_name: friendly_name,
-            do_notify: do_notify,
             keep_history: keep_history,
             allow_guest: allow_guest,
             thumb: rowData['user_thumb']

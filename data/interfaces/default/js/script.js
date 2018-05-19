@@ -1,17 +1,17 @@
-function initConfigCheckbox(elem) {
-    var config = $(elem).closest('div').next();
+function initConfigCheckbox(elem, toggleElem = null, reverse = false) {
+    var config = toggleElem ? $(toggleElem) : $(elem).closest('div').next();
     config.css('overflow', 'hidden');
     if ($(elem).is(":checked")) {
-        config.show();
+        config.toggle(!reverse);
     } else {
-        config.hide();
+        config.toggle(reverse);
     }
     $(elem).click(function () {
-        var config = $(this).closest('div').next();
+        var config = toggleElem ? $(toggleElem) : $(this).closest('div').next();
         if ($(this).is(":checked")) {
-            config.slideDown();
+            config.slideToggleBool(!reverse);
         } else {
-            config.slideUp();
+            config.slideToggleBool(reverse);
         }
     });
 }
@@ -26,7 +26,7 @@ function refreshTab() {
 
 function showMsg(msg, loader, timeout, ms, error) {
     var feedback = $("#ajaxMsg");
-    update = $("#updatebar");
+    var update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
         feedback.css("bottom", height + "px");
@@ -35,7 +35,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
-        var message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
+        message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
         feedback.css("padding", "14px 10px")
     }
     if (error) {
@@ -54,7 +54,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
 }
 
-function confirmAjaxCall(url, msg, loader_msg, callback) {
+function confirmAjaxCall(url, msg, data, loader_msg, callback) {
     $("#confirm-message").html(msg);
     $('#confirm-modal').modal();
     $('#confirm-modal').one('click', '#confirm-button', function () {
@@ -64,6 +64,9 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
         $.ajax({
             url: url,
             type: 'POST',
+            cache: false,
+            async: true,
+            data: data,
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
@@ -73,7 +76,7 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
                 }
                 if (typeof callback === "function") {
-                    callback();
+                    callback(result);
                 }
             }
         });
@@ -183,7 +186,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
             // Remove loaders and stuff, ajax request is complete!
             loader.remove();
             if (typeof callback === "function") {
-                callback();
+                callback(jqXHR);
             }
         }
     });
@@ -199,86 +202,45 @@ function resetFilters(text) {
     }
 }
 
-function getPlatformImagePath(platformName) {
-    if (platformName.indexOf("Roku") > -1) {
-        return 'images/platforms/roku.png';
-    } else if (platformName.indexOf("Apple TV") > -1) {
-        return 'images/platforms/atv.png';
-    } else if (platformName.indexOf("tvOS") > -1) {
-        return 'images/platforms/atv.png';
-    } else if (platformName.indexOf("Firefox") > -1) {
-        return 'images/platforms/firefox.png';
-    } else if (platformName.indexOf("Chromecast") > -1) {
-        return 'images/platforms/chromecast.png';
-    } else if (platformName.indexOf("Chrome") > -1) {
-        return 'images/platforms/chrome.png';
-    } else if (platformName.indexOf("Android") > -1) {
-        return 'images/platforms/android.png';
-    } else if (platformName.indexOf("Nexus") > -1) {
-        return 'images/platforms/android.png';
-    } else if (platformName.indexOf("iPad") > -1) {
-        return 'images/platforms/ios.png';
-    } else if (platformName.indexOf("iPhone") > -1) {
-        return 'images/platforms/ios.png';
-    } else if (platformName.indexOf("iOS") > -1) {
-        return 'images/platforms/ios.png';
-    } else if (platformName.indexOf("Plex Home Theater") > -1) {
-        return 'images/platforms/pht.png';
-    } else if (platformName.indexOf("Linux/RPi-XMBC") > -1) {
-        return 'images/platforms/xbmc.png';
-    } else if (platformName.indexOf("Safari") > -1) {
-        return 'images/platforms/safari.png';
-    } else if (platformName.indexOf("Internet Explorer") > -1) {
-        return 'images/platforms/ie.png';
-    } else if (platformName.indexOf("Microsoft Edge") > -1) {
-        return 'images/platforms/msedge.png';
-    } else if (platformName.indexOf("Unknown Browser") > -1) {
-        return 'images/platforms/dafault.png';
-    } else if (platformName.indexOf("Windows-XBMC") > -1) {
-        return 'images/platforms/xbmc.png';
-    } else if (platformName.indexOf("Xbox") > -1) {
-        return 'images/platforms/xbox.png';
-    } else if (platformName.indexOf("Samsung") > -1) {
-        return 'images/platforms/samsung.png';
-    } else if (platformName.indexOf("Opera") > -1) {
-        return 'images/platforms/opera.png';
-    } else if (platformName.indexOf("KODI") > -1) {
-        return 'images/platforms/kodi.png';
-    } else if (platformName.indexOf("Playstation 3") > -1) {
-        return 'images/platforms/playstation.png';
-    } else if (platformName.indexOf("Playstation 4") > -1) {
-        return 'images/platforms/playstation.png';
-    } else if (platformName.indexOf("Xbox 360") > -1) {
-        return 'images/platforms/xbox.png';
-    } else if (platformName.indexOf("Windows") > -1) {
-        return 'images/platforms/win8.png';
-    } else if (platformName.indexOf("Windows phone") > -1) {
-        return 'images/platforms/wp.png';
-    } else if (platformName.indexOf("Plex Media Player") > -1) {
-        return 'images/platforms/pmp.png';
-    } else if (platformName.indexOf("PlexTogether") > -1) {
-        return 'images/platforms/plextogether.png';
-    } else if (platformName.indexOf("Linux") > -1) {
-        return 'images/platforms/linux.png';
-    } else {
-        return 'images/platforms/default.png';
-    }
-}
+$.cachedScript = function (url) {
+    return $.ajax({
+        dataType: "script",
+        cache: true,
+        url: url
+    });
+};
 
 function isPrivateIP(ip_address) {
-    if (ip_address.indexOf(".") > -1) {
-        // get IPv4 mapped address (xxx.xxx.xxx.xxx) from IPv6 addresss (::ffff:xxx.xxx.xxx.xxx)
-        var parts = ip_address.split(":");
-        var parts = parts[parts.length - 1].split('.');
-        if ((parts[0] === '127' && parts[1] === '0' && parts[2] === '0' && parts[3] === '1') || (parts[0] === '10') ||
-            (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) || (parts[0] ===
-                '192' && parts[1] === '168')) {
-            return true;
+    var defer = $.Deferred();
+
+    $.cachedScript('js/ipaddr.min.js').done(function () {
+        if (ipaddr.isValid(ip_address)) {
+            var addr = ipaddr.process(ip_address)
+
+            if (addr.kind() === 'ipv4') {
+                var rangeList = [
+                    ipaddr.parseCIDR('127.0.0.0/8'),
+                    ipaddr.parseCIDR('10.0.0.0/8'),
+                    ipaddr.parseCIDR('172.16.0.0/12'),
+                    ipaddr.parseCIDR('192.168.0.0/16')
+                ]
+            } else {
+                var rangeList = [
+                    ipaddr.parseCIDR('fd00::/8')
+                ]
+            }
+
+            if (ipaddr.subnetMatch(addr, rangeList, -1) >= 0) {
+                defer.resolve();
+            } else {
+                defer.reject();
+            }
+        } else {
+            defer.resolve('n/a');
         }
-        return false;
-    } else {
-        return true;
-    }
+    })
+
+    return defer.promise();
 }
 
 function humanTime(seconds) {
@@ -328,19 +290,13 @@ String.prototype.toProperCase = function () {
 
 function millisecondsToMinutes(ms, roundToMinute) {
     if (ms > 0) {
-        seconds = ms / 1000;
-        minutes = seconds / 60;
-        if (roundToMinute) {
-            output = Math.round(minutes, 0)
-        } else {
-            minutesFloor = Math.floor(minutes);
-            secondsReal = Math.round((seconds - (minutesFloor * 60)), 0);
-            if (secondsReal < 10) {
-                secondsReal = '0' + secondsReal;
-            }
-            output = minutesFloor + ':' + secondsReal;
-        }
-        return output;
+      var minutes = Math.floor(ms / 60000);
+      var seconds = ((ms % 60000) / 1000).toFixed(0);
+      if (roundToMinute) {
+          return (seconds >= 30 ? (minutes + 1) : minutes);
+      } else {
+          return (seconds == 60 ? (minutes + 1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
+      }
     } else {
         if (roundToMinute) {
             return '0';
@@ -469,4 +425,32 @@ function humanFileSize(bytes, si) {
         ++u;
     } while (Math.abs(bytes) >= thresh && u < units.length - 1);
     return bytes.toFixed(1) + '&nbsp;' + units[u];
+}
+
+// Force max/min in number inputs
+function forceMinMax(elem) {
+    var min = parseInt(elem.attr('min'));
+    var max = parseInt(elem.attr('max'));
+    var val = parseInt(elem.val());
+    var default_val = parseInt(elem.data('default'));
+    if (isNaN(val)) {
+        elem.val(default_val);
+    }
+    else if (min != undefined && val < min) {
+        elem.val(min);
+    }
+    else if (max != undefined && val > max) {
+        elem.val(max);
+    }
+    else {
+        elem.val(val);
+    }
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+$.fn.slideToggleBool = function(bool, options) {
+  return bool ? $(this).slideDown(options) : $(this).slideUp(options);
 }
