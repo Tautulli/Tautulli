@@ -611,6 +611,7 @@ General optional parameters:
             # if we fail to generate the output fake an error
             except Exception as e:
                 logger.api_exception(u'Tautulli APIv2 :: ' + traceback.format_exc())
+                cherrypy.response.status = 500
                 out['message'] = traceback.format_exc()
                 out['result'] = 'error'
 
@@ -620,6 +621,7 @@ General optional parameters:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
                 logger.api_error(u'Tautulli APIv2 :: Failed to parse xml result')
+                cherrypy.response.status = 500
                 try:
                     out['message'] = e
                     out['result'] = 'error'
@@ -660,6 +662,7 @@ General optional parameters:
                 result = call(**self._api_kwargs)
             except Exception as e:
                 logger.api_error(u'Tautulli APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
+                cherrypy.response.status = 400
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True
                     # Reraise the exception so the traceback hits the browser
@@ -703,5 +706,8 @@ General optional parameters:
 
             if ret.get('result'):
                 self._api_result_type = ret.pop('result', None)
+
+        if self._api_result_type == 'error':
+            cherrypy.response.status = 500
 
         return self._api_out_as(self._api_responds(result_type=self._api_result_type, msg=self._api_msg, data=ret))
