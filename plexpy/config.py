@@ -227,6 +227,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
     'HTTP_PROXY': (int, 'General', 0),
+    'HTTP_PROXY_HOST': (str, 'General', 'X-Forwarded-Host'),
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
     'HTTP_PLEX_ADMIN': (int, 'General', 0),

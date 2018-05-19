@@ -226,6 +226,7 @@ def main():
         'http_root': plexpy.CONFIG.HTTP_ROOT,
         'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
         'http_proxy': plexpy.CONFIG.HTTP_PROXY,
+        'http_proxy_host': plexpy.CONFIG.HTTP_PROXY_HOST,
         'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
         'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,

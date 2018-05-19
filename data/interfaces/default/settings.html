@@ -482,6 +482,15 @@
                             </label>
                             <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_proxy_host">HTTP Proxy Host Header</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_proxy_host" name="http_proxy_host" value="${config['http_proxy_host']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">The X-Forwarded-Host header for your reverse proxy (nginx: Host, Lighttpd: X-Host).</p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS

@@ -2742,6 +2742,7 @@ class WebInterface(object):
             "http_password": http_password,
             "http_root": plexpy.CONFIG.HTTP_ROOT,
             "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
+            "http_proxy_host": plexpy.CONFIG.HTTP_PROXY_HOST,
             "http_plex_admin": checked(plexpy.CONFIG.HTTP_PLEX_ADMIN),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),

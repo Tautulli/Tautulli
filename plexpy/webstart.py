@@ -95,6 +95,7 @@ def initialize(options):
         '/': {
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
             'tools.proxy.on': options['http_proxy'],  # pay attention to X-Forwarded-Proto header
+            'tools.proxy.local': options['http_proxy_host'],  # support for different X-Forwarded-Host headers (nginx: Host, Lighttpd: X-Host)
             'tools.gzip.on': True,
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
