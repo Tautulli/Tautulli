@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.1.8-beta (2018-05-19)
+
+* Newsletters:
+  * New: Added authentication options for self-hosted newsletters.
+  * Change: Check if the Tautulli footer has been removed in custom newsletter templates.
+* Notifications:
+  * Fix: Cloudinary images not working for Twitter notifications.
+* API:
+  * Fix: Return proper HTTP status codes for errors.
+
+
 ## v2.1.7-beta (2018-05-13)
 
 * Newsletters:
