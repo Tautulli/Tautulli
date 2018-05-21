@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.9 (2018-05-21)
+
+* Notifications:
+  * New: Added "live" to notification parameters.
+
+
 ## v2.1.8-beta (2018-05-19)
 
 * Newsletters:
