@@ -3222,7 +3222,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_notifier_config(self, notifier_id=None, agent_id=None, **kwargs):
-        """ Configure an exisitng notificaiton agent.
+        """ Configure an existing notification agent.
 
             ```
             Required parameters:
@@ -3341,10 +3341,10 @@ class WebInterface(object):
                 return {'result': 'success', 'message': 'Notification queued.'}
             else:
                 logger.debug(u"Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
-                return {'result': 'success', 'message': 'Invalid notifier id %s.' % notifier_id}
+                return {'result': 'error', 'message': 'Invalid notifier id %s.' % notifier_id}
         else:
             logger.debug(u"Unable to send %snotification, no notifier_id received." % test)
-            return {'result': 'success', 'message': 'No notifier id received.'}
+            return {'result': 'error', 'message': 'No notifier id received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3481,7 +3481,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_mobile_device_config(self, mobile_device_id=None, **kwargs):
-        """ Configure an exisitng notificaiton agent.
+        """ Configure an existing notification agent.
 
             ```
             Required parameters:
@@ -5678,7 +5678,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_newsletter_config(self, newsletter_id=None, agent_id=None, **kwargs):
-        """ Configure an exisitng newsletter agent.
+        """ Configure an existing newsletter agent.
 
             ```
             Required parameters:

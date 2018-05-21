@@ -13,20 +13,20 @@ DOCUMENTATION :: END
     % for notifier in sorted(notifiers_list, key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id'])):
     <li class="notification-agent pointer" data-id="${notifier['id']}">
         <span>
-            <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers ${'active' if notifier['active'] else 'inactive'}"><i class="fa fa-lg fa-bell"></i></span>
+            <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers ${'active' if notifier['active'] else 'inactive'}"><i class="fa fa-lg fa-fw fa-bell"></i></span>
             % if notifier['friendly_name']:
             ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']} - ${notifier['friendly_name']})</span>
             % else:
             ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']})</span>
             % endif
-            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
         </span>
     </li>
     % endfor
     <li class="add-notification-agent pointer" id="add-notification-agent" data-target="#add-notifier-modal" data-toggle="modal">
         <span>
-            <span class="toggle-left"><i class="fa fa-lg fa-bell"></i></span> Add a new notification agent
-            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
+            <span class="toggle-left"><i class="fa fa-lg fa-fw fa-bell"></i></span> Add a new notification agent
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-plus"></i></span>
         </span>
     </li>
 </ul>

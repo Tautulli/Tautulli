@@ -1,7 +1,8 @@
 % if notifier:
 <%!
     import json
-    from plexpy import helpers, notifiers, users
+    from plexpy import notifiers, users
+    from plexpy.helpers import checked
     available_notification_actions = notifiers.available_notification_actions()
 
     user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
@@ -70,7 +71,7 @@
                                     % elif item['input_type'] == 'checkbox':
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
+                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
                                         </label>
                                         <p class="help-block">${item['description'] | n}</p>
                                         <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
@@ -146,7 +147,7 @@
                                     % for action in available_notification_actions:
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${helpers.checked(notifier['actions'][action['name']])}> ${action['label']}
+                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${checked(notifier['actions'][action['name']])}> ${action['label']}
                                         </label>
                                         <p class="help-block">${action['description'] | n}</p>
                                         <input type="hidden" id="${action['name']}" name="${action['name']}" value="${notifier['actions'][action['name']]}">

@@ -2935,6 +2935,7 @@ a .home-platforms-list-cover-face:hover
 }
 .stacked-configs > li > span > a.toggle-left,
 .stacked-configs > li > span > span.toggle-left {
+    float: left;
     color: #444;
     padding-right: 8px;
 }

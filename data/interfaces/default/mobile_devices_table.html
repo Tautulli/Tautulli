@@ -13,10 +13,9 @@ DOCUMENTATION :: END
     % for device in sorted(devices_list, key=lambda k: k['device_name']):
     <li class="mobile-device pointer" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
-            <!--<span class="toggle-right mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Edit Device"><i class="fa fa-lg fa-pencil"></i></span>-->
-            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
+            <span class="toggle-left"><i class="fa fa-lg fa-fw fa-mobile"></i></span>
             ${device['friendly_name'] or device['device_name']} &nbsp;<span class="friendly_name">(${device['id']})</span>
-            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
             <span class="toggle-right friendly_name" id="device-last_seen-${device['id']}">
                 % if device['last_seen']:
                 <script>
@@ -26,14 +25,13 @@ DOCUMENTATION :: END
                 never
                 % endif
             </span>
-            <!--<span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>-->
         </span>
     </li>
     % endfor
     <li class="add-mobile-device pointer" id="register-mobile-device" data-target="#api-qr-modal" data-toggle="modal">
         <span>
-            <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span> Register a new device
-            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
+            <span class="toggle-left"><i class="fa fa-lg fa-fw fa-mobile"></i></span> Register a new device
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-plus"></i></span>
         </span>
     </li>
 </ul>

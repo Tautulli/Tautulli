@@ -14,13 +14,13 @@ DOCUMENTATION :: END
     % for newsletter in sorted(newsletters_list, key=lambda k: (k['agent_label'], k['friendly_name'], k['id'])):
     <li class="newsletter-agent pointer" data-id="${newsletter['id']}">
         <span>
-            <span class="toggle-left trigger-tooltip ${'active' if newsletter['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Newsletter ${'active' if newsletter['active'] else 'inactive'}"><i class="fa fa-lg fa-newspaper-o"></i></span>
+            <span class="toggle-left trigger-tooltip ${'active' if newsletter['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Newsletter ${'active' if newsletter['active'] else 'inactive'}"><i class="fa fa-lg fa-fw fa-newspaper-o"></i></span>
             % if newsletter['friendly_name']:
             ${newsletter['agent_label']} &nbsp;<span class="friendly_name">(${newsletter['id']} - ${newsletter['friendly_name']})</span>
             % else:
             ${newsletter['agent_label']} &nbsp;<span class="friendly_name">(${newsletter['id']})</span>
             % endif
-            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
             <span class="toggle-right friendly_name" id="newsletter-next_run-${newsletter['id']}">
                 % if NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])):
                 <% job = NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])) %>
@@ -34,8 +34,8 @@ DOCUMENTATION :: END
     % endfor
     <li class="add-newsletter-agent pointer" id="add-newsletter-agent" data-target="#add-newsletter-modal" data-toggle="modal">
         <span>
-            <span class="toggle-left"><i class="fa fa-lg fa-newspaper-o"></i></span> Add a new newsletter agent
-            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
+            <span class="toggle-left"><i class="fa fa-lg fa-fw fa-newspaper-o"></i></span> Add a new newsletter agent
+            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-plus"></i></span>
         </span>
     </li>
 </ul>
