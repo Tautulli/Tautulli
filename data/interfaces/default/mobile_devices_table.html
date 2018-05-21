@@ -11,7 +11,7 @@ DOCUMENTATION :: END
 
 <ul class="stacked-configs list-unstyled">
     % for device in sorted(devices_list, key=lambda k: k['device_name']):
-    <li class="mobile-device" data-id="${device['id']}" data-name="${device['device_name']}">
+    <li class="mobile-device pointer" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
             <!--<span class="toggle-right mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Edit Device"><i class="fa fa-lg fa-pencil"></i></span>-->
             <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span>
@@ -30,7 +30,7 @@ DOCUMENTATION :: END
         </span>
     </li>
     % endfor
-    <li class="add-mobile-device" id="register-mobile-device" data-target="#api-qr-modal" data-toggle="modal">
+    <li class="add-mobile-device pointer" id="register-mobile-device" data-target="#api-qr-modal" data-toggle="modal">
         <span>
             <span class="toggle-left"><i class="fa fa-lg fa-mobile"></i></span> Register a new device
             <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
