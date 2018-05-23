@@ -91,7 +91,7 @@ DOCUMENTATION :: END
                     <div class="item-children-poster-face episode-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=500&height=250&fallback=art);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Episode ${child['media_index']}
+                                Episode ${child['media_index'] or child['originally_available_at']}
                             </div>
                         </div>
                     </div>

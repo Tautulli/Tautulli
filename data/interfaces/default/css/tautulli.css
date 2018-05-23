@@ -2935,6 +2935,7 @@ a .home-platforms-list-cover-face:hover
 }
 .stacked-configs > li > span > a.toggle-left,
 .stacked-configs > li > span > span.toggle-left {
+    float: left;
     color: #444;
     padding-right: 8px;
 }
@@ -2944,16 +2945,6 @@ a .home-platforms-list-cover-face:hover
 .stacked-configs > li > span > a.active,
 .stacked-configs > li > span > span.active {
     color: #f9be03;
-}
-.stacked-configs > li.new-notification-agent,
-.stacked-configs > li.notification-agent,
-.stacked-configs > li.add-notification-agent,
-.stacked-configs > li.new-newsletter-agent,
-.stacked-configs > li.newsletter-agent,
-.stacked-configs > li.add-newsletter-agent,
-.stacked-configs > li.mobile-device,
-.stacked-configs > li.add-mobile-device {
-    cursor: pointer;
 }
 .stacked-configs > li.mobile-device > span > a.toggle-left,
 .stacked-configs > li.mobile-device > span > span.toggle-left {
@@ -4101,4 +4092,7 @@ a[data-tab-destination] {
 .newsletter-logo {
     margin: 0 auto 50px auto;
     text-align: center;
+}
+.pointer {
+    cursor: pointer;
 }

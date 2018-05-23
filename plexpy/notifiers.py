@@ -509,7 +509,7 @@ def add_notifier_config(agent_id=None, **kwargs):
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': '',
-              'notifier_config': json.dumps(get_agent_class(agent_id=agent['id']).config),
+              'notifier_config': json.dumps(agent_class.config),
               'custom_conditions': json.dumps(DEFAULT_CUSTOM_CONDITIONS),
               'custom_conditions_logic': ''
               }
@@ -540,7 +540,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Notifiers :: Unable to set exisiting notifier: invalid agent_id %s."
+        logger.error(u"Tautulli Notifiers :: Unable to set existing notifier: invalid agent_id %s."
                      % agent_id)
         return False
 
@@ -570,7 +570,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': kwargs.get('friendly_name', ''),
-              'notifier_config': json.dumps(notifier_config),
+              'notifier_config': json.dumps(agent_class.config),
               'custom_conditions': kwargs.get('custom_conditions', json.dumps(DEFAULT_CUSTOM_CONDITIONS)),
               'custom_conditions_logic': kwargs.get('custom_conditions_logic', ''),
               }
@@ -807,7 +807,7 @@ class Notifier(object):
             if response is not None and response.status_code >= 400 and response.status_code < 500:
                 verify_msg = " Verify you notification agent settings are correct."
 
-            logger.error(u"Tautulli Notifiers :: {name} notification failed.{}".format(verify_msg, name=self.NAME))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed.{msg}".format(msg=verify_msg, name=self.NAME))
 
             if err_msg:
                 logger.error(u"Tautulli Notifiers :: {}".format(err_msg))
@@ -1464,7 +1464,7 @@ class FACEBOOK(Notifier):
 
         return facebook.auth_url(app_id=app_id,
                                  canvas_url=redirect_uri,
-                                 perms=['user_managed_groups','publish_actions'])
+                                 perms=['publish_to_groups'])
 
     def _get_credentials(self, code=''):
         logger.info(u"Tautulli Notifiers :: Requesting access token from {name}.".format(name=self.NAME))

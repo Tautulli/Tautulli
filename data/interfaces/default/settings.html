@@ -650,7 +650,7 @@
                         </div>
 
                         <div class="form-group has-feedback" id="pms_ip_group">
-                            <label for="pms_ip">Plex IP or Hostname</label>
+                            <label for="pms_ip">Plex IP Address or Hostname</label>
                             <div class="row">
                                 <div class="col-md-9" id="selectize-pms-ip-container">
                                     <div class="input-group">
@@ -1423,7 +1423,7 @@
                         <div class="col-md-12">
                             <ul class="stacked-configs list-unstyled">
                                 % for agent in sorted(available_notification_agents, key=lambda k: k['label'].lower()):
-                                <li class="new-notification-agent" data-id="${agent['id']}">
+                                <li class="new-notification-agent pointer" data-id="${agent['id']}">
                                     <span>${agent['label']}</span>
                                 </li>
                                 % endfor
@@ -1451,7 +1451,7 @@
                         <div class="col-md-12">
                             <ul class="stacked-configs list-unstyled">
                                 % for agent in available_newsletter_agents:
-                                <li class="new-newsletter-agent" data-id="${agent['id']}">
+                                <li class="new-newsletter-agent pointer" data-id="${agent['id']}">
                                     <span>${agent['label']}</span>
                                 </li>
                                 % endfor
@@ -1793,6 +1793,7 @@
     }
 
     function loadNotifierConfig(notifier_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
         $.ajax({
             url: 'get_notifier_config_modal',
             data: { notifier_id: notifier_id },
@@ -1800,6 +1801,7 @@
             async: true,
             complete: function (xhr, status) {
                 $("#notifier-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
             }
         });
     }
@@ -1816,6 +1818,7 @@
     }
 
     function loadNewsletterConfig(newsletter_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
         $.ajax({
             url: 'get_newsletter_config_modal',
             data: { newsletter_id: newsletter_id },
@@ -1823,6 +1826,7 @@
             async: true,
             complete: function (xhr, status) {
                 $("#newsletter-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
             }
         });
     }
@@ -1839,6 +1843,7 @@
     }
 
     function loadMobileDeviceConfig(mobile_device_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
         $.ajax({
             url: 'get_mobile_device_config_modal',
             data: { mobile_device_id: mobile_device_id },
@@ -1846,6 +1851,7 @@
             async: true,
             complete: function (xhr, status) {
                 $("#mobile-device-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
             }
         });
     }
@@ -2591,7 +2597,7 @@ $(document).ready(function() {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 $('#add-notifier-modal').modal('hide');
-                if (result.result == 'success') {
+                if (result.result === 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                     loadNotifierConfig(result.notifier_id);
                 } else {
@@ -2613,7 +2619,7 @@ $(document).ready(function() {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 $('#add-newsletter-modal').modal('hide');
-                if (result.result == 'success') {
+                if (result.result === 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                     loadNewsletterConfig(result.newsletter_id);
                 } else {
