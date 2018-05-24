@@ -1658,6 +1658,7 @@ class PmsConnect(object):
                           'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
                           'synced_version': 1 if sync_id else 0,
+                          'live': int(helpers.get_xml_attr(session, 'live') == '1'),
                           'indexes': int(indexes == 'sd'),
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_id and subtitle_selected else 0
@@ -1721,7 +1722,6 @@ class PmsConnect(object):
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
                                 'channel_title': helpers.get_xml_attr(session, 'sourceTitle'),
-                                'live': int(helpers.get_xml_attr(session, 'live') == '1'),
                                 'extra_type': helpers.get_xml_attr(session, 'extraType'),
                                 'sub_type': helpers.get_xml_attr(session, 'subtype')
                                 }
@@ -1790,7 +1790,7 @@ class PmsConnect(object):
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
 
         # Overrides for live sessions
-        if metadata_details.get('live') and transcode_session:
+        if stream_details['live'] and transcode_session:
             stream_details['stream_container_decision'] = 'transcode'
             stream_details['stream_container'] = transcode_details['transcode_container']
 
