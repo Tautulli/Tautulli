@@ -783,8 +783,9 @@ class RecentlyAdded(Newsletter):
                 else:
                     item['art_hash'] = ''
 
-                item['poster_url'] = ''
+                item['thumb_url'] = ''
                 item['art_url'] = ''
+                item['poster_url'] = item['thumb_url']  # Keep for backwards compatibility
 
         elif helpers.get_img_service():
             # Upload posters and art to image hosting service
@@ -800,7 +801,7 @@ class RecentlyAdded(Newsletter):
                     img=item['thumb'], rating_key=item['rating_key'], title=item['title'],
                     width=150, height=height, fallback=fallback)
 
-                item['poster_url'] = img_info.get('img_url') or common.ONLINE_POSTER_THUMB
+                item['thumb_url'] = img_info.get('img_url') or common.ONLINE_POSTER_THUMB
 
                 img_info = get_img_info(
                     img=item['art'], rating_key=item['rating_key'], title=item['title'],
@@ -810,6 +811,15 @@ class RecentlyAdded(Newsletter):
 
                 item['thumb_hash'] = ''
                 item['art_hash'] = ''
+                item['poster_url'] = item['thumb_url']  # Keep for backwards compatibility
+
+        else:
+            for item in movies + shows + albums:
+                item['thumb_hash'] = ''
+                item['art_hash'] = ''
+                item['thumb_url'] = ''
+                item['art_hash'] = ''
+                item['poster_url'] = item['thumb_url']  # Keep for backwards compatibility
 
         self.data['recently_added'] = recently_added
 
