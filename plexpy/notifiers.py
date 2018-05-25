@@ -1318,10 +1318,11 @@ class EMAIL(Notifier):
 
         recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
+        mailserver = None
         success = False
-        mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
 
         try:
+            mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
             mailserver.ehlo()
 
             if self.config['tls']:
@@ -1332,14 +1333,15 @@ class EMAIL(Notifier):
                 mailserver.login(str(self.config['smtp_user']), str(self.config['smtp_password']))
 
             mailserver.sendmail(self.config['from'], recipients, msg.as_string())
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             success = True
 
         except Exception as e:
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
 
         finally:
-            mailserver.quit()
-            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
+            if mailserver:
+                mailserver.quit()
 
         return success
 
