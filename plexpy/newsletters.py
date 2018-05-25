@@ -818,7 +818,7 @@ class RecentlyAdded(Newsletter):
                 item['thumb_hash'] = ''
                 item['art_hash'] = ''
                 item['thumb_url'] = ''
-                item['art_hash'] = ''
+                item['art_url'] = ''
                 item['poster_url'] = item['thumb_url']  # Keep for backwards compatibility
 
         self.data['recently_added'] = recently_added
