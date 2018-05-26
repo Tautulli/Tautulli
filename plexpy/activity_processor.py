@@ -114,7 +114,9 @@ class ActivityProcessor(object):
                       'stream_audio_channels': session.get('stream_audio_channels', ''),
                       'stream_subtitle_decision': session.get('stream_subtitle_decision', ''),
                       'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
-                      'subtitles': session.get('subtitles', ''),
+                      'subtitles': session.get('subtitles', 0),
+                      'live': session.get('live', 0),
+                      'live_uuid': session.get('live_uuid', ''),
                       'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }

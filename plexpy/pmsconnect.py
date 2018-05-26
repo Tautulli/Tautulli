@@ -1659,6 +1659,7 @@ class PmsConnect(object):
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
                           'synced_version': 1 if sync_id else 0,
                           'live': int(helpers.get_xml_attr(session, 'live') == '1'),
+                          'live_uuid': helpers.get_xml_attr(stream_media_info, 'uuid'),
                           'indexes': int(indexes == 'sd'),
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_id and subtitle_selected else 0

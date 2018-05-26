@@ -540,6 +540,7 @@ def dbcheck():
         'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
+        'live INTEGER, live_uuid TEXT, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
         'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
     )
@@ -1062,6 +1063,18 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT live FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN live INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN live_uuid TEXT'
         )
 
     # Upgrade session_history table from earlier versions

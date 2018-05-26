@@ -228,6 +228,11 @@ class ActivityHandler(object):
             this_state = self.timeline['state']
             this_key = str(self.timeline['ratingKey'])
 
+            # Get the live tv session uuid
+            this_live_uuid = None
+            if this_key.startswith('tv.plex.xmltv://'):
+                this_live_uuid = self.timeline['key'].split('/')[-1]
+
             # If we already have this session in the temp table, check for state changes
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
@@ -236,9 +241,10 @@ class ActivityHandler(object):
 
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
+                last_live_uuid = db_session['live_uuid']
 
                 # Make sure the same item is being played
-                if this_key == last_key:
+                if this_key == last_key or this_live_uuid == last_live_uuid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
