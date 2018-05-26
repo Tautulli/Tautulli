@@ -60,6 +60,7 @@ class ActivityProcessor(object):
                       'friendly_name': session.get('friendly_name', ''),
                       'ip_address': session.get('ip_address', ''),
                       'player': session.get('player', ''),
+                      'product': session.get('product', ''),
                       'platform': session.get('platform', ''),
                       'parent_rating_key': session.get('parent_rating_key', ''),
                       'grandparent_rating_key': session.get('grandparent_rating_key', ''),
