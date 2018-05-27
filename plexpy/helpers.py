@@ -837,7 +837,8 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
     img_options = {'format': img_format,
                    'fetch_format': 'auto',
                    'quality': 'auto',
-                   'version': int(time.time())}
+                   'version': int(time.time()),
+                   'secure': True}
 
     if width != 1000:
         img_options['width'] = str(width)
