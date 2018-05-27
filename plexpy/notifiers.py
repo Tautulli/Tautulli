@@ -420,7 +420,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
                        % (', '.join(notify_actions), where), args=args)
-    
+
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
@@ -1145,7 +1145,8 @@ class DISCORD(Notifier):
             plex_url = pretty_metadata.get_plex_url()
 
             # Build Discord post attachment
-            attachment = {'title': title
+            attachment = {'title': title,
+                          'timestamp': helpers.utc_now_iso()
                           }
 
             if self.config['color']:
