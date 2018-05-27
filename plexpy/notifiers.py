@@ -64,6 +64,7 @@ import request
 import users
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
+
 BROWSER_NOTIFIERS = {}
 
 
