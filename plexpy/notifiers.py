@@ -64,7 +64,6 @@ import request
 import users
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
-
 BROWSER_NOTIFIERS = {}
 
 
@@ -420,7 +419,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
                        % (', '.join(notify_actions), where), args=args)
-    
+
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
@@ -1107,7 +1106,8 @@ class DISCORD(Notifier):
                        'incl_pmslink': 0,
                        'movie_provider': '',
                        'tv_provider': '',
-                       'music_provider': ''
+                       'music_provider': '',
+                       'incl_timestamp': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -1162,6 +1162,9 @@ class DISCORD(Notifier):
 
             if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
                 attachment['description'] = description
+
+            if self.config['incl_timestamp']:
+                attachment['timestamp'] = helpers.utc_now_iso()
 
             fields = []
             if provider_link:
@@ -1247,6 +1250,13 @@ class DISCORD(Notifier):
                           'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
                           },
+                          {'label': 'Include Timestamp',
+                           'value': self.config['incl_timestamp'],
+                           'name': 'discord_incl_timestamp',
+                           'description': 'Include timestaps on the info card.<br>'
+                                          'Note: "Include Rich Metadata Info" must be enabled.',
+                           'input_type': 'checkbox'
+                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',

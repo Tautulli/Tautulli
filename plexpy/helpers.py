@@ -209,6 +209,9 @@ def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
+def utc_now_iso():
+    utcnow = datetime.datetime.utcnow()
+    return utcnow.isoformat()
 
 def human_duration(s, sig='dhms'):
 
@@ -949,7 +952,7 @@ def parse_condition_logic_string(s, num_cond=0):
     """
     valid_tokens = re.compile(r'(\(|\)|and|or)')
     conditions_pattern = re.compile(r'{\d+}')
-    
+
     tokens = [x.strip() for x in re.split(valid_tokens, s.lower()) if x.strip()]
 
     stack = [[]]
@@ -960,7 +963,7 @@ def parse_condition_logic_string(s, num_cond=0):
     close_bracket_next = False
     nest_and = 0
     nest_nest_and = 0
-    
+
     for i, x in enumerate(tokens):
         if open_bracket_next and x == '(':
             stack[-1].append([])
@@ -971,7 +974,7 @@ def parse_condition_logic_string(s, num_cond=0):
             close_bracket_next = False
             if nest_and:
                 nest_nest_and += 1
-            
+
         elif close_bracket_next and x == ')':
             stack.pop()
             if not stack:
@@ -1000,7 +1003,7 @@ def parse_condition_logic_string(s, num_cond=0):
             if nest_and > nest_nest_and:
                 stack.pop()
                 nest_and -= 1
-            
+
         elif bool_next and x == 'and' and i < len(tokens)-1:
             stack[-1].append([])
             stack.append(stack[-1][-1])
@@ -1011,7 +1014,7 @@ def parse_condition_logic_string(s, num_cond=0):
             open_bracket_next = True
             close_bracket_next = False
             nest_and += 1
-            
+
         elif bool_next and x == 'or' and i < len(tokens)-1:
             stack[-1].append(x)
             cond_next = True
