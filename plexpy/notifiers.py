@@ -1145,7 +1145,8 @@ class DISCORD(Notifier):
             plex_url = pretty_metadata.get_plex_url()
 
             # Build Discord post attachment
-            attachment = {'title': title
+            attachment = {'title': title,
+                          'timestamp': helpers.utc_now_iso()
                           }
 
             if self.config['color']:
