@@ -633,6 +633,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                                     notify_params['parent_title'])
     else:
         poster_thumb = ''
+        poster_key = ''
+        poster_title = ''
 
     img_service = helpers.get_img_service(include_self=True)
     if img_service not in (None, 'self-hosted'):
