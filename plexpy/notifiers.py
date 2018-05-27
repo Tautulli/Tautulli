@@ -1107,8 +1107,7 @@ class DISCORD(Notifier):
                        'incl_pmslink': 0,
                        'movie_provider': '',
                        'tv_provider': '',
-                       'music_provider': '',
-                       'incl_timestamp': 0
+                       'music_provider': ''
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -1150,6 +1149,8 @@ class DISCORD(Notifier):
                           'timestamp': helpers.utc_now_iso()
                           }
 
+            attachment['timestamp'] = helpers.utc_now_iso()
+
             if self.config['color']:
                 hex_match = re.match(r'^#([0-9a-fA-F]{3}){1,2}$', self.config['color'])
                 if hex_match:
@@ -1164,9 +1165,6 @@ class DISCORD(Notifier):
 
             if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
                 attachment['description'] = description
-
-            if self.config['incl_timestamp']:
-                attachment['timestamp'] = helpers.utc_now_iso()
 
             fields = []
             if provider_link:
@@ -1252,13 +1250,6 @@ class DISCORD(Notifier):
                           'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
                           },
-                          {'label': 'Include Timestamp',
-                           'value': self.config['incl_timestamp'],
-                           'name': 'discord_incl_timestamp',
-                           'description': 'Include timestaps on the info card.<br>'
-                                          'Note: "Include Rich Metadata Info" must be enabled.',
-                           'input_type': 'checkbox'
-                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
