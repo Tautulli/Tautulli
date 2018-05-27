@@ -43,6 +43,9 @@ class ActivityHandler(object):
         if 'sessionKey' in self.timeline:
             if str(self.timeline['sessionKey']).isdigit():
                 return True
+        # Hack since sessionKey is not in the live TV stopped event
+        elif self.timeline.get('key', '').startswith('/livetv/sessions') and self.timeline.get('state') == 'stopped':
+            return True
 
         return False
 
