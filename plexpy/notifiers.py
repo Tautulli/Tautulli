@@ -1149,8 +1149,6 @@ class DISCORD(Notifier):
                           'timestamp': helpers.utc_now_iso()
                           }
 
-            attachment['timestamp'] = helpers.utc_now_iso()
-
             if self.config['color']:
                 hex_match = re.match(r'^#([0-9a-fA-F]{3}){1,2}$', self.config['color'])
                 if hex_match:
