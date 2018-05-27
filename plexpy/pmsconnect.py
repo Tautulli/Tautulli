@@ -1672,9 +1672,7 @@ class PmsConnect(object):
         if not helpers.get_xml_attr(session, 'ratingKey').isdigit():
             channel_stream = 1
 
-            clip_media = session.getElementsByTagName('Media')[0]
-            clip_part = clip_media.getElementsByTagName('Part')[0]
-            audio_channels = helpers.get_xml_attr(clip_media, 'audioChannels')
+            audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
             metadata_details = {'media_type': media_type,
                                 'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                                 'library_name': helpers.get_xml_attr(session, 'librarySectionTitle'),
@@ -1712,13 +1710,13 @@ class PmsConnect(object):
                                 'genres': [],
                                 'labels': [],
                                 'full_title': helpers.get_xml_attr(session, 'title'),
-                                'container': helpers.get_xml_attr(clip_media, 'container') \
-                                             or helpers.get_xml_attr(clip_part, 'container'),
-                                'height': helpers.get_xml_attr(clip_media, 'height'),
-                                'width': helpers.get_xml_attr(clip_media, 'width'),
-                                'video_codec': helpers.get_xml_attr(clip_media, 'videoCodec'),
-                                'video_resolution': helpers.get_xml_attr(clip_media, 'videoResolution'),
-                                'audio_codec': helpers.get_xml_attr(clip_media, 'audioCodec'),
+                                'container': helpers.get_xml_attr(stream_media_info, 'container') \
+                                             or helpers.get_xml_attr(stream_media_parts_info, 'container'),
+                                'height': helpers.get_xml_attr(stream_media_info, 'height'),
+                                'width': helpers.get_xml_attr(stream_media_info, 'width'),
+                                'video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
+                                'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                                'audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
@@ -1797,7 +1795,6 @@ class PmsConnect(object):
 
             video_details['stream_video_decision'] = transcode_details['video_decision']
             stream_details['stream_video_codec'] = transcode_details['transcode_video_codec']
-            stream_details['stream_video_resolution'] = metadata_details['video_resolution']
 
             audio_details['stream_audio_decision'] = transcode_details['audio_decision']
             stream_details['stream_audio_codec'] = transcode_details['transcode_audio_codec']
