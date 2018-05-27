@@ -169,7 +169,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
             return stream_data['machine_id'] not in user_devices
 
-        elif stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
+        elif stream_data['media_type'] in ('movie', 'episode', 'clip'):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
             
             if notify_action == 'on_stop':
