@@ -226,12 +226,11 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             this_state = self.timeline['state']
-            this_key = str(self.timeline['ratingKey'])
+            this_rating_key = str(self.timeline['ratingKey'])
+            this_key = self.timeline['key']
 
             # Get the live tv session uuid
-            this_live_uuid = None
-            if this_key.startswith('tv.plex.xmltv://'):
-                this_live_uuid = self.timeline['key'].split('/')[-1]
+            this_live_uuid = this_key.split('/')[-1] if this_key.startswith('/livetv/sessions') else None
 
             # If we already have this session in the temp table, check for state changes
             if db_session:
@@ -240,11 +239,11 @@ class ActivityHandler(object):
                                   func=force_stop_stream, args=[self.get_session_key()], minutes=5)
 
                 last_state = db_session['state']
-                last_key = str(db_session['rating_key'])
+                last_rating_key = str(db_session['rating_key'])
                 last_live_uuid = db_session['live_uuid']
 
                 # Make sure the same item is being played
-                if this_key == last_key or this_live_uuid == last_live_uuid:
+                if this_rating_key == last_rating_key or this_live_uuid == last_live_uuid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
