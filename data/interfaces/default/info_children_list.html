@@ -122,18 +122,24 @@ DOCUMENTATION :: END
             % elif data['children_type'] == 'track':
                 % if loop.index % 2 == 0:
                 <div class="item-children-list-item-even">
-                    <span class="item-children-list-item-index">${child['media_index']}</span>
+                    <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
                     <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
-                        <span class="text-muted"> - ${child['original_title']}</span></span>
+                    % if child['original_title']:
+                        <span class="text-muted"> - ${child['original_title']}</span>
+                    % endif
+                    </span>
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
                         <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
                     </span>
                 </div>
                 % else:
                 <div class="item-children-list-item-odd">
-                    <span class="item-children-list-item-index">${child['media_index']}</span>
+                    <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
                     <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
-                        <span class="text-muted"> - ${child['original_title']}</span></span>
+                    % if child['original_title']:
+                        <span class="text-muted"> - ${child['original_title']}</span>
+                    % endif
+                    </span>
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
                         <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
                     </span>
