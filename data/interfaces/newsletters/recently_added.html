@@ -888,7 +888,7 @@
                                                                             <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                 <em>${album['parent_title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
                                                                             </p>
-                                                                            % if artist['title'].lower() != 'various artists':
+                                                                            % if album['parent_title'].lower() != 'various artists':
                                                                             <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;color: #ffffff;">
                                                                                 ${album['summary'][:200] + (album['summary'][200:] and '...')}
                                                                             </p>

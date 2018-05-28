@@ -889,7 +889,7 @@
                                                                             <p class="nowrap mb5">
                                                                                 <em>${album['parent_title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
                                                                             </p>
-                                                                            % if artist['title'].lower() != 'various artists':
+                                                                            % if album['parent_title'].lower() != 'various artists':
                                                                             <p>
                                                                                 ${album['summary'][:200] + (album['summary'][200:] and '...')}
                                                                             </p>
