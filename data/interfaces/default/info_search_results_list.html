@@ -251,7 +251,7 @@ DOCUMENTATION :: END
                 <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                 % endif
                 <div class="item-children-instance-text-wrapper album-item">
-                    <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
+                    <h3 title="${child['original_title'] or child['grandparent_title']}">${child['original_title'] or child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
                     <h3 title="${child['parent_title']}" class="text-muted">${child['parent_title']}</h3>
                 </div>

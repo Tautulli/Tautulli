@@ -165,7 +165,7 @@ DOCUMENTATION :: END
                         <h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
+                        <h1><a href="info?rating_key=${data['grandparent_rating_key']}">${data['original_title'] or data['grandparent_title']}</a></h1>
                         <h2><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % endif
@@ -371,7 +371,11 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
+                            % if data['media_type'] in ('artist', 'album', 'track'):
+                            <span>Play History for <strong>${data['title']}</strong></span>
+                            % else:
                             <span>Watch History for <strong>${data['title']}</strong></span>
+                            % endif
                         </div>
                         <div class="button-bar">
                             % if _session['user_group'] == 'admin':
@@ -502,7 +506,7 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'album':
                         ${data['parent_title']}<br />${data['title']}
                         % elif data['media_type'] == 'track':
-                        ${data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
+                        ${data['original_title'] or data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
                         % endif
                     </strong>
                 </p>

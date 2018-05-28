@@ -521,7 +521,8 @@ class Users(object):
             if str(user_id).isdigit():
                 query = 'SELECT session_history.id, session_history.media_type, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
+                        'title, parent_title, grandparent_title, original_title, ' \
+                        'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
                         'year, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
@@ -552,6 +553,7 @@ class Users(object):
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],
+                                 'original_title': row['original_title'],
                                  'thumb': thumb,
                                  'media_index': row['media_index'],
                                  'parent_media_index': row['parent_media_index'],

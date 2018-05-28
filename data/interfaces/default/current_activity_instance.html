@@ -387,8 +387,8 @@ DOCUMENTATION :: END
                     <a href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
                     - <a href="${href}" title="${data['title']}">${data['title']}</a>
                     % elif data['media_type'] == 'track':
-                    <a id="metadata-grandparent_title-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
-                    - <a id="metadata-title-${sk}" href="${href}" title="${data['title']}">${data['title']}</a>
+                    <a id="metadata-title-${sk}" href="${href}" title="${data['title']}">${data['title']}</a>
+                    - <a id="metadata-grandparent_title-${sk}" href="${grandparent_href}" title="${data['original_title'] or data['grandparent_title']}">${data['original_title'] or data['grandparent_title']}</a>
                     % elif data['media_type'] == 'photo':
                     <span title="${data['parent_title']}">${data['parent_title']}</span>
                     % elif data['media_type'] == 'clip':

@@ -86,6 +86,7 @@ class DataFactory(object):
             'session_history_metadata.title',
             'session_history_metadata.parent_title',
             'session_history_metadata.grandparent_title',
+            'session_history_metadata.original_title',
             'session_history_metadata.year',
             'session_history_metadata.media_index',
             'session_history_metadata.parent_media_index',
@@ -132,6 +133,7 @@ class DataFactory(object):
                 'title',
                 'parent_title',
                 'grandparent_title',
+                'original_title',
                 'year',
                 'media_index',
                 'parent_media_index',
@@ -233,6 +235,7 @@ class DataFactory(object):
                    'title': item['parent_title'],
                    'parent_title': item['parent_title'],
                    'grandparent_title': item['grandparent_title'],
+                   'original_title': item['original_title'],
                    'year': item['year'],
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
@@ -480,7 +483,8 @@ class DataFactory(object):
             elif stat == 'top_music':
                 top_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
+                            't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -492,7 +496,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
-                            'GROUP BY t.grandparent_title ' \
+                            'GROUP BY t.original_title, t.grandparent_title ' \
                             'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
@@ -501,7 +505,7 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item['grandparent_title'],
+                    row = {'title': item['original_title'] or item['grandparent_title'],
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'users_watched': '',
@@ -529,7 +533,8 @@ class DataFactory(object):
             elif stat == 'popular_music':
                 popular_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
+                            't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
@@ -542,7 +547,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
-                            'GROUP BY t.grandparent_title ' \
+                            'GROUP BY t.original_title, t.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
@@ -551,7 +556,7 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item['grandparent_title'],
+                    row = {'title': item['original_title'] or item['grandparent_title'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
@@ -888,7 +893,7 @@ class DataFactory(object):
                     'video_decision, audio_decision, transcode_decision, width, height, container, ' \
                     'transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, ' \
                     'transcode_width, transcode_height, ' \
-                    'session_history_metadata.media_type, title, grandparent_title ' \
+                    'session_history_metadata.media_type, title, grandparent_title, original_title ' \
                     'FROM session_history_media_info ' \
                     'JOIN session_history ON session_history_media_info.id = session_history.id ' \
                     'JOIN session_history_metadata ON session_history_media_info.id = session_history_metadata.id ' \
@@ -909,7 +914,7 @@ class DataFactory(object):
                     'video_decision, audio_decision, transcode_decision, width, height, container, ' \
                     'transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, ' \
                     'transcode_width, transcode_height, ' \
-                    'media_type, title, grandparent_title ' \
+                    'media_type, title, grandparent_title, original_title ' \
                     'FROM sessions ' \
                     'WHERE session_key = ? %s' % user_cond
             result = monitor_db.select(query, args=[session_key])
@@ -979,6 +984,7 @@ class DataFactory(object):
                              'media_type': item['media_type'],
                              'title': item['title'],
                              'grandparent_title': item['grandparent_title'],
+                             'original_title': item['original_title'],
                              'current_session': 1 if session_key else 0,
                              'pre_tautulli': pre_tautulli
                              }
@@ -994,7 +1000,8 @@ class DataFactory(object):
                     'session_history_metadata.rating_key, session_history_metadata.parent_rating_key, ' \
                     'session_history_metadata.grandparent_rating_key, session_history_metadata.title, ' \
                     'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
-                    'session_history_metadata.full_title, library_sections.section_name, ' \
+                    'session_history_metadata.original_title, session_history_metadata.full_title, ' \
+                    'library_sections.section_name, ' \
                     'session_history_metadata.media_index, session_history_metadata.parent_media_index, ' \
                     'session_history_metadata.section_id, session_history_metadata.thumb, ' \
                     'session_history_metadata.parent_thumb, session_history_metadata.grandparent_thumb, ' \
@@ -1043,6 +1050,7 @@ class DataFactory(object):
                         'parent_rating_key': item['parent_rating_key'],
                         'grandparent_rating_key': item['grandparent_rating_key'],
                         'grandparent_title': item['grandparent_title'],
+                        'original_title': item['original_title'],
                         'parent_media_index': item['parent_media_index'],
                         'parent_title': item['parent_title'],
                         'media_index': item['media_index'],
@@ -1550,8 +1558,11 @@ class DataFactory(object):
 
         if metadata:
             # Create full_title
-            if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+            if metadata['media_type'] == 'episode':
                 full_title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+            elif metadata['media_type'] == 'track':
+                full_title = '%s - %s' % (metadata['title'],
+                                          metadata['original_title'] or metadata['grandparent_title'])
             else:
                 full_title = metadata['title']
 
@@ -1566,7 +1577,8 @@ class DataFactory(object):
 
             # Update the session_history_metadata table
             query = 'UPDATE session_history_metadata SET rating_key = ?, parent_rating_key = ?, ' \
-                    'grandparent_rating_key = ?, title = ?, parent_title = ?, grandparent_title = ?, full_title = ?, ' \
+                    'grandparent_rating_key = ?, title = ?, parent_title = ?, grandparent_title = ?, ' \
+                    'original_title = ?, full_title = ?, ' \
                     'media_index = ?, parent_media_index = ?, section_id = ?, thumb = ?, parent_thumb = ?, ' \
                     'grandparent_thumb = ?, art = ?, media_type = ?, year = ?, originally_available_at = ?, ' \
                     'added_at = ?, updated_at = ?, last_viewed_at = ?, content_rating = ?, summary = ?, ' \
@@ -1575,7 +1587,8 @@ class DataFactory(object):
                     'WHERE rating_key = ?'
 
             args = [metadata['rating_key'], metadata['parent_rating_key'], metadata['grandparent_rating_key'],
-                    metadata['title'], metadata['parent_title'], metadata['grandparent_title'], full_title,
+                    metadata['title'], metadata['parent_title'], metadata['grandparent_title'],
+                    metadata['original_title'], full_title,
                     metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
                     metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], metadata['media_type'],
                     metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],

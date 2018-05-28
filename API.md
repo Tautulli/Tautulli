@@ -434,6 +434,7 @@ Returns:
                  "optimized_version_profile": "",
                  "optimized_version_title": "",
                  "originally_available_at": "2016-04-24",
+                 "original_title": "",
                  "parent_media_index": "6",
                  "parent_rating_key": "153036",
                  "parent_thumb": "/library/metadata/153036/thumb/1503889210",
@@ -678,6 +679,7 @@ Returns:
               "full_title": "Game of Thrones - The Red Woman",
               "grandparent_rating_key": 351,
               "grandparent_title": "Game of Thrones",
+              "original_title": "",
               "group_count": 1,
               "group_ids": "1124",
               "id": 1124,
@@ -1172,6 +1174,7 @@ Returns:
              }
          ],
          "media_type": "episode",
+         "original_title": "",
          "originally_available_at": "2016-04-24",
          "parent_media_index": "6",
          "parent_rating_key": "153036",
@@ -1779,6 +1782,7 @@ Returns:
               "library_name": "",
               "media_index": "1",
               "media_type": "episode",
+              "original_title": "",
               "parent_media_index": "6",
               "parent_rating_key": "153036",
               "parent_thumb": "/library/metadata/153036/thumb/1462175062",
@@ -1953,6 +1957,7 @@ Returns:
          "optimized_version": "",
          "optimized_version_profile": "",
          "optimized_version_title": "",
+         "original_title": "",
          "pre_tautulli": "",
          "quality_profile": "1.5 Mbps 480p",
          "stream_audio_bitrate": 203,
@@ -2545,7 +2550,7 @@ Returns:
 
 
 ### set_mobile_device_config
-Configure an exisitng notificaiton agent.
+Configure an existing notification agent.
 
 ```
 Required parameters:
@@ -2560,7 +2565,7 @@ Returns:
 
 
 ### set_newsletter_config
-Configure an exisitng newsletter agent.
+Configure an existing newsletter agent.
 
 ```
 Required parameters:
@@ -2576,7 +2581,7 @@ Returns:
 
 
 ### set_notifier_config
-Configure an exisitng notificaiton agent.
+Configure an existing notification agent.
 
 ```
 Required parameters:

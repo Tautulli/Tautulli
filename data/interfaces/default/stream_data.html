@@ -46,8 +46,10 @@ DOCUMENTATION :: END
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title" id="info-modal-title">
-                % if data['media_type'] == 'episode' or data['media_type'] == 'track':
+                % if data['media_type'] == 'episode':
                 Stream Info: <strong>${data['grandparent_title']} - ${data['title']} (${user})</strong>
+                % elif data['media_type'] == 'track':
+                Stream Info: <strong>${data['original_title'] or data['grandparent_title']} - ${data['title']} (${user})</strong>
                 % else:
                 Stream Info: <strong>${data['title']} (${user})</strong>
                 % endif

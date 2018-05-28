@@ -862,13 +862,13 @@ class Libraries(object):
             if str(section_id).isdigit():
                 query = 'SELECT session_history.id, session_history.media_type, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
+                        'title, parent_title, grandparent_title, original_title, ' \
+                        'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
                         'year, started, user, content_rating, labels, section_id ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE section_id = ? ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        '   ELSE session_history.rating_key END) ' \
+                        'GROUP BY session_history.rating_key ' \
                         'ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[section_id, limit])
             else:
@@ -893,6 +893,7 @@ class Libraries(object):
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],
+                                 'original_title': row['original_title'],
                                  'thumb': thumb,
                                  'media_index': row['media_index'],
                                  'parent_media_index': row['parent_media_index'],

@@ -728,7 +728,7 @@ class PrettyMetadata(object):
         elif self.media_type == 'album':
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
         elif self.media_type == 'track':
-            title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
+            title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
         return title.encode("utf-8")
 
     def get_description(self):

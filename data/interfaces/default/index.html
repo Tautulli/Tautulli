@@ -390,8 +390,8 @@
                                 $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
-                                    .attr('title', s.grandparent_title)
-                                    .text(s.grandparent_title);
+                                    .attr('title', s.original_title || s.grandparent_title)
+                                    .text(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key')) {
@@ -406,7 +406,11 @@
                                     .text(s.parent_title);
                             }
                             // Update cover if track changed
-                            if (s.parent_rating_key !== instance.data('parent_rating_key')) {
+                            if (s.rating_key !== instance.data('rating_key')) {
+                                $('#metadata-grandparent_title-' + key)
+                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('title', s.original_title || s.grandparent_title)
+                                    .text(s.original_title || s.grandparent_title);
                                 $('#metadata-title-' + key)
                                     .attr('href', 'info?rating_key=' + s.rating_key)
                                     .attr('title', s.title)

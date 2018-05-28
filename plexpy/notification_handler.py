@@ -805,6 +805,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'artist_name': artist_name,
         'album_name': album_name,
         'track_name': track_name,
+        'track_artist': notify_params['original_title'] or notify_params['grandparent_title'],
         'season_num': season_num,
         'season_num00': season_num00,
         'episode_num': episode_num,

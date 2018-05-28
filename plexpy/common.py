@@ -403,6 +403,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Artist Name', 'type': 'str', 'value': 'artist_name', 'description': 'The name of the artist.'},
              {'name': 'Album Name', 'type': 'str', 'value': 'album_name', 'description': 'The title of the album.'},
              {'name': 'Track Name', 'type': 'str', 'value': 'track_name', 'description': 'The title of the track.'},
+             {'name': 'Track Artist', 'type': 'str', 'value': 'track_artist', 'description': 'The name of the artist of the track.'},
              {'name': 'Season Number', 'type': 'int', 'value': 'season_num', 'description': 'The season number.', 'example': 'e.g. 1, or 1-3'},
              {'name': 'Season Number 00', 'type': 'int', 'value': 'season_num00', 'description': 'The two digit season number.', 'example': 'e.g. 01, or 01-03'},
              {'name': 'Episode Number', 'type': 'int', 'value': 'episode_num', 'description': 'The episode number.', 'example': 'e.g. 6, or 6-10'},
