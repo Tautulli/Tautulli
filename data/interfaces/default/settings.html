@@ -476,6 +476,18 @@
                             </div>
                             <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_custom_css">Custom CSS Location</label>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control http-settings" id="http_custom_css" name="http_custom_css" value="${config['http_custom_css']}" placeholder="http://mydomain.com/custom.css" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#http_custom_css_error"  data-parsley-error-message="Invalid URL">
+                                </div>
+                                <div id=http_custom_css_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Set the location where your custom CSS is located.
+                            </p>
+                        </div>
                        <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="http_proxy" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
@@ -2439,11 +2451,11 @@ $(document).ready(function() {
                 var title = libraries_list[i].section_name;
                 var key = libraries_list[i].section_id;
                 $('#sortable_home_library_cards').append(
-                    '<li class="card card-sortable">' + 
-                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
-                        '<label>' + 
-                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
-                        '</label>' + 
+                    '<li class="card card-sortable">' +
+                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' +
+                        '<label>' +
+                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title +
+                        '</label>' +
                     '</li>'
                 );
             }
