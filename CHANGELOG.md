@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.1.10-beta (2018-05-28)
+
+* Monitoring:
+  * Fix: Improved monitoring of live tv sessions.
+  * Change: Use track artist instead of album artist.
+* Notifications:
+  * New: Added timestamp to Discord notification embeds. (Thanks @samwiseg00)
+  * New: Enable notifications for "clip" media types.
+  * Fix: Actually add the "live" notification parameter.
+  * Change: Update Twitter for 280 characters.
+  * Change: Use HTTPS url for Cloudinary images.
+* Newsletters:
+  * Fix: Artist summaries not showing up on newsletter cards.
+  * Change: Do not send the newsletter if the template fails to render.
+
+
 ## v2.1.9 (2018-05-21)
 
 * Notifications:
