@@ -686,7 +686,7 @@ class WebInterface(object):
             # Alias 'title' to 'sort_title'
             if kwargs.get('order_column') == 'title':
                 kwargs['order_column'] = 'sort_title'
-                
+
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),
                           ("sort_title", True, True),
@@ -2754,6 +2754,7 @@ class WebInterface(object):
             "https_domain": plexpy.CONFIG.HTTPS_DOMAIN,
             "https_ip": plexpy.CONFIG.HTTPS_IP,
             "http_base_url": plexpy.CONFIG.HTTP_BASE_URL,
+            "http_custom_css": plexpy.CONFIG.HTTP_CUSTOM_CSS,
             "anon_redirect": plexpy.CONFIG.ANON_REDIRECT,
             "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
             "api_key": plexpy.CONFIG.API_KEY,
@@ -2896,7 +2897,7 @@ class WebInterface(object):
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
             first_run = True
-            
+
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
@@ -2970,7 +2971,7 @@ class WebInterface(object):
         # If first run, start websocket
         if first_run:
             activity_pinger.connect_server(log=True, startup=True)
-        
+
         # Reconfigure scheduler if intervals changed
         if reschedule:
             plexpy.initialize_scheduler()
@@ -3301,7 +3302,7 @@ class WebInterface(object):
                        'type': param['type'],
                        'value': param['value']
                        }
-                      for category in common.NOTIFICATION_PARAMETERS 
+                      for category in common.NOTIFICATION_PARAMETERS
                       for param in category['parameters']]
 
         return parameters
@@ -3861,7 +3862,7 @@ class WebInterface(object):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
             logger.error(u"Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
-        
+
         # Set the new git remote and branch
         plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
         plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)

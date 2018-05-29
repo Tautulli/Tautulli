@@ -231,6 +231,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_USERNAME': (str, 'General', ''),
     'HTTP_PLEX_ADMIN': (int, 'General', 0),
     'HTTP_BASE_URL': (str, 'General', ''),
+    'HTTP_CUSTOM_CSS': (str, 'General', ''),
     'HIPCHAT_URL': (str, 'Hipchat', ''),
     'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),
