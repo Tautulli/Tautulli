@@ -65,7 +65,7 @@ class DataFactory(object):
         columns = [
             'session_history.reference_id',
             'session_history.id',
-            'started AS date',
+            'MAX(started) AS date',
             'MIN(started) AS started',
             'MAX(stopped) AS stopped',
             'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \

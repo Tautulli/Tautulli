@@ -272,10 +272,10 @@ class ActivityProcessor(object):
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
-                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history \
-                         WHERE user_id = ? ORDER BY id DESC LIMIT 2 '
+                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history ' \
+                        'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
 
-                args = [session['user_id']]
+                args = [session['user_id'], session['rating_key']]
 
                 result = self.db.select(query=query, args=args)
 
@@ -297,10 +297,19 @@ class ActivityProcessor(object):
                                     'reference_id': result[1]['reference_id']}
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
-                # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
+                watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                   'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                   'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+                                   }
+
+                # If previous session view offset less than watched percent,
+                # and new session view offset is greater,
+                # then set the reference_id to the previous row,
+                # else set the reference_id to the new id
                 if prev_session is None and new_session is None:
                     args = [last_id, last_id]
-                elif prev_session['rating_key'] == new_session['rating_key'] and prev_session['view_offset'] <= new_session['view_offset']:
+                elif prev_session['view_offset'] < watched_percent.get(session['media_type'], 0) and \
+                        prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
                     args = [new_session['id'], new_session['id']]
