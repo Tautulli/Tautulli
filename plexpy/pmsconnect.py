@@ -2664,7 +2664,7 @@ class PmsConnect(object):
                             child_title = helpers.get_xml_attr(item, 'title')
 
                             if child_rating_key:
-                                key = int(child_index)
+                                key = int(child_index) if child_index else child_title
                                 children.update({key: {'rating_key': int(child_rating_key)}})
 
                     key = int(parent_index) if match_type == 'index' else parent_title
@@ -2676,9 +2676,9 @@ class PmsConnect(object):
         key = 0 if match_type == 'index' else title
         key_list = {key: {'rating_key': int(rating_key),
                           'children': parents},
-                          'section_id': section_id,
-                          'library_name': library_name
-                        }
+                    'section_id': section_id,
+                    'library_name': library_name
+                    }
 
         return key_list
 
