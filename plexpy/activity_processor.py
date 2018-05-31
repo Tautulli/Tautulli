@@ -15,18 +15,13 @@
 
 from collections import defaultdict
 import json
-import threading
 import time
-import re
 
 import plexpy
 import database
-import datafactory
+import helpers
 import libraries
-import log_reader
 import logger
-import notification_handler
-import notifiers
 import pmsconnect
 import users
 
@@ -301,6 +296,7 @@ class ActivityProcessor(object):
                                    'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
                                    'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
                                    }
+                prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
 
                 # If previous session view offset less than watched percent,
                 # and new session view offset is greater,
@@ -308,7 +304,7 @@ class ActivityProcessor(object):
                 # else set the reference_id to the new id
                 if prev_session is None and new_session is None:
                     args = [last_id, last_id]
-                elif prev_session['view_offset'] < watched_percent.get(session['media_type'], 0) and \
+                elif prev_progress_percent < watched_percent.get(session['media_type'], 0) and \
                         prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
