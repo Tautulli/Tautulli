@@ -23,6 +23,7 @@ PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
 PLATFORM_LINUX_DISTRO = ' '.join(x for x in platform.linux_distribution() if x)
+PLATFORM_DEVICE_NAME = platform.node()
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
 
