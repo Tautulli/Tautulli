@@ -2358,7 +2358,7 @@ $(document).ready(function() {
             data: { pref: 'PublishServerOnPlexOnlineKey' },
             async: true,
             success: function(data) {
-                if (data !== 'true') {
+                if (data === 'false' || data === '0') {
                     $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
                     $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
                 }
