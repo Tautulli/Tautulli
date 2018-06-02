@@ -16,7 +16,7 @@
 <div class='container-fluid'>
     <div class='table-card-header'>
         <div class="header-bar">
-            <span><i class="fa fa-cloud-download"></i> Synced Items</span>
+            <span id="sync-xml"><i class="fa fa-cloud-download"></i> Synced Items</span>
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
@@ -184,6 +184,10 @@
 
     $("#refresh-syncs-list").click(function() {
         sync_table.ajax.reload();
+    });
+
+    $('#sync-xml').on('tripleclick', function () {
+        openPlexXML('/servers/{machine_id}/sync_lists', true);
     });
 </script>
 </%def>
