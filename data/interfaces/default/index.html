@@ -694,9 +694,7 @@
     });
 
     $('#sessions-xml').on('tripleclick', function () {
-        $.getJSON('return_plex_xml_url', {endpoint: '/status/sessions'}, function(xml_url) {
-           window.open(xml_url, '_blank');
-        });
+        openPlexXML('/status/sessions');
     });
     % endif
 </script>

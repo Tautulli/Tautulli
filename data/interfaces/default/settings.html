@@ -2755,9 +2755,7 @@ $(document).ready(function() {
     });
 
     $('#resources-xml').on('tripleclick', function () {
-        $.getJSON('return_plex_xml_url', {endpoint: '/api/resources', plextv: true, includeHttps: 1}, function(xml_url) {
-           window.open(xml_url, '_blank');
-        });
+        openPlexXML('/api/resources', true, {includeHttps: 1});
     });
 });
 </script>

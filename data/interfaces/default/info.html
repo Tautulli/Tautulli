@@ -704,9 +704,7 @@ DOCUMENTATION :: END
 % endif
 <script>
     $('.metadata-xml').on('tripleclick', function () {
-        $.getJSON('return_plex_xml_url', {endpoint: "/library/metadata/${data['rating_key']}"}, function(xml_url) {
-           window.open(xml_url, '_blank');
-        });
+        openPlexXML("/library/metadata/${data['rating_key']}");
     });
 
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
