@@ -275,6 +275,7 @@ class ActivityProcessor(object):
                 result = self.db.select(query=query, args=args)
 
                 new_session = prev_session = None
+                prev_progress_percent = media_watched_percent = 0
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
 
@@ -291,12 +292,14 @@ class ActivityProcessor(object):
                                     'user_id': result[1]['user_id'],
                                     'reference_id': result[1]['reference_id']}
 
+                    watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                       'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                       'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+                                       }
+                    prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
+                    media_watched_percent = watched_percent.get(session['media_type'], 0)
+
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
-                watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
-                                   'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
-                                   'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
-                                   }
-                prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
 
                 # If previous session view offset less than watched percent,
                 # and new session view offset is greater,
@@ -304,7 +307,7 @@ class ActivityProcessor(object):
                 # else set the reference_id to the new id
                 if prev_session is None and new_session is None:
                     args = [last_id, last_id]
-                elif prev_progress_percent < watched_percent.get(session['media_type'], 0) and \
+                elif prev_progress_percent < media_watched_percent and \
                         prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
