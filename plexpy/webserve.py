@@ -276,9 +276,18 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
-        base_url = 'https://plex.tv' if plextv else plexpy.CONFIG.PMS_URL
+
+        if plextv:
+            base_url = 'https://plex.tv'
+        else:
+            if plexpy.CONFIG.PMS_URL_OVERRIDE:
+                base_url = plexpy.CONFIG.PMS_URL_OVERRIDE
+            else:
+                base_url = plexpy.CONFIG.PMS_URL
+
         if '{machine_id}' in endpoint:
             endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
+
         return base_url + endpoint + '?' + urllib.urlencode(kwargs)
 
     @cherrypy.expose
