@@ -646,7 +646,7 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
+                            <h3 id="resources-xml">Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
                         </div>
 
                         <div class="form-group has-feedback" id="pms_ip_group">
@@ -2752,6 +2752,12 @@ $(document).ready(function() {
             var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
             body_container.animate({scrollTop: scroll_pos});
         }
+    });
+
+    $('#resources-xml').on('tripleclick', function () {
+        $.getJSON('return_plex_xml_url', {endpoint: '/api/resources', plextv: true, includeHttps: 1}, function(xml_url) {
+           window.open(xml_url, '_blank');
+        });
     });
 });
 </script>

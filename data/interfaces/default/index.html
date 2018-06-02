@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
-                <h3><span id="sessions-shortcut">Activity</span> &nbsp;&nbsp;
+                <h3><span id="sessions-xml">Activity</span> &nbsp;&nbsp;
                     <small>
                         <span id="currentActivityHeader" style="display: none;">
                             Streams: <span id="currentActivityHeader-streams"></span> |
@@ -236,7 +236,6 @@
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
 <script src="${http_root}js/jquery.mousewheel.min.js"></script>
-<script src="${http_root}js/jquery.tripleclick.min.js"></script>
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -694,9 +693,9 @@
         });
     });
 
-    $('#sessions-shortcut').on('tripleclick', function () {
-        $.getJSON('return_sessions_url', function(sessions_url) {
-           window.open(sessions_url, '_blank');
+    $('#sessions-xml').on('tripleclick', function () {
+        $.getJSON('return_plex_xml_url', {endpoint: '/status/sessions'}, function(xml_url) {
+           window.open(xml_url, '_blank');
         });
     });
     % endif

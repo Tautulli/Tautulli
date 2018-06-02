@@ -18,6 +18,7 @@ import json
 import os
 import shutil
 import threading
+import urllib
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -273,8 +274,10 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def return_sessions_url(self, **kwargs):
-        return plexpy.CONFIG.PMS_URL + '/status/sessions?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+    def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
+        kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
+        base_url = 'https://plex.tv' if plextv else plexpy.CONFIG.PMS_URL
+        return base_url + endpoint + '?' + urllib.urlencode(kwargs)
 
     @cherrypy.expose
     @requireAuth()
