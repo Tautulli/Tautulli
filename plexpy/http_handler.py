@@ -179,5 +179,5 @@ class HTTPHandler(object):
             return output
 
         except Exception as e:
-            logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.response_type, e))
+            logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
             return None
