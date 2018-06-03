@@ -42,6 +42,7 @@ import datafactory
 import libraries
 import logger
 import mobile_app
+import newsletters
 import newsletter_handler
 import notification_handler
 import notifiers
@@ -202,6 +203,7 @@ def initialize(config_file):
             logger.error(u"Could not perform upgrades: %s" % e)
 
         # Add notifier configs to logger blacklist
+        newsletters.blacklist_logger()
         notifiers.blacklist_logger()
         mobile_app.blacklist_logger()
 

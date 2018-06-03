@@ -62,7 +62,6 @@ import mobile_app
 import pmsconnect
 import request
 import users
-from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
 BROWSER_NOTIFIERS = {}
@@ -612,17 +611,9 @@ def blacklist_logger():
     db = database.MonitorDatabase()
     notifiers = db.select('SELECT notifier_config FROM notifiers')
 
-    blacklist = set()
-    blacklist_keys = ['hook', 'key', 'password', 'token']
-
     for n in notifiers:
         config = json.loads(n['notifier_config'] or '{}')
-        for key, value in config.iteritems():
-            if isinstance(value, basestring) and len(value.strip()) > 5 and \
-                key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or any(bk in key.upper() for bk in _BLACKLIST_KEYS)):
-                blacklist.add(value.strip())
-
-    logger._BLACKLIST_WORDS.update(blacklist)
+        logger.blacklist_config(config)
 
 
 class PrettyMetadata(object):

@@ -196,6 +196,7 @@ def add_newsletter_config(agent_id=None, **kwargs):
         newsletter_id = db.last_insert_id()
         logger.info(u"Tautulli Newsletters :: Added new newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
+        blacklist_logger()
         return newsletter_id
     except Exception as e:
         logger.warn(u"Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
@@ -254,6 +255,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
         logger.info(u"Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
         newsletter_handler.schedule_newsletters(newsletter_id=newsletter_id)
+        blacklist_logger()
         return True
     except Exception as e:
         logger.warn(u"Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
@@ -272,6 +274,17 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
         return agent.send()
     else:
         logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
+
+
+def blacklist_logger():
+    db = database.MonitorDatabase()
+    notifiers = db.select('SELECT newsletter_config, email_config FROM newsletters')
+
+    for n in notifiers:
+        config = json.loads(n['newsletter_config'] or '{}')
+        logger.blacklist_config(config)
+        email_config = json.loads(n['email_config'] or '{}')
+        logger.blacklist_config(email_config)
 
 
 def serve_template(templatename, **kwargs):
