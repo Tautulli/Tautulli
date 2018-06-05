@@ -516,7 +516,8 @@
   * New: Icon and duration options for Plex Home Theater and XBMC notifications.
   * New: Notification for Tautulli updates.
   * New: Added &lt;show&gt;, &lt;season&gt;, &lt;artist&gt;, and &lt;album&gt; notification exclusion tags.
-    * &lt;tv&gt; is renamed to &lt;episode&gt;, and &lt;music&gt; is renamed to &lt;track&gt;
+    * &lt;tv&gt; is renamed to &lt;episode&gt;
+    * &lt;music&gt; is renamed to &lt;track&gt;
   * New: Preview notification text in the notifier settings.
   * New: Properly group recently added notifications when adding a batch of media.
     * The {season_num}, {episode_num}, and {track_num} parameters will be substituted with the range (e.g. 06-10)
