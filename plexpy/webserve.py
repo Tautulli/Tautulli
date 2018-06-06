@@ -248,23 +248,23 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def terminate_session(self, session_id=None, message=None, **kwargs):
-        """ Add a new notification agent.
+    def terminate_session(self, session_key=None, session_id=None, message=None, **kwargs):
+        """ Stop a streaming session.
 
             ```
             Required parameters:
-                session_id (str):           The id of the session to terminate
-                message (str):              A custom message to send to the client
+                session_key (int):          The session key of the session to terminate, OR
+                session_id (str):           The session id of the session to terminate
 
             Optional parameters:
-                None
+                message (str):              A custom message to send to the client
 
             Returns:
                 None
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.terminate_session(session_id=session_id, message=message)
+        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
         if result:
             return {'result': 'success', 'message': 'Session terminated.'}

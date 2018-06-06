@@ -675,6 +675,7 @@
             $.ajax({
                 url: 'terminate_session',
                 data: {
+                    session_key: key,
                     session_id: session_id,
                     message: message
                 },

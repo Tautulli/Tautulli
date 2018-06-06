@@ -34,6 +34,7 @@ class ActivityProcessor(object):
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session.get('session_key', ''),
+                      'session_id': session.get('session_id', ''),
                       'transcode_key': session.get('transcode_key', ''),
                       'section_id': session.get('section_id', ''),
                       'rating_key': session.get('rating_key', ''),
@@ -461,6 +462,16 @@ class ActivityProcessor(object):
             session = self.db.select_single('SELECT * FROM sessions '
                                             'WHERE session_key = ? ',
                                             args=[session_key])
+            if session:
+                return session
+
+        return None
+
+    def get_session_by_id(self, session_id=None):
+        if session_id:
+            session = self.db.select_single('SELECT * FROM sessions '
+                                            'WHERE session_id = ? ',
+                                            args=[session_id])
             if session:
                 return session
 

@@ -19,6 +19,7 @@ import time
 import urllib
 
 import plexpy
+import activity_processor
 import common
 import helpers
 import http_handler
@@ -1919,7 +1920,7 @@ class PmsConnect(object):
 
         return session_output
 
-    def terminate_session(self, session_id='', message=''):
+    def terminate_session(self, session_key='', session_id='', message=''):
         """
         Terminates a streaming session.
 
@@ -1927,10 +1928,22 @@ class PmsConnect(object):
         """
         message = message or 'The server owner has ended the stream.'
 
+        if session_key and not session_id:
+            ap = activity_processor.ActivityProcessor()
+            session = ap.get_session_by_key(session_key=session_key)
+            session_id = session['session_id']
+
+        elif session_id and not session_key:
+            ap = activity_processor.ActivityProcessor()
+            session = ap.get_session_by_id(session_id=session_id)
+            session_key = session['session_key']
+
         if session_id:
+            logger.info(u"Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
             result = self.get_sessions_terminate(session_id=session_id, reason=urllib.quote_plus(message))
             return result
         else:
+            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session %s. Missing session_id." % session_key)
             return False
 
     def get_item_children(self, rating_key='', get_grandchildren=False):
