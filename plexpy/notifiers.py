@@ -2442,7 +2442,8 @@ class PLEX(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        params = params or {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
@@ -3545,7 +3546,8 @@ class XBMC(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        params = params or {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
