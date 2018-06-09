@@ -483,6 +483,7 @@ class PmsConnect(object):
                 actors = []
                 genres = []
                 labels = []
+                collections = []
 
                 if m.getElementsByTagName('Director'):
                     for director in m.getElementsByTagName('Director'):
@@ -503,6 +504,10 @@ class PmsConnect(object):
                 if m.getElementsByTagName('Label'):
                     for label in m.getElementsByTagName('Label'):
                         labels.append(helpers.get_xml_attr(label, 'tag'))
+
+                if m.getElementsByTagName('Collection'):
+                    for collection in m.getElementsByTagName('Collection'):
+                        collections.append(helpers.get_xml_attr(collection, 'tag'))
 
                 recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
                                'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
@@ -541,6 +546,7 @@ class PmsConnect(object):
                                'actors': actors,
                                'genres': genres,
                                'labels': labels,
+                               'collections': collections,
                                'full_title': helpers.get_xml_attr(m, 'title'),
                                'child_count': helpers.get_xml_attr(m, 'childCount')
                                }
