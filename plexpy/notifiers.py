@@ -2136,7 +2136,7 @@ class JOIN(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'join_movie_provider',
-                          'description': 'Select the source for movie links in the notificaation. Leave blank to disable.<br>'
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -2144,7 +2144,7 @@ class JOIN(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'join_tv_provider',
-                          'description': 'Select the source for tv show links in the notificaation. Leave blank to disable.<br>'
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -2152,7 +2152,7 @@ class JOIN(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'join_music_provider',
-                          'description': 'Select the source for music links in the notificaation. Leave blank to disable.',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
