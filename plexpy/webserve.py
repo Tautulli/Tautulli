@@ -5845,3 +5845,8 @@ class WebInterface(object):
 
         logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
+
+    @cherrypy.expose
+    @requireAuth()
+    def support(self, query='', **kwargs):
+        return serve_template(templatename="support.html", title="Support")

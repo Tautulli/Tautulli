@@ -1,0 +1,60 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+</%def>
+
+<%def name="headerIncludes()">
+</%def>
+
+<%def name="body()">
+<div class='container-fluid'>
+    <div class='table-card-header'>
+        <div class="header-bar">
+            <span><i class="fa fa-comment"></i> Support</span>
+        </div>
+        <div class="button-bar">
+            <div class="btn-group">
+                <button class="btn btn-dark" id="popout-iframe-button"><i class="fa fa-external-link"></i> Pop Out Chat</button>
+            </div>
+        </div>
+    </div>
+    <div class='table-card-back'>
+        <div class="iframe-container">
+            <iframe class="iframe" allowfullscreen="true" id="support-iframe" data-name="Tautulli-Support" data-src="https://tautulli.com/support"
+                    sandbox="allow-presentation allow-forms allow-same-origin allow-pointer-lock allow-scripts allow-popups allow-modals allow-top-navigation"
+                    style="display: none;">
+            </iframe>
+            <div class="iframe-overlay">
+                <div class="iframe-button-container">
+                    <a class="iframe-button">Join the Discord Chat</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+</%def>
+
+<%def name="javascriptIncludes()">
+<script>
+    var popout_chat;
+    $('.iframe-button').click(function () {
+        if (popout_chat) {
+            popout_chat.close();
+        }
+
+        var iframe = $('#support-iframe');
+        iframe.attr('src', iframe.data('src')).fadeIn();
+        $('.iframe-overlay').fadeOut();
+    });
+
+    $('#popout-iframe-button').click(function () {
+        var iframe = $('#support-iframe');
+        popout_chat = window.open(iframe.attr('src'), 'Tautulli-Discord-Support', 'width=1280,height=720');
+        iframe.attr('src', '').fadeOut();
+        $('.iframe-overlay').fadeIn();
+    });
+</script>
+</%def>

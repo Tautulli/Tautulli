@@ -4096,3 +4096,59 @@ a[data-tab-destination] {
 .pointer {
     cursor: pointer;
 }
+
+.iframe-container {
+    width: 100%;
+    height: calc(100vh - 200px);
+    position: relative;
+}
+.iframe-overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: url(../images/discord-overlay.png) no-repeat;
+    background-size: cover;
+    border: 1px solid #36393e;
+}
+.iframe-button-container {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.iframe-button {
+    color: #fff;
+    border-radius: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 15px;
+    height: 28px;
+    line-height: 28px;
+    min-width: 210px;
+    transition: box-shadow 0.3s ease;
+    padding: 0 15px;
+    background: rgba(114, 137, 218, 0.4);
+    text-transform: uppercase;
+    text-decoration: none;
+    display: block;
+}
+.iframe-button:hover,
+.iframe-button:focus {
+    color: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 99999px inset, rgba(0, 0, 0, 0.2) 0px 1px 5px 0px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 3px 1px -2px;
+}
+.iframe-button:active {
+    box-shadow: rgba(255, 255, 255, 0.1) 0px 0px 0px 99999px inset, rgba(0, 0, 0, 0.2) 0px 5px 5px -3px, rgba(0, 0, 0, 0.14) 0px 8px 10px 1px, rgba(0, 0, 0, 0.12) 0px 3px 14px 2px;
+}
+.iframe {
+    width: 100%;
+    height: 100%;
+    position: inherit;
+    display: block;
+    border: 0;
+}
