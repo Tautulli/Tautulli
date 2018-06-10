@@ -17,7 +17,6 @@
     <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
     <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
-    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}
 
     <!-- Favicons -->
@@ -134,7 +133,7 @@
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
                             <li><a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
-                            <li><a href="settings?support=true"><i class="fa fa-fw fa-comment"></i> Support</a></li>
+                            <li><a href="support"><i class="fa fa-fw fa-comment"></i> Support</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
                             <li role="separator" class="divider"></li>
@@ -289,9 +288,12 @@ ${next.modalIncludes()}
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
+<script src="${http_root}js/fontawesome-v5.0.13.min.js"></script>
+<script src="${http_root}js/fontawesome-v4-shims.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
+<script src="${http_root}js/jquery.tripleclick.min.js"></script>
 % if _session['user_group'] == 'admin' and BROWSER_NOTIFIERS:
 <script src="${http_root}js/ajaxNotifications.js"></script>
 % endif

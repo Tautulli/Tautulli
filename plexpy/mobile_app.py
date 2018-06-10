@@ -138,7 +138,5 @@ def set_last_seen(device_token=None):
 
 def blacklist_logger():
     devices = get_mobile_devices()
-
-    blacklist = set(d['device_token'] for d in devices)
-
-    logger._BLACKLIST_WORDS.update(blacklist)
+    for d in devices:
+        logger.blacklist_config(d)

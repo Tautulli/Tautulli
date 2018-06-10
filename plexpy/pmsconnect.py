@@ -19,6 +19,7 @@ import time
 import urllib
 
 import plexpy
+import activity_processor
 import common
 import helpers
 import http_handler
@@ -482,6 +483,7 @@ class PmsConnect(object):
                 actors = []
                 genres = []
                 labels = []
+                collections = []
 
                 if m.getElementsByTagName('Director'):
                     for director in m.getElementsByTagName('Director'):
@@ -502,6 +504,10 @@ class PmsConnect(object):
                 if m.getElementsByTagName('Label'):
                     for label in m.getElementsByTagName('Label'):
                         labels.append(helpers.get_xml_attr(label, 'tag'))
+
+                if m.getElementsByTagName('Collection'):
+                    for collection in m.getElementsByTagName('Collection'):
+                        collections.append(helpers.get_xml_attr(collection, 'tag'))
 
                 recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
                                'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
@@ -540,6 +546,7 @@ class PmsConnect(object):
                                'actors': actors,
                                'genres': genres,
                                'labels': labels,
+                               'collections': collections,
                                'full_title': helpers.get_xml_attr(m, 'title'),
                                'child_count': helpers.get_xml_attr(m, 'childCount')
                                }
@@ -1919,7 +1926,7 @@ class PmsConnect(object):
 
         return session_output
 
-    def terminate_session(self, session_id='', message=''):
+    def terminate_session(self, session_key='', session_id='', message=''):
         """
         Terminates a streaming session.
 
@@ -1927,10 +1934,22 @@ class PmsConnect(object):
         """
         message = message or 'The server owner has ended the stream.'
 
+        if session_key and not session_id:
+            ap = activity_processor.ActivityProcessor()
+            session = ap.get_session_by_key(session_key=session_key)
+            session_id = session['session_id']
+
+        elif session_id and not session_key:
+            ap = activity_processor.ActivityProcessor()
+            session = ap.get_session_by_id(session_id=session_id)
+            session_key = session['session_key']
+
         if session_id:
+            logger.info(u"Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
             result = self.get_sessions_terminate(session_id=session_id, reason=urllib.quote_plus(message))
             return result
         else:
+            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session %s. Missing session_id." % session_key)
             return False
 
     def get_item_children(self, rating_key='', get_grandchildren=False):
@@ -2664,7 +2683,7 @@ class PmsConnect(object):
                             child_title = helpers.get_xml_attr(item, 'title')
 
                             if child_rating_key:
-                                key = int(child_index)
+                                key = int(child_index) if child_index else child_title
                                 children.update({key: {'rating_key': int(child_rating_key)}})
 
                     key = int(parent_index) if match_type == 'index' else parent_title
@@ -2676,9 +2695,9 @@ class PmsConnect(object):
         key = 0 if match_type == 'index' else title
         key_list = {key: {'rating_key': int(rating_key),
                           'children': parents},
-                          'section_id': section_id,
-                          'library_name': library_name
-                        }
+                    'section_id': section_id,
+                    'library_name': library_name
+                    }
 
         return key_list
 

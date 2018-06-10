@@ -54,6 +54,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
     'PMS_URL': (str, 'PMS', ''),
+    'PMS_URL_OVERRIDE': (str, 'PMS', ''),
     'PMS_URL_MANUAL': (int, 'PMS', 0),
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),

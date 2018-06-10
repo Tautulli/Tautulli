@@ -39,12 +39,13 @@ class HTTPHandler(object):
         else:
             self.urls = urls
 
-        self.headers = {'X-Plex-Device-Name': 'Tautulli',
-                        'X-Plex-Product': 'Tautulli',
+        self.headers = {'X-Plex-Product': 'Tautulli',
                         'X-Plex-Version': plexpy.common.RELEASE,
+                        'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
                         'X-Plex-Platform': plexpy.common.PLATFORM,
                         'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
-                        'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
+                        'X-Plex-Device': 'Web',
+                        'X-Plex-Device-Name': plexpy.common.PLATFORM_DEVICE_NAME
                         }
 
         self.token = token
@@ -178,5 +179,5 @@ class HTTPHandler(object):
             return output
 
         except Exception as e:
-            logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.response_type, e))
+            logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
             return None

@@ -83,31 +83,31 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled breadcrumb">
                         % if data['media_type'] in ('movie', 'collection'):
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
-                        <li class="active">${data['title']}</li>
+                        <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'show':
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
-                        <li class="active">${data['title']}</li>
+                        <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'season':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
-                        <li class="active">Season ${data['media_index']}</li>
+                        <li class="active metadata-xml">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">Season ${data['parent_media_index']}</a></li>
-                        <li class="active">Episode ${data['media_index']} - ${data['title']}</li>
+                        <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
-                        <li class="active">${data['title']}</li>
+                        <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'album':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
-                        <li class="active">${data['title']}</li>
+                        <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'track':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
-                        <li class="active">Track ${data['media_index']} - ${data['title']}</li>
+                        <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
                         % endif
                         </ul>
                     </div>
@@ -703,6 +703,10 @@ DOCUMENTATION :: END
 </script>
 % endif
 <script>
+    $('.metadata-xml').on('tripleclick', function () {
+        openPlexXML("/library/metadata/${data['rating_key']}");
+    });
+
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });

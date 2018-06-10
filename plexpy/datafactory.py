@@ -65,7 +65,7 @@ class DataFactory(object):
         columns = [
             'session_history.reference_id',
             'session_history.id',
-            'started AS date',
+            'MAX(started) AS date',
             'MIN(started) AS started',
             'MAX(stopped) AS stopped',
             'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
@@ -1467,7 +1467,7 @@ class DataFactory(object):
                 result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
                                            args=[item['parent_rating_key']])
                 for item in result:
-                    key = item['media_index']
+                    key = item['media_index'] if item['media_index'] else item['title']
                     children.update({key: {'rating_key': item['rating_key']}})
 
                 key = item['parent_media_index'] if match_type == 'index' else item['parent_title']
