@@ -4129,7 +4129,7 @@ a[data-tab-destination] {
     font-size: 15px;
     height: 28px;
     line-height: 28px;
-    min-width: 210px;
+    min-width: 200px;
     transition: box-shadow 0.3s ease;
     padding: 0 15px;
     background: rgba(114, 137, 218, 0.4);
