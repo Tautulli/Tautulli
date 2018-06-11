@@ -113,6 +113,10 @@ div.form-control .selectize-input {
 .wizard-input-section .selectize-dropdown.form-control.selectize-pms-ip {
     margin-top: 0 !important;
 }
+#condition-widget .fa-plus,
+#condition-widget .fa-minus {
+    cursor: pointer;
+}
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #fff !important;
 }
@@ -2957,10 +2961,13 @@ a .home-platforms-list-cover-face:hover
     background: #282828;
     list-style: none;
 }
-.accordion .link {
+.accordion li {
+    margin: 0;
+}
+.accordion li .link {
     cursor: pointer;
     display: block;
-    padding: 8px 20px 8px 30px;
+    padding: 8px 12px 8px 12px;
     color: #999;
     border-bottom: 1px solid #2d2d2d;
     position: relative;
@@ -2968,37 +2975,28 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li {
-    margin: 0;
+.accordion li .link:hover {
+    color: #fff;
+    background: #2f2f2f;
+}
+.accordion li .link span.toggle-right {
+    float: right;
+    padding-left: 10px;
 }
 .accordion li:last-child .link {
     border-bottom: 0;
 }
-.accordion li i.fa {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+.accordion li .fa-chevron-down {
     color: #999;
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li i.fa-chevron-down {
-    right: 12px;
-    left: auto;
-    font-size: 16px;
-}
-.accordion li .link:hover {
-    color: #FFF;
-    background: #2f2f2f;
-}
 .accordion li.open .link {
     color: #f9be03;
 }
-.accordion li.open i {
+.accordion li.open .fa-chevron-down {
     color: #f9be03;
-}
-.accordion li.open i.fa-chevron-down {
     -webkit-transform: rotate(180deg);
     -ms-transform: rotate(180deg);
     -o-transform: rotate(180deg);
