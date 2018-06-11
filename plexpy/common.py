@@ -403,7 +403,7 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Source Metadata Details',
         'parameters': [
-             {'name': 'Media Type', 'type': 'str', 'value': 'media_type', 'description': 'The type of media.', 'example': 'movie, show, season, episode, artist, album, track'},
+             {'name': 'Media Type', 'type': 'str', 'value': 'media_type', 'description': 'The type of media.', 'example': 'movie, show, season, episode, artist, album, track, clip'},
              {'name': 'Title', 'type': 'str', 'value': 'title', 'description': 'The full title of the item.'},
              {'name': 'Library Name', 'type': 'str', 'value': 'library_name', 'description': 'The library name of the item.'},
              {'name': 'Show Name', 'type': 'str', 'value': 'show_name', 'description': 'The title of the TV series.'},
