@@ -1603,10 +1603,8 @@ a:hover .dashboard-recent-media-cover {
     margin: 0;
     background: none;
 }
-.summary-navbar-list .breadcrumb > li + li:before {
+.summary-navbar-list .breadcrumb > .breadcrumb-arrow {
     color: #444;
-    font-family: FontAwesome;
-    content: "\f054";
     padding: 0 15px;
 }
 .summary-navbar-list .breadcrumb > .active {
@@ -3153,34 +3151,6 @@ div.dataTables_info {
     -webkit-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
-}
-.settings-alert {
-    float: left;
-    padding: 0;
-    margin: 5px 0;
-    border: 0;
-    position: relative;
-}
-.settings-alert ul {
-    padding: 0;
-}
-.settings-alert ul li {
-    list-style: none;
-    padding: 5px 12px 5px 35px;
-    margin: 0;
-    border: 1px solid #ebccd1;
-    border-radius: 4px;
-}
-.settings-alert ul li:before {
-    content: "\f071";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: inherit;
-    font-size: 18px;
-    position: absolute;
-    top: 5px;
-    left: 12px;
 }
 #users-to-delete > li,
 #users-to-purge > li,
