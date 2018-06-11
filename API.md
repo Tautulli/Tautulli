@@ -2624,15 +2624,15 @@ Returns:
 
 
 ### terminate_session
-Add a new notification agent.
+Stop a streaming session.
 
 ```
 Required parameters:
-    session_id (str):           The id of the session to terminate
-    message (str):              A custom message to send to the client
+    session_key (int):          The session key of the session to terminate, OR
+    session_id (str):           The session id of the session to terminate
 
 Optional parameters:
-    None
+    message (str):              A custom message to send to the client
 
 Returns:
     None

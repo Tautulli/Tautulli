@@ -883,6 +883,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'subtitle_language': notify_params['subtitle_language'],
         'subtitle_language_code': notify_params['subtitle_language_code'],
         'file': notify_params['file'],
+        'filename': os.path.basename(notify_params['file']),
         'file_size': helpers.humanFileSize(notify_params['file_size']),
         'indexes': notify_params['indexes'],
         'section_id': notify_params['section_id'],

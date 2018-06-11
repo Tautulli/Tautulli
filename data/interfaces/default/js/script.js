@@ -458,3 +458,10 @@ function capitalizeFirstLetter(string) {
 $.fn.slideToggleBool = function(bool, options) {
   return bool ? $(this).slideDown(options) : $(this).slideUp(options);
 };
+
+function openPlexXML(endpoint, plextv, params) {
+    var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
+    $.getJSON('return_plex_xml_url', data, function(xml_url) {
+       window.open(xml_url, '_blank');
+    });
+}

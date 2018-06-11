@@ -115,9 +115,9 @@
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Successive Play History
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
                             </label>
-                            <p class="help-block">Group successive play history by the same user as a single entry in the watch statistics, tables, and graphs.</p>
+                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
@@ -658,7 +658,7 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
+                            <h3 id="resources-xml">Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
                         </div>
 
                         <div class="form-group has-feedback" id="pms_ip_group">
@@ -1775,9 +1775,6 @@
                 } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
                     $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
                 }
-                if ("${kwargs.get('support')}" == 'true') {
-                    $('.support-modal-link').removeClass('no-highlight').css('color','#e9a049');
-                }
             }
         });
     }
@@ -2370,7 +2367,7 @@ $(document).ready(function() {
             data: { pref: 'PublishServerOnPlexOnlineKey' },
             async: true,
             success: function(data) {
-                if (data !== 'true') {
+                if (data === 'false' || data === '0') {
                     $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
                     $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
                 }
@@ -2764,6 +2761,10 @@ $(document).ready(function() {
             var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
             body_container.animate({scrollTop: scroll_pos});
         }
+    });
+
+    $('#resources-xml').on('tripleclick', function () {
+        openPlexXML('/api/resources', true, {includeHttps: 1});
     });
 });
 </script>

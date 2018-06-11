@@ -18,6 +18,7 @@ import json
 import os
 import shutil
 import threading
+import urllib
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -247,23 +248,23 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def terminate_session(self, session_id=None, message=None, **kwargs):
-        """ Add a new notification agent.
+    def terminate_session(self, session_key=None, session_id=None, message=None, **kwargs):
+        """ Stop a streaming session.
 
             ```
             Required parameters:
-                session_id (str):           The id of the session to terminate
-                message (str):              A custom message to send to the client
+                session_key (int):          The session key of the session to terminate, OR
+                session_id (str):           The session id of the session to terminate
 
             Optional parameters:
-                None
+                message (str):              A custom message to send to the client
 
             Returns:
                 None
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.terminate_session(session_id=session_id, message=message)
+        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
         if result:
             return {'result': 'success', 'message': 'Session terminated.'}
@@ -273,8 +274,21 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def return_sessions_url(self, **kwargs):
-        return plexpy.CONFIG.PMS_URL + '/status/sessions?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+    def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
+        kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
+
+        if plextv:
+            base_url = 'https://plex.tv'
+        else:
+            if plexpy.CONFIG.PMS_URL_OVERRIDE:
+                base_url = plexpy.CONFIG.PMS_URL_OVERRIDE
+            else:
+                base_url = plexpy.CONFIG.PMS_URL
+
+        if '{machine_id}' in endpoint:
+            endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
+
+        return base_url + endpoint + '?' + urllib.urlencode(kwargs)
 
     @cherrypy.expose
     @requireAuth()
@@ -5832,3 +5846,8 @@ class WebInterface(object):
 
         logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
+
+    @cherrypy.expose
+    @requireAuth()
+    def support(self, query='', **kwargs):
+        return serve_template(templatename="support.html", title="Support")
