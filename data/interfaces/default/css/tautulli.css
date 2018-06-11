@@ -4152,3 +4152,6 @@ a[data-tab-destination] {
     display: block;
     border: 0;
 }
+.fa-blank {
+    visibility: hidden;
+}
