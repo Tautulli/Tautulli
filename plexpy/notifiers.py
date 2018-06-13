@@ -62,7 +62,6 @@ import mobile_app
 import pmsconnect
 import request
 import users
-from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
 BROWSER_NOTIFIERS = {}
@@ -420,7 +419,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     db = database.MonitorDatabase()
     result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
                        % (', '.join(notify_actions), where), args=args)
-    
+
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
@@ -612,17 +611,9 @@ def blacklist_logger():
     db = database.MonitorDatabase()
     notifiers = db.select('SELECT notifier_config FROM notifiers')
 
-    blacklist = set()
-    blacklist_keys = ['hook', 'key', 'password', 'token']
-
     for n in notifiers:
         config = json.loads(n['notifier_config'] or '{}')
-        for key, value in config.iteritems():
-            if isinstance(value, basestring) and len(value.strip()) > 5 and \
-                key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or any(bk in key.upper() for bk in _BLACKLIST_KEYS)):
-                blacklist.add(value.strip())
-
-    logger._BLACKLIST_WORDS.update(blacklist)
+        logger.blacklist_config(config)
 
 
 class PrettyMetadata(object):
@@ -682,13 +673,13 @@ class PrettyMetadata(object):
             provider_name = 'Trakt.tv'
         elif provider == 'lastfm':
             provider_name = 'Last.fm'
-        else:
-            if self.media_type == 'movie':
-                provider_name = 'IMDb'
-            elif self.media_type in ('show', 'season', 'episode'):
-                provider_name = 'TheTVDB'
-            elif self.media_type in ('artist', 'album', 'track'):
-                provider_name = 'Last.fm'
+        # else:
+        #     if self.media_type == 'movie':
+        #         provider_name = 'IMDb'
+        #     elif self.media_type in ('show', 'season', 'episode'):
+        #         provider_name = 'TheTVDB'
+        #     elif self.media_type in ('artist', 'album', 'track'):
+        #         provider_name = 'Last.fm'
         return provider_name
 
     def get_provider_link(self, provider=None):
@@ -697,13 +688,13 @@ class PrettyMetadata(object):
             provider_link = self.get_plex_url()
         elif provider:
             provider_link = self.parameters.get(provider + '_url', '')
-        else:
-            if self.media_type == 'movie':
-                provider_link = self.parameters.get('imdb_url', '')
-            elif self.media_type in ('show', 'season', 'episode'):
-                provider_link = self.parameters.get('thetvdb_url', '')
-            elif self.media_type in ('artist', 'album', 'track'):
-                provider_link = self.parameters.get('lastfm_url', '')
+        # else:
+        #     if self.media_type == 'movie':
+        #         provider_link = self.parameters.get('imdb_url', '')
+        #     elif self.media_type in ('show', 'season', 'episode'):
+        #         provider_link = self.parameters.get('thetvdb_url', '')
+        #     elif self.media_type in ('artist', 'album', 'track'):
+        #         provider_link = self.parameters.get('lastfm_url', '')
         return provider_link
 
     def get_caption(self, provider):
@@ -711,6 +702,7 @@ class PrettyMetadata(object):
         return 'View on ' + provider_name
 
     def get_title(self, divider='-'):
+        title = ''
         if self.media_type == 'movie':
             title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
@@ -728,7 +720,7 @@ class PrettyMetadata(object):
         elif self.media_type == 'album':
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
         elif self.media_type == 'track':
-            title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
+            title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
         return title.encode("utf-8")
 
     def get_description(self):
@@ -1145,7 +1137,8 @@ class DISCORD(Notifier):
             plex_url = pretty_metadata.get_plex_url()
 
             # Build Discord post attachment
-            attachment = {'title': title
+            attachment = {'title': title,
+                          'timestamp': helpers.utc_now_iso()
                           }
 
             if self.config['color']:
@@ -1250,7 +1243,7 @@ class DISCORD(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -1258,7 +1251,7 @@ class DISCORD(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'discord_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -1266,7 +1259,7 @@ class DISCORD(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'discord_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -1318,10 +1311,11 @@ class EMAIL(Notifier):
 
         recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
+        mailserver = None
         success = False
-        mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
 
         try:
+            mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
             mailserver.ehlo()
 
             if self.config['tls']:
@@ -1332,14 +1326,15 @@ class EMAIL(Notifier):
                 mailserver.login(str(self.config['smtp_user']), str(self.config['smtp_password']))
 
             mailserver.sendmail(self.config['from'], recipients, msg.as_string())
+            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             success = True
 
         except Exception as e:
             logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
 
         finally:
-            mailserver.quit()
-            logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
+            if mailserver:
+                mailserver.quit()
 
         return success
 
@@ -1597,7 +1592,7 @@ class FACEBOOK(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'facebook_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -1605,7 +1600,7 @@ class FACEBOOK(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -1613,7 +1608,7 @@ class FACEBOOK(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'facebook_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -1933,7 +1928,7 @@ class HIPCHAT(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'hipchat_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -1941,7 +1936,7 @@ class HIPCHAT(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'hipchat_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -1949,7 +1944,7 @@ class HIPCHAT(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'hipchat_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -2141,7 +2136,7 @@ class JOIN(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'join_movie_provider',
-                          'description': 'Select the source for movie links in the notificaation. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -2149,7 +2144,7 @@ class JOIN(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'join_tv_provider',
-                          'description': 'Select the source for tv show links in the notificaation. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -2157,7 +2152,7 @@ class JOIN(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'join_music_provider',
-                          'description': 'Select the source for music links in the notificaation. Leave blank for default.',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -2447,7 +2442,8 @@ class PLEX(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        params = params or {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
@@ -2925,7 +2921,7 @@ class PUSHOVER(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'pushover_movie_provider',
-                          'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -2933,7 +2929,7 @@ class PUSHOVER(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'pushover_tv_provider',
-                          'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -2941,7 +2937,7 @@ class PUSHOVER(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'pushover_music_provider',
-                          'description': 'Select the source for music links in the notification. Leave blank for default.',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -3300,7 +3296,7 @@ class SLACK(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'slack_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -3308,7 +3304,7 @@ class SLACK(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'slack_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -3316,7 +3312,7 @@ class SLACK(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'slack_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
@@ -3550,7 +3546,8 @@ class XBMC(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        params = params or {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
@@ -3711,7 +3708,7 @@ class ZAPIER(Notifier):
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'zapier_movie_provider',
-                          'description': 'Select the source for movie links in the notification. Leave blank for default.<br>'
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
@@ -3719,7 +3716,7 @@ class ZAPIER(Notifier):
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'zapier_tv_provider',
-                          'description': 'Select the source for tv show links in the notification. Leave blank for default.<br>'
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
                                          'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
@@ -3727,7 +3724,7 @@ class ZAPIER(Notifier):
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'zapier_music_provider',
-                          'description': 'Select the source for music links in the notification. Leave blank for default.',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }

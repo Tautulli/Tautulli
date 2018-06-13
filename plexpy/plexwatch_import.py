@@ -45,6 +45,7 @@ def extract_plexwatch_xml(xml=None):
         duration = helpers.get_xml_attr(a, 'duration')
         grandparent_thumb = helpers.get_xml_attr(a, 'grandparentThumb')
         grandparent_title = helpers.get_xml_attr(a, 'grandparentTitle')
+        original_title = helpers.get_xml_attr(a, 'originalTitle')
         guid = helpers.get_xml_attr(a, 'guid')
         section_id = helpers.get_xml_attr(a, 'librarySectionID')
         media_index = helpers.get_xml_attr(a, 'index')
@@ -172,9 +173,10 @@ def extract_plexwatch_xml(xml=None):
                   'art': art,
                   'duration': duration,
                   'grandparent_thumb': grandparent_thumb,
-                  'grandparent_title': grandparent_title,
-                  'parent_title': parent_title,
                   'title': title,
+                  'parent_title': parent_title,
+                  'grandparent_title': grandparent_title,
+                  'original_title': original_title,
                   'tagline': tagline,
                   'guid': guid,
                   'section_id': section_id,
@@ -332,6 +334,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'title': row['title'],
                            'parent_title': extracted_xml['parent_title'],
                            'grandparent_title': row['grandparent_title'],
+                           'original_title': extracted_xml['original_title'],
                            'full_title': row['full_title'],
                            'user_id': user_id,
                            'user': row['user'],
@@ -373,6 +376,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'title': row['title'],
                                     'parent_title': extracted_xml['parent_title'],
                                     'grandparent_title': row['grandparent_title'],
+                                    'original_title': extracted_xml['original_title'],
                                     'media_index': extracted_xml['media_index'],
                                     'parent_media_index': extracted_xml['parent_media_index'],
                                     'thumb': extracted_xml['thumb'],

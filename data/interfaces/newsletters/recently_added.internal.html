@@ -595,7 +595,7 @@
                                                     <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + movie['art_hash']) if base_url_image else movie['art_url']});">
                                                         <tr>
                                                             <td class="card-poster-container">
-                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['poster_url']})">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['thumb_url']})">
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
@@ -724,7 +724,7 @@
                                                     <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});">
                                                         <tr>
                                                             <td class="card-poster-container">
-                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['poster_url']})">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['thumb_url']})">
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">
@@ -867,7 +867,7 @@
                                                     <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + album['art_hash']) if base_url_image else album['art_url']});">
                                                         <tr>
                                                             <td class="card-poster-container">
-                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['poster_url']})">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['thumb_url']})">
                                                                     <tr>
                                                                         <td>
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
@@ -889,7 +889,7 @@
                                                                             <p class="nowrap mb5">
                                                                                 <em>${album['parent_title']} &middot; ${album['track_count']} track${'s' if album['track_count'] > 1 else ''}</em>
                                                                             </p>
-                                                                            % if artist['title'].lower() != 'various artists':
+                                                                            % if album['parent_title'].lower() != 'various artists':
                                                                             <p>
                                                                                 ${album['summary'][:200] + (album['summary'][200:] and '...')}
                                                                             </p>

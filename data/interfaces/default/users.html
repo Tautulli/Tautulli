@@ -10,7 +10,7 @@
 <div class='container-fluid'>
     <div class='table-card-header'>
         <div class="header-bar">
-            <span><i class="fa fa-group"></i> All Users</span>
+            <span id="users-xml"><i class="fa fa-group"></i> All Users</span>
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
@@ -202,5 +202,9 @@
         });
     });
     % endif
+
+    $('#users-xml').on('tripleclick', function () {
+        openPlexXML('/api/users', true);
+    });
 </script>
 </%def>

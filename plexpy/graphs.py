@@ -50,7 +50,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM (SELECT * FROM session_history GROUP BY %s) AS session_history ' \
+                        'FROM (SELECT * FROM session_history ' \
+                        'GROUP BY date(started, "unixepoch", "localtime"), %s) ' \
+                        'AS session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % (group_by, time_range, user_cond)
@@ -147,7 +149,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM (SELECT * FROM session_history GROUP BY %s) AS session_history ' \
+                        'FROM (SELECT * FROM session_history ' \
+                        'GROUP BY strftime("%%w", datetime(started, "unixepoch", "localtime")), %s) ' \
+                        'AS session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY dayofweek ' \
                         'ORDER BY daynumber' % (group_by, time_range, user_cond)
@@ -245,7 +249,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM (SELECT * FROM session_history GROUP BY %s) AS session_history ' \
+                        'FROM (SELECT * FROM session_history ' \
+                        'GROUP BY strftime("%%H", datetime(started, "unixepoch", "localtime")) , %s) ' \
+                        'AS session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") %s' \
                         'GROUP BY hourofday ' \
                         'ORDER BY hourofday' % (group_by, time_range, user_cond)
@@ -335,7 +341,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
-                        'FROM (SELECT * FROM session_history GROUP BY %s) AS session_history ' \
+                        'FROM (SELECT * FROM session_history ' \
+                        'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")), %s) ' \
+                        'AS session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
                         'ORDER BY datestring DESC LIMIT %s' % (group_by, time_range, user_cond, time_range)
@@ -591,7 +599,9 @@ class Graphs(object):
                         'THEN 1 ELSE 0 END) AS ds_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "transcode" ' \
                         'THEN 1 ELSE 0 END) AS tc_count ' \
-                        'FROM (SELECT * FROM session_history GROUP BY %s) AS session_history ' \
+                        'FROM (SELECT * FROM session_history ' \
+                        'GROUP BY date(session_history.started, "unixepoch", "localtime"), %s) ' \
+                        'AS session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE (datetime(started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \

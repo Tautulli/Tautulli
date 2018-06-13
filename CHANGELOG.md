@@ -1,5 +1,43 @@
 # Changelog
 
+## v2.1.12 (2018-06-08)
+
+* Notifications:
+  * Change: Blank notification link source means disabled instead of default.
+* Newsletters:
+  * New: Make collection tags available in the raw newsletter data for custom templates.
+* API:
+  * New: Ability to terminate a stream using the session key.
+
+
+## v2.1.11-beta (2018-06-02)
+
+* Monitoring:
+  * Fix: Activity progress bar not updating in some cases.
+  * Fix: Monitory Remote Access setting disabled due to Plex Media Server API changes.
+  * Change: Improved logic for grouping history items without being successive plays.
+* Notifications:
+  * New: Added filename to notification parameters.
+* Other:
+  * Fix: Update metadata failing for tracks without track numbers.
+
+
+## v2.1.10-beta (2018-05-28)
+
+* Monitoring:
+  * Fix: Improved monitoring of live tv sessions.
+  * Change: Use track artist instead of album artist.
+* Notifications:
+  * New: Added timestamp to Discord notification embeds. (Thanks @samwiseg00)
+  * New: Enable notifications for "clip" media types.
+  * Fix: Actually add the "live" notification parameter.
+  * Change: Update Twitter for 280 characters.
+  * Change: Use HTTPS url for Cloudinary images.
+* Newsletters:
+  * Fix: Artist summaries not showing up on newsletter cards.
+  * Change: Do not send the newsletter if the template fails to render.
+
+
 ## v2.1.9 (2018-05-21)
 
 * Notifications:

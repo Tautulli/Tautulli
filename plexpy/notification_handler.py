@@ -169,7 +169,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
             return stream_data['machine_id'] not in user_devices
 
-        elif stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
+        elif stream_data['media_type'] in ('movie', 'episode', 'clip'):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
             
             if notify_action == 'on_stop':
@@ -326,7 +326,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
-    logger.info(u"Tautulli NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
+    logger.info(u"Tautulli NotificationHandler :: Preparing notification for notifier_id %s." % notifier_id)
 
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
@@ -633,6 +633,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                                     notify_params['parent_title'])
     else:
         poster_thumb = ''
+        poster_key = ''
+        poster_title = ''
 
     img_service = helpers.get_img_service(include_self=True)
     if img_service not in (None, 'self-hosted'):
@@ -742,6 +744,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version': notify_params['optimized_version'],
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
+        'live': notify_params['live'],
         'stream_local': notify_params['local'],
         'stream_location': notify_params['location'],
         'stream_bandwidth': notify_params['bandwidth'],
@@ -802,6 +805,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'artist_name': artist_name,
         'album_name': album_name,
         'track_name': track_name,
+        'track_artist': notify_params['original_title'] or notify_params['grandparent_title'],
         'season_num': season_num,
         'season_num00': season_num00,
         'episode_num': episode_num,
@@ -879,6 +883,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'subtitle_language': notify_params['subtitle_language'],
         'subtitle_language_code': notify_params['subtitle_language_code'],
         'file': notify_params['file'],
+        'filename': os.path.basename(notify_params['file']),
         'file_size': helpers.humanFileSize(notify_params['file_size']),
         'indexes': notify_params['indexes'],
         'section_id': notify_params['section_id'],

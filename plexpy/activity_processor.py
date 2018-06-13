@@ -15,18 +15,13 @@
 
 from collections import defaultdict
 import json
-import threading
 import time
-import re
 
 import plexpy
 import database
-import datafactory
+import helpers
 import libraries
-import log_reader
 import logger
-import notification_handler
-import notifiers
 import pmsconnect
 import users
 
@@ -39,6 +34,7 @@ class ActivityProcessor(object):
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session.get('session_key', ''),
+                      'session_id': session.get('session_id', ''),
                       'transcode_key': session.get('transcode_key', ''),
                       'section_id': session.get('section_id', ''),
                       'rating_key': session.get('rating_key', ''),
@@ -50,6 +46,7 @@ class ActivityProcessor(object):
                       'title': session.get('title', ''),
                       'parent_title': session.get('parent_title', ''),
                       'grandparent_title': session.get('grandparent_title', ''),
+                      'original_title': session.get('original_title', ''),
                       'full_title': session.get('full_title', ''),
                       'media_index': session.get('media_index', ''),
                       'parent_media_index': session.get('parent_media_index', ''),
@@ -60,6 +57,7 @@ class ActivityProcessor(object):
                       'friendly_name': session.get('friendly_name', ''),
                       'ip_address': session.get('ip_address', ''),
                       'player': session.get('player', ''),
+                      'product': session.get('product', ''),
                       'platform': session.get('platform', ''),
                       'parent_rating_key': session.get('parent_rating_key', ''),
                       'grandparent_rating_key': session.get('grandparent_rating_key', ''),
@@ -114,7 +112,9 @@ class ActivityProcessor(object):
                       'stream_audio_channels': session.get('stream_audio_channels', ''),
                       'stream_subtitle_decision': session.get('stream_subtitle_decision', ''),
                       'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
-                      'subtitles': session.get('subtitles', ''),
+                      'subtitles': session.get('subtitles', 0),
+                      'live': session.get('live', 0),
+                      'live_uuid': session.get('live_uuid', ''),
                       'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }
@@ -268,14 +268,15 @@ class ActivityProcessor(object):
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
-                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history \
-                         WHERE user_id = ? ORDER BY id DESC LIMIT 2 '
+                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history ' \
+                        'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
 
-                args = [session['user_id']]
+                args = [session['user_id'], session['rating_key']]
 
                 result = self.db.select(query=query, args=args)
 
                 new_session = prev_session = None
+                prev_progress_percent = media_watched_percent = 0
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
 
@@ -292,11 +293,23 @@ class ActivityProcessor(object):
                                     'user_id': result[1]['user_id'],
                                     'reference_id': result[1]['reference_id']}
 
+                    watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                       'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                       'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+                                       }
+                    prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
+                    media_watched_percent = watched_percent.get(session['media_type'], 0)
+
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
-                # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
+
+                # If previous session view offset less than watched percent,
+                # and new session view offset is greater,
+                # then set the reference_id to the previous row,
+                # else set the reference_id to the new id
                 if prev_session is None and new_session is None:
                     args = [last_id, last_id]
-                elif prev_session['rating_key'] == new_session['rating_key'] and prev_session['view_offset'] <= new_session['view_offset']:
+                elif prev_progress_percent < media_watched_percent and \
+                        prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
                     args = [new_session['id'], new_session['id']]
@@ -396,6 +409,7 @@ class ActivityProcessor(object):
                           'title': session['title'],
                           'parent_title': session['parent_title'],
                           'grandparent_title': session['grandparent_title'],
+                          'original_title': session['original_title'],
                           'full_title': session['full_title'],
                           'media_index': metadata['media_index'],
                           'parent_media_index': metadata['parent_media_index'],
@@ -448,6 +462,16 @@ class ActivityProcessor(object):
             session = self.db.select_single('SELECT * FROM sessions '
                                             'WHERE session_key = ? ',
                                             args=[session_key])
+            if session:
+                return session
+
+        return None
+
+    def get_session_by_id(self, session_id=None):
+        if session_id:
+            session = self.db.select_single('SELECT * FROM sessions '
+                                            'WHERE session_id = ? ',
+                                            args=[session_id])
             if session:
                 return session
 

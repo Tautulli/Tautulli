@@ -23,6 +23,7 @@ PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
 PLATFORM_LINUX_DISTRO = ' '.join(x for x in platform.linux_distribution() if x)
+PLATFORM_DEVICE_NAME = platform.node()
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
 
@@ -403,6 +404,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Artist Name', 'type': 'str', 'value': 'artist_name', 'description': 'The name of the artist.'},
              {'name': 'Album Name', 'type': 'str', 'value': 'album_name', 'description': 'The title of the album.'},
              {'name': 'Track Name', 'type': 'str', 'value': 'track_name', 'description': 'The title of the track.'},
+             {'name': 'Track Artist', 'type': 'str', 'value': 'track_artist', 'description': 'The name of the artist of the track.'},
              {'name': 'Season Number', 'type': 'int', 'value': 'season_num', 'description': 'The season number.', 'example': 'e.g. 1, or 1-3'},
              {'name': 'Season Number 00', 'type': 'int', 'value': 'season_num00', 'description': 'The two digit season number.', 'example': 'e.g. 01, or 01-03'},
              {'name': 'Episode Number', 'type': 'int', 'value': 'episode_num', 'description': 'The episode number.', 'example': 'e.g. 6, or 6-10'},
@@ -474,6 +476,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Subtitle Language', 'type': 'str', 'value': 'subtitle_language', 'description': 'The subtitle language of the original media.'},
              {'name': 'Subtitle Language Code', 'type': 'str', 'value': 'subtitle_language_code', 'description': 'The subtitle language code of the original media.'},
              {'name': 'File', 'type': 'str', 'value': 'file', 'description': 'The file path to the item.'},
+             {'name': 'Filename', 'type': 'str', 'value': 'filename', 'description': 'The file name of the item.'},
              {'name': 'File Size', 'type': 'int', 'value': 'file_size', 'description': 'The file size of the item.'},
              {'name': 'Section ID', 'type': 'int', 'value': 'section_id', 'description': 'The unique identifier for the library.'},
              {'name': 'Rating Key', 'type': 'int', 'value': 'rating_key', 'description': 'The unique identifier for the movie, episode, or track.'},

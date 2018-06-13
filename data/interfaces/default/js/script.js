@@ -1,4 +1,6 @@
-function initConfigCheckbox(elem, toggleElem = null, reverse = false) {
+function initConfigCheckbox(elem, toggleElem, reverse) {
+    toggleElem = (toggleElem === undefined) ? null : toggleElem;
+    reverse = (reverse === undefined) ? false : reverse;
     var config = toggleElem ? $(toggleElem) : $(elem).closest('div').next();
     config.css('overflow', 'hidden');
     if ($(elem).is(":checked")) {
@@ -36,7 +38,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
         message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
-        feedback.css("padding", "14px 10px")
+        feedback.css("padding", "14px 10px");
     }
     if (error) {
         feedback.css("background-color", "rgba(255,0,0,0.5)");
@@ -59,7 +61,7 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
     $('#confirm-modal').modal();
     $('#confirm-modal').one('click', '#confirm-button', function () {
         if (loader_msg) {
-            showMsg(loader_msg, true, false)
+            showMsg(loader_msg, true, false);
         }
         $.ajax({
             url: url,
@@ -71,9 +73,9 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 if (result.result == 'success') {
-                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                 } else {
-                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
                 }
                 if (typeof callback === "function") {
                     callback(result);
@@ -85,8 +87,8 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
 
 function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     // Set Message
-    feedback = (showMsg) ? $("#ajaxMsg") : $();
-    update = $("#updatebar");
+    var feedback = (showMsg) ? $("#ajaxMsg") : $();
+    var update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
         feedback.css("bottom", height + "px");
@@ -96,8 +98,9 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     feedback.fadeIn();
     // Get Form data
     var formID = "#" + url;
-    if (form == true) {
-        var dataString = $(formID).serialize();
+    var dataString;
+    if (form === true) {
+        dataString = $(formID).serialize();
     }
     // Loader Image
     var loader = $("<i class='fa fa-refresh fa-spin'></i>");
@@ -105,13 +108,13 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     var dataSucces = $(elem).data('success');
     if (typeof dataSucces === "undefined") {
         // Standard Message when variable is not set
-        var dataSucces = "Success!";
+        dataSucces = "Success!";
     }
     // Data Errror Message
     var dataError = $(elem).data('error');
     if (typeof dataError === "undefined") {
         // Standard Message when variable is not set
-        var dataError = "There was an error";
+        dataError = "There was an error";
     }
     // Get Success & Error message from inline data, else use standard message
     var succesMsg = $("<div class='msg'><i class='fa fa-check'></i> " + dataSucces + "</div>");
@@ -120,7 +123,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     if (form) {
         if ($('td#select input[type=checkbox]').length > 0 && !$('td#select input[type=checkbox]').is(':checked') ||
             $('#importLastFM #username:visible').length > 0 && $("#importLastFM #username").val().length === 0) {
-            feedback.addClass('error')
+            feedback.addClass('error');
             $(feedback).prepend(errorMsg);
             setTimeout(function () {
                 errorMsg.fadeOut(function () {
@@ -128,7 +131,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
                     feedback.fadeOut(function () {
                         feedback.removeClass('error');
                     });
-                })
+                });
                 $(formID + " select").children('option[disabled=disabled]').attr('selected', 'selected');
             }, 2000);
             return false;
@@ -144,33 +147,33 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
             feedback.prepend(loader);
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            feedback.addClass('error')
+            feedback.addClass('error');
             feedback.prepend(errorMsg);
             setTimeout(function () {
                 errorMsg.fadeOut(function () {
                     $(this).remove();
                     feedback.fadeOut(function () {
-                        feedback.removeClass('error')
+                        feedback.removeClass('error');
                     });
-                })
+                });
             }, 2000);
         },
         success: function (data, jqXHR) {
             feedback.prepend(succesMsg);
-            feedback.addClass('success')
+            feedback.addClass('success');
             setTimeout(function (e) {
                 succesMsg.fadeOut(function () {
                     $(this).remove();
                     feedback.fadeOut(function () {
                         feedback.removeClass('success');
                     });
-                    if (reload == true) refreshSubmenu();
-                    if (reload == "table") {
+                    if (reload === true) refreshSubmenu();
+                    if (reload === "table") {
                         refreshTable();
                     }
-                    if (reload == "tabs") refreshTab();
-                    if (reload == "page") location.reload();
-                    if (reload == "submenu&table") {
+                    if (reload === "tabs") refreshTab();
+                    if (reload === "page") location.reload();
+                    if (reload === "submenu&table") {
                         refreshSubmenu();
                         refreshTable();
                     }
@@ -179,7 +182,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
                         $(formID + " select").children('option[disabled=disabled]').attr(
                             'selected', 'selected');
                     }
-                })
+                });
             }, 2000);
         },
         complete: function (jqXHR, textStatus) {
@@ -215,19 +218,20 @@ function isPrivateIP(ip_address) {
 
     $.cachedScript('js/ipaddr.min.js').done(function () {
         if (ipaddr.isValid(ip_address)) {
-            var addr = ipaddr.process(ip_address)
+            var addr = ipaddr.process(ip_address);
 
+            var rangeList = [];
             if (addr.kind() === 'ipv4') {
-                var rangeList = [
+                rangeList = [
                     ipaddr.parseCIDR('127.0.0.0/8'),
                     ipaddr.parseCIDR('10.0.0.0/8'),
                     ipaddr.parseCIDR('172.16.0.0/12'),
                     ipaddr.parseCIDR('192.168.0.0/16')
-                ]
+                ];
             } else {
-                var rangeList = [
+                rangeList = [
                     ipaddr.parseCIDR('fd00::/8')
-                ]
+                ];
             }
 
             if (ipaddr.subnetMatch(addr, rangeList, -1) >= 0) {
@@ -238,12 +242,13 @@ function isPrivateIP(ip_address) {
         } else {
             defer.resolve('n/a');
         }
-    })
+    });
 
     return defer.promise();
 }
 
 function humanTime(seconds) {
+    var text;
     if (seconds >= 86400) {
         text = '<h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) + '</h3><p> days</p>' + '<h3>' +
             Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + '</h3><p> hrs</p>' + '<h3>' +
@@ -265,6 +270,7 @@ function humanTime(seconds) {
 }
 
 function humanTimeClean(seconds) {
+    var text;
     if (seconds >= 86400) {
         text = Math.floor(moment.duration(seconds, 'seconds').asDays()) + ' days ' + Math.floor(moment.duration((
             seconds % 86400), 'seconds').asHours()) + ' hrs ' + Math.floor(moment.duration(
@@ -341,7 +347,7 @@ function getCookie(cname) {
     for (var i = 0; i < ca.length; i++) {
         var c = ca[i];
         while (c.charAt(0) == ' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
     }
     return "";
 }
@@ -354,24 +360,24 @@ var Accordion = function (el, multiple) {
     links.on('click', {
         el: this.el,
         multiple: this.multiple
-    }, this.dropdown)
-}
+    }, this.dropdown);
+};
 Accordion.prototype.dropdown = function (e) {
     var $el = e.data.el;
-    $this = $(this),
-        $next = $this.next();
+    $this = $(this);
+    $next = $this.next();
     $next.slideToggle();
     $this.parent().toggleClass('open');
     if (!e.data.multiple) {
         $el.find('.submenu').not($next).slideUp().parent().removeClass('open');
-    };
-}
+    }
+};
 
 function clearSearchButton(tableName, table) {
     $('#' + tableName + '_filter').find('input[type=search]').wrap(
         '<div class="input-group" role="group" aria-label="Search"></div>').after(
         '<span class="input-group-btn"><button class="btn btn-form" data-toggle="button" aria-pressed="false" autocomplete="off" id="clear-search-' +
-        tableName + '"><i class="fa fa-remove"></i></button></span>')
+        tableName + '"><i class="fa fa-remove"></i></button></span>');
     $('#clear-search-' + tableName).click(function () {
         table.search('').draw();
     });
@@ -401,7 +407,6 @@ $('*').on('click', '.refresh_pms_image', function (e) {
     } else {
         if (pms_proxy_url.indexOf('refresh=true') > -1) {
             pms_proxy_url = pms_proxy_url.replace("&refresh=true", "");
-            console.log(pms_proxy_url)
             background_div.css('background-image', 'url(' + pms_proxy_url + ')');
             background_div.css('background-image', 'url(' + pms_proxy_url + '&refresh=true)');
         } else {
@@ -416,8 +421,7 @@ function humanFileSize(bytes, si) {
     if (Math.abs(bytes) < thresh) {
         return bytes + ' B';
     }
-    var units = si
-        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    var units = si ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
         : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
     var u = -1;
     do {
@@ -436,10 +440,10 @@ function forceMinMax(elem) {
     if (isNaN(val)) {
         elem.val(default_val);
     }
-    else if (min != undefined && val < min) {
+    else if (min !== undefined && val < min) {
         elem.val(min);
     }
-    else if (max != undefined && val > max) {
+    else if (max !== undefined && val > max) {
         elem.val(max);
     }
     else {
@@ -453,4 +457,11 @@ function capitalizeFirstLetter(string) {
 
 $.fn.slideToggleBool = function(bool, options) {
   return bool ? $(this).slideDown(options) : $(this).slideUp(options);
+};
+
+function openPlexXML(endpoint, plextv, params) {
+    var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
+    $.getJSON('return_plex_xml_url', data, function(xml_url) {
+       window.open(xml_url, '_blank');
+    });
 }

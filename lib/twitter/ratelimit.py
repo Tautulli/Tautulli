@@ -97,6 +97,7 @@ class RateLimit(object):
         and a dictionary of limit, remaining, and reset will be returned.
 
         """
+        self.__dict__['resources'] = {}
         self.__dict__.update(kwargs)
 
     @staticmethod
@@ -117,10 +118,12 @@ class RateLimit(object):
         for non_std_endpoint in NON_STANDARD_ENDPOINTS:
             if re.match(non_std_endpoint.regex, resource):
                 return non_std_endpoint.resource
-        else:
-            return resource
+        return resource
 
     def set_unknown_limit(self, url, limit, remaining, reset):
+        return self.set_limit(url, limit, remaining, reset)
+
+    def set_limit(self, url, limit, remaining, reset):
         """ If a resource family is unknown, add it to the object's
         dictionary. This is to deal with new endpoints being added to
         the API, but not necessarily to the information returned by
@@ -146,13 +149,18 @@ class RateLimit(object):
         """
         endpoint = self.url_to_resource(url)
         resource_family = endpoint.split('/')[1]
-        self.__dict__['resources'].update(
-            {resource_family: {
-                endpoint: {
-                    "limit": limit,
-                    "remaining": remaining,
-                    "reset": reset
-                }}})
+        new_endpoint = {endpoint: {
+            "limit": enf_type('limit', int, limit),
+            "remaining": enf_type('remaining', int, remaining),
+            "reset": enf_type('reset', int, reset)
+        }}
+
+        if not self.resources.get(resource_family, None):
+            self.resources[resource_family] = {}
+
+        self.__dict__['resources'][resource_family].update(new_endpoint)
+
+        return self.get_limit(url)
 
     def get_limit(self, url):
         """ Gets a EndpointRateLimit object for the given url.
@@ -177,38 +185,6 @@ class RateLimit(object):
         if not family_rates:
             self.set_unknown_limit(url, limit=15, remaining=15, reset=0)
             return EndpointRateLimit(limit=15, remaining=15, reset=0)
-
-        return EndpointRateLimit(family_rates['limit'],
-                                 family_rates['remaining'],
-                                 family_rates['reset'])
-
-    def set_limit(self, url, limit, remaining, reset):
-        """ Set an endpoint's rate limits. The data used for each of the
-        args should come from Twitter's ``x-rate-limit`` headers.
-
-        Args:
-            url (str):
-                URL of the endpoint being fetched.
-            limit (int):
-                Max number of times a user or app can hit the endpoint
-                before being rate limited.
-            remaining (int):
-                Number of times a user or app can access the endpoint
-                before being rate limited.
-            reset (int):
-                Epoch time at which the rate limit window will reset.
-        """
-        endpoint = self.url_to_resource(url)
-        resource_family = endpoint.split('/')[1]
-
-        try:
-            family_rates = self.resources.get(resource_family).get(endpoint)
-        except AttributeError:
-            self.set_unknown_limit(url, limit, remaining, reset)
-            family_rates = self.resources.get(resource_family).get(endpoint)
-        family_rates['limit'] = enf_type('limit', int, limit)
-        family_rates['remaining'] = enf_type('remaining', int, remaining)
-        family_rates['reset'] = enf_type('reset', int, reset)
 
         return EndpointRateLimit(family_rates['limit'],
                                  family_rates['remaining'],

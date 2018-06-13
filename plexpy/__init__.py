@@ -42,6 +42,7 @@ import datafactory
 import libraries
 import logger
 import mobile_app
+import newsletters
 import newsletter_handler
 import notification_handler
 import notifiers
@@ -202,6 +203,7 @@ def initialize(config_file):
             logger.error(u"Could not perform upgrades: %s" % e)
 
         # Add notifier configs to logger blacklist
+        newsletters.blacklist_logger()
         notifiers.blacklist_logger()
         mobile_app.blacklist_logger()
 
@@ -516,11 +518,12 @@ def dbcheck():
 
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, '
+        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, session_id TEXT, '
         'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
         'ip_address TEXT, machine_id TEXT, player TEXT, product TEXT, platform TEXT, title TEXT, parent_title TEXT, '
-        'grandparent_title TEXT, full_title TEXT, media_index INTEGER, parent_media_index INTEGER, '
+        'grandparent_title TEXT, original_title TEXT, full_title TEXT, '
+        'media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
@@ -540,6 +543,7 @@ def dbcheck():
         'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
+        'live INTEGER, live_uuid TEXT, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
         'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
     )
@@ -580,8 +584,9 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
         'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'title TEXT, parent_title TEXT, grandparent_title TEXT, full_title TEXT, media_index INTEGER, '
-        'parent_media_index INTEGER, section_id INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
+        'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
+        'media_index INTEGER, parent_media_index INTEGER, section_id INTEGER, '
+        'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
         'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
@@ -1064,6 +1069,36 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT live FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN live INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN live_uuid TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT session_id FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN session_id TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT original_title FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN original_title TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1148,6 +1183,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN labels TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT original_title FROM session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN original_title TEXT'
         )
 
     # Upgrade session_history_media_info table from earlier versions
