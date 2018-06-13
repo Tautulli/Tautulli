@@ -2115,21 +2115,18 @@ a:hover .item-children-poster {
 }
 .settings-alert ul li {
     list-style: none;
-    padding: 5px 12px 5px 35px;
+    padding: 5px 12px;
     margin: 0;
     border: 1px solid #ebccd1;
     border-radius: 4px;
 }
 .settings-alert ul li:before {
-    content: "\f071";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: inherit;
-    font-size: 18px;
-    position: absolute;
-    top: 5px;
-    left: 12px;
+    display: none;
+    content: "\f071 ";
+    font-family: "Font Awesome 5 Solid";
+}
+.settings-alert ul li .svg-inline--fa {
+    margin-right: 5px;
 }
 .settings-warning {
     color: #eb8600;
