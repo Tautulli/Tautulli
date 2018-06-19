@@ -23,6 +23,7 @@ import json
 from operator import itemgetter
 import os
 import re
+import shlex
 from string import Formatter
 import threading
 import time
@@ -1027,7 +1028,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in subject.split()]
+            script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in shlex.split(subject)]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
