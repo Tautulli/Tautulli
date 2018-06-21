@@ -758,7 +758,7 @@ class DataFactory(object):
 
                     count = 0
                     last_count = 0
-                    last_start = 0
+                    last_start = ''
                     concurrent = {'title': title,
                                   'count': 0,
                                   'started': None,
