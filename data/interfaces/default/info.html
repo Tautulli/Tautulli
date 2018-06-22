@@ -83,30 +83,43 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled breadcrumb">
                         % if data['media_type'] in ('movie', 'collection'):
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'show':
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'season':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">Season ${data['parent_media_index']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'album':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'track':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
                         % endif
                         </ul>

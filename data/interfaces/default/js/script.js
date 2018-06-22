@@ -37,7 +37,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
-        message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
+        message = $("<div class='msg'><i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
         feedback.css("padding", "14px 10px");
     }
     if (error) {
@@ -103,14 +103,14 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         dataString = $(formID).serialize();
     }
     // Loader Image
-    var loader = $("<i class='fa fa-refresh fa-spin'></i>");
+    var loader = $("<i class='fa fa-refresh fa-spin ajaxLoader-" + url +"></i>");
     // Data Success Message
     var dataSucces = $(elem).data('success');
     if (typeof dataSucces === "undefined") {
         // Standard Message when variable is not set
         dataSucces = "Success!";
     }
-    // Data Errror Message
+    // Data Error Message
     var dataError = $(elem).data('error');
     if (typeof dataError === "undefined") {
         // Standard Message when variable is not set
@@ -187,7 +187,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         },
         complete: function (jqXHR, textStatus) {
             // Remove loaders and stuff, ajax request is complete!
-            loader.remove();
+            feedback.remove('.ajaxLoader-' + url);
             if (typeof callback === "function") {
                 callback(jqXHR);
             }

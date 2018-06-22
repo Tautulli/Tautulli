@@ -590,6 +590,8 @@ class PmsConnect(object):
             metadata_xml = self.get_metadata(str(rating_key), output_format='xml')
         elif sync_id:
             metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
+        else:
+            return metadata
 
         try:
             xml_head = metadata_xml.getElementsByTagName('MediaContainer')
@@ -1051,7 +1053,7 @@ class PmsConnect(object):
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': photo_album_details['banner'],
+                        'banner': photo_album_details.get('banner', ''),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
@@ -1060,10 +1062,10 @@ class PmsConnect(object):
                         'directors': directors,
                         'writers': writers,
                         'actors': actors,
-                        'genres': photo_album_details['genres'],
-                        'labels': photo_album_details['labels'],
-                        'collections': photo_album_details['collections'],
-                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'genres': photo_album_details.get('genres', ''),
+                        'labels': photo_album_details.get('labels', ''),
+                        'collections': photo_album_details.get('collections', ''),
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
                         }
@@ -1160,7 +1162,7 @@ class PmsConnect(object):
                         }
 
         else:
-            return {}
+            return metadata
 
         if metadata and media_info:
             medias = []
@@ -1264,7 +1266,7 @@ class PmsConnect(object):
 
             return metadata
         else:
-            return {}
+            return metadata
 
     def get_metadata_children_details(self, rating_key='', get_children=False):
         """

@@ -701,6 +701,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = 1
         grandchild_count = 1
 
+    now = arrow.now()
+    now_iso = now.isocalendar()
+
     available_params = {
         # Global paramaters
         'tautulli_version': common.RELEASE,
@@ -715,9 +718,17 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'server_platform': plexpy.CONFIG.PMS_PLATFORM,
         'server_version': plexpy.CONFIG.PMS_VERSION,
         'action': notify_action.split('on_')[-1],
-        'week_number': arrow.now().isocalendar()[1],
-        'datestamp': arrow.now().format(date_format),
-        'timestamp': arrow.now().format(time_format),
+        'current_year': now.year,
+        'current_month': now.month,
+        'current_day': now.day,
+        'current_hour': now.hour,
+        'current_minute': now.minute,
+        'current_second': now.second,
+        'current_weekday': now_iso[2],
+        'current_week': now_iso[1],
+        'week_number': now_iso[1],  # Keep for backwards compatibility
+        'datestamp': now.format(date_format),
+        'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
         # Stream parameters
         'streams': stream_count,
@@ -909,6 +920,9 @@ def build_server_notify_params(notify_action=None, **kwargs):
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
 
+    now = arrow.now()
+    now_iso = now.isocalendar()
+
     available_params = {
         # Global paramaters
         'tautulli_version': common.RELEASE,
@@ -923,8 +937,17 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'server_version': plexpy.CONFIG.PMS_VERSION,
         'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
         'action': notify_action.split('on_')[-1],
-        'datestamp': arrow.now().format(date_format),
-        'timestamp': arrow.now().format(time_format),
+        'current_year': now.year,
+        'current_month': now.month,
+        'current_day': now.day,
+        'current_hour': now.hour,
+        'current_minute': now.minute,
+        'current_second': now.second,
+        'current_weekday': now_iso[2],
+        'current_week': now_iso[1],
+        'week_number': now_iso[1],  # Keep for backwards compatibility
+        'datestamp': now.format(date_format),
+        'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],

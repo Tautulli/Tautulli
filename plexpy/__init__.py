@@ -934,7 +934,7 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN product INTEGER'
+            'ALTER TABLE sessions ADD COLUMN product TEXT'
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN optimized_version INTEGER'

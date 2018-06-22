@@ -67,7 +67,7 @@ history_table_options = {
                     expand_history = '<span class="expand-history-tooltip" data-toggle="tooltip" title="Show Detailed History"><i class="fa fa-plus-circle fa-fw"></i></span>';
                     $(td).html('<div><a href="#"><div style="float: left;">' + expand_history + '&nbsp;' + date + '</div></a></div>');
                 } else {
-                    $(td).html('<div style="float: left;"><i class="fa fa-fw"></i>&nbsp;' + date + '</div>');
+                    $(td).html('<div style="float: left;"><i class="fa fa-plus-circle fa-fw fa-blank">&nbsp;</i>&nbsp;' + date + '</div>');
                 }
             },
             "searchable": false,

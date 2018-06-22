@@ -113,6 +113,10 @@ div.form-control .selectize-input {
 .wizard-input-section .selectize-dropdown.form-control.selectize-pms-ip {
     margin-top: 0 !important;
 }
+#condition-widget .fa-plus,
+#condition-widget .fa-minus {
+    cursor: pointer;
+}
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #fff !important;
 }
@@ -1599,10 +1603,8 @@ a:hover .dashboard-recent-media-cover {
     margin: 0;
     background: none;
 }
-.summary-navbar-list .breadcrumb > li + li:before {
+.summary-navbar-list .breadcrumb > .breadcrumb-arrow {
     color: #444;
-    font-family: FontAwesome;
-    content: "\f054";
     padding: 0 15px;
 }
 .summary-navbar-list .breadcrumb > .active {
@@ -2113,21 +2115,18 @@ a:hover .item-children-poster {
 }
 .settings-alert ul li {
     list-style: none;
-    padding: 5px 12px 5px 35px;
+    padding: 5px 12px;
     margin: 0;
     border: 1px solid #ebccd1;
     border-radius: 4px;
 }
 .settings-alert ul li:before {
-    content: "\f071";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: inherit;
-    font-size: 18px;
-    position: absolute;
-    top: 5px;
-    left: 12px;
+    display: none;
+    content: "\f071 ";
+    font-family: "Font Awesome 5 Solid";
+}
+.settings-alert ul li .svg-inline--fa {
+    margin-right: 5px;
 }
 .settings-warning {
     color: #eb8600;
@@ -2957,10 +2956,13 @@ a .home-platforms-list-cover-face:hover
     background: #282828;
     list-style: none;
 }
-.accordion .link {
+.accordion li {
+    margin: 0;
+}
+.accordion li .link {
     cursor: pointer;
     display: block;
-    padding: 8px 20px 8px 30px;
+    padding: 8px 12px 8px 12px;
     color: #999;
     border-bottom: 1px solid #2d2d2d;
     position: relative;
@@ -2968,37 +2970,28 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li {
-    margin: 0;
+.accordion li .link:hover {
+    color: #fff;
+    background: #2f2f2f;
+}
+.accordion li .link span.toggle-right {
+    float: right;
+    padding-left: 10px;
 }
 .accordion li:last-child .link {
     border-bottom: 0;
 }
-.accordion li i.fa {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+.accordion li .fa-chevron-down {
     color: #999;
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li i.fa-chevron-down {
-    right: 12px;
-    left: auto;
-    font-size: 16px;
-}
-.accordion li .link:hover {
-    color: #FFF;
-    background: #2f2f2f;
-}
 .accordion li.open .link {
     color: #f9be03;
 }
-.accordion li.open i {
+.accordion li.open .fa-chevron-down {
     color: #f9be03;
-}
-.accordion li.open i.fa-chevron-down {
     -webkit-transform: rotate(180deg);
     -ms-transform: rotate(180deg);
     -o-transform: rotate(180deg);
@@ -3155,34 +3148,6 @@ div.dataTables_info {
     -webkit-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
-}
-.settings-alert {
-    float: left;
-    padding: 0;
-    margin: 5px 0;
-    border: 0;
-    position: relative;
-}
-.settings-alert ul {
-    padding: 0;
-}
-.settings-alert ul li {
-    list-style: none;
-    padding: 5px 12px 5px 35px;
-    margin: 0;
-    border: 1px solid #ebccd1;
-    border-radius: 4px;
-}
-.settings-alert ul li:before {
-    content: "\f071";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: inherit;
-    font-size: 18px;
-    position: absolute;
-    top: 5px;
-    left: 12px;
 }
 #users-to-delete > li,
 #users-to-purge > li,
@@ -4095,4 +4060,63 @@ a[data-tab-destination] {
 }
 .pointer {
     cursor: pointer;
+}
+
+.iframe-container {
+    width: 100%;
+    height: calc(100vh - 200px);
+    position: relative;
+}
+.iframe-overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: url(../images/discord-overlay.png) no-repeat;
+    background-size: cover;
+    border: 1px solid #36393e;
+}
+.iframe-button-container {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.iframe-button {
+    color: #fff;
+    border-radius: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 15px;
+    height: 28px;
+    line-height: 28px;
+    min-width: 200px;
+    transition: box-shadow 0.3s ease;
+    padding: 0 15px;
+    background: rgba(114, 137, 218, 0.4);
+    text-transform: uppercase;
+    text-decoration: none;
+    display: block;
+}
+.iframe-button:hover,
+.iframe-button:focus {
+    color: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 99999px inset, rgba(0, 0, 0, 0.2) 0px 1px 5px 0px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 3px 1px -2px;
+}
+.iframe-button:active {
+    box-shadow: rgba(255, 255, 255, 0.1) 0px 0px 0px 99999px inset, rgba(0, 0, 0, 0.2) 0px 5px 5px -3px, rgba(0, 0, 0, 0.14) 0px 8px 10px 1px, rgba(0, 0, 0, 0.12) 0px 3px 14px 2px;
+}
+.iframe {
+    width: 100%;
+    height: 100%;
+    position: inherit;
+    display: block;
+    border: 0;
+}
+.fa-blank {
+    visibility: hidden;
 }
