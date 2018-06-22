@@ -803,7 +803,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, grouping=None, **kwargs):
         """ Get a library's watch time statistics.
 
             ```
@@ -811,7 +811,7 @@ class WebInterface(object):
                 section_id (str):               The id of the Plex library section
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -834,9 +834,11 @@ class WebInterface(object):
                      ]
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id)
+            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping)
             if result:
                 return result
             else:
@@ -848,7 +850,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_user_stats(self, section_id=None, **kwargs):
+    def get_library_user_stats(self, section_id=None, grouping=None, **kwargs):
         """ Get a library's user statistics.
 
             ```
@@ -856,7 +858,7 @@ class WebInterface(object):
                 section_id (str):               The id of the Plex library section
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -875,9 +877,11 @@ class WebInterface(object):
                      ]
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_user_stats(section_id=section_id)
+            result = library_data.get_user_stats(section_id=section_id, grouping=grouping)
             if result:
                 return result
             else:
@@ -1411,7 +1415,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_watch_time_stats(self, user_id=None, **kwargs):
+    def get_user_watch_time_stats(self, user_id=None, grouping=None, **kwargs):
         """ Get a user's watch time statistics.
 
             ```
@@ -1419,7 +1423,7 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1442,9 +1446,11 @@ class WebInterface(object):
                      ]
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         if user_id:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id)
+            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping)
             if result:
                 return result
             else:
@@ -1456,7 +1462,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_player_stats(self, user_id=None, **kwargs):
+    def get_user_player_stats(self, user_id=None, grouping=None, **kwargs):
         """ Get a user's player statistics.
 
             ```
@@ -1464,7 +1470,7 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -1483,9 +1489,11 @@ class WebInterface(object):
                      ]
             ```
         """
+        grouping = int(grouping) if str(grouping).isdigit() else grouping
+
         if user_id:
             user_data = users.Users()
-            result = user_data.get_player_stats(user_id=user_id)
+            result = user_data.get_player_stats(user_id=user_id, grouping=grouping)
             if result:
                 return result
             else:
