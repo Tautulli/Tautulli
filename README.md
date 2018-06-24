@@ -2,7 +2,7 @@
 
 [![Discord](https://img.shields.io/badge/Discord-Tautulli-7289DA.svg?style=flat-square)](https://tautulli.com/discord)
 [![Reddit](https://img.shields.io/badge/Reddit-Tautulli-FF5700.svg?style=flat-square)](https://www.reddit.com/r/Tautulli/)
-[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/307821/tautulli-monitor-your-plex-media-server)
+[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-Tautulli-E5A00D.svg?style=flat-square)](https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242)
 
 A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
@@ -35,7 +35,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 * Read the [Installation Guides](https://github.com/Tautulli/Tautulli-Wiki/wiki/Installation) for instructions to install Tautulli.
 * The [Frequently Asked Questions](https://github.com/Tautulli/Tautulli-Wiki/wiki/Frequently-Asked-Questions) in the wiki can help you with common problems.
-* Support is available on [Discord](https://tautulli.com/discord), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/discussion/307821/tautulli-monitor-your-plex-media-server).
+* Support is available on [Discord](https://tautulli.com/discord), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242).
 
 ## Issues & Feature Requests
 
