@@ -1083,6 +1083,8 @@ def get_plexpy_url(hostname=None):
 
         if not hostname:
             hostname = 'localhost'
+    elif hostname == 'localhost' and plexpy.CONFIG.HTTP_HOST != '0.0.0.0':
+        hostname = plexpy.CONFIG.HTTP_HOST
     else:
         hostname = hostname or plexpy.CONFIG.HTTP_HOST
 
