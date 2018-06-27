@@ -88,6 +88,7 @@ PLATFORM_NAMES = {
     'samsung': 'samsung',
     'synclounge': 'synclounge',
     'tivo': 'tivo',
+    'tizen': 'samsung',
     'tvos': 'atv',
     'vizio': 'opera',
     'wiiu': 'wiiu',
