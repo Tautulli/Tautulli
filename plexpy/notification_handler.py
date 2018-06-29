@@ -338,6 +338,12 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
         script_args = kwargs.pop('script_args', [])
+
+        if script_args and isinstance(script_args, basestring):
+            # Attemps to format test script args for the user
+            script_args = [arg.decode(plexpy.SYS_ENCODING, 'ignore')
+                           for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+
     else:
         # Get the subject and body strings
         subject_string = notifier_config['notify_text'][notify_action]['subject']
@@ -421,7 +427,7 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
 
         session = session or {}
 
-        script_args = json.dumps([s.decode(plexpy.SYS_ENCODING) for s in script_args]) if script_args else None
+        script_args = json.dumps(script_args) if script_args else None
 
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
@@ -1028,7 +1034,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg, **parameters)
+            script_args = [custom_formatter.format(arg, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
                            for arg in shlex.split(subject.encode(plexpy.SYS_ENCODING, 'ignore'))]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
