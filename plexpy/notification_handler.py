@@ -421,7 +421,7 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
 
         session = session or {}
 
-        script_args = json.dumps(script_args) if script_args else None
+        script_args = json.dumps([s.decode(plexpy.SYS_ENCODING) for s in script_args]) if script_args else None
 
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
