@@ -3085,12 +3085,12 @@ class SCRIPTS(Notifier):
         # For manual notifications
         if script_args and isinstance(script_args, basestring):
             # attemps for format it for the user
-            script_args = shlex.split(script_args)
+            script_args = [arg.decode('utf-8') for arg in shlex.split(script_args.encode('utf-8'))]
 
         # Windows handles unicode very badly.
         # https://bugs.python.org/issue19264
         if script_args and os.name == 'nt':
-            script_args = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script_args]
+            script_args = [arg.encode(plexpy.SYS_ENCODING, 'ignore') for arg in script_args]
 
         # Allow overrides for shitty systems
         if prefix and script_args:
