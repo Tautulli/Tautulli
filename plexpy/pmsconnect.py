@@ -1934,7 +1934,7 @@ class PmsConnect(object):
 
         Output: bool
         """
-        message = message or 'The server owner has ended the stream.'
+        message = message.encode('utf-8') or 'The server owner has ended the stream.'
 
         if session_key and not session_id:
             ap = activity_processor.ActivityProcessor()
