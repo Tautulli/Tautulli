@@ -3032,7 +3032,6 @@ class SCRIPTS(Notifier):
         if error:
             err = '\n  '.join([l for l in error.splitlines()])
             logger.error("Tautulli Notifiers :: Script error: \n  %s" % err)
-            return False
 
         if output:
             out = '\n  '.join([l for l in output.splitlines()])
