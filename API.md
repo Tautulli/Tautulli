@@ -2293,15 +2293,21 @@ Optional parameters:
 
 Returns:
     json:
-        [{"email": "Jon.Snow.1337@CastleBlack.com",
+        [{"allow_guest": 1,
+          "do_notify": 1,
+          "email": "Jon.Snow.1337@CastleBlack.com",
           "filter_all": "",
           "filter_movies": "",
           "filter_music": "",
           "filter_photos": "",
           "filter_tv": "",
-          "is_allow_sync": null,
-          "is_home_user": "1",
-          "is_restricted": "0",
+          "is_admin": 0,
+          "is_allow_sync": 1,
+          "is_home_user": 1,
+          "is_restricted": 0,
+          "keep_history": 1,
+          "server_token": "PU9cMuQZxJKFBtGqHk68",
+          "shared_libraries": "1;2;3",
           "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
           "user_id": "133788",
           "username": "Jon Snow"
