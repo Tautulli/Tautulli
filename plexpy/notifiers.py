@@ -23,9 +23,9 @@ from paho.mqtt.publish import single
 import os
 import re
 import requests
-import shlex
 import smtplib
 import subprocess
+import sys
 import threading
 import time
 from urllib import urlencode
@@ -2993,13 +2993,15 @@ class SCRIPTS(Notifier):
 
     def run_script(self, script):
         # Common environment variables
-        env = {'PLEX_URL': plexpy.CONFIG.PMS_URL,
-               'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
-               'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
-               'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
-               'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-               }
-        env.update(os.environ)
+        env = os.environ.copy()
+        env.update({
+            'PLEX_URL': plexpy.CONFIG.PMS_URL,
+            'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
+            'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
+            'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
+            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
+            'PYTHONPATH': (';' if os.name == 'nt' else ':').join(sys.path)
+            })
 
         try:
             process = subprocess.Popen(script,
