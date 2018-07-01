@@ -698,7 +698,7 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT session_history_media_info.video_resolution AS resolution, ' \
+                query = 'SELECT UPPER(session_history_media_info.video_resolution) AS resolution, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
@@ -717,7 +717,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT session_history_media_info.video_resolution AS resolution,' \
+                query = 'SELECT UPPER(session_history_media_info.video_resolution) AS resolution,' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'AND session_history.stopped > 0 THEN (session_history.stopped - session_history.started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS dp_count, ' \
@@ -799,8 +799,8 @@ class Graphs(object):
                         'WHEN session_history_media_info.transcode_height <= 1080 THEN "1080" ' \
                         'WHEN session_history_media_info.transcode_height <= 1440 THEN "QHD" ' \
                         'WHEN session_history_media_info.transcode_height <= 2160 THEN "4k" ' \
-                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) ' \
-                        'ELSE session_history_media_info.stream_video_resolution END) AS resolution, ' \
+                        'ELSE "unknown" END) ELSE UPPER(session_history_media_info.video_resolution) END) ' \
+                        'ELSE UPPER(session_history_media_info.stream_video_resolution) END) AS resolution, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
@@ -830,8 +830,8 @@ class Graphs(object):
                         'WHEN session_history_media_info.transcode_height <= 1080 THEN "1080" ' \
                         'WHEN session_history_media_info.transcode_height <= 1440 THEN "QHD" ' \
                         'WHEN session_history_media_info.transcode_height <= 2160 THEN "4k" ' \
-                        'ELSE "unknown" END) ELSE session_history_media_info.video_resolution END) ' \
-                        'ELSE session_history_media_info.stream_video_resolution END) AS resolution, ' \
+                        'ELSE "unknown" END) ELSE UPPER(session_history_media_info.video_resolution) END) ' \
+                        'ELSE UPPER(session_history_media_info.stream_video_resolution) END) AS resolution, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'AND session_history.stopped > 0 THEN (session_history.stopped - session_history.started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS dp_count, ' \
