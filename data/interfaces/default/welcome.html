@@ -55,42 +55,36 @@
                         <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="PlexPy">
                     </div>
                     <h3 style="line-height: 50px;">Welcome!</h3>
-                    <br />
-                    <div>
-                        Thanks for taking the time to try out Tautulli. Hope you find it useful.
-                        <br /><br />
-                        Tautulli requires a permanent internet connection to ensure a reliable experience.
-                        <br /><br />
-                        This wizard will help you get set up, to continue press Next.
+                    <div class="wizard-input-section">
+                        <p class="welcome-message">
+                            Thanks for taking the time to try out Tautulli. Hope you find it useful.
+                        </p>
+                        <p class="welcome-message">
+                            Tautulli requires a permanent internet connection to ensure a reliable experience.
+                        </p>
+                        <p class="welcome-message">
+                            This wizard will help you get set up, to continue press Next.
+                        </p>
                     </div>
                 </div>
                 <div class="wizard-card" data-cardname="card2">
                     <h3>Plex Authentication</h3>
-                    <p class="help-block">Enter your Plex.tv username and password. Tautulli does not store your username or password.</p>
                     <div class="wizard-input-section">
-                        <label for="pms_username">Plex.tv Username</label>
-                        <div class="row">
-                            <div class="col-xs-8">
-                                <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
-                            </div>
-                        </div>
+                        <p class="help-block">
+                            Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
+                        </p>
                     </div>
-                    <div class="wizard-input-section">
-                        <label for="pms_password">Plex.tv Password</label>
-                        <div class="row">
-                            <div class="col-xs-8">
-                                <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
-                    <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
+                    <input type="hidden" class="form-control" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
+                    <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
+                    <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
                 <div class="wizard-card" data-cardname="card3">
                     <h3>Plex Media Server</h3>
-                    <p class="help-block">
-                        Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.
-                    </p>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.
+                        </p>
+                    </div>
                     <div class="wizard-input-section">
                         <label for="pms_ip">Plex IP or Hostname</label>
                         <div class="row">
@@ -128,13 +122,17 @@
                     <input type="hidden" id="pms_valid" data-validate="validatePMSip" value="">
                     <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                     <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                    <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
+                    <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a>
+                    <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
 
                 <div class="wizard-card" data-cardname="card4">
                     <h3>Activity Logging</h3>
-                    <p class="help-block">Tautulli will keep a history of all streaming activity on your Plex server.</p>
-
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Tautulli will keep a history of all streaming activity on your Plex server.
+                        </p>
+                    </div>
                     <div class="wizard-input-section">
                         <label for="logging_ignore_interval">Ignore Interval</label>
                         <div class="row">
@@ -145,29 +143,38 @@
                         </div>
                         <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
                     </div>
-
-                    <p class="help-block">
-                        Additional options to disable history logging for certain libraries or users can be found by editing them 
-                        on the <strong>Libraries</strong> or <strong>Users</strong> pages.
-                    </p>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Additional options to disable history logging for certain libraries or users can be found by editing them
+                            on the <strong>Libraries</strong> or <strong>Users</strong> pages.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="wizard-card" data-cardname="card4">
                     <h3>Notifications</h3>
-                    <p class="help-block">Tautulli can send a wide variety of notifications to alert you of activity on your Plex server.</p>
-                    <p class="help-block">
-                        To set up a notification agent, navigate to the <strong>Settings</strong> page 
-                        and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
-                    </p>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Tautulli can send a wide variety of notifications to alert you of activity on your Plex server.
+                        </p>
+                        <p class="help-block">
+                            To set up a notification agent, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="wizard-card" data-cardname="card5">
                     <h3>Database Import</h3>
-                    <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into Tautulli.</p>
-                    <p class="help-block">
-                        To import a database, navigate to the <strong>Settings</strong> page 
-                        and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
-                    </p>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            If you have an existing PlexWatch/Plexivity database, you can import the data into Tautulli.
+                        </p>
+                        <p class="help-block">
+                            To import a database, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
 
                     <!-- Required fields but hidden -->
                     <div style="display: none;">
@@ -356,7 +363,7 @@ $(document).ready(function() {
             var is_cloud = $(pms_ip_selected).data('is_cloud');
 
             $("#pms_valid").val(identifier !== 'undefined' ? 'valid' : '');
-            $("#pms-verify-status").html(identifier !== 'undefined' ? '<i class="fa fa-check"></i> Server found!' : '').fadeIn('fast');
+            $("#pms-verify-status").html(identifier !== 'undefined' ? '<i class="fa fa-check"></i>&nbsp; Server found!' : '').fadeIn('fast');
 
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
             $('#pms_port').val(port !== 'undefined' ? port : 32400);
@@ -414,7 +421,7 @@ $(document).ready(function() {
             var pms_ssl = $("#pms_ssl").val();
             var pms_is_remote = $("#pms_is_remote").val();
             if ((pms_ip !== '') || (pms_port !== '')) {
-                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
+                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Validating server...');
                 $('#pms-verify-status').fadeIn('fast');
                 $.ajax({
                     url: 'get_server_id',
@@ -429,7 +436,7 @@ $(document).ready(function() {
                     async: true,
                     timeout: 5000,
                     error: function (jqXHR, textStatus, errorThrown) {
-                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; This is not a Plex Server!');
                         $('#pms-verify-status').fadeIn('fast');
                     },
                     success: function(xhr, status) {
@@ -437,18 +444,18 @@ $(document).ready(function() {
                         var identifier = result.identifier;
                         if (identifier) {
                             $("#pms_identifier").val(identifier);
-                            $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
+                            $("#pms-verify-status").html('<i class="fa fa-check"></i>&nbsp; Server found!');
                             $('#pms-verify-status').fadeIn('fast');
                             pms_verified = true;
                             $("#pms_valid").val("valid");
                         } else {
-                            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; This is not a Plex Server!');
                             $('#pms-verify-status').fadeIn('fast');
                         }
                     }
                 });
             } else {
-                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please enter both fields.');
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Please enter both fields.');
                 $('#pms-verify-status').fadeIn('fast');
             }
         }
@@ -460,47 +467,82 @@ $(document).ready(function() {
         $("#pms-verify-status").html("");
     });
 
-    $( ".pms-auth" ).change(function() {
-        authenticated = false;
-        $("#pms_token").val("");
-        $("#pms-token-status").html("");
-    });
+    const x_plex_headers = {
+        'Accept': 'application/json',
+        'X-Plex-Product': '${plexpy.common.PRODUCT}',
+        'X-Plex-Version': '${plexpy.common.RELEASE}',
+        'X-Plex-Client-Identifier': '${plexpy.CONFIG.PMS_UUID}',
+        'X-Plex-Platform': '${plexpy.common.PLATFORM}',
+        'X-Plex-Platform-Version': '${plexpy.common.PLATFORM_RELEASE}',
+        'X-Plex-Device': '${plexpy.common.PLATFORM} ${plexpy.common.PLATFORM_RELEASE}',
+        'X-Plex-Device-Name': '${plexpy.common.PLATFORM_DEVICE_NAME}'
+    };
 
-    // Plex.tv auth token fetch
-    $("#pms-authenticate").click(function() {
-        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
-        $('#pms-token-status').fadeIn('fast');
-        var pms_username = $("#pms_username").val().trim();
-        var pms_password = $("#pms_password").val().trim();
-        if ((pms_username !== '') && (pms_password !== '')) {
-            $.ajax({
-                type: 'GET',
-                url: 'get_plexpy_pms_token',
-                data: {
-                    username: pms_username,
-                    password: pms_password
-                },
-                cache: false,
-                async: true,
-                complete: function (xhr, status) {
-                    var result = $.parseJSON(xhr.responseText);
-                    var msg = result.message;
-                    if (result.result == 'success') {
-                        var authToken = result.token;
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
-                        $('#pms-token-status').fadeIn('fast');
-                        $("#pms_token").val(authToken);
-                        authenticated = true;
-                        getServerOptions(authToken)
-                    } else {
-                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
-                    }
-                }
-            });
-        } else {
-            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
-            $('#pms-token-status').fadeIn('fast');
-        }
+    getPlexOAuthPin = function () {
+        var deferred = $.Deferred();
+
+        $.ajax({
+            url: 'https://plex.tv/api/v2/pins?strong=true',
+            type: 'POST',
+            headers: x_plex_headers,
+            success: function(data) {
+                deferred.resolve({pin: data.id, code: data.code});
+            },
+            error: function() {
+                deferred.reject();
+            }
+        });
+        return deferred;
+    };
+
+    var polling = null;
+    $('#sign-in-plex').click(function() {
+        $("#pms_token").val('');
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
+
+        clearTimeout(polling);
+
+        getPlexOAuthPin().then(function (data) {
+            const pin = data.pin;
+            const code = data.code;
+            var keep_polling = true;
+
+            window.open('https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code);
+
+            (function poll() {
+                polling = setTimeout(function () {
+                    $.ajax({
+                        url: 'https://plex.tv/api/v2/pins/' + pin,
+                        type: 'GET',
+                        headers: x_plex_headers,
+                        success: function (data) {
+                            if (data.authToken){
+                                var authToken = data.authToken;
+                                keep_polling = false;
+                                $("#pms_token").val(authToken);
+                                $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
+                                authenticated = true;
+                                getServerOptions(authToken)
+                            }
+                        },
+                        error: function () {
+                            keep_polling = false;
+                            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
+                        },
+                        complete: function () {
+                            if (keep_polling){
+                                poll();
+                            } else {
+                                clearTimeout(polling);
+                            }
+                        },
+                        timeout: 1000
+                    });
+                }, 1000);
+            })();
+        }, function () {
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
+        });
     });
 });
 </script>

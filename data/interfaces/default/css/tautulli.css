@@ -101,6 +101,9 @@ select.form-control {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.wizard-input-section p.welcome-message {
+    margin: 20px 0;
+}
 .wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-input > div {
     max-width: 360px;
     overflow: hidden;
