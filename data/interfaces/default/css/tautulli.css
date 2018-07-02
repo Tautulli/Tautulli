@@ -3489,6 +3489,11 @@ a.no-highlight:hover {
     margin: 0 auto 50px auto;
     text-align: center;
 }
+.login-container .login-method-header {
+    text-align: center;
+    font-weight: 600;
+    text-transform: uppercase;
+}
 .login-container .form-group {
     margin-bottom: 20px;
 }
@@ -3509,8 +3514,9 @@ a.no-highlight:hover {
     text-shadow: 0 -1px 1px rgba(0,0,0,.4),0 0 15px rgba(0,0,0,.2);
 }
 .login-container .remember-group {
-    float: left;
     color: #999;
+    display: inline-block;
+    margin-top: 7.5px;
 }
 .login-container .remember-group .control-label {
     display: inline;
@@ -3533,6 +3539,9 @@ a.no-highlight:hover {
 }
 .login-button-plex {
     text-align: center;
+}
+.login-button-plex .remember-group {
+    margin-top: 20px;
 }
 .login-button-plex button#sign-in-plex {
     float: none;

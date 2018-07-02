@@ -1,5 +1,6 @@
 ﻿<%
     import plexpy
+    plex_login = plexpy.CONFIG.HTTP_PLEX_ADMIN or plexpy.CONFIG.ALLOW_GUEST_ACCESS
 %>
 <!doctype html>
 
@@ -50,41 +51,58 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-6 col-sm-offset-3">
-                        <form id="login-form">
-                            <div class="form-group">
-                                <label for="username" class="control-label">
-                                    Username
-                                </label>
-                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
-                            </div>
-                            <div class="form-group">
-                                <label for="password" class="control-label">
-                                    Password
-                                </label>
-                                <input type="password" id="password" name="password" class="form-control">
-                            </div>
-                            <div class="form-footer">
-                                <div class="remember-group">
-                                    <label class="control-label">
-                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
-                                    </label>
+                        <ul id="login-methods" class="accordion list-unstyled">
+                            % if plex_login:
+                            <li class="open">
+                                <div class="link login-method-header">
+                                    Sign In with Plex
                                 </div>
-                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="login-divider"><span>or</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6 col-sm-offset-3">
-                        <div id="sign-in-plex-alert" class="alert alert-danger login-alert"></div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6 col-sm-offset-3 login-button-plex">
-                        <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In with Plex</button>
+                                <ul class="submenu login-button-plex" style="display: block;">
+                                    <li>
+                                        <div>
+                                            <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                        </div>
+                                        <div class="remember-group">
+                                            <label class="control-label">
+                                                <input type="checkbox" id="remember_me_plex" name="remember_me_plex" title="for 30 days" value="1" checked="checked" /> Remember me
+                                            </label>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            % endif
+                            <li class="${'open' if not plex_login else ''}">
+                                <div class="link login-method-header">
+                                    Sign In with Tautulli
+                                </div>
+                                <ul class="submenu" style="${'display: block;' if not plex_login else ''}">
+                                    <li>
+                                        <form id="login-form">
+                                            <div class="form-group">
+                                                <label for="username" class="control-label">
+                                                    Username
+                                                </label>
+                                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="password" class="control-label">
+                                                    Password
+                                                </label>
+                                                <input type="password" id="password" name="password" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <span class="remember-group">
+                                                    <label class="control-label">
+                                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                                    </label>
+                                                </span>
+                                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                            </div>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -94,7 +112,10 @@
 
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
 <script>
+    var login_accordion = new Accordion($('#login-methods'), false, false);
+
     if (!localStorage.getItem('Tautulli_ClientId')) {
         localStorage.setItem('Tautulli_ClientId', uuidv4());
     }
@@ -158,7 +179,7 @@
                         },
                         error: function () {
                             keep_polling = false;
-                            $('#sign-in-plex-alert').text('Error communicating with Plex.tv.').show();
+                            $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
                         },
                         complete: function () {
                             if (keep_polling){
@@ -172,7 +193,7 @@
                 }, 1000);
             })();
         }, function () {
-            $('#sign-in-plex-alert').text('Error communicating with Plex.tv.').show();
+            $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
         });
     });
 
@@ -184,14 +205,15 @@
     function signIn(plex, token) {
         $('.login-container button').prop('disabled', true);
         if (plex) {
-            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In with Plex');
+            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
         } else {
             $('#sign-in').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
         }
 
         const username = plex ? null : $('#username').val();
         const password = plex ? null : $('#password').val();
-        const remember_me = $('#remember_me').is(':checked') ? '1' : '0';
+        const remember_me = plex ? ($('#remember_me_plex').is(':checked') ? '1' : '0')
+                : ($('#remember_me').is(':checked') ? '1' : '0');
 
         var data = {
             username: username,
@@ -212,7 +234,7 @@
                 },
                 401: function() {
                     if (plex) {
-                        $('#sign-in-plex-alert').text('Invalid Plex Login.').show();
+                        $('#sign-in-alert').text('Invalid Plex Login.').show();
                     } else {
                         $('#sign-in-alert').text('Incorrect username or password.').show();
                         $('#username').focus();
@@ -222,7 +244,7 @@
             complete: function() {
                 $('.login-container button').prop('disabled', false);
                 if (plex) {
-                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In with Plex');
+                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
                 } else {
                     $('#sign-in').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
                 }

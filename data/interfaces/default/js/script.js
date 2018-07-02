@@ -351,21 +351,26 @@ function getCookie(cname) {
     }
     return "";
 }
-var Accordion = function (el, multiple) {
+var Accordion = function (el, multiple, close) {
     this.el = el || {};
     this.multiple = multiple || false;
+    this.close = (close === undefined) ? true : close;
     // Variables privadas
     var links = this.el.find('.link');
     // Evento
     links.on('click', {
         el: this.el,
-        multiple: this.multiple
+        multiple: this.multiple,
+        close: this.close
     }, this.dropdown);
 };
 Accordion.prototype.dropdown = function (e) {
     var $el = e.data.el;
     $this = $(this);
     $next = $this.next();
+    if (!e.data.close && $this.parent().hasClass('open')) {
+        return
+    }
     $next.slideToggle();
     $this.parent().toggleClass('open');
     if (!e.data.multiple) {
