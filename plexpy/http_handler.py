@@ -39,7 +39,7 @@ class HTTPHandler(object):
         else:
             self.urls = urls
 
-        self.headers = {'X-Plex-Product': 'Tautulli',
+        self.headers = {'X-Plex-Product': plexpy.common.PRODUCT,
                         'X-Plex-Version': plexpy.common.RELEASE,
                         'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
                         'X-Plex-Platform': plexpy.common.PLATFORM,

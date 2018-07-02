@@ -1863,7 +1863,7 @@ def generate_uuid():
 def initialize_tracker():
     data = {
         'dataSource': 'server',
-        'appName': 'Tautulli',
+        'appName': common.PRODUCT,
         'appVersion': common.RELEASE,
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,

@@ -19,6 +19,7 @@ from collections import OrderedDict
 import version
 
 # Identify Our Application
+PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
@@ -27,7 +28,7 @@ PLATFORM_DEVICE_NAME = platform.node()
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
 
-USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFORM_RELEASE)
+USER_AGENT = '{}/{} ({} {})'.format(PRODUCT, RELEASE, PLATFORM, PLATFORM_RELEASE)
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
