@@ -244,7 +244,7 @@ class AuthController(object):
             return
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-    def on_login(self, username=None, user_id=None, user_group=None, success=0):
+    def on_login(self, username=None, user_id=None, user_group=None, success=False, oauth=False):
         """Called on successful login"""
 
         # Save login to the database
@@ -260,8 +260,10 @@ class AuthController(object):
                                user_agent=user_agent,
                                success=success)
 
-        if success == 1:
-            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli." % (user_group.capitalize(), username))
+        if success:
+            use_oauth = 'Plex OAuth' if oauth else 'form'
+            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
+                         % (user_group.capitalize(), username, use_oauth))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
@@ -331,7 +333,8 @@ class AuthController(object):
             self.on_login(username=user_details['username'],
                           user_id=user_details['user_id'],
                           user_group=user_group,
-                          success=1)
+                          success=True,
+                          oauth=bool(token))
 
             jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
             cherrypy.response.cookie[jwt_cookie] = jwt_token
@@ -355,7 +358,7 @@ class AuthController(object):
             return error_message
 
         elif token:
-            self.on_login(username='Plex OAuth')
+            self.on_login(username='Plex OAuth', oauth=True)
             logger.debug(u"Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message
