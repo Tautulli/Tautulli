@@ -760,7 +760,8 @@
                                                                                     % if i < min(show['season_count'], 7):
                                                                                         <br>
                                                                                     % elif i == 7 and show['season_count'] > 8:
-                                                                                        ...plus ${show['season_count'] - 8} more seasons!
+                                                                                        <% remaining_seasons = show['season_count'] - 8 %>
+                                                                                        ...plus ${remaining_seasons} more season${'s' if remaining_seasons > 1 else ''}!
                                                                                     % endif
                                                                                 % endfor
                                                                             </p>
