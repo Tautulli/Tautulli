@@ -32,8 +32,8 @@
     <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.0.5">
 </head>
 
-<body>
-<div class="body-container">
+<body style="margin: 0; overflow: auto;">
+<div class="login-body-container">
     <div class="container-fluid">
         <div class="row">
             <div class="login-container">
@@ -42,10 +42,12 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-6 col-sm-offset-3">
+                        <div id="sign-in-alert" class="alert alert-danger login-alert"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
                         <form id="login-form">
-                            <div id="incorrect-login" class="alert alert-danger" style="text-align: center; padding: 8px; display: none;">
-                                Incorrect username or password.
-                            </div>
                             <div class="form-group">
                                 <label for="username" class="control-label">
                                     Username
@@ -69,6 +71,19 @@
                         </form>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="login-divider"><span>or</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <div id="sign-in-plex-alert" class="alert alert-danger login-alert"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3 login-button-plex">
+                        <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In with Plex</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -78,24 +93,90 @@
 <script>
     $('#login-form').submit(function(event) {
         event.preventDefault();
-        $('#sign-in').prop('disabled', true).html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        signIn(false);
+    });
+
+    function signIn(plex, token) {
+        $('.login-container button').prop('disabled', true);
+        if (plex) {
+            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In with Plex');
+        } else {
+            $('#sign-in').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        }
+
+        const username = plex ? null : $('#username').val();
+        const password = plex ? null : $('#password').val();
+        const remember_me = $('#remember_me').is(':checked') ? '1' : '0';
+
         $.ajax({
             url: '${http_root}auth/signin',
             type: 'POST',
-            data: $(this).serialize(),
+            data: {
+                username: username,
+                password: password,
+                token: token,
+                remember_me: remember_me
+            },
             dataType: 'json',
             statusCode: {
                 200: function() {
                    window.location = "${redirect_uri or http_root}";
                 },
                 401: function() {
-                   $('#incorrect-login').show();
-                   $('#username').focus();
+                    if (plex) {
+                        $('#sign-in-plex-alert').text('Invalid Plex Login.').show();
+                    } else {
+                        $('#sign-in-alert').text('Incorrect username or password.').show();
+                        $('#username').focus();
+                    }
                 }
             },
             complete: function() {
-                $('#sign-in').prop('disabled', false).html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                $('.login-container button').prop('disabled', false);
+                if (plex) {
+                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In with Plex');
+                } else {
+                    $('#sign-in').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                }
             }
+        });
+    }
+
+    getPlexOAuthURL = function () {
+        var deferred = $.Deferred();
+        $.get('get_plex_oauth_url').then(function (data) {
+            deferred.resolve(data);
+        });
+        return deferred;
+    };
+
+    $('#sign-in-plex').click(function() {
+        getPlexOAuthURL().then(function (data) {
+            var url = data.url;
+            var pin = data.pin;
+            var polling = true;
+
+            window.open(url);
+
+            (function poll() {
+                setTimeout(function () {
+                    $.ajax({
+                        url: 'pin/' + pin,
+                        success: function (data) {
+                            if (data.result === 'success'){
+                                polling = false;
+                                signIn(true, data.token)
+                            }
+                        },
+                        complete: function () {
+                            if (polling){
+                                poll();
+                            }
+                        },
+                        timeout: 1000
+                    });
+                }, 1000);
+            })();
         });
     });
 </script>

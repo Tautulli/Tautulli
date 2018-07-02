@@ -226,6 +226,45 @@ class PlexTV(object):
 
         return server_token
 
+    def get_plextv_pin(self, pin='', output_format=''):
+        if pin:
+            uri = '/api/v2/pins/' + pin
+            request = self.request_handler.make_request(uri=uri,
+                                                        request_type='GET',
+                                                        output_format=output_format,
+                                                        no_token=True)
+        else:
+            uri = '/api/v2/pins?strong=true'
+            request = self.request_handler.make_request(uri=uri,
+                                                        request_type='POST',
+                                                        output_format=output_format,
+                                                        no_token=True)
+        return request
+
+    def get_pin(self, pin=''):
+        plextv_response = self.get_plextv_pin(pin=pin,
+                                              output_format='xml')
+
+        if plextv_response:
+            try:
+                xml_head = plextv_response.getElementsByTagName('pin')
+                if xml_head:
+                    pin = {'id': xml_head[0].getAttribute('id'),
+                           'code': xml_head[0].getAttribute('code'),
+                           'token': xml_head[0].getAttribute('authToken')
+                           }
+                    return pin
+                else:
+                    logger.warn(u"Tautulli PlexTV :: Could not get Plex authentication pin.")
+                    return None
+
+            except Exception as e:
+                logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_pin: %s." % e)
+                return None
+
+        else:
+            return None
+
     def get_plextv_user_data(self):
         plextv_response = self.get_plex_auth(output_format='dict')
 
@@ -819,3 +858,28 @@ class PlexTV(object):
                         return True
                     else:
                         return False
+
+    def get_plex_account_details(self):
+        account_data = self.get_plextv_user_details(output_format='xml')
+
+        try:
+            xml_head = account_data.getElementsByTagName('user')
+        except Exception as e:
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_plex_account_details: %s." % e)
+            return None
+
+        for a in xml_head:
+            account_details = {"user_id": helpers.get_xml_attr(a, 'id'),
+                               "username": helpers.get_xml_attr(a, 'username'),
+                               "thumb": helpers.get_xml_attr(a, 'thumb'),
+                               "email": helpers.get_xml_attr(a, 'email'),
+                               "is_home_user": helpers.get_xml_attr(a, 'home'),
+                               "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                               "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                               "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                               "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                               "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                               "filter_photos": helpers.get_xml_attr(a, 'filterPhotos'),
+                               "user_token": helpers.get_xml_attr(a, 'authToken')
+                               }
+            return account_details

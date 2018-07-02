@@ -3470,6 +3470,9 @@ a.no-highlight:hover {
         max-width: 1170px;
     }
 }
+.login-body-container {
+    margin: 50px 0;
+}
 .login-container {
     margin-right: auto;
     margin-left: auto;
@@ -3511,6 +3514,30 @@ a.no-highlight:hover {
     margin-bottom: 0;
     font-weight: 400;
     cursor: pointer;
+}
+.login-divider {
+    text-align: center;
+    border-bottom: 1px solid #555;
+    line-height: 0.1em;
+    margin: 50px auto;
+    max-width: 400px;
+    text-transform: uppercase;
+}
+.login-divider span {
+    background: #1f1f1f;
+    padding: 0 15px;
+    color: #999;
+}
+.login-button-plex {
+    text-align: center;
+}
+.login-button-plex button#sign-in-plex {
+    float: none;
+}
+.login-alert {
+    text-align: center;
+    padding: 8px;
+    display: none;
 }
 #admin-login-modal .form-group label {
     font-weight: 400;
