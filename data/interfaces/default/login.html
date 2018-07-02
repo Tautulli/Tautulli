@@ -164,7 +164,7 @@
             success: function(data) {
                 const pin = data.id;
                 const code = data.code;
-                const url = 'https://app.plex.tv/auth/#!?clientID=f65c1d60d15347ac8c9999cca9643700&code=' + code;
+                const url = 'https://app.plex.tv/auth/#!?clientID=' + '${plexpy.CONFIG.PMS_UUID}' + '&code=' + code;
                 data = {pin: pin, url: url };
                 deferred.resolve(data);
             },
