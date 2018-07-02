@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.15-beta (2018-07-01)
+
+* Monitoring:
+  * Fix: Progress percent displaying NaN for live TV.
+  * Fix: Unable to terminate sessions with unicode characters in the message.
+  * Change: Tizen platform to display the Samsung icon.
+* Notifications:
+  * New: Added PYTHONPATH to script environment variables so scripts can automatically import from Tautulli libraries.
+  * Fix: Proper handling of unicode script arguments.
+  * Fix: Incorrect TAUTULLI_URL environment variable if the HTTP host setting is changed.
+  * Fix: Email addresses selectize box not expanding.
+* Newsletters:
+  * Change: HTTPS URLS for images hosted on tautulli.com.
+* Graphs:
+  * Fix: SD resolution sometimes not grouped together.
+
+
 ## v2.1.14 (2018-06-21)
 
 * Notifications:
