@@ -1,4 +1,7 @@
-﻿<!doctype html>
+﻿<%
+    import plexpy
+%>
+<!doctype html>
 
 <html lang="en">
 <head>
@@ -144,39 +147,84 @@
 
     getPlexOAuthURL = function () {
         var deferred = $.Deferred();
-        $.get('get_plex_oauth_url').then(function (data) {
-            deferred.resolve(data);
+
+        $.ajax({
+            url: 'https://plex.tv/api/v2/pins?strong=true',
+            type: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Plex-Product': 'Tautulli',
+                'X-Plex-Version': '${plexpy.common.RELEASE}',
+                'X-Plex-Client-Identifier': '${plexpy.CONFIG.PMS_UUID}',
+                'X-Plex-Platform': '${plexpy.common.PLATFORM}',
+                'X-Plex-Platform-Version': '${plexpy.common.PLATFORM_RELEASE}',
+                'X-Plex-Device': 'Web',
+                'X-Plex-Device-Name': '${plexpy.common.PLATFORM_DEVICE_NAME}'
+            },
+            success: function(data) {
+                const pin = data.id;
+                const code = data.code;
+                const url = 'https://app.plex.tv/auth/#!?clientID=f65c1d60d15347ac8c9999cca9643700&code=' + code;
+                data = {pin: pin, url: url };
+                deferred.resolve(data);
+            },
+            error: function() {
+                deferred.reject();
+            }
+
         });
         return deferred;
     };
 
+    var polling = null;
     $('#sign-in-plex').click(function() {
+        clearTimeout(polling);
+
         getPlexOAuthURL().then(function (data) {
-            var url = data.url;
-            var pin = data.pin;
-            var polling = true;
+            const url = data.url;
+            const pin = data.pin;
+            var keep_polling = true;
 
             window.open(url);
 
             (function poll() {
-                setTimeout(function () {
+                polling = setTimeout(function () {
                     $.ajax({
-                        url: 'pin/' + pin,
+                        url: 'https://plex.tv/api/v2/pins/' + pin,
+                        type: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Plex-Product': 'Tautulli',
+                            'X-Plex-Version': '${plexpy.common.RELEASE}',
+                            'X-Plex-Client-Identifier': '${plexpy.CONFIG.PMS_UUID}',
+                            'X-Plex-Platform': '${plexpy.common.PLATFORM}',
+                            'X-Plex-Platform-Version': '${plexpy.common.PLATFORM_RELEASE}',
+                            'X-Plex-Device': 'Web',
+                            'X-Plex-Device-Name': '${plexpy.common.PLATFORM_DEVICE_NAME}'
+                        },
                         success: function (data) {
-                            if (data.result === 'success'){
-                                polling = false;
-                                signIn(true, data.token)
+                            if (data.authToken){
+                                keep_polling = false;
+                                signIn(true, data.authToken);
                             }
                         },
+                        error: function () {
+                            keep_polling = false;
+                            $('#sign-in-plex-alert').text('Error communicating with Plex.tv.').show();
+                        },
                         complete: function () {
-                            if (polling){
+                            if (keep_polling){
                                 poll();
+                            } else {
+                                clearTimeout(polling);
                             }
                         },
                         timeout: 1000
                     });
                 }, 1000);
             })();
+        }, function () {
+            $('#sign-in-plex-alert').text('Error communicating with Plex.tv.').show();
         });
     });
 </script>

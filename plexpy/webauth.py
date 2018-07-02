@@ -359,20 +359,3 @@ class AuthController(object):
             logger.debug(u"Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def get_plex_oauth_url(self, *args, **kwargs):
-        pin = PlexTV().get_pin()
-        oauth_url = 'https://app.plex.tv/auth/#!?clientID={}&code={}'.format(
-            plexpy.CONFIG.PMS_UUID, pin['code'])
-        return {'pin': pin['id'], 'url': oauth_url}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def pin(self, pin=None, *args, **kwargs):
-        pin = PlexTV().get_pin(pin=pin)
-        if pin['token']:
-            return {'result': 'success', 'token': pin['token']}
-        else:
-            return {'result': 'polling'}
