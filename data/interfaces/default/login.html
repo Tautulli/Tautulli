@@ -95,6 +95,10 @@
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
 <script src="${http_root}js/platform.min.js"></script>
 <script>
+    if (!localStorage.getItem('Tautulli_ClientId')) {
+        localStorage.setItem('Tautulli_ClientId', uuidv4());
+    }
+
     function uuidv4() {
         return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
             (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -105,7 +109,7 @@
         'Accept': 'application/json',
         'X-Plex-Product': '${plexpy.common.PRODUCT}',
         'X-Plex-Version': '${plexpy.common.RELEASE}',
-        'X-Plex-Client-Identifier': uuidv4(),
+        'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
         'X-Plex-Platform': platform.name,
         'X-Plex-Platform-Version': platform.version,
         'X-Plex-Device': platform.os.toString(),
@@ -189,15 +193,18 @@
         const password = plex ? null : $('#password').val();
         const remember_me = $('#remember_me').is(':checked') ? '1' : '0';
 
+        var data = {
+            username: username,
+            password: password,
+            token: token,
+            remember_me: remember_me
+        };
+        data = $.extend(data, x_plex_headers);
+
         $.ajax({
             url: '${http_root}auth/signin',
             type: 'POST',
-            data: {
-                username: username,
-                password: password,
-                token: token,
-                remember_me: remember_me
-            },
+            data: data,
             dataType: 'json',
             statusCode: {
                 200: function() {

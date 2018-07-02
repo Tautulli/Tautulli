@@ -36,19 +36,19 @@ JWT_ALGORITHM = 'HS256'
 JWT_COOKIE_NAME = 'tautulli_token_'
 
 
-def user_login(username=None, password=None, token=None):
+def plex_user_login(username=None, password=None, token=None, headers=None):
     user_token = None
     user_id = None
 
     # Try to login to Plex.tv to check if the user has a vaild account
     if username and password:
-        plex_tv = PlexTV(username=username, password=password)
+        plex_tv = PlexTV(username=username, password=password, headers=headers)
         plex_user = plex_tv.get_token()
         if plex_user:
             user_token = plex_user['auth_token']
             user_id = plex_user['user_id']
     elif token:
-        plex_tv = PlexTV(token=token)
+        plex_tv = PlexTV(token=token, headers=headers)
         plex_user = plex_tv.get_plex_account_details()
         if plex_user:
             user_token = token
@@ -77,7 +77,7 @@ def user_login(username=None, password=None, token=None):
 
         # The user is in the database, and guest access is enabled, so try to retrieve a server token.
         # If a server token is returned, then the user is a valid friend of the server.
-        plex_tv = PlexTV(token=user_token)
+        plex_tv = PlexTV(token=user_token, headers=headers)
         server_token = plex_tv.get_server_token()
         if server_token:
 
@@ -115,7 +115,7 @@ def user_login(username=None, password=None, token=None):
         return None
 
 
-def check_credentials(username=None, password=None, token=None, admin_login='0'):
+def check_credentials(username=None, password=None, token=None, admin_login='0', headers=None):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
@@ -130,16 +130,10 @@ def check_credentials(username=None, password=None, token=None, admin_login='0')
                     username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
                 return True, user_details, 'admin'
 
-        if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
-            plex_login = user_login(username=username, password=password)
-            if plex_login is not None:
-                return True, plex_login[0], plex_login[1]
-
-    elif token:
-        if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
-            plex_login = user_login(token=token)
-            if plex_login is not None:
-                return True, plex_login[0], plex_login[1]
+    if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
+        plex_login = plex_user_login(username=username, password=password, token=token, headers=headers)
+        if plex_login is not None:
+            return True, plex_login[0], plex_login[1]
 
     return False, None, None
 
@@ -315,7 +309,8 @@ class AuthController(object):
         valid_login, user_details, user_group = check_credentials(username=username,
                                                                   password=password,
                                                                   token=token,
-                                                                  admin_login=admin_login)
+                                                                  admin_login=admin_login,
+                                                                  headers=kwargs)
 
         if valid_login:
             time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)

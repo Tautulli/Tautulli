@@ -121,7 +121,7 @@ class PlexTV(object):
     Plex.tv authentication
     """
 
-    def __init__(self, username=None, password=None, token=None):
+    def __init__(self, username=None, password=None, token=None, headers=None):
         self.username = username
         self.password = password
         self.token = token
@@ -147,7 +147,8 @@ class PlexTV(object):
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,
                                                         timeout=self.timeout,
-                                                        ssl_verify=self.ssl_verify)
+                                                        ssl_verify=self.ssl_verify,
+                                                        headers=headers)
 
     def get_plex_auth(self, output_format='raw'):
         uri = '/users/sign_in.xml'
