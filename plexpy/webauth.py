@@ -84,7 +84,7 @@ def user_login(username=None, password=None, token=None):
             # Register the new user / update the access tokens.
             monitor_db = MonitorDatabase()
             try:
-                logger.debug(u"Tautulli WebAuth :: Regestering tokens for user '%s' in the database."
+                logger.debug(u"Tautulli WebAuth :: Registering token for user '%s' in the database."
                              % user_details['username'])
                 result = monitor_db.action('UPDATE users SET server_token = ? WHERE user_id = ?',
                                            [server_token, user_details['user_id']])
@@ -244,7 +244,7 @@ class AuthController(object):
             return
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-    def on_login(self, username, user_id=None, user_group=None, success=0):
+    def on_login(self, username=None, user_id=None, user_group=None, success=0):
         """Called on successful login"""
 
         # Save login to the database
@@ -355,6 +355,7 @@ class AuthController(object):
             return error_message
 
         elif token:
+            self.on_login(username='Plex OAuth')
             logger.debug(u"Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message
