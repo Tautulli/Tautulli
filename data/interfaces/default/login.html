@@ -163,7 +163,9 @@
             const code = data.code;
             var keep_polling = true;
 
-            window.open('https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code);
+            var plex_oauth_window = PopupCenter(
+                'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code,
+                'Plex-OAuth', 600, 700);
 
             (function poll() {
                 polling = setTimeout(function () {
@@ -174,6 +176,9 @@
                         success: function (data) {
                             if (data.authToken){
                                 keep_polling = false;
+                                if (plex_oauth_window) {
+                                    plex_oauth_window.close();
+                                }
                                 signIn(true, data.authToken);
                             }
                         },
