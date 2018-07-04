@@ -146,14 +146,13 @@ def run():
     reconnects = 0
 
     # Try an open the websocket connection
-    while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
-        logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
-        try:
-            plexpy.WEBSOCKET = create_connection(uri, header=header)
-            logger.info(u"Tautulli WebSocket :: Ready")
-            plexpy.WS_CONNECTED = True
-        except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error("Tautulli WebSocket :: %s." % e)
+    logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
+    try:
+        plexpy.WEBSOCKET = create_connection(uri, header=header)
+        logger.info(u"Tautulli WebSocket :: Ready")
+        plexpy.WS_CONNECTED = True
+    except (websocket.WebSocketException, IOError, Exception) as e:
+        logger.error("Tautulli WebSocket :: %s." % e)
 
     if plexpy.WS_CONNECTED:
         on_connect()
