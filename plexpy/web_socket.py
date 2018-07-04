@@ -31,6 +31,8 @@ import logger
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 ws_shutdown = False
+pong_timer = None
+pong_count = 0
 
 
 def start_thread():
@@ -58,6 +60,7 @@ def on_connect():
         plexpy.PLEX_SERVER_UP = True
 
     plexpy.initialize_scheduler()
+    send_ping()
 
 
 def on_disconnect():
@@ -89,6 +92,34 @@ def close():
     logger.info(u"Tautulli WebSocket :: Disconnecting websocket...")
     plexpy.WEBSOCKET.close()
     plexpy.WS_CONNECTED = False
+
+
+def send_ping():
+    if plexpy.WS_CONNECTED:
+        # logger.debug(u"Tautulli WebSocket :: Sending ping.")
+        plexpy.WEBSOCKET.ping("Hi?")
+
+        global pong_timer
+        pong_timer = threading.Timer(5.0, wait_pong)
+        pong_timer.daemon = True
+        pong_timer.start()
+
+
+def wait_pong():
+    global pong_count
+    pong_count += 1
+
+    logger.warning(u"Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
+
+    if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+        close()
+
+
+def receive_pong():
+    # logger.debug(u"Tautulli WebSocket :: Received pong.")
+    global pong_timer
+    if pong_timer:
+        pong_timer = pong_timer.cancel()
 
 
 def run():
@@ -196,7 +227,10 @@ def receive(ws):
         ws.send_close()
         return frame.opcode, None
     elif frame.opcode == websocket.ABNF.OPCODE_PING:
+        # logger.debug(u"Tautulli WebSocket :: Received ping, sending pong.")
         ws.pong("Hi!")
+    elif frame.opcode == websocket.ABNF.OPCODE_PONG:
+        receive_pong()
 
     return None, None
 
