@@ -147,17 +147,7 @@ def run():
 
     # Try an open the websocket connection
     while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
-        if reconnects == 0:
-            logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
-
-        reconnects += 1
-
-        # Sleep 5 between connection attempts
-        if reconnects > 1:
-            time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
-
-        logger.info(u"Tautulli WebSocket :: Connection attempt %s." % str(reconnects))
-
+        logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
         try:
             plexpy.WEBSOCKET = create_connection(uri, header=header)
             logger.info(u"Tautulli WebSocket :: Ready")
