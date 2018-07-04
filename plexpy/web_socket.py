@@ -112,14 +112,17 @@ def wait_pong():
     logger.warning(u"Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
 
     if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+        pong_count = 0
         close()
 
 
 def receive_pong():
     # logger.debug(u"Tautulli WebSocket :: Received pong.")
     global pong_timer
+    global pong_count
     if pong_timer:
         pong_timer = pong_timer.cancel()
+        pong_count = 0
 
 
 def run():
