@@ -415,35 +415,40 @@ class Users(object):
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
 
-    def get_watch_time_stats(self, user_id=None):
+    def get_watch_time_stats(self, user_id=None, grouping=None):
         if not session.allow_session_user(user_id):
             return []
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
         user_watch_time_stats = []
 
+        group_by = 'reference_id' if grouping else 'id'
+
         for days in time_queries:
             try:
                 if days > 0:
                     if str(user_id).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
-                                '   SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                                'COUNT(id) AS total_plays ' \
+                                '   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                                'AND user_id = ?' % days
+                                'AND user_id = ? ' % (group_by, days)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
                 else:
                     if str(user_id).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
-                                '   SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                                'COUNT(id) AS total_plays ' \
+                                '   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
-                                'WHERE user_id = ?'
+                                'WHERE user_id = ? ' % group_by
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
@@ -468,22 +473,27 @@ class Users(object):
 
         return user_watch_time_stats
 
-    def get_player_stats(self, user_id=None):
+    def get_player_stats(self, user_id=None, grouping=None):
         if not session.allow_session_user(user_id):
             return []
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         monitor_db = database.MonitorDatabase()
 
         player_stats = []
         result_id = 0
 
+        group_by = 'reference_id' if grouping else 'id'
+
         try:
             if str(user_id).isdigit():
-                query = 'SELECT player, COUNT(player) as player_count, platform ' \
+                query = 'SELECT player, COUNT(DISTINCT %s) as player_count, platform ' \
                         'FROM session_history ' \
                         'WHERE user_id = ? ' \
                         'GROUP BY player ' \
-                        'ORDER BY player_count DESC'
+                        'ORDER BY player_count DESC' % group_by
                 result = monitor_db.select(query, args=[user_id])
             else:
                 result = []

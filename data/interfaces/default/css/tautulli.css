@@ -2121,11 +2121,9 @@ a:hover .item-children-poster {
     border-radius: 4px;
 }
 .settings-alert ul li:before {
-    display: none;
-    content: "\f071 ";
-    font-family: "Font Awesome 5 Solid";
-}
-.settings-alert ul li .svg-inline--fa {
+    content: "\f071";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
     margin-right: 5px;
 }
 .settings-warning {

@@ -982,7 +982,7 @@ Required parameters:
     section_id (str):               The id of the Plex library section
 
 Optional parameters:
-    None
+    grouping (int):         0 or 1
 
 Returns:
     json:
@@ -1010,7 +1010,7 @@ Required parameters:
     section_id (str):               The id of the Plex library section
 
 Optional parameters:
-    None
+    grouping (int):         0 or 1
 
 Returns:
     json:
@@ -2229,7 +2229,7 @@ Required parameters:
     user_id (str):          The id of the Plex user
 
 Optional parameters:
-    None
+    grouping (int):         0 or 1
 
 Returns:
     json:
@@ -2257,7 +2257,7 @@ Required parameters:
     user_id (str):          The id of the Plex user
 
 Optional parameters:
-    None
+    grouping (int):         0 or 1
 
 Returns:
     json:

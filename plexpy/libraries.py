@@ -757,37 +757,42 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_watch_time_stats(self, section_id=None):
+    def get_watch_time_stats(self, section_id=None, grouping=None):
         if not session.allow_session_library(section_id):
             return []
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
         library_watch_time_stats = []
 
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
         for days in time_queries:
             try:
                 if days > 0:
                     if str(section_id).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
-                                'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                                'COUNT(session_history.id) AS total_plays ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                                 'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                                'AND section_id = ?' % days
+                                'AND section_id = ?' % (group_by, days)
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
                 else:
                     if str(section_id).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
-                                'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                                'COUNT(session_history.id) AS total_plays ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE section_id = ?'
+                                'WHERE section_id = ?' % group_by
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -812,25 +817,30 @@ class Libraries(object):
 
         return library_watch_time_stats
 
-    def get_user_stats(self, section_id=None):
+    def get_user_stats(self, section_id=None, grouping=None):
         if not session.allow_session_library(section_id):
             return []
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         monitor_db = database.MonitorDatabase()
 
         user_stats = []
 
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
         try:
             if str(section_id).isdigit():
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
                         'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
-                        'users.user_id, users.thumb, COUNT(user) AS user_count ' \
+                        'users.user_id, users.thumb, COUNT(DISTINCT %s) AS user_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
                         'WHERE section_id = ? ' \
                         'GROUP BY users.user_id ' \
-                        'ORDER BY user_count DESC'
+                        'ORDER BY user_count DESC' % group_by
                 result = monitor_db.select(query, args=[section_id])
             else:
                 result = []
