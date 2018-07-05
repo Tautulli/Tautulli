@@ -116,90 +116,17 @@
 <script>
     var login_accordion = new Accordion($('#login-methods'), false, false);
 
-    if (!localStorage.getItem('Tautulli_ClientId')) {
-        localStorage.setItem('Tautulli_ClientId', uuidv4());
+    function OAuthSuccessCallback(authToken) {
+        signIn(true, authToken);
+    }
+    function OAuthErrorCallback() {
+        $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
     }
 
-    function uuidv4() {
-        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-        )
-    }
-
-    const x_plex_headers = {
-        'Accept': 'application/json',
-        'X-Plex-Product': '${plexpy.common.PRODUCT}',
-        'X-Plex-Version': '${plexpy.common.RELEASE}',
-        'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
-        'X-Plex-Platform': platform.name,
-        'X-Plex-Platform-Version': platform.version,
-        'X-Plex-Device': platform.os.toString(),
-        'X-Plex-Device-Name': platform.name
-    };
-
-    getPlexOAuthPin = function () {
-        var deferred = $.Deferred();
-
-        $.ajax({
-            url: 'https://plex.tv/api/v2/pins?strong=true',
-            type: 'POST',
-            headers: x_plex_headers,
-            success: function(data) {
-                deferred.resolve({pin: data.id, code: data.code});
-            },
-            error: function() {
-                deferred.reject();
-            }
-        });
-        return deferred;
-    };
-
-    var polling = null;
     $('#sign-in-plex').click(function() {
-        clearTimeout(polling);
-
-        getPlexOAuthPin().then(function (data) {
-            const pin = data.pin;
-            const code = data.code;
-            var keep_polling = true;
-
-            var plex_oauth_window = PopupCenter(
-                'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code,
-                'Plex-OAuth', 600, 700);
-
-            (function poll() {
-                polling = setTimeout(function () {
-                    $.ajax({
-                        url: 'https://plex.tv/api/v2/pins/' + pin,
-                        type: 'GET',
-                        headers: x_plex_headers,
-                        success: function (data) {
-                            if (data.authToken){
-                                keep_polling = false;
-                                if (plex_oauth_window) {
-                                    plex_oauth_window.close();
-                                }
-                                signIn(true, data.authToken);
-                            }
-                        },
-                        error: function () {
-                            keep_polling = false;
-                            $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
-                        },
-                        complete: function () {
-                            if (keep_polling){
-                                poll();
-                            } else {
-                                clearTimeout(polling);
-                            }
-                        },
-                        timeout: 1000
-                    });
-                }, 1000);
-            })();
-        }, function () {
-            $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
-        });
+        x_plex_headers['X-Plex-Product'] = '${plexpy.common.PRODUCT}';
+        x_plex_headers['X-Plex-Version'] = '${plexpy.common.RELEASE}';
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
     });
 
     $('#login-form').submit(function(event) {

@@ -2255,86 +2255,23 @@ $(document).ready(function() {
         window.open(pms_web_url, '_blank');
     });
 
-    const x_plex_headers = {
-        'Accept': 'application/json',
-        'X-Plex-Product': '${plexpy.common.PRODUCT}',
-        'X-Plex-Version': '${plexpy.common.RELEASE}',
-        'X-Plex-Client-Identifier': '${plexpy.generate_uuid()}',
-        'X-Plex-Platform': '${plexpy.common.PLATFORM}',
-        'X-Plex-Platform-Version': '${plexpy.common.PLATFORM_RELEASE}',
-        'X-Plex-Device': '${plexpy.common.PLATFORM} ${plexpy.common.PLATFORM_RELEASE}',
-        'X-Plex-Device-Name': '${plexpy.common.PLATFORM_DEVICE_NAME}'
-    };
-
-    getPlexOAuthPin = function () {
-        var deferred = $.Deferred();
-
-        $.ajax({
-            url: 'https://plex.tv/api/v2/pins?strong=true',
-            type: 'POST',
-            headers: x_plex_headers,
-            success: function(data) {
-                deferred.resolve({pin: data.id, code: data.code});
-            },
-            error: function() {
-                deferred.reject();
-            }
-        });
-        return deferred;
-    };
-
-    var polling = null;
-    $('#sign-in-plex').click(function() {
+    function OAuthPreFunction() {
         $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+    }
+    function OAuthSuccessCallback(authToken) {
+        $("#pms_token").val(authToken);
+        $("#pms_uuid").val(x_plex_headers['X-Plex-Client-Identifier']);
+        $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
+        getServerOptions(authToken);
+    }
+    function OAuthErrorCallback() {
+        $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+    }
 
-        clearTimeout(polling);
-
-        getPlexOAuthPin().then(function (data) {
-            const pin = data.pin;
-            const code = data.code;
-            var keep_polling = true;
-
-            var plex_oauth_window = PopupCenter(
-                'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code,
-                'Plex-OAuth', 600, 700);
-
-            (function poll() {
-                polling = setTimeout(function () {
-                    $.ajax({
-                        url: 'https://plex.tv/api/v2/pins/' + pin,
-                        type: 'GET',
-                        headers: x_plex_headers,
-                        success: function (data) {
-                            if (data.authToken){
-                                var authToken = data.authToken;
-                                keep_polling = false;
-                                if (plex_oauth_window) {
-                                    plex_oauth_window.close();
-                                }
-                                $("#pms_token").val(authToken);
-                                $("#pms_uuid").val(x_plex_headers['X-Plex-Client-Identifier']);
-                                $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-                                getServerOptions(authToken)
-                            }
-                        },
-                        error: function () {
-                            keep_polling = false;
-                            $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-                        },
-                        complete: function () {
-                            if (keep_polling){
-                                poll();
-                            } else {
-                                clearTimeout(polling);
-                            }
-                        },
-                        timeout: 1000
-                    });
-                }, 1000);
-            })();
-        }, function () {
-            $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-        });
+    $('#sign-in-plex').click(function() {
+        x_plex_headers['X-Plex-Product'] = '${plexpy.common.PRODUCT}';
+        x_plex_headers['X-Plex-Version'] = '${plexpy.common.RELEASE}';
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
     });
 
     // Load database import modal
