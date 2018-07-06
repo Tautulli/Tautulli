@@ -503,8 +503,8 @@ function uuidv4() {
 
 var x_plex_headers = {
     'Accept': 'application/json',
-    'X-Plex-Product': '',
-    'X-Plex-Version': '',
+    'X-Plex-Product': 'Tautulli',
+    'X-Plex-Version': 'Plex OAuth',
     'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
     'X-Plex-Platform': platform.name,
     'X-Plex-Platform-Version': platform.version,
@@ -515,7 +515,7 @@ var x_plex_headers = {
 var plex_oauth_window = null;
 const plex_oauth_loader = '<style>' +
         '.login-loader-container {' +
-            'font-family: \'Open Sans\', Arial, sans-serif;' +
+            'font-family: "Open Sans", Arial, sans-serif;' +
             'position: absolute;' +
             'top: 0;' +
             'right: 0;' +
@@ -541,12 +541,16 @@ const plex_oauth_loader = '<style>' +
             'position: relative;' +
             'left: calc(50% - 25px);' +
         '}' +
+        '@keyframes spin {' +
+            '0% { transform: rotate(0deg); }' +
+            '100% { transform: rotate(360deg); }' +
+        '}' +
     '</style>' +
-    '<div class"login-loader-container">' +
+    '<div class="login-loader-container">' +
         '<div class="login-loader-message">' +
             '<div class="login-loader"></div>' +
             '<br>' +
-            'Redirecting to Plex Login...' +
+            'Redirecting to the Plex login page...' +
         '</div>' +
     '</div>';
 

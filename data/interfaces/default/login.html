@@ -124,8 +124,6 @@
     }
 
     $('#sign-in-plex').click(function() {
-        x_plex_headers['X-Plex-Product'] = '${plexpy.common.PRODUCT}';
-        x_plex_headers['X-Plex-Version'] = '${plexpy.common.RELEASE}';
         PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
     });
 
