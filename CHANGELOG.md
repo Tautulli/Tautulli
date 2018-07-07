@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.16-beta (2018-07-06)
+
+* Monitoring:
+  * Fix: Plex server not detected as down during sudden network loss.
+* Notifications:
+  * Fix: Incorrect rounding of percentages in some cases.
+  * Fix: Incorrect stream duration value for playback start notifications.
+  * New: Added critic rating parameter for Rotten Tomatoes ratings.
+* Newsletters:
+  * Fix: Typo in "seasons" when there is only one additional season.
+* UI:
+  * New: Added ability to use Plex OAuth to login to Tautulli.
+* API:
+  * Fix: Unicode characters causing get_logs command to return bad data.
+  * New: Added rating_image and audience_rating_image to get_activity and get_metadata commands.
+
+
 ## v2.1.15-beta (2018-07-01)
 
 * Monitoring:
