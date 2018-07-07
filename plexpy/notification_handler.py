@@ -708,6 +708,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = 1
         grandchild_count = 1
 
+    critic_rating = ''
+    if notify_params['rating_image'].startswith('rottentomatoes://') and notify_params['rating']:
+        critic_rating = helpers.get_percent(notify_params['rating'], 10)
+
+    audience_rating = ''
+    if notify_params['audience_rating']:
+        audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -856,7 +864,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'summary': notify_params['summary'],
         'tagline': notify_params['tagline'],
         'rating': notify_params['rating'],
-        'audience_rating': helpers.get_percent(notify_params['audience_rating'], 10) or '',
+        'critic_rating':  critic_rating,
+        'audience_rating': audience_rating,
         'duration': duration,
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
