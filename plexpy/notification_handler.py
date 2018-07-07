@@ -526,8 +526,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
-    
-    if notify_action != 'play':
+
+    if notify_action != 'on_play':
         stream_duration = int((time.time() -
                                helpers.cast_to_int(session.get('started', 0)) -
                                helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
