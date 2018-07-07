@@ -2973,9 +2973,13 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li .link:hover {
+.accordion li .link:hover,
+.accordion li .link:hover i.fa {
     color: #fff;
     background: #2f2f2f;
+}
+.accordion li .link i.fa {
+    color: #999;
 }
 .accordion li .link span.toggle-right {
     float: right;
@@ -2990,7 +2994,8 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li.open .link {
+.accordion li.open .link,
+.accordion li.open .link i.fa {
     color: #f9be03;
 }
 .accordion li.open .fa-chevron-down {
