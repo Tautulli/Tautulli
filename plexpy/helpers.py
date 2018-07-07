@@ -466,7 +466,7 @@ def get_percent(value1, value2):
     else:
         percent = 0
 
-    return math.trunc(percent)
+    return math.trunc(round(percent, 0))
 
 
 def hex_to_int(hex):
