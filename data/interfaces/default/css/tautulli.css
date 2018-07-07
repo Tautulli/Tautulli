@@ -2975,7 +2975,6 @@ a .home-platforms-list-cover-face:hover
 }
 .accordion li .link:hover,
 .accordion li .link:hover i.fa {
-    color: #fff;
     background: #2f2f2f;
 }
 .accordion li .link i.fa {
