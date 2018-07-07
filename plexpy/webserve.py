@@ -4614,7 +4614,8 @@ class WebInterface(object):
                                              "video_language_code": "",
                                              "video_profile": "high",
                                              "video_ref_frames": "4",
-                                             "video_width": "1920"
+                                             "video_width": "1920",
+                                             "selected": 0
                                          },
                                          {
                                              "audio_bitrate": "384",
@@ -4627,7 +4628,8 @@ class WebInterface(object):
                                              "audio_profile": "",
                                              "audio_sample_rate": "48000",
                                              "id": "511664",
-                                             "type": "2"
+                                             "type": "2",
+                                             "selected": 1
                                          },
                                          {
                                              "id": "511953",
@@ -4638,7 +4640,8 @@ class WebInterface(object):
                                              "subtitle_language": "English",
                                              "subtitle_language_code": "eng",
                                              "subtitle_location": "external",
-                                             "type": "3"
+                                             "type": "3",
+                                             "selected": 1
                                          }
                                      ]
                                  }

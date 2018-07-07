@@ -1213,7 +1213,8 @@ class PmsConnect(object):
                                             'video_width': helpers.get_xml_attr(stream, 'width'),
                                             'video_language': helpers.get_xml_attr(stream, 'language'),
                                             'video_language_code': helpers.get_xml_attr(stream, 'languageCode'),
-                                            'video_profile': helpers.get_xml_attr(stream, 'profile')
+                                            'video_profile': helpers.get_xml_attr(stream, 'profile'),
+                                            'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
                         elif helpers.get_xml_attr(stream, 'streamType') == '2':
@@ -1227,7 +1228,8 @@ class PmsConnect(object):
                                             'audio_sample_rate': helpers.get_xml_attr(stream, 'samplingRate'),
                                             'audio_language': helpers.get_xml_attr(stream, 'language'),
                                             'audio_language_code': helpers.get_xml_attr(stream, 'languageCode'),
-                                            'audio_profile': helpers.get_xml_attr(stream, 'profile')
+                                            'audio_profile': helpers.get_xml_attr(stream, 'profile'),
+                                            'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
                         elif helpers.get_xml_attr(stream, 'streamType') == '3':
@@ -1239,14 +1241,16 @@ class PmsConnect(object):
                                             'subtitle_forced': int(helpers.get_xml_attr(stream, 'forced') == '1'),
                                             'subtitle_location': 'external' if helpers.get_xml_attr(stream, 'key') else 'embedded',
                                             'subtitle_language': helpers.get_xml_attr(stream, 'language'),
-                                            'subtitle_language_code': helpers.get_xml_attr(stream, 'languageCode')
+                                            'subtitle_language_code': helpers.get_xml_attr(stream, 'languageCode'),
+                                            'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
                     parts.append({'id': helpers.get_xml_attr(part, 'id'),
                                   'file': helpers.get_xml_attr(part, 'file'),
                                   'file_size': helpers.get_xml_attr(part, 'size'),
                                   'indexes': int(helpers.get_xml_attr(part, 'indexes') == 'sd'),
-                                  'streams': streams
+                                  'streams': streams,
+                                  'selected': int(helpers.get_xml_attr(part, 'selected') == '1')
                                   })
 
                 audio_channels = helpers.get_xml_attr(media, 'audioChannels')
