@@ -33,7 +33,9 @@ class HTTPHandler(object):
     Retrieve data from Plex Server
     """
 
-    def __init__(self, urls, headers=None, token=None, timeout=10, ssl_verify=True):
+    def __init__(self, urls, headers=None, token=None, timeout=10, ssl_verify=True, silent=False):
+        self._silent = silent
+
         if isinstance(urls, basestring):
             self.urls = urls.split() or urls.split(',')
         else:
@@ -131,7 +133,8 @@ class HTTPHandler(object):
                 for work in pool.imap_unordered(part, urls, chunk):
                     yield work
             except Exception as e:
-                logger.error(u"Failed to yield request: %s" % e)
+                if not self._silent:
+                    logger.error(u"Failed to yield request: %s" % e)
             finally:
                 pool.close()
                 pool.join()
@@ -141,13 +144,16 @@ class HTTPHandler(object):
         try:
             r = session.request(self.request_type, url, headers=self.headers, timeout=self.timeout)
         except IOError as e:
-            logger.warn(u"Failed to access uri endpoint %s with error %s" % (self.uri, e))
+            if not self._silent:
+                logger.warn(u"Failed to access uri endpoint %s with error %s" % (self.uri, e))
             return None
         except Exception as e:
-            logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (self.uri, e))
+            if not self._silent:
+                logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (self.uri, e))
             return None
         except:
-            logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % self.uri)
+            if not self._silent:
+                logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % self.uri)
             return None
 
         response_status = r.status
@@ -157,7 +163,8 @@ class HTTPHandler(object):
         if response_status in (200, 201):
             return self._http_format_output(response_content, response_headers)
         else:
-            logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
+            if not self._silent:
+                logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
             return None
 
     def _http_format_output(self, response_content, response_headers):
@@ -183,5 +190,6 @@ class HTTPHandler(object):
             return output
 
         except Exception as e:
-            logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
+            if not self._silent:
+                logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
             return None

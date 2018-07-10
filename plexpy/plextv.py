@@ -687,10 +687,14 @@ class PlexTV(object):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
 
         # Try to discover localhost server
-        pms_connect = pmsconnect.PmsConnect(url='http://127.0.0.1:32400')
-        pms_connect.request_handler.timeout = 1
-        identity = pms_connect.get_server_identity(log=False)
-        local_machine_identifier = identity.get('machine_identifier')
+        local_machine_identifier = None
+        request_handler = http_handler.HTTPHandler(urls='http://127.0.0.1:32400', timeout=1,
+                                                   ssl_verify=False, silent=True)
+        request = request_handler.make_request(uri='/identity', request_type='GET', output_format='xml')
+        if request:
+            xml_head = request.getElementsByTagName('MediaContainer')[0]
+            local_machine_identifier = xml_head.getAttribute('machineIdentifier')
+
         local_server = {'httpsRequired': '0',
                         'clientIdentifier': local_machine_identifier,
                         'label': 'Local',

@@ -2193,7 +2193,7 @@ class PmsConnect(object):
 
         return server_info
 
-    def get_server_identity(self, log=True):
+    def get_server_identity(self):
         """
         Return the local machine identity.
 
@@ -2204,8 +2204,7 @@ class PmsConnect(object):
         try:
             xml_head = identity.getElementsByTagName('MediaContainer')
         except Exception as e:
-            if log:
-                logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_local_server_identity: %s." % e)
+            logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_local_server_identity: %s." % e)
             return {}
 
         server_identity = {}
