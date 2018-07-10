@@ -37,7 +37,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
     var message = $("<div class='msg'>" + msg + "</div>");
     if (loader) {
-        message = $("<div class='msg'><i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
+        message = $("<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbsp; " + msg + "</div>");
         feedback.css("padding", "14px 10px");
     }
     if (error) {
@@ -73,9 +73,9 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 if (result.result == 'success') {
-                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    showMsg('<i class="fa fa-check"></i>&nbsp; ' + msg, false, true, 5000);
                 } else {
-                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                    showMsg('<i class="fa fa-times"></i>&nbsp; ' + msg, false, true, 5000, true);
                 }
                 if (typeof callback === "function") {
                     callback(result);
@@ -103,7 +103,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         dataString = $(formID).serialize();
     }
     // Loader Image
-    var loader = $("<i class='fa fa-refresh fa-spin ajaxLoader-" + url +"></i>");
+    var loader = $("<div class='msg ajaxLoader-" + url +"'><i class='fa fa-refresh fa-spin'></i>&nbsp; Saving...</div>");
     // Data Success Message
     var dataSucces = $(elem).data('success');
     if (typeof dataSucces === "undefined") {
@@ -117,8 +117,8 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         dataError = "There was an error";
     }
     // Get Success & Error message from inline data, else use standard message
-    var succesMsg = $("<div class='msg'><i class='fa fa-check'></i> " + dataSucces + "</div>");
-    var errorMsg = $("<div class='msg'><i class='fa fa-exclamation-triangle'></i> " + dataError + "</div>");
+    var succesMsg = $("<div class='msg'><i class='fa fa-check'></i>&nbsp; " + dataSucces + "</div>");
+    var errorMsg = $("<div class='msg'><i class='fa fa-exclamation-triangle'></i>&nbsp; " + dataError + "</div>");
     // Check if checkbox is selected
     if (form) {
         if ($('td#select input[type=checkbox]').length > 0 && !$('td#select input[type=checkbox]').is(':checked') ||
@@ -187,7 +187,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         },
         complete: function (jqXHR, textStatus) {
             // Remove loaders and stuff, ajax request is complete!
-            feedback.remove('.ajaxLoader-' + url);
+            $('.ajaxLoader-' + url).remove();
             if (typeof callback === "function") {
                 callback(jqXHR);
             }
