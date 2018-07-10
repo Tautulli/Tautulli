@@ -203,8 +203,8 @@ DOCUMENTATION :: END
         $('#confirm-modal-update').modal();
         $('#confirm-modal-update').one('click', '#confirm-update', function () {
             $(this).prop('disabled', true);
-            var msg = '<i class="fa fa-refresh fa-spin"></i>&nbspUpdating database...'
-            showMsg(msg, false, false, 0)
+            var msg = '<i class="fa fa-refresh fa-spin"></i>&nbsp; Updating database...';
+            showMsg(msg, false, false, 0);
 
             $.ajax({
                 url: 'update_metadata_details',

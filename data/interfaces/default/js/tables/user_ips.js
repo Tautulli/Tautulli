@@ -141,7 +141,7 @@ user_ip_table_options = {
 
     },
     "preDrawCallback": function(settings) {
-        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
         showMsg(msg, false, false, 0)
     }
 }

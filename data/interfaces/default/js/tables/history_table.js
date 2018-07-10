@@ -289,7 +289,7 @@ history_table_options = {
             ' (filtered from ' + settings.json.total_duration + ' total)</span>');
     },
     "preDrawCallback": function(settings) {
-        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
         showMsg(msg, false, false, 0);
         $('[data-toggle="tooltip"]').tooltip('destroy');
         $('[data-toggle="popover"]').popover('destroy');
