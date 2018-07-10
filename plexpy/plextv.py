@@ -685,6 +685,23 @@ class PlexTV(object):
 
     def discover(self, include_cloud=True, all_servers=False):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
+
+        # Try to discover localhost server
+        pms_connect = pmsconnect.PmsConnect(url='http://127.0.0.1:32400')
+        pms_connect.request_handler.timeout = 1
+        identity = pms_connect.get_server_identity(log=False)
+        local_machine_identifier = identity.get('machine_identifier')
+        local_server = {'httpsRequired': '0',
+                        'clientIdentifier': local_machine_identifier,
+                        'label': 'Local',
+                        'ip': '127.0.0.1',
+                        'port': '32400',
+                        'uri': 'http://127.0.0.1:32400',
+                        'local': '1',
+                        'value': '127.0.0.1:32400',
+                        'is_cloud': False
+                        }
+
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
         clean_servers = []
 
@@ -704,8 +721,8 @@ class PlexTV(object):
 
                 for d in devices:
                     if helpers.get_xml_attr(d, 'presence') == '1' and \
-                        helpers.get_xml_attr(d, 'owned') == '1' and \
-                        helpers.get_xml_attr(d, 'provides') == 'server':
+                            helpers.get_xml_attr(d, 'owned') == '1' and \
+                            helpers.get_xml_attr(d, 'provides') == 'server':
 
                         is_cloud = (helpers.get_xml_attr(d, 'platform').lower() == 'cloud')
                         if not include_cloud and is_cloud:
@@ -717,13 +734,19 @@ class PlexTV(object):
                             if not all_servers:
                                 # If this is a remote server don't show any local IPs.
                                 if helpers.get_xml_attr(d, 'publicAddressMatches') == '0' and \
-                                    helpers.get_xml_attr(c, 'local') == '1':
+                                        helpers.get_xml_attr(c, 'local') == '1':
                                     continue
 
                                 # If this is a local server don't show any remote IPs.
                                 if helpers.get_xml_attr(d, 'publicAddressMatches') == '1' and \
-                                    helpers.get_xml_attr(c, 'local') == '0':
+                                        helpers.get_xml_attr(c, 'local') == '0':
                                     continue
+
+                            if helpers.get_xml_attr(d, 'clientIdentifier') == local_machine_identifier:
+                                local_server['httpsRequired'] = helpers.get_xml_attr(d, 'httpsRequired')
+                                local_server['label'] = helpers.get_xml_attr(d, 'name')
+                                clean_servers.append(local_server)
+                                local_machine_identifier = None
 
                             server = {'httpsRequired': '1' if is_cloud else helpers.get_xml_attr(d, 'httpsRequired'),
                                       'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
@@ -732,10 +755,15 @@ class PlexTV(object):
                                       'port': helpers.get_xml_attr(c, 'port'),
                                       'uri': helpers.get_xml_attr(c, 'uri'),
                                       'local': helpers.get_xml_attr(c, 'local'),
-                                      'value': helpers.get_xml_attr(c, 'address'),
+                                      'value': helpers.get_xml_attr(c, 'address') + ':' + helpers.get_xml_attr(c, 'port'),
                                       'is_cloud': is_cloud
                                       }
                             clean_servers.append(server)
+
+            if local_machine_identifier:
+                clean_servers.append(local_server)
+
+        clean_servers.sort(key=lambda s: (s['label'], -int(s['local']), s['ip']))
 
         return clean_servers
 
