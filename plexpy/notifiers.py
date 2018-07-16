@@ -3000,7 +3000,7 @@ class SCRIPTS(Notifier):
             'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
             'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-            'PYTHONPATH': os.pathsep.join(sys.path)
+            'PYTHONPATH': os.pathsep.join([p for p in sys.path if p])
             })
 
         try:
