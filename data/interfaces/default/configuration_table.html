@@ -22,11 +22,11 @@ DOCUMENTATION :: END
         % if plexpy.CURRENT_VERSION:
         <tr>
             <td>Git Branch:</td>
-            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/tree/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH))}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/tree/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH))}" target="_blank">${plexpy.CONFIG.GIT_BRANCH}</a></td>
         </tr>
         <tr>
             <td>Git Commit Hash:</td>
-            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/commit/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION))}">${plexpy.CURRENT_VERSION}</a></td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/commit/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION))}" target="_blank">${plexpy.CURRENT_VERSION}</a></td>
         </tr>
         % endif
         <tr>

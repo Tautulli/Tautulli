@@ -633,7 +633,8 @@ class Libraries(object):
                     if 'media_info' in child_metadata and len(child_metadata['media_info']) > 0:
                         media_info = child_metadata['media_info'][0]
                         if 'parts' in media_info and len (media_info['parts']) > 0:
-                            media_part_info = media_info['parts'][0]
+                            media_part_info = next((p for p in media_info['parts'] if p['selected']),
+                                                   media_info['parts'][0])
 
                     file_size += helpers.cast_to_int(media_part_info.get('file_size', 0))
 

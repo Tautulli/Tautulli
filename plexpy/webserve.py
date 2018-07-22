@@ -130,6 +130,7 @@ class WebInterface(object):
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
+            "pms_name": plexpy.CONFIG.PMS_NAME,
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
 
@@ -2822,6 +2823,7 @@ class WebInterface(object):
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
+            "pms_name": plexpy.CONFIG.PMS_NAME,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
@@ -4634,7 +4636,8 @@ class WebInterface(object):
                                              "video_language_code": "",
                                              "video_profile": "high",
                                              "video_ref_frames": "4",
-                                             "video_width": "1920"
+                                             "video_width": "1920",
+                                             "selected": 0
                                          },
                                          {
                                              "audio_bitrate": "384",
@@ -4647,7 +4650,8 @@ class WebInterface(object):
                                              "audio_profile": "",
                                              "audio_sample_rate": "48000",
                                              "id": "511664",
-                                             "type": "2"
+                                             "type": "2",
+                                             "selected": 1
                                          },
                                          {
                                              "id": "511953",
@@ -4658,7 +4662,8 @@ class WebInterface(object):
                                              "subtitle_language": "English",
                                              "subtitle_language_code": "eng",
                                              "subtitle_location": "external",
-                                             "type": "3"
+                                             "type": "3",
+                                             "selected": 1
                                          }
                                      ]
                                  }

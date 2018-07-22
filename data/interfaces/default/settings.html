@@ -650,12 +650,20 @@
                         </div>
 
                         <div class="form-group has-feedback" id="pms_ip_group">
-                            <label for="pms_ip">Plex IP Address or Hostname</label>
+                            <label for="pms_ip_selectize">Plex IP Address or Hostname</label>
                             <div class="row">
                                 <div class="col-md-9" id="selectize-pms-ip-container">
                                     <div class="input-group">
-                                        <select class="form-control pms-settings selectize-pms-ip" id="pms_ip" name="pms_ip" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
-                                            <option value="${config['pms_ip']}" selected>${config['pms_ip']}</option>
+                                        <select class="form-control pms-settings selectize-pms-ip" id="pms_ip_selectize" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                            <option value="${config['pms_ip']}:${config['pms_port']}"
+                                                    data-identifier="${config['pms_identifier']}"
+                                                    data-ip="${config['pms_ip']}"
+                                                    data-port="${config['pms_port']}"
+                                                    data-local="${int(not int(config['pms_is_remote']))}"
+                                                    data-ssl="${config['pms_ssl']}"
+                                                    data-is_cloud="${config['pms_is_cloud']}"
+                                                    data-label="${config['pms_name'] or 'Local'}"
+                                                    selected>${config['pms_ip']}</option>
                                         </select>
                                         <span class="input-group-btn">
                                             <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
@@ -738,6 +746,7 @@
                             </p>
                         </div>
 
+                        <input type="hidden" id="pms_ip" name="pms_ip" value="${config['pms_ip']}">
                         <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
@@ -2053,7 +2062,7 @@ $(document).ready(function() {
         }
     });
 
-    var $select_pms = $('#pms_ip').selectize({
+    var $select_pms = $('#pms_ip_selectize').selectize({
         createOnBlur: true,
         openOnFocus: true,
         maxItems: 1,
@@ -2064,13 +2073,19 @@ $(document).ready(function() {
         dropdownParent: '#selectize-pms-ip-container',
         render: {
             item: function (item, escape) {
+                if (!item.label) {
+                    $.extend(item,
+                        $(this.revertSettings.$children)
+                             .filter('[value=' + item.value + ']').data()
+                    );
+                }
                 var label = item.label || item.value;
-                var caption = item.label ? item.value : null;
-                return '<div data-ssl="' + item.httpsRequired +
-                        '" data-local="' + item.local +
-                        '" data-identifier="' + item.clientIdentifier +
+                var caption = item.label ? item.ip : null;
+                return '<div data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
+                        '" data-local="' + item.local +
+                        '" data-ssl="' + item.httpsRequired +
                         '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         '<span class="item-text">' + escape(label) + '</span>' +
@@ -2080,11 +2095,11 @@ $(document).ready(function() {
             option: function (item, escape) {
                 var label = item.label || item.value;
                 var caption = item.label ? item.value : null;
-                return '<div data-ssl="' + item.httpsRequired +
-                        '" data-local="' + item.local +
-                        '" data-identifier="' + item.clientIdentifier +
+                return '<div data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
+                        '" data-local="' + item.local +
+                        '" data-ssl="' + item.httpsRequired +
                         '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         escape(label) +
@@ -2095,15 +2110,24 @@ $(document).ready(function() {
         create: function(input) {
             return {label: '', value: input};
         },
+        onInitialize: function () {
+            var s = this;
+            this.revertSettings.$children.each(function () {
+                $.extend(s.options[this.value], $(this).data());
+            });
+        },
         onChange: function (item) {
             var pms_ip_selected = this.getItem(item)[0];
             var identifier = $(pms_ip_selected).data('identifier');
+            var ip = $(pms_ip_selected).data('ip');
             var port = $(pms_ip_selected).data('port');
             var local = $(pms_ip_selected).data('local');
             var ssl = $(pms_ip_selected).data('ssl');
             var is_cloud = $(pms_ip_selected).data('is_cloud');
+            var value = $(pms_ip_selected).data('value');
 
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
+            $('#pms_ip').val(ip !== 'undefined' ? ip : value);
             $('#pms_port').val(port !== 'undefined' ? port : 32400);
             $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
             $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
@@ -2128,9 +2152,10 @@ $(document).ready(function() {
             },
             success: function (result) {
                 if (result) {
-                    var existing_value = $('#pms_ip').val();
+                    var existing_ip = $('#pms_ip').val();
+                    var existing_port = $('#pms_port').val();
                     result.forEach(function (item) {
-                        if (item.value === existing_value) {
+                        if (item.ip === existing_ip && item.port === existing_port) {
                             select_pms.updateOption(item.value, item);
                         } else {
                             select_pms.addOption(item);

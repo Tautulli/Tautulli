@@ -486,20 +486,24 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if 'media_info' in notify_params and len(notify_params['media_info']) > 0:
         media_info = notify_params['media_info'][0]
         if 'parts' in media_info and len(media_info['parts']) > 0:
-            media_part_info = media_info.pop('parts')[0]
+            parts = media_info.pop('parts')
+            media_part_info = next((p for p in parts if p['selected']), parts[0])
 
-    stream_video = stream_audio = stream_subtitle = False
     if 'streams' in media_part_info:
-        for stream in media_part_info.pop('streams'):
-            if not stream_video and stream['type'] == '1':
-                media_part_info.update(stream)
-                stream_video = True
-            if not stream_audio and stream['type'] == '2':
-                media_part_info.update(stream)
-                stream_audio = True
-            if not stream_subtitle and stream['type'] == '3':
-                media_part_info.update(stream)
-                stream_subtitle = True
+        streams = media_part_info.pop('streams')
+        video_streams = [s for s in streams if s['type'] == '1']
+        audio_streams = [s for s in streams if s['type'] == '2']
+        subtitle_streams = [s for s in streams if s['type'] == '3']
+
+        if video_streams:
+            video_stream = next((s for s in video_streams if s['selected']), video_streams[0])
+            media_part_info.update(video_stream)
+        if audio_streams:
+            audio_stream = next((s for s in audio_streams if s['selected']), audio_streams[0])
+            media_part_info.update(audio_stream)
+        if subtitle_streams:
+            subtitle_stream = next((s for s in subtitle_streams if s['selected']), subtitle_streams[0])
+            media_part_info.update(subtitle_stream)
 
     notify_params.update(media_info)
     notify_params.update(media_part_info)
