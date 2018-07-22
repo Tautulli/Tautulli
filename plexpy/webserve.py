@@ -4580,6 +4580,7 @@ class WebInterface(object):
                      "added_at": "1461572396",
                      "art": "/library/metadata/1219/art/1462175063",
                      "audience_rating": "8",
+                     "audience_rating_image": "rottentomatoes://image.rating.upright",
                      "banner": "/library/metadata/1219/banner/1462175063",
                      "collections": [],
                      "content_rating": "TV-MA",
@@ -4677,6 +4678,7 @@ class WebInterface(object):
                      "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                      "parent_title": "",
                      "rating": "7.8",
+                     "rating_image": "rottentomatoes://image.rating.ripe",
                      "rating_key": "153037",
                      "section_id": "2",
                      "sort_title": "Game of Thrones",
@@ -4940,6 +4942,7 @@ class WebInterface(object):
                              "art": "/library/metadata/1219/art/1503306930",
                              "aspect_ratio": "1.78",
                              "audience_rating": "",
+                             "audience_rating_image": "rottentomatoes://image.rating.upright",
                              "audio_bitrate": "384",
                              "audio_bitrate_mode": "",
                              "audio_channel_layout": "5.1(side)",
@@ -5016,6 +5019,7 @@ class WebInterface(object):
                              "progress_percent": "0",
                              "quality_profile": "Original",
                              "rating": "7.8",
+                             "rating_image": "rottentomatoes://image.rating.ripe",
                              "rating_key": "153037",
                              "relay": 0,
                              "section_id": "2",
@@ -5234,15 +5238,21 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"email": "Jon.Snow.1337@CastleBlack.com",
+                    [{"allow_guest": 1,
+                      "do_notify": 1,
+                      "email": "Jon.Snow.1337@CastleBlack.com",
                       "filter_all": "",
                       "filter_movies": "",
                       "filter_music": "",
                       "filter_photos": "",
                       "filter_tv": "",
-                      "is_allow_sync": null,
-                      "is_home_user": "1",
-                      "is_restricted": "0",
+                      "is_admin": 0,
+                      "is_allow_sync": 1,
+                      "is_home_user": 1,
+                      "is_restricted": 0,
+                      "keep_history": 1,
+                      "server_token": "PU9cMuQZxJKFBtGqHk68",
+                      "shared_libraries": "1;2;3",
                       "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
                       "user_id": "133788",
                       "username": "Jon Snow"
@@ -5252,8 +5262,8 @@ class WebInterface(object):
                      ]
             ```
         """
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_full_users_list()
+        user_data = users.Users()
+        result = user_data.get_users()
 
         if result:
             return result

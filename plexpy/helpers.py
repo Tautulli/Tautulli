@@ -466,7 +466,7 @@ def get_percent(value1, value2):
     else:
         percent = 0
 
-    return math.trunc(percent)
+    return math.trunc(round(percent, 0))
 
 
 def hex_to_int(hex):
@@ -1083,6 +1083,8 @@ def get_plexpy_url(hostname=None):
 
         if not hostname:
             hostname = 'localhost'
+    elif hostname == 'localhost' and plexpy.CONFIG.HTTP_HOST != '0.0.0.0':
+        hostname = plexpy.CONFIG.HTTP_HOST
     else:
         hostname = hostname or plexpy.CONFIG.HTTP_HOST
 

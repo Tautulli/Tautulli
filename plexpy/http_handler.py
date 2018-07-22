@@ -33,20 +33,24 @@ class HTTPHandler(object):
     Retrieve data from Plex Server
     """
 
-    def __init__(self, urls, token=None, timeout=10, ssl_verify=True):
+    def __init__(self, urls, headers=None, token=None, timeout=10, ssl_verify=True):
         if isinstance(urls, basestring):
             self.urls = urls.split() or urls.split(',')
         else:
             self.urls = urls
 
-        self.headers = {'X-Plex-Product': 'Tautulli',
-                        'X-Plex-Version': plexpy.common.RELEASE,
-                        'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                        'X-Plex-Platform': plexpy.common.PLATFORM,
-                        'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
-                        'X-Plex-Device': 'Web',
-                        'X-Plex-Device-Name': plexpy.common.PLATFORM_DEVICE_NAME
-                        }
+        if headers:
+            self.headers = headers
+        else:
+            self.headers = {'X-Plex-Product': plexpy.common.PRODUCT,
+                            'X-Plex-Version': plexpy.common.RELEASE,
+                            'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
+                            'X-Plex-Platform': plexpy.common.PLATFORM,
+                            'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
+                            'X-Plex-Device': '{} {}'.format(plexpy.common.PLATFORM,
+                                                            plexpy.common.PLATFORM_RELEASE),
+                            'X-Plex-Device-Name': plexpy.common.PLATFORM_DEVICE_NAME
+                            }
 
         self.token = token
         if self.token:

@@ -60,7 +60,7 @@
 
     $('#popout-iframe-button').click(function () {
         var iframe = $('#support-iframe');
-        popout_chat = window.open(iframe.data('src'), 'Tautulli-Discord-Support', 'width=1280,height=720');
+        popout_chat = PopupCenter(iframe.data('src'), 'Tautulli-Discord-Support', 1280, 720);
         iframe.attr('src', '').fadeOut();
         $('.iframe-overlay').fadeIn();
     });

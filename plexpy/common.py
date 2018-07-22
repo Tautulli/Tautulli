@@ -19,6 +19,7 @@ from collections import OrderedDict
 import version
 
 # Identify Our Application
+PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
@@ -27,7 +28,7 @@ PLATFORM_DEVICE_NAME = platform.node()
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
 
-USER_AGENT = 'Tautulli/{} ({} {})'.format(RELEASE, PLATFORM, PLATFORM_RELEASE)
+USER_AGENT = '{}/{} ({} {})'.format(PRODUCT, RELEASE, PLATFORM, PLATFORM_RELEASE)
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
@@ -88,6 +89,7 @@ PLATFORM_NAMES = {
     'samsung': 'samsung',
     'synclounge': 'synclounge',
     'tivo': 'tivo',
+    'tizen': 'samsung',
     'tvos': 'atv',
     'vizio': 'opera',
     'wiiu': 'wiiu',
@@ -439,7 +441,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Summary', 'type': 'str', 'value': 'summary', 'description': 'A short plot summary for the item.'},
              {'name': 'Tagline', 'type': 'str', 'value': 'tagline', 'description': 'A tagline for the media item.'},
              {'name': 'Rating', 'type': 'float', 'value': 'rating', 'description': 'The rating (out of 10) for the item.'},
-             {'name': 'Audience Rating', 'type': 'float', 'value': 'audience_rating', 'description': 'The audience rating (%) for the item.', 'help_text': 'Ratings source must be Rotten Tomatoes for the Plex Movie agent'},
+             {'name': 'Critic Rating', 'type': 'int', 'value': 'critic_rating', 'description': 'The critic rating (%) for the item.', 'help_text': 'Ratings source must be Rotten Tomatoes for the Plex Movie agent'},
+             {'name': 'Audience Rating', 'type': 'int', 'value': 'audience_rating', 'description': 'The audience rating (%) for the item.', 'help_text': 'Ratings source must be Rotten Tomatoes for the Plex Movie agent'},
              {'name': 'Duration', 'type': 'int', 'value': 'duration', 'description': 'The duration (in minutes) for the item.'},
              {'name': 'Poster URL', 'type': 'str', 'value': 'poster_url', 'description': 'A URL for the movie, TV show, or album poster.'},
              {'name': 'Plex URL', 'type': 'str', 'value': 'plex_url', 'description': 'The Plex URL to your server for the item.'},

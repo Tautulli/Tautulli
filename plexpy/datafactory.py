@@ -660,8 +660,7 @@ class DataFactory(object):
                     platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
                     platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
 
-                    row = {'platform': item['platform'],
-                           'total_plays': item['total_plays'],
+                    row = {'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'last_play': item['last_watch'],
                            'platform': platform,

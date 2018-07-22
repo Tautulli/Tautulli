@@ -23,9 +23,9 @@ from paho.mqtt.publish import single
 import os
 import re
 import requests
-import shlex
 import smtplib
 import subprocess
+import sys
 import threading
 import time
 from urllib import urlencode
@@ -2993,12 +2993,15 @@ class SCRIPTS(Notifier):
 
     def run_script(self, script):
         # Common environment variables
-        env = {'PLEX_URL': plexpy.CONFIG.PMS_URL,
-               'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
-               'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
-               'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY
-               }
-        env.update(os.environ)
+        env = os.environ.copy()
+        env.update({
+            'PLEX_URL': plexpy.CONFIG.PMS_URL,
+            'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
+            'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
+            'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
+            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
+            'PYTHONPATH': (';' if os.name == 'nt' else ':').join(sys.path)
+            })
 
         try:
             process = subprocess.Popen(script,
@@ -3028,12 +3031,11 @@ class SCRIPTS(Notifier):
 
         if error:
             err = '\n  '.join([l for l in error.splitlines()])
-            logger.error(u"Tautulli Notifiers :: Script error: \n  %s" % err)
-            return False
+            logger.error("Tautulli Notifiers :: Script error: \n  %s" % err)
 
         if output:
             out = '\n  '.join([l for l in output.splitlines()])
-            logger.debug(u"Tautulli Notifiers :: Script returned: \n  %s" % out)
+            logger.debug("Tautulli Notifiers :: Script returned: \n  %s" % out)
 
         if not self.script_killed:
             logger.info(u"Tautulli Notifiers :: Script notification sent.")
@@ -3083,14 +3085,14 @@ class SCRIPTS(Notifier):
             script = [script]
 
         # For manual notifications
-        if script_args and isinstance(script_args, basestring):
-            # attemps for format it for the user
-            script_args = shlex.split(script_args)
+        # if script_args and isinstance(script_args, basestring):
+        #     # attemps for format it for the user
+        #     script_args = [arg for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
 
         # Windows handles unicode very badly.
         # https://bugs.python.org/issue19264
-        if script_args and os.name == 'nt':
-            script_args = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script_args]
+        if script_args:  # and os.name == 'nt':
+            script_args = [arg.encode(plexpy.SYS_ENCODING, 'ignore') for arg in script_args]
 
         # Allow overrides for shitty systems
         if prefix and script_args:

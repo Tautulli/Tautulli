@@ -31,6 +31,8 @@ import logger
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 ws_shutdown = False
+pong_timer = None
+pong_count = 0
 
 
 def start_thread():
@@ -58,6 +60,7 @@ def on_connect():
         plexpy.PLEX_SERVER_UP = True
 
     plexpy.initialize_scheduler()
+    send_ping()
 
 
 def on_disconnect():
@@ -91,6 +94,37 @@ def close():
     plexpy.WS_CONNECTED = False
 
 
+def send_ping():
+    if plexpy.WS_CONNECTED:
+        # logger.debug(u"Tautulli WebSocket :: Sending ping.")
+        plexpy.WEBSOCKET.ping("Hi?")
+
+        global pong_timer
+        pong_timer = threading.Timer(5.0, wait_pong)
+        pong_timer.daemon = True
+        pong_timer.start()
+
+
+def wait_pong():
+    global pong_count
+    pong_count += 1
+
+    logger.warning(u"Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
+
+    if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+        pong_count = 0
+        close()
+
+
+def receive_pong():
+    # logger.debug(u"Tautulli WebSocket :: Received pong.")
+    global pong_timer
+    global pong_count
+    if pong_timer:
+        pong_timer = pong_timer.cancel()
+        pong_count = 0
+
+
 def run():
     from websocket import create_connection
 
@@ -115,24 +149,13 @@ def run():
     reconnects = 0
 
     # Try an open the websocket connection
-    while not plexpy.WS_CONNECTED and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
-        if reconnects == 0:
-            logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
-
-        reconnects += 1
-
-        # Sleep 5 between connection attempts
-        if reconnects > 1:
-            time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
-
-        logger.info(u"Tautulli WebSocket :: Connection attempt %s." % str(reconnects))
-
-        try:
-            plexpy.WEBSOCKET = create_connection(uri, header=header)
-            logger.info(u"Tautulli WebSocket :: Ready")
-            plexpy.WS_CONNECTED = True
-        except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error("Tautulli WebSocket :: %s." % e)
+    logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
+    try:
+        plexpy.WEBSOCKET = create_connection(uri, header=header)
+        logger.info(u"Tautulli WebSocket :: Ready")
+        plexpy.WS_CONNECTED = True
+    except (websocket.WebSocketException, IOError, Exception) as e:
+        logger.error("Tautulli WebSocket :: %s." % e)
 
     if plexpy.WS_CONNECTED:
         on_connect()
@@ -196,7 +219,10 @@ def receive(ws):
         ws.send_close()
         return frame.opcode, None
     elif frame.opcode == websocket.ABNF.OPCODE_PING:
+        # logger.debug(u"Tautulli WebSocket :: Received ping, sending pong.")
         ws.pong("Hi!")
+    elif frame.opcode == websocket.ABNF.OPCODE_PONG:
+        receive_pong()
 
     return None, None
 

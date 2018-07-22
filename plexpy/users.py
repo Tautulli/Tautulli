@@ -579,7 +579,11 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT user_id, username, friendly_name, email FROM users WHERE deleted_user = 0'
+            query = 'SELECT user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
+                    'is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                    'do_notify, keep_history, allow_guest, server_token, shared_libraries, ' \
+                    'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
+                    'FROM users WHERE deleted_user = 0'
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn(u"Tautulli Users :: Unable to execute database query for get_users: %s." % e)
@@ -590,7 +594,22 @@ class Users(object):
             user = {'user_id': item['user_id'],
                     'username': item['username'],
                     'friendly_name': item['friendly_name'] or item['username'],
-                    'email': item['email']
+                    'thumb': item['custom_avatar_url'] or item['thumb'],
+                    'email': item['email'],
+                    'is_admin': item['is_admin'],
+                    'is_home_user': item['is_home_user'],
+                    'is_allow_sync': item['is_allow_sync'],
+                    'is_restricted': item['is_restricted'],
+                    'do_notify': item['do_notify'],
+                    'keep_history': item['keep_history'],
+                    'allow_guest': item['allow_guest'],
+                    'server_token': item['server_token'],
+                    'shared_libraries': item['shared_libraries'],
+                    'filter_all': item['filter_all'],
+                    'filter_movies': item['filter_movies'],
+                    'filter_tv': item['filter_tv'],
+                    'filter_music': item['filter_music'],
+                    'filter_photos': item['filter_photos'],
                     }
             users.append(user)
 

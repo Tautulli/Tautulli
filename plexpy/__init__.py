@@ -421,6 +421,8 @@ def initialize_scheduler():
 
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
+            schedule_job(web_socket.send_ping, 'Websocket ping',
+                         hours=0, minutes=0, seconds=10)
 
         else:
             # Cancel all jobs
@@ -440,6 +442,8 @@ def initialize_scheduler():
             # Schedule job to reconnect server
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=60, args=(False,))
+            schedule_job(web_socket.send_ping, 'Websocket ping',
+                         hours=0, minutes=0, seconds=0)
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -1863,7 +1867,7 @@ def generate_uuid():
 def initialize_tracker():
     data = {
         'dataSource': 'server',
-        'appName': 'Tautulli',
+        'appName': common.PRODUCT,
         'appVersion': common.RELEASE,
         'appId': plexpy.INSTALL_TYPE,
         'appInstallerId': plexpy.CONFIG.GIT_BRANCH,

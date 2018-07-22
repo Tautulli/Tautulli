@@ -338,6 +338,12 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
         script_args = kwargs.pop('script_args', [])
+
+        if script_args and isinstance(script_args, basestring):
+            # Attemps to format test script args for the user
+            script_args = [arg.decode(plexpy.SYS_ENCODING, 'ignore')
+                           for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+
     else:
         # Get the subject and body strings
         subject_string = notifier_config['notify_text'][notify_action]['subject']
@@ -520,8 +526,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
-    
-    if notify_action != 'play':
+
+    if notify_action != 'on_play':
         stream_duration = int((time.time() -
                                helpers.cast_to_int(session.get('started', 0)) -
                                helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
@@ -702,6 +708,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = 1
         grandchild_count = 1
 
+    critic_rating = ''
+    if notify_params['rating_image'].startswith('rottentomatoes://') and notify_params['rating']:
+        critic_rating = helpers.get_percent(notify_params['rating'], 10)
+
+    audience_rating = ''
+    if notify_params['audience_rating']:
+        audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -850,7 +864,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'summary': notify_params['summary'],
         'tagline': notify_params['tagline'],
         'rating': notify_params['rating'],
-        'audience_rating': helpers.get_percent(notify_params['audience_rating'], 10) or '',
+        'critic_rating':  critic_rating,
+        'audience_rating': audience_rating,
         'duration': duration,
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
@@ -1028,7 +1043,8 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(unicode(arg), **parameters) for arg in shlex.split(subject)]
+            script_args = [custom_formatter.format(arg, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
+                           for arg in shlex.split(subject.encode(plexpy.SYS_ENCODING, 'ignore'))]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []

@@ -1,5 +1,39 @@
 # Changelog
 
+## v2.1.16-beta (2018-07-06)
+
+* Monitoring:
+  * Fix: Plex server not detected as down during sudden network loss.
+* Notifications:
+  * Fix: Incorrect rounding of percentages in some cases.
+  * Fix: Incorrect stream duration value for playback start notifications.
+  * New: Added critic rating parameter for Rotten Tomatoes ratings.
+* Newsletters:
+  * Fix: Typo in "seasons" when there is only one additional season.
+* UI:
+  * New: Added ability to use Plex OAuth to login to Tautulli.
+* API:
+  * Fix: Unicode characters causing get_logs command to return bad data.
+  * New: Added rating_image and audience_rating_image to get_activity and get_metadata commands.
+
+
+## v2.1.15-beta (2018-07-01)
+
+* Monitoring:
+  * Fix: Progress percent displaying NaN for live TV.
+  * Fix: Unable to terminate sessions with unicode characters in the message.
+  * Change: Tizen platform to display the Samsung icon.
+* Notifications:
+  * New: Added PYTHONPATH to script environment variables so scripts can automatically import from Tautulli libraries.
+  * Fix: Proper handling of unicode script arguments.
+  * Fix: Incorrect TAUTULLI_URL environment variable if the HTTP host setting is changed.
+  * Fix: Email addresses selectize box not expanding.
+* Newsletters:
+  * Change: HTTPS URLS for images hosted on tautulli.com.
+* Graphs:
+  * Fix: SD resolution sometimes not grouped together.
+
+
 ## v2.1.14 (2018-06-21)
 
 * Notifications:

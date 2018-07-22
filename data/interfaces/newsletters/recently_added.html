@@ -551,7 +551,7 @@
                     <tr>
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="header" style="width: 100%;height: 90px;text-align: center;">
-                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'http://tautulli.com/images/newsletter/newsletter-header.png'}" class="header-img" width="492" height="90" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;width: 492px;height: 90px;margin-left: -35px;">
+                                <img src="${base_url_image + 'images/newsletter/newsletter-header.png' if base_url_image else 'https://tautulli.com/images/newsletter/newsletter-header.png'}" class="header-img" width="492" height="90" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;width: 492px;height: 90px;margin-left: -35px;">
                             </div>
                             <div class="server-name" style="font-size: 30px;text-align: center;">${parameters['server_name']}</div>
                             <div class="dates" style="color: #aaaaaa;font-size: 20px;text-align: center;">${parameters['start_date']} - ${parameters['end_date']}</div>
@@ -570,7 +570,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'http://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
+                                <img src="${(base_url_image + 'images/libraries/movie.png') if base_url_image else 'https://tautulli.com/images/libraries/movie.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Movies
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['movie'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">movie${'s' if len(recently_added['movie']) > 1 else ''}</span>
@@ -598,7 +598,7 @@
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank" style="text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -688,7 +688,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'http://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
+                                <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'https://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added TV Shows
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
@@ -727,7 +727,7 @@
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank" style="text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>
@@ -759,7 +759,8 @@
                                                                                     % if i < min(show['season_count'], 7):
                                                                                         <br>
                                                                                     % elif i == 7 and show['season_count'] > 8:
-                                                                                        ...plus ${show['season_count'] - 8} more seasons!
+                                                                                        <% remaining_seasons = show['season_count'] - 8 %>
+                                                                                        ...plus ${remaining_seasons} more season${'s' if remaining_seasons > 1 else ''}!
                                                                                     % endif
                                                                                 % endfor
                                                                             </p>
@@ -840,7 +841,7 @@
                         <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
                             <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
                             <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
-                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'http://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
+                                <img src="${(base_url_image + 'images/libraries/artist.png') if base_url_image else 'https://tautulli.com/images/libraries/artist.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Music
                             </div>
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
@@ -870,7 +871,7 @@
                                                                     <tr>
                                                                         <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
                                                                             <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank" style="text-decoration: underline;">
-                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'http://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
                                                                             </a>
                                                                         </td>
                                                                     </tr>

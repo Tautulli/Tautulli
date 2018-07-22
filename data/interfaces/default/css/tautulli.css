@@ -70,6 +70,8 @@ div.form-control .selectize-input {
     background-color: #555;
     border-radius: 3px;
     transition: background-color .3s;
+}
+select.form-control {
     height: 32px !important;
 }
 .react-selectize.root-node .react-selectize-control,
@@ -98,6 +100,9 @@ div.form-control .selectize-input {
     max-width: 450px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.wizard-input-section p.welcome-message {
+    margin: 20px 0;
 }
 .wizard-input-section .selectize-control.form-control.selectize-pms-ip .selectize-input > div {
     max-width: 360px;
@@ -2968,9 +2973,12 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li .link:hover {
-    color: #fff;
+.accordion li .link:hover,
+.accordion li .link:hover i.fa {
     background: #2f2f2f;
+}
+.accordion li .link i.fa {
+    color: #999;
 }
 .accordion li .link span.toggle-right {
     float: right;
@@ -2985,7 +2993,8 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
-.accordion li.open .link {
+.accordion li.open .link,
+.accordion li.open .link i.fa {
     color: #f9be03;
 }
 .accordion li.open .fa-chevron-down {
@@ -3468,6 +3477,9 @@ a.no-highlight:hover {
         max-width: 1170px;
     }
 }
+.login-body-container {
+    margin: 50px 0;
+}
 .login-container {
     margin-right: auto;
     margin-left: auto;
@@ -3480,6 +3492,11 @@ a.no-highlight:hover {
 .login-logo {
     margin: 0 auto 50px auto;
     text-align: center;
+}
+.login-container .login-method-header {
+    text-align: center;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 .login-container .form-group {
     margin-bottom: 20px;
@@ -3501,14 +3518,42 @@ a.no-highlight:hover {
     text-shadow: 0 -1px 1px rgba(0,0,0,.4),0 0 15px rgba(0,0,0,.2);
 }
 .login-container .remember-group {
-    float: left;
     color: #999;
+    display: inline-block;
+    margin-top: 7.5px;
 }
 .login-container .remember-group .control-label {
     display: inline;
     margin-bottom: 0;
     font-weight: 400;
     cursor: pointer;
+}
+.login-divider {
+    text-align: center;
+    border-bottom: 1px solid #555;
+    line-height: 0.1em;
+    margin: 50px auto;
+    max-width: 400px;
+    text-transform: uppercase;
+}
+.login-divider span {
+    background: #1f1f1f;
+    padding: 0 15px;
+    color: #999;
+}
+.login-button-plex {
+    text-align: center;
+}
+.login-button-plex .remember-group {
+    margin-top: 20px;
+}
+.login-button-plex button#sign-in-plex {
+    float: none;
+}
+.login-alert {
+    text-align: center;
+    padding: 8px;
+    display: none;
 }
 #admin-login-modal .form-group label {
     font-weight: 400;

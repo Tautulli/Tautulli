@@ -842,21 +842,23 @@
                             <h3>Plex.tv Authentication</h3>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group has-feedback">
                             <label for="pms_token">Plex.tv Account Token</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
+                                            <button id="sign-in-plex" class="btn btn-form" type="button">Fetch Token</button>
                                         </span>
                                     </div>
+                                    <span class="form-control-feedback" id="token_verify" aria-hidden="true" style="right: 80px;"></span>
                                 </div>
                                 <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Token for Plex.tv authentication.</p>
                         </div>
+                        <input type="hidden" id="pms_uuid" name="pms_uuid" value="${config['pms_uuid']}">
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -1363,49 +1365,6 @@
                 % endfor
             </div>
             <div class="modal-footer"></div>
-        </div>
-    </div>
-</div>
-<div id="pms-auth-modal" class="modal fade" tabindex="-1" role="dialog"
-     aria-labelledby="ip-info-modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Fetch Plex.tv Token</h4>
-            </div>
-            <div class="modal-body" id="modal-text">
-                <div>
-                    <p class="help-block">
-                        This will attempt to fetch a new Plex.tv token for you. Tautulli does not store your username and password.
-                        Note: This will not work on Internet Explorer 9 or lower.
-                    </p>
-                    <div class="form-group">
-                        <label for="pms_username">Plex.tv Username</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
-                            </div>
-                        </div>
-                        <p class="help-block">Username for Plex.tv authentication.</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="pms_password">Plex.tv Password</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
-                            </div>
-                        </div>
-                        <p class="help-block">Password for Plex.tv authentication.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div style="float: left;">
-                    <strong><span id="pms-token-status"></span></strong>
-                </div>
-                <input type="button" id="get-pms-auth-token" class="btn btn-bright" value="Fetch Token">
-            </div>
         </div>
     </div>
 </div>
@@ -2296,40 +2255,21 @@ $(document).ready(function() {
         window.open(pms_web_url, '_blank');
     });
 
-    // Plex.tv auth token fetch
-    $("#get-pms-auth-token").click(function() {
-        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
-        var pms_username = $.trim($("#pms_username").val());
-        var pms_password = $.trim($("#pms_password").val());
-        if ((pms_username !== '') && (pms_password !== '')) {
-            $.ajax({
-                type: 'GET',
-                url: 'get_plexpy_pms_token',
-                data: {
-                    username: pms_username,
-                    password: pms_password,
-                    force: true
-                },
-                cache: false,
-                async: true,
-                complete: function(xhr, status) {
-                    var result = $.parseJSON(xhr.responseText);
-                    var msg = result.message;
-                    if (result.result == 'success') {
-                        var authToken = result.token;
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
-                        $("#pms_token").val(authToken);
-                        $('#pms-auth-modal').modal('hide');
-                        getServerOptions(authToken);
-                    } else {
-                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
-                    }
-                    loadUpdateDistros();
-                }
-            });
-        } else {
-            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
-        }
+    function OAuthPreFunction() {
+        $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+    }
+    function OAuthSuccessCallback(authToken) {
+        $("#pms_token").val(authToken);
+        $("#pms_uuid").val(x_plex_headers['X-Plex-Client-Identifier']);
+        $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
+        getServerOptions(authToken);
+    }
+    function OAuthErrorCallback() {
+        $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+    }
+
+    $('#sign-in-plex').click(function() {
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
     });
 
     // Load database import modal

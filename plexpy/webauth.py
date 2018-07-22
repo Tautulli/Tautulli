@@ -19,7 +19,6 @@
 # Session tool to be loaded.
 
 from datetime import datetime, timedelta
-import re
 from urllib import quote, unquote
 
 import cherrypy
@@ -37,17 +36,27 @@ JWT_ALGORITHM = 'HS256'
 JWT_COOKIE_NAME = 'tautulli_token_'
 
 
-def user_login(username=None, password=None):
-    if not username or not password:
-        return None
+def plex_user_login(username=None, password=None, token=None, headers=None):
+    user_token = None
+    user_id = None
 
     # Try to login to Plex.tv to check if the user has a vaild account
-    plex_tv = PlexTV(username=username, password=password)
-    plex_user = plex_tv.get_token()
-    if plex_user:
-        user_token = plex_user['auth_token']
-        user_id = plex_user['user_id']
+    if username and password:
+        plex_tv = PlexTV(username=username, password=password, headers=headers)
+        plex_user = plex_tv.get_token()
+        if plex_user:
+            user_token = plex_user['auth_token']
+            user_id = plex_user['user_id']
+    elif token:
+        plex_tv = PlexTV(token=token, headers=headers)
+        plex_user = plex_tv.get_plex_account_details()
+        if plex_user:
+            user_token = token
+            user_id = plex_user['user_id']
+    else:
+        return None
 
+    if user_token and user_id:
         # Try to retrieve the user from the database.
         # Also make sure guest access is enabled for the user and the user is not deleted.
         user_data = Users()
@@ -57,7 +66,7 @@ def user_login(username=None, password=None):
             return None
         elif plexpy.CONFIG.HTTP_PLEX_ADMIN and user_details['is_admin']:
             # Plex admin login
-            return 'admin'
+            return user_details, 'admin'
         elif not user_details['allow_guest'] or user_details['deleted_user']:
             # Guest access is disabled or the user is deleted.
             return None
@@ -68,56 +77,65 @@ def user_login(username=None, password=None):
 
         # The user is in the database, and guest access is enabled, so try to retrieve a server token.
         # If a server token is returned, then the user is a valid friend of the server.
-        plex_tv = PlexTV(token=user_token)
+        plex_tv = PlexTV(token=user_token, headers=headers)
         server_token = plex_tv.get_server_token()
         if server_token:
 
             # Register the new user / update the access tokens.
             monitor_db = MonitorDatabase()
             try:
-                logger.debug(u"Tautulli WebAuth :: Regestering tokens for user '%s' in the database." % username)
-                result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
-                                            [user_token, server_token, user_id])
+                logger.debug(u"Tautulli WebAuth :: Registering token for user '%s' in the database."
+                             % user_details['username'])
+                result = monitor_db.action('UPDATE users SET server_token = ? WHERE user_id = ?',
+                                           [server_token, user_details['user_id']])
 
                 if result:
                     # Refresh the users list to make sure we have all the correct permissions.
                     refresh_users()
                     # Successful login
-                    return 'guest'
+                    return user_details, 'guest'
                 else:
-                    logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database." % username)
+                    logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database."
+                                % user_details['username'])
                     return None
             except Exception as e:
-                logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database: %s." % (username, e))
+                logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database: %s."
+                            % (user_details['username'], e))
                 return None
         else:
-            logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'." % username)
+            logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'."
+                        % user_details['username'])
             return None
-    else:
+    elif username:
         logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
-    return None
+    elif token:
+        logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv user token for Plex OAuth.")
+        return None
 
 
-def check_credentials(username, password, admin_login='0'):
+def check_credentials(username=None, password=None, token=None, admin_login='0', headers=None):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
-    if plexpy.CONFIG.HTTP_PASSWORD:
-        if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-            return True, 'tautulli admin'
-        elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
-            return True, 'tautulli admin'
+    if username and password:
+        if plexpy.CONFIG.HTTP_PASSWORD:
+            user_details = {'user_id': None, 'username': username}
+
+            if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+                    username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
+                return True, user_details, 'admin'
+            elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+                    username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+                return True, user_details, 'admin'
 
     if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
-        plex_login = user_login(username, password)
+        plex_login = plex_user_login(username=username, password=password, token=token, headers=headers)
         if plex_login is not None:
-            return True, plex_login
+            return True, plex_login[0], plex_login[1]
 
-    return False, None
+    return False, None, None
 
 
 def check_jwt_token():
@@ -223,7 +241,7 @@ class AuthController(object):
         from plexpy.webserve import redirect
         redirect(plexpy.HTTP_ROOT)
 
-    def on_login(self, username, user_id=None, user_group=None, success=0):
+    def on_login(self, username=None, user_id=None, user_group=None, success=False, oauth=False):
         """Called on successful login"""
 
         # Save login to the database
@@ -239,8 +257,10 @@ class AuthController(object):
                                user_agent=user_agent,
                                success=success)
 
-        if success == 1:
-            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli." % (user_group.capitalize(), username))
+        if success:
+            use_oauth = 'Plex OAuth' if oauth else 'form'
+            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
+                         % (user_group.capitalize(), username, use_oauth))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
@@ -284,43 +304,37 @@ class AuthController(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def signin(self, username=None, password=None, remember_me='0', admin_login='0', *args, **kwargs):
+    def signin(self, username=None, password=None, token=None, remember_me='0', admin_login='0', *args, **kwargs):
         if cherrypy.request.method != 'POST':
             cherrypy.response.status = 405
             return {'status': 'error', 'message': 'Sign in using POST.'}
 
-        error_message = {'status': 'error', 'message': 'Incorrect username or password.'}
+        error_message = {'status': 'error', 'message': 'Invalid credentials.'}
 
-        valid_login, user_group = check_credentials(username, password, admin_login)
+        valid_login, user_details, user_group = check_credentials(username=username,
+                                                                  password=password,
+                                                                  token=token,
+                                                                  admin_login=admin_login,
+                                                                  headers=kwargs)
 
         if valid_login:
-            if user_group == 'tautulli admin':
-                user_group = 'admin'
-                user_id = None
-            else:
-                if re.match(r"[^@]+@[^@]+\.[^@]+", username):
-                    user_details = Users().get_details(email=username)
-                else:
-                    user_details = Users().get_details(user=username)
-
-                user_id = user_details['user_id']
-
             time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)
             expiry = datetime.utcnow() + time_delta
 
             payload = {
-                'user_id': user_id,
-                'user': username,
+                'user_id': user_details['user_id'],
+                'user': user_details['username'],
                 'user_group': user_group,
                 'exp': expiry
             }
 
             jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-            self.on_login(username=username,
-                          user_id=user_id,
+            self.on_login(username=user_details['username'],
+                          user_id=user_details['user_id'],
                           user_group=user_group,
-                          success=1)
+                          success=True,
+                          oauth=bool(token))
 
             jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
             cherrypy.response.cookie[jwt_cookie] = jwt_token
@@ -331,14 +345,20 @@ class AuthController(object):
             cherrypy.response.status = 200
             return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
 
-        elif admin_login == '1':
+        elif admin_login == '1' and username:
             self.on_login(username=username)
             logger.debug(u"Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
             cherrypy.response.status = 401
             return error_message
 
-        else:
+        elif username:
             self.on_login(username=username)
-            logger.debug(u"Tautulli WebAuth :: Invalid login attempt from '%s'." % username)
+            logger.debug(u"Tautulli WebAuth :: Invalid user login attempt from '%s'." % username)
+            cherrypy.response.status = 401
+            return error_message
+
+        elif token:
+            self.on_login(username='Plex OAuth', oauth=True)
+            logger.debug(u"Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message

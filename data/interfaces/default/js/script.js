@@ -351,21 +351,26 @@ function getCookie(cname) {
     }
     return "";
 }
-var Accordion = function (el, multiple) {
+var Accordion = function (el, multiple, close) {
     this.el = el || {};
     this.multiple = multiple || false;
+    this.close = (close === undefined) ? true : close;
     // Variables privadas
     var links = this.el.find('.link');
     // Evento
     links.on('click', {
         el: this.el,
-        multiple: this.multiple
+        multiple: this.multiple,
+        close: this.close
     }, this.dropdown);
 };
 Accordion.prototype.dropdown = function (e) {
     var $el = e.data.el;
     $this = $(this);
     $next = $this.next();
+    if (!e.data.close && $this.parent().hasClass('open')) {
+        return
+    }
     $next.slideToggle();
     $this.parent().toggleClass('open');
     if (!e.data.multiple) {
@@ -463,5 +468,170 @@ function openPlexXML(endpoint, plextv, params) {
     var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
     $.getJSON('return_plex_xml_url', data, function(xml_url) {
        window.open(xml_url, '_blank');
+    });
+}
+
+function PopupCenter(url, title, w, h) {
+    // Fixes dual-screen position                         Most browsers      Firefox
+    var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : window.screenX;
+    var dualScreenTop = window.screenTop != undefined ? window.screenTop : window.screenY;
+
+    var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+    var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+    var left = ((width / 2) - (w / 2)) + dualScreenLeft;
+    var top = ((height / 2) - (h / 2)) + dualScreenTop;
+    var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+
+    // Puts focus on the newWindow
+    if (window.focus) {
+        newWindow.focus();
+    }
+
+    return newWindow;
+}
+
+if (!localStorage.getItem('Tautulli_ClientId')) {
+    localStorage.setItem('Tautulli_ClientId', uuidv4());
+}
+
+function uuidv4() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
+}
+
+var x_plex_headers = {
+    'Accept': 'application/json',
+    'X-Plex-Product': 'Tautulli',
+    'X-Plex-Version': 'Plex OAuth',
+    'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
+    'X-Plex-Platform': platform.name,
+    'X-Plex-Platform-Version': platform.version,
+    'X-Plex-Device': platform.os.toString(),
+    'X-Plex-Device-Name': platform.name
+};
+
+var plex_oauth_window = null;
+const plex_oauth_loader = '<style>' +
+        '.login-loader-container {' +
+            'font-family: "Open Sans", Arial, sans-serif;' +
+            'position: absolute;' +
+            'top: 0;' +
+            'right: 0;' +
+            'bottom: 0;' +
+            'left: 0;' +
+        '}' +
+        '.login-loader-message {' +
+            'color: #282A2D;' +
+            'text-align: center;' +
+            'position: absolute;' +
+            'left: 50%;' +
+            'top: 25%;' +
+            'transform: translate(-50%, -50%);' +
+        '}' +
+        '.login-loader {' +
+            'border: 5px solid #ccc;' +
+            '-webkit-animation: spin 1s linear infinite;' +
+            'animation: spin 1s linear infinite;' +
+            'border-top: 5px solid #282A2D;' +
+            'border-radius: 50%;' +
+            'width: 50px;' +
+            'height: 50px;' +
+            'position: relative;' +
+            'left: calc(50% - 25px);' +
+        '}' +
+        '@keyframes spin {' +
+            '0% { transform: rotate(0deg); }' +
+            '100% { transform: rotate(360deg); }' +
+        '}' +
+    '</style>' +
+    '<div class="login-loader-container">' +
+        '<div class="login-loader-message">' +
+            '<div class="login-loader"></div>' +
+            '<br>' +
+            'Redirecting to the Plex login page...' +
+        '</div>' +
+    '</div>';
+
+function closePlexOAuthWindow() {
+    if (plex_oauth_window) {
+        plex_oauth_window.close();
+    }
+}
+
+getPlexOAuthPin = function () {
+    var deferred = $.Deferred();
+
+    $.ajax({
+        url: 'https://plex.tv/api/v2/pins?strong=true',
+        type: 'POST',
+        headers: x_plex_headers,
+        success: function(data) {
+            plex_oauth_window.location = 'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + data.code;
+            deferred.resolve({pin: data.id, code: data.code});
+        },
+        error: function() {
+            closePlexOAuthWindow();
+            deferred.reject();
+        }
+    });
+    return deferred;
+};
+
+var polling = null;
+
+function PlexOAuth(success, error, pre) {
+    if (typeof pre === "function") {
+        pre()
+    }
+    clearTimeout(polling);
+    closePlexOAuthWindow();
+    plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
+    $(plex_oauth_window.document.body).html(plex_oauth_loader);
+
+    getPlexOAuthPin().then(function (data) {
+        const pin = data.pin;
+        const code = data.code;
+        var keep_polling = true;
+
+        (function poll() {
+            polling = setTimeout(function () {
+                $.ajax({
+                    url: 'https://plex.tv/api/v2/pins/' + pin,
+                    type: 'GET',
+                    headers: x_plex_headers,
+                    success: function (data) {
+                        if (data.authToken){
+                            keep_polling = false;
+                            closePlexOAuthWindow();
+                            if (typeof success === "function") {
+                                success(data.authToken)
+                            }
+                        }
+                    },
+                    error: function () {
+                        keep_polling = false;
+                        closePlexOAuthWindow();
+                        if (typeof error === "function") {
+                            error()
+                        }
+                    },
+                    complete: function () {
+                        if (keep_polling){
+                            poll();
+                        } else {
+                            clearTimeout(polling);
+                        }
+                    },
+                    timeout: 1000
+                });
+            }, 1000);
+        })();
+    }, function () {
+        closePlexOAuthWindow();
+        if (typeof error === "function") {
+            error()
+        }
     });
 }
