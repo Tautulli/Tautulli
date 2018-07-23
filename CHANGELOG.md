@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.1.17-beta (2018-07-22)
+
+* Notifications:
+  * Change: Use default selected stream for media info in notifications.
+* UI:
+  * New: Automatically discover localhost Plex servers in server selection dropdown.
+  * Change: Save Datatables state indefinitely.
+
+
 ## v2.1.16-beta (2018-07-06)
 
 * Monitoring:
