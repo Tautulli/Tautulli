@@ -25,6 +25,7 @@ media_info_table_options = {
     },
     "pagingType": "full_numbers",
     "stateSave": true,
+    "stateDuration": 0,
     "processing": false,
     "serverSide": true,
     "pageLength": 25,

@@ -6,6 +6,7 @@ var log_table_options = {
     "order": [ 0, 'desc'],
     "pageLength": 50,
     "stateSave": true,
+    "stateDuration": 0,
     "language": {
                 "search": "Search: ",
                 "lengthMenu": "Show _MENU_ lines per page",
