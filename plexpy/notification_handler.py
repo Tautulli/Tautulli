@@ -1435,6 +1435,10 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
 
 class CustomFormatter(Formatter):
+    def __init__(self, default='{{{0}}}', default_format_spec='{{{0}:{1}}}'):
+        self.default = default
+        self.default_format_spec = default_format_spec
+
     def convert_field(self, value, conversion):
         if conversion is None:
             return value
@@ -1463,4 +1467,13 @@ class CustomFormatter(Formatter):
             else:
                 return value
         else:
-            return super(CustomFormatter, self).format_field(value, format_spec)
+            try:
+                return super(CustomFormatter, self).format_field(value, format_spec)
+            except ValueError:
+                return self.default_format_spec.format(value[1:-1], format_spec)
+
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, basestring):
+            return kwargs.get(key, self.default.format(key))
+        else:
+            return super(CustomFormatter, self).get_value(key, args, kwargs)
