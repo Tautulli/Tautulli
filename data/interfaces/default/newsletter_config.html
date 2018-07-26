@@ -766,9 +766,12 @@
 
     // auto resizing textarea for custom notification message body
     $('textarea[data-autoresize]').each(function () {
+        var modal_body = $(this).closest('.modal-body');
         var offset = this.offsetHeight - this.clientHeight;
         var resizeTextarea = function (el) {
+            var modal_offset = modal_body.scrollTop();
             $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+            modal_body.scrollTop(modal_offset);
         };
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
