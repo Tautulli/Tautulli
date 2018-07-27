@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.1.18 (2018-07-27)
+
+* Monitoring:
+  * Fix: Progress bar on activity cards showing incorrect 100% when starting a stream.
+* Notifications:
+  * Fix: Notification text boxes scrolling to top when inputting text.
+  * Change: Skip formatting invalid notification parameters instead of returning default text.
+* UI:
+  * Fix: Padding around search bar causing the navigation bar to break on smaller screens.
+
+
 ## v2.1.17-beta (2018-07-22)
 
 * Notifications:
