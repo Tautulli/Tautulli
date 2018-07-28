@@ -146,10 +146,10 @@ def available_notification_agents():
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc']
                },
-              {'label': 'Notify My Android',
-               'name': 'nma',
-               'id': AGENT_IDS['nma']
-               },
+              # {'label': 'Notify My Android',
+              #  'name': 'nma',
+              #  'id': AGENT_IDS['nma']
+              #  },
               {'label': 'MQTT',
                'name': 'mqtt',
                'id': AGENT_IDS['mqtt']
