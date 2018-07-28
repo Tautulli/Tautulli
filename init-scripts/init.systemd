@@ -4,47 +4,50 @@
 #
 # INSTALLATION NOTES
 #
-#   1. Rename this file as you want, ensuring that it ends in .service
-#       e.g. 'tautulli.service'
+#   1. Copy this file into your systemd service unit directory (often '/lib/systemd/system')
+#      and name it 'tautulli.service' with the following command:
+#       cp /opt/Tautulli/init-scripts/init.systemd /lib/systemd/system/tautulli.service
 #
-#   2. Adjust configuration settings as required.  More details in the
-#      "CONFIGURATION NOTES" section shown below.
+#   2. Edit the new tautulli.service file with configuration settings as required.
+#      More details in the "CONFIGURATION NOTES" section shown below.
 #
-#   3. Copy this file into your systemd service unit directory, which is
-#      often '/lib/systemd/system'.
-#
-#   4. Enable boot-time autostart with the following commands:
+#   3. Enable boot-time autostart with the following commands:
 #       systemctl daemon-reload
 #       systemctl enable tautulli.service
 #
-#   5. Start now with the following command:
+#   4. Start now with the following command:
 #       systemctl start tautulli.service
 #
 # CONFIGURATION NOTES
 #
 #    - The example settings in this file assume that you will run Tautulli as user: tautulli
-#    - To create this user and give it ownership of the tautulli directory: 
+#    - The example settings in this file assume that Tautulli is installed to: /opt/Tautulli
+#
+#    - To create this user and give it ownership of the Tautulli directory:
 #       sudo adduser --system --no-create-home tautulli
 #       sudo chown tautulli:nogroup -R /opt/Tautulli
 #     
-#    - Option names (e.g. ExecStart=, Type=) appear to be case-sensitive)
-#
 #    - Adjust ExecStart= to point to:
-#       1. Your Tautulli executable,
+#       1. Your Tautulli executable
+#          - Default: /opt/Tautulli/Tautulli.py
 #       2. Your config file (recommended is to put it somewhere in /etc)
+#          - Default: --config /opt/Tautulli/config.ini
 #       3. Your datadir (recommended is to NOT put it in your Tautulli exec dir)
+#          - Default: --datadir /opt/Tautulli
 #
 #    - Adjust User= and Group= to the user/group you want Tautulli to run as.
 #
 #    - WantedBy= specifies which target (i.e. runlevel) to start Tautulli for.
-#        multi-user.target equates to runlevel 3 (multi-user text mode)
-#        graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
+#       multi-user.target equates to runlevel 3 (multi-user text mode)
+#       graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
 
 [Unit]
 Description=Tautulli - Stats for Plex Media Server usage
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-ExecStart=/opt/Tautulli/Tautulli.py --quiet --daemon --nolaunch --config /opt/Tautulli/config.ini --datadir /opt/Tautulli
+ExecStart=/opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir /opt/Tautulli --quiet --daemon --nolaunch
 GuessMainPID=no
 Type=forking
 User=tautulli
