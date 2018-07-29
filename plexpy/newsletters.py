@@ -65,7 +65,8 @@ def available_notification_actions():
 
 
 def get_agent_class(newsletter_id=None, newsletter_id_name=None, agent_id=None, config=None, email_config=None,
-                    start_date=None, end_date=None, subject=None, body=None, message=None):
+                    start_date=None, end_date=None, subject=None, body=None, message=None,
+                    email_msg_id=None, email_reply_msg_id=None):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
@@ -77,7 +78,9 @@ def get_agent_class(newsletter_id=None, newsletter_id_name=None, agent_id=None, 
                   'end_date': end_date,
                   'subject': subject,
                   'body': body,
-                  'message': message}
+                  'message': message,
+                  'email_msg_id': email_msg_id,
+                  'email_reply_msg_id': email_reply_msg_id}
 
         if agent_id == 0:
             return RecentlyAdded(**kwargs)
@@ -326,6 +329,7 @@ class Newsletter(object):
                        'time_frame': 7,
                        'time_frame_units': 'days',
                        'formatted': 1,
+                       'threaded': 0,
                        'notifier_id': 0,
                        'filename': '',
                        'save_only': 0}
@@ -339,10 +343,14 @@ class Newsletter(object):
     _TEMPLATE = ''
 
     def __init__(self, newsletter_id=None, newsletter_id_name=None, config=None, email_config=None,
-                 start_date=None, end_date=None, subject=None, body=None, message=None):
+                 start_date=None, end_date=None, subject=None, body=None, message=None,
+                 email_msg_id=None, email_reply_msg_id=None):
         self.config = self.set_config(config=config, default=self._DEFAULT_CONFIG)
         self.email_config = self.set_config(config=email_config, default=self._DEFAULT_EMAIL_CONFIG)
         self.uuid = generate_newsletter_uuid()
+
+        self.email_msg_id = email_msg_id
+        self.email_reply_msg_id = email_reply_msg_id
 
         self.newsletter_id = newsletter_id
         self.newsletter_id_name = newsletter_id_name or ''
@@ -516,12 +524,16 @@ class Newsletter(object):
             if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
                 plaintext += self._DEFAULT_BODY.format(**self.parameters)
 
+            email_reply_msg_id = self.email_reply_msg_id if self.config['threaded'] else None
+
             if self.email_config['notifier_id']:
                 return send_notification(
                     notifier_id=self.email_config['notifier_id'],
                     subject=self.subject_formatted,
                     body=newsletter_stripped,
-                    plaintext=plaintext
+                    plaintext=plaintext,
+                    msg_id=self.email_msg_id,
+                    reply_msg_id=email_reply_msg_id
                 )
 
             else:
@@ -529,7 +541,9 @@ class Newsletter(object):
                 return email.notify(
                     subject=self.subject_formatted,
                     body=newsletter_stripped,
-                    plaintext=plaintext
+                    plaintext=plaintext,
+                    msg_id=self.email_msg_id,
+                    reply_msg_id=email_reply_msg_id
                 )
         elif self.config['notifier_id']:
             return send_notification(

@@ -218,6 +218,13 @@
                                         <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
                                     </div>
                                     <div class="form-group" id="email_notifier_select">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" id="newsletter_config_threaded_checkbox" data-id="newsletter_config_threaded" class="checkboxes" value="1" ${checked(newsletter['config']['threaded'])}> Enable Grouped Email Thread
+                                            </label>
+                                            <p class="help-block">Enable to group this newsletter together in a single Email thread. Disable to send a new Email for each newsletter.</p>
+                                            <input type="hidden" id="newsletter_config_threaded" name="newsletter_config_threaded" value="${newsletter['config']['threaded']}">
+                                        </div>
                                         <label for="newsletter_email_notifier_id">Email Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">

@@ -1302,12 +1302,19 @@ class EMAIL(Notifier):
             msg.replace_header('Content-Transfer-Encoding', 'quoted-printable')
             msg.set_payload(body, 'utf-8')
 
-        msg['Message-ID'] = email.utils.make_msgid()
+        msg_id = kwargs.get('msg_id', email.utils.make_msgid())
+        reply_msg_id = kwargs.get('reply_msg_id')
+
+        msg['Message-ID'] = msg_id
         msg['Date'] = email.utils.formatdate(localtime=True)
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
         msg['To'] = ','.join(self.config['to'])
         msg['CC'] = ','.join(self.config['cc'])
+
+        if reply_msg_id:
+            msg["In-Reply-To"] = reply_msg_id
+            msg["References"] = reply_msg_id
 
         recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
