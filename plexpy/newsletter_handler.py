@@ -168,7 +168,8 @@ def get_last_newsletter_email_msg_id(newsletter_id, notify_action):
                               'WHERE newsletter_id = ? AND notify_action = ? AND success = 1 '
                               'ORDER BY timestamp DESC LIMIT 1', [newsletter_id, notify_action])
 
-    return result.get('email_msg_id')
+    if result:
+        return result['email_msg_id']
 
 
 def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):
