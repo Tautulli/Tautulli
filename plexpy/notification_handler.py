@@ -831,6 +831,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'title': notify_params['full_title'],
         'library_name': notify_params['library_name'],
         'show_name': show_name,
+        'show_name_slug': show_name.lower().replace(' ', '-').replace('(', '').replace(')', '').replace("'", '').replace('.', '-').rstrip('-'),
         'episode_name': episode_name,
         'artist_name': artist_name,
         'album_name': album_name,
