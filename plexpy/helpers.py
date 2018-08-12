@@ -1115,3 +1115,23 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return izip_longest(fillvalue=fillvalue, *args)
+
+
+def traverse_map(obj, func):
+    if isinstance(obj, list):
+        new_obj = []
+        for i in obj:
+            new_obj.append(traverse_map(i, func))
+
+    elif isinstance(obj, dict):
+        new_obj = {}
+        for k, v in obj.iteritems():
+            new_obj[traverse_map(k, func)] = traverse_map(v, func)
+
+    elif isinstance(obj, basestring):
+        new_obj = func(obj)
+
+    else:
+        new_obj = obj
+
+    return new_obj

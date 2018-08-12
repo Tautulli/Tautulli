@@ -91,7 +91,8 @@ AGENT_IDS = {'growl': 0,
              'androidapp': 21,
              'groupme': 22,
              'mqtt': 23,
-             'zapier': 24
+             'zapier': 24,
+             'webhook': 25
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -189,6 +190,10 @@ def available_notification_agents():
               {'label': 'Twitter',
                'name': 'twitter',
                'id': AGENT_IDS['twitter']
+               },
+              {'label': 'Webhook',
+               'name': 'webhook',
+               'id': AGENT_IDS['webhook']
                },
               {'label': 'Zapier',
                'name': 'zapier',
@@ -386,6 +391,8 @@ def get_agent_class(agent_id=None, config=None):
             return MQTT(config=config)
         elif agent_id == 24:
             return ZAPIER(config=config)
+        elif agent_id == 25:
+            return WEBHOOK(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -513,7 +520,7 @@ def add_notifier_config(agent_id=None, **kwargs):
               'custom_conditions_logic': ''
               }
 
-    if agent['name'] == 'scripts':
+    if agent['name'] in ('scripts', 'webhook'):
         for a in available_notification_actions():
             values[a['name'] + '_subject'] = ''
             values[a['name'] + '_body'] = ''
@@ -774,7 +781,7 @@ class Notifier(object):
         return self._DEFAULT_CONFIG.copy()
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if self.NAME != 'Script':
+        if self.NAME not in ('Script', 'Webhook'):
             if not subject and self.config.get('incl_subject', True):
                 logger.error(u"Tautulli Notifiers :: %s notification subject cannot be blank." % self.NAME)
                 return
@@ -3528,6 +3535,53 @@ class TWITTER(Notifier):
                                          'data-target="#notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class WEBHOOK(Notifier):
+    """
+    Webhook notifications
+    """
+    NAME = 'Webhook'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'method': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if body:
+            try:
+                webhook_data = json.loads(body)
+            except ValueError as e:
+                logger.error(u"Tautulli Notifiers :: Invalid {name} json data: {e}".format(name=self.NAME, e=e))
+                return False
+
+        else:
+            webhook_data = None
+
+        headers = {'Content-type': 'application/json'}
+
+        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_data)
+
+    def return_config_options(self):
+        config_option = [{'label': 'Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'webhook_hook',
+                          'description': 'Your Webhook URL.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Webhook Method',
+                          'value': self.config['method'],
+                          'name': 'webhook_method',
+                          'description': 'The Webhook HTTP request method.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'GET': 'GET',
+                                             'POST': 'POST',
+                                             'PUT': 'PUT',
+                                             'DELETE': 'DELETE'}
                           }
                          ]
 
