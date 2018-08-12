@@ -278,7 +278,7 @@ class WebInterface(object):
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
-        if plextv:
+        if plextv == 'true':
             base_url = 'https://plex.tv'
         else:
             if plexpy.CONFIG.PMS_URL_OVERRIDE:

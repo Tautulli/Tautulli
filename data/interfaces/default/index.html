@@ -100,7 +100,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="home-padded-header padded-header">
-                <h3 class="pull-left">Recently Added</h3>
+                <h3 class="pull-left"><span id="recently-added-xml">Recently Added</span></h3>
                 <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
                     <li>
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
@@ -847,6 +847,10 @@
     });
 
     $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });
+
+    $('#recently-added-xml').on('tripleclick', function () {
+        openPlexXML('/library/recentlyAdded', false, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
+    });
 </script>
 % endif
 % if _session['user_group'] == 'admin' and config['update_show_changelog']:
