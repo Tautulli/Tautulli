@@ -1128,10 +1128,7 @@ def traverse_map(obj, func):
         for k, v in obj.iteritems():
             new_obj[traverse_map(k, func)] = traverse_map(v, func)
 
-    elif isinstance(obj, basestring):
-        new_obj = func(obj)
-
     else:
-        new_obj = obj
+        new_obj = func(obj)
 
     return new_obj

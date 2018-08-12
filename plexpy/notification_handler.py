@@ -1058,20 +1058,27 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             script_args = []
 
     elif agent_id == 25:
-        try:
-            body = json.loads(body)
-        except ValueError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json data: %s. Using fallback." % e)
+        if body:
+            try:
+                body = json.loads(body)
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json data: %s. Using fallback." % e)
+                body = ''
 
-        try:
-            body = json.dumps(helpers.traverse_map(body,
-               lambda x: custom_formatter.format(x, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')))
-        except LookupError as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook data. Using fallback." % e)
-            body = ''
-        except Exception as e:
-            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook data: %s. Using fallback." % e)
-            body = ''
+        if body:
+            def str_format(s):
+                if isinstance(s, basestring):
+                    return custom_formatter.format(s, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
+                return s
+
+            try:
+                body = json.dumps(helpers.traverse_map(body, str_format))
+            except LookupError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook data. Using fallback." % e)
+                body = ''
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook data: %s. Using fallback." % e)
+                body = ''
 
     else:
         try:
