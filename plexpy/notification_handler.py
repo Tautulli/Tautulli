@@ -1048,7 +1048,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
+            script_args = [custom_formatter.format(arg.decode(plexpy.SYS_ENCODING, 'ignore'), **parameters)
                            for arg in shlex.split(subject.encode(plexpy.SYS_ENCODING, 'ignore'))]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
@@ -1068,7 +1068,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         if body:
             def str_format(s):
                 if isinstance(s, basestring):
-                    return custom_formatter.format(s, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
+                    return custom_formatter.format(unicode(s), **parameters)
                 return s
 
             try:
