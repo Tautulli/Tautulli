@@ -239,7 +239,7 @@ def main():
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, http_port,
-                              plexpy.CONFIG.HTTP_ROOT)
+                              plexpy.HTTP_ROOT)
 
     # Wait endlessy for a signal to happen
     while True:
