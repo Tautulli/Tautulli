@@ -2855,7 +2855,8 @@ class WebInterface(object):
             "newsletter_auth": plexpy.CONFIG.NEWSLETTER_AUTH,
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
-            "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
+            "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2877,7 +2878,7 @@ class WebInterface(object):
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
-            "newsletter_self_hosted", "newsletter_inline_styles"
+            "newsletter_self_hosted", "newsletter_inline_styles", "win_sys_tray"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

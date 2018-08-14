@@ -95,6 +95,7 @@ LATEST_RELEASE = None
 
 UMASK = None
 
+HTTP_PORT = None
 HTTP_ROOT = None
 
 DEV = False
@@ -104,6 +105,8 @@ WS_CONNECTED = False
 PLEX_SERVER_UP = None
 
 TRACKER = None
+
+WIN_SYS_TRAY_ICON = None
 
 
 def initialize(config_file):
@@ -376,6 +379,31 @@ def launch_browser(host, port, root):
             webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
         except Exception as e:
             logger.error(u"Could not launch browser: %s" % e)
+
+
+def win_system_tray():
+    try:
+        from SysTrayIcon import SysTrayIcon
+    except ImportError:
+        logger.warn(u"Unable to start system tray icon: missing pywin32 module.")
+        return
+
+    def tray_open(sysTrayIcon):
+        launch_browser(CONFIG.HTTP_HOST, HTTP_PORT, HTTP_ROOT)
+
+    def tray_restart(sysTrayIcon):
+        shutdown(restart=True)
+
+    icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo.ico')
+    hover_text = common.PRODUCT
+    menu_options = (('Open Tautulli', None, tray_open),
+                    ('Restart', None, tray_restart))
+
+    global WIN_SYS_TRAY_ICON
+    try:
+        WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=shutdown)
+    except Exception as e:
+        logger.error(u"Unable to start system tray icon: %s." % e)
 
 
 def initialize_scheduler():
