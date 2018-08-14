@@ -382,28 +382,30 @@ def launch_browser(host, port, root):
 
 
 def win_system_tray():
-    try:
-        from SysTrayIcon import SysTrayIcon
-    except ImportError:
-        logger.warn(u"Unable to start system tray icon: missing pywin32 module.")
-        return
+    from systray import SysTrayIcon
 
     def tray_open(sysTrayIcon):
         launch_browser(CONFIG.HTTP_HOST, HTTP_PORT, HTTP_ROOT)
 
     def tray_restart(sysTrayIcon):
-        shutdown(restart=True)
+        plexpy.SIGNAL = 'restart'
+
+    def tray_quit(sysTrayIcon):
+        plexpy.SIGNAL = 'shutdown'
 
     icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo.ico')
     hover_text = common.PRODUCT
     menu_options = (('Open Tautulli', None, tray_open),
                     ('Restart', None, tray_restart))
 
-    global WIN_SYS_TRAY_ICON
+    logger.info(u"Launching system tray icon.")
+
     try:
-        WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=shutdown)
+        plexpy.WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
+        plexpy.WIN_SYS_TRAY_ICON.start()
     except Exception as e:
-        logger.error(u"Unable to start system tray icon: %s." % e)
+        logger.error(u"Unable to launch system tray icon: %s." % e)
+        plexpy.WIN_SYS_TRAY_ICON = None
 
 
 def initialize_scheduler():
@@ -1826,6 +1828,7 @@ def upgrade():
 
 
 def shutdown(restart=False, update=False, checkout=False):
+    logger.info(u"Stopping Tautulli web server...")
     cherrypy.engine.exit()
 
     # Shutdown the websocket connection
@@ -1863,6 +1866,9 @@ def shutdown(restart=False, update=False, checkout=False):
     if CREATEPID:
         logger.info(u"Removing pidfile %s", PIDFILE)
         os.remove(PIDFILE)
+
+    if WIN_SYS_TRAY_ICON:
+        WIN_SYS_TRAY_ICON.shutdown()
 
     if restart:
         logger.info(u"Tautulli is restarting...")
