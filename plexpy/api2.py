@@ -122,7 +122,7 @@ class API2:
 
             else:
                 self._api_msg = 'Invalid apikey'
-            
+
             if self._api_authenticated and self._api_cmd in self._api_valid_methods:
                 self._api_msg = None
                 self._api_kwargs = kwargs
@@ -311,8 +311,8 @@ class API2:
             self.backup_db()
         else:
             # If the backup is less then 24 h old lets make a backup
-            if any([os.path.getctime(os.path.join(plexpy.CONFIG.BACKUP_DIR, file_)) < (time.time() - 86400)
-                   and file_.endswith('.db') for file_ in os.listdir(plexpy.CONFIG.BACKUP_DIR)]):
+            if not any(os.path.getctime(os.path.join(plexpy.CONFIG.BACKUP_DIR, file_)) > (time.time() - 86400)
+                    and file_.endswith('.db') for file_ in os.listdir(plexpy.CONFIG.BACKUP_DIR)):
                 self.backup_db()
 
         db = database.MonitorDatabase()
