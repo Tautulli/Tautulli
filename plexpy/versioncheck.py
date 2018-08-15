@@ -131,6 +131,21 @@ def getVersion():
             return None, 'origin', common.BRANCH
 
 
+def check_update(auto_update=False, notify=False):
+    check_github(auto_update=auto_update, notify=notify)
+
+    if not plexpy.CURRENT_VERSION:
+        plexpy.UPDATE_AVAILABLE = None
+    elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
+            plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
+        plexpy.UPDATE_AVAILABLE = 'release'
+    elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
+            plexpy.INSTALL_TYPE != 'win':
+        plexpy.UPDATE_AVAILABLE = 'commit'
+    else:
+        plexpy.UPDATE_AVAILABLE = False
+
+
 def check_github(auto_update=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
 

@@ -3803,16 +3803,15 @@ class WebInterface(object):
                     }
             ```
         """
-        versioncheck.check_github()
+        versioncheck.check_update()
 
-        if not plexpy.CURRENT_VERSION:
+        if plexpy.UPDATE_AVAILABLE is None:
             return {'result': 'error',
                     'update': None,
                     'message': 'You are running an unknown version of Tautulli.'
                     }
 
-        elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
-                plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
+        elif plexpy.UPDATE_AVAILABLE == 'release':
             return {'result': 'success',
                     'update': True,
                     'release': True,
@@ -3825,8 +3824,7 @@ class WebInterface(object):
                            plexpy.LATEST_RELEASE))
                     }
 
-        elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
-                plexpy.INSTALL_TYPE != 'win':
+        elif plexpy.UPDATE_AVAILABLE == 'commit':
             return {'result': 'success',
                     'update': True,
                     'release': False,

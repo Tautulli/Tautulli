@@ -33,7 +33,7 @@
                     <button id="menu_link_show_advanced_settings" class="btn btn-dark"><i class="fa fa-wrench"></i> Show Advanced</button>
                     % endif
                     % if config['check_github']:
-                    <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
+                    <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-alt-circle-up"></i> Check for Updates</button>
                     % endif
                     <button id="menu_link_restart" class="btn btn-dark"><i class="fa fa-refresh"></i> Restart</button>
                     <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shutdown</button>
@@ -1937,7 +1937,7 @@ $(document).ready(function() {
     $('#menu_link_update_check').click(function() {
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking').prop('disabled', true);
         checkUpdate(function () {
-            $('#menu_link_update_check').html('<i class="fa fa-arrow-circle-up"></i> Check for Updates')
+            $('#menu_link_update_check').html('<i class="fa fa-arrow-alt-circle-up"></i> Check for Updates')
                     .prop('disabled', false);
         });
     });
