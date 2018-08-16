@@ -211,17 +211,18 @@ class PlexTV(object):
 
 
     def get_server_token(self):
-        servers = self.get_plextv_server_list(output_format='xml')
+        servers = self.get_plextv_resources(output_format='xml')
         server_token = ''
 
         try:
-            xml_head = servers.getElementsByTagName('Server')
+            xml_head = servers.getElementsByTagName('Device')
         except Exception as e:
             logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_token: %s." % e)
             return None
 
         for a in xml_head:
-            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+            if helpers.get_xml_attr(a, 'clientIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER \
+                    and 'server' in helpers.get_xml_attr(a, 'provides'):
                 server_token = helpers.get_xml_attr(a, 'accessToken')
                 break
 
@@ -812,7 +813,7 @@ class PlexTV(object):
 
         # Get proper download
         releases = platform_downloads.get('releases', [{}])
-        release = next((r for r in releases if r['distro'] == plexpy.CONFIG.PMS_UPDATE_DISTRO and 
+        release = next((r for r in releases if r['distro'] == plexpy.CONFIG.PMS_UPDATE_DISTRO and
                         r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
 
         download_info = {'update_available': v_new > v_old,
