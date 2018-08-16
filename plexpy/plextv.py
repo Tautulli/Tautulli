@@ -221,7 +221,8 @@ class PlexTV(object):
             return None
 
         for a in xml_head:
-            if helpers.get_xml_attr(a, 'clientIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+            if helpers.get_xml_attr(a, 'clientIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER \
+                    and 'server' in helpers.get_xml_attr(a, 'provides'):
                 server_token = helpers.get_xml_attr(a, 'accessToken')
                 break
 
