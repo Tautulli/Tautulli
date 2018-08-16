@@ -2985,7 +2985,9 @@ class SCRIPTS(Notifier):
                             '.sh': ''
                             }
 
-        self.arg_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
+        self.pythonpath_override = 'nopythonpath'
+        self.pythonpath = True
+        self.prefix_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
         self.script_killed = False
 
     def list_scripts(self):
@@ -3013,9 +3015,11 @@ class SCRIPTS(Notifier):
             'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
             'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
-            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-            'PYTHONPATH': os.pathsep.join([p for p in sys.path if p])
+            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING
             })
+
+        if self.pythonpath:
+            env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
 
         try:
             process = subprocess.Popen(script,
@@ -3108,9 +3112,15 @@ class SCRIPTS(Notifier):
         if script_args:  # and os.name == 'nt':
             script_args = [arg.encode(plexpy.SYS_ENCODING, 'ignore') for arg in script_args]
 
+        # Allow overrides for PYTHONPATH
+        if prefix and script_args:
+            if script_args[0] == self.pythonpath_override:
+                self.pythonpath = False
+                del script_args[0]
+
         # Allow overrides for shitty systems
         if prefix and script_args:
-            if script_args[0] in self.arg_overrides:
+            if script_args[0] in self.prefix_overrides:
                 script[0] = script_args[0]
                 del script_args[0]
 
