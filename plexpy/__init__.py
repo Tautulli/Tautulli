@@ -386,7 +386,17 @@ def win_system_tray():
     from systray import SysTrayIcon
 
     def tray_open(sysTrayIcon):
-        launch_browser(CONFIG.HTTP_HOST, HTTP_PORT, HTTP_ROOT)
+        launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+
+    def tray_check_update(sysTrayIcon):
+        versioncheck.check_update()
+
+    def tray_update(sysTrayIcon):
+        if plexpy.UPDATE_AVAILABLE:
+            plexpy.SIGNAL = 'update'
+        else:
+            hover_text = common.PRODUCT + ' - No Update Available'
+            plexpy.WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
 
     def tray_restart(sysTrayIcon):
         plexpy.SIGNAL = 'restart'
@@ -394,10 +404,18 @@ def win_system_tray():
     def tray_quit(sysTrayIcon):
         plexpy.SIGNAL = 'shutdown'
 
-    icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo.ico')
-    hover_text = common.PRODUCT
-    menu_options = (('Open Tautulli', None, tray_open),
-                    ('Restart', None, tray_restart))
+    if plexpy.UPDATE_AVAILABLE:
+        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray-update.ico')
+        hover_text = common.PRODUCT + ' - Update Available!'
+    else:
+        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray.ico')
+        hover_text = common.PRODUCT
+
+    menu_options = (('Open Tautulli', None, tray_open, 'default'),
+                    ('', None, 'separator', None),
+                    ('Check for Updates', None, tray_check_update, None),
+                    ('Update', None, tray_update, None),
+                    ('Restart', None, tray_restart, None))
 
     logger.info(u"Launching system tray icon.")
 

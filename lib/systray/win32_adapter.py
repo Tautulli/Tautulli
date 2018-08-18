@@ -42,10 +42,12 @@ NIM_DELETE = 2
 NIF_ICON = 2
 NIF_MESSAGE = 1
 NIF_TIP = 4
+MIIM_STATE = 1
 MIIM_ID = 2
 MIIM_SUBMENU = 4
 MIIM_STRING = 64
 MIIM_BITMAP = 128
+MIIM_FTYPE = 256
 WM_DESTROY = 2
 WM_CLOSE = 16
 WM_COMMAND = 273
@@ -70,6 +72,10 @@ SM_CXSMICON = 49
 SM_CYSMICON = 50
 COLOR_MENU = 4
 DI_NORMAL = 3
+MFS_DISABLED = 3
+MFS_DEFAULT = 4096
+MFS_HILITE = 128
+MFT_SEPARATOR = 2048
 
 WPARAM = ctypes.wintypes.WPARAM
 LPARAM = ctypes.wintypes.LPARAM
@@ -145,7 +151,8 @@ class NOTIFYICONDATA(ctypes.Structure):
         _fields_.append(("hBalloonIcon", HANDLE))
 
 
-def PackMENUITEMINFO(text=None, hbmpItem=None, wID=None, hSubMenu=None):
+def PackMENUITEMINFO(text=None, hbmpItem=None, wID=None, hSubMenu=None,
+                     fType=None, fState=None):
     res = MENUITEMINFO()
     res.cbSize = ctypes.sizeof(res)
     res.fMask = 0
@@ -162,6 +169,12 @@ def PackMENUITEMINFO(text=None, hbmpItem=None, wID=None, hSubMenu=None):
     if hSubMenu is not None:
         res.fMask |= MIIM_SUBMENU
         res.hSubMenu = hSubMenu
+    if fType is not None:
+        res.fMask |= MIIM_FTYPE
+        res.fType = fType
+    if fState is not None:
+        res.fMask |= MIIM_STATE
+        res.fState = fState
     return res
 
 def LOWORD(w):

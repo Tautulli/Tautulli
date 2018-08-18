@@ -38,7 +38,7 @@ class SysTrayIcon(object):
         self._on_quit = on_quit
 
         menu_options = menu_options or ()
-        menu_options = menu_options + (('Quit', None, SysTrayIcon.QUIT),)
+        menu_options = menu_options + (('Quit', None, SysTrayIcon.QUIT, None),)
         self._next_action_id = SysTrayIcon.FIRST_ID
         self._menu_actions_by_id = set()
         self._menu_options = self._add_ids_to_menu_options(list(menu_options))
@@ -134,13 +134,20 @@ class SysTrayIcon(object):
     def _add_ids_to_menu_options(self, menu_options):
         result = []
         for menu_option in menu_options:
-            option_text, option_icon, option_action = menu_option
+            option_text, option_icon, option_action, option_state = menu_option
             if callable(option_action) or option_action in SysTrayIcon.SPECIAL_ACTIONS:
                 self._menu_actions_by_id.add((self._next_action_id, option_action))
                 result.append(menu_option + (self._next_action_id,))
+            elif option_action == 'separator':
+                result.append((option_text,
+                               option_icon,
+                               option_action,
+                               option_state,
+                               self._next_action_id))
             elif non_string_iterable(option_action):
                 result.append((option_text,
                                option_icon,
+                               option_state,
                                self._add_ids_to_menu_options(option_action),
                                self._next_action_id))
             else:
@@ -232,22 +239,36 @@ class SysTrayIcon(object):
         PostMessage(self._hwnd, WM_NULL, 0, 0)
 
     def _create_menu(self, menu, menu_options):
-        for option_text, option_icon, option_action, option_id in menu_options[::-1]:
+        for option_text, option_icon, option_action, option_state, option_id in menu_options[::-1]:
             if option_icon:
                 option_icon = self._prep_menu_icon(option_icon)
 
-            if option_id in self._menu_actions_by_id:
-                item = PackMENUITEMINFO(text=option_text,
-                                        hbmpItem=option_icon,
-                                        wID=option_id)
-                InsertMenuItem(menu, 0, 1, ctypes.byref(item))
-            else:
+            mi_fstate = 0
+            mi_ftype = 0
+
+            if option_state == 'default':
+                mi_fstate = mi_fstate | MFS_DEFAULT
+            if option_state == 'highlight':
+                mi_fstate = mi_fstate | MFS_HILITE
+            if option_state == 'disabled':
+                mi_fstate = mi_fstate | MFS_DISABLED
+            if option_action == 'separator':
+                mi_ftype = mi_ftype | MFT_SEPARATOR
+
+            if isinstance(option_action, tuple):
                 submenu = CreatePopupMenu()
                 self._create_menu(submenu, option_action)
                 item = PackMENUITEMINFO(text=option_text,
                                         hbmpItem=option_icon,
                                         hSubMenu=submenu)
                 InsertMenuItem(menu, 0, 1,  ctypes.byref(item))
+            else:
+                item = PackMENUITEMINFO(text=option_text,
+                                        hbmpItem=option_icon,
+                                        wID=option_id,
+                                        fState=mi_fstate,
+                                        fType=mi_ftype)
+                InsertMenuItem(menu, 0, 1, ctypes.byref(item))
 
     def _prep_menu_icon(self, icon):
         icon = encode_for_locale(icon)
