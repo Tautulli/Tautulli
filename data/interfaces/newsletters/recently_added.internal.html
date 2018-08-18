@@ -692,7 +692,7 @@
                                 <img src="${(base_url_image + 'images/libraries/show.png') if base_url_image else 'https://tautulli.com/images/libraries/show.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added TV Shows
                             </div>
                             <div class="sub-header-count">
-                                <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span> /
+                                <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span>&nbsp;/&nbsp;
                                 <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
                                 <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total > 1 else ''}</span>
                             </div>
@@ -745,7 +745,7 @@
                                                                         <td class="card-info-body">
                                                                             <p class="nowrap mb5">
                                                                                 % if show['season_count'] > 1:
-                                                                                    <em>${show['season_count']} seasons /</em>
+                                                                                    <em>${show['season_count']} seasons&nbsp;/&nbsp;</em>
                                                                                 % endif
                                                                                 <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
                                                                                 <em>${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}</em>
