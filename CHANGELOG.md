@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.19-beta (2018-08-19)
+
+* Notifications:
+  * New: Added Webhook notification agent.
+  * Fix: Scripts failing due to unicode characters in substituted script arguments.
+  * Change: Ability to override PYTHONPATH for scripts.
+  * Remove: Notify My Android notification agent.
+* Newsletters:
+  * New: Added option for threaded newsletter emails.
+  * Fix: Missing space in newsletter format.
+* UI:
+  * New: Added Windows system tray icon.
+  * Fix: Plex OAuth not working with Plex remote access disabled. (Thanks @samwiseg00)
+* API:
+  * Fix: SQL command creating a database backup every time. (Thanks @samwiseg00)
+
+
 ## v2.1.18 (2018-07-27)
 
 * Monitoring:
