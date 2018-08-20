@@ -795,6 +795,7 @@ class Notifier(object):
         pass
 
     def make_request(self, url, method='POST', **kwargs):
+        logger.info(u"Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         response, err_msg, req_msg = request.request_response2(url, method, **kwargs)
 
         if response and not err_msg:
