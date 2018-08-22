@@ -1146,7 +1146,7 @@ class DISCORD(Notifier):
 
             # Build Discord post attachment
             attachment = {'title': title,
-                          'timestamp': helpers.utc_now_iso()
+                          'timestamp': pretty_metadata.parameters['utctime']
                           }
 
             if self.config['color']:
