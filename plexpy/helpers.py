@@ -202,16 +202,21 @@ def convert_seconds_to_minutes(s):
 def today():
     today = datetime.date.today()
     yyyymmdd = datetime.date.isoformat(today)
+
     return yyyymmdd
 
 
 def now():
     now = datetime.datetime.now()
+
     return now.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def utc_now_iso():
     utcnow = datetime.datetime.utcnow()
+
     return utcnow.isoformat()
+
 
 def human_duration(s, sig='dhms'):
 

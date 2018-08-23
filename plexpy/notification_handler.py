@@ -749,6 +749,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
+        'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
         'user_streams': user_stream_count,
@@ -969,6 +970,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
+        'utctime': helpers.utc_now_iso(),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
