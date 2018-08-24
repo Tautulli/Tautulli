@@ -4031,7 +4031,7 @@ class WebInterface(object):
         return self.real_pms_image_proxy(**kwargs)
 
     @addtoapi('pms_image_proxy')
-    def real_pms_image_proxy(self, img='', rating_key=None, width=0, height=0,
+    def real_pms_image_proxy(self, img=None, rating_key=None, width=750, height=1000,
                              opacity=100, background='000000', blur=0, img_format='png',
                              fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
@@ -4051,6 +4051,7 @@ class WebInterface(object):
                 img_format (str):       png
                 fallback (str):         "poster", "cover", "art"
                 refresh (bool):         True or False whether to refresh the image cache
+                return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
             Returns:
                 None
@@ -4059,6 +4060,8 @@ class WebInterface(object):
         if not img and not rating_key:
             logger.warn('No image input received.')
             return
+
+        return_hash = (kwargs.get('return_hash') == 'true')
 
         if rating_key and not img:
             if fallback == 'art':
@@ -4070,9 +4073,13 @@ class WebInterface(object):
         img = '/'.join(img_split[:5])
         rating_key = rating_key or img_split[3]
 
-        img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
-            plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
-        img_hash = hashlib.sha256(img_string).hexdigest()
+        img_hash = notification_handler.set_hash_image_info(
+            img=img, rating_key=rating_key, width=width, height=height,
+            opacity=opacity, background=background, blur=blur, fallback=fallback,
+            add_to_db=return_hash)
+
+        if return_hash:
+            return {'img_hash': img_hash}
 
         fp = '{}.{}'.format(img_hash, img_format)  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')

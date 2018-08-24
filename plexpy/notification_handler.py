@@ -1256,7 +1256,8 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
 
 
 def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
-                        opacity=100, background='000000', blur=0, fallback=None):
+                        opacity=100, background='000000', blur=0, fallback=None,
+                        add_to_db=True):
     if not rating_key and not img:
         return fallback
 
@@ -1274,18 +1275,19 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
         plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
     img_hash = hashlib.sha256(img_string).hexdigest()
 
-    keys = {'img_hash': img_hash}
-    values = {'img': img,
-              'rating_key': rating_key,
-              'width': width,
-              'height': height,
-              'opacity': opacity,
-              'background': background,
-              'blur': blur,
-              'fallback': fallback}
+    if add_to_db:
+        keys = {'img_hash': img_hash}
+        values = {'img': img,
+                  'rating_key': rating_key,
+                  'width': width,
+                  'height': height,
+                  'opacity': opacity,
+                  'background': background,
+                  'blur': blur,
+                  'fallback': fallback}
 
-    db = database.MonitorDatabase()
-    db.upsert('image_hash_lookup', key_dict=keys, value_dict=values)
+        db = database.MonitorDatabase()
+        db.upsert('image_hash_lookup', key_dict=keys, value_dict=values)
 
     return img_hash
 
