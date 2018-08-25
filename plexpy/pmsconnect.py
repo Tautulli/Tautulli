@@ -809,11 +809,19 @@ class PmsConnect(object):
         elif metadata_type == 'episode':
             grandparent_rating_key = helpers.get_xml_attr(metadata_main, 'grandparentRatingKey')
             show_details = self.get_metadata_details(grandparent_rating_key)
+
+            parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
+            parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
+            if not parent_rating_key:
+                children_list = self.get_item_children(grandparent_rating_key)
+                parent_rating_key = next((c['rating_key'] for c in children_list['children_list']
+                                          if c['media_index'] == parent_media_index), '')
+
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
-                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'parent_rating_key': parent_rating_key,
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'parent_title': 'Season %s' % helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -821,7 +829,7 @@ class PmsConnect(object):
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
-                        'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'parent_media_index': parent_media_index,
                         'studio': show_details['studio'],
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
