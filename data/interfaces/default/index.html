@@ -439,7 +439,7 @@
                         $('#transcode_container-' + key).html(transcode_container);
 
                         var video_decision = '';
-                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.video_decision !== '') {
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.stream_video_decision) {
                             var v_res= '';
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
@@ -477,7 +477,7 @@
                         $('#video_decision-' + key).html(video_decision);
 
                         var audio_decision = '';
-                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.audio_decision) {
+                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.stream_audio_decision) {
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
