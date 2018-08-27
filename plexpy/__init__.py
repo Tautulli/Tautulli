@@ -167,6 +167,15 @@ def initialize(config_file):
         logger.info(u"Python {}".format(
             sys.version
         ))
+        logger.info(u"Program Dir: {}".format(
+            PROG_DIR
+        ))
+        logger.info(u"Config File: {}".format(
+            CONFIG_FILE
+        ))
+        logger.info(u"Database File: {}".format(
+            DB_FILE
+        ))
 
         if not CONFIG.BACKUP_DIR:
             CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
