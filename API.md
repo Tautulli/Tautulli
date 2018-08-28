@@ -1,9 +1,15 @@
 # API Reference
 
-The API is still pretty new and needs some serious cleaning up on the backend but should be reasonably functional. There are no error codes yet.
-
 ## General structure
-The API endpoint is `http://ip:port + HTTP_ROOT + /api/v2?apikey=$apikey&cmd=$command`
+The API endpoint is
+```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
+```
+
+Example:
+```
+http://localhost:8181/api/v2?apikey=66198313a092496b8a725867d2223b5f&cmd=get_metadata&rating_key=153037
+```
 
 Response example (default `json`)
 ```
@@ -2438,7 +2444,7 @@ Required parameters:
     body (str):             The body of the message
 
 Optional parameters:
-    None
+    script_args (str):      The arguments for script notifications
 
 Returns:
     None
