@@ -23,7 +23,6 @@ import json
 from operator import itemgetter
 import os
 import re
-import shlex
 from string import Formatter
 import threading
 import time
@@ -337,12 +336,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     if notify_action in ('test', 'api'):
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
-        script_args = kwargs.pop('script_args', [])
-
-        if script_args and isinstance(script_args, basestring):
-            # Attemps to format test script args for the user
-            script_args = [arg.decode(plexpy.SYS_ENCODING, 'ignore')
-                           for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+        script_args = helpers.split_args(kwargs.pop('script_args', []))
 
     else:
         # Get the subject and body strings
@@ -1050,8 +1044,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg.decode(plexpy.SYS_ENCODING, 'ignore'), **parameters)
-                           for arg in shlex.split(subject.encode(plexpy.SYS_ENCODING, 'ignore'))]
+            script_args = [custom_formatter.format(arg, **parameters) for arg in helpers.split_args(subject)]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []

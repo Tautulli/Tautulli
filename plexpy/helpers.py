@@ -33,6 +33,7 @@ import maxminddb
 from operator import itemgetter
 import os
 import re
+import shlex
 import socket
 import sys
 import time
@@ -1137,3 +1138,12 @@ def traverse_map(obj, func):
         new_obj = func(obj)
 
     return new_obj
+
+
+def split_args(args=None):
+    if isinstance(args, list):
+        return args
+    elif isinstance(args, basestring):
+        return [arg.decode(plexpy.SYS_ENCODING, 'ignore')
+                for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+    return []

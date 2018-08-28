@@ -3078,7 +3078,7 @@ class SCRIPTS(Notifier):
             logger.error(u"Tautulli Notifiers :: No script folder specified.")
             return
 
-        script_args = kwargs.get('script_args', [])
+        script_args = helpers.split_args(kwargs.get('script_args', subject))
 
         logger.debug(u"Tautulli Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
