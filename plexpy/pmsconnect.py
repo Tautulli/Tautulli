@@ -812,10 +812,18 @@ class PmsConnect(object):
 
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
+            parent_thumb = helpers.get_xml_attr(metadata_main, 'parentThumb')
+
             if not parent_rating_key:
-                children_list = self.get_item_children(grandparent_rating_key)
-                parent_rating_key = next((c['rating_key'] for c in children_list['children_list']
-                                          if c['media_index'] == parent_media_index), '')
+                # Try getting the parent_rating_key from the parent_thumb
+                if parent_thumb.startswith('/library/metadata/'):
+                    parent_rating_key = parent_thumb.split('/')[3]
+
+                # Try getting the parent_rating_key from the grandparent's children
+                if not parent_rating_key:
+                    children_list = self.get_item_children(grandparent_rating_key)
+                    parent_rating_key = next((c['rating_key'] for c in children_list['children_list']
+                                              if c['media_index'] == parent_media_index), '')
 
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
@@ -842,7 +850,7 @@ class PmsConnect(object):
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
-                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'parent_thumb': parent_thumb,
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'banner': show_details['banner'],
