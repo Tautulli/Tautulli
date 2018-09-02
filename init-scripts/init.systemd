@@ -25,8 +25,8 @@
 #
 #    - To create this user and give it ownership of the Tautulli directory:
 #       sudo adduser --system --no-create-home tautulli
-#       sudo chown tautulli:nogroup -R /opt/Tautulli
-#     
+#       sudo chown tautulli:tautulli -R /opt/Tautulli
+#
 #    - Adjust ExecStart= to point to:
 #       1. Your Tautulli executable
 #          - Default: /opt/Tautulli/Tautulli.py
@@ -51,7 +51,7 @@ ExecStart=/opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir 
 GuessMainPID=no
 Type=forking
 User=tautulli
-Group=nogroup
+Group=tautlli
 
 [Install]
 WantedBy=multi-user.target
