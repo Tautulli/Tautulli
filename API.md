@@ -360,7 +360,8 @@ Required parameters:
     None
 
 Optional parameters:
-    None
+    session_key (int):    Session key for the session info to return, OR
+    session_id (str):     Session ID for the session info to return
 
 Returns:
     json:

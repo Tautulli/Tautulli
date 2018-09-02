@@ -4906,7 +4906,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_activity(self, session_key=None, **kwargs):
+    def get_activity(self, session_key=None, session_id=None, **kwargs):
         """ Get the current activity on the PMS.
 
             ```
@@ -4914,7 +4914,8 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                session_key (int):    Session key for the session info to return, OR
+                session_id (str):     Session ID for the session info to return
 
             Returns:
                 json:
@@ -5145,6 +5146,8 @@ class WebInterface(object):
             if result:
                 if session_key:
                     return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
+                if session_id:
+                    return next((s for s in result['sessions'] if s['session_id'] == session_id), {})
 
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,
