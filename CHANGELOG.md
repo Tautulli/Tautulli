@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.20-beta (2018-09-02)
+
+* Monitoring:
+  * Fix: Fetch messing season info when "Hide Seasons" is enabled for a show.
+  * Fix: Video and Audio details sometimes missing on activity cards.
+* Notifications:
+  * New: Added UTC timestamp to notification parameters. (Thanks @samwiseg00)
+  * New: Added TAUTULLI_PUBLIC_URL to script environment variables. (Thanks @samwiseg00)
+* UI:
+  * Change: Automatically redirect '/' to HTTP root if enabled.
+* API:
+  * New: Added return_hash parameter to pms_image_proxy command.
+  * New: Added session_id parameter to get_activity command.
+* Other:
+  * Change: Linux systemd startup script to use the "tautulli" group permission. (Thanks @samwiseg00)
+
+
 ## v2.1.19-beta (2018-08-19)
 
 * Notifications:
