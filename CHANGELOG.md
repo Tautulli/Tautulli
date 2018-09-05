@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.20 (2018-09-05)
+* No changes.
+
+
 ## v2.1.20-beta (2018-09-02)
 
 * Monitoring:
