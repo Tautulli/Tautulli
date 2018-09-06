@@ -568,7 +568,6 @@ getPlexOAuthPin = function () {
         type: 'POST',
         headers: x_plex_headers,
         success: function(data) {
-            plex_oauth_window.location = 'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + data.code;
             deferred.resolve({pin: data.id, code: data.code});
         },
         error: function() {
@@ -595,6 +594,8 @@ function PlexOAuth(success, error, pre) {
         const code = data.code;
         var keep_polling = true;
 
+        plex_oauth_window.location = 'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code;
+
         (function poll() {
             polling = setTimeout(function () {
                 $.ajax({
@@ -618,7 +619,7 @@ function PlexOAuth(success, error, pre) {
                         }
                     },
                     complete: function () {
-                        if (keep_polling){
+                        if (keep_polling && !plex_oauth_window.closed){
                             poll();
                         } else {
                             clearTimeout(polling);
