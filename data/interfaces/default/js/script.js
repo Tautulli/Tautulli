@@ -592,7 +592,6 @@ function PlexOAuth(success, error, pre) {
     getPlexOAuthPin().then(function (data) {
         const pin = data.pin;
         const code = data.code;
-        var keep_polling = true;
 
         plex_oauth_window.location = 'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code;
 
@@ -604,7 +603,6 @@ function PlexOAuth(success, error, pre) {
                     headers: x_plex_headers,
                     success: function (data) {
                         if (data.authToken){
-                            keep_polling = false;
                             closePlexOAuthWindow();
                             if (typeof success === "function") {
                                 success(data.authToken)
@@ -612,14 +610,13 @@ function PlexOAuth(success, error, pre) {
                         }
                     },
                     error: function () {
-                        keep_polling = false;
                         closePlexOAuthWindow();
                         if (typeof error === "function") {
                             error()
                         }
                     },
                     complete: function () {
-                        if (keep_polling && !plex_oauth_window.closed){
+                        if (!plex_oauth_window.closed){
                             poll();
                         } else {
                             clearTimeout(polling);
