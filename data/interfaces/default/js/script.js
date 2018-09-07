@@ -1,3 +1,29 @@
+var p = {
+    name: 'Unknown',
+    version: 'Unknown',
+    os: 'Unknown'
+};
+if (typeof platform !== 'undefined') {
+    p.name = platform.name;
+    p.version = platform.version;
+    p.os = platform.os.toString();
+}
+
+if (['IE', 'Microsoft Edge', 'IE Mobile'].indexOf(p.name) > -1) {
+    $('body').prepend('<div id="browser-warning"><i class="fa fa-exclamation-circle"></i>&nbsp;' +
+        'Tautulli does not support Internet Explorer or Microsoft Edge! ' +
+        'Please use a different browser such as Chrome or Firefox.</div>');
+    var offset = $('#browser-warning').height();
+    var navbar = $('.navbar-fixed-top');
+    if (navbar.length) {
+        navbar.offset({top: navbar.offset().top + offset});
+    }
+    var container = $('.body-container');
+    if (container.length) {
+        container.offset({top: container.offset().top + offset});
+    }
+}
+
 function initConfigCheckbox(elem, toggleElem, reverse) {
     toggleElem = (toggleElem === undefined) ? null : toggleElem;
     reverse = (reverse === undefined) ? false : reverse;
@@ -506,10 +532,10 @@ var x_plex_headers = {
     'X-Plex-Product': 'Tautulli',
     'X-Plex-Version': 'Plex OAuth',
     'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
-    'X-Plex-Platform': platform.name,
-    'X-Plex-Platform-Version': platform.version,
-    'X-Plex-Device': platform.os.toString(),
-    'X-Plex-Device-Name': platform.name
+    'X-Plex-Platform': p.name,
+    'X-Plex-Platform-Version': p.version,
+    'X-Plex-Device': p.os,
+    'X-Plex-Device-Name': p.name
 };
 
 var plex_oauth_window = null;
