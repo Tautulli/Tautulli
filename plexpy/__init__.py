@@ -140,21 +140,13 @@ def initialize(config_file):
         if not CONFIG.HTTPS_KEY:
             CONFIG.HTTPS_KEY = os.path.join(DATA_DIR, 'server.key')
 
-        if not CONFIG.LOG_DIR:
-            CONFIG.LOG_DIR = os.path.join(DATA_DIR, 'logs')
-
-        if not os.path.exists(CONFIG.LOG_DIR):
-            try:
-                os.makedirs(CONFIG.LOG_DIR)
-            except OSError:
-                CONFIG.LOG_DIR = None
-
-                if not QUIET:
-                    sys.stderr.write("Unable to create the log directory. " \
-                                     "Logging to screen only.\n")
+        CONFIG.LOG_DIR, log_writable = check_folder_writable(
+            CONFIG.LOG_DIR, os.path.join(DATA_DIR, 'logs'), 'logs')
+        if not log_writable and not QUIET:
+            sys.stderr.write("Unable to create the log directory. Logging to screen only.\n")
 
         # Start the logger, disable console if needed
-        logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
+        logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
         logger.info(u"Starting Tautulli {}".format(
@@ -177,29 +169,12 @@ def initialize(config_file):
             DB_FILE
         ))
 
-        if not CONFIG.BACKUP_DIR:
-            CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
-        if not os.path.exists(CONFIG.BACKUP_DIR):
-            try:
-                os.makedirs(CONFIG.BACKUP_DIR)
-            except OSError as e:
-                logger.error(u"Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
-
-        if not CONFIG.CACHE_DIR:
-            CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
-        if not os.path.exists(CONFIG.CACHE_DIR):
-            try:
-                os.makedirs(CONFIG.CACHE_DIR)
-            except OSError as e:
-                logger.error(u"Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
-
-        if not CONFIG.NEWSLETTER_DIR:
-            CONFIG.NEWSLETTER_DIR = os.path.join(DATA_DIR, 'newsletters')
-        if not os.path.exists(CONFIG.NEWSLETTER_DIR):
-            try:
-                os.makedirs(CONFIG.NEWSLETTER_DIR)
-            except OSError as e:
-                logger.error(u"Could not create newsletter dir '%s': %s" % (CONFIG.NEWSLETTER_DIR, e))
+        CONFIG.BACKUP_DIR, _ = check_folder_writable(
+            CONFIG.BACKUP_DIR, os.path.join(DATA_DIR, 'backups'), 'backups')
+        CONFIG.CACHE_DIR, _ = check_folder_writable(
+            CONFIG.CACHE_DIR, os.path.join(DATA_DIR, 'cache'), 'cache')
+        CONFIG.NEWSLETTER_DIR, _ = check_folder_writable(
+            CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
 
         # Initialize the database
         logger.info(u"Checking if the database upgrades are required...")
@@ -1974,3 +1949,29 @@ def analytics_event(category, action, label=None, value=None, **kwargs):
             TRACKER.send('event', data)
         except Exception as e:
             logger.warn(u"Failed to send analytics event for category '%s', action '%s': %s" % (category, action, e))
+
+
+def check_folder_writable(folder, fallback, name):
+    if not folder:
+        folder = fallback
+
+    if not os.path.exists(folder):
+        try:
+            os.makedirs(folder)
+        except OSError as e:
+            logger.error(u"Could not create %s dir '%s': %s" % (name, folder, e))
+            if folder != fallback:
+                logger.warn(u"Falling back to %s dir '%s'" % (name, fallback))
+                return check_folder_writable(None, fallback, name)
+            else:
+                return folder, None
+
+    if not os.access(folder, os.W_OK):
+        logger.error(u"Cannot write to %s dir '%s'" % (name, folder))
+        if folder != fallback:
+            logger.warn(u"Falling back to %s dir '%s'" % (name, fallback))
+            return check_folder_writable(None, fallback, name)
+        else:
+            return folder, False
+
+    return folder, True

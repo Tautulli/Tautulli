@@ -4163,3 +4163,15 @@ a[data-tab-destination] {
 .fa-blank {
     visibility: hidden;
 }
+
+#browser-warning {
+    height: 25px;
+    width: 100%;
+    background: #cc7b19;
+    text-align: center;
+    font-weight: bold;
+    padding-top: 2px;
+    position: absolute;
+    top: 0;
+    z-index: 9999;
+}
