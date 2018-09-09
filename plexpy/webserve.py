@@ -79,6 +79,26 @@ def serve_template(templatename, **kwargs):
     except:
         return exceptions.html_error_template().render()
 
+def redirect(url):
+    logger.debug(u"WebServe :: About to redirect to '%s'. Request X-Forwarded-Host: %s, X-Host: %s," \
+                 "Origin: %s, Host: %s.",url,cherrypy.request.headers.get('X-Forwarded-Host','None'),
+                 cherrypy.request.headers.get('X-Host','None'), 
+                 cherrypy.request.headers.get('Origin','None'), cherrypy.request.headers.get('Host','None'))
+
+    # check if proxy support is enabled and X-Forwarded-Host header is present
+    # if not, check for X-Host (lighttpd), Origin (Squid), or Host (nginx)
+    if 'X-Forwarded-Host' not in cherrypy.request.headers and cherrypy.config.get('tools.proxy.on'):
+        if 'X-Host' in cherrypy.request.headers:
+            cherrypy.config.update({'tools.proxy.local': 'X-Host'})
+            logger.debug(u"WebServe :: Detected X-Host header, using it for reverse proxy support.")
+        elif 'Origin' in cherrypy.request.headers:
+            cherrypy.config.update({'tools.proxy.local': 'Origin'})
+            logger.debug(u"WebServe :: Detected Origin header, using it for reverse proxy support.")
+        elif 'Host' in cherrypy.request.headers:
+            cherrypy.config.update({'tools.proxy.local': 'Host'})
+            logger.debug(u"WebServe :: Detected Host header, using it for reverse proxy support.")
+
+    raise cherrypy.HTTPRedirect(url)
 
 class WebInterface(object):
 
@@ -91,9 +111,9 @@ class WebInterface(object):
     @requireAuth()
     def index(self, **kwargs):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+            redirect(plexpy.HTTP_ROOT + "home")
         else:
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "welcome")
+            redirect(plexpy.HTTP_ROOT + "welcome")
 
 
     ##### Welcome #####
@@ -117,7 +137,7 @@ class WebInterface(object):
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             plexpy.initialize_scheduler()
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+            redirect(plexpy.HTTP_ROOT + "home")
         else:
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
@@ -494,7 +514,7 @@ class WebInterface(object):
     @requireAuth()
     def library(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+            redirect(plexpy.HTTP_ROOT)
 
         config = {
             "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES,
@@ -1124,7 +1144,7 @@ class WebInterface(object):
     @requireAuth()
     def user(self, user_id=None, **kwargs):
         if not allow_session_user(user_id):
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+            redirect(plexpy.HTTP_ROOT)
 
         if user_id:
             try:
@@ -2710,7 +2730,7 @@ class WebInterface(object):
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug(u"If you read this message, debug logging is available")
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
+        redirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
     @requireAuth()
@@ -3883,7 +3903,7 @@ class WebInterface(object):
     def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
             logger.error(u"Already on the %s branch" % git_branch)
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+            redirect(plexpy.HTTP_ROOT + "home")
         
         # Set the new git remote and branch
         plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
@@ -3914,7 +3934,7 @@ class WebInterface(object):
     @requireAuth()
     def info(self, rating_key=None, source=None, query=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+            redirect(plexpy.HTTP_ROOT)
 
         metadata = None
 
@@ -3943,12 +3963,12 @@ class WebInterface(object):
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
-                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+                redirect(plexpy.HTTP_ROOT)
 
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
         else:
             if get_session_user_id():
-                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+                redirect(plexpy.HTTP_ROOT)
             else:
                 return self.update_metadata(rating_key, query)
 
@@ -5797,7 +5817,7 @@ class WebInterface(object):
         request_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
         if plexpy.CONFIG.NEWSLETTER_AUTH == 2:
             redirect_uri = request_uri.replace('/newsletter', '/newsletter_auth')
-            raise cherrypy.HTTPRedirect(redirect_uri)
+            redirect(redirect_uri)
 
         elif plexpy.CONFIG.NEWSLETTER_AUTH == 1 and plexpy.CONFIG.NEWSLETTER_PASSWORD:
             if len(args) >= 2 and args[0] == 'image':
