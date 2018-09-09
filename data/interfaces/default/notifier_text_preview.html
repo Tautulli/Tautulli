@@ -9,7 +9,9 @@
             % for item in text:
             <div style="padding-bottom: 10px;">
                 <h4>${item['media_type'].capitalize()}</h4>
+                % if agent != 'webhook':
                 <pre>${item['subject']}</pre>
+                % endif
                 % if agent != 'scripts':
                 <pre>${item['body']}</pre>
                 % endif

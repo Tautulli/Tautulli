@@ -34,6 +34,7 @@ users_list_table_options = {
     "pageLength": 25,
     "order": [ 2, 'asc'],
     "stateSave": true,
+    "stateDuration": 0,
     "pagingType": "full_numbers",
     "autoWidth": false,
     "scrollX": true,

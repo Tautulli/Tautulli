@@ -122,7 +122,7 @@ class API2:
 
             else:
                 self._api_msg = 'Invalid apikey'
-            
+
             if self._api_authenticated and self._api_cmd in self._api_valid_methods:
                 self._api_msg = None
                 self._api_kwargs = kwargs
@@ -311,8 +311,8 @@ class API2:
             self.backup_db()
         else:
             # If the backup is less then 24 h old lets make a backup
-            if any([os.path.getctime(os.path.join(plexpy.CONFIG.BACKUP_DIR, file_)) < (time.time() - 86400)
-                   and file_.endswith('.db') for file_ in os.listdir(plexpy.CONFIG.BACKUP_DIR)]):
+            if not any(os.path.getctime(os.path.join(plexpy.CONFIG.BACKUP_DIR, file_)) > (time.time() - 86400)
+                    and file_.endswith('.db') for file_ in os.listdir(plexpy.CONFIG.BACKUP_DIR)):
                 self.backup_db()
 
         db = database.MonitorDatabase()
@@ -413,7 +413,7 @@ class API2:
                 body (str):             The body of the message
 
             Optional parameters:
-                None
+                script_args (str):      The arguments for script notifications
 
             Returns:
                 None
@@ -496,10 +496,16 @@ class API2:
         """ Tries to make a API.md to simplify the api docs. """
 
         head = '''# API Reference\n
-The API is still pretty new and needs some serious cleaning up on the backend but should be reasonably functional. There are no error codes yet.
-
 ## General structure
-The API endpoint is `http://ip:port + HTTP_ROOT + /api/v2?apikey=$apikey&cmd=$command`
+The API endpoint is
+```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
+```
+
+Example:
+```
+http://localhost:8181/api/v2?apikey=66198313a092496b8a725867d2223b5f&cmd=get_metadata&rating_key=153037
+```
 
 Response example (default `json`)
 ```
@@ -596,8 +602,9 @@ General optional parameters:
             return
 
         elif self._api_cmd == 'pms_image_proxy':
-            cherrypy.response.headers['Content-Type'] = 'image/jpeg'
-            return out['response']['data']
+            if 'return_hash' not in self._api_kwargs:
+                cherrypy.response.headers['Content-Type'] = 'image/jpeg'
+                return out['response']['data']
 
         if self._api_out_type == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'

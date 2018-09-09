@@ -204,10 +204,10 @@ def main():
 
     # Force the http port if neccessary
     if args.port:
-        http_port = args.port
-        logger.info('Using forced web server port: %i', http_port)
+        plexpy.HTTP_PORT = args.port
+        logger.info('Using forced web server port: %i', plexpy.HTTP_PORT)
     else:
-        http_port = int(plexpy.CONFIG.HTTP_PORT)
+        plexpy.HTTP_PORT = int(plexpy.CONFIG.HTTP_PORT)
 
     # Check if pyOpenSSL is installed. It is required for certificate generation
     # and for CherryPy.
@@ -221,7 +221,7 @@ def main():
 
     # Try to start the server. Will exit here is address is already in use.
     web_config = {
-        'http_port': http_port,
+        'http_port': plexpy.HTTP_PORT,
         'http_host': plexpy.CONFIG.HTTP_HOST,
         'http_root': plexpy.CONFIG.HTTP_ROOT,
         'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
@@ -238,8 +238,12 @@ def main():
 
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
-        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, http_port,
-                              plexpy.CONFIG.HTTP_ROOT)
+        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
+                              plexpy.HTTP_ROOT)
+
+    # Windows system tray icon
+    if os.name == 'nt' and plexpy.CONFIG.WIN_SYS_TRAY:
+        plexpy.win_system_tray()
 
     # Wait endlessy for a signal to happen
     while True:

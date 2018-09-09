@@ -141,7 +141,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     $.ajax({
         url: url,
         data: dataString,
-        type: 'post',
+        type: 'POST',
         beforeSend: function (jqXHR, settings) {
             // Start loader etc.
             feedback.prepend(loader);

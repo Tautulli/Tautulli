@@ -23,7 +23,6 @@ import json
 from operator import itemgetter
 import os
 import re
-import shlex
 from string import Formatter
 import threading
 import time
@@ -337,12 +336,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     if notify_action in ('test', 'api'):
         subject = kwargs.pop('subject', 'Tautulli')
         body = kwargs.pop('body', 'Test Notification')
-        script_args = kwargs.pop('script_args', [])
-
-        if script_args and isinstance(script_args, basestring):
-            # Attemps to format test script args for the user
-            script_args = [arg.decode(plexpy.SYS_ENCODING, 'ignore')
-                           for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+        script_args = helpers.split_args(kwargs.pop('script_args', []))
 
     else:
         # Get the subject and body strings
@@ -749,6 +743,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
+        'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
         'user_streams': user_stream_count,
@@ -969,6 +964,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
+        'utctime': helpers.utc_now_iso(),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
@@ -1039,6 +1035,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     # Remove the unwanted tags and strip any unmatch tags too.
     subject = strip_tag(re.sub(pattern, '', subject), agent_id).strip(' \t\n\r')
     body = strip_tag(re.sub(pattern, '', body), agent_id).strip(' \t\n\r')
+    script_args = []
 
     if test:
         return subject, body
@@ -1047,34 +1044,55 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg, **parameters).decode(plexpy.SYS_ENCODING, 'ignore')
-                           for arg in shlex.split(subject.encode(plexpy.SYS_ENCODING, 'ignore'))]
+            script_args = [custom_formatter.format(arg, **parameters) for arg in helpers.split_args(subject)]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
+
+    elif agent_id == 25:
+        if body:
+            try:
+                body = json.loads(body)
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json data: %s. Using fallback." % e)
+                body = ''
+
+        if body:
+            def str_format(s):
+                if isinstance(s, basestring):
+                    return custom_formatter.format(unicode(s), **parameters)
+                return s
+
+            try:
+                body = json.dumps(helpers.traverse_map(body, str_format))
+            except LookupError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook data. Using fallback." % e)
+                body = ''
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook data: %s. Using fallback." % e)
+                body = ''
+
     else:
-        script_args = []
+        try:
+            subject = custom_formatter.format(unicode(subject), **parameters)
+        except LookupError as e:
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
+        except Exception as e:
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
 
-    try:
-        subject = custom_formatter.format(unicode(subject), **parameters)
-    except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
-    except Exception as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
-
-    try:
-        body = custom_formatter.format(unicode(body), **parameters)
-    except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
-        body = unicode(default_body).format(**parameters)
-    except Exception as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
-        body = unicode(default_body).format(**parameters)
+        try:
+            body = custom_formatter.format(unicode(body), **parameters)
+        except LookupError as e:
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
+            body = unicode(default_body).format(**parameters)
+        except Exception as e:
+            logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
+            body = unicode(default_body).format(**parameters)
 
     return subject, body, script_args
 
@@ -1231,7 +1249,8 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
 
 
 def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
-                        opacity=100, background='000000', blur=0, fallback=None):
+                        opacity=100, background='000000', blur=0, fallback=None,
+                        add_to_db=True):
     if not rating_key and not img:
         return fallback
 
@@ -1249,18 +1268,19 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
         plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
     img_hash = hashlib.sha256(img_string).hexdigest()
 
-    keys = {'img_hash': img_hash}
-    values = {'img': img,
-              'rating_key': rating_key,
-              'width': width,
-              'height': height,
-              'opacity': opacity,
-              'background': background,
-              'blur': blur,
-              'fallback': fallback}
+    if add_to_db:
+        keys = {'img_hash': img_hash}
+        values = {'img': img,
+                  'rating_key': rating_key,
+                  'width': width,
+                  'height': height,
+                  'opacity': opacity,
+                  'background': background,
+                  'blur': blur,
+                  'fallback': fallback}
 
-    db = database.MonitorDatabase()
-    db.upsert('image_hash_lookup', key_dict=keys, value_dict=values)
+        db = database.MonitorDatabase()
+        db.upsert('image_hash_lookup', key_dict=keys, value_dict=values)
 
     return img_hash
 
@@ -1435,6 +1455,10 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
 
 class CustomFormatter(Formatter):
+    def __init__(self, default='{{{0}}}', default_format_spec='{{{0}:{1}}}'):
+        self.default = default
+        self.default_format_spec = default_format_spec
+
     def convert_field(self, value, conversion):
         if conversion is None:
             return value
@@ -1463,4 +1487,13 @@ class CustomFormatter(Formatter):
             else:
                 return value
         else:
-            return super(CustomFormatter, self).format_field(value, format_spec)
+            try:
+                return super(CustomFormatter, self).format_field(value, format_spec)
+            except ValueError:
+                return self.default_format_spec.format(value[1:-1], format_spec)
+
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, basestring):
+            return kwargs.get(key, self.default.format(key))
+        else:
+            return super(CustomFormatter, self).get_value(key, args, kwargs)

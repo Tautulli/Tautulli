@@ -1,5 +1,63 @@
 # Changelog
 
+## v2.1.20 (2018-09-05)
+* No changes.
+
+
+## v2.1.20-beta (2018-09-02)
+
+* Monitoring:
+  * Fix: Fetch messing season info when "Hide Seasons" is enabled for a show.
+  * Fix: Video and Audio details sometimes missing on activity cards.
+* Notifications:
+  * New: Added UTC timestamp to notification parameters. (Thanks @samwiseg00)
+  * New: Added TAUTULLI_PUBLIC_URL to script environment variables. (Thanks @samwiseg00)
+* UI:
+  * Change: Automatically redirect '/' to HTTP root if enabled.
+* API:
+  * New: Added return_hash parameter to pms_image_proxy command.
+  * New: Added session_id parameter to get_activity command.
+* Other:
+  * Change: Linux systemd startup script to use the "tautulli" group permission. (Thanks @samwiseg00)
+
+
+## v2.1.19-beta (2018-08-19)
+
+* Notifications:
+  * New: Added Webhook notification agent.
+  * Fix: Scripts failing due to unicode characters in substituted script arguments.
+  * Change: Ability to override PYTHONPATH for scripts.
+  * Remove: Notify My Android notification agent.
+* Newsletters:
+  * New: Added option for threaded newsletter emails.
+  * Fix: Missing space in newsletter format.
+* UI:
+  * New: Added Windows system tray icon.
+  * Fix: Plex OAuth not working with Plex remote access disabled. (Thanks @samwiseg00)
+* API:
+  * Fix: SQL command creating a database backup every time. (Thanks @samwiseg00)
+
+
+## v2.1.18 (2018-07-27)
+
+* Monitoring:
+  * Fix: Progress bar on activity cards showing incorrect 100% when starting a stream.
+* Notifications:
+  * Fix: Notification text boxes scrolling to top when inputting text.
+  * Change: Skip formatting invalid notification parameters instead of returning default text.
+* UI:
+  * Fix: Padding around search bar causing the navigation bar to break on smaller screens.
+
+
+## v2.1.17-beta (2018-07-22)
+
+* Notifications:
+  * Change: Use default selected stream for media info in notifications.
+* UI:
+  * New: Automatically discover localhost Plex servers in server selection dropdown.
+  * Change: Save Datatables state indefinitely.
+
+
 ## v2.1.16-beta (2018-07-06)
 
 * Monitoring:

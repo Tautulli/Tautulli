@@ -1,9 +1,15 @@
 # API Reference
 
-The API is still pretty new and needs some serious cleaning up on the backend but should be reasonably functional. There are no error codes yet.
-
 ## General structure
-The API endpoint is `http://ip:port + HTTP_ROOT + /api/v2?apikey=$apikey&cmd=$command`
+The API endpoint is
+```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
+```
+
+Example:
+```
+http://localhost:8181/api/v2?apikey=66198313a092496b8a725867d2223b5f&cmd=get_metadata&rating_key=153037
+```
 
 Response example (default `json`)
 ```
@@ -354,7 +360,8 @@ Required parameters:
     None
 
 Optional parameters:
-    None
+    session_key (int):    Session key for the session info to return, OR
+    session_id (str):     Session ID for the session info to return
 
 Returns:
     json:
@@ -1140,7 +1147,8 @@ Returns:
                                  "video_language_code": "",
                                  "video_profile": "high",
                                  "video_ref_frames": "4",
-                                 "video_width": "1920"
+                                 "video_width": "1920",
+                                 "selected": 0
                              },
                              {
                                  "audio_bitrate": "384",
@@ -1153,7 +1161,8 @@ Returns:
                                  "audio_profile": "",
                                  "audio_sample_rate": "48000",
                                  "id": "511664",
-                                 "type": "2"
+                                 "type": "2",
+                                 "selected": 1
                              },
                              {
                                  "id": "511953",
@@ -1164,7 +1173,8 @@ Returns:
                                  "subtitle_language": "English",
                                  "subtitle_language_code": "eng",
                                  "subtitle_location": "external",
-                                 "type": "3"
+                                 "type": "3",
+                                 "selected": 1
                              }
                          ]
                      }
@@ -2435,7 +2445,7 @@ Required parameters:
     body (str):             The body of the message
 
 Optional parameters:
-    None
+    script_args (str):      The arguments for script notifications
 
 Returns:
     None
@@ -2496,6 +2506,7 @@ Optional parameters:
     img_format (str):       png
     fallback (str):         "poster", "cover", "art"
     refresh (bool):         True or False whether to refresh the image cache
+    return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
 Returns:
     None

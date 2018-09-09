@@ -60,7 +60,8 @@ def on_connect():
         plexpy.PLEX_SERVER_UP = True
 
     plexpy.initialize_scheduler()
-    send_ping()
+    if plexpy.CONFIG.WEBSOCKET_MONITOR_PING_PONG:
+        send_ping()
 
 
 def on_disconnect():

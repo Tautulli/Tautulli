@@ -18,6 +18,7 @@ import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+import email.utils
 
 import plexpy
 import database
@@ -86,6 +87,9 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
         body = newsletter_config['body']
         message = newsletter_config['message']
 
+    email_msg_id = email.utils.make_msgid()
+    email_reply_msg_id = get_last_newsletter_email_msg_id(newsletter_id=newsletter_id, notify_action=notify_action)
+
     newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
                                                    newsletter_id_name=newsletter_config['id_name'],
                                                    agent_id=newsletter_config['agent_id'],
@@ -93,7 +97,9 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
                                                    email_config=newsletter_config['email_config'],
                                                    subject=subject,
                                                    body=body,
-                                                   message=message
+                                                   message=message,
+                                                   email_msg_id=email_msg_id,
+                                                   email_reply_msg_id=email_reply_msg_id
                                                    )
 
     # Set the newsletter state in the db
@@ -107,7 +113,8 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
                                          end_date=newsletter_agent.end_date.format('YYYY-MM-DD'),
                                          start_time=newsletter_agent.start_time,
                                          end_time=newsletter_agent.end_time,
-                                         newsletter_uuid=newsletter_agent.uuid)
+                                         newsletter_uuid=newsletter_agent.uuid,
+                                         email_msg_id=email_msg_id)
 
     # Send the notification
     success = newsletter_agent.send()
@@ -118,7 +125,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
 
 
 def set_notify_state(newsletter, notify_action, subject, body, message, filename,
-                     start_date, end_date, start_time, end_time, newsletter_uuid):
+                     start_date, end_date, start_time, end_time, newsletter_uuid, email_msg_id):
 
     if newsletter and notify_action:
         db = database.MonitorDatabase()
@@ -137,6 +144,7 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
                   'end_date': end_date,
                   'start_time': start_time,
                   'end_time': end_time,
+                  'email_msg_id': email_msg_id,
                   'filename': filename}
 
         db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
@@ -151,6 +159,17 @@ def set_notify_success(newsletter_log_id):
 
     db = database.MonitorDatabase()
     db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+
+
+def get_last_newsletter_email_msg_id(newsletter_id, notify_action):
+    db = database.MonitorDatabase()
+
+    result = db.select_single('SELECT email_msg_id FROM newsletter_log '
+                              'WHERE newsletter_id = ? AND notify_action = ? AND success = 1 '
+                              'ORDER BY timestamp DESC LIMIT 1', [newsletter_id, notify_action])
+
+    if result:
+        return result['email_msg_id']
 
 
 def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):

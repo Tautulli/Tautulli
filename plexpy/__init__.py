@@ -92,9 +92,11 @@ LATEST_VERSION = None
 COMMITS_BEHIND = None
 PREV_RELEASE = None
 LATEST_RELEASE = None
+UPDATE_AVAILABLE = False
 
 UMASK = None
 
+HTTP_PORT = None
 HTTP_ROOT = None
 
 DEV = False
@@ -104,6 +106,8 @@ WS_CONNECTED = False
 PLEX_SERVER_UP = None
 
 TRACKER = None
+
+WIN_SYS_TRAY_ICON = None
 
 
 def initialize(config_file):
@@ -162,6 +166,15 @@ def initialize(config_file):
         ))
         logger.info(u"Python {}".format(
             sys.version
+        ))
+        logger.info(u"Program Dir: {}".format(
+            PROG_DIR
+        ))
+        logger.info(u"Config File: {}".format(
+            CONFIG_FILE
+        ))
+        logger.info(u"Database File: {}".format(
+            DB_FILE
         ))
 
         if not CONFIG.BACKUP_DIR:
@@ -256,7 +269,7 @@ def initialize(config_file):
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
-                LATEST_VERSION = versioncheck.check_github()
+                LATEST_VERSION = versioncheck.check_update()
             except:
                 logger.exception(u"Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION
@@ -378,6 +391,51 @@ def launch_browser(host, port, root):
             logger.error(u"Could not launch browser: %s" % e)
 
 
+def win_system_tray():
+    from systray import SysTrayIcon
+
+    def tray_open(sysTrayIcon):
+        launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+
+    def tray_check_update(sysTrayIcon):
+        versioncheck.check_update()
+
+    def tray_update(sysTrayIcon):
+        if plexpy.UPDATE_AVAILABLE:
+            plexpy.SIGNAL = 'update'
+        else:
+            hover_text = common.PRODUCT + ' - No Update Available'
+            plexpy.WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
+
+    def tray_restart(sysTrayIcon):
+        plexpy.SIGNAL = 'restart'
+
+    def tray_quit(sysTrayIcon):
+        plexpy.SIGNAL = 'shutdown'
+
+    if plexpy.UPDATE_AVAILABLE:
+        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray-update.ico')
+        hover_text = common.PRODUCT + ' - Update Available!'
+    else:
+        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray.ico')
+        hover_text = common.PRODUCT
+
+    menu_options = (('Open Tautulli', None, tray_open, 'default'),
+                    ('', None, 'separator', None),
+                    ('Check for Updates', None, tray_check_update, None),
+                    ('Update', None, tray_update, None),
+                    ('Restart', None, tray_restart, None))
+
+    logger.info(u"Launching system tray icon.")
+
+    try:
+        plexpy.WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
+        plexpy.WIN_SYS_TRAY_ICON.start()
+    except Exception as e:
+        logger.error(u"Unable to launch system tray icon: %s." % e)
+        plexpy.WIN_SYS_TRAY_ICON = None
+
+
 def initialize_scheduler():
     """
     Start the scheduled background tasks. Re-schedule if interval settings changed.
@@ -391,7 +449,7 @@ def initialize_scheduler():
         # Update check
         github_minutes = CONFIG.CHECK_GITHUB_INTERVAL if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB else 0
 
-        schedule_job(versioncheck.check_github, 'Check GitHub for updates',
+        schedule_job(versioncheck.check_update, 'Check GitHub for updates',
                      hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE), True))
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
@@ -422,7 +480,7 @@ def initialize_scheduler():
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
             schedule_job(web_socket.send_ping, 'Websocket ping',
-                         hours=0, minutes=0, seconds=10)
+                         hours=0, minutes=0, seconds=10 * bool(CONFIG.WEBSOCKET_MONITOR_PING_PONG))
 
         else:
             # Cancel all jobs
@@ -668,7 +726,8 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
         'subject_text TEXT, body_text TEXT, message_text TEXT, start_date TEXT, end_date TEXT, '
-        'start_time INTEGER, end_time INTEGER, uuid TEXT UNIQUE, filename TEXT, success INTEGER DEFAULT 0)'
+        'start_time INTEGER, end_time INTEGER, uuid TEXT UNIQUE, filename TEXT, email_msg_id TEXT, '
+        'success INTEGER DEFAULT 0)'
     )
 
     # recently_added table :: This table keeps record of recently added items
@@ -1563,6 +1622,15 @@ def dbcheck():
             'ALTER TABLE newsletter_log ADD COLUMN filename TEXT'
         )
 
+    # Upgrade newsletter_log table from earlier versions
+    try:
+        c_db.execute('SELECT email_msg_id FROM newsletter_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table newsletter_log.")
+        c_db.execute(
+            'ALTER TABLE newsletter_log ADD COLUMN email_msg_id TEXT'
+        )
+
     # Upgrade newsletters table from earlier versions
     try:
         c_db.execute('SELECT id_name FROM newsletters')
@@ -1788,6 +1856,7 @@ def upgrade():
 
 
 def shutdown(restart=False, update=False, checkout=False):
+    logger.info(u"Stopping Tautulli web server...")
     cherrypy.engine.exit()
 
     # Shutdown the websocket connection
@@ -1825,6 +1894,9 @@ def shutdown(restart=False, update=False, checkout=False):
     if CREATEPID:
         logger.info(u"Removing pidfile %s", PIDFILE)
         os.remove(PIDFILE)
+
+    if WIN_SYS_TRAY_ICON:
+        WIN_SYS_TRAY_ICON.shutdown()
 
     if restart:
         logger.info(u"Tautulli is restarting...")

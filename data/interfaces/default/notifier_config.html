@@ -21,7 +21,13 @@
                         <li role="presentation" class="active"><a href="#tabs-notifier_config" aria-controls="tabs-notifier_config" role="tab" data-toggle="tab">Configuration</a></li>
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_conditions" aria-controls="tabs-notify_conditions" role="tab" data-toggle="tab">Conditions</a></li>
-                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">${'Arguments' if notifier['agent_name'] == 'scripts' else 'Text'}</a></li>
+                        % if notifier['agent_name'] == 'scripts':
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Arguments</a></li>
+                        % elif notifier['agent_name'] == 'webhook':
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Data</a></li>
+                        % else:
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Text</a></li>
+                        % endif
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
                     </ul>
                 </div>
@@ -184,6 +190,8 @@
                             <p class="help-block">
                                 % if notifier['agent_name'] == 'scripts':
                                 Set the custom arguments passed to the script for each type of notification.
+                                % elif notifier['agent_name'] == 'webhook':
+                                Set the custom JSON data sent to the webhook for each type of notification.
                                 % else:
                                 Set the custom formatted text for each type of notification.
                                 % endif
@@ -218,6 +226,32 @@
                                                 <div class="row">
                                                     <div class="col-md-12">
                                                         <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Arguments">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                % endfor
+                                % elif notifier['agent_name'] == 'webhook':
+                                % for action in available_notification_actions:
+                                <li>
+                                    <div class="link">
+                                        <span class="toggle-left"><i class="fa ${action['icon']} fa-fw"></i></span>&nbsp;
+                                        ${action['label']}
+                                        <span class="toggle-right"><i class="fa fa-chevron-down"></i></span>
+                                    </div>
+                                    <ul class="submenu">
+                                        <li>
+                                            <div class="form-group">
+                                                <label for="${action['name']}_body">JSON Data</label>
+                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
+                                                <p class="help-block">Set custom JSON data.</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview JSON Data">
                                                     </div>
                                                 </div>
                                             </div>
@@ -291,6 +325,16 @@
                                 </div>
                                 <p class="help-block">Set custom arguments passed to the script.</p>
                             </div>
+                            % elif notifier['agent_name'] == 'webhook':
+                            <div class="form-group">
+                                <label for="test_body">JSON Data</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <textarea class="form-control" id="test_body" name="test_body" data-autoresize></textarea>
+                                    </div>
+                                </div>
+                                <p class="help-block">Set custom JSON data sent to the webhook.</p>
+                            </div>
                             % else:
                             <div class="form-group">
                                 <label for="test_subject">Subject Line</label>
@@ -305,7 +349,7 @@
                                 <label for="test_body">Message Body</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <input class="form-control" type="text" id="test_body" name="test_body" value="Test notification">
+                                        <textarea class="form-control" id="test_body" name="test_body" data-autoresize>Test Notification</textarea>
                                     </div>
                                 </div>
                                 <p class="help-block">Set a custom body.</p>
@@ -735,6 +779,7 @@
 
         $.ajax({
             url: 'get_notify_text_preview',
+            type: 'POST',
             data: {
                 notify_action: action,
                 subject: subject,
@@ -811,9 +856,12 @@
 
     // auto resizing textarea for custom notification message body
     $('textarea[data-autoresize]').each(function () {
+        var modal_body = $(this).closest('.modal-body');
         var offset = this.offsetHeight - this.clientHeight;
         var resizeTextarea = function (el) {
+            var modal_offset = modal_body.scrollTop();
             $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+            modal_body.scrollTop(modal_offset);
         };
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });

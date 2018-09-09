@@ -43,18 +43,18 @@
 <div class="container">
     <div id="ajaxMsg" class="ajaxMsg"></div>
     % if _session['user_group'] == 'admin':
-    % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
+    % if plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE is None:
     <div id="updatebar" style="display: none;">
         You are running an unknown version of Tautulli.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE == 'release':
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
         new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
     </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.INSTALL_TYPE != 'win':
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE == 'commit':
     <div id="updatebar" style="display: none;">
         A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> of Tautulli is available!<br />
@@ -140,7 +140,7 @@
                             <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
                             <li role="separator" class="divider"></li>
                             % if plexpy.CONFIG.CHECK_GITHUB:
-                            <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-circle-up"></i> Check for Updates</a></li>
+                            <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-alt-circle-up"></i> Check for Updates</a></li>
                             % endif
                             <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> Restart</a></li>
                             <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> Shutdown</a></li>
@@ -362,7 +362,7 @@ ${next.modalIncludes()}
 
     $('#nav-update').click(function () {
         $(this).html('<i class="fa fa-fw fa-spin fa-refresh"></i> Checking');
-        checkUpdate(function () { $('#nav-update').html('<i class="fa fa-fw fa-arrow-circle-up"></i> Check for Updates'); });
+        checkUpdate(function () { $('#nav-update').html('<i class="fa fa-fw fa-arrow-alt-circle-up"></i> Check for Updates'); });
     });
 
     $('#donation_type a.crypto-donation').on('shown.bs.tab', function () {

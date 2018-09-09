@@ -173,7 +173,11 @@
                                                 <input type="text" class="form-control" id="id_name" name="id_name" value="${newsletter['id_name']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">Optional: Enter a unique ID name to create a static URL to the last sent scheduled newsletter at <span class="inline-pre">${http_root}newsletter/id/&lt;id_name&gt;</span>. Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.</p>
+                                        <p class="help-block">
+                                            Optional: Enter a unique ID name to create a static URL to the <em>last sent scheduled newsletter</em> at <span class="inline-pre">${http_root}newsletter/id/&lt;id_name&gt;</span>.
+                                            Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.<br>
+                                            Note: Test newsletters are not considered as scheduled newsletters.
+                                        </p>
                                     </div>
                                     <div class="form-group">
                                         <label for="friendly_name">Description</label>
@@ -218,6 +222,13 @@
                                         <input type="hidden" id="newsletter_config_formatted" name="newsletter_config_formatted" value="${newsletter['config']['formatted']}">
                                     </div>
                                     <div class="form-group" id="email_notifier_select">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" id="newsletter_config_threaded_checkbox" data-id="newsletter_config_threaded" class="checkboxes" value="1" ${checked(newsletter['config']['threaded'])}> Enable Grouped Email Thread
+                                            </label>
+                                            <p class="help-block">Enable to group this newsletter together in a single Email thread. Disable to send a new Email for each newsletter.</p>
+                                            <input type="hidden" id="newsletter_config_threaded" name="newsletter_config_threaded" value="${newsletter['config']['threaded']}">
+                                        </div>
                                         <label for="newsletter_email_notifier_id">Email Notification Agent</label>
                                         <div class="row">
                                             <div class="col-md-12">
@@ -766,9 +777,12 @@
 
     // auto resizing textarea for custom notification message body
     $('textarea[data-autoresize]').each(function () {
+        var modal_body = $(this).closest('.modal-body');
         var offset = this.offsetHeight - this.clientHeight;
         var resizeTextarea = function (el) {
+            var modal_offset = modal_body.scrollTop();
             $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+            modal_body.scrollTop(modal_offset);
         };
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });

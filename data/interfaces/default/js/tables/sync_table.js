@@ -7,6 +7,7 @@ sync_table_options = {
     "order": [ [ 0, 'desc'], [ 1, 'asc'], [2, 'asc'] ],
     "pageLength": 25,
     "stateSave": true,
+    "stateDuration": 0,
     "language": {
         "search": "Search: ",
         "lengthMenu": "Show _MENU_ lines per page",

@@ -33,6 +33,7 @@ import maxminddb
 from operator import itemgetter
 import os
 import re
+import shlex
 import socket
 import sys
 import time
@@ -202,16 +203,21 @@ def convert_seconds_to_minutes(s):
 def today():
     today = datetime.date.today()
     yyyymmdd = datetime.date.isoformat(today)
+
     return yyyymmdd
 
 
 def now():
     now = datetime.datetime.now()
+
     return now.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def utc_now_iso():
     utcnow = datetime.datetime.utcnow()
+
     return utcnow.isoformat()
+
 
 def human_duration(s, sig='dhms'):
 
@@ -1115,3 +1121,29 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return izip_longest(fillvalue=fillvalue, *args)
+
+
+def traverse_map(obj, func):
+    if isinstance(obj, list):
+        new_obj = []
+        for i in obj:
+            new_obj.append(traverse_map(i, func))
+
+    elif isinstance(obj, dict):
+        new_obj = {}
+        for k, v in obj.iteritems():
+            new_obj[traverse_map(k, func)] = traverse_map(v, func)
+
+    else:
+        new_obj = func(obj)
+
+    return new_obj
+
+
+def split_args(args=None):
+    if isinstance(args, list):
+        return args
+    elif isinstance(args, basestring):
+        return [arg.decode(plexpy.SYS_ENCODING, 'ignore')
+                for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+    return []

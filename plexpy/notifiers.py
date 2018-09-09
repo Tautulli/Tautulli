@@ -91,7 +91,8 @@ AGENT_IDS = {'growl': 0,
              'androidapp': 21,
              'groupme': 22,
              'mqtt': 23,
-             'zapier': 24
+             'zapier': 24,
+             'webhook': 25
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -146,10 +147,10 @@ def available_notification_agents():
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc']
                },
-              {'label': 'Notify My Android',
-               'name': 'nma',
-               'id': AGENT_IDS['nma']
-               },
+              # {'label': 'Notify My Android',
+              #  'name': 'nma',
+              #  'id': AGENT_IDS['nma']
+              #  },
               {'label': 'MQTT',
                'name': 'mqtt',
                'id': AGENT_IDS['mqtt']
@@ -189,6 +190,10 @@ def available_notification_agents():
               {'label': 'Twitter',
                'name': 'twitter',
                'id': AGENT_IDS['twitter']
+               },
+              {'label': 'Webhook',
+               'name': 'webhook',
+               'id': AGENT_IDS['webhook']
                },
               {'label': 'Zapier',
                'name': 'zapier',
@@ -386,6 +391,8 @@ def get_agent_class(agent_id=None, config=None):
             return MQTT(config=config)
         elif agent_id == 24:
             return ZAPIER(config=config)
+        elif agent_id == 25:
+            return WEBHOOK(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -513,7 +520,7 @@ def add_notifier_config(agent_id=None, **kwargs):
               'custom_conditions_logic': ''
               }
 
-    if agent['name'] == 'scripts':
+    if agent['name'] in ('scripts', 'webhook'):
         for a in available_notification_actions():
             values[a['name'] + '_subject'] = ''
             values[a['name'] + '_body'] = ''
@@ -774,7 +781,7 @@ class Notifier(object):
         return self._DEFAULT_CONFIG.copy()
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if self.NAME != 'Script':
+        if self.NAME not in ('Script', 'Webhook'):
             if not subject and self.config.get('incl_subject', True):
                 logger.error(u"Tautulli Notifiers :: %s notification subject cannot be blank." % self.NAME)
                 return
@@ -788,6 +795,7 @@ class Notifier(object):
         pass
 
     def make_request(self, url, method='POST', **kwargs):
+        logger.info(u"Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         response, err_msg, req_msg = request.request_response2(url, method, **kwargs)
 
         if response and not err_msg:
@@ -1138,7 +1146,7 @@ class DISCORD(Notifier):
 
             # Build Discord post attachment
             attachment = {'title': title,
-                          'timestamp': helpers.utc_now_iso()
+                          'timestamp': pretty_metadata.parameters['utctime']
                           }
 
             if self.config['color']:
@@ -1302,12 +1310,19 @@ class EMAIL(Notifier):
             msg.replace_header('Content-Transfer-Encoding', 'quoted-printable')
             msg.set_payload(body, 'utf-8')
 
-        msg['Message-ID'] = email.utils.make_msgid()
+        msg_id = kwargs.get('msg_id', email.utils.make_msgid())
+        reply_msg_id = kwargs.get('reply_msg_id')
+
+        msg['Message-ID'] = msg_id
         msg['Date'] = email.utils.formatdate(localtime=True)
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.config['from_name'], self.config['from']))
         msg['To'] = ','.join(self.config['to'])
         msg['CC'] = ','.join(self.config['cc'])
+
+        if reply_msg_id:
+            msg["In-Reply-To"] = reply_msg_id
+            msg["References"] = reply_msg_id
 
         recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
 
@@ -2971,7 +2986,9 @@ class SCRIPTS(Notifier):
                             '.sh': ''
                             }
 
-        self.arg_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
+        self.pythonpath_override = 'nopythonpath'
+        self.pythonpath = True
+        self.prefix_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
         self.script_killed = False
 
     def list_scripts(self):
@@ -2998,10 +3015,13 @@ class SCRIPTS(Notifier):
             'PLEX_URL': plexpy.CONFIG.PMS_URL,
             'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
             'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
+            'TAUTULLI_PUBLIC_URL': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT,
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
-            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-            'PYTHONPATH': os.pathsep.join([p for p in sys.path if p])
+            'TAUTULLI_ENCODING': plexpy.SYS_ENCODING
             })
+
+        if self.pythonpath:
+            env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
 
         try:
             process = subprocess.Popen(script,
@@ -3058,7 +3078,7 @@ class SCRIPTS(Notifier):
             logger.error(u"Tautulli Notifiers :: No script folder specified.")
             return
 
-        script_args = kwargs.get('script_args', [])
+        script_args = helpers.split_args(kwargs.get('script_args', subject))
 
         logger.debug(u"Tautulli Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
@@ -3094,9 +3114,15 @@ class SCRIPTS(Notifier):
         if script_args:  # and os.name == 'nt':
             script_args = [arg.encode(plexpy.SYS_ENCODING, 'ignore') for arg in script_args]
 
+        # Allow overrides for PYTHONPATH
+        if prefix and script_args:
+            if script_args[0] == self.pythonpath_override:
+                self.pythonpath = False
+                del script_args[0]
+
         # Allow overrides for shitty systems
         if prefix and script_args:
-            if script_args[0] in self.arg_overrides:
+            if script_args[0] in self.prefix_overrides:
                 script[0] = script_args[0]
                 del script_args[0]
 
@@ -3521,6 +3547,53 @@ class TWITTER(Notifier):
                                          'data-target="#notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class WEBHOOK(Notifier):
+    """
+    Webhook notifications
+    """
+    NAME = 'Webhook'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'method': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if body:
+            try:
+                webhook_data = json.loads(body)
+            except ValueError as e:
+                logger.error(u"Tautulli Notifiers :: Invalid {name} json data: {e}".format(name=self.NAME, e=e))
+                return False
+
+        else:
+            webhook_data = None
+
+        headers = {'Content-type': 'application/json'}
+
+        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_data)
+
+    def return_config_options(self):
+        config_option = [{'label': 'Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'webhook_hook',
+                          'description': 'Your Webhook URL.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Webhook Method',
+                          'value': self.config['method'],
+                          'name': 'webhook_method',
+                          'description': 'The Webhook HTTP request method.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'GET': 'GET',
+                                             'POST': 'POST',
+                                             'PUT': 'PUT',
+                                             'DELETE': 'DELETE'}
                           }
                          ]
 

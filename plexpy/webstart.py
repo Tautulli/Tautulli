@@ -202,6 +202,8 @@ def initialize(options):
     # Prevent time-outs
     cherrypy.engine.timeout_monitor.unsubscribe()
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
+    if plexpy.HTTP_ROOT != '/':
+        cherrypy.tree.mount(BaseRedirect(), '/')
 
     try:
         logger.info(u"Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
@@ -218,3 +220,9 @@ def initialize(options):
         sys.exit(1)
 
     cherrypy.server.wait()
+
+
+class BaseRedirect(object):
+    @cherrypy.expose
+    def index(self):
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)

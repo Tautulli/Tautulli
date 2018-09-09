@@ -298,7 +298,7 @@ class WebInterface(object):
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
-        if plextv:
+        if plextv == 'true':
             base_url = 'https://plex.tv'
         else:
             if plexpy.CONFIG.PMS_URL_OVERRIDE:
@@ -2875,7 +2875,8 @@ class WebInterface(object):
             "newsletter_auth": plexpy.CONFIG.NEWSLETTER_AUTH,
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
-            "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
+            "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2897,7 +2898,7 @@ class WebInterface(object):
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
-            "newsletter_self_hosted", "newsletter_inline_styles"
+            "newsletter_self_hosted", "newsletter_inline_styles", "win_sys_tray"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -3822,16 +3823,15 @@ class WebInterface(object):
                     }
             ```
         """
-        versioncheck.check_github()
+        versioncheck.check_update()
 
-        if not plexpy.CURRENT_VERSION:
+        if plexpy.UPDATE_AVAILABLE is None:
             return {'result': 'error',
                     'update': None,
                     'message': 'You are running an unknown version of Tautulli.'
                     }
 
-        elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
-                plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
+        elif plexpy.UPDATE_AVAILABLE == 'release':
             return {'result': 'success',
                     'update': True,
                     'release': True,
@@ -3844,8 +3844,7 @@ class WebInterface(object):
                            plexpy.LATEST_RELEASE))
                     }
 
-        elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
-                plexpy.INSTALL_TYPE != 'win':
+        elif plexpy.UPDATE_AVAILABLE == 'commit':
             return {'result': 'success',
                     'update': True,
                     'release': False,
@@ -4052,7 +4051,7 @@ class WebInterface(object):
         return self.real_pms_image_proxy(**kwargs)
 
     @addtoapi('pms_image_proxy')
-    def real_pms_image_proxy(self, img='', rating_key=None, width=0, height=0,
+    def real_pms_image_proxy(self, img=None, rating_key=None, width=750, height=1000,
                              opacity=100, background='000000', blur=0, img_format='png',
                              fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
@@ -4072,6 +4071,7 @@ class WebInterface(object):
                 img_format (str):       png
                 fallback (str):         "poster", "cover", "art"
                 refresh (bool):         True or False whether to refresh the image cache
+                return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
             Returns:
                 None
@@ -4080,6 +4080,8 @@ class WebInterface(object):
         if not img and not rating_key:
             logger.warn('No image input received.')
             return
+
+        return_hash = (kwargs.get('return_hash') == 'true')
 
         if rating_key and not img:
             if fallback == 'art':
@@ -4091,9 +4093,13 @@ class WebInterface(object):
         img = '/'.join(img_split[:5])
         rating_key = rating_key or img_split[3]
 
-        img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
-            plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
-        img_hash = hashlib.sha256(img_string).hexdigest()
+        img_hash = notification_handler.set_hash_image_info(
+            img=img, rating_key=rating_key, width=width, height=height,
+            opacity=opacity, background=background, blur=blur, fallback=fallback,
+            add_to_db=return_hash)
+
+        if return_hash:
+            return {'img_hash': img_hash}
 
         fp = '{}.{}'.format(img_hash, img_format)  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
@@ -4920,7 +4926,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_activity(self, session_key=None, **kwargs):
+    def get_activity(self, session_key=None, session_id=None, **kwargs):
         """ Get the current activity on the PMS.
 
             ```
@@ -4928,7 +4934,8 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                session_key (int):    Session key for the session info to return, OR
+                session_id (str):     Session ID for the session info to return
 
             Returns:
                 json:
@@ -5159,6 +5166,8 @@ class WebInterface(object):
             if result:
                 if session_key:
                     return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
+                if session_id:
+                    return next((s for s in result['sessions'] if s['session_id'] == session_id), {})
 
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,

@@ -607,6 +607,7 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
+    'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
     'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
     'WEEK_START_MONDAY': (int, 'General', 0),
@@ -629,7 +630,8 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_CONCURRENT': (int, 'XBMC', 0),
     'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0),
     'JWT_SECRET': (str, 'Advanced', ''),
-    'SYSTEM_ANALYTICS': (int, 'Advanced', 1)
+    'SYSTEM_ANALYTICS': (int, 'Advanced', 1),
+    'WIN_SYS_TRAY': (int, 'General', 1)
 }
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']

@@ -177,7 +177,8 @@ HW_ENCODERS = [
     'videotoolbox',
     'mediacodecndk',
     'vaapi',
-    'nvenc'
+    'nvenc',
+    'x264'
 ]
 
 EXTRA_TYPES = {
@@ -320,6 +321,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Datestamp', 'type': 'str', 'value': 'datestamp', 'description': 'The date (in date format) when the notification is triggered.'},
              {'name': 'Timestamp', 'type': 'str', 'value': 'timestamp', 'description': 'The time (in time format) when the notification is triggered.'},
              {'name': 'Unix Time', 'type': 'int', 'value': 'unixtime', 'description': 'The unix timestamp when the notification is triggered.'},
+             {'name': 'UTC Time', 'type': 'int', 'value': 'utctime', 'description': 'The UTC timestamp in ISO format when the notification is triggered.'},
         ]
      },
     {
