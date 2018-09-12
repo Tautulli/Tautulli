@@ -246,10 +246,10 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
-                % if _session['user_group'] == 'admin':
-                <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                % endif
                 <div class="item-children-instance-text-wrapper album-item">
                     <h3 title="${child['original_title'] or child['grandparent_title']}">${child['original_title'] or child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
