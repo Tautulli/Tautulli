@@ -24,7 +24,8 @@
 #    - The example settings in this file assume that Tautulli is installed to: /opt/Tautulli
 #
 #    - To create this user and give it ownership of the Tautulli directory:
-#       sudo adduser --system --no-create-home tautulli
+#       Ubuntu/Debian: sudo adduser --system --no-create-home tautulli --ingroup tautulli
+#       CentOS/Fedora: sudo adduser --system --no-create-home tautulli
 #       sudo chown tautulli:tautulli -R /opt/Tautulli
 #
 #    - Adjust ExecStart= to point to:
