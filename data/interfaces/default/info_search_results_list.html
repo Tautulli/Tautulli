@@ -190,12 +190,12 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
                 </div>
-                <div class="item-children-instance-text-wrapper album-item">
+                <div class="item-children-instance-text-wrapper cover-item">
                     <h3 title="${child['title']}">${child['title']}</h3>
                 </div>
             </a>
@@ -219,7 +219,7 @@ DOCUMENTATION :: END
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
                 </div>
-                <div class="item-children-instance-text-wrapper album-item">
+                <div class="item-children-instance-text-wrapper cover-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
                 </div>
@@ -246,11 +246,11 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
-                % if _session['user_group'] == 'admin':
-                <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                % endif
-                <div class="item-children-instance-text-wrapper album-item">
+                <div class="item-children-instance-text-wrapper cover-item">
                     <h3 title="${child['original_title'] or child['grandparent_title']}">${child['original_title'] or child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
                     <h3 title="${child['parent_title']}" class="text-muted">${child['parent_title']}</h3>
