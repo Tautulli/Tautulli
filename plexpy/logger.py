@@ -130,6 +130,33 @@ class PublicIPFilter(logging.Filter):
         return True
 
 
+class PlexTokenFilter(logging.Filter):
+    """
+    Log filter for X-Plex-Token
+    """
+    def __init__(self):
+        pass
+
+
+    def filter(self, record):
+        try:
+            tokens = re.findall(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)', record.msg)
+            for token in tokens:
+                record.msg = record.msg.replace(token, 8 * '*' + token[-2:])
+
+            args = []
+            for arg in record.args:
+                tokens = re.findall(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)', arg) if isinstance(arg, basestring) else []
+                for token in tokens:
+                    arg = arg.replace(token, 8 * '*' + token[-2:])
+                args.append(arg)
+            record.args = tuple(args)
+        except:
+            pass
+
+        return True
+
+
 @contextlib.contextmanager
 def listener():
     """
@@ -268,6 +295,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         for handler in logger.handlers + logger_api.handlers + logger_plex_websocket.handlers:
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
+            handler.addFilter(PlexTokenFilter())
 
     # Install exception hooks
     initHooks()
