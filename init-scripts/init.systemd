@@ -51,7 +51,7 @@ ExecStart=/opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir 
 GuessMainPID=no
 Type=forking
 User=tautulli
-Group=tautlli
+Group=tautulli
 
 [Install]
 WantedBy=multi-user.target
