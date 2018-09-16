@@ -926,7 +926,7 @@ class DataFactory(object):
             pre_tautulli = 0
 
             # For backwards compatibility. Pick one new Tautulli key to check and override with old values.
-            if not item['stream_video_resolution']:
+            if not item['stream_container']:
                 item['stream_video_resolution'] = item['video_resolution']
                 item['stream_container'] = item['transcode_container'] or item['container']
                 item['stream_video_decision'] = item['video_decision']
