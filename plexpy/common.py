@@ -433,7 +433,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Updated Date', 'type': 'str', 'value': 'updated_date', 'description': 'The date (in date format) the item was updated on Plex.'},
              {'name': 'Last Viewed Date', 'type': 'str', 'value': 'last_viewed_date', 'description': 'The date (in date format) the item was last viewed on Plex.'},
              {'name': 'Studio', 'type': 'str', 'value': 'studio', 'description': 'The studio for the item.'},
-             {'name': 'Content Rating', 'type': 'int', 'value': 'content_rating', 'description': 'The content rating for the item.', 'example': 'e.g. TV-MA, TV-PG, etc.'},
+             {'name': 'Content Rating', 'type': 'str', 'value': 'content_rating', 'description': 'The content rating for the item.', 'example': 'e.g. TV-MA, TV-PG, etc.'},
              {'name': 'Directors', 'type': 'str', 'value': 'directors', 'description': 'A list of directors for the item.'},
              {'name': 'Writers', 'type': 'str', 'value': 'writers', 'description': 'A list of writers for the item.'},
              {'name': 'Actors', 'type': 'str', 'value': 'actors', 'description': 'A list of actors for the item.'},
