@@ -156,10 +156,11 @@ class ActivityProcessor(object):
             # Reload json from raw stream info
             if session.get('raw_stream_info'):
                 raw_stream_info = json.loads(session['raw_stream_info'])
-                # Don't overwrite id, session_key, stopped
+                # Don't overwrite id, session_key, stopped, view_offset
                 raw_stream_info.pop('id', None)
                 raw_stream_info.pop('session_key', None)
                 raw_stream_info.pop('stopped', None)
+                raw_stream_info.pop('view_offset', None)
                 session.update(raw_stream_info)
 
             session = defaultdict(str, session)

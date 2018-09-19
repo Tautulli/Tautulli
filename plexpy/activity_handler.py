@@ -228,6 +228,7 @@ class ActivityHandler(object):
             this_state = self.timeline['state']
             this_rating_key = str(self.timeline['ratingKey'])
             this_key = self.timeline['key']
+            this_view_offset = self.timeline['viewOffset']
 
             # Get the live tv session uuid
             this_live_uuid = this_key.split('/')[-1] if this_key.startswith('/livetv/sessions') else None
@@ -241,6 +242,7 @@ class ActivityHandler(object):
                 last_state = db_session['state']
                 last_rating_key = str(db_session['rating_key'])
                 last_live_uuid = db_session['live_uuid']
+                last_view_offset = db_session['view_offset']
 
                 # Make sure the same item is being played
                 if this_rating_key == last_rating_key or this_live_uuid == last_live_uuid:
@@ -250,6 +252,10 @@ class ActivityHandler(object):
                         # if the last set temporary stopped time exceeds 15 seconds
                         if int(time.time()) - db_session['stopped'] > 60:
                             self.update_db_session()
+
+                    # Update db session when view offset changes
+                    if this_view_offset != last_view_offset:
+                        self.update_db_session()
 
                     # Start our state checks
                     if this_state != last_state:
