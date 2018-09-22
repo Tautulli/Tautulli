@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.21 (2018-09-21)
+
+* Notifications:
+  * Fix: Content Rating notification condition always evaluating to True. (Thanks @Arcanemagus)
+  * Fix: Script arguments not showing substituted values in the notification logs.
+* UI:
+  * New: Unsupported browser warning when using IE or Edge.
+  * Fix: Misaligned refresh image icon in album search results. (Thanks @Sheigutn)
+  * Fix: Music history showing as pre-Tautulli in stream info modal.
+* Other:
+  * Fix: Typo in Systemd init script group value. (Thanks @ldumont)
+  * Fix: Execute permissions in Fedora/CentOS and Systemd init scripts. (Thanks @wilmardo)
+  * Fix: Systemd init script instructions per Linux distro. (Thanks @samwiseg00)
+  * Change: Fallback to Tautulli data directory if logs/backup/cache/newsletter directories are not writable.
+  * Change: Check for alternative reverse proxy headers if X-Forwarded-Host is missing.
+
+
 ## v2.1.20 (2018-09-05)
 * No changes.
 

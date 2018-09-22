@@ -137,7 +137,6 @@ class PlexTokenFilter(logging.Filter):
     def __init__(self):
         pass
 
-
     def filter(self, record):
         try:
             tokens = re.findall(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)', record.msg)
