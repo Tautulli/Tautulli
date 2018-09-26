@@ -3354,7 +3354,8 @@ class TELEGRAM(Notifier):
     Telegram notifications
     """
     NAME = 'Telegram'
-    _DEFAULT_CONFIG = {'bot_token': '',
+    _DEFAULT_CONFIG = {'api_url': 'https://api.telegram.org',
+                       'bot_token': '',
                        'chat_id': '',
                        'disable_web_preview': 0,
                        'html_support': 1,
@@ -3394,7 +3395,7 @@ class TELEGRAM(Notifier):
                 else:
                     data['caption'] = text
 
-                r = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                r = self.make_request('{}/bot{}/sendPhoto'.format(self.config['api_url'], self.config['bot_token']),
                                       data=data, files=files)
 
                 if not data.pop('disable_notification', None):
@@ -3407,11 +3408,17 @@ class TELEGRAM(Notifier):
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']),
+        return self.make_request('{}/bot{}/sendMessage'.format(self.config['api_url'], self.config['bot_token']),
                                  headers=headers, data=data)
 
     def return_config_options(self):
-        config_option = [{'label': 'Telegram Bot Token',
+        config_option = [{'label': 'Telegram Api URL',
+                          'value': self.config['api_url'],
+                          'name': 'telegram_api_url',
+                          'description': 'Sometimes it may be non-equal to the default URL: https://api.telegram.org',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Telegram Bot Token',
                           'value': self.config['bot_token'],
                           'name': 'telegram_bot_token',
                           'description': 'Your Telegram bot token. '
