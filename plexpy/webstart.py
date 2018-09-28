@@ -69,7 +69,7 @@ def initialize(options):
 
     if options['http_proxy']:
         # Overwrite cherrypy.tools.proxy with our own proxy handler
-        cherrypy.tools.proxy = cherrypy.Tool('before_handler', proxy)
+        cherrypy.tools.proxy = cherrypy.Tool('before_handler', proxy, priority=1)
 
     if options['http_password']:
         login_allowed = ["Tautulli admin (username is '%s')" % options['http_username']]
@@ -84,7 +84,7 @@ def initialize(options):
         else:
             auth_enabled = True
             basic_auth_enabled = False
-            cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
+            cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth, priority=2)
     else:
         auth_enabled = basic_auth_enabled = False
 
