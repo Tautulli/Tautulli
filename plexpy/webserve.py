@@ -2990,7 +2990,8 @@ class WebInterface(object):
         # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:
             plextv.get_server_resources()
-            web_socket.reconnect()
+            if plexpy.WS_CONNECTED:
+                web_socket.reconnect()
 
         # If first run, start websocket
         if first_run:
