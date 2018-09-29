@@ -2091,25 +2091,26 @@ class JOIN(Notifier):
         if self.config['api_key']:
             params = {'apikey': self.config['api_key']}
 
-            r = requests.get('https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices', params=params)
+            try:
+                r = requests.get('https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices', params=params)
 
-            if r.status_code == 200:
-                response_data = r.json()
-                if response_data.get('success'):
-                    response_devices = response_data.get('records', [])
-                    devices.update({d['deviceName']: d['deviceName'] for d in response_devices})
-                    return devices
+                if r.status_code == 200:
+                    response_data = r.json()
+                    if response_data.get('success'):
+                        response_devices = response_data.get('records', [])
+                        devices.update({d['deviceName']: d['deviceName'] for d in response_devices})
+                    else:
+                        error_msg = response_data.get('errorMessage')
+                        logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
+
                 else:
-                    error_msg = response_data.get('errorMessage')
-                    logger.info(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
-                    return devices
-            else:
-                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                return devices
+                    logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
-        else:
-            return devices
+            except Exception as e:
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=e))
+
+        return devices
 
     def return_config_options(self):
         config_option = [{'label': 'Join API Key',
@@ -2679,27 +2680,28 @@ class PUSHBULLET(Notifier):
         return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
 
     def get_devices(self):
+        devices = {'': ''}
+
         if self.config['api_key']:
             headers = {'Content-type': "application/json",
                        'Access-Token': self.config['api_key']
                        }
+            try:
+                r = requests.get('https://api.pushbullet.com/v2/devices', headers=headers)
 
-            r = requests.get('https://api.pushbullet.com/v2/devices', headers=headers)
+                if r.status_code == 200:
+                    response_data = r.json()
+                    pushbullet_devices = response_data.get('devices', [])
+                    devices.update({d['iden']: d['nickname'] for d in pushbullet_devices if d['active']})
+                else:
+                    logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: "
+                                 u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
-            if r.status_code == 200:
-                response_data = r.json()
-                devices = response_data.get('devices', [])
-                devices = {d['iden']: d['nickname'] for d in devices if d['active']}
-                devices.update({'': ''})
-                return devices
-            else:
-                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: "
-                             u"[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
-                logger.debug(u"Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
-                return {'': ''}
+            except Exception as e:
+                logger.error(u"Tautulli Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=e))
 
-        else:
-            return {'': ''}
+        return devices
 
     def return_config_options(self):
         config_option = [{'label': 'Pushbullet Access Token',
