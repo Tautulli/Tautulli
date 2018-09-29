@@ -90,6 +90,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <select class="form-control pms-settings selectize-pms-ip" id="pms_ip_selectize">
+                                    % if config['pms_identifier']:
                                     <option value="${config['pms_ip']}:${config['pms_port']}"
                                             data-identifier="${config['pms_identifier']}"
                                             data-ip="${config['pms_ip']}"
@@ -99,6 +100,7 @@
                                             data-is_cloud="${config['pms_is_cloud']}"
                                             data-label="${config['pms_name'] or 'Local'}"
                                             selected>${config['pms_ip']}</option>
+                                    % endif
                                 </select>
                             </div>
                         </div>
