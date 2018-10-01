@@ -611,7 +611,6 @@ function PlexOAuth(success, error, pre) {
     if (typeof pre === "function") {
         pre()
     }
-    clearTimeout(polling);
     closePlexOAuthWindow();
     plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
     $(plex_oauth_window.document.body).html(plex_oauth_loader);
@@ -621,37 +620,36 @@ function PlexOAuth(success, error, pre) {
         const code = data.code;
 
         plex_oauth_window.location = 'https://app.plex.tv/auth/#!?clientID=' + x_plex_headers['X-Plex-Client-Identifier'] + '&code=' + code;
+        polling = pin;
 
         (function poll() {
-            polling = setTimeout(function () {
-                $.ajax({
-                    url: 'https://plex.tv/api/v2/pins/' + pin,
-                    type: 'GET',
-                    headers: x_plex_headers,
-                    success: function (data) {
-                        if (data.authToken){
-                            closePlexOAuthWindow();
-                            if (typeof success === "function") {
-                                success(data.authToken)
-                            }
+            $.ajax({
+                url: 'https://plex.tv/api/v2/pins/' + pin,
+                type: 'GET',
+                headers: x_plex_headers,
+                success: function (data) {
+                    if (data.authToken){
+                        closePlexOAuthWindow();
+                        if (typeof success === "function") {
+                            success(data.authToken)
                         }
-                    },
-                    error: function () {
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus !== "timeout") {
                         closePlexOAuthWindow();
                         if (typeof error === "function") {
                             error()
                         }
-                    },
-                    complete: function () {
-                        if (!plex_oauth_window.closed){
-                            poll();
-                        } else {
-                            clearTimeout(polling);
-                        }
-                    },
-                    timeout: 1000
-                });
-            }, 1000);
+                    }
+                },
+                complete: function () {
+                    if (!plex_oauth_window.closed && polling === pin){
+                        setTimeout(function() {poll()}, 1000);
+                    }
+                },
+                timeout: 10000
+            });
         })();
     }, function () {
         closePlexOAuthWindow();
