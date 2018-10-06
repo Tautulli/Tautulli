@@ -262,7 +262,7 @@ class ActivityHandler(object):
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
-                        # if the last set temporary stopped time exceeds 15 seconds
+                        # if the last set temporary stopped time exceeds 60 seconds
                         if int(time.time()) - db_session['stopped'] > 60:
                             self.update_db_session()
 
