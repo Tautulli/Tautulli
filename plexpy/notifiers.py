@@ -244,6 +244,14 @@ def available_notification_actions():
                 'icon': 'fa-play',
                 'media_types': ('movie', 'episode', 'track')
                 },
+               {'label': 'Transcode Decision Change',
+                'name': 'on_change',
+                'description': 'Trigger a notification when a stream changes transcode decision.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has changed transcode decision for {title}.',
+                'icon': 'fa-exchange-alt',
+                'media_types': ('movie', 'episode', 'track')
+                },
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
