@@ -184,6 +184,19 @@ class ActivityHandler(object):
 
             plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_resume'})
 
+    def on_change(self):
+        if self.is_valid_session():
+            logger.debug(u"Tautulli ActivityHandler :: Session %s has changed transcode decision." % str(self.get_session_key()))
+
+            # Update the session state and viewOffset
+            self.update_db_session()
+
+            # Retrieve the session data from our temp table
+            ap = activity_processor.ActivityProcessor()
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
+
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_change'})
+
     def on_buffer(self):
         if self.is_valid_session():
             logger.debug(u"Tautulli ActivityHandler :: Session %s is buffering." % self.get_session_key())
@@ -228,6 +241,7 @@ class ActivityHandler(object):
             this_state = self.timeline['state']
             this_rating_key = str(self.timeline['ratingKey'])
             this_key = self.timeline['key']
+            this_transcode_key = self.timeline.get('transcodeSession', '')
 
             # Get the live tv session uuid
             this_live_uuid = this_key.split('/')[-1] if this_key.startswith('/livetv/sessions') else None
@@ -241,13 +255,14 @@ class ActivityHandler(object):
                 last_state = db_session['state']
                 last_rating_key = str(db_session['rating_key'])
                 last_live_uuid = db_session['live_uuid']
+                last_transcode_key = db_session['transcode_key'].split('/')[-1]
 
                 # Make sure the same item is being played
                 if this_rating_key == last_rating_key or this_live_uuid == last_live_uuid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
-                        # if the last set temporary stopped time exceeds 15 seconds
+                        # if the last set temporary stopped time exceeds 60 seconds
                         if int(time.time()) - db_session['stopped'] > 60:
                             self.update_db_session()
 
@@ -266,6 +281,9 @@ class ActivityHandler(object):
                     elif this_state == 'paused':
                         # Update the session last_paused timestamp
                         self.on_pause(still_paused=True)
+
+                    if this_transcode_key != last_transcode_key and this_state != 'buffering':
+                        self.on_change()
 
                 # If a client doesn't register stop events (I'm looking at you PHT!) check if the ratingKey has changed
                 else:

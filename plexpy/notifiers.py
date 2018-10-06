@@ -244,6 +244,14 @@ def available_notification_actions():
                 'icon': 'fa-play',
                 'media_types': ('movie', 'episode', 'track')
                 },
+               {'label': 'Transcode Decision Change',
+                'name': 'on_change',
+                'description': 'Trigger a notification when a stream changes transcode decision.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has changed transcode decision for {title}.',
+                'icon': 'fa-exchange-alt',
+                'media_types': ('movie', 'episode', 'track')
+                },
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
@@ -403,7 +411,9 @@ def get_notify_agents():
     return tuple(a['name'] for a in sorted(available_notification_agents(), key=lambda k: k['label']))
 
 
-def get_notify_actions():
+def get_notify_actions(return_dict=False):
+    if return_dict:
+        return {a.pop('name'): a for a in available_notification_actions()}
     return tuple(a['name'] for a in available_notification_actions())
 
 
@@ -467,15 +477,23 @@ def get_notifier_config(notifier_id=None):
         logger.error(u"Tautulli Notifiers :: Failed to get notifier config options: %s." % e)
         return
 
-    notify_actions = get_notify_actions()
+    notify_actions = get_notify_actions(return_dict=True)
 
     notifier_actions = {}
     notifier_text = {}
     for k in result.keys():
         if k in notify_actions:
+            subject = result.pop(k + '_subject')
+            body = result.pop(k + '_body')
+
+            if subject is None:
+                subject = "" if result['agent_name'] in ('scripts', 'webhook') else notify_actions[k]['subject']
+            if body is None:
+                body = "" if result['agent_name'] in ('scripts', 'webhook') else notify_actions[k]['body']
+
             notifier_actions[k] = helpers.cast_to_int(result.pop(k))
-            notifier_text[k] = {'subject': result.pop(k + '_subject'),
-                                'body': result.pop(k + '_body')}
+            notifier_text[k] = {'subject': subject,
+                                'body': body}
 
     try:
         result['custom_conditions'] = json.loads(result['custom_conditions'])
