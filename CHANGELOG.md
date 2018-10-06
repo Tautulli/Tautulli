@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.1.22 (2018-10-05)
+
+* Notifications:
+  * Fix: Notification agent settings not loading when failed to retrieve some data.
+* UI:
+  * Fix: Incorrectly showing localhost server in the setup wizard.
+* Other:
+  * Fix: Incorrect redirect to HTTP when HTTPS proxy header is present.
+  * Fix: Websocket not connecting automatically after the setup wizard.
+
+
 ## v2.1.21 (2018-09-21)
 
 * Notifications:
