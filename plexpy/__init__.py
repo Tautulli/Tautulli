@@ -1733,6 +1733,21 @@ def dbcheck():
             'ALTER TABLE notifiers ADD COLUMN custom_conditions_logic TEXT'
         )
 
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT on_change FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_change INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_change_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_change_body TEXT'
+        )
+
     # Upgrade tvmaze_lookup table from earlier versions
     try:
         c_db.execute('SELECT rating_key FROM tvmaze_lookup')
