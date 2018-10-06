@@ -106,6 +106,9 @@ def main():
     logger.initLogger(console=not plexpy.QUIET, log_dir=False,
                       verbose=plexpy.VERBOSE)
 
+    if os.getenv('TAUTULLI_DOCKER', False) == 'True':
+        plexpy.DOCKER = True
+
     if args.dev:
         plexpy.DEV = True
         logger.debug(u"Tautulli is running in the dev environment.")

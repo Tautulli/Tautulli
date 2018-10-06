@@ -676,7 +676,9 @@ textarea.form-control:focus {
     color: #F9AA03;
     margin: 5px 40px 5px 0;
 }
-.form-control[readonly] {
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
     background-color: #555;
 }
 .form-control[readonly]:focus {
@@ -2150,6 +2152,10 @@ div.advanced-setting {
 }
 li.advanced-setting {
     border-left: 1px solid #cc7b19;
+}
+.docker-setting {
+    color: #cc7b19;
+    margin-left: 10px;
 }
 .user-info-wrapper {
 }

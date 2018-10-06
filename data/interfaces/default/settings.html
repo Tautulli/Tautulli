@@ -7,6 +7,9 @@
     from plexpy import common, notifiers, newsletters
     from plexpy.helpers import anon_url, checked
 
+    docker_setting = 'disabled' if plexpy.DOCKER else ''
+    docker_msg = '<span class="docker-setting small">(Controlled by Docker Container)</span>' if plexpy.DOCKER else ''
+
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'].lower())
     available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'].lower())
 %>
@@ -230,12 +233,12 @@
 
                         % if plexpy.INSTALL_TYPE == 'git':
                         <div class="form-group advanced-setting">
-                            <label for="git_branch">Git Remote / Branch</label>
+                            <label for="git_branch">Git Remote / Branch</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="input-group git-group">
-                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
-                                        <select class="form-control" id="git_branch" name="git_branch">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change" ${docker_setting}>
+                                        <select class="form-control" id="git_branch" name="git_branch" ${docker_setting}>
                                             <% branches = ('master', 'beta', 'nightly') %>
                                             % for branch in branches:
                                             <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
@@ -245,7 +248,7 @@
                                             % endif
                                         </select>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                            <button class="btn btn-form" type="button" id="switch_git_branch" ${docker_setting}>Checkout Branch</button>
                                         </span>
                                     </div>
                                 </div>
@@ -253,10 +256,10 @@
                             <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="git_path">Git Path</label>
+                            <label for="git_path">Git Path</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30" ${docker_setting}>
                                 </div>
                             </div>
                             <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
@@ -445,19 +448,19 @@
                             <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="http_host">HTTP Host</label>
+                            <label for="http_host">HTTP Host</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
+                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required ${docker_setting}>
                                 </div>
                             </div>
                             <p class="help-block">localhost or an IP address to bind the web server to. Default 0.0.0.0 to bind to all interfaces.</p>
                         </div>
                         <div class="form-group">
-                            <label for="http_port">HTTP Port</label>
+                            <label for="http_port">HTTP Port</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control http-settings" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required>
+                                    <input type="text" class="form-control http-settings" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required ${docker_setting}>
                                 </div>
                                 <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -1034,10 +1037,10 @@
                             <p class="help-block">Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.</p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="newsletter_dir">Newsletter Output Directory</label>
+                            <label for="newsletter_dir">Newsletter Output Directory</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}">
+                                    <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}" ${docker_setting}>
                                 </div>
                             </div>
                             <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
@@ -1233,10 +1236,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="log_dir">Log Directory</label>
+                            <label for="log_dir">Log Directory</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}" ${docker_setting}>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
                                     </div>
@@ -1244,10 +1247,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="backup_dir">Backup Directory</label>
+                            <label for="backup_dir">Backup Directory</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}" ${docker_setting}>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
                                         <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
@@ -1256,10 +1259,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="cache_dir">Cache Directory</label>
+                            <label for="cache_dir">Cache Directory</label> ${docker_msg | n}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}" ${docker_setting}>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
                                         <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>

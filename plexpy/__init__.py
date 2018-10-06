@@ -68,6 +68,7 @@ DAEMON = False
 CREATEPID = False
 PIDFILE = None
 NOFORK = False
+DOCKER = False
 
 SCHED = BackgroundScheduler()
 SCHED_LOCK = threading.Lock()
