@@ -1449,7 +1449,8 @@ class DataFactory(object):
                 'media_index, parent_media_index ' \
                 'FROM session_history_metadata ' \
                 'WHERE {0} = ? ' \
-                'GROUP BY {1} '
+                'GROUP BY {1} ' \
+                'ORDER BY {1} DESC '
 
         # get grandparent_rating_keys
         grandparents = {}
