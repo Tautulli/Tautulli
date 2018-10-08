@@ -275,12 +275,12 @@ class ActivityHandler(object):
                         elif this_state == 'stopped':
                             self.on_stop()
 
-                    elif this_state == 'buffering':
-                        self.on_buffer()
-
                     elif this_state == 'paused':
                         # Update the session last_paused timestamp
                         self.on_pause(still_paused=True)
+
+                    if this_state == 'buffering':
+                        self.on_buffer()
 
                     if this_transcode_key != last_transcode_key and this_state != 'buffering':
                         self.on_change()
