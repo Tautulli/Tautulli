@@ -598,7 +598,7 @@ General optional parameters:
         if self._api_cmd == 'docs_md':
             return out['response']['data']
 
-        elif self._api_cmd == 'download_log':
+        elif self._api_cmd.startswith('download_'):
             return
 
         elif self._api_cmd == 'pms_image_proxy':
