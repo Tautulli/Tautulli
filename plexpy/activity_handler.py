@@ -217,14 +217,14 @@ class ActivityHandler(object):
             # Update the session state and viewOffset
             self.update_db_session()
 
-            time_since_last_trigger = 0
+            time_since_last_trigger = None
             if buffer_last_triggered:
                 logger.debug(u"Tautulli ActivityHandler :: Session %s buffer last triggered at %s." %
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
             if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
-                time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
+                time_since_last_trigger is None or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
 
                 # Retrieve the session data from our temp table
@@ -390,7 +390,7 @@ class TimelineHandler(object):
                     if metadata:
                         grandparent_rating_key = int(metadata['grandparent_rating_key'])
                         parent_rating_key = int(metadata['parent_rating_key'])
-                        
+
                         grandparent_set = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
                         grandparent_set.add(parent_rating_key)
                         RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
@@ -439,7 +439,7 @@ class TimelineHandler(object):
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
                 state_type == 5 and metadata_state is None and queue_size is None and \
                 rating_key in RECENTLY_ADDED_QUEUE:
-                
+
                 logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s) done processing metadata."
                              % (title, str(rating_key)))
 
@@ -474,7 +474,7 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
         ACTIVITY_SCHED.add_job(
             func, args=args, id=id, trigger=DateTrigger(
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
-    
+
 
 def force_stop_stream(session_key):
     ap = activity_processor.ActivityProcessor()
@@ -521,7 +521,7 @@ def clear_recently_added_queue(rating_key):
     elif child_keys:
         for child_key in child_keys:
             grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
-            
+
             if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
                 on_created(child_key, child_keys=grandchild_keys)
 
@@ -568,7 +568,7 @@ def on_created(rating_key, **kwargs):
         all_keys = [rating_key]
         if 'child_keys' in kwargs:
             all_keys.extend(kwargs['child_keys'])
-                     
+
         for key in all_keys:
             data_factory.set_recently_added_item(key)
 
