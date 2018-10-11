@@ -104,7 +104,7 @@ _CONFIG_DEFINITIONS = {
     'BROWSER_ON_PMSUPDATE': (int, 'Browser', 0),
     'BROWSER_ON_CONCURRENT': (int, 'Browser', 0),
     'BROWSER_ON_NEWDEVICE': (int, 'Browser', 0),
-    'BUFFER_THRESHOLD': (int, 'Monitoring', 3),
+    'BUFFER_THRESHOLD': (int, 'Monitoring', 10),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DAYS': (int, 'General', 3),
     'BACKUP_DIR': (str, 'General', ''),
