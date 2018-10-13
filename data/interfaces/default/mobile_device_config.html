@@ -20,6 +20,24 @@
                                 </div>
                                 <p class="help-block">Optional: Enter a friendly name for this device. Leave blank for default.</p>
                             </div>
+                            <div class="form-group">
+                                <label for="friendly_name">Device Token</label>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="device_token" value="${device['device_token']}" size="30" readonly>
+                                    </div>
+                                </div>
+                                <p class="help-block">Your app device token.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="friendly_name">OneSignal Device ID</label>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="device_id" value="${device['device_id']}" size="30" readonly>
+                                    </div>
+                                </div>
+                                <p class="help-block">Your OneSignal device ID for notifications.</p>
+                            </div>
                         </div>
                     </div>
                 </form>
