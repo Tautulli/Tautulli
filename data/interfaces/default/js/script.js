@@ -517,8 +517,15 @@ function PopupCenter(url, title, w, h) {
     return newWindow;
 }
 
-if (!localStorage.getItem('Tautulli_ClientId')) {
-    localStorage.setItem('Tautulli_ClientId', uuidv4());
+function setLocalStorage(key, value) {
+    localStorage.setItem(key, value);
+}
+function getLocalStorage(key) {
+    return localStorage.getItem(key);
+}
+
+if (!getLocalStorage('Tautulli_ClientId')) {
+    setLocalStorage('Tautulli_ClientId', uuidv4());
 }
 
 function uuidv4() {

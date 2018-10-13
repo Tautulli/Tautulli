@@ -2,7 +2,7 @@ var hc_plays_by_day_options = {
     chart: {
         type: 'line',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'chart_div_plays_by_day'
+        renderTo: 'graph_plays_by_day'
     },
     title: {
         text: ''
@@ -31,6 +31,11 @@ var hc_plays_by_day_options = {
                     click: function () {
                         selectHandler(this.category, this.series.name);
                     }
+                }
+            },
+            events: {
+                legendItemClick: function() {
+                    setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
                 }
             }
         }

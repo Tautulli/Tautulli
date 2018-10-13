@@ -78,7 +78,7 @@
                                 The total play count or duration of tv, movies, and music played per day. Click a graph point to open up a list of items played for that specific date.
                             </p>
                             <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_day">
+                                <div class="watch-chart" id="graph_plays_by_day">
                                     <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
                                     <br>
                                 </div>
@@ -92,7 +92,7 @@
                                 The combined total of tv, movies, and music played per day of the week.
                             </p>
                             <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
+                                <div class="watch-chart" id="graph_plays_by_dayofweek" style="float: left;">
                                     <div class="graphs-load">
                                         <i class="fa fa-refresh fa-spin"></i> Loading chart...
                                     </div>
@@ -106,7 +106,7 @@
                                 The combined total of tv, movies, and music played per hour of the day.
                             </p>
                             <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_hourofday">
+                                <div class="watch-chart" id="graph_plays_by_hourofday">
                                     <div class="graphs-load">
                                         <i class="fa fa-refresh fa-spin"></i> Loading chart...
                                     </div>
@@ -122,7 +122,7 @@
                                 The combined total of tv, movies, and music played by top 10 most active platforms.
                             </p>
                             <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
+                                <div class="watch-chart" id="graph_plays_by_platform" style="float: left;">
                                     <div class="graphs-load">
                                         <i class="fa fa-refresh fa-spin"></i> Loading chart...
                                     </div>
@@ -136,7 +136,7 @@
                                 The combined total of tv, movies, and music played by top 10 most active users.
                             </p>
                             <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_user">
+                                <div class="watch-chart" id="graph_plays_by_user">
                                     <div class="graphs-load">
                                         <i class="fa fa-refresh fa-spin"></i> Loading chart...
                                     </div>
@@ -159,7 +159,7 @@
                             The total play count or duration of tv, movies, and music by the transcode decision. Click a graph point to open up a list of items played for that specific date.
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_stream_type">
+                            <div class="watch-chart" id="graph_plays_by_stream_type">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
                                 <br>
                             </div>
@@ -173,7 +173,7 @@
                             The combined total of tv and movies by their original resolution (pre-transcoding).
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_source_resolution" style="float: left;">
+                            <div class="watch-chart" id="graph_plays_by_source_resolution" style="float: left;">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -186,7 +186,7 @@
                             The combined total of tv and movies by their streamed resolution (post-transcoding).
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_stream_resolution">
+                            <div class="watch-chart" id="graph_plays_by_stream_resolution">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -201,7 +201,7 @@
                             The combined total of tv, movies, and music by platform and stream type.
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_platform_by_stream_type" style="float: left;">
+                            <div class="watch-chart" id="graph_plays_by_platform_by_stream_type" style="float: left;">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -214,7 +214,7 @@
                             The combined total of tv, movies, and music by user and stream type.
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_user_by_stream_type" style="float: left;">
+                            <div class="watch-chart" id="graph_plays_by_user_by_stream_type" style="float: left;">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -236,7 +236,7 @@
                             The combined total of tv, movies, and music by month.
                         </p>
                         <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_month">
+                            <div class="watch-chart" id="graph_plays_by_month">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -311,6 +311,34 @@
           console.log("Failed to retrieve history modal data.");
         }
     }
+
+    function getGraphVisibility(chart_name, data_series) {
+        var chart_key = 'HighCharts_' + chart_name;
+        var chart_visibility = JSON.parse(getLocalStorage(chart_key)) || [];
+
+        chart_visibility = chart_visibility.reduce(function(obj, s) {
+            obj[s.name] = s.visible;
+            return obj;
+        }, {});
+
+        var new_series = data_series.map(function(s) {
+            var obj = Object.assign({}, s);
+            obj.visible = (chart_visibility[s.name] !== false);
+            return obj
+        });
+
+        return new_series
+    }
+
+    function setGraphVisibility(chart_name, data_series, series_name) {
+        var chart_key = 'HighCharts_' + chart_name;
+
+        var chart_visibility = data_series.map(function(s) {
+            return {name: s.name, visible: (s.name === series_name) ? !s.visible : s.visible}
+        });
+
+        setLocalStorage(chart_key, JSON.stringify(chart_visibility));
+    }
 </script>
 <script src="${http_root}js/graphs/plays_by_day.js"></script>
 <script src="${http_root}js/graphs/plays_by_dayofweek.js"></script>
@@ -352,9 +380,6 @@
             }
         });
 
-
-        var music_visible = (${config['music_logging_enable']} == 1 ? true : false);
-        
         function dataSecondsToHours(data) {
             $.each(data.series, function (i, series) {
                 series.data = $.map(series.data, function (value) {
@@ -391,8 +416,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_day_options.yAxis.min = 0;
                     hc_plays_by_day_options.xAxis.categories = dateArray;
-                    hc_plays_by_day_options.series = data.series;
-                    hc_plays_by_day_options.series[2].visible = music_visible;
+                    hc_plays_by_day_options.series = getGraphVisibility(hc_plays_by_day_options.chart.renderTo, data.series);
                     var hc_plays_by_day = new Highcharts.Chart(hc_plays_by_day_options);
                 }
             });
@@ -405,8 +429,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
-                    hc_plays_by_dayofweek_options.series = data.series;
-                    hc_plays_by_dayofweek_options.series[2].visible = music_visible;
+                    hc_plays_by_dayofweek_options.series = getGraphVisibility(hc_plays_by_dayofweek_options.chart.renderTo, data.series);
                     var hc_plays_by_dayofweek = new Highcharts.Chart(hc_plays_by_dayofweek_options);
                 }
             });
@@ -419,8 +442,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_hourofday_options.xAxis.categories = data.categories;
-                    hc_plays_by_hourofday_options.series = data.series;
-                    hc_plays_by_hourofday_options.series[2].visible = music_visible;
+                    hc_plays_by_hourofday_options.series = getGraphVisibility(hc_plays_by_hourofday_options.chart.renderTo, data.series);
                     var hc_plays_by_hourofday = new Highcharts.Chart(hc_plays_by_hourofday_options);
                 }
             });
@@ -433,8 +455,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_platform_options.xAxis.categories = data.categories;
-                    hc_plays_by_platform_options.series = data.series;
-                    hc_plays_by_platform_options.series[2].visible = music_visible;
+                    hc_plays_by_platform_options.series = getGraphVisibility(hc_plays_by_platform_options.chart.renderTo, data.series);
                     var hc_plays_by_platform = new Highcharts.Chart(hc_plays_by_platform_options);
                 }
             });
@@ -447,8 +468,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_user_options.xAxis.categories = data.categories;
-                    hc_plays_by_user_options.series = data.series;
-                    hc_plays_by_user_options.series[2].visible = music_visible;
+                    hc_plays_by_user_options.series = getGraphVisibility(hc_plays_by_user_options.chart.renderTo, data.series);
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
                 }
             });
@@ -482,7 +502,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_stream_type_options.yAxis.min = 0;
                     hc_plays_by_stream_type_options.xAxis.categories = dateArray;
-                    hc_plays_by_stream_type_options.series = data.series;
+                    hc_plays_by_stream_type_options.series = getGraphVisibility(hc_plays_by_stream_type_options.chart.renderTo, data.series);
                     var hc_plays_by_stream_type = new Highcharts.Chart(hc_plays_by_stream_type_options);
                 }
             });
@@ -495,7 +515,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_source_resolution_options.xAxis.categories = data.categories;
-                    hc_plays_by_source_resolution_options.series = data.series;
+                    hc_plays_by_source_resolution_options.series = getGraphVisibility(hc_plays_by_source_resolution_options.chart.renderTo, data.series);
                     var hc_plays_by_source_resolution = new Highcharts.Chart(hc_plays_by_source_resolution_options);
                 }
             });
@@ -508,7 +528,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_stream_resolution_options.xAxis.categories = data.categories;
-                    hc_plays_by_stream_resolution_options.series = data.series;
+                    hc_plays_by_stream_resolution_options.series = getGraphVisibility(hc_plays_by_stream_resolution_options.chart.renderTo, data.series);
                     var hc_plays_by_stream_resolution = new Highcharts.Chart(hc_plays_by_stream_resolution_options);
                 }
             });
@@ -521,7 +541,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_platform_by_stream_type_options.xAxis.categories = data.categories;
-                    hc_plays_by_platform_by_stream_type_options.series = data.series;
+                    hc_plays_by_platform_by_stream_type_options.series = getGraphVisibility(hc_plays_by_platform_by_stream_type_options.chart.renderTo, data.series);
                     var hc_plays_by_platform_by_stream_type = new Highcharts.Chart(hc_plays_by_platform_by_stream_type_options);
                 }
             });
@@ -534,7 +554,7 @@
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_user_by_stream_type_options.xAxis.categories = data.categories;
-                    hc_plays_by_user_by_stream_type_options.series = data.series;
+                    hc_plays_by_user_by_stream_type_options.series = getGraphVisibility(hc_plays_by_user_by_stream_type_options.chart.renderTo, data.series);
                     var hc_plays_by_user_by_stream_type = new Highcharts.Chart(hc_plays_by_user_by_stream_type_options);
                 }
             });
@@ -555,8 +575,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_month_options.yAxis.min = 0;
                     hc_plays_by_month_options.xAxis.categories = data.categories;
-                    hc_plays_by_month_options.series = data.series;
-                    hc_plays_by_month_options.series[2].visible = music_visible;
+                    hc_plays_by_month_options.series = getGraphVisibility(hc_plays_by_month_options.chart.renderTo, data.series);
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }
             });

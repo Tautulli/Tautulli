@@ -2,7 +2,7 @@ var hc_plays_by_month_options = {
     chart: {
         type: 'column',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'chart_div_plays_by_month'
+        renderTo: 'graph_plays_by_month'
     },
     title: {
         text: ''
@@ -50,12 +50,20 @@ var hc_plays_by_month_options = {
     },
     plotOptions: {
         column: {
+            pointPadding: 0.2,
+            borderWidth: 0,
             stacking: 'normal',
-            borderWidth: '0',
             dataLabels: {
                 enabled: false,
                 style: {
                     color: '#000'
+                }
+            }
+        },
+        series: {
+            events: {
+                legendItemClick: function () {
+                    setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
                 }
             }
         }
