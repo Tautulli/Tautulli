@@ -50,7 +50,6 @@ var hc_plays_by_user_by_stream_type_options = {
     },
     plotOptions: {
         column: {
-            pointPadding: 0.2,
             borderWidth: 0,
             stacking: 'normal',
             dataLabels: {
