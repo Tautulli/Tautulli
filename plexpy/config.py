@@ -921,3 +921,10 @@ class Config(object):
         if self.CONFIG_VERSION == 11:
             self.ANON_REDIRECT = self.ANON_REDIRECT.replace('http://www.nullrefer.com/?',
                                                             'https://www.nullrefer.com/?')
+            self.CONFIG_VERSION = 12
+
+        if self.CONFIG_VERSION == 12:
+            if self.BUFFER_THRESHOLD == 3:
+                self.BUFFER_THRESHOLD = 10
+
+            self.CONFIG_VERSION = 13
