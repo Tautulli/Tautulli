@@ -293,7 +293,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def home_stats(self, time_range=30, stats_type=0, stats_count=10, **kwargs):
+    def home_stats(self, time_range=30, stats_type='plays', stats_count=10, **kwargs):
         data_factory = datafactory.DataFactory()
         stats_data = data_factory.get_home_stats(time_range=time_range,
                                                  stats_type=stats_type,
@@ -5321,7 +5321,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='10', **kwargs):
+    def get_home_stats(self, grouping=0, time_range=30, stats_type='plays', stats_count=10, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -5331,7 +5331,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):         0 or 1
                 time_range (str):       The time range to calculate statistics, '30'
-                stats_type (int):       0 for plays, 1 for duration
+                stats_type (str):       plays or duration
                 stats_count (str):      The number of top items to list, '5'
 
             Returns:
@@ -5395,6 +5395,12 @@ class WebInterface(object):
                      ]
             ```
         """
+        # For backwards compatibility
+        if stats_type in (0, "0"):
+            stats_type = 'plays'
+        elif stats_type in (1, '1'):
+            stats_type = 'duration'
+
         data_factory = datafactory.DataFactory()
         result = data_factory.get_home_stats(grouping=grouping,
                                              time_range=time_range,

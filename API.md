@@ -733,7 +733,7 @@ Required parameters:
 Optional parameters:
     grouping (int):         0 or 1
     time_range (str):       The time range to calculate statistics, '30'
-    stats_type (int):       0 for plays, 1 for duration
+    stats_type (str):       plays or duration
     stats_count (str):      The number of top items to list, '5'
 
 Returns:

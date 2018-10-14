@@ -261,7 +261,7 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, grouping=None, time_range=None, stats_type=None, stats_count=None, stats_cards=None):
+    def get_home_stats(self, grouping=None, time_range=30, stats_type='plays', stats_count=10, stats_cards=None):
         monitor_db = database.MonitorDatabase()
 
         if grouping is None:
@@ -280,7 +280,7 @@ class DataFactory(object):
         music_watched_percent = plexpy.CONFIG.MUSIC_WATCHED_PERCENT
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
-        sort_type = 'total_duration' if helpers.cast_to_int(stats_type) == 1 else 'total_plays'
+        sort_type = 'total_duration' if stats_type == 'duration' else 'total_plays'
 
         home_stats = []
 
