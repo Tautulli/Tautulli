@@ -1850,24 +1850,6 @@ class WebInterface(object):
         return serve_template(templatename="graphs.html", title="Graphs", config=config)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def set_graph_config(self, graph_type=None, graph_days=None, graph_months=None, graph_tab=None, **kwargs):
-        if graph_type:
-            plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
-            plexpy.CONFIG.write()
-        if graph_days:
-            plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
-            plexpy.CONFIG.write()
-        if graph_months:
-            plexpy.CONFIG.__setattr__('GRAPH_MONTHS', graph_months)
-            plexpy.CONFIG.write()
-        if graph_tab:
-            plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
-            plexpy.CONFIG.write()
-
-        return "Updated graphs config values."
-
-    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()

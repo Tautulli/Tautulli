@@ -21,137 +21,109 @@
                 </label>
             </div>
             <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
-                % if config['graph_type'] == 'duration':
                 <label class="btn btn-dark">
-                    <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off"> Play Count
-                </label>
-                <label class="btn btn-dark active">
-                    <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off" checked> Play Duration
-                </label>
-                % else:
-                <label class="btn btn-dark active">
-                    <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off" checked> Play Count
+                    <input type="radio" name="yaxis-options" id="yaxis-plays" value="plays" autocomplete="off"> Play Count
                 </label>
                 <label class="btn btn-dark">
                     <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off"> Play Duration
                 </label>
-                % endif
             </div>
             <div class="input-group pull-right" style="width: 1px;" id="days-selection">
                 <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
+                <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="30" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
                 <span class="input-group-addon btn-dark inactive">days</span>
             </div>
             <div class="input-group pull-right" style="width: 1px;" id="months-selection">
                 <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control number-input" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
+                <input type="number" class="form-control number-input" name="graph-months" id="graph-months" value="12" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
                 <span class="input-group-addon btn-dark inactive">months</span>
 			</div>
         </div>
     </div>
     <div class='table-card-back'>
         <ul class="nav nav-pills" role="tablist" id="graph-tabs">
-            % if config['graph_tab'] == 'tabs-3':
-            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
-            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
-            <li role="presentation" class="active"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
-            % elif config['graph_tab'] == 'tabs-2':
-            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
-            <li role="presentation" class="active"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
-            <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
-            % else:
-            <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
+            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by Period</a></li>
             <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
             <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
-            % endif
         </ul>
         <div class="tab-content">
-            % if config['graph_tab'] != 'tabs-2' and config['graph_tab'] != 'tabs-3':
-            <div role="tabpanel" class="tab-pane active" id="tabs-1">
-            % else:
             <div role="tabpanel" class="tab-pane" id="tabs-1">
-            % endif
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
-                            <p class="help-block">
-                                The total play count or duration of tv, movies, and music played per day. Click a graph point to open up a list of items played for that specific date.
-                            </p>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="graph_plays_by_day">
-                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h4>
-                            <p class="help-block">
-                                The combined total of tv, movies, and music played per day of the week.
-                            </p>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="graph_plays_by_dayofweek" style="float: left;">
-                                    <div class="graphs-load">
-                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h4><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h4>
-                            <p class="help-block">
-                                The combined total of tv, movies, and music played per hour of the day.
-                            </p>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="graph_plays_by_hourofday">
-                                    <div class="graphs-load">
-                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h4>
-                            <p class="help-block">
-                                The combined total of tv, movies, and music played by top 10 most active platforms.
-                            </p>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="graph_plays_by_platform" style="float: left;">
-                                    <div class="graphs-load">
-                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h4>
-                            <p class="help-block">
-                                The combined total of tv, movies, and music played by top 10 most active users.
-                            </p>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="graph_plays_by_user">
-                                    <div class="graphs-load">
-                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The total play count or duration of tv, movies, and music played per day. Click a graph point to open up a list of items played for that specific date.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_plays_by_day">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                <br>
                             </div>
                         </div>
                     </div>
                 </div>
-
-            % if config['graph_tab'] == 'tabs-2':
-            <div role="tabpanel" class="tab-pane active" id="tabs-2">
-            % else:
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music played per day of the week.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_plays_by_dayofweek" style="float: left;">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music played per hour of the day.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_plays_by_hourofday">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music played by top 10 most active platforms.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_plays_by_platform" style="float: left;">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music played by top 10 most active users.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_plays_by_user">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div role="tabpanel" class="tab-pane" id="tabs-2">
-            % endif
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-video-camera"></i> Daily Stream type breakdown <small>Last <span class="days">30</span> days</small></h4>
@@ -223,12 +195,7 @@
                     </div>
                 </div>
             </div>
-
-            % if config['graph_tab'] == 'tabs-3':
-            <div role="tabpanel" class="tab-pane active" id="tabs-3">
-            % else:
             <div role="tabpanel" class="tab-pane" id="tabs-3">
-            % endif
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-calendar"></i> Plays by month <small>Last <span class="months">12</span> months</small></h4>
@@ -266,7 +233,7 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
-    var selected_user_id = null
+    var selected_user_id = null;
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -321,13 +288,11 @@
             return obj;
         }, {});
 
-        var new_series = data_series.map(function(s) {
+        return data_series.map(function(s) {
             var obj = Object.assign({}, s);
             obj.visible = (chart_visibility[s.name] !== false);
             return obj
         });
-
-        return new_series
     }
 
     function setGraphVisibility(chart_name, data_series, series_name) {
@@ -354,12 +319,20 @@
 <script>
     $(document).ready(function () {
 
-        // Initial values for graph from config
-        var yaxis = "${config['graph_type']}";
-        var current_day_range = ${config['graph_days']};
-        var current_month_range = ${config['graph_months']};
-        var current_tab = "${'#' + config['graph_tab']}";
-        
+        // Initial values for graph from local storage
+        var yaxis = getLocalStorage('graph_type', 'plays');
+        var current_day_range = getLocalStorage('graph_days', 30);
+        var current_month_range = getLocalStorage('graph_months', 12);
+        var current_tab = '#' + getLocalStorage('graph_tab', 'tabs-1');
+
+        $('#yaxis-' + yaxis).prop('checked', true);
+        $('#yaxis-' + yaxis).closest('label').addClass('active');
+        $('#graph-days').val(current_day_range);
+        $('#graph-months').val(current_month_range);
+        $('#graph-tabs a[href="' + current_tab + '"]').closest('li').addClass('active');
+        $(current_tab).addClass('active');
+
+
         $('.days').html(current_day_range);
         $('.months').html(current_month_range);
         
@@ -404,8 +377,8 @@
                     $.each(data.categories, function (i, day) {
                         dateArray.push(moment(day, 'YYYY-MM-DD').valueOf());
                         // Highlight the weekend
-                        if ((moment(day, 'YYYY-MM-DD').format('ddd') == 'Sat') ||
-                            (moment(day, 'YYYY-MM-DD').format('ddd') == 'Sun')) {
+                        if ((moment(day, 'YYYY-MM-DD').format('ddd') === 'Sat') ||
+                            (moment(day, 'YYYY-MM-DD').format('ddd') === 'Sun')) {
                             hc_plays_by_day_options.xAxis.plotBands.push({
                                 from: i-0.5,
                                 to: i+0.5,
@@ -472,6 +445,8 @@
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
                 }
             });
+
+            $('#graph-tabs a[href="#tabs-1"]').tab('show')
         }
 
         function loadGraphsTab2(time_range, yaxis) {
@@ -558,6 +533,8 @@
                     var hc_plays_by_user_by_stream_type = new Highcharts.Chart(hc_plays_by_user_by_stream_type_options);
                 }
             });
+
+            $('#graph-tabs a[href="#tabs-2"]').tab('show')
         }
 
         function loadGraphsTab3(time_range, yaxis) {
@@ -579,46 +556,48 @@
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }
             });
+
+            $('#graph-tabs a[href="#tabs-3"]').tab('show')
         }
 
         // Set initial state
-        if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-        if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-        if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+        if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+        if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+        if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
 
         // Tab1 opened
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab1(current_day_range, yaxis);
-            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
-        })
+            setLocalStorage('graph_tab', current_tab.replace('#',''));
+        });
 
         // Tab2 opened
         $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab2(current_day_range, yaxis);
-            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
-        })
+            setLocalStorage('graph_tab', current_tab.replace('#',''));
+        });
 
         // Tab3 opened
         $('#graph-tabs a[href="#tabs-3"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             loadGraphsTab3(current_month_range, yaxis);
-            $.post('set_graph_config', { graph_tab: current_tab.replace('#','') });
-        })
+            setLocalStorage('graph_tab', current_tab.replace('#',''));
+        });
 
         // Date range changed
         $('#graph-days').tooltip({ container: 'body', placement: 'top', html: true });
         $('#graph-days').on('change', function() {
             forceMinMax($(this));
             current_day_range = $(this).val();
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             $('.days').html(current_day_range);
-            $.post('set_graph_config', { graph_days: current_day_range });
+            setLocalStorage('graph_days', current_day_range);
         });
         
         // Month range changed
@@ -626,26 +605,26 @@
         $('#graph-months').on('change', function() {
             forceMinMax($(this));
             current_month_range = $(this).val();
-            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
             $('.months').html(current_month_range);
-            $.post('set_graph_config', { graph_months: current_month_range });
+            setLocalStorage('graph_months', current_month_range);
         });
 
         // User changed
         $('#graph-user').on('change', function() {
             selected_user_id = $(this).val() || null;
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
         });
         
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
-            $.post('set_graph_config', { graph_type: yaxis });
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            setLocalStorage('graph_type', yaxis);
         });
 
         function setGraphFormat(type) {

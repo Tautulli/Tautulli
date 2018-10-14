@@ -520,8 +520,14 @@ function PopupCenter(url, title, w, h) {
 function setLocalStorage(key, value) {
     localStorage.setItem(key, value);
 }
-function getLocalStorage(key) {
-    return localStorage.getItem(key);
+function getLocalStorage(key, default_value) {
+    var value = localStorage.getItem(key);
+    if (value !== null) {
+        return value
+    } else if (default_value) {
+        setLocalStorage(key, default_value);
+        return default_value
+    }
 }
 
 if (!getLocalStorage('Tautulli_ClientId')) {
