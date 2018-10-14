@@ -102,8 +102,8 @@
                 </ul>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
-                        <label class="btn btn-dark active" id="recently-added-label-all">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="" autocomplete="off"> All
+                        <label class="btn btn-dark" id="recently-added-label-all">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="all" autocomplete="off"> All
                         </label>
                         <label class="btn btn-dark" id="recently-added-label-movies">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
@@ -112,7 +112,7 @@
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
                         </label>
                         <label class="btn btn-dark" id="recently-added-label-music">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-music" value="artist" autocomplete="off"> Music
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-artist" value="artist" autocomplete="off"> Music
                         </label>
                         <label class="btn btn-dark" id="recently-added-label-other_video">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-other_video" value="other_video" autocomplete="off"> Videos
@@ -781,8 +781,10 @@
     }
 
     var recently_added_count = getLocalStorage('home_stats_recently_added_count', 50);
-    var recently_added_type = '';
+    var recently_added_type = getLocalStorage('home_stats_recently_added_type', 'all');;
 
+    $('#recently-added-toggle-' + recently_added_type).prop('checked', true);
+    $('#recently-added-toggle-' + recently_added_type).closest('label').addClass('active');
     $('#recently-added-count').val(recently_added_count);
 
     recentlyAdded(recently_added_count, recently_added_type);
@@ -838,6 +840,7 @@
         $(selected_filter).closest('label').addClass('active');
         recently_added_type = $(selected_filter).val();
         resetScroller();
+        setLocalStorage('home_stats_recently_added_type', recently_added_type);
         recentlyAdded(recently_added_count, recently_added_type);
     });
 
