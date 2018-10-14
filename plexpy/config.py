@@ -104,7 +104,7 @@ _CONFIG_DEFINITIONS = {
     'BROWSER_ON_PMSUPDATE': (int, 'Browser', 0),
     'BROWSER_ON_CONCURRENT': (int, 'Browser', 0),
     'BROWSER_ON_NEWDEVICE': (int, 'Browser', 0),
-    'BUFFER_THRESHOLD': (int, 'Monitoring', 3),
+    'BUFFER_THRESHOLD': (int, 'Monitoring', 10),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DAYS': (int, 'General', 3),
     'BACKUP_DIR': (str, 'General', ''),
@@ -913,3 +913,10 @@ class Config(object):
         if self.CONFIG_VERSION == 11:
             self.ANON_REDIRECT = self.ANON_REDIRECT.replace('http://www.nullrefer.com/?',
                                                             'https://www.nullrefer.com/?')
+            self.CONFIG_VERSION = 12
+
+        if self.CONFIG_VERSION == 12:
+            if self.BUFFER_THRESHOLD == 3:
+                self.BUFFER_THRESHOLD = 10
+
+            self.CONFIG_VERSION = 13
