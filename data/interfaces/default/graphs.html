@@ -281,7 +281,7 @@
 
     function getGraphVisibility(chart_name, data_series) {
         var chart_key = 'HighCharts_' + chart_name;
-        var chart_visibility = JSON.parse(getLocalStorage(chart_key)) || [];
+        var chart_visibility = JSON.parse(getLocalStorage(chart_key, null)) || [];
 
         chart_visibility = chart_visibility.reduce(function(obj, s) {
             obj[s.name] = s.visible;
