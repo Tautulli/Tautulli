@@ -223,8 +223,8 @@ class ActivityHandler(object):
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
-            if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
-                time_since_last_trigger is None or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
+            if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger is None or \
+                    time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT:
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
 
                 # Retrieve the session data from our temp table

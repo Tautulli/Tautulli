@@ -916,7 +916,6 @@ class Config(object):
             self.CONFIG_VERSION = 12
 
         if self.CONFIG_VERSION == 12:
-            if self.BUFFER_THRESHOLD == 3:
-                self.BUFFER_THRESHOLD = 10
+            self.BUFFER_THRESHOLD = max(self.BUFFER_THRESHOLD, 10)
 
             self.CONFIG_VERSION = 13
