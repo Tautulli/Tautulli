@@ -2290,6 +2290,7 @@ class PmsConnect(object):
                     libraries_output = {'section_id': helpers.get_xml_attr(result, 'key'),
                                         'section_type': helpers.get_xml_attr(result, 'type'),
                                         'section_name': helpers.get_xml_attr(result, 'title'),
+                                        'agent': helpers.get_xml_attr(result, 'agent'),
                                         'thumb': helpers.get_xml_attr(result, 'thumb'),
                                         'art': helpers.get_xml_attr(result, 'art')
                                         }
@@ -2450,6 +2451,7 @@ class PmsConnect(object):
                     library_stats = {'section_id': section_id,
                                      'section_name': library['section_name'],
                                      'section_type': section_type,
+                                     'agent': library['agent'],
                                      'thumb': library['thumb'],
                                      'art': library['art'],
                                      'count': children_list['library_count']

@@ -50,6 +50,7 @@ def refresh_libraries():
                               'section_id': section['section_id'],
                               'section_name': section['section_name'],
                               'section_type': section['section_type'],
+                              'agent': section['agent'],
                               'thumb': section['thumb'],
                               'art': section['art'],
                               'count': section['count'],
@@ -923,7 +924,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT section_id, section_name, section_type FROM library_sections WHERE deleted_section = 0'
+            query = 'SELECT section_id, section_name, section_type, agent FROM library_sections WHERE deleted_section = 0'
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
@@ -933,7 +934,8 @@ class Libraries(object):
         for item in result:
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
-                       'section_type': item['section_type']
+                       'section_type': item['section_type'],
+                       'agent': item['agent']
                        }
             libraries.append(library)
 

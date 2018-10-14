@@ -645,7 +645,7 @@ def dbcheck():
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
+        'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
@@ -1662,6 +1662,15 @@ def dbcheck():
             )
     except sqlite3.OperationalError:
         logger.warn(u"Unable to remove duplicate libraries from library_sections table.")
+
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute('SELECT agent FROM library_sections')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table library_sections.")
+        c_db.execute(
+            'ALTER TABLE library_sections ADD COLUMN agent TEXT'
+        )
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
