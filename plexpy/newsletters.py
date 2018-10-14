@@ -683,7 +683,7 @@ class RecentlyAdded(Newsletter):
         start = 0
 
         while not done:
-            recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', type=media_type)
+            recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', media_type=media_type)
             filtered_items = [i for i in recent_items['recently_added']
                               if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
             if len(filtered_items) < 10:

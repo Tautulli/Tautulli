@@ -1775,7 +1775,7 @@ Returns:
 
 
 ### get_recently_added
-Get all items that where recelty added to plex.
+Get all items that where recently added to plex.
 
 ```
 Required parameters:
@@ -1783,7 +1783,7 @@ Required parameters:
 
 Optional parameters:
     start (str):        The item number to start at
-    type (str):         The media type: movie, show, artist
+    media_type (str):   The media type: movie, show, artist
     section_id (str):   The id of the Plex library section
 
 Returns:

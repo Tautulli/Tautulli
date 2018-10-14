@@ -332,11 +332,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_recently_added(self, count='0', type='', **kwargs):
+    def get_recently_added(self, count='0', media_type='', **kwargs):
 
         try:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(count=count, type=type)
+            result = pms_connect.get_recently_added_details(count=count, media_type=media_type)
         except IOError as e:
             return serve_template(templatename="recently_added.html", data=None)
 
@@ -4701,8 +4701,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_recently_added")
-    def get_recently_added_details(self, start='0', count='0', type='', section_id='', **kwargs):
-        """ Get all items that where recelty added to plex.
+    def get_recently_added_details(self, start='0', count='0', media_type='', section_id='', **kwargs):
+        """ Get all items that where recently added to plex.
 
             ```
             Required parameters:
@@ -4710,7 +4710,7 @@ class WebInterface(object):
 
             Optional parameters:
                 start (str):        The item number to start at
-                type (str):         The media type: movie, show, artist
+                media_type (str):   The media type: movie, show, artist
                 section_id (str):   The id of the Plex library section
 
             Returns:
@@ -4740,8 +4740,12 @@ class WebInterface(object):
                      }
             ```
         """
+        # For backwards compatibility
+        if 'type' in kwargs:
+            media_type = kwargs['type']
+
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(start=start, count=count, type=type, section_id=section_id)
+        result = pms_connect.get_recently_added_details(start=start, count=count, media_type=media_type, section_id=section_id)
 
         if result:
             return result
