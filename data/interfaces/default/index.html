@@ -44,25 +44,16 @@
                 <h3 class="pull-left">Watch Statistics</h3>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
-                        % if config['home_stats_type'] == 0:
-                        <label class="btn btn-dark active">
-                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off" checked> Play Count
+                        <label class="btn btn-dark">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="plays" autocomplete="off"> Play Count
                         </label>
                         <label class="btn btn-dark">
-                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off"> Play Duration
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="duration" autocomplete="off"> Play Duration
                         </label>
-                        % else:
-                        <label class="btn btn-dark">
-                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off"> Play Count
-                        </label>
-                        <label class="btn btn-dark active">
-                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off" checked> Play Duration
-                        </label>
-                        % endif
                     </div>
                     <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
                         <span class="input-group-addon btn-dark inactive">Last</span>
-                        <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
+                        <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="30" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
                         <span class="input-group-addon btn-dark inactive">days</span>
                     </div>
                 </div>
@@ -128,7 +119,7 @@
                         </label>
                     </div>
                     <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
-                        <input type="number" class="form-control number-input" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="50" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 50 items" />
+                        <input type="number" class="form-control number-input" name="recently-added-count" id="recently-added-count" value="50" min="1" max="50" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 50 items" />
                         <span class="input-group-addon btn-dark inactive">items</span>
                     </div>
                 </div>
@@ -727,20 +718,25 @@
         });
     }
 
-    var time_range = $('#watched-stats-days').val();
-    var stats_type = $('input[name=watched-stats-type]:checked', '#watch-stats-toggles').val();
+    var stats_type = getLocalStorage('home_stats_type', 'plays');
+    var time_range = getLocalStorage('home_stats_days', 30);
+
+    $('#watched-stats-' + stats_type).prop('checked', true);
+    $('#watched-stats-' + stats_type).closest('label').addClass('active');
+    $('#watched-stats-days').val(time_range);
+
     getHomeStats(time_range, stats_type);
 
     $('input[name=watched-stats-type]').change(function () {
         stats_type = $(this).filter(':checked').val();
+        setLocalStorage('home_stats_type', stats_type);
         getHomeStats(time_range, stats_type);
-        $.post('set_home_stats_config', { stats_type: stats_type });
     });
     $('#watched-stats-days').change(function () {
         forceMinMax($(this));
         time_range = $(this).val();
+        setLocalStorage('home_stats_days', time_range);
         getHomeStats(time_range, stats_type);
-        $.post('set_home_stats_config', { time_range: time_range });
     });
 
     $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
@@ -783,8 +779,12 @@
             }
         });
     }
-    var recently_added_count = $('#recently-added-count').val();
+
+    var recently_added_count = getLocalStorage('home_stats_recently_added_count', 50);
     var recently_added_type = '';
+
+    $('#recently-added-count').val(recently_added_count);
+
     recentlyAdded(recently_added_count, recently_added_type);
 
     function highlightAddedScrollerButton() {
@@ -845,8 +845,8 @@
         forceMinMax($(this));
         recently_added_count = $(this).val();
         resetScroller();
+        setLocalStorage('home_stats_recently_added_count', recently_added_count);
         recentlyAdded(recently_added_count, recently_added_type);
-        $.post('set_home_stats_config', { recently_added_count: recently_added_count });
     });
 
     $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });

@@ -203,12 +203,8 @@ _CONFIG_DEFINITIONS = {
     'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
     'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
-    'HOME_STATS_LENGTH': (int, 'General', 30),
-    'HOME_STATS_TYPE': (int, 'General', 0),
-    'HOME_STATS_COUNT': (int, 'General', 5),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
-    'HOME_STATS_RECENTLY_ADDED_COUNT': (int, 'General', 50),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),

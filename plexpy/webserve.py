@@ -173,10 +173,6 @@ class WebInterface(object):
     def home(self, **kwargs):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
-            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
-            "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
@@ -300,24 +296,6 @@ class WebInterface(object):
                                                  stats_count=stats_count)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def set_home_stats_config(self, time_range=None, stats_type=None, stats_count=None, recently_added_count=None, **kwargs):
-        if time_range:
-            plexpy.CONFIG.__setattr__('HOME_STATS_LENGTH', time_range)
-            plexpy.CONFIG.write()
-        if stats_type:
-            plexpy.CONFIG.__setattr__('HOME_STATS_TYPE', stats_type)
-            plexpy.CONFIG.write()
-        if stats_count:
-            plexpy.CONFIG.__setattr__('HOME_STATS_COUNT', stats_count)
-            plexpy.CONFIG.write()
-        if recently_added_count:
-            plexpy.CONFIG.__setattr__('HOME_STATS_RECENTLY_ADDED_COUNT', recently_added_count)
-            plexpy.CONFIG.write()
-
-        return "Updated home stats config values."
 
     @cherrypy.expose
     @requireAuth()
@@ -1838,16 +1816,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def graphs(self, **kwargs):
-
-        config = {
-            "graph_type": plexpy.CONFIG.GRAPH_TYPE,
-            "graph_days": plexpy.CONFIG.GRAPH_DAYS,
-            "graph_months": plexpy.CONFIG.GRAPH_MONTHS,
-            "graph_tab": plexpy.CONFIG.GRAPH_TAB,
-            "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
-        }
-
-        return serve_template(templatename="graphs.html", title="Graphs", config=config)
+        return serve_template(templatename="graphs.html", title="Graphs")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

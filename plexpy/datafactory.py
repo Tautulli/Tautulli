@@ -266,12 +266,6 @@ class DataFactory(object):
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
-        if time_range is None:
-            time_range = plexpy.CONFIG.HOME_STATS_LENGTH
-        if stats_type is None:
-            stats_type = plexpy.CONFIG.HOME_STATS_TYPE
-        if stats_count is None:
-            stats_count = plexpy.CONFIG.HOME_STATS_COUNT
         if stats_cards is None:
             stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
 

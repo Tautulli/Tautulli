@@ -524,7 +524,7 @@ function getLocalStorage(key, default_value) {
     var value = localStorage.getItem(key);
     if (value !== null) {
         return value
-    } else if (default_value) {
+    } else if (default_value !== undefined) {
         setLocalStorage(key, default_value);
         return default_value
     }
