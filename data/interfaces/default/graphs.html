@@ -569,24 +569,24 @@
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab1(current_day_range, yaxis);
             setLocalStorage('graph_tab', current_tab.replace('#',''));
+            loadGraphsTab1(current_day_range, yaxis);
         });
 
         // Tab2 opened
         $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab2(current_day_range, yaxis);
             setLocalStorage('graph_tab', current_tab.replace('#',''));
+            loadGraphsTab2(current_day_range, yaxis);
         });
 
         // Tab3 opened
         $('#graph-tabs a[href="#tabs-3"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab3(current_month_range, yaxis);
             setLocalStorage('graph_tab', current_tab.replace('#',''));
+            loadGraphsTab3(current_month_range, yaxis);
         });
 
         // Date range changed
@@ -594,10 +594,10 @@
         $('#graph-days').on('change', function() {
             forceMinMax($(this));
             current_day_range = $(this).val();
+            setLocalStorage('graph_days', current_day_range);
             if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             $('.days').html(current_day_range);
-            setLocalStorage('graph_days', current_day_range);
         });
         
         // Month range changed
@@ -605,9 +605,9 @@
         $('#graph-months').on('change', function() {
             forceMinMax($(this));
             current_month_range = $(this).val();
+            setLocalStorage('graph_months', current_month_range);
             if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
             $('.months').html(current_month_range);
-            setLocalStorage('graph_months', current_month_range);
         });
 
         // User changed
@@ -621,10 +621,10 @@
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
+            setLocalStorage('graph_type', yaxis);
             if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
-            setLocalStorage('graph_type', yaxis);
         });
 
         function setGraphFormat(type) {
