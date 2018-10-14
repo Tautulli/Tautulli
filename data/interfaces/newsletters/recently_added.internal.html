@@ -953,6 +953,124 @@
                         </td>
                     </tr>
                     % endif
+                    % if recently_added.get('other_video'):
+                    <tr>
+                        <td class="wrapper">
+                            <div class="sub-header-bar"></div>
+                            <div class="sub-header-title">
+                                <img src="${(base_url_image + 'images/libraries/video.png') if base_url_image else 'https://tautulli.com/images/libraries/video.png'}" class="sub-header-icon" width="30" height="30"/> Recently Added Videos
+                            </div>
+                            <div class="sub-header-count">
+                                <span class="count">${len(recently_added['other_video'])}</span> <span class="count-units">video${'s' if len(recently_added['other_video']) > 1 else ''}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                % for video_a, video_b in grouper(recently_added['other_video'], 2):
+                                <tr>
+                                    <td>
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                            <tr>
+                                                % for video in (video_a, video_b):
+                                                % if video:
+                                                % if not video_b:
+                                                <td align="center" valign="top" class="card-instance pad"></td>
+                                                % endif
+                                                <td align="center" valign="top" class="card-instance movie">
+                                                    <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + video['art_hash']) if base_url_image else video['art_url']});">
+                                                        <tr>
+                                                            <td class="card-poster-container">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + video['thumb_hash']) if base_url_image else video['thumb_url']})">
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                            <td class="card-info-container">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table">
+                                                                    <tr>
+                                                                        <td class="card-info-title nowrap">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">${video['title']}</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-body">
+                                                                            % if video['tagline']:
+                                                                            <p class="nowrap mb5">
+                                                                                <em>${video['tagline']}</em>
+                                                                            </p>
+                                                                            % endif
+                                                                            <p>
+                                                                                ${video['summary'][:450] + (video['summary'][450:] and '...')}
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-footer nowrap">
+                                                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                                                <tr>
+                                                                                    <td class="badge-container">
+                                                                                        <table border="0" cellpadding="0" cellspacing="0">
+                                                                                            <tr>
+                                                                                                % if video['year']:
+                                                                                                <td class="badge" title="${video['year']}">${video['year']}</td>
+                                                                                                % endif
+                                                                                                % if video['duration']:
+                                                                                                <% duration = int(int(video['duration'])/60000) %>
+                                                                                                <td class="badge" title="${duration} mins">${duration} mins</td>
+                                                                                                % endif
+                                                                                                % if video['genres']:
+                                                                                                % for genre in video['genres'][:]:
+                                                                                                <td class="badge" title="${genre}">${genre}</td>
+                                                                                                % endfor
+                                                                                                % endif
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                    % if video['rating']:
+                                                                                    <% rating = int(round(float(video['rating']) / 2)) %>
+                                                                                    <td class="star-rating-container" title="${int(float(video['rating'])/0.1)}%" align="right">
+                                                                                        <table border="0" cellpadding="0" cellspacing="0">
+                                                                                            <tr>
+                                                                                                % for _ in range(rating):
+                                                                                                <td class="star-rating full">&#9733;</td>
+                                                                                                % endfor
+                                                                                                % for _ in range(5-rating):
+                                                                                                <td class="star-rating empty">&#9734;</td>
+                                                                                                % endfor
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                    % endif
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                % if not video_b:
+                                                <td align="center" valign="top" class="card-instance pad"></td>
+                                                % endif
+                                                % endif
+                                                % endfor
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                % endfor
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
                     <tr>
                         <td class="footer">
                             <div class="footer-bar"></div>

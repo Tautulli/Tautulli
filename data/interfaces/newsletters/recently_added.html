@@ -368,6 +368,7 @@
             line-height: 1.2rem;
             font-size: 0.9rem;
             padding: 5px;
+            max-width: 320px;
         }
         .card-info-title a {
             text-decoration: none;
@@ -939,6 +940,124 @@
                                                     </table>
                                                 </td>
                                                 % if not album_b:
+                                                <td align="center" valign="top" class="card-instance pad" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 0 !important;width: 251px !important;min-width: 251px !important;max-width: 251px !important;"></td>
+                                                % endif
+                                                % endif
+                                                % endfor
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                % endfor
+                            </table>
+                        </td>
+                    </tr>
+                    % endif
+                    % if recently_added.get('other_video'):
+                    <tr>
+                        <td class="wrapper" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 5px;overflow: auto;">
+                            <div class="sub-header-bar" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;width: 200px;border-top: 1px solid #E5A00D;margin-top: 15px;margin-bottom: 25px;"></div>
+                            <div class="sub-header-title" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;font-weight: lighter;">
+                                <img src="${(base_url_image + 'images/libraries/video.png') if base_url_image else 'https://tautulli.com/images/libraries/video.png'}" class="sub-header-icon" width="30" height="30" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;height: 30px;width: 30px;vertical-align: middle;margin-right: 5px;margin-bottom: 5px;"> Recently Added Videos
+                            </div>
+                            <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
+                                <span class="count" style="color: #E5A00D;">${len(recently_added['other_video'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">video${'s' if len(recently_added['other_video']) > 1 else ''}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
+                                % for video_a, video_b in grouper(recently_added['other_video'], 2):
+                                <tr>
+                                    <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
+                                            <tr>
+                                                % for video in (video_a, video_b):
+                                                % if video:
+                                                % if not video_b:
+                                                <td align="center" valign="top" class="card-instance pad" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 0 !important;width: 251px !important;min-width: 251px !important;max-width: 251px !important;"></td>
+                                                % endif
+                                                <td align="center" valign="top" class="card-instance movie" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 3px;width: 502px;min-width: 502px;max-width: 502px;height: 233px;">
+                                                    <table border="0" cellpadding="0" cellspacing="3" width="100%" class="card-background" style="background-image: url(${(base_url_image + video['art_hash']) if base_url_image else video['art_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #282828;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                                        <tr>
+                                                            <td class="card-poster-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;width: 152px;min-width: 152px;height: 227px;">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + video['thumb_hash']) if base_url_image else video['thumb_url']});border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;border: 1px solid rgba(255,255,255,.1);">
+                                                                    <tr>
+                                                                        <td style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank" style="text-decoration: underline;">
+                                                                                <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225" style="border: none;-ms-interpolation-mode: bicubic;max-width: 100%;display: block;">
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                            <td class="card-info-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;padding-left: 4px;text-align: left;height: 227px;">
+                                                                <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;height: 100%;">
+                                                                    <tr>
+                                                                        <td class="card-info-title nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.9rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;border-bottom: 1px solid rgba(255, 255, 255, .1);line-height: 1.2rem;padding: 5px;max-width: 320px;">
+                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank" style="text-decoration: none;color: #ffffff;">${video['title']}</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-body" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.75rem;vertical-align: top;padding: 5px;height: 100%;">
+                                                                            % if video['tagline']:
+                                                                            <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
+                                                                                <em>${video['tagline']}</em>
+                                                                            </p>
+                                                                            % endif
+                                                                            <p style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;max-width: 325px;color: #ffffff;">
+                                                                                ${video['summary'][:450] + (video['summary'][450:] and '...')}
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="card-info-footer nowrap" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.6rem;vertical-align: top;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;padding-top: 0px;padding-right: 5px;padding-bottom: 5px;padding-left: 5px;">
+                                                                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
+                                                                                <tr>
+                                                                                    <td class="badge-container" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;max-width: 260px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+                                                                                        <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
+                                                                                            <tr>
+                                                                                                % if video['year']:
+                                                                                                <td class="badge" title="${video['year']}" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 11px;vertical-align: middle;display: inline-block;min-width: 10px;margin-right: 4px;padding: 3px 7px;line-height: 1;text-align: center;white-space: nowrap;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${video['year']}</td>
+                                                                                                % endif
+                                                                                                % if video['duration']:
+                                                                                                <% duration = int(int(video['duration'])/60000) %>
+                                                                                                <td class="badge" title="${duration} mins" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 11px;vertical-align: middle;display: inline-block;min-width: 10px;margin-right: 4px;padding: 3px 7px;line-height: 1;text-align: center;white-space: nowrap;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${duration} mins</td>
+                                                                                                % endif
+                                                                                                % if video['genres']:
+                                                                                                % for genre in video['genres'][:]:
+                                                                                                <td class="badge" title="${genre}" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 11px;vertical-align: middle;display: inline-block;min-width: 10px;margin-right: 4px;padding: 3px 7px;line-height: 1;text-align: center;white-space: nowrap;background-color: rgba(0, 0, 0, .25);border-radius: 2px;text-overflow: ellipsis;overflow: hidden;color: #ffffff;">${genre}</td>
+                                                                                                % endfor
+                                                                                                % endif
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                    % if video['rating']:
+                                                                                    <% rating = int(round(float(video['rating']) / 2)) %>
+                                                                                    <td class="star-rating-container" title="${int(float(video['rating'])/0.1)}%" align="right" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 14px;vertical-align: top;width: 65px;">
+                                                                                        <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate;mso-table-lspace: 0pt;mso-table-rspace: 0pt;width: 100%;">
+                                                                                            <tr>
+                                                                                                % for _ in range(rating):
+                                                                                                <td class="star-rating full" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.8rem;vertical-align: bottom;margin-left: 4px;line-height: 1rem;width: 0.5rem;display: inline-block;color: #E5A00D;">&#9733;</td>
+                                                                                                % endfor
+                                                                                                % for _ in range(5-rating):
+                                                                                                <td class="star-rating empty" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 0.8rem;vertical-align: bottom;margin-left: 4px;line-height: 1rem;width: 0.5rem;display: inline-block;color: #aaaaaa;">&#9734;</td>
+                                                                                                % endfor
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                    % endif
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                % if not video_b:
                                                 <td align="center" valign="top" class="card-instance pad" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-size: 12px;vertical-align: top;overflow: hidden;padding: 0 !important;width: 251px !important;min-width: 251px !important;max-width: 251px !important;"></td>
                                                 % endif
                                                 % endif
