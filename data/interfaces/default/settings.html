@@ -890,7 +890,6 @@
                             <h3>Current Activity Notifications</h3>
                         </div>
 
-                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and Plex Web do not report buffer events accurately or at all.</p>
                         <div class="form-group">
                             <label for="buffer_threshold">Buffer Threshold</label>
                             <div class="row">
@@ -899,7 +898,13 @@
                                 </div>
                                 <div id="buffer_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
+                            <p class="help-block">
+                                The number of buffer events required before triggering the first notification.
+                                Buffer events increment on each incoming websocket message if the play state is buffering.
+                                <br>
+                                Note: Buffer warnings only work on certain Plex clients. Some clients can send excessive buffer messages or no messages at all.
+                                This notification may be unreliable and not indicative of a real problem.
+                            </p>
                         </div>
                         <div class="form-group advanced-setting">
                             <label for="buffer_wait">Buffer Wait</label>
