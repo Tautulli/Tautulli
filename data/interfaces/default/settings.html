@@ -2092,7 +2092,7 @@ $(document).ready(function() {
                 if (!item.label) {
                     $.extend(item,
                         $(this.revertSettings.$children)
-                             .filter('[value=' + item.value + ']').data()
+                             .filter('[value="' + item.value + '"]').data()
                     );
                 }
                 var label = item.label || item.value;
