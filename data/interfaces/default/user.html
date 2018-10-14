@@ -156,17 +156,17 @@ DOCUMENTATION :: END
                                             </div>
                                             % endif
                                             <div class="btn-group" data-toggle="buttons" id="media_type-selection">
-                                                <label class="btn btn-dark active">
-                                                    <input type="radio" name="media_type-filter" id="history-all" value="" autocomplete="off"> All
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All
                                                 </label>
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies
+                                                    <input type="radio" name="media_type-filter" id="history-movie" value="movie" autocomplete="off"> Movies
                                                 </label>
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows
+                                                    <input type="radio" name="media_type-filter" id="history-episode" value="episode" autocomplete="off"> TV Shows
                                                 </label>
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music
+                                                    <input type="radio" name="media_type-filter" id="history-track" value="track" autocomplete="off"> Music
                                                 </label>
                                             </div>
                                             <div class="btn-group">
@@ -435,6 +435,7 @@ DOCUMENTATION :: END
             selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
             $(selected_filter).closest('label').addClass('active');
             media_type = $(selected_filter).val();
+            setLocalStorage('user_' + user_id + '-history_media_type', media_type);
             history_table.draw();
         });
     }
@@ -494,7 +495,9 @@ DOCUMENTATION :: END
 
     $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
-            var media_type = null;
+            var media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
+            $('#history-' + media_type).prop('checked', true);
+            $('#history-' + media_type).closest('label').addClass('active');
             loadHistoryTable(media_type);
         }
     });
