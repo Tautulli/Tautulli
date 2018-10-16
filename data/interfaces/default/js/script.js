@@ -517,21 +517,21 @@ function PopupCenter(url, title, w, h) {
     return newWindow;
 }
 
-function setLocalStorage(key, value) {
+
+function setLocalStorage(key, value, path) {
+    if (path !== false) {
+        key = key + '_' + window.location.pathname;
+    }
     localStorage.setItem(key, value);
 }
-function getLocalStorage(key, default_value) {
+function getLocalStorage(key, default_value, path) {
     var value = localStorage.getItem(key);
     if (value !== null) {
         return value
     } else if (default_value !== undefined) {
-        setLocalStorage(key, default_value);
+        setLocalStorage(key, default_value, path);
         return default_value
     }
-}
-
-if (!getLocalStorage('Tautulli_ClientId')) {
-    setLocalStorage('Tautulli_ClientId', uuidv4());
 }
 
 function uuidv4() {
@@ -545,7 +545,7 @@ var x_plex_headers = {
     'Accept': 'application/json',
     'X-Plex-Product': 'Tautulli',
     'X-Plex-Version': 'Plex OAuth',
-    'X-Plex-Client-Identifier': localStorage.getItem('Tautulli_ClientId'),
+    'X-Plex-Client-Identifier': getLocalStorage('Tautulli_ClientID', uuidv4(), false),
     'X-Plex-Platform': p.name,
     'X-Plex-Platform-Version': p.version,
     'X-Plex-Device': p.os,
