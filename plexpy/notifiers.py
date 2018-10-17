@@ -3409,7 +3409,7 @@ class TELEGRAM(Notifier):
                 poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
                 files = {'photo': (poster_filename, poster_content, 'image/png')}
 
-                if len(text) > 200:
+                if len(text) > 1024:
                     data['disable_notification'] = True
                 else:
                     data['caption'] = text
