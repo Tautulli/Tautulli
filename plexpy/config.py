@@ -371,6 +371,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_ON_CONCURRENT_BODY_TEXT': (unicode, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
     'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
     'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (unicode, 'Monitoring', '{user} is streaming from a new device: {player}.'),
+    'NOTIFY_VERSIONCHECK_24HOUR_CHECK': (str, 'Monitoring', 'False'),
     'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
     'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/Tautulli'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),

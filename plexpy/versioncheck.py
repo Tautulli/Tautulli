@@ -21,6 +21,7 @@ import tarfile
 
 import plexpy
 import common
+import helpers
 import logger
 import request
 
@@ -157,6 +158,8 @@ def check_update(auto_update=False, notify=False):
 
 def check_github(auto_update=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
+    current_date = plexpy.helpers.today()
+    current_time = plexpy.helpers.time_now()
 
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
@@ -223,7 +226,15 @@ def check_github(auto_update=False, notify=False):
         plexpy.LATEST_RELEASE = release['tag_name']
 
         if notify:
-            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate',
+            if plexpy.CONFIG.NOTIFY_VERSIONCHECK_24HOUR_CHECK == 'True':
+                logger.debug('Running the version notifier, 24 hour version.')
+                if current_date == plexpy.helpers.today() and current_time == plexpy.helpers.time_now():
+                    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate',
+                                             'plexpy_download_info': release,
+                                             'plexpy_update_commit': plexpy.LATEST_VERSION,
+                                             'plexpy_update_behind': plexpy.COMMITS_BEHIND})
+            else:
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate',
                                      'plexpy_download_info': release,
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
