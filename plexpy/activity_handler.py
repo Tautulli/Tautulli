@@ -282,7 +282,7 @@ class ActivityHandler(object):
                     if this_state == 'buffering':
                         self.on_buffer()
 
-                    if this_transcode_key != last_transcode_key:
+                    if this_transcode_key != last_transcode_key and this_state != 'stopped':
                         self.on_change()
 
                 # If a client doesn't register stop events (I'm looking at you PHT!) check if the ratingKey has changed
