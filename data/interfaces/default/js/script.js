@@ -525,6 +525,9 @@ function setLocalStorage(key, value, path) {
     localStorage.setItem(key, value);
 }
 function getLocalStorage(key, default_value, path) {
+    if (path !== false) {
+        key = key + '_' + window.location.pathname;
+    }
     var value = localStorage.getItem(key);
     if (value !== null) {
         return value
