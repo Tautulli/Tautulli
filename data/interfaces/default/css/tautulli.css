@@ -3367,6 +3367,34 @@ pre::-webkit-scrollbar-thumb {
 .notification-params tr:nth-child(even) td {
     background-color: rgba(255,255,255,0.010);
 }
+.activity-queue {
+    width: 100%;
+    margin-top: 10px;
+    background-color: #282828;
+}
+.activity-queue th {
+    padding-left: 10px;
+    height: 30px;
+}
+.activity-queue th:first-child {
+    width: 268px;
+}
+.activity-queue th:nth-child(2) {
+    width: 125px;
+}
+.activity-queue th:nth-child(3) {
+    width: 175px;
+}
+.activity-queue td {
+    height: 25px;
+    padding: 5px 10px;
+}
+.activity-queue tr:nth-child(odd) td {
+    background-color: rgba(255,255,255,0.035);
+}
+.activity-queue tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.010);
+}
 #days-selection label,
 #months-selection label {
     margin-bottom: 0;

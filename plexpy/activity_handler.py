@@ -115,6 +115,12 @@ class ActivityHandler(object):
             # Write the new session to our temp session table
             self.update_db_session(session=session)
 
+            # Schedule a callback to force stop a stale stream 5 minutes later
+            schedule_callback('session_key-{}'.format(self.get_session_key()),
+                              func=force_stop_stream,
+                              args=[self.get_session_key(), session['full_title'], session['username']],
+                              minutes=5)
+
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
             logger.debug(u"Tautulli ActivityHandler :: Session %s %sstopped."
@@ -147,8 +153,10 @@ class ActivityHandler(object):
                 ap.delete_session(row_id=row_id)
                 delete_metadata_cache(self.get_session_key())
             else:
-                schedule_callback('session_key-{}'.format(self.get_session_key()), func=force_stop_stream,
-                                  args=[self.get_session_key()], seconds=30)
+                schedule_callback('session_key-{}'.format(self.get_session_key()),
+                                  func=force_stop_stream,
+                                  args=[self.get_session_key(), db_session['full_title'], db_session['user']],
+                                  seconds=30)
 
     def on_pause(self, still_paused=False):
         if self.is_valid_session():
@@ -250,7 +258,9 @@ class ActivityHandler(object):
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
                 schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                  func=force_stop_stream, args=[self.get_session_key()], minutes=5)
+                                  func=force_stop_stream,
+                                  args=[self.get_session_key(), db_session['full_title'], db_session['user']],
+                                  minutes=5)
 
                 last_state = db_session['state']
                 last_rating_key = str(db_session['rating_key'])
@@ -320,10 +330,6 @@ class ActivityHandler(object):
                 if this_state != 'buffering':
                     self.on_start()
 
-                    # Schedule a callback to force stop a stale stream 5 minutes later
-                    schedule_callback('session_key-{}'.format(self.get_session_key()),
-                                      func=force_stop_stream, args=[self.get_session_key()], minutes=5)
-
 
 class TimelineHandler(object):
 
@@ -388,6 +394,7 @@ class TimelineHandler(object):
                 if media_type in ('episode', 'track'):
                     metadata = self.get_metadata()
                     if metadata:
+                        grandparent_title = metadata['grandparent_title']
                         grandparent_rating_key = int(metadata['grandparent_rating_key'])
                         parent_rating_key = int(metadata['parent_rating_key'])
 
@@ -405,12 +412,15 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(grandparent_rating_key), func=clear_recently_added_queue,
-                                          args=[grandparent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+                        schedule_callback('rating_key-{}'.format(grandparent_rating_key),
+                                          func=clear_recently_added_queue,
+                                          args=[grandparent_rating_key, grandparent_title],
+                                          seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 elif media_type in ('season', 'album'):
                     metadata = self.get_metadata()
                     if metadata:
+                        parent_title = metadata['parent_title']
                         parent_rating_key = int(metadata['parent_rating_key'])
 
                         parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
@@ -421,8 +431,10 @@ class TimelineHandler(object):
                                      % (title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(parent_rating_key), func=clear_recently_added_queue,
-                                          args=[parent_rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+                        schedule_callback('rating_key-{}'.format(parent_rating_key),
+                                          func=clear_recently_added_queue,
+                                          args=[parent_rating_key, parent_title],
+                                          seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 else:
                     queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
@@ -432,8 +444,10 @@ class TimelineHandler(object):
                                  % (title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
-                    schedule_callback('rating_key-{}'.format(rating_key), func=clear_recently_added_queue,
-                                      args=[rating_key], seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+                    schedule_callback('rating_key-{}'.format(rating_key),
+                                      func=clear_recently_added_queue,
+                                      args=[rating_key, title],
+                                      seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
@@ -476,7 +490,7 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
 
 
-def force_stop_stream(session_key):
+def force_stop_stream(session_key, title, user):
     ap = activity_processor.ActivityProcessor()
     session = ap.get_session_by_key(session_key=session_key)
 
@@ -500,7 +514,7 @@ def force_stop_stream(session_key):
 
             # Reschedule for 30 seconds later
             schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
-                              args=[session_key], seconds=30)
+                              args=[session_key, session['full_title'], session['user']], seconds=30)
 
         else:
             logger.warn(u"Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
@@ -512,7 +526,7 @@ def force_stop_stream(session_key):
             delete_metadata_cache(session_key)
 
 
-def clear_recently_added_queue(rating_key):
+def clear_recently_added_queue(rating_key, title):
     child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:

@@ -1,0 +1,66 @@
+<%
+    import arrow
+    from plexpy.activity_handler import ACTIVITY_SCHED, schedule_callback
+
+    if queue == 'active sessions':
+        filter_key = 'session_key-'
+        title_format = '{2} / {1} ({0})'
+        title_key = title_format.format('Session Key', 'Title', 'User')
+        description = 'Queue to flush stuck active sessions to the database.'
+    else:
+        filter_key = 'rating_key-'
+        title_format = '{1} ({0})'
+        title_key = title_format.format('Rating Key', 'Title')
+        description  = 'Queue to flush recently added items to the database and send notifications if enabled.'
+
+    scheduled_jobs = [j.id for j in ACTIVITY_SCHED.get_jobs() if j.id.startswith(filter_key)]
+%>
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">${queue.title()} Queue</h4>
+        </div>
+        <div class="modal-body">
+            <p class="help-block">
+                ${description}
+            </p>
+            <table class="activity-queue">
+                <thead>
+                    <tr>
+                        <th>
+                            ${title_key}
+                        </th>
+                        <th>
+                            Next Flush In
+                        </th>
+                        <th>
+                            Next Flush Time
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    % if scheduled_jobs:
+                    % for job in scheduled_jobs:
+                    <%
+                        sched_job = ACTIVITY_SCHED.get_job(job)
+                        next_run_in = arrow.get(sched_job.next_run_time).timestamp - arrow.now().timestamp
+                    %>
+                    <tr>
+                        <td><strong>${title_format.format(*sched_job.args)}</strong></td>
+                        <td>${arrow.get(next_run_in).format('HH:mm:ss')}</td>
+                        <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
+                    </tr>
+                    % endfor
+                    % else:
+                    <tr>
+                        <td colspan="3" style="text-align: center;"><i class="fa fa-check"></i>&nbsp; Nothing in the ${queue} queue</td>
+                    </tr>
+                    % endif
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>

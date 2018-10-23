@@ -44,7 +44,13 @@ DOCUMENTATION :: END
         </tr>
         % elif job in ('Check for server response', 'Check for active sessions', 'Check for recently added items') and plexpy.WS_CONNECTED:
         <tr>
+            % if job == 'Check for active sessions':
+            <td><a class="queue-modal-link" href="#" data-queue="active sessions">${job}</a></td>
+            % elif job == 'Check for recently added items':
+            <td><a class="queue-modal-link" href="#" data-queue="recently added">${job}</a></td>
+            % else:
             <td>${job}</td>
+            % endif
             <td><i class="fa fa-sm fa-fw fa-check"></i> Websocket</td>
             <td>N/A</td>
             <td>N/A</td>
@@ -62,3 +68,20 @@ DOCUMENTATION :: END
         % endfor
     </tbody>
 </table>
+<script>
+    $('.queue-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'get_queue_modal',
+            data: {
+                queue: $(this).data('queue')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#queue-modal").html(xhr.responseText);
+                $('#queue-modal').modal();
+            }
+        });
+    });
+</script>

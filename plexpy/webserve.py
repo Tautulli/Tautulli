@@ -2996,6 +2996,11 @@ class WebInterface(object):
         return serve_template(templatename="scheduler_table.html")
 
     @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_queue_modal(self, queue=None, **kwargs):
+        return serve_template(templatename="queue_modal.html", queue=queue)
+
+    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_server_update_params(self, **kwargs):
