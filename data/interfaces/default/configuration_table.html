@@ -72,6 +72,10 @@ DOCUMENTATION :: END
             <td>${common.PLATFORM} ${common.PLATFORM_RELEASE} (${common.PLATFORM_VERSION + (' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else '')})</td>
         </tr>
         <tr>
+            <td>System Timezone:</td>
+            <td>${plexpy.SYS_TIMEZONE} (${'UTC{}'.format(plexpy.SYS_UTC_OFFSET)})
+        </tr>
+        <tr>
             <td>Python Version:</td>
             <td>${sys.version}</td>
         </tr>
