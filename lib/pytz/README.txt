@@ -87,13 +87,13 @@ localized time using the standard ``astimezone()`` method:
 Unfortunately using the tzinfo argument of the standard datetime
 constructors ''does not work'' with pytz for many timezones.
 
->>> datetime(2002, 10, 27, 12, 0, 0, tzinfo=amsterdam).strftime(fmt)
+>>> datetime(2002, 10, 27, 12, 0, 0, tzinfo=amsterdam).strftime(fmt)  # /!\ Does not work this way!
 '2002-10-27 12:00:00 LMT+0020'
 
 It is safe for timezones without daylight saving transitions though, such
 as UTC:
 
->>> datetime(2002, 10, 27, 12, 0, 0, tzinfo=pytz.utc).strftime(fmt)
+>>> datetime(2002, 10, 27, 12, 0, 0, tzinfo=pytz.utc).strftime(fmt)  # /!\ Not recommended except for UTC
 '2002-10-27 12:00:00 UTC+0000'
 
 The preferred way of dealing with times is to always work in UTC,
@@ -134,19 +134,21 @@ section for more details)
 >>> dt2.strftime(fmt)
 '2002-10-27 01:30:00 EST-0500'
 
-Converting between timezones also needs special attention. We also need
-to use the ``normalize()`` method to ensure the conversion is correct.
+Converting between timezones is more easily done, using the
+standard astimezone method.
 
 >>> utc_dt = utc.localize(datetime.utcfromtimestamp(1143408899))
 >>> utc_dt.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
 >>> au_tz = timezone('Australia/Sydney')
->>> au_dt = au_tz.normalize(utc_dt.astimezone(au_tz))
+>>> au_dt = utc_dt.astimezone(au_tz)
 >>> au_dt.strftime(fmt)
 '2006-03-27 08:34:59 AEDT+1100'
->>> utc_dt2 = utc.normalize(au_dt.astimezone(utc))
+>>> utc_dt2 = au_dt.astimezone(utc)
 >>> utc_dt2.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
+>>> utc_dt == utc_dt2
+True
 
 You can take shortcuts when dealing with the UTC side of timezone
 conversions. ``normalize()`` and ``localize()`` are not really
@@ -178,7 +180,7 @@ parameter to the ``utcoffset()``, ``dst()`` && ``tzname()`` methods.
 >>> ambiguous = datetime(2009, 10, 31, 23, 30)
 
 The ``is_dst`` parameter is ignored for most timestamps. It is only used
-during DST transition ambiguous periods to resulve that ambiguity.
+during DST transition ambiguous periods to resolve that ambiguity.
 
 >>> tz.utcoffset(normal, is_dst=True)
 datetime.timedelta(-1, 77400)
@@ -261,7 +263,7 @@ pytz custom syntax, the best you can do is make an educated guess:
 As you can see, the system has chosen one for you and there is a 50%
 chance of it being out by one hour. For some applications, this does
 not matter. However, if you are trying to schedule meetings with people
-in different timezones or analyze log files it is not acceptable. 
+in different timezones or analyze log files it is not acceptable.
 
 The best and simplest solution is to stick with using UTC.  The pytz
 package encourages using UTC for internal timezone representation by
@@ -472,9 +474,9 @@ True
 True
 >>> 'Canada/Eastern' in common_timezones
 True
->>> 'US/Pacific-New' in all_timezones
+>>> 'Australia/Yancowinna' in all_timezones
 True
->>> 'US/Pacific-New' in common_timezones
+>>> 'Australia/Yancowinna' in common_timezones
 False
 
 Both ``common_timezones`` and ``all_timezones`` are alphabetically
@@ -510,6 +512,15 @@ Europe/Zurich
 Europe/Zurich
 
 
+Internationalization - i18n/l10n
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pytz is an interface to the IANA database, which uses ASCII names. The `Unicode  Consortium's Unicode Locales (CLDR) <http://cldr.unicode.org>`_
+project provides translations. Thomas Khyn's
+`l18n <https://pypi.org/project/l18n/>`_ package can be used to access
+these translations from Python.
+
+
 License
 ~~~~~~~
 
@@ -527,12 +538,13 @@ Latest Versions
 
 This package will be updated after releases of the Olson timezone
 database.  The latest version can be downloaded from the `Python Package
-Index <http://pypi.python.org/pypi/pytz/>`_.  The code that is used
+Index <https://pypi.org/project/pytz/>`_.  The code that is used
 to generate this distribution is hosted on launchpad.net and available
-using the `Bazaar version control system <http://bazaar-vcs.org>`_
-using::
+using git::
 
-    bzr branch lp:pytz
+    git clone https://git.launchpad.net/pytz
+
+A mirror on github is also available at https://github.com/stub42/pytz
 
 Announcements of new releases are made on
 `Launchpad <https://launchpad.net/pytz>`_, and the
@@ -543,7 +555,7 @@ hosted there.
 Bugs, Feature Requests & Patches
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Bugs can be reported using `Launchpad <https://bugs.launchpad.net/pytz>`_.
+Bugs can be reported using `Launchpad <https://bugs.launchpad.net/pytz>`__.
 
 
 Issues & Limitations
