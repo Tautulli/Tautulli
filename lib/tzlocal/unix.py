@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import os
 import re
 import pytz
@@ -24,6 +23,16 @@ def _tz_from_env(tzenv):
             "tzlocal() does not support non-zoneinfo timezones like %s. \n"
             "Please use a timezone in the form of Continent/City")
 
+
+def _try_tz_from_env():
+    tzenv = os.environ.get('TZ')
+    if tzenv:
+        try:
+            return _tz_from_env(tzenv)
+        except pytz.UnknownTimeZoneError:
+            pass
+
+
 def _get_localzone(_root='/'):
     """Tries to find the local timezone configuration.
 
@@ -35,23 +44,23 @@ def _get_localzone(_root='/'):
     beneath the _root directory. This is primarily used by the tests.
     In normal usage you call the function without parameters."""
 
-    tzenv = os.environ.get('TZ')
+    tzenv = _try_tz_from_env()
     if tzenv:
-        try:
-            return _tz_from_env(tzenv)
-        except pytz.UnknownTimeZoneError:
-            pass
+        return tzenv
 
     # Now look for distribution specific configuration files
     # that contain the timezone name.
-    tzpath = os.path.join(_root, 'etc/timezone')
-    if os.path.exists(tzpath):
-        with open(tzpath, 'rb') as tzfile:
-            data = tzfile.read()
+    for configfile in ('etc/timezone', 'var/db/zoneinfo'):
+        tzpath = os.path.join(_root, configfile)
+        if os.path.exists(tzpath):
+            with open(tzpath, 'rb') as tzfile:
+                data = tzfile.read()
 
-            # Issue #3 was that /etc/timezone was a zoneinfo file.
-            # That's a misconfiguration, but we need to handle it gracefully:
-            if data[:5] != 'TZif2':
+                # Issue #3 was that /etc/timezone was a zoneinfo file.
+                # That's a misconfiguration, but we need to handle it gracefully:
+                if data[:5] == 'TZif2':
+                    continue
+
                 etctz = data.strip().decode()
                 # Get rid of host definitions and comments:
                 if ' ' in etctz:
@@ -89,6 +98,20 @@ def _get_localzone(_root='/'):
 
                 # We found a timezone
                 return pytz.timezone(etctz.replace(' ', '_'))
+
+    # systemd distributions use symlinks that include the zone name,
+    # see manpage of localtime(5) and timedatectl(1)
+    tzpath = os.path.join(_root, 'etc/localtime')
+    if os.path.exists(tzpath) and os.path.islink(tzpath):
+        tzpath = os.path.realpath(tzpath)
+        start = tzpath.find("/")+1
+        while start is not 0:
+            tzpath = tzpath[start:]
+            try:
+                return pytz.timezone(tzpath)
+            except pytz.UnknownTimeZoneError:
+                pass
+            start = tzpath.find("/")+1
 
     # No explicit setting existed. Use localtime
     for filename in ('etc/localtime', 'usr/local/etc/localtime'):

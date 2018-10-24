@@ -29,6 +29,7 @@ def get_localzone_name():
     localtz = winreg.OpenKey(handle, TZLOCALKEYNAME)
     keyvalues = valuestodict(localtz)
     localtz.Close()
+
     if 'TimeZoneKeyName' in keyvalues:
         # Windows 7 (and Vista?)
 
@@ -91,3 +92,4 @@ def reload_localzone():
     """Reload the cached localzone. You need to call this if the timezone has changed."""
     global _cache_tz
     _cache_tz = pytz.timezone(get_localzone_name())
+    return _cache_tz

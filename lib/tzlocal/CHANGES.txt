@@ -1,0 +1,142 @@
+Changes
+=======
+
+1.5.1 (2017-12-01)
+------------------
+
+- 1.5 had a bug that slipped through testing, fixed that,
+  increased test coverage.
+
+
+1.5 (2017-11-30)
+----------------
+
+- No longer treats macOS as special, but as a unix.
+
+- get_windows_info.py is renamed to update_windows_mappings.py
+
+- Windows mappings now also contain mappings from deprecated zoneinfo names.
+  (Preston-Landers, regebro)
+
+
+1.4 (2017-04-18)
+----------------
+
+- I use MIT on my other projects, so relicensing.
+
+
+1.4b1 (2017-04-14)
+------------------
+
+- Dropping support for Python versions nobody uses (2.5, 3.1, 3.2), adding 3.6
+  Python 3.1 and 3.2 still works, 2.5 has been broken for some time.
+
+- Ayalash's OS X fix didn't work on Python 2.7, fixed that.
+
+
+1.3.2 (2017-04-12)
+------------------
+
+- Ensure closing of subprocess on OS X (ayalash)
+DOING: Implementing feedback on the unsubscribe button
+DOING: Investigating remaining issues with DOCX export
+BLOCKERS: None
+
+- Removed unused imports (jwilk)
+
+- Closes stdout and stderr to get rid of ResourceWarnings (johnwquarles)
+
+- Updated Windows timezones (axil)
+
+
+1.3 (2016-10-15)
+----------------
+
+- #34: Added support for /var/db/zoneinfo
+
+
+1.2.2 (2016-03-02)
+------------------
+
+- #30: Fixed a bug on OS X.
+
+
+1.2.1 (2016-02-28)
+------------------
+
+- Tests failed if TZ was set in the environment. (EdwardBetts)
+
+- Replaces os.popen() with subprocess.Popen() for OS X to
+  handle when systemsetup doesn't exist. (mckabi, cewing)
+
+
+1.2 (2015-06-14)
+----------------
+
+- Systemd stores no time zone name, forcing us to look at the name of the file
+  that localtime symlinks to. (cameris)
+
+
+1.1.2 (2014-10-18)
+------------------
+
+- Timezones that has 3 items did not work on Mac OS X.
+  (Marc Van Olmen)
+
+- Now doesn't fail if the TZ environment variable isn't an Olsen time zone.
+
+- Some timezones on Windows can apparently be empty (perhaps the are deleted).
+  Now these are ignored.
+  (Xiaokun Zhu)
+
+
+1.1.1 (2014-01-29)
+------------------
+
+- I forgot to add Etc/UTC as an alias for Etc/GMT.
+
+
+1.1 (2014-01-28)
+----------------
+
+- Adding better support for OS X.
+
+- Added support to map from tzdata/Olsen names to Windows names.
+  (Thanks to Benjamen Meyer).
+
+
+1.0 (2013-05-29)
+----------------
+
+- Fixed some more cases where spaces needs replacing with underscores.
+
+- Better handling of misconfigured /etc/timezone.
+
+- Better error message on Windows if we can't find a timezone at all.
+
+
+0.3 (2012-09-13)
+----------------
+
+- Windows 7 support.
+
+- Python 2.5 supported; because it only needed a __future__ import.
+
+- Python 3.3 tested, it worked.
+
+- Got rid of relative imports, because I don't actually like them,
+  so I don't know why I used them in the first place.
+
+- For each Windows zone, use the default zoneinfo zone, not the last one.
+
+
+0.2 (2012-09-12)
+----------------
+
+- Python 3 support.
+
+
+0.1 (2012-09-11)
+----------------
+
+- Initial release.
