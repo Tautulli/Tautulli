@@ -110,6 +110,8 @@ TRACKER = None
 
 WIN_SYS_TRAY_ICON = None
 
+SYS_TIMEZONE = None
+SYS_UTC_OFFSET = None
 
 def initialize(config_file):
     with INIT_LOCK:
@@ -156,6 +158,9 @@ def initialize(config_file):
         logger.info(u"{} {} ({}{})".format(
             common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
+        ))
+        logger.info(u"{} (UTC{})".format(
+            plexpy.SYS_TIMEZONE, plexpy.SYS_UTC_OFFSET
         ))
         logger.info(u"Python {}".format(
             sys.version
