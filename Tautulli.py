@@ -113,7 +113,7 @@ def main():
         plexpy.SYS_TIMEZONE = str(tzlocal.get_localzone())
         plexpy.SYS_UTC_OFFSET = datetime.datetime.now(pytz.timezone(plexpy.SYS_TIMEZONE)).strftime('%z')
     except (pytz.UnknownTimeZoneError, LookupError, ValueError) as e:
-        logger.error("Could not determine system timezone. %s" % e)
+        logger.error("Could not determine system timezone: %s" % e)
         plexpy.SYS_TIMEZONE = 'Unknown'
         plexpy.SYS_UTC_OFFSET = '+0000'
 
