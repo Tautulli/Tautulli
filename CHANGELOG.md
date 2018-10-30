@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.24-beta (2018-10-29)
+
+* Monitoring:
+  * Fix: Transcode change events creating invalid sessions in the database.
+* Notifications:
+  * Change: Update Telegram character limit to 1024.
+* History:
+  * Fix: Save history table states separately for multiple Tautulli instances.
+* Graphs:
+  * Fix: Save graphs states separately for multiple Tautulli instances.
+  * Change: Version graphs to bypass browser cache.
+* UI:
+  * New: Added queued tasks modals to the scheduled tasks table for debugging.
+* Other:
+  * Change: Updated timezone info and display in configuration table.
+
+
 ## v2.1.23-beta (2018-10-14)
 
 * Monitoring:
