@@ -1888,6 +1888,12 @@ class PmsConnect(object):
 
         stream_details['transcode_decision'] = transcode_decision
 
+        # Override * in audio codecs
+        if stream_details['stream_audio_codec'] == '*':
+            stream_details['stream_audio_codec'] = source_audio_details['audio_codec']
+        if transcode_details['transcode_audio_codec'] == '*':
+            transcode_details['transcode_audio_codec'] = source_audio_details['audio_codec']
+
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
             if sync_id:
