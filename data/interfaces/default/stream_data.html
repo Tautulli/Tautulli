@@ -230,7 +230,7 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_subtitle_codec'].upper()}</td>
+                        <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                         <td>${data['subtitle_codec'].upper()}</td>
                     </tr>
                 </tbody>
