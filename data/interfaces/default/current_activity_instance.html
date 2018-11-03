@@ -80,7 +80,9 @@ DOCUMENTATION :: END
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
         <%
-            if data['channel_stream'] == 0:
+            if data['live'] == 1:
+                background_url = 'images/art-live.png'
+            elif data['channel_stream'] == 0:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
             else:
                 if (data['art'] and data['art'].startswith('http')) or (data['thumb'] and data['thumb'].startswith('http')):
@@ -93,7 +95,9 @@ DOCUMENTATION :: END
                 % if data['media_type'] == 'track':
                 <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
-                % if data['channel_stream'] == 0:
+                % if data['live'] == 1:
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster-live.png);"></div>
+                % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
