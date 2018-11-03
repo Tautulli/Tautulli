@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.1.25 (2018-11-03)
+
+* Monitoring:
+  * Fix: Audio and video codec showing up as * on the activity cards.
+  * New: Poster and background image on the activity cards for live TV.
+* UI:
+  * Fix: Alert message for invalid Tautulli Public Domain setting.
+
+
 ## v2.1.24-beta (2018-10-29)
 
 * Monitoring:
