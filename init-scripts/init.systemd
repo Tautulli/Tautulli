@@ -53,6 +53,8 @@ GuessMainPID=no
 Type=forking
 User=tautulli
 Group=tautulli
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
