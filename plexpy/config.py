@@ -547,6 +547,7 @@ _CONFIG_DEFINITIONS = {
     'TELEGRAM_HTML_SUPPORT': (int, 'Telegram', 1),
     'TELEGRAM_INCL_POSTER': (int, 'Telegram', 0),
     'TELEGRAM_INCL_SUBJECT': (int, 'Telegram', 1),
+    'TELEGRAM_PROXY': (str, 'Telegram', ''),
     'TELEGRAM_ON_PLAY': (int, 'Telegram', 0),
     'TELEGRAM_ON_STOP': (int, 'Telegram', 0),
     'TELEGRAM_ON_PAUSE': (int, 'Telegram', 0),

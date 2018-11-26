@@ -3379,7 +3379,8 @@ class TELEGRAM(Notifier):
                        'disable_web_preview': 0,
                        'html_support': 1,
                        'incl_subject': 1,
-                       'incl_poster': 0
+                       'incl_poster': 0,
+                       'proxy': ''
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -3427,8 +3428,16 @@ class TELEGRAM(Notifier):
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
+        if self.config['proxy']:
+            proxy_value = 'http://{}'.format(self.config['proxy'])
+            proxies = {'http': proxy_value, 'https': proxy_value}
+        else:
+            proxies = ''
+
+        logger.debug(u"Tautulli Notifiers :: Telegram proxy conf: {}".format(proxies))
+
         return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']),
-                                 headers=headers, data=data)
+                                 headers=headers, data=data, proxies=proxies)
 
     def return_config_options(self):
         config_option = [{'label': 'Telegram Bot Token',
@@ -3472,6 +3481,12 @@ class TELEGRAM(Notifier):
                           'name': 'telegram_disable_web_preview',
                           'description': 'Disables automatic link previews for links in the message',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Proxy [IP:PORT]',
+                          'value': self.config['proxy'],
+                          'name': 'telegram_proxy',
+                          'description': 'Use proxy for connection to Telegram API server',
+                          'input_type': 'text'
                           }
                          ]
 
