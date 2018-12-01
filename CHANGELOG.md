@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.26 (2018-12-01)
+
+* Monitoring:
+  * Fix: Resume event not being triggered after buffering.
+* Notifications:
+  * New: Added user email as a notification parameter.
+* Graphs:
+  * Fix: History model showing no results for stream info graph.
+* API:
+  * Fix: API returning error when missing a cmd.
+
+
 ## v2.1.25 (2018-11-03)
 
 * Monitoring:
