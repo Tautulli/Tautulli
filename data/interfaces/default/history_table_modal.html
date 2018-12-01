@@ -54,7 +54,7 @@
                     json_data: JSON.stringify(d),
                     user_id: "${data['user_id']}",
                     start_date: "${data['start_date']}",
-                    media_type: "${data.get('media_type')}",
+                    media_type: "${data.get('media_type') or 'all'}",
                     transcode_decision: "${data.get('transcode_decision')}"
                 };
             }
