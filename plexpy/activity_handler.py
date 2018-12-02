@@ -266,6 +266,7 @@ class ActivityHandler(object):
                 last_rating_key = str(db_session['rating_key'])
                 last_live_uuid = db_session['live_uuid']
                 last_transcode_key = db_session['transcode_key'].split('/')[-1]
+                last_paused = db_session['last_paused']
 
                 # Make sure the same item is being played
                 if this_rating_key == last_rating_key or this_live_uuid == last_live_uuid:
@@ -280,7 +281,7 @@ class ActivityHandler(object):
                     if this_state != last_state:
                         if this_state == 'paused':
                             self.on_pause()
-                        elif last_state == 'paused' and this_state == 'playing':
+                        elif last_paused and this_state == 'playing':
                             self.on_resume()
                         elif this_state == 'stopped':
                             self.on_stop()

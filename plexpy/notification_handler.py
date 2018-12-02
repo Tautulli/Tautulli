@@ -749,6 +749,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user_streams': user_stream_count,
         'user': notify_params['friendly_name'],
         'username': notify_params['user'],
+        'user_email': notify_params['email'],
         'device': notify_params['device'],
         'platform': notify_params['platform'],
         'product': notify_params['product'],
