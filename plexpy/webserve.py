@@ -2755,6 +2755,7 @@ class WebInterface(object):
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_update_notify_interval": plexpy.CONFIG.PMS_UPDATE_NOTIFY_INTERVAL,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
@@ -2877,6 +2878,7 @@ class WebInterface(object):
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
+            kwargs.get('pms_update_notify_interval') != str(plexpy.CONFIG.PMS_UPDATE_NOTIFY_INTERVAL) or \
             kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
             kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
             kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
