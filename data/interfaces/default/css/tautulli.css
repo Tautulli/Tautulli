@@ -3246,9 +3246,11 @@ pre::-webkit-scrollbar-thumb {
     }
     .dashboard-activity-instance {
         width: 100%;
+        min-width: auto;
     }
     .dashboard-stats-instance {
         width: 100%;
+        min-width: auto;
     }
 }
 @media only screen
