@@ -29,11 +29,11 @@ from mako.lookup import TemplateLookup
 from mako import exceptions
 
 import websocket
-
+import arrow
 import plexpy
-import activity_pinger
 import common
 import config
+from config import ServerConfig
 import database
 import datafactory
 import graphs
@@ -50,15 +50,21 @@ import notifiers
 import plextv
 import plexivity_import
 import plexwatch_import
+import tautulli_import
 import pmsconnect
 import users
 import versioncheck
+import datetime
 import web_socket
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
 from plexpy.webauth import AuthController, requireAuth, member_of
-
+import plexpy.servers
+from servers import plexServers, plexServer
+from plexpy import PLEXTV, PMS_SERVERS
+import activity_pinger
+import session
 
 def serve_template(templatename, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
@@ -67,7 +73,7 @@ def serve_template(templatename, **kwargs):
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
     http_root = plexpy.HTTP_ROOT
-    server_name = plexpy.CONFIG.PMS_NAME
+    server_name = 'Tautulli'
     cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
@@ -101,31 +107,21 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def welcome(self, **kwargs):
-        config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "pms_ip": plexpy.CONFIG.PMS_IP,
-            "pms_port": plexpy.CONFIG.PMS_PORT,
-            "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
-            "pms_ssl": plexpy.CONFIG.PMS_SSL,
-            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "pms_token": plexpy.CONFIG.PMS_TOKEN,
-            "pms_uuid": plexpy.CONFIG.PMS_UUID,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
-            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
-        }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
-            plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
+            config = {
+                "pms_uuid": plexpy.CONFIG.PMS_UUID,
+                "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
+            }
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi("get_server_list")
-    def discover(self, token=None, include_cloud=True, all_servers=True, **kwargs):
+    def discover(self, token=None, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -150,21 +146,33 @@ class WebInterface(object):
                      ]
             ```
         """
+        result = {"success": False}
         if token:
             # Need to set token so result doesn't return http 401
             plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
             plexpy.CONFIG.write()
 
-        include_cloud = not (include_cloud == 'false')
-        all_servers = not (all_servers == 'false')
+            plexpy.PLEXTV = plexpy.PlexTV()
+            plexpy.PMS_SERVERS = plexServers()
 
-        plex_tv = plextv.PlexTV()
-        servers_list = plex_tv.discover(include_cloud=include_cloud,
-                                        all_servers=all_servers)
+            plexpy.PMS_SERVERS.refresh()
+            server_list = self.get_servers_list()
 
-        if servers_list:
-            return servers_list
+            result = {"success": True,
+                      "data": server_list,
+                      "recordsTotal": len(server_list),
+                      "recordsFiltered": len(server_list),
+                      }
+        return result
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def setupComplete(self, **kwargs):
+        """ Initial Setup of Tautulli is complete.
+        """
+        configUpdate = self.configUpdate(**kwargs)
+        return {'result': 'success', 'message': 'Setup Complete.'}
 
     ##### Home #####
 
@@ -174,10 +182,15 @@ class WebInterface(object):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
-            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
         }
+        plexpy.PLEX_SERVER_UP = False
+        for server in plexpy.PMS_SERVERS:
+            if server.PLEX_SERVER_UP:
+                plexpy.PLEX_SERVER_UP = True
+                break
+        plexpy.PLEX_SERVER_UP = True
+
         return serve_template(templatename="index.html", title="Home", config=config)
 
     @cherrypy.expose
@@ -219,24 +232,22 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
+        current_activity = plexpy.PMS_SERVERS.get_current_activity(**kwargs)
 
-        if result:
-            return serve_template(templatename="current_activity.html", data=result)
+        if current_activity:
+            return serve_template(templatename="current_activity.html", data=current_activity)
         else:
-            logger.warn(u"Unable to retrieve data for get_current_activity.")
+            logger.warn("Unable to retrieve data for get_current_activity.")
             return serve_template(templatename="current_activity.html", data=None)
 
     @cherrypy.expose
     @requireAuth()
-    def get_current_activity_instance(self, session_key=None, **kwargs):
+    def get_current_activity_instance(self, server_id, session_key=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
+        current_activity = plexpy.PMS_SERVERS.get_current_activity(server_id=server_id, session_key=session_key, **kwargs)
 
-        if result:
-            session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
+        if current_activity:
+            session = next((s for s in current_activity['sessions'] if s['session_key'] == session_key), None)
             return serve_template(templatename="current_activity_instance.html", session=session)
         else:
             return serve_template(templatename="current_activity_instance.html", session=None)
@@ -245,7 +256,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def terminate_session(self, session_key=None, session_id=None, message=None, **kwargs):
+    def terminate_session(self, server_id, session_key=None, session_id=None, message=None, **kwargs):
         """ Stop a streaming session.
 
             ```
@@ -260,8 +271,8 @@ class WebInterface(object):
                 None
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
         if result:
             return {'result': 'success', 'message': 'Session terminated.'}
@@ -271,31 +282,43 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
+    def return_plex_xml_url(self, endpoint='', plextv=False, server_id=None, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
+
+        server = (plexpy.PMS_SERVERS.get_server_by_id(int(server_id)) if server_id and server_id.isdigit() else None)
 
         if plextv == 'true':
             base_url = 'https://plex.tv'
-        else:
-            if plexpy.CONFIG.PMS_URL_OVERRIDE:
-                base_url = plexpy.CONFIG.PMS_URL_OVERRIDE
+        elif server:
+            if server.CONFIG.PMS_URL_OVERRIDE:
+                base_url = server.CONFIG.PMS_URL_OVERRIDE
             else:
-                base_url = plexpy.CONFIG.PMS_URL
+                base_url = server.CONFIG.PMS_URL
 
-        if '{machine_id}' in endpoint:
-            endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
+        if '{machine_id}' in endpoint and server:
+            endpoint = endpoint.format(machine_id=server.CONFIG.PMS_IDENTIFIER)
 
         return base_url + endpoint + '?' + urllib.urlencode(kwargs)
 
     @cherrypy.expose
     @requireAuth()
-    def home_stats(self, time_range=30, stats_type='plays', stats_count=10, **kwargs):
+    def home_stats(self, server_id=None, time_range=30, stats_type='plays', stats_count=10, **kwargs):
         data_factory = datafactory.DataFactory()
         stats_data = data_factory.get_home_stats(time_range=time_range,
                                                  stats_type=stats_type,
-                                                 stats_count=stats_count)
+                                                 stats_count=stats_count,
+                                                 server_id=server_id)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+
+    @cherrypy.expose
+    @requireAuth()
+    def server_status(self, **kwargs):
+        config = {
+            "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
+            "monitor_rclone": plexpy.CONFIG.MONITOR_RCLONE,
+        }
+        return serve_template(templatename="server_status.html", title="Server Stats", config=config)
 
     @cherrypy.expose
     @requireAuth()
@@ -310,18 +333,17 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_recently_added(self, count='0', media_type='', **kwargs):
+    def get_recently_added(self, server_id=None, count='0', media_type='', **kwargs):
 
         try:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(count=count, media_type=media_type)
+            recently_added = plexpy.PMS_SERVERS.get_recently_added_media(server_id=server_id, count=count, media_type=media_type, **kwargs)
         except IOError as e:
             return serve_template(templatename="recently_added.html", data=None)
 
-        if result:
-            return serve_template(templatename="recently_added.html", data=result['recently_added'])
+        if recently_added:
+            return serve_template(templatename="recently_added.html", data=recently_added)
         else:
-            logger.warn(u"Unable to retrieve data for get_recently_added.")
+            logger.warn("No Recently Added items to show. Either no servers are enabled or no servers are online.")
             return serve_template(templatename="recently_added.html", data=None)
 
     @cherrypy.expose
@@ -337,7 +359,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Temporary sessions flushed.'}
         else:
             return {'result': 'error', 'message': 'Flush sessions failed.'}
-
 
     ##### Libraries #####
 
@@ -408,6 +429,7 @@ class WebInterface(object):
         if not kwargs.get('json_data'):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("library_thumb", False, False),
+                          ("server_name", True, True),
                           ("section_name", True, True),
                           ("section_type", True, True),
                           ("count", True, True),
@@ -449,19 +471,18 @@ class WebInterface(object):
         """
         library_data = libraries.Libraries()
         result = library_data.get_sections()
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_library_sections.")
+        library_info = {'home_library_cards': plexpy.CONFIG.HOME_LIBRARY_CARDS,
+                        'library_sections': result
+                        }
+        return library_info
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
         """ Manually refresh the libraries list. """
-        logger.info(u"Manual libraries list refresh requested.")
-        result = libraries.refresh_libraries()
+        logger.info("Manual libraries list refresh requested.")
+        result = plexpy.PMS_SERVERS.refresh_libraries()
 
         if result:
             return {'result': 'success', 'message': 'Libraries list refreshed.'}
@@ -470,8 +491,9 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library(self, section_id=None, **kwargs):
-        if not allow_session_library(section_id):
+    def library(self, library_id=None, **kwargs):
+
+        if not allow_session_library(library_id):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         config = {
@@ -479,25 +501,25 @@ class WebInterface(object):
             "get_file_sizes_hold": plexpy.CONFIG.GET_FILE_SIZES_HOLD
         }
 
-        if section_id:
+        if library_id:
             try:
                 library_data = libraries.Libraries()
-                library_details = library_data.get_details(section_id=section_id)
+                library_details = library_data.get_details(id=library_id)
             except:
-                logger.warn(u"Unable to retrieve library details for section_id %s " % section_id)
+                logger.warn("Unable to retrieve library details for section_id %s " % library_id)
                 return serve_template(templatename="library.html", title="Library", data=None, config=config)
         else:
-            logger.debug(u"Library page requested but no section_id received.")
+            logger.debug("Library page requested but no Library ID received.")
             return serve_template(templatename="library.html", title="Library", data=None, config=config)
 
         return serve_template(templatename="library.html", title="Library", data=library_details, config=config)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def edit_library_dialog(self, section_id=None, **kwargs):
-        if section_id:
+    def edit_library_dialog(self, library_id=None, **kwargs):
+        if library_id:
             library_data = libraries.Libraries()
-            result = library_data.get_details(section_id=section_id)
+            result = library_data.get_details(id=library_id)
             status_message = ''
         else:
             result = None
@@ -508,7 +530,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def edit_library(self, section_id=None, **kwargs):
+    def edit_library(self, library_id=None, **kwargs):
         """ Update a library section on Tautulli.
 
             ```
@@ -528,10 +550,10 @@ class WebInterface(object):
         do_notify_created = kwargs.get('do_notify_created', 0)
         keep_history = kwargs.get('keep_history', 0)
 
-        if section_id:
+        if library_id:
             try:
                 library_data = libraries.Libraries()
-                library_data.set_config(section_id=section_id,
+                library_data.set_config(id=library_id,
                                         custom_thumb=custom_thumb,
                                         do_notify=do_notify,
                                         do_notify_created=do_notify_created,
@@ -543,81 +565,86 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_watch_time_stats(self, section_id=None, **kwargs):
-        if not allow_session_library(section_id):
+    def library_watch_time_stats(self, library_id=None, **kwargs):
+        if not allow_session_library(library_id):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
-        if section_id:
+        if library_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id)
+            result = library_data.get_watch_time_stats(id=library_id)
         else:
             result = None
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for library_watch_time_stats.")
+            logger.warn("Unable to retrieve data for library_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def library_user_stats(self, section_id=None, **kwargs):
-        if not allow_session_library(section_id):
+    def library_user_stats(self, library_id=None, **kwargs):
+        if not allow_session_library(id):
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
-        if section_id:
+        if id:
             library_data = libraries.Libraries()
-            result = library_data.get_user_stats(section_id=section_id)
+            result = library_data.get_user_stats(id=library_id)
         else:
             result = None
 
         if result:
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for library_user_stats.")
+            #logger.warn("Unable to retrieve data for library_user_stats.")
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def library_recently_watched(self, section_id=None, limit='10', **kwargs):
-        if not allow_session_library(section_id):
+    def library_recently_watched(self, library_id=None, limit='10', **kwargs):
+        if not allow_session_library(library_id):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
-        if section_id:
+        if library_id:
             library_data = libraries.Libraries()
-            result = library_data.get_recently_watched(section_id=section_id, limit=limit)
+            result = library_data.get_recently_watched(id=library_id, limit=limit)
         else:
             result = None
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
         else:
-            logger.warn(u"Unable to retrieve data for library_recently_watched.")
+            #logger.warn("Unable to retrieve data for library_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
     @requireAuth()
-    def library_recently_added(self, section_id=None, limit='10', **kwargs):
-        if not allow_session_library(section_id):
+    def library_recently_added(self, library_id=None, limit='10', **kwargs):
+        if not allow_session_library(library_id):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
-        if section_id:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
+        if library_id:
+            monitor_db = database.MonitorDatabase()
+            query = 'SELECT server_id, section_id FROM library_sections WHERE id = ?'
+            result = monitor_db.select_single(query, args=[library_id])
+            section_id = result['section_id']
+            server_id = result['server_id']
+            server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+            result = server.PMSCONNECTION.get_recently_added_details(section_id=section_id, count=limit)
         else:
             result = None
 
         if result:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
-            logger.warn(u"Unable to retrieve data for library_recently_added.")
+            logger.warn("Unable to retrieve data for library_recently_added.")
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
+    def get_library_media_info(self, library_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
         """ Get the data on the Tautulli media info tables.
 
             ```
@@ -701,7 +728,7 @@ class WebInterface(object):
             refresh = False
 
         library_data = libraries.Libraries()
-        result = library_data.get_datatables_media_info(section_id=section_id,
+        result = library_data.get_datatables_media_info(id=library_id,
                                                         section_type=section_type,
                                                         rating_key=rating_key,
                                                         refresh=refresh,
@@ -712,24 +739,24 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_media_info_file_sizes(self, section_id=None, rating_key=None, **kwargs):
+    def get_media_info_file_sizes(self, library_id=None, rating_key=None, **kwargs):
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
         rating_keys = set(get_file_sizes_hold['rating_keys'])
 
-        if (section_id and section_id not in section_ids) or (rating_key and rating_key not in rating_keys):
-            if section_id:
-                section_ids.add(section_id)
+        if (library_id and library_id not in section_ids) or (rating_key and rating_key not in rating_keys):
+            if library_id:
+                section_ids.add(library_id)
             elif rating_key:
                 rating_keys.add(rating_key)
             plexpy.CONFIG.GET_FILE_SIZES_HOLD = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
 
             library_data = libraries.Libraries()
-            result = library_data.get_media_info_file_sizes(section_id=section_id,
+            result = library_data.get_media_info_file_sizes(id=library_id,
                                                             rating_key=rating_key)
 
-            if section_id:
-                section_ids.remove(section_id)
+            if library_id:
+                section_ids.remove(library_id)
             elif rating_key:
                 rating_keys.remove(rating_key)
             plexpy.CONFIG.GET_FILE_SIZES_HOLD = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
@@ -742,7 +769,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library(self, section_id=None, **kwargs):
+    def get_library(self, library_id=None, **kwargs):
         """ Get a library's details.
 
             ```
@@ -768,21 +795,21 @@ class WebInterface(object):
                      }
             ```
         """
-        if section_id:
+        if library_id:
             library_data = libraries.Libraries()
-            library_details = library_data.get_details(section_id=section_id)
+            library_details = library_data.get_details(id=library_id)
             if library_details:
                 return library_details
             else:
-                logger.warn(u"Unable to retrieve data for get_library.")
+                logger.warn("Unable to retrieve data for get_library.")
         else:
-            logger.warn(u"Library details requested but no section_id received.")
+            logger.warn("Library details requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_watch_time_stats(self, library_id=None, grouping=None, **kwargs):
         """ Get a library's watch time statistics.
 
             ```
@@ -815,21 +842,21 @@ class WebInterface(object):
         """
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
-        if section_id:
+        if library_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_watch_time_stats(id=library_id, grouping=grouping)
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_library_watch_time_stats.")
+                logger.warn("Unable to retrieve data for get_library_watch_time_stats.")
         else:
-            logger.warn(u"Library watch time stats requested but no section_id received.")
+            logger.warn("Library watch time stats requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_user_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_user_stats(self, library_id=None, grouping=None, **kwargs):
         """ Get a library's user statistics.
 
             ```
@@ -858,21 +885,21 @@ class WebInterface(object):
         """
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
-        if section_id:
+        if library_id:
             library_data = libraries.Libraries()
-            result = library_data.get_user_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_user_stats(id=library_id, grouping=grouping)
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_library_user_stats.")
+                logger.warn("Unable to retrieve data for get_library_user_stats.")
         else:
-            logger.warn(u"Library user stats requested but no section_id received.")
+            logger.warn("Library user stats requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_all_library_history(self, section_id, **kwargs):
+    def delete_all_library_history(self, library_id, **kwargs):
         """ Delete all Tautulli history for a specific library.
 
             ```
@@ -888,8 +915,8 @@ class WebInterface(object):
         """
         library_data = libraries.Libraries()
 
-        if section_id:
-            delete_row = library_data.delete_all_history(section_id=section_id)
+        if library_id:
+            delete_row = library_data.delete_all_history(id=library_id)
 
             if delete_row:
                 return {'message': delete_row}
@@ -900,7 +927,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_library(self, section_id, **kwargs):
+    def delete_library(self, library_id, **kwargs):
         """ Delete a library section from Tautulli. Also erases all history for the library.
 
             ```
@@ -916,8 +943,8 @@ class WebInterface(object):
         """
         library_data = libraries.Libraries()
 
-        if section_id:
-            delete_row = library_data.delete(section_id=section_id)
+        if library_id:
+            delete_row = library_data.delete(id=library_id)
 
             if delete_row:
                 return {'message': delete_row}
@@ -928,7 +955,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def undelete_library(self, section_id=None, section_name=None, **kwargs):
+    def undelete_library(self, library_id=None, section_name=None, **kwargs):
         """ Restore a deleted library section to Tautulli.
 
             ```
@@ -945,8 +972,8 @@ class WebInterface(object):
         """
         library_data = libraries.Libraries()
 
-        if section_id:
-            delete_row = library_data.undelete(section_id=section_id)
+        if library_id:
+            delete_row = library_data.undelete(id=library_id)
 
             if delete_row:
                 return {'message': delete_row}
@@ -962,7 +989,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_media_info_cache(self, section_id, **kwargs):
+    def delete_media_info_cache(self, server_id, section_id=None, **kwargs):
         """ Delete the media info table cache for a specific library.
 
             ```
@@ -982,7 +1009,7 @@ class WebInterface(object):
         if section_id not in section_ids:
             if section_id:
                 library_data = libraries.Libraries()
-                delete_row = library_data.delete_media_info_cache(section_id=section_id)
+                delete_row = library_data.delete_media_info_cache(server_id=server_id, section_id=section_id)
 
                 if delete_row:
                     return {'message': delete_row}
@@ -991,9 +1018,11 @@ class WebInterface(object):
         else:
             return {'message': 'Cannot delete media info cache while getting file sizes.'}
 
+    """
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    #NOT CALLED
     def delete_duplicate_libraries(self, **kwargs):
         library_data = libraries.Libraries()
 
@@ -1003,6 +1032,7 @@ class WebInterface(object):
             return {'message': result}
         else:
             return {'message': 'Unable to delete duplicate libraries from the database.'}
+    """
 
     ##### Users #####
 
@@ -1090,8 +1120,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
         """ Manually refresh the users list. """
-        logger.info(u"Manual users list refresh requested.")
-        result = users.refresh_users()
+        logger.info("Manual users list refresh requested.")
+        result = plexpy.PMS_SERVERS.refresh_users()
 
         if result:
             return {'result': 'success', 'message': 'Users list refreshed.'}
@@ -1109,10 +1139,10 @@ class WebInterface(object):
                 user_data = users.Users()
                 user_details = user_data.get_details(user_id=user_id)
             except:
-                logger.warn(u"Unable to retrieve user details for user_id %s " % user_id)
+                logger.warn("Unable to retrieve user details for user_id %s " % user_id)
                 return serve_template(templatename="user.html", title="User", data=None)
         else:
-            logger.debug(u"User page requested but no user_id received.")
+            logger.debug("User page requested but no user_id received.")
             return serve_template(templatename="user.html", title="User", data=None)
 
         return serve_template(templatename="user.html", title="User", data=user_details)
@@ -1183,10 +1213,10 @@ class WebInterface(object):
         else:
             result = None
 
-        if result:
+        if isinstance(result, list):
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for user_watch_time_stats.")
+            logger.warn("Unable to retrieve data for user_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
@@ -1201,10 +1231,10 @@ class WebInterface(object):
         else:
             result = None
 
-        if result:
+        if isinstance(result, list):
             return serve_template(templatename="user_player_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for user_player_stats.")
+            logger.warn("Unable to retrieve data for user_player_stats.")
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
@@ -1219,10 +1249,10 @@ class WebInterface(object):
         else:
             result = None
 
-        if result:
+        if isinstance(result, list):
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
         else:
-            logger.warn(u"Unable to retrieve data for get_user_recently_watched.")
+            logger.warn("Unable to retrieve data for get_user_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
@@ -1386,9 +1416,9 @@ class WebInterface(object):
             if user_details:
                 return user_details
             else:
-                logger.warn(u"Unable to retrieve data for get_user.")
+                logger.warn("Unable to retrieve data for get_user.")
         else:
-            logger.warn(u"User details requested but no user_id received.")
+            logger.warn("User details requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1433,9 +1463,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_user_watch_time_stats.")
+                logger.warn("Unable to retrieve data for get_user_watch_time_stats.")
         else:
-            logger.warn(u"User watch time stats requested but no user_id received.")
+            logger.warn("User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1476,9 +1506,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_user_player_stats.")
+                logger.warn("Unable to retrieve data for get_user_player_stats.")
         else:
-            logger.warn(u"User watch time stats requested but no user_id received.")
+            logger.warn("User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1576,7 +1606,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=None, **kwargs):
+    def get_history(self, server_id=None, user=None, user_id=None, grouping=None, **kwargs):
         """ Get the Tautulli history.
 
             ```
@@ -1676,6 +1706,8 @@ class WebInterface(object):
             custom_where.append(['session_history.user_id', user_id])
         elif user:
             custom_where.append(['session_history.user', user])
+        if server_id:
+            custom_where.append(['session_history.server_id', server_id])
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
             custom_where.append(['session_history.rating_key', rating_key])
@@ -1694,6 +1726,9 @@ class WebInterface(object):
         if 'section_id' in kwargs:
             section_id = kwargs.get('section_id', "")
             custom_where.append(['session_history_metadata.section_id', section_id])
+        if 'server_id' in kwargs:
+            server_id = kwargs.get('server_id', "")
+            custom_where.append(['session_history_metadata.server_id', server_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
@@ -1850,7 +1885,32 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_server_names(self, **kwargs):
+        """ Get a list of all servers and server ids.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"pms_name": "plexVPS1", "server_id": 1},
+                    [{"pms_name": "plexVPS2", "server_id": 2},
+                    [{"pms_name": "plexVPS3", "server_id": 3},
+                     {...},
+                    ]
+            ```
+        """
+        return plexpy.PMS_SERVERS.get_server_names()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_plays_by_date(self, time_range='30', server_id=None, user_id=None, x_axis='media', y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by date.
 
             ```
@@ -1878,18 +1938,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis, grouping=grouping)
+        result = graph.get_total_plays_per_day(time_range=time_range, server_id=server_id, user_id=user_id, x_axis=x_axis, y_axis=y_axis, grouping=grouping)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_date.")
+            logger.warn("Unable to retrieve data for get_plays_by_date.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_dayofweek(self, time_range='30', server_id=None, user_id=None, x_axis='media', y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by day of the week.
 
             ```
@@ -1917,18 +1977,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_dayofweek(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_dayofweek(time_range=time_range, server_id=server_id, user_id=user_id, x_axis=x_axis, y_axis=y_axis)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_dayofweek.")
+            logger.warn("Unable to retrieve data for get_plays_by_dayofweek.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_hourofday(self, time_range='30', server_id=None, user_id=None, x_axis='media', y_axis='plays', grouping=None, **kwargs):
         """ Get graph data by hour of the day.
 
             ```
@@ -1956,18 +2016,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_hourofday(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_hourofday(time_range=time_range, server_id=server_id, user_id=user_id, x_axis=x_axis, y_axis=y_axis)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_hourofday.")
+            logger.warn("Unable to retrieve data for get_plays_by_hourofday.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', x_axis='media', y_axis='plays', server_id=None, user_id=None, grouping=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -1995,18 +2055,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_month(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_month(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_per_month.")
+            logger.warn("Unable to retrieve data for get_plays_per_month.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by top 10 platforms.
 
             ```
@@ -2034,18 +2094,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_top_10_platforms.")
+            logger.warn("Unable to retrieve data for get_plays_by_top_10_platforms.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by top 10 users.
 
             ```
@@ -2073,18 +2133,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_top_10_users(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_top_10_users.")
+            logger.warn("Unable to retrieve data for get_plays_by_top_10_users.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by stream type by date.
 
             ```
@@ -2112,18 +2172,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_stream_type(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_stream_type.")
+            logger.warn("Unable to retrieve data for get_plays_by_stream_type.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by source resolution.
 
             ```
@@ -2151,18 +2211,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_source_resolution(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_source_resolution.")
+            logger.warn("Unable to retrieve data for get_plays_by_source_resolution.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by stream resolution.
 
             ```
@@ -2190,18 +2250,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_stream_resolution.")
+            logger.warn("Unable to retrieve data for get_plays_by_stream_resolution.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by stream type by top 10 users.
 
             ```
@@ -2229,18 +2289,18 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_stream_type_by_top_10_users(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_users.")
+            logger.warn("Unable to retrieve data for get_stream_type_by_top_10_users.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', x_axis='media', y_axis='plays', grouping=None, server_id=None, user_id=None, **kwargs):
         """ Get graph data by stream type by top 10 platforms.
 
             ```
@@ -2268,12 +2328,12 @@ class WebInterface(object):
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         graph = graphs.Graphs()
-        result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, x_axis=x_axis, y_axis=y_axis, server_id=server_id, user_id=user_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
+            logger.warn("Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
     @cherrypy.expose
     @requireAuth()
@@ -2294,19 +2354,15 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
-    def get_sync(self, machine_id=None, user_id=None, **kwargs):
+    def get_sync(self, machine_id=None, user_id=None, server_id=None, **kwargs):
         if user_id == 'null':
             user_id = None
+        if server_id == 'null':
+            server_id = None
 
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
+        result = plexpy.PLEXTV.get_synced_items(machine_id=machine_id, user_id_filter=user_id, server_id_filter=server_id)
 
-        if result:
-            output = {"data": result}
-        else:
-            logger.warn(u"Unable to retrieve data for get_sync.")
-            output = {"data": []}
-
+        output = {"data": result}
         return output
 
     @cherrypy.expose
@@ -2427,7 +2483,7 @@ class WebInterface(object):
         try:
             log_lines = {'data': log_reader.get_log_tail(window=window, parsed=True, log_type=log_type)}
         except:
-            logger.warn(u"Unable to retrieve Plex Logs.")
+            logger.warn("Unable to retrieve Plex Logs.")
 
         return log_lines
 
@@ -2649,7 +2705,7 @@ class WebInterface(object):
         except Exception as e:
             result = 'error'
             msg = 'Failed to clear the %s file.' % filename
-            logger.exception(u'Failed to clear the %s file: %s.' % (filename, e))
+            logger.exception('Failed to clear the %s file: %s.' % (filename, e))
 
         return {'result': result, 'message': msg}
 
@@ -2659,15 +2715,15 @@ class WebInterface(object):
         plexpy.VERBOSE = not plexpy.VERBOSE
         logger.initLogger(console=not plexpy.QUIET,
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
-        logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
-        logger.debug(u"If you read this message, debug logging is available")
+        logger.info("Verbose toggled, set to %s", plexpy.VERBOSE)
+        logger.debug("If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
     @requireAuth()
     def log_js_errors(self, page, message, file, line, **kwargs):
         """ Logs javascript errors from the web interface. """
-        logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
+        logger.error("WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
                                                       message,
                                                       file.rpartition('/')[-1].partition('?')[0],
                                                       line))
@@ -2737,24 +2793,14 @@ class WebInterface(object):
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "backup_interval": plexpy.CONFIG.BACKUP_INTERVAL,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
-            "interface_list": interface_list,
-            "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "pms_ip": plexpy.CONFIG.PMS_IP,
-            "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
-            "pms_port": plexpy.CONFIG.PMS_PORT,
-            "pms_token": plexpy.CONFIG.PMS_TOKEN,
-            "pms_ssl": plexpy.CONFIG.PMS_SSL,
-            "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
-            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "pms_url": plexpy.CONFIG.PMS_URL,
-            "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
-            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_token": plexpy.CONFIG.PMS_TOKEN,
+            "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
+            "pms_logs_line_cap": plexpy.CONFIG.PMS_LOGS_LINE_CAP,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
@@ -2762,10 +2808,9 @@ class WebInterface(object):
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
             "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
-            "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
-            "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
-            "refresh_libraries_interval": plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL,
-            "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
+            "monitor_rclone": plexpy.CONFIG.MONITOR_RCLONE,
+            "refresh_servers_interval": plexpy.CONFIG.REFRESH_SERVERS_INTERVAL,
+            "refresh_servers_on_startup": checked(plexpy.CONFIG.REFRESH_SERVERS_ON_STARTUP),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
@@ -2789,8 +2834,6 @@ class WebInterface(object):
             "cloudinary_cloud_name": plexpy.CONFIG.CLOUDINARY_CLOUD_NAME,
             "cloudinary_api_key": plexpy.CONFIG.CLOUDINARY_API_KEY,
             "cloudinary_api_secret": plexpy.CONFIG.CLOUDINARY_API_SECRET,
-            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
-            "pms_version": plexpy.CONFIG.PMS_VERSION,
             "plexpy_auto_update": checked(plexpy.CONFIG.PLEXPY_AUTO_UPDATE),
             "git_branch": plexpy.CONFIG.GIT_BRANCH,
             "git_path": plexpy.CONFIG.GIT_PATH,
@@ -2817,15 +2860,16 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def configUpdate(self, **kwargs):
         # Handle the variable config options. Note - keys with False values aren't getting passed
+        logger.info("Processing configUpdate.")
 
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_url_manual", "week_start_monday",
-            "refresh_libraries_on_startup", "refresh_users_on_startup",
+            "week_start_monday", "monitor_rclone",
+            "refresh_servers_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
+            "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "http_plex_admin",
@@ -2863,37 +2907,35 @@ class WebInterface(object):
 
         # Check if we should refresh our data
         first_run = False
-        server_changed = False
-        reschedule = False
+        reschedule_plexpy = False
+        reschedule_plexServers = False
+        reschedule_plexServer = False
         https_changed = False
-        refresh_libraries = False
         refresh_users = False
 
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
             first_run = True
-            
-        # If we change any monitoring settings, make sure we reschedule tasks.
-        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
-            kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
-            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
-            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
-            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
-            reschedule = True
 
-        # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
-            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
-            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
-            server_changed = True
+        # If we change any Tautulli monitoring settings, make sure we reschedule tasks.
+        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB:
+            reschedule_plexpy = True
+
+        # If we change any plexServers monitoring settings, make sure we reschedule tasks.
+        if kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
+           kwargs.get('refresh_servers_interval') != str(plexpy.CONFIG.REFRESH_SERVERS_INTERVAL):
+            reschedule_plexServers = True
+
+        # If we change any plexServer monitoring settings, make sure we reschedule tasks.
+        if kwargs.get('monitor_rclone') != str(plexpy.CONFIG.MONITOR_RCLONE):
+            reschedule_plexServer = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
         if kwargs.get('enable_https') and kwargs.get('https_create_cert'):
             if kwargs.get('https_domain') != plexpy.CONFIG.HTTPS_DOMAIN or \
-                kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
-                kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
-                kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
+               kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
+               kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
+               kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
                 https_changed = True
 
         # Remove config with 'hsec-' prefix and change home_sections to list
@@ -2910,9 +2952,6 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
 
-            if kwargs['home_stats_cards'] == ['first_run_wizard']:
-                kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
-
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
         if kwargs.get('home_library_cards'):
             for k in kwargs.keys():
@@ -2920,57 +2959,54 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
 
-            if kwargs['home_library_cards'] == ['first_run_wizard']:
-                refresh_libraries = True
-
-        # If we change the server, make sure we grab the new url and refresh libraries and users lists.
-        if kwargs.pop('server_changed', None):
-            server_changed = True
-            refresh_users = True
-            refresh_libraries = True
-
         # If we change the authentication settings, make sure we refresh the users lists.
         if kwargs.pop('auth_changed', None):
             refresh_users = True
 
-        plexpy.CONFIG.process_kwargs(kwargs)
+            # If we changed the PlexTV Token, reinitialize the PlexTV instance.
+        if kwargs.get('pms_token') != plexpy.CONFIG.PMS_TOKEN:
+            plexpy.CONFIG.__setattr__('PMS_TOKEN', kwargs.get('pms_token'))
+            plexpy.CONFIG.write()
+            plexpy.PLEXTV = plexpy.PlexTV()
+            threading.Thread(target=plexpy.PMS_SERVERS.refresh()).start()
+            return {'result': 'success', 'message': 'Logging out.'}
 
-        # Write the config
+        if plexpy.PMS_SERVERS:
+            for server in plexpy.PMS_SERVERS:
+                if "pms_is_enabled-" + str(server.CONFIG.ID) in kwargs:
+                    if not server.CONFIG.PMS_IS_ENABLED:
+                        server.CONFIG.PMS_IS_ENABLED = True
+                        server.start()
+                    kwargs.pop("pms_is_enabled-" + str(server.CONFIG.ID))
+                else:
+                    if server.CONFIG.PMS_IS_ENABLED:
+                        server.CONFIG.PMS_IS_ENABLED = False
+                        server.shutdown()
+
+
+        # Update and Write the config
+        plexpy.CONFIG.process_kwargs(kwargs)
         plexpy.CONFIG.write()
 
-        # Get new server URLs for SSL communications and get new server friendly name
-        if server_changed:
-            plextv.get_server_resources()
-            if plexpy.WS_CONNECTED:
-                web_socket.reconnect()
-
-        # If first run, start websocket
-        if first_run:
-            activity_pinger.connect_server(log=True, startup=True)
-        
         # Reconfigure scheduler if intervals changed
-        if reschedule:
+        if reschedule_plexpy:
             plexpy.initialize_scheduler()
+        if reschedule_plexServers:
+            plexpy.PMS_SERVERS.initialize_scheduler()
+        if reschedule_plexServer:
+            if plexpy.PMS_SERVERS:
+                for server in plexpy.PMS_SERVERS:
+                    server.initialize_scheduler()
 
         # Generate a new HTTPS certificate
         if https_changed:
             create_https_certificates(plexpy.CONFIG.HTTPS_CERT, plexpy.CONFIG.HTTPS_KEY)
 
         # Refresh users table if our server IP changes.
-        if refresh_libraries:
-            threading.Thread(target=libraries.refresh_libraries).start()
-
-        # Refresh users table if our server IP changes.
         if refresh_users:
             threading.Thread(target=users.refresh_users).start()
 
         return {'result': 'success', 'message': 'Settings saved.'}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_server_resources(self, **kwargs):
-        return plextv.get_server_resources(return_server=True, **kwargs)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2992,8 +3028,204 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
+    def get_servers_list(self, **kwargs):
+        # Build Server List Configuration Settings
+        server_list = []
+        for server in plexpy.PMS_SERVERS:
+            server_list.append(server.get_config())
+        return sorted(server_list)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_servers_table(self, **kwargs):
+        server_list = self.get_servers_list()
+        data = {"data": server_list,
+                "recordsTotal": len(server_list),
+                "recordsFiltered": len(server_list),
+                }
+        return data
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def refresh_servers_table(self, **kwargs):
+        """ Manually refresh the servers list. """
+        logger.info("Manual servers list refresh requested.")
+        plexpy.PMS_SERVERS.refresh()
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_server_config_modal(self, server_id=None, **kwargs):
+        config = {
+            'monitor_rclone': plexpy.CONFIG.MONITOR_RCLONE,
+            'show_advanced_settings': int(kwargs['show_advanced_settings'])
+        }
+        result = plexpy.PMS_SERVERS.get_server_by_id(server_id).get_config()
+        return serve_template(templatename="server_config.html", server=result, config=config)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def set_server_config(self, server_id=None, **kwargs):
+
+        server_changed = False
+        reschedule = False
+        restart = False
+
+        kwargs_to_ignore = ['pms_ip',
+                            'pms_port',
+                            'pms_is_remote',
+                            'pms_identifier',
+                            'pms_uri',
+                            'pms_url',
+                            'pms_ssl_pref',
+                            'pms_is_remote',
+                            'pms_is_cloud',
+                            ]
+
+        for kw in kwargs_to_ignore:
+            kwargs.pop(kw, None)
+
+        url = kwargs.pop('url', None)
+        if bool(int(kwargs['pms_url_manual'])):
+            kwargs['pms_url_override'] = url
+
+        if kwargs.pop('server_changed', None):
+            server_changed = True
+
+        # If the server config changed, process the keywords.
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        if server_changed:
+            logger.info("Processing Server Config changes: %s" % server.CONFIG.PMS_NAME)
+
+            # If we change any monitoring settings, make sure we reschedule tasks.
+            if kwargs.get('refresh_libraries_interval') != str(server.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
+               kwargs.get('monitor_pms_updates') != str(server.CONFIG.MONITOR_PMS_UPDATES) or \
+               kwargs.get('monitor_remote_access') != str(server.CONFIG.MONITOR_REMOTE_ACCESS) or \
+               kwargs.get('monitor_rclone_mount') != str(server.CONFIG.MONITOR_RCLONE_MOUNT):
+                reschedule = True
+
+            # If we change the SSL setting for PMS or PMS remote setting,server monitoring needs to be restarted.
+            if kwargs.get('pms_ssl') != str(server.CONFIG.PMS_SSL) or \
+               kwargs.get('pms_url_manual') != str(server.CONFIG.PMS_URL_MANUAL):
+                restart = True
+                reschedule = True
+
+            server.CONFIG.process_kwargs(kwargs)
+
+        if server.CONFIG.PMS_IS_ENABLED:
+            if restart:
+                threading.Thread(target=server.restart).start()
+            elif reschedule:
+                server.initialize_scheduler()
+
+        result = True
+
+        if result:
+            return {'result': 'success', 'message': 'Saved server configuration.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to save server.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def test_rclone(self, server_id=None, **kwargs):
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        activity_pinger.check_rclone_status(server, kwargs)
+        rclone_status = server.rclone_status
+        if rclone_status:
+            result = {'result': 'success'}
+        else:
+            result = {'result': 'fail'}
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_server(self, server_id=None, keep_history='true', **kwargs):
+        """ Remove a server from the database and all of its history.
+
+            ```
+            Required parameters:
+                server_id (int):        The server to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        keep_history = False if keep_history == 'false' else True
+        result = plexpy.PMS_SERVERS.delete(server_id=server_id, keep_history=keep_history)
+
+        if result:
+            return {'result': 'success', 'message': 'Server deleted successfully.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete server.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def undelete_server(self, server_id=None, **kwargs):
+        """ Remove a server from the database and all of its history.
+
+            ```
+            Required parameters:
+                server_id (int):        The server to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.undelete()
+
+        if result:
+            return {'result': 'success', 'message': 'Server undeleted successfully.', 'server_id': server_id}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete server.'}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
     def get_scheduler_table(self, **kwargs):
-        return serve_template(templatename="scheduler_table.html")
+
+        schedulers = [
+            [plexpy.SCHED, plexpy.SCHED_LIST],
+            [plexpy.PMS_SERVERS.SCHED, plexpy.PMS_SERVERS.SCHED_LIST],
+        ]
+        specials = [[0, [{'name': 'Check for active sessions'}]],
+                    [0, [{'name': 'Check for recently added items'}]],
+                    ]
+        schedulers.extend(specials)
+        schedulers.extend([server.SCHED, server.SCHED_LIST]
+                          for server in sorted(plexpy.PMS_SERVERS, key=lambda x: x.CONFIG.PMS_NAME)
+                          if server.CONFIG.PMS_IS_ENABLED)
+
+        scheduled_jobs = []
+        for scheduler in schedulers:
+            for j in scheduler[1]:
+                job = (scheduler[0].get_job(j['name']) if scheduler[0] else 0)
+                if job:
+                    run_interval = arrow.get(str(job.trigger.interval), ['H:mm:ss', 'HH:mm:ss'])
+                    next_run_time = job.next_run_time
+                    next_run_interval = arrow.get(job.next_run_time).timestamp - arrow.now().timestamp
+                else:
+                    run_interval = 0
+                    next_run_time = 0
+                    next_run_interval = 0
+                scheduled_jobs.append({'name': j['name'],
+                                       'run_interval': run_interval,
+                                       'next_run_interval': next_run_interval,
+                                       'next_run_time': next_run_time})
+
+        return serve_template(templatename="scheduler_table.html", scheduled_jobs=scheduled_jobs)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3003,18 +3235,18 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_server_update_params(self, **kwargs):
-        plex_tv = plextv.PlexTV()
-        plexpass = plex_tv.get_plexpass_status()
+    def get_server_update_params(self, server_id, **kwargs):
+        plexpass = plexpy.PLEXTV.get_plexpass_status()
 
-        update_channel = pmsconnect.PmsConnect().get_server_update_channel()
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        update_channel = server.PMSCONNECTION.get_server_update_channel()
 
         return {'plexpass': plexpass,
                 'pms_platform': common.PMS_PLATFORM_NAME_OVERRIDES.get(
-                    plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
-                'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
-                'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
-                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD,
+                    server.CONFIG.PMS_PLATFORM, server.CONFIG.PMS_PLATFORM),
+                'pms_update_channel': server.CONFIG.PMS_UPDATE_CHANNEL,
+                'pms_update_distro': server.CONFIG.PMS_UPDATE_DISTRO,
+                'pms_update_distro_build': server.CONFIG.PMS_UPDATE_DISTRO_BUILD,
                 'plex_update_channel': 'plexpass' if update_channel == 'beta' else 'public'}
 
     @cherrypy.expose
@@ -3315,7 +3547,7 @@ class WebInterface(object):
             notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
 
             if notifier:
-                logger.debug(u"Sending %s%s notification." % (test, notifier['agent_label']))
+                logger.debug("Sending %s%s notification." % (test, notifier['agent_label']))
                 notification_handler.add_notifier_each(notifier_id=notifier_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -3324,10 +3556,10 @@ class WebInterface(object):
                                                        **kwargs)
                 return {'result': 'success', 'message': 'Notification queued.'}
             else:
-                logger.debug(u"Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
+                logger.debug("Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
                 return {'result': 'error', 'message': 'Invalid notifier id %s.' % notifier_id}
         else:
-            logger.debug(u"Unable to send %snotification, no notifier_id received." % test)
+            logger.debug("Unable to send %snotification, no notifier_id received." % test)
             return {'result': 'error', 'message': 'No notifier id received.'}
 
     @cherrypy.expose
@@ -3400,7 +3632,7 @@ class WebInterface(object):
         if result:
             osx_notify = notifiers.OSX()
             osx_notify.notify(subject='Registered', body='Success :-)', subtitle=result)
-            # logger.info(u"Registered %s, to re-register a different app, delete this app first" % result)
+            # logger.info("Registered %s, to re-register a different app, delete this app first" % result)
         else:
             logger.warn(msg)
         return msg
@@ -3451,7 +3683,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Device registered successfully.', 'data': result}
         else:
             return {'result': 'error', 'message': 'Device not registered.'}
-
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3553,6 +3784,16 @@ class WebInterface(object):
                 return 'Import has started. Check the Tautulli logs to monitor any problems.'
             else:
                 return db_check_msg
+        elif app.lower() == 'tautulli':
+            db_check_msg = tautulli_import.validate_database(database=database_path)
+
+            if db_check_msg == 'success':
+                threading.Thread(target=tautulli_import.import_from_tautulli,
+                                 kwargs={'import_database': database_path,
+                                         'import_ignore_interval': import_ignore_interval}).start()
+                return 'Import has started. Check the Tautulli logs to monitor any problems.'
+            else:
+                return db_check_msg
         else:
             return 'App not recognized for import'
 
@@ -3563,8 +3804,10 @@ class WebInterface(object):
             return serve_template(templatename="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
         elif app == 'plexivity':
             return serve_template(templatename="app_import.html", title="Import Plexivity Database", app="Plexivity")
+        elif app == 'tautulli':
+            return serve_template(templatename="app_import.html", title="Import Tautulli Database", app="Tautulli")
 
-        logger.warn(u"No app specified for import.")
+        logger.warn("No app specified for import.")
         return
 
     @cherrypy.expose
@@ -3595,7 +3838,7 @@ class WebInterface(object):
         if result:
             return result['auth_token']
         else:
-            logger.warn(u"Unable to retrieve Plex.tv token.")
+            logger.warn("Unable to retrieve Plex.tv token.")
             return None
 
     @cherrypy.expose
@@ -3617,92 +3860,9 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Authentication failed.'}
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
-                      get_url=False, test_websocket=False, **kwargs):
-        """ Get the PMS server identifier.
-
-            ```
-            Required parameters:
-                hostname (str):     'localhost' or '192.160.0.10'
-                port (int):         32400
-
-            Optional parameters:
-                ssl (int):          0 or 1
-                remote (int):       0 or 1
-
-            Returns:
-                json:
-                    {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
-            ```
-        """
-        # Attempt to get the pms_identifier from plex.tv if the server is published
-        # Works for all PMS SSL settings
-        if not identifier and hostname and port:
-            plex_tv = plextv.PlexTV()
-            servers = plex_tv.discover()
-            ip_address = get_ip(hostname)
-
-            for server in servers:
-                if (server['ip'] == hostname or server['ip'] == ip_address) and server['port'] == port:
-                    identifier = server['clientIdentifier']
-                    break
-
-            # Fallback to checking /identity endpoint is server is unpublished
-            # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
-            if not identifier:
-                scheme = 'https' if ssl else 'http'
-                url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
-                uri = '/identity'
-
-                request_handler = http_handler.HTTPHandler(urls=url,
-                                                           ssl_verify=False)
-                request = request_handler.make_request(uri=uri,
-                                                       request_type='GET',
-                                                       output_format='xml')
-                if request:
-                    xml_head = request.getElementsByTagName('MediaContainer')[0]
-                    identifier = xml_head.getAttribute('machineIdentifier')
-
-        result = {'identifier': identifier}
-
-        if identifier:
-            if get_url == 'true':
-                server = self.get_server_resources(pms_ip=hostname,
-                                                   pms_port=port,
-                                                   pms_ssl=ssl,
-                                                   pms_is_remote=remote,
-                                                   pms_url_manual=manual,
-                                                   pms_identifier=identifier)
-                result['url'] = server['pms_url']
-                result['ws'] = None
-
-                if test_websocket == 'true':
-                    # Quick test websocket connection
-                    ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
-                    header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
-
-                    logger.debug("Testing websocket connection...")
-                    try:
-                        test_ws = websocket.create_connection(ws_url, header=header)
-                        test_ws.close()
-                        logger.debug("Websocket connection test successful.")
-                        result['ws'] = True
-                    except (websocket.WebSocketException, IOError, Exception) as e:
-                        logger.error("Websocket connection test failed: %s" % e)
-                        result['ws'] = False
-
-            return result
-        else:
-            logger.warn('Unable to retrieve the PMS identifier.')
-            return result
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_server_pref(self, pref=None, **kwargs):
+    def get_server_pref(self, pref=None, server_id=None, **kwargs):
         """ Get a specified PMS server preference.
 
             ```
@@ -3713,14 +3873,13 @@ class WebInterface(object):
                 string:             Value of preference
             ```
         """
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_pref(pref=pref)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_server_pref(pref=pref)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_pref.")
+            logger.warn("Unable to retrieve data for get_server_pref.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3730,7 +3889,7 @@ class WebInterface(object):
         while not apikey or apikey == plexpy.CONFIG.API_KEY or mobile_app.get_mobile_device_by_token(device_token=apikey):
             apikey = plexpy.generate_uuid()
 
-        logger.info(u"New API key generated.")
+        logger.info("New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)
 
         if device == 'true':
@@ -3839,7 +3998,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
-            logger.error(u"Already on the %s branch" % git_branch)
+            logger.error("Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         
         # Set the new git remote and branch
@@ -3869,28 +4028,27 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, source=None, query=None, **kwargs):
-        if rating_key and not str(rating_key).isdigit():
+    def info(self, rating_key=None, source=None, query=None, id=None, server_id=None, **kwargs):
+        if (rating_key and not str(rating_key).isdigit()) or (id and not str(id).isdigit()):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         metadata = None
 
-        config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
-        }
-
         if source == 'history':
             data_factory = datafactory.DataFactory()
-            metadata = data_factory.get_metadata_details(rating_key=rating_key)
+            metadata = data_factory.get_metadata_details(id=id)
             if metadata:
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
                 lookup_info = data_factory.get_lookup_info(metadata=metadata)
                 metadata.update(lookup_info)
+                server_id = metadata['server_id']
         else:
-            pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+            server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+            if server.WS_CONNECTED:
+                metadata = server.PMSCONNECTION.get_metadata_details(rating_key=rating_key)
+            else:
+                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
             if metadata:
                 data_factory = datafactory.DataFactory()
                 poster_info = data_factory.get_poster_info(metadata=metadata)
@@ -3899,7 +4057,13 @@ class WebInterface(object):
                 metadata.update(lookup_info)
 
         if metadata:
-            if metadata['section_id'] and not allow_session_library(metadata['section_id']):
+            server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+            config = {
+                "pms_identifier": server.CONFIG.PMS_IDENTIFIER,
+                "pms_web_url": server.CONFIG.PMS_WEB_URL,
+                "pms_name": server.CONFIG.PMS_NAME
+            }
+            if metadata['library_id'] and not allow_session_library(metadata['library_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
@@ -3907,27 +4071,27 @@ class WebInterface(object):
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
             else:
-                return self.update_metadata(rating_key, query)
+                return self.update_metadata(server_id=server_id, rating_key=rating_key, query=query)
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children(self, rating_key='', **kwargs):
+    def get_item_children(self, server_id, rating_key='', **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children(rating_key=rating_key)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_item_children(rating_key=rating_key)
 
         if result:
             return serve_template(templatename="info_children_list.html", data=result, title="Children List")
         else:
-            logger.warn(u"Unable to retrieve data for get_item_children.")
+            logger.warn("Unable to retrieve data for get_item_children.")
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children_related(self, rating_key='', title='', **kwargs):
+    def get_item_children_related(self, server_id, rating_key='', title='', **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children_related(rating_key=rating_key)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_item_children_related(rating_key=rating_key)
 
         if result:
             return serve_template(templatename="info_collection_list.html", data=result, title=title)
@@ -3938,7 +4102,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi('notify_recently_added')
-    def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
+    def send_manual_on_created(self, notifier_id='', server_id=None, rating_key='', **kwargs):
         """ Send a recently added notification using Tautulli.
 
             ```
@@ -3957,12 +4121,12 @@ class WebInterface(object):
             ```
         """
         if rating_key:
-            pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+            server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+            metadata = server.PMSCONNECTION.get_metadata_details(rating_key=rating_key)
             data = {'timeline_data': metadata, 'notify_action': 'on_created', 'manual_trigger': True}
 
             if metadata['media_type'] not in ('movie', 'episode', 'track'):
-                children = pms_connect.get_item_children(rating_key=rating_key)
+                children = server.PMSCONNECTION.get_item_children(rating_key=rating_key)
                 child_keys = [child['rating_key'] for child in children['children_list'] if child['rating_key']]
                 data['child_keys'] = child_keys
 
@@ -3979,6 +4143,9 @@ class WebInterface(object):
     def pms_image_proxy(self, **kwargs):
         """ See real_pms_image_proxy docs string"""
 
+        if not kwargs.get('server_id'):
+            logger.warn('pms_image_proxy: no server_id received.')
+
         refresh = False
         if kwargs.get('refresh'):
             refresh = False if get_session_user_id() else True
@@ -3988,7 +4155,7 @@ class WebInterface(object):
         return self.real_pms_image_proxy(**kwargs)
 
     @addtoapi('pms_image_proxy')
-    def real_pms_image_proxy(self, img=None, rating_key=None, width=750, height=1000,
+    def real_pms_image_proxy(self, server_id=None, img=None, rating_key=None, width=750, height=1000,
                              opacity=100, background='000000', blur=0, img_format='png',
                              fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
@@ -4026,12 +4193,15 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
+        if not server_id:
+            logger.warn('real_pms_image_proxy: no server_id received.')
+
         img_split = img.split('/')
         img = '/'.join(img_split[:5])
         rating_key = rating_key or img_split[3]
 
         img_hash = notification_handler.set_hash_image_info(
-            img=img, rating_key=rating_key, width=width, height=height,
+            img=img, server_id=server_id, rating_key=rating_key, width=width, height=height,
             opacity=opacity, background=background, blur=blur, fallback=fallback,
             add_to_db=return_hash)
 
@@ -4047,6 +4217,8 @@ class WebInterface(object):
 
         clip = True if clip == 'true' else False
 
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+
         try:
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
                 raise NotFound
@@ -4056,16 +4228,30 @@ class WebInterface(object):
         except NotFound:
             # the image does not exist, download it from pms
             try:
-                pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_image(img=img,
-                                               width=width,
-                                               height=height,
-                                               opacity=opacity,
-                                               background=background,
-                                               blur=blur,
-                                               img_format=img_format,
-                                               clip=clip,
-                                               refresh=refresh)
+                server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+                if not server.WS_CONNECTED:
+                    fbi = None
+                    if fallback == 'poster':
+                        fbi = common.DEFAULT_POSTER_THUMB
+                    elif fallback == 'cover':
+                        fbi = common.DEFAULT_COVER_THUMB
+                    elif fallback == 'art':
+                        fbi = common.DEFAULT_ART
+                    if fbi:
+                        fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                        return serve_file(path=fp, content_type='image/png')
+                    else:
+                        return
+
+                result = server.PMSCONNECTION.get_image(img=img,
+                                                        width=width,
+                                                        height=height,
+                                                        opacity=opacity,
+                                                        background=background,
+                                                        blur=blur,
+                                                        img_format=img_format,
+                                                        clip=clip,
+                                                        refresh=refresh)
 
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]
@@ -4075,10 +4261,10 @@ class WebInterface(object):
 
                     return result[0]
                 else:
-                    raise Exception(u'PMS image request failed')
+                    raise Exception('PMS image request failed')
 
             except Exception as e:
-                logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
+                logger.warn('%s: Failed to get image %s, falling back to %s.' % (server.CONFIG.PMS_NAME, img, fallback))
                 fbi = None
                 if fallback == 'poster':
                     fbi = common.DEFAULT_POSTER_THUMB
@@ -4223,7 +4409,7 @@ class WebInterface(object):
         except OSError as e:
             result = 'error'
             msg = 'Failed to delete %s.' % cache_dir
-            logger.exception(u'Failed to delete %s: %s.' % (cache_dir, e))
+            logger.exception('Failed to delete %s: %s.' % (cache_dir, e))
             return {'result': result, 'message': msg}
 
         try:
@@ -4231,7 +4417,7 @@ class WebInterface(object):
         except OSError as e:
             result = 'error'
             msg = 'Failed to make %s.' % cache_dir
-            logger.exception(u'Failed to create %s: %s.' % (cache_dir, e))
+            logger.exception('Failed to create %s: %s.' % (cache_dir, e))
             return {'result': result, 'message': msg}
 
         logger.info(msg)
@@ -4275,7 +4461,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_lookup_info(self, rating_key='', title='', **kwargs):
+    def delete_lookup_info(self, server_id=None, rating_key='', title='', **kwargs):
         """ Delete the 3rd party API lookup info.
 
             ```
@@ -4293,7 +4479,7 @@ class WebInterface(object):
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_lookup_info(rating_key=rating_key, title=title)
+        result = data_factory.delete_lookup_info(server_id=server_id, rating_key=rating_key, title=title)
 
         if result:
             return {'result': 'success', 'message': 'Deleted lookup info.'}
@@ -4309,62 +4495,37 @@ class WebInterface(object):
         return serve_template(templatename="search.html", title="Search", query=query)
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi('search')
-    def search_results(self, query='', limit='', **kwargs):
-        """ Get search results from the PMS.
-
-            ```
-            Required parameters:
-                query (str):        The query string to search for
-
-            Optional parameters:
-                limit (int):        The maximum number of items to return per media type
-
-            Returns:
-                json:
-                    {"results_count": 69,
-                     "results_list":
-                        {"movie":
-                            [{...},
-                             {...},
-                             ]
-                         },
-                        {"episode":
-                            [{...},
-                             {...},
-                             ]
-                         },
-                        {...}
-                     }
-            ```
-        """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query)
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for search_results.")
-
-    @cherrypy.expose
     @requireAuth()
     def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query=query, limit=limit)
+        search_results = {'results_count': 0,
+                          'results_list': {'album': [],
+                                           'artist': [],
+                                           'collection': [],
+                                           'episode': [],
+                                           'movie': [],
+                                           'season': [],
+                                           'show': [],
+                                           'track': []
+                                           }
+                          }
+        for server in plexpy.PMS_SERVERS:
+            if session.allow_session_server(server.CONFIG.ID) and server.CONFIG.PMS_IS_ENABLED:
+                result = server.PMSCONNECTION.get_search_results(query=query, limit=limit)
+                search_results['results_count'] += int(result['results_count'])
+                for (k, v) in result['results_list'].items():
+                    search_results['results_list'][k].extend(v)
 
         if media_type:
-            result['results_list'] = {media_type: result['results_list'][media_type]}
+            search_results['results_list'] = {media_type: search_results['results_list'][media_type]}
         if media_type == 'season' and season_index:
-            result['results_list']['season'] = [season for season in result['results_list']['season']
-                                                if season['media_index'] == season_index]
+            search_results['results_list']['season'] = [season for season in search_results['results_list']['season']
+                                                        if season['media_index'] == season_index]
 
-        if result:
-            return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
+        if search_results:
+            return serve_template(templatename="info_search_results_list.html", data=search_results, title="Search Result List")
         else:
-            logger.warn(u"Unable to retrieve data for get_search_results_children.")
+            logger.warn("Unable to retrieve data for get_search_results_children.")
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
 
@@ -4372,26 +4533,26 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
+    def update_metadata(self, server_id=None, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
         update = True if update == 'True' else False
 
         data_factory = datafactory.DataFactory()
-        query = data_factory.get_search_query(rating_key=rating_key)
+        query = data_factory.get_search_query(server_id=server_id, rating_key=rating_key)
         if query and query_string:
             query['query_string'] = query_string
 
         if query:
             return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
         else:
-            logger.warn(u"Unable to retrieve data for update_metadata.")
+            logger.warn("Unable to retrieve data for update_metadata.")
             return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def update_metadata_details(self, old_rating_key, new_rating_key, media_type, **kwargs):
+    def update_metadata_details(self, server_id, old_rating_key, new_rating_key, media_type, **kwargs):
         """ Update the metadata in the Tautulli database by matching rating keys.
             Also updates all parents or children of the media item if it is a show/season/episode
             or artist/album/track.
@@ -4411,12 +4572,12 @@ class WebInterface(object):
         """
         if new_rating_key:
             data_factory = datafactory.DataFactory()
-            pms_connect = pmsconnect.PmsConnect()
+            old_key_list = data_factory.get_rating_keys_list(server_id=server_id, rating_key=old_rating_key, media_type=media_type)
+            server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+            new_key_list = server.PMSCONNECTION.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
 
-            old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
-            new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
-
-            result = data_factory.update_metadata(old_key_list=old_key_list,
+            result = data_factory.update_metadata(server_id=server_id,
+                                                  old_key_list=old_key_list,
                                                   new_key_list=new_key_list,
                                                   media_type=media_type)
 
@@ -4430,7 +4591,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_new_rating_keys(self, rating_key='', media_type='', **kwargs):
+    def get_new_rating_keys(self, server_id=None, rating_key='', media_type='', **kwargs):
         """ Get a list of new rating keys for the PMS of all of the item's parent/children.
 
             ```
@@ -4447,19 +4608,19 @@ class WebInterface(object):
             ```
         """
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_new_rating_keys.")
+            logger.warn("Unable to retrieve data for get_new_rating_keys.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_old_rating_keys(self, rating_key='', media_type='', **kwargs):
+    def get_old_rating_keys(self, server_id=None, rating_key='', media_type='', **kwargs):
         """ Get a list of old rating keys from the Tautulli database for all of the item's parent/children.
 
             ```
@@ -4477,33 +4638,32 @@ class WebInterface(object):
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+        result = data_factory.get_rating_keys_list(server_id=server_id, rating_key=rating_key, media_type=media_type)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_old_rating_keys.")
-
+            logger.warn("Unable to retrieve data for get_old_rating_keys.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_pms_sessions_json(self, **kwargs):
+    def get_pms_sessions_json(self, server_id=None, **kwargs):
         """ Get all the current sessions. """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_sessions('json')
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_sessions('json')
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_pms_sessions_json.")
+            logger.warn("Unable to retrieve data for get_pms_sessions_json.")
             return False
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_metadata")
-    def get_metadata_details(self, rating_key='', **kwargs):
+    def get_metadata_details(self, server_id=None, rating_key='', **kwargs):
         """ Get the metadata for a media item.
 
             ```
@@ -4645,19 +4805,19 @@ class WebInterface(object):
                      }
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        metadata = server.PMSCONNECTION.get_metadata_details(rating_key=rating_key)
 
         if metadata:
             return metadata
         else:
-            logger.warn(u"Unable to retrieve data for get_metadata_details.")
+            logger.warn("Unable to retrieve data for get_metadata_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_recently_added")
-    def get_recently_added_details(self, start='0', count='0', media_type='', section_id='', **kwargs):
+    def get_recently_added_details(self, server_id=None, start='0', count='0', media_type='', section_id='', **kwargs):
         """ Get all items that where recently added to plex.
 
             ```
@@ -4700,13 +4860,13 @@ class WebInterface(object):
         if 'type' in kwargs:
             media_type = kwargs['type']
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(start=start, count=count, media_type=media_type, section_id=section_id)
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_recently_added_details(start=start, count=count, media_type=media_type, section_id=section_id)
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_recently_added_details.")
+            logger.warn("Unable to retrieve data for get_recently_added_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4720,7 +4880,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_friends_list.")
+            logger.warn("Unable to retrieve data for get_friends_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4734,85 +4894,13 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_user_details.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_server_list(self, **kwargs):
-        """ Find all servers published on Plex.tv """
-
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_plextv_server_list('json')
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_server_list.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_sync_lists(self, machine_id='', **kwargs):
-        """ Get all items that are currently synced from the PMS. """
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_plextv_sync_lists(machine_id=machine_id, output_format='json')
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_sync_lists.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_servers(self, **kwargs):
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_list(output_format='json')
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_servers.")
+            logger.warn("Unable to retrieve data for get_user_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_servers_info(self, **kwargs):
-        """ Get info about the PMS.
-
-            ```
-            Required parameters:
-                None
-
-            Optional parameters:
-                None
-
-            Returns:
-                json:
-                    [{"port": "32400",
-                      "host": "10.0.0.97",
-                      "version": "0.9.15.2.1663-7efd046",
-                      "name": "Winterfell-Server",
-                      "machine_identifier": "ds48g4r354a8v9byrrtr697g3g79w"
-                      }
-                     ]
-            ```
-        """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_servers_info()
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_servers_info.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_server_identity(self, **kwargs):
+    def get_server_identity(self, server_id=None, **kwargs):
         """ Get info about the local server.
 
             ```
@@ -4830,20 +4918,20 @@ class WebInterface(object):
                      ]
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_identity()
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_server_identity()
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_identity.")
+            logger.warn("Unable to retrieve data for get_server_identity.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_server_friendly_name(self, **kwargs):
-        """ Get the name of the PMS.
+    def get_server_friendly_name(self, server_id=None, **kwargs):
+        """Get the name of the PMS.
 
             ```
             Required parameters:
@@ -4856,12 +4944,13 @@ class WebInterface(object):
                 string:     "Winterfell-Server"
             ```
         """
-        result = pmsconnect.get_server_friendly_name()
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_server_friendly_name()
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_friendly_name.")
+            logger.warn("Unable to retrieve data for get_server_friendly_name.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5101,49 +5190,35 @@ class WebInterface(object):
             ```
         """
         try:
-            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            result = pms_connect.get_current_activity()
-
-            if result:
-                if session_key:
-                    return next((s for s in result['sessions'] if s['session_key'] == session_key), {})
-                if session_id:
-                    return next((s for s in result['sessions'] if s['session_id'] == session_id), {})
-
-                counts = {'stream_count_direct_play': 0,
-                          'stream_count_direct_stream': 0,
-                          'stream_count_transcode': 0,
-                          'total_bandwidth': 0,
-                          'lan_bandwidth': 0,
-                          'wan_bandwidth': 0}
-
-                for s in result['sessions']:
-                    if s['transcode_decision'] == 'transcode':
-                        counts['stream_count_transcode'] += 1
-                    elif s['transcode_decision'] == 'copy':
-                        counts['stream_count_direct_stream'] += 1
-                    else:
-                        counts['stream_count_direct_play'] += 1
-
-                    counts['total_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
-                    if s['location'] == 'lan':
-                        counts['lan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
-                    else:
-                        counts['wan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
-
-                result.update(counts)
-
-                return result
+            current_activity = plexpy.PMS_SERVERS.get_current_activity(**kwargs)
+            if current_activity:
+                return current_activity
             else:
-                logger.warn(u"Unable to retrieve data for get_activity.")
+                logger.warn("Unable to retrieve data for get_activity.")
         except Exception as e:
-            logger.exception(u"Unable to retrieve data for get_activity: %s" % e)
+            logger.exception("Unable to retrieve data for get_activity: %s" % e)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_server_status(self, **kwargs):
+        """ Get the current server stats.
+        """
+        try:
+            server_status = plexpy.PMS_SERVERS.get_server_status()
+            if server_status:
+                return server_status
+            else:
+                logger.warn("Unable to retrieve data for get_server_status.")
+        except Exception as e:
+            logger.exception("Unable to retrieve data for get_server_status: %s" % e)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_libraries")
-    def get_full_libraries_list(self, **kwargs):
+    def get_full_libraries_list(self, server_id=None, **kwargs):
         """ Get a list of all libraries on your server.
 
             ```
@@ -5169,13 +5244,13 @@ class WebInterface(object):
                      ]
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_library_details()
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+        result = server.PMSCONNECTION.get_library_details()
 
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_full_libraries_list.")
+            logger.warn("Unable to retrieve data for get_full_libraries_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5223,73 +5298,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_full_users_list.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_synced_items(self, machine_id='', user_id='', **kwargs):
-        """ Get a list of synced items on the PMS.
-
-            ```
-            Required parameters:
-                machine_id (str):       The PMS identifier
-
-            Optional parameters:
-                user_id (str):          The id of the Plex user
-
-            Returns:
-                json:
-                    [{"audio_bitrate": "192",
-                      "client_id": "95434se643fsf24f-com-plexapp-android",
-                      "content_type": "video",
-                      "device_name": "Tyrion's iPad",
-                      "failure": "",
-                      "item_complete_count": "1",
-                      "item_count": "1",
-                      "item_downloaded_count": "1",
-                      "item_downloaded_percent_complete": 100,
-                      "metadata_type": "movie",
-                      "photo_quality": "74",
-                      "platform": "iOS",
-                      "rating_key": "154092",
-                      "root_title": "Movies",
-                      "state": "complete",
-                      "sync_id": "11617019",
-                      "sync_title": "Deadpool",
-                      "total_size": "560718134",
-                      "user": "DrukenDwarfMan",
-                      "user_id": "696969",
-                      "username": "DrukenDwarfMan",
-                      "video_bitrate": "4000"
-                      "video_quality": "100"
-                      },
-                     {...},
-                     {...}
-                     ]
-            ```
-        """
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_synced_items.")
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_sync_transcode_queue(self, **kwargs):
-        """ Return details for currently syncing items. """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_sync_transcode_queue(output_format='json')
-
-        if result:
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_sync_transcode_queue.")
+            logger.warn("Unable to retrieve data for get_full_users_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5384,7 +5393,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_home_stats.")
+            logger.warn("Unable to retrieve data for get_home_stats.")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5440,41 +5449,6 @@ class WebInterface(object):
         else:
             return json.dumps(API2()._api_responds(result_type='error',
                                                    msg='Please use the /api/v2 endpoint.'))
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_pms_update(self, **kwargs):
-        """ Check for updates to the Plex Media Server.
-
-            ```
-            Required parameters:
-                None
-
-            Optional parameters:
-                None
-
-            Returns:
-                json:
-                    {"update_available": true,
-                     "platform": "Windows",
-                     "release_date": "1473721409",
-                     "version": "1.1.4.2757-24ffd60",
-                     "requirements": "...",
-                     "extra_info": "...",
-                     "changelog_added": "...",
-                     "changelog_fixed": "...",
-                     "label": "Download",
-                     "distro": "english",
-                     "distro_build": "windows-i386",
-                     "download_url": "https://downloads.plex.tv/...",
-                     }
-            ```
-        """
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_plex_downloads()
-        return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5744,7 +5718,7 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_label']))
+                logger.debug("Sending %s%s newsletter." % (test, newsletter['agent_label']))
                 newsletter_handler.add_newsletter_each(newsletter_id=newsletter_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -5753,10 +5727,10 @@ class WebInterface(object):
                                                         **kwargs)
                 return {'result': 'success', 'message': 'Newsletter queued.'}
             else:
-                logger.debug(u"Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
+                logger.debug("Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
                 return {'result': 'error', 'message': 'Invalid newsletter id %s.' % newsletter_id}
         else:
-            logger.debug(u"Unable to send %snotification, no newsletter_id received." % test)
+            logger.debug("Unable to send %snotification, no newsletter_id received." % test)
             return {'result': 'error', 'message': 'No newsletter id received.'}
 
     @cherrypy.expose
@@ -5839,10 +5813,10 @@ class WebInterface(object):
 
                 return newsletter_agent.generate_newsletter(preview=preview)
 
-            logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
+            logger.error("Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
             return "Failed to retrieve newsletter: invalid newsletter_id parameter"
 
-        logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
+        logger.error("Failed to retrieve newsletter: Missing newsletter_id parameter.")
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
 
     @cherrypy.expose

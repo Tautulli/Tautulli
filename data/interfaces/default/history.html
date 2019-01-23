@@ -21,7 +21,17 @@
                 </button>&nbsp
             </div>
             % endif
-            % if _session['user_group'] == 'admin':
+            % if _session['access_level'] >= 1:
+            <div class="btn-group" id="server-selection">
+                <label>
+                    <select name="history-server" id="history-server" class="btn" style="color: inherit;">
+                        <option value="">All Servers</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
+            % endif
+            % if _session['access_level'] >= 3:
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="history-user" id="history-user" class="btn" style="color: inherit;">
@@ -56,17 +66,18 @@
             <thead>
             <tr>
                 <th align="left" id="delete_row">Delete</th>
-                <th align="left" id="date">Date</th>
-                <th align="left" id="friendly_name">User</th>
-                <th align="left" id="ip_address">IP Address</th>
-                <th align="left" id="platform">Platform</th>
-                <th align="left" id="device">Player</th>
-                <th align="left" id="title">Title</th>
-                <th align="left" id="started">Started</th>
-                <th align="left" id="paused_counter">Paused</th>
-                <th align="left" id="stopped">Stopped</th>
-                <th align="left" id="duration">Duration</th>
-                <th align="left" id="percent_complete"></th>
+                <th align="left" class="date" id="date">Date</th>
+                <th align="left" class="server_name" id="pms_name">Server</th>
+                <th align="left" class="friendly_name" id="friendly_name">User</th>
+                <th align="left" class="ip_address" id="ip_address">IP Address</th>
+                <th align="left" class="platform" id="platform">Platform</th>
+                <th align="left" class="player" id="device">Player</th>
+                <th align="left" class="title" id="title">Title</th>
+                <th align="left" class="started" id="started">Started</th>
+                <th align="left" class="paused_counter" id="paused_counter">Paused</th>
+                <th align="left" class="stopped" id="stopped">Stopped</th>
+                <th align="left" class="duration" id="duration">Duration</th>
+                <th align="left" class="watched_status" id="percent_complete"></th>
             </tr>
             </thead>
             <tbody>
@@ -127,7 +138,24 @@
             }
         });
 
-        function loadHistoryTable(media_type, selected_user_id) {
+        // Load server ids and names (for the selector)
+        $.ajax({
+            url: 'get_server_names',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#history-server');
+                data.sort(function (a, b) {
+                    return a.pms_name.localeCompare(b.pms_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.server_id + '">' +
+                        item.pms_name + '</option>');
+                });
+            }
+        });
+
+        function loadHistoryTable(media_type, selected_user_id, selected_server_id) {
             history_table_options.ajax = {
                 url: 'get_history',
                 type: 'POST',
@@ -135,7 +163,8 @@
                     return {
                         json_data: JSON.stringify(d),
                         media_type: media_type,
-                        user_id: selected_user_id
+                        user_id: selected_user_id,
+                        server_id: selected_server_id
                     };
                 }
             };
@@ -143,7 +172,7 @@
             var colvis = new $.fn.dataTable.ColVis(history_table, {
                 buttonText: '<i class="fa fa-columns"></i> Select columns',
                 buttonClass: 'btn btn-dark',
-                exclude: [0, 11]
+                exclude: [0, 12]
             });
             $(colvis.button()).appendTo('div.colvis-button-bar');
 
@@ -162,15 +191,24 @@
                 selected_user_id = $(this).val() || null;
                 history_table.draw();
             });
+
+            $('#history-server').on('change', function () {
+                selected_server_id = $(this).val() || null;
+                history_table.draw();
+            });
         }
 
         var media_type = getLocalStorage('history_media_type', 'all');
-        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
+        var selected_user_id = null;
+        var selected_server_id  =  null;
+        if (${_session['access_level']} < 3) {
+            var selected_user_id = "${_session['user_id']}";
+        }
 
         $('#history-' + media_type).prop('checked', true);
         $('#history-' + media_type).closest('label').addClass('active');
 
-        loadHistoryTable(media_type, selected_user_id);
+        loadHistoryTable(media_type, selected_user_id, selected_server_id);
 
         % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function() {

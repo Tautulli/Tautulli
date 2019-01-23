@@ -209,6 +209,7 @@ DOCUMENTATION :: END
             $.ajax({
                 url: 'update_metadata_details',
                 data: {
+                    server_id: '${query["server_id"]}',
                     old_rating_key: '${query["rating_key"]}',
                     new_rating_key: new_rating_key,
                     media_type: '${query["media_type"]}'

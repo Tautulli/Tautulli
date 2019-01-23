@@ -53,7 +53,7 @@ DOCUMENTATION :: END
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this library's activity.</p>
                 </div>
-                % if data['section_id']:
+                % if data['library_id']:
                 <div class="form-group">
                     <button class="btn btn-danger" id="delete-all-history">Purge</button>
                     <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this library. This is permanent!</p>
@@ -81,7 +81,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'edit_library',
             data: {
-                section_id: '${data["section_id"]}',
+                library_id: '${data["library_id"]}',
                 custom_thumb: custom_thumb,
                 keep_history: keep_history
             },
@@ -97,7 +97,7 @@ DOCUMENTATION :: END
         var msg = 'Are you REALLY sure you want to purge all history for the <strong>${data["section_name"]}</strong> library?<br>' + 
             'This is permanent and cannot be undone!';
         var url = 'delete_all_library_history';
-        confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
+        confirmAjaxCall(url, msg, { library_id: '${data["library_id"]}' }, null, function () { location.reload(); });
     });
 
     $(document).ready(function() {

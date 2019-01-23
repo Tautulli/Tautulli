@@ -33,14 +33,14 @@
             <tr>
                 <th align="left" id="edit_row">Edit</th>
                 <th align="right" id="avatar"></th>
-                <th align="left" id="friendly_name">User</th>
-                <th align="left" id="last_seen">Last Seen</th>
-                <th align="left" id="last_known_ip">Last Known IP</th>
-                <th align="left" id="last_platform">Last Platform</th>
-                <th align="left" id="last_player">Last Player</th>
-                <th align="left" id="last_played">Last Played</th>
-                <th align="left" id="total_plays">Total Plays</th>
-                <th align="left" id="total_duration">Total Played Duration</th>
+                <th align="left" class="friendly_name" id="friendly_name">User</th>
+                <th align="left" class="last_seen" id="last_seen">Last Seen</th>
+                <th align="left" class="ip_address" id="last_known_ip">Last Known IP</th>
+                <th align="left" class="platform" id="last_platform">Last Platform</th>
+                <th align="left" class="player" id="last_player">Last Player</th>
+                <th align="left" class="last_played" id="last_played">Last Played</th>
+                <th align="left" class="plays" id="total_plays">Total Plays</th>
+                <th align="left" class="duration" id="total_duration">Total Played Duration</th>
             </tr>
             </thead>
             <tbody>
@@ -185,11 +185,13 @@
     % if _session['user_group'] == 'admin':
     $("#refresh-users-list").click(function() {
         showMsg('Refreshing users list...', true, false);
+        $('#refresh-users-list > .fa-refresh').addClass('fa-spin');
         $.ajax({
             url: 'refresh_users_list',
             cache: false,
             async: true,
             complete: function (xhr, status) {
+                $('#refresh-users-list > .fa-refresh').removeClass('fa-spin');
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 if (result.result == 'success') {

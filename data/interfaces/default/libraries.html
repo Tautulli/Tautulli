@@ -33,15 +33,16 @@
             <tr>
                 <th align="left" id="edit_row">Edit</th>
                 <th align="right" id="library_thumb"></th>
-                <th align="left" id="section_name">Library Name</th>
-                <th align="left" id="section_type">Library Type</th>
-                <th align="left" id="count">Total Movies / TV Shows / Artists</th>
-                <th align="left" id="parent_count">Total Seasons / Albums</th>
-                <th align="left" id="child_count">Total Episodes / Tracks</th>
-                <th align="left" id="last_accessed">Last Accessed</th>
-                <th align="left" id="last_played">Last Played</th>
-                <th align="left" id="total_plays">Total Plays</th>
-                <th align="left" id="total_duration">Total Played Duration</th>
+                <th align="left" class="server_name" id="server_name">Server</th>
+                <th align="left" class="section_name" id="section_name">Library Name</th>
+                <th align="left" class="section_type" id="section_type">Library Type</th>
+                <th align="left" class="count" id="count">Total Movies / TV Shows / Artists</th>
+                <th align="left" class="parent_count" id="parent_count">Total Seasons / Albums</th>
+                <th align="left" class="child_count" id="child_count">Total Episodes / Tracks</th>
+                <th align="left" class="last_accessed" id="last_accessed">Last Accessed</th>
+                <th align="left" class="last_played" id="last_played">Last Played</th>
+                <th align="left" class="plays" id="total_plays">Total Plays</th>
+                <th align="left" class="duration" id="total_duration">Total Played Duration</th>
             </tr>
             </thead>
             <tbody>
@@ -135,7 +136,7 @@
                             $.ajax({
                                 url: 'delete_library',
                                 type: 'POST',
-                                data: { section_id: row },
+                                data: { library_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -148,7 +149,7 @@
                             $.ajax({
                                 url: 'delete_all_library_history',
                                 type: 'POST',
-                                data: { section_id: row },
+                                data: { library_id: row },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
@@ -181,11 +182,13 @@
     % if _session['user_group'] == 'admin':
     $("#refresh-libraries-list").click(function () {
         showMsg('Refreshing libraries list...', true, false);
+        $('#refresh-libraries-list > .fa-refresh').addClass('fa-spin');
         $.ajax({
             url: 'refresh_libraries_list',
             cache: false,
             async: true,
             complete: function (xhr, status) {
+                $('#refresh-libraries-list > .fa-refresh').removeClass('fa-spin');
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
                 if (result.result == 'success') {

@@ -598,7 +598,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['thumb_url']})">
                                                                     <tr>
                                                                         <td>
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
+                                                                            <a href="${movie['pms_web_url']}#!/server/${movie['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
@@ -609,7 +609,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table">
                                                                     <tr>
                                                                         <td class="card-info-title nowrap">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
+                                                                            <a href="${movie['pms_web_url']}#!/server/${movie['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" title="${movie['title']}" target="_blank">${movie['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -727,7 +727,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['thumb_url']})">
                                                                     <tr>
                                                                         <td>
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">
+                                                                            <a href="${show['pms_web_url']}#!/server/${show['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
@@ -738,7 +738,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table">
                                                                     <tr>
                                                                         <td class="card-info-title nowrap">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">${show['title']}</a>
+                                                                            <a href="${show['pms_web_url']}#!/server/${show['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" title="${show['title']}" target="_blank">${show['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -871,7 +871,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + album['thumb_hash']) if base_url_image else album['thumb_url']})">
                                                                     <tr>
                                                                         <td>
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
+                                                                            <a href="${album['pms_web_url']}#!/server/${album['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-cover.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-cover.png'}" width="150" height="150">
                                                                             </a>
                                                                         </td>
@@ -882,7 +882,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table">
                                                                     <tr>
                                                                         <td class="card-info-title nowrap">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
+                                                                            <a href="${album['pms_web_url']}#!/server/${album['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${album['rating_key']}" title="${album['title']}" target="_blank">${album['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
@@ -985,7 +985,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-poster" style="background-image: url(${(base_url_image + video['thumb_hash']) if base_url_image else video['thumb_url']})">
                                                                     <tr>
                                                                         <td>
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">
+                                                                            <a href="${video['pms_web_url']}#!/server/${video['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">
                                                                                 <img class="card-poster-overlay" src="${base_url_image + 'images/newsletter/view-on-plex-poster.png' if base_url_image else 'https://tautulli.com/images/newsletter/view-on-plex-poster.png'}" width="150" height="225">
                                                                             </a>
                                                                         </td>
@@ -996,7 +996,7 @@
                                                                 <table border="0" cellpadding="0" cellspacing="0" class="card-info-container-table">
                                                                     <tr>
                                                                         <td class="card-info-title nowrap">
-                                                                            <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">${video['title']}</a>
+                                                                            <a href="${video['pms_web_url']}#!/server/${video['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${video['rating_key']}" title="${video['title']}" target="_blank">${video['title']}</a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>

@@ -587,6 +587,11 @@ textarea.form-control:focus {
     background-color: #fff;
     transition: background-color .3s;
 }
+.pms-settings {
+    outline: 0;
+    color: #fff;
+    background-color: #555;
+    border: 1px solid #000;}
 .pagination > li > a,
 .pagination > li > span {
     position: relative;
@@ -642,7 +647,7 @@ textarea.form-control:focus {
 }
 .btn-form {
     padding: 4px 12px;
-    margin: 5px 0 5px 0;
+    margin: 5px 6px 5px 0;
     font-size: 14px;
     font-weight: normal;
     height: 32px;
@@ -651,12 +656,12 @@ textarea.form-control:focus {
     white-space: nowrap;
     vertical-align: middle;
     -ms-touch-action: manipulation;
-      touch-action: manipulation;
+    touch-action: manipulation;
     cursor: pointer;
     -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     background-image: none;
     background-color: #3B3B3B;
     color: #e5e5e5;
@@ -759,7 +764,7 @@ a .users-poster-face:hover {
     margin-bottom: 25px;
 }
 .dashboard-activity-container {
-    height: 240px;
+    height: 260px;
     width: 100%;
     position: relative;
     margin-bottom: 5px;
@@ -776,7 +781,7 @@ a .users-poster-face:hover {
     display: flex;
     -webkit-flex-wrap: nowrap;
     flex-wrap: nowrap;
-    height: 235px;
+    height: 255px;
     width: 100%;
     padding: 5px;
     overflow: hidden;
@@ -790,7 +795,7 @@ a .users-poster-face:hover {
 }
 .dashboard-activity-poster-container {
     background-color: #282828;
-    height: 225px;
+    height: 245px;
     width: 150px;
     margin-right: 5px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1);
@@ -803,7 +808,7 @@ a .users-poster-face:hover {
 .dashboard-activity-poster {
     background-position: center;
     background-size: cover;
-    height: 225px;
+    height: 245px;
     width: 150px;
     -webkit-transition: background 1s linear;
     transition: background 1s linear;
@@ -895,12 +900,12 @@ a .users-poster-face:hover {
     display: -webkit-flex;
     display: flex;
     flex-direction: column;
-    height: 225px;
+    height: 245px;
     width: 385px;
     overflow: hidden;
 }
 .dashboard-activity-info-scroller {
-    height: 225px;
+    height: 235px;
     width: 100%;
     -webkit-flex-grow: 1;
     flex-grow: 1;
@@ -977,7 +982,7 @@ a .users-poster-face:hover {
 }
 .dashboard-activity-info-time {
     position: absolute;
-    top: 200px;
+    top: 220px;
     right: 10px;
     text-align: right;
     font-size: 10px;
@@ -1029,7 +1034,7 @@ a .users-poster-face:hover {
     overflow: hidden;
 }
 .dashboard-activity-container:hover {
-    height: 249px;
+    height: 269px;
 }
 .dashboard-activity-container:hover .dashboard-activity-progress {
 	height: 14px;
@@ -1153,6 +1158,31 @@ a .dashboard-activity-metadata-user-thumb:hover {
 .dashboard-activity-metadata-title a:hover {
     color: #e9a049;
 }
+.dashboard-server-status {
+    float: left;
+    position: relative;
+    min-width: 900px;
+    max-width: 1500px;
+}
+
+table.server-status-table thead tr:first-child th {
+    padding: 0px 5px 0px 5px !important;
+    text-align: center;
+}
+
+table.server-status-table thead tr:last-child th {
+    padding: 0px 5px 0px 5px !important;
+    text-align: center;
+}
+
+table.server-status-table td {
+    padding: 4px 5px 4px 5px !important;
+    text-align: center;
+}
+table.server-status-table thead tr th hr {
+    margin: 0px 8px 0px 8px !important;
+}
+
 .dashboard-stats-instance {
     float: left;
     position: relative;
@@ -3089,6 +3119,9 @@ a .home-platforms-list-cover-face:hover
 div.dataTables_info {
     white-space: normal !important;
 }
+.tooltip {
+    z-index: 9999;
+}
 .tooltip.top .tooltip-arrow {
     border-top-color: #fff;
 }
@@ -3135,19 +3168,25 @@ div.dataTables_info {
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .edit-user-toggles,
+.edit-server-toggles,
 .edit-library-toggles {
-    padding-right: 10px;
+    padding-right: 0px;
+    margin-right: 0px;
+    display: inline-block;
 }
 .edit-user-toggles > input[type='checkbox'],
+.edit-server-toggles > input[type='checkbox'],
 .edit-library-toggles > input[type='checkbox'] {
     display: none;
 }
 .edit-user-toggles > input[type='checkbox'] + label,
+.edit-server-toggles > input[type='checkbox'] + label,
 .edit-library-toggles > input[type='checkbox'] + label {
     color: #444;
     cursor: pointer;
 }
 .edit-user-toggles > input[type='checkbox']:checked + label,
+.edit-server-toggles > input[type='checkbox']:checked + label,
 .edit-library-toggles > input[type='checkbox']:checked + label {
     color: #fff;
     cursor: pointer;
@@ -3437,8 +3476,9 @@ pre::-webkit-scrollbar-thumb {
     color: #777;
 }
 .config-info-table,
+.config-servers-table,
 .config-scheduler-table {
-    width: 100%
+    width: 100%;
 }
 .config-info-table td,
 .config-info-table th,
@@ -3450,10 +3490,33 @@ pre::-webkit-scrollbar-thumb {
     width: 150px;
 }
 .config-scheduler-table td:first-child {
-    width: 225px;
+    width: 300px;
 }
 .config-scheduler-table th {
     color: #fff;
+}
+.config-servers-table>tfoot>tr>td {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 5px;
+    padding-right: 10px;
+    background-color: #404040;
+}
+.config-servers-table>tfoot>tr>td p {
+    font-size: 18px;
+    margin: 0px;
+    text-align: left;
+}
+.config-servers-table td,
+.config-servers-table th {
+    padding-bottom: 10px;
+}
+.config-servers-table th {
+    color: #fff;
+    padding-top: 15px;
+}
+.config-servers-table .active {
+    color: #f9be03;
 }
 a.no-highlight {
     color: #777;
@@ -3486,7 +3549,7 @@ a.no-highlight:hover {
 .nav-header > li > a:hover {
     background-color: transparent;
 }
-#recently-added-row-scroller,
+div[id^="recently-added-row-scroller-"],
 #recently-watched-row-scroller {
     position: relative;
     height: 265px;
@@ -3498,7 +3561,7 @@ a.no-highlight:hover {
         max-width: 750px;
     }
     .modal.wide .modal-dialog {
-        width: 750px;
+        width: 780px;
     }
 }
 @media (min-width: 992px) {

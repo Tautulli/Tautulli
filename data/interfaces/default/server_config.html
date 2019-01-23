@@ -1,0 +1,587 @@
+% if server:
+<%!
+    import json
+    from plexpy.helpers import anon_url, checked
+
+%>
+
+<div id="server-config" class="modal-dialog" role="document">
+    <div class="modal-content">
+        <form action="set_server_config" method="post" class="form" id="set_server_config" data-parsley-validate>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="server-config-modal-header">${server['pms_name']} Server Configuration &nbsp;<small><span class="server_id">(Server ID: ${server['id']})</span></small></h4>
+
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+
+                    <div class="padded-header">
+                        <h3 id="resources-xml">Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${server['pms_version']}</span></small></h3>
+                    </div>
+
+                    <div data-group="pms_ip" class="form-group" id="pms_ip_group">
+                        <label for="pms_ip">Plex IP Address or Hostname</label>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <span class="form-control pms-settings" id="pms_ip">${server['pms_ip']}</span>
+                            </div>
+                        </div>
+                        <p class="help-block">IP Address or hostname for your Plex Media Server.</p>
+                    </div>
+
+                    <div data-group="pms_port" class="form-group">
+                        <label for="pms_port">Plex Port</label>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <span class="form-control pms-settings" id="pms_port">${server['pms_port']}</span>
+                            </div>
+                        </div>
+                        <p class="help-block">Port that Plex Media Server is listening on.</p>
+                    </div>
+
+                    <div data-group="pms_is_remote" class="checkbox">
+                        <label>
+                            <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle" data-id="pms_is_remote" value="1" disabled  ${checked(server['pms_is_remote'])}> Remote Server
+                            <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${server['pms_is_remote']}">
+                        </label>
+                        <p class="help-block">If checked, the Plex Media Server is not on the same local network as Tautulli.</p>
+                    </div>
+
+                    <div data-group="pms_ssl" class="checkbox">
+                        <label>
+                            <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${'' if server['pms_ssl_pref'] == 1 else 'disabled'} ${checked(server['pms_ssl'])}> Use SSL
+                            <input type="hidden" id="pms_ssl" name="pms_ssl" value="${server['pms_ssl']}">
+                        </label>
+                        % if server['pms_ssl_pref'] == 0:
+                            <p class="help-block">The SSL setting on your Plex Media Server is set to required. This setting can't be changed.</p>
+                        % elif server['pms_ssl_pref'] == 1:
+                            <p class="help-block">The SSL setting on your Plex Media Server is optional.</p>
+                        % elif server['pms_ssl_pref'] == 2:
+                            <p class="help-block">The SSL setting on your Plex Media Server is set to disabled. This setting can't be changed.</p>
+                        % endif
+                    </div>
+
+                    <div data-group="pms_identifier" class="form-group advanced-setting">
+                        <label for="pms_identifier">Plex Server Identifier</label>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <span class="form-control pms-settings" id="pms_identifier">${server['pms_identifier']}</span>
+                            </div>
+                        </div>
+                        <p class="help-block">
+                            The unique identifier for your Plex server. Retrieved automatically.
+                        </p>
+                    </div>
+
+                    <div data-group="pms_url_manual" class="checkbox advanced-setting">
+                        <label>
+                            <input type="checkbox" id="pms_url_manual_checkbox" class="checkbox-toggle pms-settings" data-id="pms_url_manual" value="1" ${checked(server['pms_url_manual'])}> Manual Connection
+                            <input type="hidden" id="pms_url_manual" name="pms_url_manual" value="${server['pms_url_manual']}">
+                        </label>
+                        <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
+                    </div>
+
+                    <div data-group="pms_url" class="form-group">
+                        <label for="pms_url">Plex Server URL</label>
+                        <div class="row">
+                            <div class="col-md-10">
+                                <input type="text" class="form-control pms-settings" data-parsley-trigger="change" data-parsley-type="url" data-parsley-errors-container="#pms_url_error"  data-parsley-error-message="Invalid URL" id="url" name="url" value="" size="30" readonly>
+                            </div>
+                            <div id="pms_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                        </div>
+                        <p class="help-block">
+                            The server URL that Tautulli will use to connect to your Plex server. Retrieved automatically.
+                        </p>
+                    </div>
+
+                    <div data-group="pms_web_url" class="form-group advanced-setting">
+                        <label for="pms_web_url">Plex Web URL</label>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${server['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                        </div>
+                        <p class="help-block">
+                            Optional: Manually override the Plex Web URL used for click-through links on the media info pages and notifications. Default <strong>https://app.plex.tv/desktop</strong>.
+                        </p>
+                    </div>
+
+                    <div class="padded-header">
+                        <h3>Server Monitoring</h3>
+                    </div>
+
+                    <div data-group="monitor_pms_updates" class="checkbox">
+                        <label>
+                            <input type="checkbox" id="monitor_pms_updates_checkbox" class="checkbox-toggle pms-settings" data-id="monitor_pms_updates" value="1" ${checked(server['monitor_pms_updates'])}> Monitor Plex Updates
+                            <input type="hidden" id="monitor_pms_updates" name="monitor_pms_updates" value="${server['monitor_pms_updates']}">
+                        </label>
+                        <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
+                    </div>
+
+                    <div data-group="pms_update_options" id="pms_update_options">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="pms_update_channel">Update Channel</label>
+                                    <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                        <option value="plex">Use Server Setting</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="pms_update_distro_build">Release</label>
+                                    <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
+                                    </select>
+                                    <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-group="monitor_remote_access" class="checkbox">
+                        <label>
+                            <input type="checkbox" id="monitor_remote_access_checkbox" class="checkbox-toggle pms-settings" data-id="monitor_remote_access" value="1" ${checked(server['monitor_remote_access'])}> Monitor Plex Remote Access
+                            <input type="hidden" id="monitor_remote_access" name="monitor_remote_access" value="${server['monitor_remote_access']}">
+                        </label>
+                        <span id="cloudMonitorRemoteAccess" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
+                        <span id="remoteAccessCheck" class="settings-warning"></span>
+                        <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
+                    </div>
+
+                    <div data-group="refresh_libraries_interval" class="form-group advanced-setting">
+                        <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <input type="text" class="form-control pms-settings" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${server['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
+                            </div>
+                            <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                        </div>
+                        <p class="help-block">The interval (in hours) Tautulli will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
+                    </div>
+
+                    <div data-group="refresh_libraries_on_startup" class="checkbox advanced-setting">
+                        <label>
+                            <input type="checkbox" id="refresh_libraries_on_startup_checkbox" class="checkbox-toggle pms-settings" data-id="refresh_libraries_on_startup" value="1" ${checked(server['refresh_libraries_on_startup'])}> Refresh Libraries List on Startup
+                            <input type="hidden" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="${server['refresh_libraries_on_startup']}">
+                        </label>
+                        <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
+                    </div>
+
+                    <div data-group="monitor_rclone_mount" class="checkbox advanced-setting server_monitor_rclone">
+                        <label>
+                            <input type="checkbox" id="monitor_rclone_mount_checkbox" class="checkbox-toggle pms-settings" data-id="monitor_rclone_mount" value="1" ${checked(server['monitor_rclone_mount'])}> Monitor rclone Mount
+                            <input type="hidden" id="monitor_rclone_mount" name="monitor_rclone_mount" value="${server['monitor_rclone_mount']}">
+                        </label>
+                        <p class="help-block">Enable to have Tautulli monitor the rclone mount. Requires rclone version 1.45 or higher.</p>
+                    </div>
+
+                    <div data-group="rclone_monitoring_options" id="rclone_monitoring_options" class="advanced-setting server_monitor_rclone">
+                        <div>
+                            <h4>rclone Monitoring Settings</h4>
+                        </div>
+                        <div class="help-block">
+                            <p>The rclone mount command on your server needs to be started with the following parameters:<br>
+                                <strong>--rc</strong> to activate rclone remote control<br><strong>--rc-addr</strong> to set the port. Should be set as :port without the IP address, eg <u>--rc-addr=:5572</u><br><strong>--rc-user</strong> to set the userid<br><strong>--rc-pass</strong> to set the password</p>
+                        </div>
+                        <div class="form-group">
+                            <div data-group="rclone_authentication" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="rclone_user">Userid</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_user" name="rclone_user" value="${server['rclone_user']}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="rclone_pass">Password</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_pass" name="rclone_pass" value="${server['rclone_pass']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The userid and password used for rclone RC authentication.</p>
+                            </div>
+                            <div data-group="rclone_ssl" class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="rclone_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="rclone_ssl" value="1" ${checked(server['rclone_ssl'])}> Use SSL
+                                    <input type="hidden" id="rclone_ssl" name="rclone_ssl" value="${server['rclone_ssl']}">
+                                </label>
+                                <p class="help-block">Use SSL to connect to rclone.</p>
+                             </div>
+                            <div data-group="rclone_ssl_hostname" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label for="rclone_ssl_hostname">Hostname</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_ssl_hostname" name="rclone_ssl_hostname" value="${server['rclone_ssl_hostname']}" data-parsley-group="rclone_monitoring_options" data-parsley-trigger="change" data-parsley-validate-if-empty="" data-parsley-errors-container="#rclone_ssl_hostname_error"  data-parsley-error-message="Please specify a valid hostname.">
+                                    </div>
+                                    <div id="rclone_ssl_hostname_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">The hostname used in the SSL certificate.</p>
+                            </div>
+                           <div data-group="rclone_port" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="rclone_port">Port</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_port" name="rclone_port" value="${server['rclone_port']}" data-parsley-group="rclone_monitoring_options" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-errors-container="#rclone_port_error"  data-parsley-error-message="Invalid Port" >
+                                    </div>
+                                    <div id="rclone_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">The port that rclone RC is listening on.</p>
+                            </div>
+                            <div data-group="rclone_mountdir" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label for="rclone_mountdir">Mount Directory</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_mountdir" name="rclone_mountdir" value="${server['rclone_mountdir']}" data-parsley-group="rclone_monitoring_options" data-parsley-trigger="change" data-parsley-validate-if-empty="" data-parsley-errors-container="#rclone_mountdir_error"  data-parsley-error-message="Please specify a value for the mount directory">
+                                    </div>
+                                    <div id="rclone_mountdir_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">The server directory where rclone has mounted your cloud storage.</p>
+                            </div>
+                            <div data-group="rclone_tmpdir" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label for="rclone_tmpdir">Temp Directory</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_tmpdir" name="rclone_tmpdir" value="${server['rclone_tmpdir']}" data-parsley-group="rclone_monitoring_options" data-parsley-trigger="change" data-parsley-validate-if-empty="" data-parsley-errors-container="#rclone_tmpdir_error"  data-parsley-error-message="Please specify a value for the temp directory">
+                                    </div>
+                                    <div id="rclone_tmpdir_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">The name of a temporary directory. The test file will be copied to this directory and then deleted to verify rclone functionality.</p>
+                            </div>
+                            <div data-group="rclone_testfile" class="form-group">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="rclone_testfile">Test Filename</label>
+                                        <input type="text" class="form-control pms-settings" id="rclone_testfile" name="rclone_testfile" value="${server['rclone_testfile']}" data-parsley-group="rclone_monitoring_options" data-parsley-trigger="change" data-parsley-validate-if-empty="" data-parsley-errors-container="#rclone_testfile_error"  data-parsley-error-message="Please specify a value for the test file">
+                                    </div>
+                                    <div id="rclone_testfile_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">The name of a file accessible thru the mount directory for the rclone mount monitoring to use for a test. Recommended is to create a one line text file.</p>
+                            </div>
+                            <span class="input-group-btn">
+                                <button class="btn btn-form" type="button" id="test_rclone_button">Test rclone Monitor</button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="pms_ssl_pref" name="pms_ssl_pref" value="${server['pms_ssl_pref']}">
+                    <input type="hidden" id="pms_uri" name="pms_uri" value="${server['pms_uri']}">
+                    <input type="hidden" id="pms_url" name="pms_url" value="${server['pms_url']}">
+                    <input type="hidden" id="pms_url_override" name="pms_url_override" value="${server['pms_url_override']}">
+                    <input type="hidden" id="server_id" name="server_id" value="${server['id']}">
+                    <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${server['pms_is_cloud']}">
+                    <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <p>
+                    <input type="button" class="btn btn-danger btn-edit" id="delete-server-item" style="float:left;" value="Delete">
+                    <input type="button" class="btn btn-danger btn-edit" id="purge-server-item" style="float:left;" value="Purge">
+                    <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $('#server-config-modal').unbind('hidden.bs.modal');
+
+    $('.checkbox-toggle').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
+        } else {
+            $('#'+configToggle).val(0);
+        }
+    });
+
+    function SetURL() {
+        var pms_url = "${server['pms_url']}";
+        var pms_uri = "${server['pms_uri']}";
+        var pms_url_override = $('#pms_url_override').val();
+        if ($('#pms_url_manual_checkbox').is(':checked')) {
+            $('#url').prop('readonly', false);
+            $('#url').val(pms_url_override);
+        } else {
+            $('#url').prop('readonly', true);
+            if ($('#pms_ssl_checkbox').is(':checked')) {
+                $('#url').val(pms_uri);
+            } else {
+                $('#url').val(pms_url);
+            }
+        }
+    }
+    SetURL();
+
+    $('#pms_url_manual_checkbox').change(function () {
+        if ($('#pms_url_manual_checkbox').is(':checked')) {
+        } else {
+            var url = $('#url').val();
+            $('#pms_url_override').val(url);
+        }
+        SetURL();
+    });
+
+    $('#pms_ssl_checkbox').change(function () {
+        SetURL();
+    });
+
+    function PMSCloudCheck() {
+        if ($('#pms_is_cloud').val() === "1") {
+            $('#pms_url_manual').prop('checked', false).prop('disabled', true);
+            $('#monitor_pms_updates').prop('checked', false).prop('disabled', true);
+            $('#pms_update_options').hide();
+            $('#monitor_remote_access').prop('checked', false).prop('disabled', true);
+            $('#cloudManualConnection').show();
+            $('#cloudMonitorUpdates').show();
+            $('#cloudMonitorRemoteAccess').show();
+            $('#remoteAccessCheck').hide();
+        } else {
+            $('#cloudManualConnection').hide();
+            $('#cloudMonitorUpdates').hide();
+            $('#cloudMonitorRemoteAccess').hide();
+            remoteAccessEnabledCheck()
+        }
+    }
+    PMSCloudCheck();
+
+    function advancedSettings() {
+        if (${config['show_advanced_settings']}) {
+            $('.advanced-setting').show();
+        } else {
+            $('.advanced-setting').hide();
+        }
+    }
+    advancedSettings()
+
+    $( ".pms-settings" ).change(function() {
+        serverChanged = true;
+        $("#server_changed").prop('checked', true);
+    });
+
+
+    function saveServer() {
+        if ($("#set_server_config").parsley().validate()) {
+            doAjaxCall('set_server_config', $(this), 'tabs', true, true, saveCallback);
+            return false;
+        } else {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+        }
+    }
+
+    $('.save-button').click(function() {
+        saveServer();
+    });
+
+    function reloadModal() {
+        var server_id = document.getElementById('server_id').value;
+        loadServerConfig(server_id);
+    }
+
+    function saveCallback(jqXHR) {
+        if (jqXHR) {
+            var result = $.parseJSON(jqXHR.responseText);
+            var msg = result.message;
+            if (result.result == 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                getSchedulerTable()
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+            }
+        }
+    }
+
+    function remoteAccessEnabledCheck() {
+        $.ajax({
+            url: 'get_server_pref',
+            data: { server_id: ${server['id']},
+                    pref: 'PublishServerOnPlexOnlineKey' },
+            async: true,
+            success: function(data) {
+                if (data === 'false' || data === '0') {
+                    $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
+                    $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
+                }
+            }
+        });
+    }
+    remoteAccessEnabledCheck();
+
+    // Load PMS downloads
+    function loadUpdateDistros() {
+        var update_params_ajax = $.getJSON('get_server_update_params', {server_id: ${server['id']}}, function (data) { return data; });
+
+        $.when(update_params_ajax).done(function() {
+            var update_params = update_params_ajax.responseJSON;
+
+            var plexpass = update_params.plexpass;
+            var platform = update_params.pms_platform;
+            var update_channel = update_params.pms_update_channel;
+            var update_distro = update_params.pms_update_distro;
+            var update_distro_build = update_params.pms_update_distro_build;
+            var plex_update_channel = update_params.plex_update_channel;
+
+            $('#pms_update_channel option[value=beta]').remove();
+            if (plexpass) {
+                var selected = (update_channel == 'beta') ? true : false;
+                $('#pms_update_channel')
+                    .append($('<option></option>')
+                    .text('Beta')
+                    .val('beta')
+                    .prop('selected', selected));
+            }
+
+            $.ajax({
+                url: 'https://plex.tv/api/downloads/1.json?channel=' + plex_update_channel,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
+                },
+                success: function (downloads) {
+                    var platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+                    if (platform_downloads) {
+                        $("#pms_update_distro_build option").remove();
+                        $.each(platform_downloads.releases, function (index, item) {
+                            var label = (platform_downloads.releases.length === 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                            var selected = (item.distro === update_distro && item.build === update_distro_build) ? true : false;
+                            $('#pms_update_distro_build')
+                                    .append($('<option></option>')
+                                            .text(label)
+                                            .val(item.build)
+                                            .attr('data-distro', item.distro)
+                                            .prop('selected', selected));
+                        });
+                        $('#pms_update_distro').val($('#pms_update_distro_build option:selected').data('distro'))
+                    }
+                }
+            });
+        });
+    }
+    loadUpdateDistros();
+
+    $('#pms_update_distro_build').change(function () {
+        var distro = $("option:selected", this).data('distro')
+        $('#pms_update_distro').val(distro)
+    });
+
+    $('#test_pms_web_button').on('click', function(){
+        var pms_web_url = $.trim($("#pms_web_url").val());
+        window.open(pms_web_url, '_blank');
+    });
+
+    document.getElementById("rclone_monitoring_options").addEventListener("click", function(){
+        $("#test_rclone_button").text("Test rclone Monitor");
+        $("#test_rclone_button").removeClass("btn-success btn-danger");
+    });
+
+    function rcloneMountCheck() {
+        if (${config['monitor_rclone']}) {
+            $('.server_monitor_rclone').show();
+            initConfigCheckbox('#monitor_rclone_mount_checkbox');
+        } else {
+            $('.server_monitor_rclone').hide();
+        }
+    }
+    rcloneMountCheck();
+
+    initConfigCheckbox('#rclone_ssl_checkbox');
+
+    function setRcloneMonitoringOptions() {
+        if ($("#monitor_rclone_mount_checkbox").is(":checked")) {
+            $("#rclone_mountdir").attr('required', true);
+            $("#rclone_tmpdir").attr('required', true);
+            $("#rclone_port").attr('required', true);
+            $("#rclone_testfile").attr('required', true);
+        } else {
+            $("#rclone_mountdir").attr('required', false);
+            $("#rclone_tmpdir").attr('required', false);
+            $("#rclone_port").attr('required', false);
+            $("#rclone_testfile").attr('required', false);
+        }
+    }
+    setRcloneMonitoringOptions();
+
+    $("#rclone_monitoring_options").parsley();
+    $("#monitor_rclone_mount_checkbox").on('click', function () {
+        setRcloneMonitoringOptions();
+    })
+
+    $('#test_rclone_button').on('click', function(){
+        if ($("#set_server_config").parsley().validate()) {
+            $.ajax({
+                url: 'test_rclone',
+                data: { server_id: ${server['id']},
+                        rclone_user: document.getElementById("rclone_user").value,
+                        rclone_pass: document.getElementById("rclone_pass").value,
+                        rclone_port: document.getElementById("rclone_port").value,
+                        rclone_ssl: document.getElementById("rclone_ssl").value,
+                        rclone_ssl_hostname: document.getElementById("rclone_ssl_hostname").value,
+                        rclone_mountdir: document.getElementById("rclone_mountdir").value,
+                        rclone_tmpdir: document.getElementById("rclone_tmpdir").value,
+                        rclone_testfile: document.getElementById("rclone_testfile").value,
+                       },
+                complete: function(data) {
+                    rcloneStatus = $.parseJSON(data.responseText);
+                    if (rcloneStatus.result === "success") {
+                        $("#test_rclone_button").text("Success!");
+                        $("#test_rclone_button").addClass("btn-success");
+                    } else {
+                        $("#test_rclone_button").text("Monitor Test Failed");
+                        $("#test_rclone_button").addClass("btn-danger");
+                    }
+                }
+            });
+        }
+    });
+
+    $('#delete-server-item').click(function () {
+        var msg = 'Are you sure you want to delete the <strong>${server["pms_name"]}</strong> server?<br>This will <strong>keep</strong> the server history and place the server in deleted status.<br>This is irreversible!';
+        var url = 'delete_server';
+        confirmAjaxCall(url, msg, { server_id: '${server["id"]}', keep_history: true }, null,
+                function deleteServerCallback() {
+                    $('#server-config-modal').modal('hide');
+                    config_servers_table = $('#config-servers-table').DataTable();
+                    config_servers_table.ajax.reload();
+                    getLibrarySections();
+                }
+         );
+    });
+
+    $('#purge-server-item').click(function () {
+        var msg = 'Are you sure you want to purge the <strong>${server["pms_name"]}</strong> server?<br>This will <strong>delete</strong> the server history and delete the server from the database.<br>This is irreversible!';
+        var url = 'delete_server';
+        confirmAjaxCall(url, msg, { server_id: '${server["id"]}', keep_history: false }, null,
+                function deleteServerCallback() {
+                    $('#server-config-modal').modal('hide');
+                    config_servers_table = $('#config-servers-table').DataTable();
+                    config_servers_table.ajax.reload();
+                    getLibrarySections();
+                }
+         );
+    });
+
+initConfigCheckbox('#monitor_pms_updates_checkbox');
+</script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="server-config-modal-header">Error</h4>
+        </div>
+        <div class="modal-body" style="text-align: center">
+            <strong>
+                <i class="fa fa-exclamation-circle"></i> Failed to retrieve server configuration. Check the <a href="logs">logs</a> for more info.
+            </strong>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif

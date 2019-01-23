@@ -45,12 +45,12 @@ DOCUMENTATION :: END
                 <ul class="item-children-instance list-unstyled">
                     % for child in data['results_list'][media_type]:
                     <li>
-                        <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
+                        <a href="info?server_id=${child['server_id']}&rating_key=${child['rating_key']}" title="${child['title']}">
                             <div class="item-children-poster">
                                 % if media_type in ('artist', 'album'):
-                                <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
+                                <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?server_id=${child['server_id']}&img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                                 % else:
-                                <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?server_id=${child['server_id']}&img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
                                 % endif
                                 % if _session['user_group'] == 'admin':
                                 <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
@@ -60,22 +60,22 @@ DOCUMENTATION :: END
                         % if media_type == 'artist':
                         <div class="item-children-instance-text-wrapper cover-item">
                             <h3>
-                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                                 <a href="info?server_id=${child['server_id']}&rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
                             </h3>
                         </div>
                         % elif media_type == 'album':
                         <div class="item-children-instance-text-wrapper cover-item">
                             <h3>
-                                 <a href="info?rating_key=${child['parent_rating_key']}" title="${child['parent_title']}">${child['parent_title']}</a>
+                                 <a href="info?server_id=${child['server_id']}&rating_key=${child['parent_rating_key']}" title="${child['parent_title']}">${child['parent_title']}</a>
                             </h3>
                             <h3>
-                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                                 <a href="info?server_id=${child['server_id']}&rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
                             </h3>
                         </div>
                         % else:
                         <div class="item-children-instance-text-wrapper poster-item">
                             <h3>
-                                 <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                                 <a href="info?server_id=${child['server_id']}&rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
                             </h3>
                             <h3 class="text-muted">${child['year']}</h3>
                         </div>

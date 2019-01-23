@@ -73,7 +73,7 @@ DOCUMENTATION :: END
     <div class="dashboard-stats-container">
         % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
         % if row0['art']:
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['art']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
         % else:
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);">
         % endif
@@ -85,13 +85,13 @@ DOCUMENTATION :: END
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
             <div class="dashboard-stats-poster-container hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover);"></div>
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover);"></div>
                 % endif
                 <% height, type = ('300', 'cover') if stat_id in ('top_music', 'popular_music') else ('450', 'poster') %>
-                <% href = 'info?rating_key={}'.format(row0['rating_key']) if row0['rating_key'] else '#' %>
+                <% href = 'info?server_id={}'.format(row0['server_id']) + '&rating_key={}'.format(row0['rating_key']) if row0['rating_key'] else '#' %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
                     % if row0['thumb']:
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=${height}&fallback=${type});"></div>
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['thumb']}&width=300&height=${height}&fallback=${type});"></div>
                     % else:
                     <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(images/${type}.png);"></div>
                     % endif
@@ -126,14 +126,14 @@ DOCUMENTATION :: END
                     <div class="dashboard-stats-info scoller-content">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
-                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-server_id="${row.get('server_id')}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-                                    <% href = 'info?rating_key={}'.format(row['rating_key']) if row['rating_key'] else '#' %>
+                                    <% href = 'info?server_id={}'.format(row['server_id']) + '&rating_key={}'.format(row['rating_key']) if row['rating_key'] else '#' %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
                                     </a>
@@ -179,6 +179,7 @@ DOCUMENTATION :: END
         var thumb = $(elem).data('thumb');
         var user_id = $(elem).data('user_id');
         var user_thumb = $(elem).data('user_thumb');
+        var server_id = $(elem).data('server_id');
         var rating_key = $(elem).data('rating_key');
         var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) ? [300, 'cover'] : [450, 'poster'];
         var href;
@@ -202,19 +203,19 @@ DOCUMENTATION :: END
             }).addClass('platform-' + $(elem).data('platform') + '-rgba');
         } else {
             if (rating_key) {
-                href = 'info?rating_key=' + rating_key;
+                href = 'info?server_id=' + server_id + '&rating_key=' + rating_key;
             } else {
                 href = '#';
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
             if (art) {
-                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art)');
+                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art)');
             } else {
                 $('#stats-background-' + stat_id).css('background-image', 'url(images/art.png)');
             }
             if (thumb) {
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&opacity=60&background=282828&blur=3&fallback=' + fallback + ')');
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + thumb + '&width=300&height=' + height + '&opacity=60&background=282828&blur=3&fallback=' + fallback + ')');
             } else {
                 $('#stats-thumb-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
                 $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(images/' + fallback + '.png)');

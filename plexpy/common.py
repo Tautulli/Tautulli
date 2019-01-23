@@ -39,6 +39,22 @@ ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
 ONLINE_ART = "https://tautulli.com/images/art.png"
 
+"""
+ Guest Accees Levels
+  0 - No Guest Access
+  1 - Guest can see only their own viewing history for servers and sections that are shared to them
+  3 - PowerGuest can see all users, all user history, and all sections on the servers that are shared to them
+  5 - SuperGuest can see all users, all user history, and all servers. But no access to settings.
+  9 - Admin has access to everything 
+"""
+GUEST_ACCESS_LEVELS = {
+    0: 'None',
+    1: 'Guest',
+    3: 'PowerGuest',
+    5: 'SuperGuest',
+    9: 'Admin',
+}
+
 MEDIA_TYPE_HEADERS = {
     'movie': 'Movies',
     'show': 'TV Shows',
@@ -190,20 +206,6 @@ EXTRA_TYPES = {
     '10': 'Featurette',
     '11': 'Short'
 }
-
-SCHEDULER_LIST = [
-    'Check GitHub for updates',
-    'Check for server response',
-    'Check for active sessions',
-    'Check for recently added items',
-    'Check for Plex updates',
-    'Check for Plex remote access',
-    'Refresh users list',
-    'Refresh libraries list',
-    'Refresh Plex server URLs',
-    'Backup Tautulli database',
-    'Backup Tautulli config'
-]
 
 DATE_TIME_FORMATS = [
     {

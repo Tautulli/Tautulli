@@ -38,7 +38,7 @@ DOCUMENTATION :: END
 <div class="container-fluid">
     <div class="row">
         % if data['library_art']:
-        <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['library_art']}&width=1920&height=1080)"></div>
+        <div class="art-face" style="background-image:url(pms_image_proxy?server_id=${data['server_id']}&img=${data['library_art']}&width=1920&height=1080)"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
@@ -48,7 +48,7 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
-                            <li class="active">${data['section_name']}</li>
+                            <li class="active">${data['server_name']} > ${data['section_name']}</li>
                         </ul>
                     </div>
                 </div>
@@ -63,7 +63,7 @@ DOCUMENTATION :: END
                             <div class="library-info-poster-face svg-icon library-${data['section_type']}"></div>
                             % endif
                             <div class="user-info-username">
-                                <span class="set-username">${data['section_name']}</span>
+                                <span class="set-username">${data['server_name']} > ${data['section_name']}</span>
                                 % if _session['user_group'] == 'admin':
                                 <span id="edit-library-tooltip" data-target="tooltip" title="Edit library details">
                                     <a href="#" data-toggle="modal" data-target="#edit-library-modal" id="toggle-edit-library-modal"><i class="fa fa-pencil"></i></a>
@@ -177,7 +177,7 @@ DOCUMENTATION :: END
                                         <div class="header-bar">
                                             <span>
                                                 <i class="fa fa-history"></i> History for <strong>
-                                                    <span class="set-username">${data['section_name']}</span>
+                                                    <span class="set-username">${data['server_name']} > ${data['section_name']}</span>
                                                 </strong>
                                             </span>
                                         </div>
@@ -197,21 +197,21 @@ DOCUMENTATION :: END
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display history_table" id="history_table-SID-${data['section_id']}" width="100%">
+                                        <table class="display history_table" id="history_table-SID-${data['library_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="delete">Delete</th>
-                                                    <th align="left" id="date">Date</th>
-                                                    <th align="left" id="friendly_name">User</th>
-                                                    <th align="left" id="ip_address">IP Address</th>
-                                                    <th align="left" id="platform">Platform</th>
-                                                    <th align="left" id="player">Player</th>
-                                                    <th align="left" id="title">Title</th>
-                                                    <th align="left" id="started">Started</th>
-                                                    <th align="left" id="paused_counter">Paused</th>
-                                                    <th align="left" id="stopped">Stopped</th>
-                                                    <th align="left" id="duration">Duration</th>
-                                                    <th align="left" id="percent_complete"></th>
+                                                    <th align="left" class="date" id="date">Date</th>
+                                                    <th align="left" class="friendly_name" id="friendly_name">User</th>
+                                                    <th align="left" class="ip_address" id="ip_address">IP Address</th>
+                                                    <th align="left" class="platform" id="platform">Platform</th>
+                                                    <th align="left" class="player" id="player">Player</th>
+                                                    <th align="left" class="title" id="title">Title</th>
+                                                    <th align="left" class="started" id="started">Started</th>
+                                                    <th align="left" class="paused_counter" id="paused_counter">Paused</th>
+                                                    <th align="left" class="stopped" id="stopped">Stopped</th>
+                                                    <th align="left" class="duration" id="duration">Duration</th>
+                                                    <th align="left" class="watched_status" id="percent_complete"></th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -238,7 +238,7 @@ DOCUMENTATION :: END
                                         <div class="header-bar">
                                             <span>
                                                 <i class="fa fa-history"></i> Media Info for <strong>
-                                                    <span class="set-username">${data['section_name']}</span>
+                                                    <span class="set-username">${data['server_name']} > ${data['section_name']}</span>
                                                 </strong>
                                             </span>
                                         </div>
@@ -260,7 +260,7 @@ DOCUMENTATION :: END
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display media_info_table" id="media_info_table-SID-${data['section_id']}" width="100%">
+                                        <table class="display media_info_table" id="media_info_table-SID-${data['library_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="added_at">Added At</th>
@@ -348,10 +348,20 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <script>
+    % if str(data['library_id']).isdigit():
+    var library_id = ${data['library_id']};
+    % else:
+    var library_id = null;
+    % endif
     % if str(data['section_id']).isdigit():
     var section_id = ${data['section_id']};
     % else:
     var section_id = null;
+    % endif
+    % if str(data['server_id']).isdigit():
+    var server_id = ${data['server_id']};
+    % else:
+    var server_id = null;
     % endif
     var section_name = '${data['section_name'].replace("'", "\\'")}';
     var refresh_table = false;
@@ -378,17 +388,18 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
+                    server_id: server_id,
                     section_id: section_id,
                     user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }
         };
-        history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
+        history_table = $('#history_table-SID-${data["library_id"]}').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
         $(colvis.button()).appendTo('#button-bar-history');
 
-        clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
+        clearSearchButton('history_table-SID-${data["library_id"]}', history_table);
     }
 
     $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
@@ -410,17 +421,17 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    section_id: section_id,
+                    library_id: library_id,
                     refresh: refresh_table
                 };
             }
         };
-        media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
+        media_info_table = $('#media_info_table-SID-${data["library_id"]}').DataTable(media_info_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('#button-bar-media-info');
 
-        clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
+        clearSearchButton('media_info_table-SID-${data["library_id"]}', media_info_table);
     }
 
     $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
@@ -444,7 +455,7 @@ DOCUMENTATION :: END
         $("#edit-library-tooltip").tooltip('hide');
         $.ajax({
             url: 'edit_library_dialog',
-            data: { section_id: section_id },
+            data: { library_id: library_id },
             cache: false,
             async: true,
             complete: function(xhr, status) {
@@ -498,7 +509,7 @@ DOCUMENTATION :: END
             url: 'library_recently_watched',
             async: true,
             data: {
-                section_id: section_id,
+                library_id: library_id,
                 limit: 50
             },
             complete: function(xhr, status) {
@@ -514,7 +525,7 @@ DOCUMENTATION :: END
             url: 'library_recently_added',
             async: true,
             data: {
-                section_id: section_id,
+                library_id: library_id,
                 limit: 50
             },
             complete: function(xhr, status) {
@@ -561,7 +572,7 @@ DOCUMENTATION :: END
         e.preventDefault();
         var scroller = $("#recently-watched-row-scroller");
         var containerWidth = $("#library-recently-watched").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+        var scrollAmount = $(this).data("library_id") * parseInt(containerWidth / 175) * 175;
         var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
 
         leftTotalWatched = Math.max(Math.min(leftTotalWatched + scrollAmount, 0), leftMax);
@@ -585,7 +596,7 @@ DOCUMENTATION :: END
         e.preventDefault();
         var scroller = $("#recently-added-row-scroller");
         var containerWidth = $("#library-recently-added").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+        var scrollAmount = $(this).data("library_id") * parseInt(containerWidth / 175) * 175;
         var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
 
         leftTotalAdded = Math.max(Math.min(leftTotalAdded + scrollAmount, 0), leftMax);
@@ -622,7 +633,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'library_watch_time_stats',
             async: true,
-            data: { section_id: section_id },
+            data: { library_id: library_id },
             complete: function(xhr, status) {
                 $("#library-time-stats").html(xhr.responseText);
             }
@@ -632,7 +643,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'library_user_stats',
             async: true,
-            data: { section_id: section_id },
+            data: { library_id: library_id },
             complete: function(xhr, status) {
                 $("#library-user-stats").html(xhr.responseText);
             }

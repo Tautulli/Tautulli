@@ -51,7 +51,7 @@ table.display {
 }
 table.display thead th {
 	white-space:nowrap;
-	padding: 0px 0px 0px 5px;
+	padding: 5px 5px 5px 5px;
 	cursor: pointer;
 	color: #999;
 	background-color: #212121;
@@ -64,7 +64,6 @@ table.display thead .sorting,
 table.display thead .sorting_asc,
 table.display thead .sorting_desc {
 	cursor: pointer;
-	*cursor: hand;
 	height: 35px;
 }
 table.display thead .sorting,
@@ -84,13 +83,14 @@ table.display tr.heading2 td {
 	border-bottom: 1px solid #aaa;
 }
 table.display td {
-	padding: 5px 0 5px 5px;
+	padding: 5px 5px 5px 5px;
 }
 table.display td.title {
 	padding: 5px;
 	white-space: normal;
 	min-width: 400px;
 }
+table.display th.center,
 table.display td.center {
 	text-align: center;
 }
@@ -379,7 +379,7 @@ table.display tr.shown + tr .pagination > li > a:hover {
 }
 table.display tr.odd td,
 table.display tr.even td {
-    padding: 5px 10px !important;
+    padding: 5px 5px 5px 5px;
 }
 table[id^='history_child'] {
     margin-top: 0;

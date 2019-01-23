@@ -47,6 +47,11 @@ sync_table_options = {
         },
         {
             "targets": [2],
+            "data": "server_name",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [3],
             "data": "user",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -62,12 +67,12 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [3],
+            "targets": [4],
             "data": "sync_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['rating_key']) {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?server_id=' + rowData['server_id'] + '&rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     } else {
                         $(td).html(cellData);
                     }
@@ -76,7 +81,7 @@ sync_table_options = {
             "className": "datatable-wrap"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "metadata_type",
             "render": function ( data, type, full ) {
                 return data.toProperCase();
@@ -84,17 +89,17 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "platform",
             "className": "no-wrap"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data": "device_name",
             "className": "no-wrap"
         },
         {
-            "targets": [7],
+            "targets": [8],
             "data": "total_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData > 0 ) {
@@ -107,22 +112,22 @@ sync_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": [9],
             "data": "item_count",
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data": "item_complete_count",
             "className": "no-wrap"
         },
         {
-            "targets": [10],
+            "targets": [11],
             "data": "item_downloaded_count",
             "className": "no-wrap"
         },
         {
-            "targets": [11],
+            "targets": [12],
             "data": "item_downloaded_percent_complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['item_count'] > 0 ) {

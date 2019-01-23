@@ -40,7 +40,7 @@
 
 /* WIZARD NAVIGATION */
 .wizard-steps {
-	width: 28%;
+	width: 25%;
 	background-color: rgba(255,255,255,0.035);
 	border-bottom-left-radius: 6px;
 	position: relative;
@@ -114,7 +114,7 @@ li.wizard-nav-item {
 }
 
 .wizard-card-container {
-	margin-left: 28%;
+	margin-left: 25%;
 }
 
 /* WIZARD CARDS */

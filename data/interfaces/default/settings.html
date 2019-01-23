@@ -19,6 +19,7 @@
 <%def name="headerIncludes()">
 <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
 <link href="${http_root}css/selectize.min.css" rel="stylesheet" />
+<link href="${http_root}css/tautulli-dataTables.css" rel="stylesheet" />
 </%def>
 
 <%def name="body()">
@@ -52,7 +53,7 @@
                 <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
                 <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
                 <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-plex_media_servers" aria-controls="tabs-plex_media_servers" role="tab" data-toggle="tab">Plex Media Servers</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
@@ -298,6 +299,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <ul class="list-unstyled" id="sortable_home_sections" data-parsley-trigger="change">
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-server_status" name="hsec-server_status" value="server_status"> Server Status
+                                        </label>
+                                    </li>
                                     <li class="card card-sortable">
                                         <div class="card-handle"><i class="fa fa-bars"></i></div>
                                         <label>
@@ -654,112 +661,49 @@
 
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
+                    <div role="tabpanel" class="tab-pane" id="tabs-plex_media_servers">
 
                         <div class="padded-header">
-                            <h3 id="resources-xml">Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
+                            <h3 id="resources-xml">Plex Media Server Settings</h3>
                         </div>
 
-                        <div class="form-group has-feedback" id="pms_ip_group">
-                            <label for="pms_ip_selectize">Plex IP Address or Hostname</label>
-                            <div class="row">
-                                <div class="col-md-9" id="selectize-pms-ip-container">
-                                    <div class="input-group">
-                                        <select class="form-control pms-settings selectize-pms-ip" id="pms_ip_selectize" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
-                                            <option value="${config['pms_ip']}:${config['pms_port']}"
-                                                    data-identifier="${config['pms_identifier']}"
-                                                    data-ip="${config['pms_ip']}"
-                                                    data-port="${config['pms_port']}"
-                                                    data-local="${int(not int(config['pms_is_remote']))}"
-                                                    data-ssl="${config['pms_ssl']}"
-                                                    data-is_cloud="${config['pms_is_cloud']}"
-                                                    data-label="${config['pms_name'] or 'Local'}"
-                                                    selected>${config['pms_ip']}</option>
-                                        </select>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
-                                        </span>
+                        <div id="plexpy-servers-table">
+                            <div class='container-fluid'>
+                                <div class="table-card-header">
+                                    <div class="header-bar">
+                                        <span id="servers-xml"><i class="fa fa-server"></i>&nbsp;Servers</span>
                                     </div>
-                                    <span class="form-control-feedback" id="pms_verify" aria-hidden="true" style="display: none; right: 110px;"></span>
-                                </div>
-                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="pms_port">Plex Port</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input data-parsley-type="integer" class="form-control pms-settings" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
-                                </div>
-                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Port that Plex Media Server is listening on.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
-                                <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
-                            </label>
-                            <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use SSL
-                                <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
-                            </label>
-                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="pms_url">Plex Server URL</label>
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <input type="text" class="form-control" id="pms_url" name="pms_url" value="${config['pms_url']}" size="30" readonly>
-                                </div>
-                            </div>
-                            <p class="help-block">
-                                The server URL that Tautulli will use to connect to your Plex server. Retrieved automatically.
-                            </p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label for="pms_url">Plex Server Identifier</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}" size="30" readonly>
-                                </div>
-                            </div>
-                            <p class="help-block">
-                                The unique identifier for your Plex server. Retrieved automatically.
-                            </p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" class="pms-settings" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
-                            </label>
-                            <span id="cloudManualConnection" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label for="pms_web_url">Plex Web URL</label>
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_web_url" name="pms_web_url" value="${config['pms_web_url']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$|^https:\/\/app.plex.tv\/desktop$" data-parsley-errors-container="#pms_web_url_error"  data-parsley-error-message="Invalid Plex Web URL">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="test_pms_web_button">Test URL</button>
-                                        </span>
+                                    <div class="button-bar">
+                                        <div class="btn-group">
+                                            <button class="btn btn-dark refresh-servers-button" id="refresh-servers-list"><i class="fa fa-refresh"></i> Refresh Servers</button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div id="pms_web_url_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">
-                                Optional: Manually override the Plex Web URL used for click-through links on the media info pages and notifications. Default <strong>https://app.plex.tv/desktop</strong>.
-                            </p>
-                        </div>
+                                <div class="table-card-back">
+                                    <table class="config-servers-table display" id="config-servers-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="status_tooltip"></th>
+                                                <th class="pms_is_enabled">Enabled</th>
+                                                <th class="pms_name">Server</th>
+                                                <th class="pms_ip">Hostname</th>
+                                                <th class="pms_port">Port</th>
+                                                <th class="pms_is_remote">Remote</th>
+                                                <th class="pms_is_cloud">Cloud</th>
+                                                <th class="pms_is_deleted">Deleted</th>
+                                                <th class="pms_version">PMS Version</th>
+                                                <th class="pms_platform">Platform</th>
+                                                <th class="config-settings"></th>
+                                            </tr>
+                                        </thead>
 
-                        <input type="hidden" id="pms_ip" name="pms_ip" value="${config['pms_ip']}">
-                        <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <br>
+                        </div>
 
                         <div class="form-group advanced-setting">
                             <label for="pms_logs_folder">Logs Folder</label>
@@ -789,42 +733,25 @@
                             <h3>Server Monitoring</h3>
                         </div>
 
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
-                            </label>
-                            <span id="cloudMonitorUpdates" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
-                        </div>
-                        <div id="pms_update_options">
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="pms_update_channel">Update Channel</label>
-                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
-                                            <option value="plex">Use Server Setting</option>
-                                            <option value="public">Public</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <label for="pms_update_distro_build">Release</label>
-                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
-                                        </select>
-                                        <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
-                                    </div>
+                        <div class="form-group advanced-setting">
+                            <label for="refresh_servers_interval">Servers List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_servers_interval" name="refresh_servers_interval" value="${config['refresh_servers_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_servers_interval_error" required>
                                 </div>
+                                <div id="refresh_servers_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
-                            </label>
-                            <span id="cloudMonitorRemoteAccess" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            <span id="remoteAccessCheck" class="settings-warning"></span>
-                            <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated servers list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
                         </div>
 
-                        <div class="form-group advanced-setting">
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="refresh_servers_on_startup" name="refresh_servers_on_startup" value="1" ${config['refresh_servers_on_startup']}> Refresh Servers List on Startup
+                            </label>
+                            <p class="help-block">Refresh the servers list when Tautulli starts.</p>
+                        </div>
+
+                        <div data-group="refresh_users_interval" class="form-group advanced-setting">
                             <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
                                 <div class="col-md-2">
@@ -834,28 +761,19 @@
                             </div>
                             <p class="help-block">The interval (in hours) Tautulli will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
                         </div>
-                        <div class="checkbox advanced-setting">
+
+                        <div data-group="refresh_users_on_startup" class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1"  ${'checked' if config['refresh_users_on_startup'] else ''}> Refresh Users List on Startup
                             </label>
                             <p class="help-block">Refresh the users list when Tautulli starts.</p>
                         </div>
 
-                        <div class="form-group advanced-setting">
-                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
-                                </div>
-                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in hours) Tautulli will request an updated libraries list from your Plex Media Server. Minimum 1, maximum 24, default 12.</p>
-                        </div>
-                        <div class="checkbox advanced-setting">
+                        <div data-group="monitor_rclone" class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
+                                <input type="checkbox" id="monitor_rclone" name="monitor_rclone" value="1"  ${'checked' if config['monitor_rclone'] else ''}> Enable rclone Mount Monitoring
                             </label>
-                            <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
+                            <p class="help-block">Activate the rclone mount monitoring feature. With this activated, you can set the rclone mount monitoring parameters in the server configuration.</p>
                         </div>
 
                         <div class="padded-header">
@@ -881,7 +799,6 @@
                         <input type="hidden" id="pms_uuid" name="pms_uuid" value="${config['pms_uuid']}">
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-
                     </div>
 
                     <div role="tabpanel" class="tab-pane" id="tabs-notifications">
@@ -1174,7 +1091,7 @@
                             <br>
                         </div>
 
-                    </div>
+                     </div>
 
                     <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
 
@@ -1206,6 +1123,7 @@
                         <div class="btn-group">
                             <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
                             <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="tautulli">Tautulli</button>
                         </div>
 
                         <div class="padded-header">
@@ -1451,6 +1369,7 @@
         </div>
     </div>
 </div>
+<div id="server-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="server-config-modal"></div>
 <div id="notifier-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notifier-config-modal"></div>
 <div id="newsletter-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="newsletter-config-modal"></div>
 <div id="notify-text-sub-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
@@ -1735,6 +1654,11 @@
 <script src="${http_root}js/selectize.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
 <script>
     function getConfigurationTable() {
         $.ajax({
@@ -1762,6 +1686,63 @@
             }
         });
     }
+
+    $('#refresh-servers-list').on('click', function () {
+        $('#refresh-servers-list > .fa-refresh').addClass('fa-spin');
+        document.getElementById('config-servers-table').dataset.loader = 'Refreshing Servers...';
+        doAjaxCall('refresh_servers_table', '#config-servers-table', '', true, true,
+                function refreshServersTable() {
+                    config_servers_table.ajax.reload();
+                    config_servers_table.draw;
+                    $('#refresh-servers-list > .fa-refresh').removeClass('fa-spin');
+                }
+        );
+        return false;
+    });
+
+    function getServersTable() {
+        servers_table_options.ajax = {url: 'get_servers_table'};
+        servers_table_options.order = [[1, "desc"], [2, "asc"]];
+        config_servers_table = $('#config-servers-table').DataTable(servers_table_options);
+        config_servers_table.draw;
+        $('.trigger-tooltip').tooltip();
+    }
+
+    function loadServerConfig(server_id) {
+        var show_advanced_settings = document.getElementById('show_advanced_settings').value;
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Server Configuration', false);
+        $.ajax({
+            url: 'get_server_config_modal',
+            data: { server_id: server_id,
+                    show_advanced_settings: show_advanced_settings
+                   },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#server-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Server Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    // Load server config modal
+    $('#config-servers-table tbody').on('click', 'tr .config-settings', function () {
+        var server_id = this.parentNode.id;
+        if (config_servers_table.row(this).data().pms_is_deleted) {
+            var msg = 'This server is in deleted status. Would you like to un-delete it?';
+            var url = 'undelete_server';
+            confirmAjaxCall(url, msg, { server_id: server_id }, null,
+                function undeleteServerCallback(result) {
+                    if (result.result == 'success') {
+                        config_servers_table.ajax.reload();
+                        getLibrarySections();
+                    }
+                }
+            );
+        } else {
+            loadServerConfig(server_id);
+        }
+    });
 
     function getNotifiersTable() {
         $.ajax({
@@ -1838,6 +1819,51 @@
         });
     }
 
+    // Sortable home_library_cards
+    function set_home_library_cards() {
+        var home_library_cards = [];
+        var hlcards = $('[id^=hlcard-]').serializeArray();
+        $.each(hlcards, function(i, card) {
+            home_library_cards.push(card.value);
+        });
+        $('#home_library_cards').val(home_library_cards);
+        $('#home_library_cards').draw;
+    }
+
+    function getLibrarySections() {
+        $.ajax({
+            url: 'get_library_sections',
+            data: { },
+            async: true,
+            complete: function (data) {
+                libraries_info = $.parseJSON(data.responseText);
+                $('#sortable_home_library_cards').empty();
+                libraries_list = libraries_info.library_sections;
+                for (var i in libraries_list) {
+                    var serverName = libraries_list[i].server_name;
+                    var title = libraries_list[i].section_name;
+                    var key = libraries_list[i].library_id;
+                    $('#sortable_home_library_cards').append(
+                        '<li class="card card-sortable" id="card-hlcard-' + key + '">' +
+                            '<div class="card-handle"><i class="fa fa-bars"></i></div>' +
+                            '<label>' +
+                                '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + serverName + ' :: ' + title +
+                            '</label>' +
+                        '</li>'
+                    );
+                    document.getElementById('hlcard-' + key).dataset.server_id = libraries_list[i].server_id;
+                }
+                var config_cards = libraries_info.home_library_cards;
+                config_cards.reverse().forEach(function (item) {
+                    $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
+                    $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
+                });
+                $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
+                set_home_library_cards()
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -1854,9 +1880,10 @@ $(document).ready(function() {
 
     // Global Variables
     settingsChanged = false;
-    serverChanged = false;
+    serversChanged = false;
     authChanged = false;
     httpChanged = false;
+    plexTokenChanged = false;
     directoryChanged = false;
 
     // Alert if leaving the page without saving changes to settings
@@ -1867,29 +1894,22 @@ $(document).ready(function() {
         }
     }
 
-    function preSaveChecks(_callback) {
-        if (serverChanged) {
-            verifyServer();
-        }
-        verifyPMSWebURL();
-
-        if (_callback) {
-            _callback();
-        }
-    }
-
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
+        if (plexTokenChanged) {
+            window.location.href = '/settings#tab_tabs-plex_media_servers';
+        }
         if (authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
         getConfigurationTable();
+        getServersTable();
+        getLibrarySections();
         getSchedulerTable();
         getNotifiersTable();
         getNewslettersTable();
         getMobileDevicesTable();
-        loadUpdateDistros();
         settingsChanged = false;
     }
 
@@ -1917,14 +1937,13 @@ $(document).ready(function() {
     }
 
     $('.save-button').click(function() {
-        preSaveChecks(function () { saveSettings() });
+        saveSettings();
     });
 
     initConfigCheckbox('#api_enabled');
     initConfigCheckbox('#enable_https');
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
-    initConfigCheckbox('#monitor_pms_updates');
     initConfigCheckbox('#newsletter_self_hosted');
 
     $('#menu_link_shutdown').click(function() {
@@ -1969,6 +1988,8 @@ $(document).ready(function() {
 
     advancedSettings();
     getConfigurationTable();
+    getServersTable();
+    getLibrarySections();
     getSchedulerTable();
     getNotifiersTable();
     getNewslettersTable();
@@ -2064,239 +2085,6 @@ $(document).ready(function() {
         directoryChanged = true;
     });
 
-    $( ".pms-settings" ).change(function() {
-        serverChanged = true;
-        $("#server_changed").prop('checked', true);
-        $("#pms_verify").hide();
-    });
-
-    $('.checkbox-toggle').click(function () {
-        var configToggle = $(this).data('id');
-        if ($(this).is(':checked')) {
-            $('#'+configToggle).val(1);
-        } else {
-            $('#'+configToggle).val(0);
-        }
-    });
-
-    var $select_pms = $('#pms_ip_selectize').selectize({
-        createOnBlur: true,
-        openOnFocus: true,
-        maxItems: 1,
-        closeAfterSelect: true,
-        sortField: 'label',
-        searchField: ['label', 'value'],
-        inputClass: 'form-control selectize-input',
-        dropdownParent: '#selectize-pms-ip-container',
-        render: {
-            item: function (item, escape) {
-                if (!item.label) {
-                    $.extend(item,
-                        $(this.revertSettings.$children)
-                             .filter('[value="' + item.value + '"]').data()
-                    );
-                }
-                var label = item.label || item.value;
-                var caption = item.label ? item.ip : null;
-                return '<div data-identifier="' + item.clientIdentifier +
-                        '" data-ip="' + item.ip +
-                        '" data-port="' + item.port +
-                        '" data-local="' + item.local +
-                        '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
-                        '" data-label="' + item.label + '">' +
-                        '<span class="item-text">' + escape(label) + '</span>' +
-                        (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
-                        '</div>';
-            },
-            option: function (item, escape) {
-                var label = item.label || item.value;
-                var caption = item.label ? item.value : null;
-                return '<div data-identifier="' + item.clientIdentifier +
-                        '" data-ip="' + item.ip +
-                        '" data-port="' + item.port +
-                        '" data-local="' + item.local +
-                        '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
-                        '" data-label="' + item.label + '">' +
-                        escape(label) +
-                        (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
-                        '</div>';
-            }
-        },
-        create: function(input) {
-            return {label: '', value: input};
-        },
-        onInitialize: function () {
-            var s = this;
-            this.revertSettings.$children.each(function () {
-                $.extend(s.options[this.value], $(this).data());
-            });
-        },
-        onChange: function (item) {
-            var pms_ip_selected = this.getItem(item)[0];
-            var identifier = $(pms_ip_selected).data('identifier');
-            var ip = $(pms_ip_selected).data('ip');
-            var port = $(pms_ip_selected).data('port');
-            var local = $(pms_ip_selected).data('local');
-            var ssl = $(pms_ip_selected).data('ssl');
-            var is_cloud = $(pms_ip_selected).data('is_cloud');
-            var value = $(pms_ip_selected).data('value');
-
-            $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
-            $('#pms_ip').val(ip !== 'undefined' ? ip : value);
-            $('#pms_port').val(port !== 'undefined' ? port : 32400);
-            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
-            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
-            $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
-            $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
-            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
-            $('#pms_url_manual').prop('checked', false);
-            $('#pms_url').val('Please verify your server above to retrieve the URL');
-            PMSCloudCheck();
-        },
-        onDropdownOpen: function() {
-            this.clear();
-        }
-    });
-    var select_pms = $select_pms[0].selectize;
-
-    function getServerOptions(token) {
-        $.ajax({
-            url: 'discover',
-            data: {
-                token: token
-            },
-            success: function (result) {
-                if (result) {
-                    var existing_ip = $('#pms_ip').val();
-                    var existing_port = $('#pms_port').val();
-                    result.forEach(function (item) {
-                        if (item.ip === existing_ip && item.port === existing_port) {
-                            select_pms.updateOption(item.value, item);
-                        } else {
-                            select_pms.addOption(item);
-                        }
-                    });
-                }
-            }
-        })
-    }
-    getServerOptions();
-
-    function PMSCloudCheck() {
-        if ($('#pms_is_cloud').val() === "1") {
-            $('#pms_port').val(443).prop('readonly', true);
-            $('#pms_is_remote_checkbox').prop('checked', true).prop('disabled', true);
-            $('#pms_is_remote').val(1);
-            $('#pms_ssl_checkbox').prop('checked', true).prop('disabled', true);
-            $('#pms_ssl').val(1);
-            $('#pms_url_manual').prop('checked', false).prop('disabled', true);
-            $('#monitor_pms_updates').prop('checked', false).prop('disabled', true);
-            $('#pms_update_options').hide();
-            $('#monitor_remote_access').prop('checked', false).prop('disabled', true);
-            $('#cloudManualConnection').show();
-            $('#cloudMonitorUpdates').show();
-            $('#cloudMonitorRemoteAccess').show();
-            $('#remoteAccessCheck').hide();
-        } else {
-            $('#pms_port').prop('readonly', false);
-            $('#pms_is_remote_checkbox').prop('disabled', false);
-            $('#pms_is_remote').val($('#pms_is_remote_checkbox').is(':checked') ? 1 : 0);
-            $('#pms_ssl_checkbox').prop('disabled', false);
-            $('#pms_ssl').val($('#pms_ssl_checkbox').is(':checked') ? 1 : 0);
-            $('#pms_url_manual').prop('disabled', false);
-            $('#monitor_pms_updates').prop('disabled', false);
-            $('#monitor_remote_access').prop('disabled', false);
-            $('#cloudManualConnection').hide();
-            $('#cloudMonitorUpdates').hide();
-            $('#cloudMonitorRemoteAccess').hide();
-            remoteAccessEnabledCheck()
-        }
-    }
-    PMSCloudCheck();
-
-    function verifyServer(_callback) {
-        var pms_ip = $("#pms_ip").val();
-        var pms_port = $("#pms_port").val();
-        var pms_identifier = $("#pms_identifier").val();
-        var pms_ssl = $("#pms_ssl").val();
-        var pms_is_remote = $("#pms_is_remote").val();
-        var pms_url_manual = $("#pms_url_manual").is(':checked') ? 1 : 0;
-
-        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
-            $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
-            $.ajax({
-                url: 'get_server_id',
-                data: {
-                    hostname: pms_ip,
-                    port: pms_port,
-                    ssl: pms_ssl,
-                    remote: pms_is_remote,
-                    manual: pms_url_manual,
-                    get_url: true,
-                    test_websocket: true
-                },
-                cache: true,
-                async: true,
-                timeout: 10000,
-                error: function (jqXHR, textStatus, errorThrown) {
-                    $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-                    $("#pms_ip_group").addClass("has-error");
-                },
-                success: function(xhr, status) {
-                    var result = xhr;
-                    var identifier = result.identifier;
-                    var url = result.url;
-                    var ws = result.ws;
-                    if (identifier) {
-                        $("#pms_identifier").val(identifier);
-
-                        if (url) {
-                            $("#pms_url").val(url);
-                        }
-
-                        if (ws === false) {
-                            $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-                            $("#pms_ip_group").addClass("has-error");
-                            showMsg('<i class="fa fa-exclamation-circle"></i> Server found but unable to connect websocket.<br>Check the <a href="logs">logs</a> for errors.', false, true, 5000, true)
-                        } else {
-                            $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-                            $("#pms_ip_group").removeClass("has-error");
-                            serverChanged = false;
-                        }
-
-                        if (_callback) {
-                            _callback();
-                        }
-                    } else {
-                        $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-                        $("#pms_ip_group").addClass("has-error");
-                        showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
-                    }
-                }
-            });
-        } else {
-            $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-            $("#pms_ip_group").addClass("has-error");
-            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
-        }
-    }
-
-    $('#verify_server_button').on('click', function(){
-        verifyServer();
-    });
-
-    function verifyPMSWebURL() {
-        var pms_web_url = $.trim($("#pms_web_url").val());
-        $("#pms_web_url").val(pms_web_url || 'https://app.plex.tv/desktop');
-    }
-
-    $('#test_pms_web_button').on('click', function(){
-        var pms_web_url = $.trim($("#pms_web_url").val());
-        window.open(pms_web_url, '_blank');
-    });
-
     function OAuthPreFunction() {
         $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
     }
@@ -2304,7 +2092,7 @@ $(document).ready(function() {
         $("#pms_token").val(authToken);
         $("#pms_uuid").val(x_plex_headers['X-Plex-Client-Identifier']);
         $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-        getServerOptions(authToken);
+        plexTokenChanged = true;
     }
     function OAuthErrorCallback() {
         $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
@@ -2326,25 +2114,6 @@ $(document).ready(function() {
             }
         });
     });
-
-    pms_version = false;
-    pms_logs_debug = false;
-    pms_logs = false;
-
-    function remoteAccessEnabledCheck() {
-        $.ajax({
-            url: 'get_server_pref',
-            data: { pref: 'PublishServerOnPlexOnlineKey' },
-            async: true,
-            success: function(data) {
-                if (data === 'false' || data === '0') {
-                    $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
-                    $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
-                }
-            }
-        });
-    }
-    remoteAccessEnabledCheck();
 
     // Sortable home_sections
     function set_home_sections() {
@@ -2397,44 +2166,6 @@ $(document).ready(function() {
 
     $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
     set_home_stats_cards();
-
-    // Sortable home_library_cards
-    function set_home_library_cards() {
-        var home_library_cards = [];
-        var hlcards = $('[id^=hlcard-]').serializeArray();
-        $.each(hlcards, function(i, card) {
-            home_library_cards.push(card.value);
-        });
-        $('#home_library_cards').val(home_library_cards);
-    }
-
-    $.ajax({
-        url: 'get_library_sections',
-        data: { },
-        async: true,
-        complete: function (data) {
-            libraries_list = $.parseJSON(data.responseText);
-            for (var i in libraries_list) {
-                var title = libraries_list[i].section_name;
-                var key = libraries_list[i].section_id;
-                $('#sortable_home_library_cards').append(
-                    '<li class="card card-sortable">' + 
-                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
-                        '<label>' + 
-                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
-                        '</label>' + 
-                    '</li>'
-                );
-            }
-            var config_cards = ${config['home_library_cards'] | n};
-            config_cards.reverse().forEach(function (item) {
-                $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
-                $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
-            });
-            $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
-            set_home_library_cards()
-        }
-    });
 
     Sortable.create(sortable_home_library_cards, {
         animation: 250,
@@ -2504,65 +2235,6 @@ $(document).ready(function() {
     $('#http_password').change(function () {
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
         $("#http_hash_password_error").html("");
-    });
-
-    // Load PMS downloads
-    function loadUpdateDistros() {
-        var update_params_ajax = $.getJSON('get_server_update_params', function (data) { return data; });
-
-        $.when(update_params_ajax).done(function() {
-            var update_params = update_params_ajax.responseJSON;
-
-            var plexpass = update_params.plexpass;
-            var platform = update_params.pms_platform;
-            var update_channel = update_params.pms_update_channel;
-            var update_distro = update_params.pms_update_distro;
-            var update_distro_build = update_params.pms_update_distro_build;
-            var plex_update_channel = update_params.plex_update_channel;
-
-            $('#pms_update_channel option[value=beta]').remove();
-            if (plexpass) {
-                var selected = (update_channel == 'beta') ? true : false;
-                $('#pms_update_channel')
-                    .append($('<option></option>')
-                    .text('Beta')
-                    .val('beta')
-                    .prop('selected', selected));
-            }
-
-            $.ajax({
-                url: 'https://plex.tv/api/downloads/1.json?channel=' + plex_update_channel,
-                type: 'GET',
-                dataType: 'json',
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
-                },
-                success: function (downloads) {
-                    var platform_downloads = downloads.computer[platform] || downloads.nas[platform];
-                    if (platform_downloads) {
-                        $("#pms_update_distro_build option").remove();
-                        $.each(platform_downloads.releases, function (index, item) {
-                            var label = (platform_downloads.releases.length === 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
-                            var selected = (item.distro === update_distro && item.build === update_distro_build) ? true : false;
-                            $('#pms_update_distro_build')
-                                    .append($('<option></option>')
-                                            .text(label)
-                                            .val(item.build)
-                                            .attr('data-distro', item.distro)
-                                            .prop('selected', selected));
-                        });
-                        $('#pms_update_distro').val($('#pms_update_distro_build option:selected').data('distro'))
-                    }
-                }
-            });
-        });
-    }
-    loadUpdateDistros();
-
-
-    $('#pms_update_distro_build').change(function () {
-        var distro = $("option:selected", this).data('distro')
-        $('#pms_update_distro').val(distro)
     });
 
     // Add a new notification agent
@@ -2734,8 +2406,9 @@ $(document).ready(function() {
     });
 
     $('#resources-xml').on('tripleclick', function () {
-        openPlexXML('/api/resources', true, {includeHttps: 1});
+        openPlexXML('/api/resources', true, false, {includeHttps: 1});
     });
+
 });
 </script>
 </%def>

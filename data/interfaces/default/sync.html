@@ -27,7 +27,17 @@
                 </button>&nbsp
             </div>
             % endif
-            % if _session['user_group'] == 'admin':
+            % if _session['access_level'] >= 1:
+            <div class="btn-group" id="server-selection">
+                <label>
+                    <select name="sync-server" id="sync-server" class="btn" style="color: inherit;">
+                        <option value="">All Servers</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
+            % endif
+            % if _session['access_level'] >= 3:
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="sync-user" id="sync-user" class="btn" style="color: inherit;">
@@ -49,6 +59,7 @@
             <tr>
                 <th align="left" id="delete_row">Delete</th>
                 <th align="left" id="state">State</th>
+                <th align="left" id="server_id">Server</th>
                 <th align="left" id="user">User</th>
                 <th align="left" id="sync_title">Title</th>
                 <th align="left" id="type">Type</th>
@@ -114,9 +125,26 @@
             }
         });
 
-        function loadSyncTable(selected_user_id) {
+        // Load server ids and names (for the selector)
+        $.ajax({
+            url: 'get_server_names',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#sync-server');
+                data.sort(function (a, b) {
+                    return a.pms_name.localeCompare(b.pms_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.server_id + '">' +
+                        item.pms_name + '</option>');
+                });
+            }
+        });
+
+        function loadSyncTable(selected_user_id, selected_server_id) {
             sync_table_options.ajax = {
-                url: 'get_sync?user_id=' + selected_user_id,
+                url: 'get_sync?user_id=' + selected_user_id + '&server_id=' + selected_server_id,
                 type: 'POST'
             };
             sync_table = $('#sync_table').DataTable(sync_table_options);
@@ -131,12 +159,18 @@
 
             $('#sync-user').on('change', function () {
                 selected_user_id = $(this).val() || null;
-                sync_table.ajax.url('get_sync?user_id=' + selected_user_id).load();
+                sync_table.ajax.url('get_sync?user_id=' + selected_user_id + '&server_id=' + selected_server_id).load();
+            });
+
+            $('#sync-server').on('change', function () {
+                selected_server_id = $(this).val() || null;
+                sync_table.ajax.url('get_sync?user_id=' + selected_user_id + '&server_id=' + selected_server_id).load();
             });
         }
 
-        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
-        loadSyncTable(selected_user_id);
+        var selected_server_id  =  null;
+        var selected_user_id = null;
+        loadSyncTable(selected_user_id, selected_server_id);
 
         % if _session['user_group'] == 'admin':
         $('#sync-row-edit-mode').on('click', function() {

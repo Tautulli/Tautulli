@@ -129,7 +129,13 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
         dataString = $(formID).serialize();
     }
     // Loader Image
-    var loader = $("<div class='msg ajaxLoader-" + url +"'><i class='fa fa-refresh fa-spin'></i>&nbsp; Saving...</div>");
+    // Data Success Message
+    var dataLoader = $(elem).data('loader');
+    if (typeof dataLoader === "undefined") {
+        // Standard Message when variable is not set
+        dataLoader = "Saving...";
+    }
+    var loader = $("<div class='msg ajaxLoader-" + url +"'><i class='fa fa-refresh fa-spin'></i>&nbsp;" + dataLoader + "</div>");
     // Data Success Message
     var dataSucces = $(elem).data('success');
     if (typeof dataSucces === "undefined") {
@@ -490,8 +496,8 @@ $.fn.slideToggleBool = function(bool, options) {
   return bool ? $(this).slideDown(options) : $(this).slideUp(options);
 };
 
-function openPlexXML(endpoint, plextv, params) {
-    var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
+function openPlexXML(endpoint, plextv, server_id, params) {
+    var data = $.extend({endpoint: endpoint, plextv: plextv, server_id: server_id}, params);
     $.getJSON('return_plex_xml_url', data, function(xml_url) {
        window.open(xml_url, '_blank');
     });

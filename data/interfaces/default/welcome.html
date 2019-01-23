@@ -8,13 +8,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Tautulli - ${title} | ${server_name}</title>
+    <title>Tautulli - ${title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
     <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/tautulli-dataTables.css" rel="stylesheet">
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
@@ -50,6 +51,7 @@
     <div class="row">
         <div class="wizard" id="setup-wizard" data-title="Tautulli Setup Wizard">
             <form>
+                <!-- Welcome Tab -->
                 <div class="wizard-card" data-cardname="card1">
                     <div style="float: right;">
                         <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="Tautulli">
@@ -67,6 +69,8 @@
                         </p>
                     </div>
                 </div>
+
+                <!-- PlexTV Authorization Tab -->
                 <div class="wizard-card" data-cardname="card2">
                     <h3>Plex Authentication</h3>
                     <div class="wizard-input-section">
@@ -78,65 +82,43 @@
                     <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
+
+                <!-- Plex Media Servers Tab -->
                 <div class="wizard-card" data-cardname="card3">
                     <h3>Plex Media Server</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
-                            Select your Plex Media Server from the dropdown menu or enter an IP address or hostname.
+                            <span>This is a list of the Plex Media Servers discovered from your Plex.TV account.</span>
+                            <br>
+                            <span>Select the servers that you would like to enable for monitoring by clicking the Enabled checkbox.</span>
                         </p>
-                    </div>
-                    <div class="wizard-input-section">
-                        <label for="pms_ip_selectize">Plex IP Address or Hostname</label>
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <select class="form-control pms-settings selectize-pms-ip" id="pms_ip_selectize">
-                                    % if config['pms_identifier']:
-                                    <option value="${config['pms_ip']}:${config['pms_port']}"
-                                            data-identifier="${config['pms_identifier']}"
-                                            data-ip="${config['pms_ip']}"
-                                            data-port="${config['pms_port']}"
-                                            data-local="${int(not int(config['pms_is_remote']))}"
-                                            data-ssl="${config['pms_ssl']}"
-                                            data-is_cloud="${config['pms_is_cloud']}"
-                                            data-label="${config['pms_name'] or 'Local'}"
-                                            selected>${config['pms_ip']}</option>
-                                    % endif
-                                </select>
+                        <div class="table-card-header">
+                            <div class="header-bar">
+                                <span id="servers-xml"><i class="fa fa-server"></i>&nbsp;&nbsp;Servers</span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="wizard-input-section">
-                        <label for="pms_port">Plex Port</label>
-                        <div class="row">
-                            <div class="col-xs-3">
-                                <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
-                            </div>
-                            <div class="col-xs-4">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use SSL
-                                        <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-xs-4">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${helpers.checked(config['pms_is_remote'])}> Remote Server
-                                        <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
-                                    </label>
+                            <div class="button-bar">
+                                <div class="btn-group">
+                                    <button class="btn btn-dark refresh-servers-button" id="refresh-servers-list"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
                                 </div>
                             </div>
                         </div>
+                        <br>
+                        <table class="config-servers-table display" id="config-servers-table">
+                            <thead>
+                                <tr>
+                                    <th class="pms_is_enabled">Enabled</th>
+                                    <th class="pms_name">Server</th>
+                                    <th class="pms_ip">Hostname</th>
+                                    <th class="pms_port">Port</th>
+                                    <th class="pms_is_remote" style="text-align: center;">Remote</th>
+                                    <th class="pms_is_cloud" style="text-align: center;">Cloud</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
-                    <input type="hidden" id="pms_valid" data-validate="validatePMSip" value="">
-                    <input type="hidden" id="pms_ip" name="pms_ip" value="${config['pms_ip']}">
-                    <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
-                    <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                    <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a>
-                    <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
 
+                <!-- Activity Logging Tab -->
                 <div class="wizard-card" data-cardname="card4">
                     <h3>Activity Logging</h3>
                     <div class="wizard-input-section">
@@ -162,7 +144,8 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card4">
+                <!-- Notifications Tab -->
+                <div class="wizard-card" data-cardname="card5">
                     <h3>Notifications</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -175,11 +158,12 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card5">
+                <!-- Database Import Tab -->
+                <div class="wizard-card" data-cardname="card6">
                     <h3>Database Import</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
-                            If you have an existing PlexWatch/Plexivity database, you can import the data into Tautulli.
+                            If you have an existing PlexWatch/Plexivity or Tautulli database, you can import the data into Tautulli.
                         </p>
                         <p class="help-block">
                             To import a database, navigate to the <strong>Settings</strong> page
@@ -187,35 +171,32 @@
                         </p>
                     </div>
 
-                    <!-- Required fields but hidden -->
-                    <div style="display: none;">
-                        <input type="checkbox" name="first_run" id="first_run" value="1" checked>
-                        <input type="checkbox" name="group_history_tables" id="group_history_tables" value="1" checked>
-                        <input type="checkbox" name="history_table_activity" id="history_table_activity" value="1" checked>
-                        <input type="checkbox" name="launch_browser" id="launch_browser" value="1" checked>
-                        <input type="checkbox" name="api_enabled" id="api_enabled" value="1" checked>
-                        <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" checked>
-                        <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" checked>
-                        <input type="checkbox" name="check_github" id="check_github" value="1" checked>
-                        <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" checked>
-                        <input type="checkbox" name="cache_images" id="cache_images" value="1" checked>
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
-                        <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                        <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
-                        <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
-                    </div>
+                <!-- Required fields but hidden -->
+                <div style="display: none;">
+                    <input type="checkbox" name="first_run" id="first_run" value="1" checked>
+                    <input type="checkbox" name="group_history_tables" id="group_history_tables" value="1" checked>
+                    <input type="checkbox" name="history_table_activity" id="history_table_activity" value="1" checked>
+                    <input type="checkbox" name="launch_browser" id="launch_browser" value="1" checked>
+                    <input type="checkbox" name="api_enabled" id="api_enabled" value="1" checked>
+                    <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" checked>
+                    <input type="checkbox" name="check_github" id="check_github" value="1" checked>
+                    <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" checked>
+                    <input type="checkbox" name="cache_images" id="cache_images" value="1" checked>
+                    <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
+                </div>
 
                 </div>
 
             </form>
+
             <div class="wizard-success">
                 <h3>Setup Complete!</h3>
                 <br/>
                 <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
                 <br/>
                 <i class="fa fa-refresh fa-spin"></i>&nbspWaiting <span class="countdown">5</span> seconds to ensure authentication token is registered...
-
             </div>
+
         </div>
     </div>
 </div>
@@ -226,22 +207,12 @@
 <script src="${http_root}js/platform.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
 <script>
-    function validatePMSip(el) {
-        var valid_pms_ip = el.val();
-        var retValue = {};
-
-        if (valid_pms_ip == "") {
-            retValue.status = false;
-            retValue.msg = "Please verify your server.";
-            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
-            $('#pms-verify-status').fadeIn('fast').delay(2000).fadeOut('fast');
-        } else {
-            retValue.status = true;
-        }
-
-        return retValue;
-    }
 
     function validatePMStoken(el) {
         var valid_pms_token = el.val();
@@ -276,7 +247,11 @@
     }
 
     function isPositiveInt(n) {
-        return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0)
+        return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0);
+    }
+
+    function setupComplete() {
+        window.location.replace('${http_root}');
     }
 
 $(document).ready(function() {
@@ -284,11 +259,11 @@ $(document).ready(function() {
     $.fn.wizard.logging = false;
     var options = {
         keyboard : false,
-        contentHeight : 400,
-        contentWidth : 700,
+        contentHeight : 500,
+        contentWidth : 820,
         backdrop: 'static',
         buttons: {submitText: 'Finish'},
-        submitUrl: "configUpdate"
+        submitUrl: "setupComplete"
     };
     var wizard = $("#setup-wizard").wizard(options);
     wizard.show();
@@ -310,201 +285,26 @@ $(document).ready(function() {
             url: wizard.args.submitUrl,
             data: wizard.serialize(),
             dataType: "json",
-            complete: function (data) {
-                $(".countdown").countdown(function () { location.reload(); }, 5, "");
+            complete: function(xhr, status) {
+                $(".countdown").countdown(function () { setupComplete(); }, 5, "");
             }
         })
     });
 
-    $('.checkbox-toggle').click(function () {
-        var configToggle = $(this).data('id');
-        if ($(this).is(':checked')) {
-            $('#'+configToggle).val(1);
-        } else {
-            $('#'+configToggle).val(0);
-        }
-    });
-
-    var $select_pms = $('#pms_ip_selectize').selectize({
-        createOnBlur: true,
-        openOnFocus: true,
-        maxItems: 1,
-        closeAfterSelect: true,
-        sortField: 'label',
-        searchField: ['label', 'value'],
-        inputClass: 'form-control selectize-input',
-        render: {
-            item: function (item, escape) {
-                if (!item.label) {
-                    $.extend(item,
-                        $(this.revertSettings.$children)
-                             .filter('[value="' + item.value + '"]').data()
-                    );
-                }
-                var label = item.label || item.value;
-                var caption = item.label ? item.ip : null;
-                return '<div data-identifier="' + item.clientIdentifier +
-                        '" data-ip="' + item.ip +
-                        '" data-port="' + item.port +
-                        '" data-local="' + item.local +
-                        '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
-                        '" data-label="' + item.label + '">' +
-                        '<span class="item-text">' + escape(label) + '</span>' +
-                        (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
-                        '</div>';
-            },
-            option: function (item, escape) {
-                var label = item.label || item.value;
-                var caption = item.label ? item.value : null;
-                return '<div data-identifier="' + item.clientIdentifier +
-                        '" data-ip="' + item.ip +
-                        '" data-port="' + item.port +
-                        '" data-local="' + item.local +
-                        '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
-                        '" data-label="' + item.label + '">' +
-                        escape(label) +
-                        (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
-                        '</div>';
-            }
-        },
-        create: function(input) {
-            return {label: '', value: input};
-        },
-        onInitialize: function () {
-            var s = this;
-            this.revertSettings.$children.each(function () {
-                $.extend(s.options[this.value], $(this).data());
-            });
-        },
-        onChange: function (item) {
-            var pms_ip_selected = this.getItem(item)[0];
-            var identifier = $(pms_ip_selected).data('identifier');
-            var ip = $(pms_ip_selected).data('ip');
-            var port = $(pms_ip_selected).data('port');
-            var local = $(pms_ip_selected).data('local');
-            var ssl = $(pms_ip_selected).data('ssl');
-            var is_cloud = $(pms_ip_selected).data('is_cloud');
-            var value = $(pms_ip_selected).data('value');
-
-            $("#pms_valid").val(identifier !== 'undefined' ? 'valid' : '');
-            $("#pms-verify-status").html(identifier !== 'undefined' ? '<i class="fa fa-check"></i>&nbsp; Server found!' : '').fadeIn('fast');
-
-            $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
-            $('#pms_ip').val(ip !== 'undefined' ? ip : value);
-            $('#pms_port').val(port !== 'undefined' ? port : 32400);
-            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
-            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
-            $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
-            $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
-            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
-
-            if (is_cloud === true) {
-                $('#pms_port').prop('readonly', true);
-                $('#pms_is_remote_checkbox').prop('disabled', true);
-                $('#pms_ssl_checkbox').prop('disabled', true);
-            } else {
-                $('#pms_port').prop('readonly', false);
-                $('#pms_is_remote_checkbox').prop('disabled', false);
-                $('#pms_ssl_checkbox').prop('disabled', false);
-            }
-        },
-        onDropdownOpen: function() {
-            this.clear();
-        }
-    });
-    var select_pms = $select_pms[0].selectize;
-
-    function getServerOptions(token) {
-        /* Set token and returns server options */
-        $.ajax({
-            url: 'discover',
-            data: {
-                token: token
-            },
-            success: function (result) {
-                if (result) {
-                    var existing_ip = $('#pms_ip').val();
-                    var existing_port = $('#pms_port').val();
-                    result.forEach(function (item) {
-                        if (item.ip === existing_ip && item.port === existing_port) {
-                            select_pms.updateOption(item.value, item);
-                        } else {
-                            select_pms.addOption(item);
-                        }
-                    });
-                }
-            }
-        })
-    }
-    var pms_verified = false;
     var authenticated = false;
-
-    $("#verify-plex-server").click(function () {
-        if (!(pms_verified)) {
-            var pms_ip = $("#pms_ip").val().trim();
-            var pms_port = $("#pms_port").val().trim();
-            var pms_identifier = $("#pms_identifier").val();
-            var pms_ssl = $("#pms_ssl").val();
-            var pms_is_remote = $("#pms_is_remote").val();
-            if ((pms_ip !== '') || (pms_port !== '')) {
-                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Validating server...');
-                $('#pms-verify-status').fadeIn('fast');
-                $.ajax({
-                    url: 'get_server_id',
-                    data: {
-                        hostname: pms_ip,
-                        port: pms_port,
-                        identifier: pms_identifier,
-                        ssl: pms_ssl,
-                        remote: pms_is_remote
-                    },
-                    cache: true,
-                    async: true,
-                    timeout: 5000,
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; This is not a Plex Server!');
-                        $('#pms-verify-status').fadeIn('fast');
-                    },
-                    success: function(xhr, status) {
-                        var result = xhr;
-                        var identifier = result.identifier;
-                        if (identifier) {
-                            $("#pms_identifier").val(identifier);
-                            $("#pms-verify-status").html('<i class="fa fa-check"></i>&nbsp; Server found!');
-                            $('#pms-verify-status').fadeIn('fast');
-                            pms_verified = true;
-                            $("#pms_valid").val("valid");
-                        } else {
-                            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; This is not a Plex Server!');
-                            $('#pms-verify-status').fadeIn('fast');
-                        }
-                    }
-                });
-            } else {
-                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Please enter both fields.');
-                $('#pms-verify-status').fadeIn('fast');
-            }
-        }
-    });
-
-    $( ".pms-settings" ).change(function() {
-        pms_verified = false;
-        $("#pms_valid").val("");
-        $("#pms-verify-status").html("");
-    });
 
     function OAuthPreFunction() {
         $("#pms_token").val('');
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
+
     function OAuthSuccessCallback(authToken) {
         $("#pms_token").val(authToken);
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
         authenticated = true;
-        getServerOptions(authToken);
+        getServersTable();
     }
+
     function OAuthErrorCallback() {
         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
     }
@@ -512,6 +312,31 @@ $(document).ready(function() {
     $('#sign-in-plex').click(function() {
         PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
     });
+
+    function getServersTable() {
+        authToken = document.getElementById('pms_token').value
+        servers_table_options.ajax = {url: 'discover',
+                                      data: {token: authToken},
+                                      scrollY: '100px',
+                                      scrollCollapse: true,
+                                      paging: false
+                                      };
+        servers_table_options.language.loadingRecords = '<i class="fa fa-refresh fa-spin"></i> Discovering Servers...';
+        $('#config-servers-table').DataTable(servers_table_options);
+    }
+
+    $('#refresh-servers-list').click(function () {
+            $('#refresh-servers-list > .fa-refresh').addClass('fa-spin');
+            doAjaxCall('refresh_servers_table', '#config-servers-table', '', true, true,
+                    function refreshServersTable() {
+                        getServersTable();
+                        $("#config-servers-table").draw;
+                        $('#refresh-servers-list > .fa-refresh').removeClass('fa-spin');
+                    }
+            );
+            return false;
+    });
+
 });
 </script>
 

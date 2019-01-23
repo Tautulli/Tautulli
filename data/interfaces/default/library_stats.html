@@ -31,55 +31,73 @@ DOCUMENTATION :: END
                'artist': ('Music Libraries', ('Artists', 'Albums', 'Tracks')),
                'photo': ('Photo Libraries', ('Albums', 'Photos', 'Videos'))}
 %>
-% for section_type in types:
-% if section_type in data:
-<div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
-    <div class="dashboard-stats-container">
-        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
-            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
-            <div class="dashboard-stats-info-container">
-                <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">
-                    <h4>${headers[section_type][0]}</h4>
-                    <span class="dashboard-stats-stats-units">${' / '.join(u for u in headers[section_type][1] if u)}</span>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="home-padded-header padded-header" style="margin-top: 20px; margin-bottom: 10px;" id="library-statistics-header">
+                <h3 class="pull-left">Library Statistics</h3>
+            </div>
+        </div>
+    </div>
+% for pms_name, sections in sorted(data.items()):
+    <div class="row">
+        <div class="col-md-12">
+            <div class="home-padded-header padded-header">
+                <div class="button-bar pull-left">
+                    <span class="btn btn-dark active" style="cursor: default">${pms_name}</span>
                 </div>
-                <div class="dashboard-stats-info-scroller scrollbar-macosx">
-                    <div class="dashboard-stats-info scoller-content">
-                        <ul class="list-unstyled dashboard-stats-info-list">
-                            % for section in data[section_type]:
-                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}">
-                                <div class="sub-list">${loop.index + 1}</div>
-                                <div class="sub-value">
-                                    <a href="library?section_id=${section['section_id']}" title="${section['section_name']}">
-                                        ${section['section_name']}
-                                    </a>
-                                </div>
-                                % if headers[section_type][1][0]:
-                                <div class="sub-count">
-                                    ${section['count']}
-                                </div>
-                                % endif
-                                % if headers[section_type][1][1]:
-                                <div class="sub-divider"> / </div>
-                                <div class="sub-count">
-                                    ${section['child_count']}
-                                </div>
-                                % endif
-                                % if headers[section_type][1][2]:
-                                <div class="sub-divider"> / </div>
-                                <div class="sub-count">
-                                    ${section['grandchild_count']}
-                                </div>
-                                % endif
-                            </li>
-                            % endfor
-                        </ul>
+            </div>
+        </div>
+    </div>
+    % for section_type in types:
+    % if section_type in sections:
+    <div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
+        <div class="dashboard-stats-container">
+            <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?server_id=${sections['server_id']}&img=/:/resources/${section_type}-fanart.jpg&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
+                <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
+                <div class="dashboard-stats-info-container">
+                    <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">
+                        <h4>${headers[section_type][0]}</h4>
+                        <span class="dashboard-stats-stats-units">${' / '.join(u for u in headers[section_type][1] if u)}</span>
+                    </div>
+                    <div class="dashboard-stats-info-scroller scrollbar-macosx">
+                        <div class="dashboard-stats-info scoller-content">
+                            <ul class="list-unstyled dashboard-stats-info-list">
+                                % for section in sections[section_type]:
+                                <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}">
+                                    <div class="sub-list">${loop.index + 1}</div>
+                                    <div class="sub-value">
+                                        <a href="library?library_id=${section['library_id']}" title="${section['section_name']}">
+                                            ${section['section_name']}
+                                        </a>
+                                    </div>
+                                    % if headers[section_type][1][0]:
+                                    <div class="sub-count">
+                                        ${section['count']}
+                                    </div>
+                                    % endif
+                                    % if headers[section_type][1][1]:
+                                    <div class="sub-divider"> / </div>
+                                    <div class="sub-count">
+                                        ${section['child_count']}
+                                    </div>
+                                    % endif
+                                    % if headers[section_type][1][2]:
+                                    <div class="sub-divider"> / </div>
+                                    <div class="sub-count">
+                                        ${section['grandchild_count']}
+                                    </div>
+                                    % endif
+                                </li>
+                                % endfor
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-% endif
+    % endif
+    % endfor
 % endfor
 % else:
 <div class="text-muted">No stats to show.</div><br>

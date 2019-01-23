@@ -28,14 +28,16 @@ import users
 
 class ActivityProcessor(object):
 
-    def __init__(self):
+    def __init__(self, server=None):
         self.db = database.MonitorDatabase()
+        self.server = server
 
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session.get('session_key', ''),
                       'session_id': session.get('session_id', ''),
                       'transcode_key': session.get('transcode_key', ''),
+                      'server_id': session.get('server_id', ''),
                       'section_id': session.get('section_id', ''),
                       'rating_key': session.get('rating_key', ''),
                       'media_type': session.get('media_type', ''),
@@ -138,13 +140,16 @@ class ActivityProcessor(object):
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
         section_id = session['section_id'] if not is_import else import_metadata['section_id']
+        server_name = plexpy.PMS_SERVERS.get_server_by_id(session['server_id']).CONFIG.PMS_NAME
+
+        library_id = plexpy.libraries.get_section_index(session['server_id'], session['section_id'])
 
         if not is_import:
             user_data = users.Users()
             user_details = user_data.get_details(user_id=session['user_id'])
 
             library_data = libraries.Libraries()
-            library_details = library_data.get_details(section_id=section_id)
+            library_details = library_data.get_details(id=library_id)
 
             # Return false if failed to retrieve user or library details
             if not user_details or not library_details:
@@ -181,9 +186,9 @@ class ActivityProcessor(object):
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
             else:
-                logger.debug(u"Tautulli ActivityProcessor :: Session %s ratingKey %s not logged. "
+                logger.debug("Tautulli ActivityProcessor :: %s: Session %s ratingKey %s not logged. "
                              u"Does not meet logging criteria. Media type is '%s'" %
-                             (session['session_key'], session['rating_key'], session['media_type']))
+                             (server_name, session['session_key'], session['rating_key'], session['media_type']))
                 return session['id']
 
             if str(session['paused_counter']).isdigit():
@@ -195,38 +200,37 @@ class ActivityProcessor(object):
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
-                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs "
+                    logger.debug("Tautulli ActivityProcessor :: %s: Play duration for session %s ratingKey %s is %s secs "
                                  u"which is less than %s seconds, so we're not logging it." %
-                                 (session['session_key'], session['rating_key'], str(real_play_time),
+                                 (server_name, session['session_key'], session['rating_key'], str(real_play_time),
                                   plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             if not is_import and session['media_type'] == 'track':
                 if real_play_time < 15 and session['duration'] >= 30:
                     logging_enabled = False
-                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
+                    logger.debug("Tautulli ActivityProcessor :: %s: Play duration for session %s ratingKey %s is %s secs, "
                                  u"looks like it was skipped so we're not logging it" %
-                                 (session['session_key'], session['rating_key'], str(real_play_time)))
+                                 (server_name, session['session_key'], session['rating_key'], str(real_play_time)))
             elif is_import and import_ignore_interval:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(import_ignore_interval)):
                     logging_enabled = False
-                    logger.debug(u"Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
+                    logger.debug("Tautulli ActivityProcessor :: %s: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
-                                 (session['rating_key'], str(real_play_time), import_ignore_interval))
+                                 (server_name, session['rating_key'], str(real_play_time), import_ignore_interval))
 
             if not is_import and not user_details['keep_history']:
                 logging_enabled = False
-                logger.debug(u"Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
+                logger.debug("Tautulli ActivityProcessor :: %s: History logging for user '%s' is disabled." % (server_name, user_details['username']))
             elif not is_import and not library_details['keep_history']:
                 logging_enabled = False
-                logger.debug(u"Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
+                logger.debug("Tautulli ActivityProcessor :: %s: History logging for library '%s' is disabled." % (server_name, library_details['section_name']))
 
             if logging_enabled:
 
                 # Fetch metadata first so we can return false if it fails
                 if not is_import:
-                    logger.debug(u"Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                    pms_connect = pmsconnect.PmsConnect()
-                    metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    logger.debug("Tautulli ActivityProcessor :: %s: Fetching metadata for item ratingKey %s" % (server_name, session['rating_key']))
+                    metadata = self.server.PMSCONNECTION.get_metadata_details(rating_key=str(session['rating_key']))
                     if not metadata:
                         return False
                     else:
@@ -238,12 +242,13 @@ class ActivityProcessor(object):
                     ## TODO: Fix media info from imports. Temporary media info from import session.
                     media_info = session
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write sessionKey %s to session_history table..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Attempting to write sessionKey %s to session_history table..."
+                #              % (server_name, session['session_key']))
                 keys = {'id': None}
                 values = {'started': session['started'],
                           'stopped': stopped,
                           'rating_key': session['rating_key'],
+                          'server_id': session['server_id'],
                           'parent_rating_key': session['parent_rating_key'],
                           'grandparent_rating_key': session['grandparent_rating_key'],
                           'media_type': session['media_type'],
@@ -264,15 +269,15 @@ class ActivityProcessor(object):
                           'view_offset': session['view_offset']
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Writing sessionKey %s session_history transaction..."
+                #              % (server_name, session['session_key']))
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
                 # Check if we should group the session, select the last two rows from the user
-                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history ' \
-                        'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
+                query = 'SELECT id, server_id, rating_key, view_offset, user_id, reference_id FROM session_history ' \
+                        'WHERE user_id = ? AND server_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
 
-                args = [session['user_id'], session['rating_key']]
+                args = [session['user_id'], session['server_id'], session['rating_key']]
 
                 result = self.db.select(query=query, args=args)
 
@@ -283,12 +288,14 @@ class ActivityProcessor(object):
 
                 if len(result) > 1:
                     new_session = {'id': result[0]['id'],
+                                   'server_id': result[0]['server_id'],
                                    'rating_key': result[0]['rating_key'],
                                    'view_offset': result[0]['view_offset'],
                                    'user_id': result[0]['user_id'],
                                    'reference_id': result[0]['reference_id']}
 
                     prev_session = {'id': result[1]['id'],
+                                    'server_id': result[1]['server_id'],
                                     'rating_key': result[1]['rating_key'],
                                     'view_offset': result[1]['view_offset'],
                                     'user_id': result[1]['user_id'],
@@ -317,15 +324,16 @@ class ActivityProcessor(object):
 
                 self.db.action(query=query, args=args)
                 
-                # logger.debug(u"Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
-                #              % last_id)
+                # logger.debug("Tautulli ActivityProcessor :: %s: Successfully written history item, last id for session_history is %s"
+                #              % (server_name, last_id))
 
                 # Write the session_history_media_info table
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_media_info table..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Attempting to write to sessionKey %s session_history_media_info table..."
+                #              % (server_name, session['session_key']))
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
+                          'server_id': session['server_id'],
                           'video_decision': session['video_decision'],
                           'audio_decision': session['audio_decision'],
                           'transcode_decision': session['transcode_decision'],
@@ -390,8 +398,8 @@ class ActivityProcessor(object):
                           'optimized_version_title': session['optimized_version_title']
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Writing sessionKey %s session_history_media_info transaction..."
+                #              % (server_name, session['session_key']))
                 self.db.upsert(table_name='session_history_media_info', key_dict=keys, value_dict=values)
 
                 # Write the session_history_metadata table
@@ -401,10 +409,11 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Attempting to write to sessionKey %s session_history_metadata table..."
+                #              % (server_name, session['session_key']))
                 keys = {'id': last_id}
                 values = {'rating_key': session['rating_key'],
+                          'server_id': session['server_id'],
                           'parent_rating_key': session['parent_rating_key'],
                           'grandparent_rating_key': session['grandparent_rating_key'],
                           'title': session['title'],
@@ -415,6 +424,7 @@ class ActivityProcessor(object):
                           'media_index': metadata['media_index'],
                           'parent_media_index': metadata['parent_media_index'],
                           'section_id': metadata['section_id'],
+                          'library_id': library_id,
                           'thumb': metadata['thumb'],
                           'parent_thumb': metadata['parent_thumb'],
                           'grandparent_thumb': metadata['grandparent_thumb'],
@@ -439,8 +449,8 @@ class ActivityProcessor(object):
                           'labels': labels
                           }
 
-                # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
-                #              % session['session_key'])
+                # logger.debug("Tautulli ActivityProcessor :: %s: Writing sessionKey %s session_history_metadata transaction..."
+                #              % (server_name, session['session_key']))
                 self.db.upsert(table_name='session_history_metadata', key_dict=keys, value_dict=values)
 
             # Return the session row id when the session is successfully written to the database

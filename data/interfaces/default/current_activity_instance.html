@@ -71,50 +71,50 @@ DOCUMENTATION :: END
     data = defaultdict(lambda: 'Unknown', **session)
     sk = data['session_key']
 
-    href = 'info?rating_key={}'.format(data['rating_key']) if data['rating_key'] else '#'
-    parent_href = 'info?rating_key={}'.format(data['parent_rating_key']) if data['parent_rating_key'] else '#'
-    grandparent_href = 'info?rating_key={}'.format(data['grandparent_rating_key']) if data['grandparent_rating_key'] else '#'
+    href = 'info?server_id={}'.format(data['server_id']) + '&rating_key={}'.format(data['rating_key']) if data['rating_key'] else '#'
+    parent_href = 'info?server_id={}'.format(data['server_id']) + '&rating_key={}'.format(data['parent_rating_key']) if data['parent_rating_key'] else '#'
+    grandparent_href = 'info?server_id={}'.format(data['server_id']) + '&rating_key={}'.format(data['grandparent_rating_key']) if data['grandparent_rating_key'] else '#'
     user_href = 'user?user_id={}'.format(data['user_id']) if data['user_id'] else '#'
 %>
-<div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
+<div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}" data-server_id="${data['server_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
         <%
             if data['live'] == 1:
                 background_url = 'images/art-live.png'
             elif data['channel_stream'] == 0:
-                background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
+                background_url = 'pms_image_proxy?server_id=' + str(data['server_id']) + '&img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
             else:
                 if (data['art'] and data['art'].startswith('http')) or (data['thumb'] and data['thumb'].startswith('http')):
                     background_url = data['art']
                 else:
-                    background_url = 'pms_image_proxy?img=' + quote(data['art'] or data['thumb']) + '&width=500&height=280&fallback=art&refresh=true&clip=true'
+                    background_url = 'pms_image_proxy?server_id=' + str(data['server_id']) + '&img=' + quote(data['art'] or data['thumb']) + '&width=500&height=280&fallback=art&refresh=true&clip=true'
         %>
         <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(${background_url});">
             <div class="dashboard-activity-poster-container hidden-xs">
                 % if data['media_type'] == 'track':
-                <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
+                <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
                 % if data['live'] == 1:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster-live.png);"></div>
                 % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'episode':
                     <a id="poster-url-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] == 'track':
                     <a id="poster-url-${sk}" href="${parent_href}" title="${data['parent_title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['parent_thumb']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
                         % if data['extra_type']:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['art'].replace('/art', '/thumb') or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['art'].replace('/art', '/thumb') or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                         % else:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['parent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
                         % endif
                     % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster.png);"></div>
@@ -124,8 +124,8 @@ DOCUMENTATION :: END
                     <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(${data['channel_icon']});"></div>
                     <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${data['channel_icon']});"></div>
                     % else:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
-                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['channel_icon']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?server_id=${data['server_id']}&img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
                     % endif
                 % endif
             </div>
@@ -138,7 +138,7 @@ DOCUMENTATION :: END
                 %>
                 <div id="platform-${sk}" class="dashboard-activity-info-platform${no_terminate} svg-icon platform-${data['platform_name']}" title="${data['platform']}"></div>
                 % if _session['user_group'] == 'admin' and plexpy.CONFIG.PMS_PLEXPASS and data['session_id']:
-                <div class="dashboard-activity-terminate-session" id="terminate-button-${sk}" data-key="${sk}" data-id="${data['session_id']}" data-toggle="tooltip" title="Terminate Stream">
+                <div class="dashboard-activity-terminate-session" id="terminate-button-${sk}"  data-server_id="${data['server_id']}" data-key="${sk}" data-id="${data['session_id']}" data-toggle="tooltip" title="Terminate Stream">
                     <i class="fa fa-times" style="padding-top: 8px;"></i>
                 </div>
                 % endif
@@ -147,6 +147,10 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-info-scroller scrollbar-macosx">
                     <div class="dashboard-activity-info scoller-content">
                         <ul class="list-unstyled dashboard-activity-info-list">
+                            <li class="dashboard-activity-info-item">
+                                <div class="sub-heading">Server</div>
+                                <div class="sub-value platform-right">${data['server_name']}</div>
+                            </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Product</div>
                                 <div class="sub-value platform-right">${data['product']}</div>

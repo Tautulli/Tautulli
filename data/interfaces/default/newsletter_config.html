@@ -545,6 +545,33 @@
     var incl_libraries = $incl_libraries[0].selectize;
     incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
+    var $incl_servers = $('#newsletter_config_incl_servers').selectize({
+        plugins: ['remove_button'],
+        maxItems: null,
+        render: {
+            option: function(item) {
+                if (item.value.endsWith('-all')) {
+                    return '<div class="' + item.value + '">' + item.text + '</div>'
+                }
+                return '<div>' + item.text + '</div>';
+            }
+        },
+        onItemAdd: function(value) {
+            if (value === 'select-all') {
+                var all_keys = $.map(this.options, function(option){
+                    return option.value.endsWith('-all') ? null : option.value;
+                });
+                this.setValue(all_keys);
+            } else if (value === 'remove-all') {
+                this.clear();
+                this.refreshOptions();
+                this.positionDropdown();
+            }
+        }
+    });
+    var incl_servers = $incl_servers[0].selectize;
+    incl_servers.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_servers'), [])) | n});
+
     initConfigCheckbox('#newsletter_config_save_only_checkbox', '#newsletter_agent_options', true);
 
     function toggleEmailSelect () {

@@ -31,6 +31,7 @@ import logger
 import newsletter_handler
 import pmsconnect
 from notifiers import send_notification, EMAIL
+from servers import plexServer
 
 
 AGENT_IDS = {
@@ -117,7 +118,7 @@ def delete_newsletter(newsletter_id=None):
     db = database.MonitorDatabase()
 
     if str(newsletter_id).isdigit():
-        logger.debug(u"Tautulli Newsletters :: Deleting newsletter_id %s from the database."
+        logger.debug("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
                      % newsletter_id)
         result = db.action('DELETE FROM newsletters WHERE id = ?', args=[newsletter_id])
         return True
@@ -129,7 +130,7 @@ def get_newsletter_config(newsletter_id=None):
     if str(newsletter_id).isdigit():
         newsletter_id = int(newsletter_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve newsletter config: invalid newsletter_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve newsletter config: invalid newsletter_id %s."
                      % newsletter_id)
         return None
 
@@ -150,7 +151,7 @@ def get_newsletter_config(newsletter_id=None):
                                            config=config, email_config=email_config,
                                            subject=subject, body=body, message=message)
     except Exception as e:
-        logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
+        logger.error("Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
     result['subject'] = newsletter_agent.subject
@@ -168,14 +169,14 @@ def add_newsletter_config(agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to add new newsletter: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to add new newsletter: invalid agent_id %s."
                      % agent_id)
         return False
 
     agent = next((a for a in available_newsletter_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve new newsletter agent: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve new newsletter agent: invalid agent_id %s."
                      % agent_id)
         return False
 
@@ -198,12 +199,12 @@ def add_newsletter_config(agent_id=None, **kwargs):
     try:
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
         newsletter_id = db.last_insert_id()
-        logger.info(u"Tautulli Newsletters :: Added new newsletter agent: %s (newsletter_id %s)."
+        logger.info("Tautulli Newsletters :: Added new newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
         blacklist_logger()
         return newsletter_id
     except Exception as e:
-        logger.warn(u"Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
+        logger.warn("Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
         return False
 
 
@@ -211,14 +212,14 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to set existing newsletter: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to set existing newsletter: invalid agent_id %s."
                      % agent_id)
         return False
 
     agent = next((a for a in available_newsletter_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve existing newsletter agent: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve existing newsletter agent: invalid agent_id %s."
                      % agent_id)
         return False
 
@@ -256,13 +257,13 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     db = database.MonitorDatabase()
     try:
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
-        logger.info(u"Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
+        logger.info("Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
         newsletter_handler.schedule_newsletters(newsletter_id=newsletter_id)
         blacklist_logger()
         return True
     except Exception as e:
-        logger.warn(u"Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
+        logger.warn("Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
         return False
 
 
@@ -277,7 +278,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
                                 messsage=message)
         return agent.send()
     else:
-        logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
+        logger.debug("Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
 
 def blacklist_logger():
@@ -482,11 +483,11 @@ class Newsletter(object):
         self.newsletter = self.generate_newsletter()
 
         if self.template_error:
-            logger.error(u"Tautulli Newsletters :: %s newsletter failed to render template. Newsletter not sent." % self.NAME)
+            logger.error("Tautulli Newsletters :: %s newsletter failed to render template. Newsletter not sent." % self.NAME)
             return False
 
         if not self._has_data():
-            logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
+            logger.warn("Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False
 
         self._save()
@@ -512,9 +513,9 @@ class Newsletter(object):
                         n_file.write(line + '\r\n')
                         #n_file.write(line.strip())
 
-            logger.info(u"Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
+            logger.info("Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
         except OSError as e:
-            logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to '%s': %s"
+            logger.error("Tautulli Newsletters :: Failed to save %s newsletter to '%s': %s"
                          % (self.NAME, newsletter_file, e))
 
     def _send(self):
@@ -567,7 +568,6 @@ class Newsletter(object):
             base_url = helpers.get_plexpy_url() + '/newsletter/'
 
         parameters = {
-            'server_name': plexpy.CONFIG.PMS_NAME,
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'current_year': self.start_date.year,
@@ -589,6 +589,11 @@ class Newsletter(object):
             'newsletter_password': plexpy.CONFIG.NEWSLETTER_PASSWORD
         }
 
+        server_name = ''
+        for server_id in self.config['incl_servers']:
+            server_name = server_name + plexpy.PMS_SERVERS.get_server_by_id(server_id).CONFIG.PMS_NAME + ', '
+        parameters['server_name'] = server_name.rstrip(', ')
+
         return parameters
 
     def build_text(self):
@@ -598,34 +603,28 @@ class Newsletter(object):
         try:
             subject = custom_formatter.format(unicode(self.subject), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
             subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
             subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
 
         try:
             body = custom_formatter.format(unicode(self.body), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
             body = unicode(self._DEFAULT_BODY).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
             body = unicode(self._DEFAULT_BODY).format(**self.parameters)
 
         try:
             message = custom_formatter.format(unicode(self.message), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
             message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
             message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
 
         return subject, body, message
@@ -668,6 +667,7 @@ class RecentlyAdded(Newsletter):
     """
     NAME = 'Recently Added'
     _DEFAULT_CONFIG = Newsletter._DEFAULT_CONFIG.copy()
+    _DEFAULT_CONFIG['incl_servers'] = []
     _DEFAULT_CONFIG['incl_libraries'] = []
     _DEFAULT_SUBJECT = 'Recently Added to {server_name}! ({end_date})'
     _DEFAULT_BODY = 'View the newsletter here: {newsletter_url}'
@@ -677,28 +677,28 @@ class RecentlyAdded(Newsletter):
     def _get_recently_added(self, media_type=None):
         from notification_handler import format_group_index
 
-        pms_connect = pmsconnect.PmsConnect()
-
         recently_added = []
         done = False
         start = 0
 
         while not done:
-            recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', media_type=media_type)
-            filtered_items = [i for i in recent_items['recently_added']
-                              if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
-            if len(filtered_items) < 10:
-                done = True
-            else:
-                start += 10
+            for server_id in self.config['incl_servers']:
+                server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+                recent_items = server.PMSCONNECTION.get_recently_added_details(start=str(start), count='10', media_type=media_type)
+                filtered_items = [i for i in recent_items['recently_added']
+                                  if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
+                if len(filtered_items) < 10:
+                    done = True
+                else:
+                    start += 10
 
-            recently_added.extend(filtered_items)
+                recently_added.extend(filtered_items)
 
         if media_type in ('movie', 'other_video'):
             movie_list = []
             for item in recently_added:
                 # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
+                if str(item['library_id']) not in self.config['incl_libraries']:
                     continue
 
                 movie_list.append(item)
@@ -710,7 +710,7 @@ class RecentlyAdded(Newsletter):
             show_rating_keys = []
             for item in recently_added:
                 # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
+                if str(item['library_id']) not in self.config['incl_libraries']:
                     continue
 
                 if item['media_type'] == 'show':
@@ -723,8 +723,9 @@ class RecentlyAdded(Newsletter):
                 if show_rating_key in show_rating_keys:
                     continue
 
-                show_metadata = pms_connect.get_metadata_details(show_rating_key, media_info=False)
-                children = pms_connect.get_item_children(show_rating_key, get_grandchildren=True)
+                server = plexpy.PMS_SERVERS.get_server_by_id(item['server_id'])
+                show_metadata = server.PMSCONNECTION.get_metadata_details(show_rating_key, media_info=False)
+                children = server.PMSCONNECTION.get_item_children(show_rating_key, get_grandchildren=True)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: int(x['parent_media_index']))
@@ -755,7 +756,7 @@ class RecentlyAdded(Newsletter):
             artist_rating_keys = []
             for item in recently_added:
                 # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
+                if str(item['library_id']) not in self.config['incl_libraries']:
                     continue
 
                 if item['media_type'] == 'artist':
@@ -768,15 +769,16 @@ class RecentlyAdded(Newsletter):
                 if artist_rating_key in artist_rating_keys:
                     continue
 
-                artist_metadata = pms_connect.get_metadata_details(artist_rating_key, media_info=False)
-                children = pms_connect.get_item_children(artist_rating_key)
+                server = plexpy.PMS_SERVERS.get_server_by_id(item['server_id'])
+                artist_metadata = server.PMSCONNECTION.get_metadata_details(artist_rating_key, media_info=False)
+                children = server.PMSCONNECTION.get_item_children(artist_rating_key)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: x['added_at'])
 
                 albums = []
                 for a in filtered_children:
-                    album_metadata = pms_connect.get_metadata_details(a['rating_key'], media_info=False)
+                    album_metadata = server.PMSCONNECTION.get_metadata_details(a['rating_key'], media_info=False)
                     album_metadata['track_count'] = helpers.cast_to_int(album_metadata['children_count'])
                     albums.append(album_metadata)
 
@@ -793,16 +795,17 @@ class RecentlyAdded(Newsletter):
     def retrieve_data(self):
         from notification_handler import get_img_info, set_hash_image_info
 
-        if not self.config['incl_libraries']:
-            logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
+        if not self.config['incl_libraries'] or not self.config['incl_servers']:
+            logger.warn("Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
 
         media_types = set()
-        for s in self._get_sections():
-            if str(s['section_id']) in self.config['incl_libraries']:
-                if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
-                    media_types.add('other_video')
-                else:
-                    media_types.add(s['section_type'])
+        for server_id in self.config['incl_servers']:
+            for s in self._get_sections(server_id):
+                if str(s['library_id']) in self.config['incl_libraries']:
+                    if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
+                        media_types.add('other_video')
+                    else:
+                        media_types.add(s['section_type'])
 
         recently_added = {}
         for media_type in media_types:
@@ -825,12 +828,12 @@ class RecentlyAdded(Newsletter):
                     fallback = 'poster'
 
                 item['thumb_hash'] = set_hash_image_info(
-                    img=item['thumb'], width=150, height=height, fallback=fallback)
+                    server_id=item['server_id'], img=item['thumb'], width=150, height=height, fallback=fallback)
 
                 if item['art']:
                     item['art_hash'] = set_hash_image_info(
-                        img=item['art'], width=500, height=280,
-                        opacity=25, background='282828', blur=3, fallback='art')
+                        server_id=item['server_id'],
+                        img=item['art'], width=500, height=280, opacity=25, background='282828', blur=3, fallback='art')
                 else:
                     item['art_hash'] = ''
 
@@ -849,13 +852,13 @@ class RecentlyAdded(Newsletter):
                     fallback = 'poster'
 
                 img_info = get_img_info(
-                    img=item['thumb'], rating_key=item['rating_key'], title=item['title'],
+                    img=item['thumb'], server_id=item['server_id'], rating_key=item['rating_key'], title=item['title'],
                     width=150, height=height, fallback=fallback)
 
                 item['thumb_url'] = img_info.get('img_url') or common.ONLINE_POSTER_THUMB
 
                 img_info = get_img_info(
-                    img=item['art'], rating_key=item['rating_key'], title=item['title'],
+                    img=item['art'], server_id=item['server_id'], rating_key=item['rating_key'], title=item['title'],
                     width=500, height=280, opacity=25, background='282828', blur=3, fallback='art')
 
                 item['art_url'] = img_info.get('img_url')
@@ -887,21 +890,31 @@ class RecentlyAdded(Newsletter):
 
         return False
 
-    def _get_sections(self):
-        return libraries.Libraries().get_sections()
+    def _get_sections(self, server_id):
+        return libraries.Libraries().get_sections(server_id=server_id)
+
+    def _get_server_options(self):
+
+        servers = []
+        for server in plexpy.PMS_SERVERS:
+            servers.append({'text': server.CONFIG.PMS_NAME, 'value': server.CONFIG.ID})
+
+        return servers
 
     def _get_sections_options(self):
         sections = {}
-        for s in self._get_sections():
-            if s['section_type'] != 'photo':
-                if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
-                    library_type = 'other_video'
-                else:
-                    library_type = s['section_type']
-                group = sections.get(library_type, [])
-                group.append({'value': s['section_id'],
-                              'text': s['section_name']})
-                sections[library_type] = group
+        for server_id in self.config['incl_servers']:
+            server_name = plexpy.PMS_SERVERS.get_server_by_id(server_id).CONFIG.PMS_NAME
+            for s in self._get_sections(server_id):
+                if s['section_type'] != 'photo':
+                    if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
+                        library_type = 'other_video'
+                    else:
+                        library_type = s['section_type']
+                    group = sections.get(library_type, [])
+                    group.append({'value': s['library_id'],
+                                  'text': s['section_name'] + '(' + server_name + ')'})
+                    sections[library_type] = group
 
         groups = OrderedDict([(k, v) for k, v in [
             ('Movie Libraries', sections.get('movie')),
@@ -913,16 +926,16 @@ class RecentlyAdded(Newsletter):
         return groups
 
     def build_params(self):
+
         parameters = self._build_params()
 
         newsletter_libraries = []
-        for s in self._get_sections():
-            if str(s['section_id']) in self.config['incl_libraries']:
-                newsletter_libraries.append(s['section_name'])
+        for server_id in self.config['incl_servers']:
+            for s in self._get_sections(server_id):
+                if str(s['library_id']) in self.config['incl_libraries']:
+                    newsletter_libraries.append(s['section_name'])
 
         parameters['newsletter_libraries'] = ', '.join(sorted(newsletter_libraries))
-        parameters['pms_identifier'] = plexpy.CONFIG.PMS_IDENTIFIER
-        parameters['pms_web_url'] = plexpy.CONFIG.PMS_WEB_URL
 
         return parameters
 
@@ -930,13 +943,21 @@ class RecentlyAdded(Newsletter):
         config_options = self._return_config_options()
 
         additional_config = [
+            {'label': 'Select Servers',
+             'value': self.config['incl_servers'],
+             'description': 'Select the Servers to include in the newsletter.',
+             'name': 'newsletter_config_incl_servers',
+             'input_type': 'selectize',
+             'select_options': self._get_server_options(),
+             'refresh': True,
+             },
             {'label': 'Included Libraries',
              'value': self.config['incl_libraries'],
              'description': 'Select the libraries to include in the newsletter.',
              'name': 'newsletter_config_incl_libraries',
              'input_type': 'selectize',
-             'select_options': self._get_sections_options()
-             }
+             'select_options': self._get_sections_options(),
+             },
         ]
 
         return additional_config + config_options

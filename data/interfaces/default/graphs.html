@@ -12,12 +12,32 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar">
+            % if _session['access_level'] >= 1:
+            <div class="btn-group" id="server-selection">
+                <label>
+                    <select name="graph-server" id="graph-server" class="btn" style="color: inherit;">
+                        <option value="">All Servers</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
+            % endif
+            % if _session['access_level'] >= 3:
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
                         <option value="">All Users</option>
                         <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
                     </select>
+                </label>
+            </div>
+            % endif
+            <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="xaxis-selection">
+                <label class="btn btn-dark">
+                    <input type="radio" name="xaxis-options" id="xaxis-media" value="media" autocomplete="off"> By Media Type
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="xaxis-options" id="xaxis-server" value="server" autocomplete="off"> By Server
                 </label>
             </div>
             <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
@@ -233,6 +253,7 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
+    var selected_server_id = null;
     var selected_user_id = null;
 
     // Modal popup dialog
@@ -262,6 +283,7 @@
                 cache: false,
                 async: true,
                 data: {
+                    server_id: selected_server_id,
                     user_id: selected_user_id,
                     start_date: dateString,
                     media_type: media_type,
@@ -320,11 +342,14 @@
     $(document).ready(function () {
 
         // Initial values for graph from local storage
-        var yaxis = getLocalStorage('graph_type', 'plays');
+        var xaxis = getLocalStorage('graph_xaxis', 'media');
+        var yaxis = getLocalStorage('graph_yaxis', 'plays');
         var current_day_range = getLocalStorage('graph_days', 30);
         var current_month_range = getLocalStorage('graph_months', 12);
         var current_tab = '#' + getLocalStorage('graph_tab', 'tabs-1');
 
+        $('#xaxis-' + xaxis).prop('checked', true);
+        $('#xaxis-' + xaxis).closest('label').addClass('active');
         $('#yaxis-' + yaxis).prop('checked', true);
         $('#yaxis-' + yaxis).closest('label').addClass('active');
         $('#graph-days').val(current_day_range);
@@ -335,7 +360,24 @@
 
         $('.days').html(current_day_range);
         $('.months').html(current_month_range);
-        
+
+        // Load server ids and names (for the selector)
+        $.ajax({
+            url: 'get_server_names',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#graph-server');
+                data.sort(function (a, b) {
+                    return a.pms_name.localeCompare(b.pms_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.server_id + '">' +
+                        item.pms_name + '</option>');
+                });
+            }
+        });
+
         // Load user ids and names (for the selector)
         $.ajax({
             url: 'get_user_names',
@@ -361,16 +403,17 @@
             });
         }
 
-        function loadGraphsTab1(time_range, yaxis) {
+        function loadGraphsTab1(time_range, xaxis, yaxis) {
             $('#days-selection').show();
             $('#months-selection').hide();
+            $('#xaxis-selection').show();
 
-            setGraphFormat(yaxis);
+            setGraphFormat(xaxis, yaxis);
 
             $.ajax({
                 url: "get_plays_by_date",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -397,7 +440,7 @@
             $.ajax({
                 url: "get_plays_by_dayofweek",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -410,7 +453,7 @@
             $.ajax({
                 url: "get_plays_by_hourofday",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -423,7 +466,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -436,7 +479,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id  },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id  },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -449,16 +492,17 @@
             $('#graph-tabs a[href="#tabs-1"]').tab('show')
         }
 
-        function loadGraphsTab2(time_range, yaxis) {
+        function loadGraphsTab2(time_range, xaxis, yaxis) {
             $('#days-selection').show();
             $('#months-selection').hide();
+            $('#xaxis-selection').hide();
 
-            setGraphFormat(yaxis);
+            setGraphFormat(xaxis, yaxis);
 
             $.ajax({
                 url: "get_plays_by_stream_type",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -485,7 +529,7 @@
             $.ajax({
                 url: "get_plays_by_source_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -498,7 +542,7 @@
             $.ajax({
                 url: "get_plays_by_stream_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -511,7 +555,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -524,7 +568,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -537,16 +581,17 @@
             $('#graph-tabs a[href="#tabs-2"]').tab('show')
         }
 
-        function loadGraphsTab3(time_range, yaxis) {
+        function loadGraphsTab3(time_range, xaxis, yaxis) {
             $('#days-selection').hide();
             $('#months-selection').show();
+            $('#xaxis-selection').show();
 
-            setGraphFormat(yaxis);
+            setGraphFormat(xaxis, yaxis);
 
             $.ajax({
                 url: "get_plays_per_month",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, x_axis: xaxis, y_axis: yaxis, server_id: selected_server_id, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -561,16 +606,16 @@
         }
 
         // Set initial state
-        if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-        if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-        if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+        if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+        if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
+        if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
 
         // Tab1 opened
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
-            loadGraphsTab1(current_day_range, yaxis);
+            loadGraphsTab1(current_day_range, xaxis, yaxis);
         });
 
         // Tab2 opened
@@ -578,7 +623,7 @@
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
-            loadGraphsTab2(current_day_range, yaxis);
+            loadGraphsTab2(current_day_range, xaxis, yaxis);
         });
 
         // Tab3 opened
@@ -586,7 +631,7 @@
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
-            loadGraphsTab3(current_month_range, yaxis);
+            loadGraphsTab3(current_month_range, xaxis, yaxis);
         });
 
         // Date range changed
@@ -595,8 +640,8 @@
             forceMinMax($(this));
             current_day_range = $(this).val();
             setLocalStorage('graph_days', current_day_range);
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
             $('.days').html(current_day_range);
         });
         
@@ -606,29 +651,46 @@
             forceMinMax($(this));
             current_month_range = $(this).val();
             setLocalStorage('graph_months', current_month_range);
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
             $('.months').html(current_month_range);
+        });
+
+        // Server changed
+        $('#graph-server').on('change', function() {
+            selected_server_id = $(this).val() || null;
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
         });
 
         // User changed
         $('#graph-user').on('change', function() {
             selected_user_id = $(this).val() || null;
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
         });
-        
+
+        // X-axis changed
+        $('#xaxis-selection').on('change', function() {
+            xaxis = $('input[name=xaxis-options]:checked', '#xaxis-selection').val();
+            setLocalStorage('graph_xaxis', xaxis);
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
+        });
+
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
-            setLocalStorage('graph_type', yaxis);
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            setLocalStorage('graph_yaxis', yaxis);
+            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, xaxis, yaxis); }
+            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, xaxis, yaxis); }
         });
 
-        function setGraphFormat(type) {
-            if (type === 'plays') {
+        function setGraphFormat(xaxis, yaxis) {
+            if (yaxis === 'plays') {
                 yaxis_format = function() { return this.value; };
                 tooltip_format = function() {
                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {

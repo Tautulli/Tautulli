@@ -25,43 +25,59 @@ import libraries
 import logger
 import plextv
 import session
+import pmsconnect
 
 
 def refresh_users():
-    logger.info(u"Tautulli Users :: Requesting users list refresh...")
-    result = plextv.PlexTV().get_full_users_list()
+    logger.info("Tautulli Users :: Requesting users list refresh...")
+    result = plexpy.PLEXTV.get_full_users_list()
 
     if result:
         monitor_db = database.MonitorDatabase()
 
-        for item in result:
+        for user in result:
 
-            if item.get('shared_libraries'):
-                item['shared_libraries'] = ';'.join(item['shared_libraries'])
-            elif item.get('server_token'):
-                libs = libraries.Libraries().get_sections()
-                item['shared_libraries'] = ';'.join([str(l['section_id']) for l in libs])
-
-            keys_dict = {"user_id": item.pop('user_id')}
+            keys_dict = {"user_id": user.pop('user_id')}
 
             # Check if we've set a custom avatar if so don't overwrite it.
             if keys_dict['user_id']:
-                avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
+                avatar_urls = monitor_db.select_single('SELECT thumb, custom_avatar_url '
                                                 'FROM users WHERE user_id = ?',
                                                 [keys_dict['user_id']])
                 if avatar_urls:
-                    if not avatar_urls[0]['custom_avatar_url'] or \
-                            avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
-                        item['custom_avatar_url'] = item['thumb']
+                    if not avatar_urls['custom_avatar_url'] or \
+                            avatar_urls['custom_avatar_url'] == avatar_urls['thumb']:
+                        user['custom_avatar_url'] = user['thumb']
                 else:
-                    item['custom_avatar_url'] = item['thumb']
+                    user['custom_avatar_url'] = user['thumb']
 
-            monitor_db.upsert('users', item, keys_dict)
+            shared_libraries = user.pop('shared_libraries')
 
-        logger.info(u"Tautulli Users :: Users list refreshed.")
+            monitor_db.upsert('users', user, keys_dict)
+
+            shared_library_keys = monitor_db.select_single('SELECT id FROM users WHERE user_id = ?', [keys_dict['user_id']])
+            monitor_db.action('DELETE FROM user_shared_libraries WHERE id = ?', [shared_library_keys['id']])
+
+            if shared_libraries:
+                for shared_library in shared_libraries:
+                    server_id = shared_library.pop('server_id')
+                    server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
+                    if not server.CONFIG.PMS_IS_DELETED:
+                        shared_library_keys['server_id'] = server_id
+                        if 'shared_libraries' in shared_library:
+                            for k, v in enumerate(shared_library['shared_libraries']):
+                                shared_library['shared_libraries'][k] = str(libraries.get_section_index(server_id, v)).decode("utf-8")
+                            shared_library['shared_libraries'] = ';'.join(shared_library['shared_libraries'])
+                        elif 'server_token' in shared_library:
+                            libs = libraries.Libraries().get_sections(server_id=server_id)
+                            shared_library['shared_libraries'] = ';'.join([str(l['library_id']) for l in libs])
+
+                        if shared_library['shared_libraries']:
+                            monitor_db.upsert('user_shared_libraries', shared_library, shared_library_keys)
+        logger.info("Tautulli Users :: Users list refreshed.")
         return True
     else:
-        logger.warn(u"Tautulli Users :: Unable to refresh users list.")
+        logger.warn("Tautulli Users :: Unable to refresh users list.")
         return False
 
 
@@ -81,7 +97,7 @@ class Users(object):
 
         custom_where = [['users.deleted_user', 0]]
 
-        if session.get_session_user_id():
+        if session.get_session_user_id() and int(session.get_session_access_level()) < 3:
             custom_where.append(['users.user_id', session.get_session_user_id()])
 
         if kwargs.get('user_id'):
@@ -132,7 +148,7 @@ class Users(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_list: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_list: %s." % e)
             return default_return
 
         users = query['result']
@@ -177,7 +193,7 @@ class Users(object):
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history']),
-                   'allow_guest': helpers.checked(item['allow_guest'])
+                   'allow_guest': item['allow_guest']
                    }
 
             rows.append(row)
@@ -243,7 +259,7 @@ class Users(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
             return default_return
 
         results = query['result']
@@ -298,12 +314,12 @@ class Users(object):
                           'custom_avatar_url': custom_thumb,
                           'do_notify': do_notify,
                           'keep_history': keep_history,
-                          'allow_guest': allow_guest
+                          'allow_guest': allow_guest,
                           }
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
-                logger.warn(u"Tautulli Users :: Unable to execute database query for set_config: %s." % e)
+                logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, user_id=None, user=None, email=None):
         default_return = {'user_id': 0,
@@ -318,8 +334,10 @@ class Users(object):
                           'do_notify': 0,
                           'keep_history': 1,
                           'allow_guest': 0,
+                          'access_level': 0,
                           'deleted_user': 0,
-                          'shared_libraries': ()
+                          'shared_libraries': (),
+                          'shared_servers': (),
                           }
 
         if user_id is None and not user and not email:
@@ -330,36 +348,37 @@ class Users(object):
 
             try:
                 if str(user_id).isdigit():
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id, user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
+                            'allow_guest ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id, user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
+                            'allow_guest ' \
                             'FROM users ' \
                             'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id, user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
+                            'allow_guest ' \
                             'FROM users ' \
                             'WHERE email = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[email])
                 else:
                     result = []
+
             except Exception as e:
-                logger.warn(u"Tautulli Users :: Unable to execute database query for get_details: %s." % e)
+                logger.warn("Tautulli Users :: Unable to execute database query for get_details: %s." % e)
                 result = []
 
             user_details = {}
             if result:
                 for item in result:
-                    if session.get_session_user_id():
+                    if session.get_session_user_id() and int(session.get_session_access_level()) < 3:
                         friendly_name = session.get_session_user()
                     elif item['friendly_name']:
                         friendly_name = item['friendly_name']
@@ -373,7 +392,16 @@ class Users(object):
                     else:
                         user_thumb = common.DEFAULT_USER_THUMB
 
-                    shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
+                    query = 'SELECT server_id, shared_libraries ' \
+                            'FROM user_shared_libraries ' \
+                            'WHERE id = ? '
+                    result_shared_libraries = monitor_db.select(query, args=[item['id']])
+                    shared_libraries = []
+                    shared_servers = []
+                    for item_shared_libraries in result_shared_libraries:
+                        sl = tuple(item_shared_libraries['shared_libraries'].split(';')) if item_shared_libraries['shared_libraries'] else ()
+                        shared_libraries.extend(sl)
+                        shared_servers.append(item_shared_libraries['server_id'])
 
                     user_details = {'user_id': item['user_id'],
                                     'username': item['username'],
@@ -388,7 +416,9 @@ class Users(object):
                                     'keep_history': item['keep_history'],
                                     'deleted_user': item['deleted_user'],
                                     'allow_guest': item['allow_guest'],
-                                    'shared_libraries': shared_libraries
+                                    'access_level': (9 if item['is_admin'] else item['allow_guest']),
+                                    'shared_libraries': shared_libraries,
+                                    'shared_servers': shared_servers,
                                     }
             return user_details
 
@@ -398,7 +428,7 @@ class Users(object):
             return user_details
 
         else:
-            logger.warn(u"Tautulli Users :: Unable to retrieve user %s from database. Requesting user list refresh."
+            logger.warn("Tautulli Users :: Unable to retrieve user %s from database. Requesting user list refresh."
                         % user_id if user_id else user)
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             refresh_users()
@@ -409,7 +439,7 @@ class Users(object):
                 return user_details
 
             else:
-                logger.warn(u"Tautulli Users :: Unable to retrieve user %s from database. Returning 'Local' user."
+                logger.warn("Tautulli Users :: Unable to retrieve user %s from database. Returning 'Local' user."
                             % user_id if user_id else user)
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
@@ -453,7 +483,7 @@ class Users(object):
                     else:
                         result = []
             except Exception as e:
-                logger.warn(u"Tautulli Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.warn("Tautulli Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
                 result = []
 
             for item in result:
@@ -498,7 +528,7 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_player_stats: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_player_stats: %s." % e)
             result = []
 
         for item in result:
@@ -530,6 +560,7 @@ class Users(object):
         try:
             if str(user_id).isdigit():
                 query = 'SELECT session_history.id, session_history.media_type, ' \
+                        'session_history.server_id, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, original_title, ' \
                         'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
@@ -544,7 +575,7 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_recently_watched: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_recently_watched: %s." % e)
             result = []
 
         for row in result:
@@ -557,6 +588,7 @@ class Users(object):
 
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
+                                 'server_id': row['server_id'],
                                  'rating_key': row['rating_key'],
                                  'parent_rating_key': row['parent_rating_key'],
                                  'grandparent_rating_key': row['grandparent_rating_key'],
@@ -579,14 +611,14 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
+            query = 'SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
                     'is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                    'do_notify, keep_history, allow_guest, server_token, shared_libraries, ' \
+                    'do_notify, keep_history, allow_guest, ' \
                     'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
                     'FROM users WHERE deleted_user = 0'
             result = monitor_db.select(query=query)
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_users: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
             return None
 
         users = []
@@ -603,14 +635,23 @@ class Users(object):
                     'do_notify': item['do_notify'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
-                    'server_token': item['server_token'],
-                    'shared_libraries': item['shared_libraries'],
                     'filter_all': item['filter_all'],
                     'filter_movies': item['filter_movies'],
                     'filter_tv': item['filter_tv'],
                     'filter_music': item['filter_music'],
                     'filter_photos': item['filter_photos'],
                     }
+
+            query = 'SELECT shared_libraries ' \
+                    'FROM user_shared_libraries ' \
+                    'WHERE id = ? '
+            result_shared_libraries = monitor_db.select(query, args=[item['id']])
+            shared_libraries = []
+            for item_shared_libraries in result_shared_libraries:
+                sl = tuple(item_shared_libraries['shared_libraries'].split(';')) if item_shared_libraries['shared_libraries'] else ()
+                shared_libraries.extend(sl)
+            user['shared_libraries'] = ';'.join(shared_libraries)
+
             users.append(user)
 
         return users
@@ -620,7 +661,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                logger.info(u"Tautulli Users :: Deleting all history for user id %s from database." % user_id)
+                logger.info("Tautulli Users :: Deleting all history for user id %s from database." % user_id)
                 session_history_media_info_del = \
                     monitor_db.action('DELETE FROM '
                                       'session_history_media_info '
@@ -644,7 +685,7 @@ class Users(object):
             else:
                 return 'Unable to delete items. Input user_id not valid.'
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for delete_all_history: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for delete_all_history: %s." % e)
 
     def delete(self, user_id=None):
         monitor_db = database.MonitorDatabase()
@@ -652,7 +693,7 @@ class Users(object):
         try:
             if str(user_id).isdigit():
                 self.delete_all_history(user_id)
-                logger.info(u"Tautulli Users :: Deleting user with id %s from database." % user_id)
+                logger.info("Tautulli Users :: Deleting user with id %s from database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
@@ -661,21 +702,21 @@ class Users(object):
             else:
                 return 'Unable to delete user, user_id not valid.'
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for delete: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for delete: %s." % e)
 
     def undelete(self, user_id=None, username=None):
         monitor_db = database.MonitorDatabase()
 
         try:
             if user_id and str(user_id).isdigit():
-                logger.info(u"Tautulli Users :: Re-adding user with id %s to database." % user_id)
+                logger.info("Tautulli Users :: Re-adding user with id %s to database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
 
                 return 'Re-added user with id %s.' % user_id
             elif username:
-                logger.info(u"Tautulli Users :: Re-adding user with username %s to database." % username)
+                logger.info("Tautulli Users :: Re-adding user with username %s to database." % username)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
@@ -684,7 +725,7 @@ class Users(object):
             else:
                 return 'Unable to re-add user, user_id or username not valid.'
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for undelete: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
     # Keep method for PlexWatch/Plexivity import
     def get_user_id(self, user=None):
@@ -706,7 +747,7 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
         
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and int(session.get_session_access_level()) < 3:
             user_cond = 'AND user_id = %s ' % session.get_session_user_id()
 
         try:
@@ -718,17 +759,23 @@ class Users(object):
 
             result = monitor_db.select(query)
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
             return None
         
         return session.friendly_name_to_username(result)
     
-    def get_tokens(self, user_id=None):
+    def get_tokens(self, server_id=None, user_id=None):
         if user_id:
             try:
                 monitor_db = database.MonitorDatabase()
-                query = 'SELECT allow_guest, user_token, server_token FROM users ' \
-                        'WHERE user_id = ? AND deleted_user = 0'
+                where = ''
+                if server_id:
+                    where = ' AND user_shared_libraries.server_id = %s ' % server_id
+                query = 'SELECT users.allow_guest, user_shared_libraries.user_token, user_shared_libraries.server_token' \
+                        '  FROM users ' \
+                        ' WHERE users.user_id = ? AND users.deleted_user = 0 ' + where + \
+                        ' INNER JOIN user_shared_libraries ' \
+                        '    ON users.user_id = user_shared_libraries.id'
                 result = monitor_db.select_single(query, args=[user_id])
                 if result:
                     tokens = {'allow_guest': result['allow_guest'],
@@ -755,7 +802,7 @@ class Users(object):
                     'WHERE user_id = ?'
             result = monitor_db.select_single(query, args=[user_id])
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
             result = {}
 
         filters_list = {}
@@ -791,7 +838,7 @@ class Users(object):
             try:
                 monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
             except Exception as e:
-                logger.warn(u"Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
+                logger.warn("Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
 
     def get_datatables_user_login(self, user_id=None, kwargs=None):
         default_return = {'recordsFiltered': 0,
@@ -805,7 +852,7 @@ class Users(object):
 
         data_tables = datatables.DataTables()
 
-        if session.get_session_user_id():
+        if session.get_session_user_id() and int(session.get_session_access_level()) < 5:
             custom_where = [['user_login.user_id', session.get_session_user_id()]]
         else:
             custom_where = [['user_login.user_id', user_id]] if user_id else []
@@ -832,7 +879,7 @@ class Users(object):
                                           join_evals=[['user_login.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
             return default_return
 
         results = query['result']
@@ -867,10 +914,10 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            logger.info(u"Tautulli Users :: Clearing login logs from database.")
+            logger.info("Tautulli Users :: Clearing login logs from database.")
             monitor_db.action('DELETE FROM user_login')
             monitor_db.action('VACUUM')
             return True
         except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for delete_login_log: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for delete_login_log: %s." % e)
             return False

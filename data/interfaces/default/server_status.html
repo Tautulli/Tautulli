@@ -1,0 +1,76 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           server_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    from plexpy import helpers
+
+    # Human readable duration
+    def hd(seconds):
+        m, s = divmod(helpers.cast_to_int(seconds), 60)
+        h, m = divmod(m, 60)
+        return str(h).zfill(1) + ':' + str(m).zfill(2)
+%>
+
+<div class="dashboard-server-status" id="dashboard-server-status">
+    <div class="dashboard-server-status-container">
+        <div class='container-fluid'>
+            <div class="padded-header" id="current-activity-header">
+                <h3><span id="sessions-xml">Server Status</span></h3>
+            </div>
+            <div class="table-card-back">
+                <table class="server-status-table display" id="server-status-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="server_status" rowspan="2">Server<br>Status</th>
+                            <th class="remote_access_status" rowspan="2">Remote<br>Access</th>
+                            % if config['monitor_rclone']:
+                            <th class="rclone_status" rowspan="2">rClone<br>Status</th>
+                            % endif
+                            <th class="update_available" rowspan="2">Update<br>Available</th>
+                            <th class="center" colspan="4" style="padding: 0;">Streams<hr></th>
+                            <th class="center" colspan="3" style="padding: 0;">Bandwidth<hr></th>
+                        </tr>
+                        <tr>
+                            <th class="pms_name">Server</th>
+                            <th class="stream_count">Total</th>
+                            <th class="stream_count_direct_play">Direct</th>
+                            <th class="stream_count_direct_stream">Stream</th>
+                            <th class="stream_count_transcode">Transcode</th>
+                            <th class="total_bandwidth">Total</th>
+                            <th class="wan_bandwidth">Wan</th>
+                            <th class="lan_bandwidth">Lan</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getServerStats() {
+        servers_table_options.ajax = {url: 'get_server_status'};
+        servers_table_options.language.loadingRecords = "Loading Server Status...";
+        server_status_table = $('#server-status-table').DataTable(servers_table_options);
+
+    }
+    getServerStats()
+    setInterval(function () {
+        $(".trigger-tooltip").tooltip("hide");
+        server_status_table.ajax.reload( null, false );
+    }, ${config['home_refresh_interval'] * 1000});
+</script>

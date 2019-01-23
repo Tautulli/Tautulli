@@ -1,5 +1,5 @@
 % if data:
-<div class="modal-dialog modal-lg" role="document">
+<div class="modal-dialog modal-xlg" role="document">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
@@ -22,17 +22,18 @@
                 <thead>
                 <tr>
                     <th align="left" id="delete_row">Delete</th>
-                    <th align="left" id="date">Date</th>
-                    <th align="left" id="friendly_name">User</th>
-                    <th align="left" id="ip_address">IP Address</th>
-                    <th align="left" id="platform">Platform</th>
-                    <th align="left" id="device">Player</th>
-                    <th align="left" id="title">Title</th>
-                    <th align="left" id="started">Started</th>
-                    <th align="left" id="paused_counter">Paused</th>
-                    <th align="left" id="stopped">Stopped</th>
-                    <th align="left" id="duration">Duration</th>
-                    <th align="left" id="percent_complete"></th>
+                    <th align="left" class="date" id="date">Date</th>
+                    <th align="left" class="friendly_name" id="friendly_name">User</th>
+                    <th align="left" class="ip_address" id="ip_address">IP Address</th>
+                    <th align="left" class="platform" id="platform">Platform</th>
+                    <th align="left" class="player" id="device">Player</th>
+                    <th align="left" class="server_name" id="server_name">Server</th>
+                    <th align="left" class="title" id="title">Title</th>
+                    <th align="left" class="started" id="started">Started</th>
+                    <th align="left" class="paused_counter" id="paused_counter">Paused</th>
+                    <th align="left" class="stopped" id="stopped">Stopped</th>
+                    <th align="left" class="duration" id="duration">Duration</th>
+                    <th align="left" class="watched_status" id="percent_complete"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -52,6 +53,7 @@
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify(d),
+                    server_id: "${data['server_id']}",
                     user_id: "${data['user_id']}",
                     start_date: "${data['start_date']}",
                     media_type: "${data.get('media_type') or 'all'}",

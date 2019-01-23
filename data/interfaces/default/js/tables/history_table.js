@@ -48,7 +48,7 @@ history_table_options = {
             "orderable": false
         },
         {
-            "targets": [1],
+            "targets": "date",
             "data":"date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var date = moment(cellData, "X").format(date_format);
@@ -75,8 +75,19 @@ history_table_options = {
             "width": "7%",
             "className": "no-wrap expand-history"
         },
+       {
+            "targets": "server_name",
+            "data":"pms_name",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "8%",
+            "className": "no-wrap"
+        },
         {
-            "targets": [2],
+            "targets": "friendly_name",
             "data":"friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -93,7 +104,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [3],
+            "targets": "ip_address",
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
@@ -111,7 +122,7 @@ history_table_options = {
             "className": "no-wrap modal-control-ip"
         },
         {
-            "targets": [4],
+            "targets": "platform",
             "data":"platform",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -122,7 +133,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": "player",
             "data": "player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -141,7 +152,7 @@ history_table_options = {
             "className": "no-wrap modal-control"
         },
         {
-            "targets": [6],
+            "targets": "title",
             "data":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -152,22 +163,22 @@ history_table_options = {
                     if (rowData['media_type'] === 'movie') {
                         if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?' + source + 'rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?server_id=' + rowData['server_id'] + '&img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                        $(td).html('<div class="history-title"><a href="info?' + source + 'id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         if (rowData['parent_media_index'] && rowData['media_index']) { parent_info = ' (S' + rowData['parent_media_index'] + '&middot; E' + rowData['media_index'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?' + source + 'rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?server_id=' + rowData['server_id'] + '&img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                        $(td).html('<div class="history-title"><a href="info?' + source + 'id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?' + source + 'rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?server_id=' + rowData['server_id'] + '&img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                        $(td).html('<div class="history-title"><a href="info?' + source + 'id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'clip') {
                         $(td).html(cellData);
                     } else {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
                 }
             },
@@ -175,7 +186,7 @@ history_table_options = {
             "className": "datatable-wrap"
         },
         {
-            "targets": [7],
+            "targets": "started",
             "data":"started",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null) {
@@ -189,7 +200,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": "paused_counter",
             "data":"paused_counter",
             "render": function (data, type, full) {
                 if (data !== null) {
@@ -203,7 +214,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": "stopped",
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null || (rowData['state'] != null && rowData['state'] != "stopped")) {
@@ -217,7 +228,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [10],
+            "targets": "duration",
             "data":"duration",
             "render": function (data, type, full) {
                 if (data !== null) {
@@ -231,7 +242,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [11],
+            "targets": "watched_status",
             "data": "watched_status",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData == 1) {
@@ -485,17 +496,18 @@ function childTableFormat(rowData) {
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +
-                '<th align="left" id="date">Date</th>' +
-                '<th align="left" id="friendly_name">User</th>' +
-                '<th align="left" id="ip_address">IP Address</th>' +
-                '<th align="left" id="platform">Platform</th>' +
-                '<th align="left" id="platform">Player</th>' +
-                '<th align="left" id="title">Title</th>' +
-                '<th align="left" id="started">Started</th>' +
-                '<th align="left" id="paused_counter">Paused</th>' +
-                '<th align="left" id="stopped">Stopped</th>' +
-                '<th align="left" id="duration">Duration</th>' +
-                '<th align="left" id="percent_complete"></th>' +
+                '<th align="left" class="date" id="date">Date</th>' +
+                '<th align="left" class="server_name" id="pms_name">Server</th>' +
+                '<th align="left" class="friendly_name" id="friendly_name">User</th>' +
+                '<th align="left" class="ip_address" id="ip_address">IP Address</th>' +
+                '<th align="left" class="platform" id="platform">Platform</th>' +
+                '<th align="left" class="player" id="player">Player</th>' +
+                '<th align="left" class="title" id="title">Title</th>' +
+                '<th align="left" class="started" id="started">Started</th>' +
+                '<th align="left" class="paused_counter" id="paused_counter">Paused</th>' +
+                '<th align="left" class="stopped" id="stopped">Stopped</th>' +
+                '<th align="left" class="duration" id="duration">Duration</th>' +
+                '<th align="left" class="watched_status" id="percent_complete"></th>' +
             '</tr>' +
             '</thead>' +
             '<tbody>' +

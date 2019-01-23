@@ -1,5 +1,33 @@
 # Changelog
 
+## v3.0.00-beta (2019-01-22)
+
+* Monitoring:
+  * New: Support for monitoring multiple Plex Servers.
+  * New: Support for monitoring rclone mount.
+  * Change: Changed Get for Plex Updates to 15 minute interval.
+* UI:
+  * New: Dashboard Server Status card.
+  * New: Added server name to lists (Libraries, History, User History) 
+* History:
+  * New: Import for Tautulli databases
+  * New: Filter by server
+* Graphs:
+  * New: Added server selection
+  * New: View by media type or server
+* Newsletters:
+  * New: Added Server selection
+* Notifications:
+  * New: Added rclone up/down notification
+* Users:
+  * New: Added Guest access levels
+    * No Access
+    * Guest - Can see only their own history on the servers they are friended to. This is the same functionality as in previous releases.
+    * PowerGuest - Can see all users' history and all library sections but only on the servers they are friended to.
+    * SuperGuest - Can see all users' history and all library sections on all servers. But no access to settings.
+    * Admin - Full access to all controls.
+         
+
 ## v2.1.26 (2018-12-01)
 
 * Monitoring:
@@ -10,7 +38,6 @@
   * Fix: History model showing no results for stream info graph.
 * API:
   * Fix: API returning error when missing a cmd.
-
 
 ## v2.1.25 (2018-11-03)
 

@@ -40,6 +40,9 @@ class DataTables(object):
                   join_types=[],
                   join_tables=[],
                   join_evals=[],
+                  union_join_types=[],
+                  union_join_tables=[],
+                  union_join_evals=[],
                   kwargs=None):
 
         if not table_name:
@@ -56,6 +59,7 @@ class DataTables(object):
 
         extracted_columns = self.extract_columns(columns=columns)
         join = self.build_join(join_types, join_tables, join_evals)
+        union_join = self.build_join(union_join_types, union_join_tables, union_join_evals)
         group = self.build_grouping(group_by)
         c_where, cw_args = self.build_custom_where(custom_where)
         order = self.build_order(parameters['order'],
@@ -70,8 +74,9 @@ class DataTables(object):
             extracted_columns_union = self.extract_columns(columns=columns_union)
             group_u = self.build_grouping(group_by_union)
             c_where_u, cwu_args = self.build_custom_where(custom_where_union)
-            union = 'UNION SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
+            union = 'UNION SELECT %s FROM %s %s %s %s' % (extracted_columns_union['column_string'],
                                                        table_name_union,
+                                                       union_join,
                                                        c_where_u,
                                                        group_u)
         else:
@@ -84,7 +89,7 @@ class DataTables(object):
         query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
                 % (extracted_columns['column_string'], table_name, join, c_where, group, union, where, order)
 
-        # logger.debug(u"Query: %s" % query)
+        # logger.debug("Query: %s" % query)
 
         # Execute the query
         filtered = self.ssp_db.select(query, args=args)

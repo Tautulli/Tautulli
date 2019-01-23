@@ -8,7 +8,18 @@
 <% from plexpy import PLEX_SERVER_UP %>
 <div class="container-fluid">
     % for section in config['home_sections']:
-    % if section == 'current_activity':
+    % if section == 'server_status':
+    % if _session['access_level'] >= 3:
+    <div class="row">
+        <div class="col-md-12">
+            <div id="server-status" class="server-status">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading server status...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    % endif
+    % elif section == 'current_activity':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
@@ -56,6 +67,14 @@
                         <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="30" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
                         <span class="input-group-addon btn-dark inactive">days</span>
                     </div>
+                    <div class="btn-group" id="server-selection">
+                        <label>
+                            <select name="watched-stats-server" id="watched-stats-server" class="btn" style="color: inherit;">
+                                <option value="">All Servers</option>
+                                <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                            </select>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,16 +90,6 @@
     % elif section == 'library_stats':
     <div class="row">
         <div class="col-md-12">
-            <div class="home-padded-header padded-header" id="library-statistics-header">
-                <h3 class="pull-left">Library Statistics</h3>
-                <div class="button-bar">
-                    <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
             <div id="library-stats" class="library-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
@@ -92,14 +101,6 @@
         <div class="col-md-12">
             <div class="home-padded-header padded-header">
                 <h3 class="pull-left"><span id="recently-added-xml">Recently Added</span></h3>
-                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
-                    <li>
-                        <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
-                    </li>
-                    <li>
-                        <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
-                    </li>
-                </ul>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
                         <label class="btn btn-dark" id="recently-added-label-all">
@@ -129,17 +130,7 @@
     <div class="row">
         <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
-                % if PLEX_SERVER_UP:
-                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
-                % elif config['pms_is_cloud']:
-                <div class="text-muted">Plex Cloud server is sleeping.</div>
-                % else:
-                <div class="text-muted">There was an error communicating with your Plex Server.
-                    % if _session['user_group'] == 'admin':
-                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
-                    % endif
-                </div>
-                % endif
+                <div class="text-muted">No plex servers are enabled or online.
                 <br>
             </div>
         </div>
@@ -231,6 +222,11 @@
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
 <script src="${http_root}js/jquery.mousewheel.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -259,6 +255,26 @@
         });
     }
 </script>
+% if 'server_status' in config['home_sections'] and _session['access_level'] >= 3:
+<script>
+    function ServerStatus() {
+        showMsg("Loading Server statistics...", true, false, 0);
+
+        $.ajax({
+            url: 'server_status',
+            type: 'GET',
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#server-status").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
+            }
+        });
+    }
+
+    ServerStatus();
+</script>
+% endif
 % if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
 <script>
     var defaultHandler = {
@@ -351,12 +367,13 @@
                         var s = (typeof Proxy === "function") ? new Proxy(session, defaultHandler) : session;
                         var key = s.session_key;
                         var session_id = s.session_id;
+                        var server_id = s.server_id;
                         var instance = $('#activity-instance-' + key);
 
                         // Create a new instance if it doesn't exist
                         if (!(instance.length)) {
                             create_instances.push(key);
-                            getActivityInstance(key);
+                            getActivityInstance(server_id, key);
                             return;
                         }
 
@@ -381,32 +398,32 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key')) {
-                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
+                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
                                 $('#metadata-grandparent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('href', 'info?server_id=' + s.server_id +'&rating_key=' + s.grandparent_rating_key)
                                     .attr('title', s.original_title || s.grandparent_title)
                                     .text(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key')) {
-                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
-                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
+                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
                                 $('#poster-url-' + key)
-                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.parent_rating_key)
                                     .attr('title', s.parent_title);
                                 $('#metadata-parent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.parent_rating_key)
                                     .attr('title', s.parent_title)
                                     .text(s.parent_title);
                             }
                             // Update cover if track changed
                             if (s.rating_key !== instance.data('rating_key')) {
                                 $('#metadata-grandparent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('href', 'info?+rating_key=' + s.grandparent_rating_key)
                                     .attr('title', s.original_title || s.grandparent_title)
                                     .text(s.original_title || s.grandparent_title);
                                 $('#metadata-title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.rating_key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.rating_key)
                                     .attr('title', s.title)
                                     .text(s.title);
                             }
@@ -568,14 +585,15 @@
         });
     }
 
-    function getActivityInstance(session_key) {
+    function getActivityInstance(server_id, session_key) {
         $.ajax({
             url: 'get_current_activity_instance',
             type: 'GET',
             cache: false,
             async: true,
             data: {
-                session_key: session_key
+                session_key: session_key,
+                server_id: server_id
             },
             complete: function(xhr, status) {
                 $('#currentActivity').append(xhr.responseText);
@@ -655,6 +673,7 @@
     $('#currentActivity').on('click', '.dashboard-activity-terminate-session', function (e) {
         e.preventDefault();
         var session_id = $(this).data('id');
+        var server_id = $(this).data('server_id');
         var key = $(this).data('key');
         var instance = $('#activity-instance-' + key);
 
@@ -673,6 +692,7 @@
                 data: {
                     session_key: key,
                     session_id: session_id,
+                    server_id: server_id,
                     message: message
                 },
                 async: true,
@@ -698,7 +718,7 @@
 % endif
 % if 'watch_stats' in config['home_sections']:
 <script>
-    function getHomeStats(time_range, stats_type) {
+    function getHomeStats(time_range, stats_type, selected_server_id) {
         showMsg("Loading watch statistics...", true, false, 0);
 
         $.ajax({
@@ -708,7 +728,8 @@
             async: true,
             data: {
                 time_range: time_range,
-                stats_type: stats_type
+                stats_type: stats_type,
+                server_id: selected_server_id
             },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
@@ -725,7 +746,8 @@
     $('#watched-stats-' + stats_type).closest('label').addClass('active');
     $('#watched-stats-days').val(time_range);
 
-    getHomeStats(time_range, stats_type);
+    var selected_server_id  =  null;
+    getHomeStats(time_range, stats_type, selected_server_id);
 
     $('input[name=watched-stats-type]').change(function () {
         stats_type = $(this).filter(':checked').val();
@@ -736,10 +758,37 @@
         forceMinMax($(this));
         time_range = $(this).val();
         setLocalStorage('home_stats_days', time_range);
-        getHomeStats(time_range, stats_type);
+        getHomeStats(time_range, stats_type, selected_server_id);
     });
 
     $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
+
+    // Load server ids and names (for the selector)
+    function getHomeStatsServers() {
+        $.ajax({
+            url: 'get_server_names',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#watched-stats-server');
+                data.sort(function (a, b) {
+                    return a.pms_name.localeCompare(b.pms_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.server_id + '">' +
+                        item.pms_name + '</option>');
+                });
+            }
+        });
+    };
+    getHomeStatsServers();
+
+    $('#watched-stats-server').on('change', function () {
+        selected_server_id = $(this).val() || null;
+        getHomeStats(time_range, stats_type, selected_server_id);
+    });
+
+
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:
@@ -790,14 +839,16 @@
     recentlyAdded(recently_added_count, recently_added_type);
 
     function highlightAddedScrollerButton() {
-        var scroller = $("#recently-added-row-scroller");
-        var numElems = scroller.find("li:visible").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("body").find(".container-fluid").width()) {
-            $("#recently-added-page-right").removeClass("disabled");
-        } else {
-            $("#recently-added-page-right").addClass("disabled");
-        }
+        $("[id^='recently-added-row-scroller-']").each(function() {
+            var server_id = $(this).data("server_id");
+            var numElems = $(this).find("li:visible").length;
+            $(this).width(numElems * 175);
+            if ($(this).width() > $("body").find(".container-fluid").width()) {
+                $("#recently-added-page-right-" + server_id).removeClass("disabled");
+            } else {
+                $("#recently-added-page-right-" + server_id).addClass("disabled");
+            }
+        })
     }
 
     $(window).resize(function () {
@@ -805,15 +856,19 @@
     });
 
     function resetScroller() {
-        leftTotal = 0;
-        $("#recently-added-row-scroller").animate({ left: leftTotal }, 1000);
-        $("#recently-added-page-left").addClass("disabled").blur();
+        $("[id^='recently-added-row-scroller-']").each(function() {
+            var server_id = $(this).data("server_id");
+            leftTotal = 0;
+            $(this).animate({ left: leftTotal }, 1000);
+            $("#recently-added-page-left-" + server_id).addClass("disabled").blur();
+        })
     }
 
     var leftTotal = 0;
-    $(".paginate").click(function (e) {
+    $(document).on('click', '.paginate', function (e) {
         e.preventDefault();
-        var scroller = $("#recently-added-row-scroller");
+        var server_id = $(this).data("server_id");
+        var scroller = $("#recently-added-row-scroller-" + server_id);
         var containerWidth = $("body").find(".container-fluid").width();
         var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
         var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
@@ -822,15 +877,15 @@
         scroller.animate({ left: leftTotal }, 250);
 
         if (leftTotal === 0) {
-            $("#recently-added-page-left").addClass("disabled").blur();
+            $("#recently-added-page-left-" + server_id).addClass("disabled").blur();
         } else {
-            $("#recently-added-page-left").removeClass("disabled");
+            $("#recently-added-page-left-" + server_id).removeClass("disabled");
         }
 
         if (leftTotal === leftMax) {
-            $("#recently-added-page-right").addClass("disabled").blur();
+            $("#recently-added-page-right-" + server_id).addClass("disabled").blur();
         } else {
-            $("#recently-added-page-right").removeClass("disabled");
+            $("#recently-added-page-right-" + server_id).removeClass("disabled");
         }
     });
 
@@ -855,7 +910,7 @@
     $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });
 
     $('#recently-added-xml').on('tripleclick', function () {
-        openPlexXML('/library/recentlyAdded', false, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
+        openPlexXML('/library/recentlyAdded', false, false, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
     });
 </script>
 % endif

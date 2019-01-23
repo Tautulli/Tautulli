@@ -180,17 +180,17 @@ DOCUMENTATION :: END
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="delete">Delete</th>
-                                                    <th align="left" id="date">Date</th>
-                                                    <th align="left" id="friendly_name">User</th>
-                                                    <th align="left" id="ip_address">IP Address</th>
-                                                    <th align="left" id="platform">Platform</th>
-                                                    <th align="left" id="player">Player</th>
-                                                    <th align="left" id="title">Title</th>
-                                                    <th align="left" id="started">Started</th>
-                                                    <th align="left" id="paused_counter">Paused</th>
-                                                    <th align="left" id="stopped">Stopped</th>
-                                                    <th align="left" id="duration">Duration</th>
-                                                    <th align="left" id="percent_complete"></th>
+                                                    <th align="left" class="date" id="date">Date</th>
+                                                    <th align="left" class="ip_address" id="ip_address">IP Address</th>
+                                                    <th align="left" class="platform" id="platform">Platform</th>
+                                                    <th align="left" class="player" id="player">Player</th>
+                                                    <th align="left" class="server_name" id="pms_name">Server</th>
+                                                    <th align="left" class="title" id="title">Title</th>
+                                                    <th align="left" class="started" id="started">Started</th>
+                                                    <th align="left" class="paused_counter" id="paused_counter">Paused</th>
+                                                    <th align="left" class="stopped" id="stopped">Stopped</th>
+                                                    <th align="left" class="duration" id="duration">Duration</th>
+                                                    <th align="left" class="watched_status" id="percent_complete"></th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -233,6 +233,7 @@ DOCUMENTATION :: END
                                                 <tr>
                                                     <th align="left" id="delete_row">Delete</th>
                                                     <th align="left" id="state">State</th>
+                                                    <th align="left" id="server_name">Server</th>
                                                     <th align="left" id="username">Username</th>
                                                     <th align="left" id="sync_title">Title</th>
                                                     <th align="left" id="type">Type</th>
@@ -423,7 +424,6 @@ DOCUMENTATION :: END
             }
         };
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
-        history_table.column(2).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
         $(colvis.button()).appendTo('#button-bar-history');
@@ -447,7 +447,6 @@ DOCUMENTATION :: END
             type: 'POST'
         };
         sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
-        sync_table.column(2).visible(false);
 
         var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0] } );
         $( colvis_sync.button() ).appendTo('#button-bar-sync');
@@ -485,7 +484,6 @@ DOCUMENTATION :: END
             }
         };
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
-        login_log_table.columns([1, 2]).visible(false);
 
         var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7] } );
         $( colvis_login.button() ).appendTo('#button-bar-login');

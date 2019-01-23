@@ -27,6 +27,7 @@ DOCUMENTATION :: END
 
 <%!
     from plexpy import helpers
+    from plexpy.common import GUEST_ACCESS_LEVELS
 %>
 
 % if data != None:
@@ -62,11 +63,14 @@ DOCUMENTATION :: END
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
                 </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])}> Allow Guest Access
-                    </label>
-                    <p class="help-block">Uncheck this if you do not want to allow this user to login to Tautulli.</p>
+                <div class="input-group">
+                    <label for="allow_guest">Guest Access Level</label>
+                    <select class="form-control" id="allow_guest" name="allow_guest">
+                        % for value, label in GUEST_ACCESS_LEVELS.items():
+                        <option value="${value}" ${'selected' if data['allow_guest'] == value else ''}>${label}</option>
+                        % endfor
+                    </select>
+                    <p class="help-block">Select the user's guest access level to Tautulli.</p>
                 </div>
                 % if data['user_id']:
                 <div class="form-group">
@@ -89,13 +93,10 @@ DOCUMENTATION :: END
     $("#save_user").on('click', function () {
         var friendly_name = $("input#friendly_name").val();
         var custom_thumb = $("#custom_avatar_url").val();
+        var allow_guest = $("#allow_guest").val();
         var keep_history = 0;
-        var allow_guest = 0;
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
-        }
-        if ($("#allow_guest").is(":checked")) {
-            allow_guest = 1;
         }
 
         $.ajax({
