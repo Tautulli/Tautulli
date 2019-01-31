@@ -580,7 +580,9 @@ def delayed_timelinehandler_process(item):
                 #                  func=clear_recently_added_queue,
                 #                  args=[grandparent_rating_key, grandparent_title],
                 #                  seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
-                clear_recently_added_queue(grandparent_rating_key, grandparent_title)
+                #clear_recently_added_queue(grandparent_rating_key, grandparent_title)
+                on_created(grandparent_rating_key)
+                del_keys(grandparent_rating_key)
 
         elif media_type in ('season', 'album'):
             metadata = item.get_metadata()
@@ -601,7 +603,9 @@ def delayed_timelinehandler_process(item):
                 #                  func=clear_recently_added_queue,
                 #                  args=[rating_key, title],
                 #                  seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
-                clear_recently_added_queue(rating_key, title)
+                #clear_recently_added_queue(rating_key, title)
+                on_created(rating_key)
+                del_keys(rating_key)
 
         else:
             queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
@@ -616,12 +620,16 @@ def delayed_timelinehandler_process(item):
             #                  func=clear_recently_added_queue,
             #                  args=[rating_key, title],
             #                  seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
-            clear_recently_added_queue(rating_key, title)
+            #clear_recently_added_queue(rating_key, title)
+            on_created(rating_key)
+            del_keys(rating_key)
 
     # A movie, show, or artist is done processing
     elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
         state_type == 5 and metadata_state is None and queue_size is None and \
         rating_key in RECENTLY_ADDED_QUEUE:
-
+        
+        del_keys(rating_key)
+            
         logger.debug(u"Tautulli TimelineHandler :: Library item '%s' (%s) done processing metadata."
                      % (title, str(rating_key)))
