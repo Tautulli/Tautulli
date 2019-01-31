@@ -488,6 +488,7 @@ fieldset[disabled] .btn-bright.active {
     width: 100%;
     margin-top: 5px;
 }
+#server-selection label,
 #user-selection label {
     margin-bottom: 0;
 }
