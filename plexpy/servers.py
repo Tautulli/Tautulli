@@ -465,9 +465,10 @@ class plexServer(object):
         }
 
         if self.WS and self.WS.WS_CONNECTION and self.WS.WS_CONNECTION.connected:
-            current_activity.update(self.PMSCONNECTION.get_current_activity())
+            activity = self.PMSCONNECTION.get_current_activity()
 
-            if current_activity:
+            if activity:
+                current_activity.update(activity)
                 counts = {'stream_count_direct_play': 0,
                           'stream_count_direct_stream': 0,
                           'stream_count_transcode': 0,
