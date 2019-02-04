@@ -725,6 +725,8 @@ class RecentlyAdded(Newsletter):
 
                 server = plexpy.PMS_SERVERS.get_server_by_id(item['server_id'])
                 show_metadata = server.PMSCONNECTION.get_metadata_details(show_rating_key, media_info=False)
+                show_metadata['pms_web_url'] = item['pms_web_url']
+                show_metadata['pms_identifier'] = item['pms_identifier']
                 children = server.PMSCONNECTION.get_item_children(show_rating_key, get_grandchildren=True)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
@@ -771,6 +773,8 @@ class RecentlyAdded(Newsletter):
 
                 server = plexpy.PMS_SERVERS.get_server_by_id(item['server_id'])
                 artist_metadata = server.PMSCONNECTION.get_metadata_details(artist_rating_key, media_info=False)
+                artist_metadata['pms_web_url'] = item['pms_web_url']
+                artist_metadata['pms_identifier'] = item['pms_identifier']
                 children = server.PMSCONNECTION.get_item_children(artist_rating_key)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
