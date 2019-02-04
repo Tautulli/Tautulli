@@ -1831,6 +1831,7 @@ class DataFactory(object):
         return result
 
     def set_recently_added_item(self, server_id, rating_key=''):
+        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
         monitor_db = database.MonitorDatabase()
 
         metadata = server.PMSCONNECTION.get_metadata_details(rating_key)
