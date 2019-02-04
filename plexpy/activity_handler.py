@@ -31,8 +31,6 @@ from servers import plexServer
 
 ACTIVITY_SCHED = BackgroundScheduler()
 
-RECENTLY_ADDED_QUEUE = {}
-
 
 class ActivityHandler(object):
 
@@ -116,9 +114,9 @@ class ActivityHandler(object):
             self.update_db_session(session=session)
 
             # Schedule a callback to force stop a stale stream 5 minutes later
-            schedule_callback('session_key-{}'.format(self.get_session_key()),
+            schedule_callback('session_key-{}-{}'.format(self.server.CONFIG.ID, self.get_session_key()),
                               func=force_stop_stream,
-                              args=[self.get_session_key(), session['full_title'], session['username'], self.server.CONFIG.PMS_NAME],
+                              args=[self.get_session_key(), session['full_title'], session['username'], self.server.CONFIG.PMS_NAME, self.server],
                               minutes=5)
 
     def on_stop(self, force_stop=False):
@@ -145,17 +143,17 @@ class ActivityHandler(object):
             row_id = monitor_proc.write_session_history(session=db_session)
 
             if row_id:
-                schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
+                schedule_callback('session_key-{}-{}'.format(self.server.CONFIG.ID, self.get_session_key()), remove_job=True)
 
                 # Remove the session from our temp session table
                 logger.debug("Tautulli ActivityHandler :: %s : Removing sessionKey %s ratingKey %s from session queue"
                              % (self.server.CONFIG.PMS_NAME, str(self.get_session_key()), str(self.get_rating_key())))
                 ap.delete_session(row_id=row_id)
-                delete_metadata_cache(self.get_session_key())
+                delete_metadata_cache(self.get_session_key(), self.server)
             else:
-                schedule_callback('session_key-{}'.format(self.get_session_key()),
+                schedule_callback('session_key-{}-{}'.format(self.server.CONFIG.ID, self.get_session_key()),
                                   func=force_stop_stream,
-                                  args=[self.get_session_key(), db_session['full_title'], db_session['user'], self.server.CONFIG.PMS_NAME],
+                                  args=[self.get_session_key(), db_session['full_title'], db_session['user'], self.server.CONFIG.PMS_NAME, self.server],
                                   seconds=30)
 
     def on_pause(self, still_paused=False):
@@ -261,9 +259,9 @@ class ActivityHandler(object):
             # If we already have this session in the temp table, check for state changes
             if db_session:
                 # Re-schedule the callback to reset the 5 minutes timer
-                schedule_callback('session_key-{}'.format(self.get_session_key()),
+                schedule_callback('session_key-{}-{}'.format(self.server.CONFIG.ID, self.get_session_key()),
                                   func=force_stop_stream,
-                                  args=[self.get_session_key(), db_session['full_title'], db_session['user'], self.server.CONFIG.PMS_NAME],
+                                  args=[self.get_session_key(), db_session['full_title'], db_session['user'], self.server.CONFIG.PMS_NAME, self.server],
                                   minutes=5)
 
                 last_state = db_session['state']
@@ -337,10 +335,12 @@ class ActivityHandler(object):
 
 
 class TimelineHandler(object):
+    RECENTLY_ADDED_QUEUE = {}
 
     def __init__(self, server, timeline):
         self.timeline = timeline
         self.server = server
+        self.RECENTLY_ADDED_QUEUE = {}
 
     def is_item(self):
         if 'itemID' in self.timeline:
@@ -365,7 +365,6 @@ class TimelineHandler(object):
     # This function receives events from our websocket connection
     def process(self):
         if self.is_item():
-            global RECENTLY_ADDED_QUEUE
 
             rating_key = self.get_rating_key()
 
@@ -403,23 +402,24 @@ class TimelineHandler(object):
                         grandparent_rating_key = int(metadata['grandparent_rating_key'])
                         parent_rating_key = int(metadata['parent_rating_key'])
 
-                        grandparent_set = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
+                        grandparent_set = self.RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
                         grandparent_set.add(parent_rating_key)
-                        RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
+                        self.RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
 
-                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                        parent_set = self.RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
                         parent_set.add(rating_key)
-                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
+                        self.RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
+                        self.RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
 
                         logger.debug("Tautulli TimelineHandler :: %s : Library item '%s' (%s, grandparent %s) added to recently added queue."
                                      % (self.server.CONFIG.PMS_NAME, title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(grandparent_rating_key),
+                        schedule_callback('rating_key-{}-{}'.format(self.server.CONFIG.ID, grandparent_rating_key),
                                           func=clear_recently_added_queue,
-                                          args=[self.server, grandparent_rating_key, grandparent_title],
+                                          args=[grandparent_rating_key, grandparent_title, self.server.CONFIG.PMS_NAME,
+                                                self.server, self.RECENTLY_ADDED_QUEUE],
                                           seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 elif media_type in ('season', 'album'):
@@ -428,57 +428,58 @@ class TimelineHandler(object):
                         parent_title = metadata['parent_title']
                         parent_rating_key = int(metadata['parent_rating_key'])
 
-                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                        parent_set = self.RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
                         parent_set.add(rating_key)
-                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
+                        self.RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
                         logger.debug("Tautulli TimelineHandler :: %s : Library item '%s' (%s , parent %s) added to recently added queue."
                                      % (self.server.CONFIG.PMS_NAME, title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(parent_rating_key),
+                        schedule_callback('rating_key-{}-{}'.format(self.server.CONFIG.ID, parent_rating_key),
                                           func=clear_recently_added_queue,
-                                          args=[self.server, parent_rating_key, parent_title],
+                                          args=[parent_rating_key, parent_title, self.server.CONFIG.PMS_NAME,
+                                                self.server, self.RECENTLY_ADDED_QUEUE],
                                           seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 else:
-                    queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
-                    RECENTLY_ADDED_QUEUE[rating_key] = queue_set
+                    queue_set = self.RECENTLY_ADDED_QUEUE.get(rating_key, set())
+                    self.RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
                     logger.debug("Tautulli TimelineHandler :: %s : Library item '%s' (%s) added to recently added queue."
                                  % (self.server.CONFIG.PMS_NAME, title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
-                    schedule_callback('rating_key-{}'.format(rating_key),
+                    schedule_callback('rating_key-{}-{}'.format(self.server.CONFIG.ID, rating_key),
                                       func=clear_recently_added_queue,
-                                      args=[self.server, rating_key, title],
+                                      args=[rating_key, title, self.server.CONFIG.PMS_NAME, self.server, self.RECENTLY_ADDED_QUEUE],
                                       seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
                 state_type == 5 and metadata_state is None and queue_size is None and \
-                rating_key in RECENTLY_ADDED_QUEUE:
+                rating_key in self.RECENTLY_ADDED_QUEUE:
 
                 logger.debug("Tautulli TimelineHandler :: %s : Library item '%s' (%s) done processing metadata."
                              % (self.server.CONFIG.PMS_NAME, title, str(rating_key)))
 
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
-                if rating_key in RECENTLY_ADDED_QUEUE and not RECENTLY_ADDED_QUEUE[rating_key]:
+                if rating_key in self.RECENTLY_ADDED_QUEUE and not self.RECENTLY_ADDED_QUEUE[rating_key]:
                     logger.debug("Tautulli TimelineHandler :: %s : Library item %s removed from recently added queue."
                                  % (self.server.CONFIG.PMS_NAME, str(rating_key)))
-                    del_keys(rating_key)
+                    del_keys(rating_key, self.RECENTLY_ADDED_QUEUE)
 
                     # Remove the callback if the item is removed
-                    schedule_callback('rating_key-{}'.format(rating_key), remove_job=True)
+                    schedule_callback('rating_key-{}-{}'.format(self.server.CONFIG.ID, rating_key), remove_job=True)
 
 
-def del_keys(key):
+def del_keys(key, queue):
     if isinstance(key, set):
         for child_key in key:
-            del_keys(child_key)
-    elif key in RECENTLY_ADDED_QUEUE:
-        del_keys(RECENTLY_ADDED_QUEUE.pop(key))
+            del_keys(child_key, queue)
+    elif key in queue:
+        del_keys(queue.pop(key), queue)
 
 
 def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
@@ -495,8 +496,8 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
                 run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
 
 
-def force_stop_stream(session_key, title, user, server_name):
-    ap = activity_processor.ActivityProcessor()
+def force_stop_stream(session_key, title, user, server_name, server):
+    ap = activity_processor.ActivityProcessor(server=server)
     session = ap.get_session_by_key(session_key=session_key)
 
     row_id = ap.write_session_history(session=session)
@@ -506,7 +507,7 @@ def force_stop_stream(session_key, title, user, server_name):
         logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))
         ap.delete_session(row_id=row_id)
-        delete_metadata_cache(session_key)
+        delete_metadata_cache(session_key, server)
 
     else:
         session['write_attempts'] += 1
@@ -518,8 +519,8 @@ def force_stop_stream(session_key, title, user, server_name):
             ap.increment_write_attempts(session_key=session_key)
 
             # Reschedule for 30 seconds later
-            schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
-                              args=[session_key, session['full_title'], session['user'], server_name], seconds=30)
+            schedule_callback('session_key-{}-{}'.format(server.CONFIG.ID, session_key), func=force_stop_stream,
+                              args=[session_key, session['full_title'], session['user'], server.CONFIG.PMS_NAME, server], seconds=30)
 
         else:
             logger.warn("Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
@@ -528,18 +529,18 @@ def force_stop_stream(session_key, title, user, server_name):
             logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (session['session_key'], session['rating_key']))
             ap.delete_session(session_key=session_key)
-            delete_metadata_cache(session_key)
+            delete_metadata_cache(session_key, server)
 
 
-def clear_recently_added_queue(server, rating_key, title):
-    child_keys = RECENTLY_ADDED_QUEUE[rating_key]
+def clear_recently_added_queue(rating_key, title, server_name, server, queue):
+    child_keys = queue[rating_key]
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
         on_created(server, rating_key, child_keys=child_keys)
 
     elif child_keys:
         for child_key in child_keys:
-            grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
+            grandchild_keys = queue.get(child_key, [])
 
             if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
                 on_created(server, child_key, child_keys=grandchild_keys)
@@ -555,7 +556,7 @@ def clear_recently_added_queue(server, rating_key, title):
         on_created(server, rating_key)
 
     # Remove all keys
-    del_keys(rating_key)
+    del_keys(rating_key, queue)
 
 
 def on_created(server, rating_key, **kwargs):
@@ -598,9 +599,9 @@ def on_created(server, rating_key, **kwargs):
                      % (server.CONFIG.PMS_NAME, str(rating_key)))
 
 
-def delete_metadata_cache(session_key):
+def delete_metadata_cache(session_key, server):
     try:
-        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % session_key))
+        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s-%s.json' % (server.CONFIG.ID, session_key)))
     except IOError as e:
         logger.error("Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
                      % (session_key, e))
