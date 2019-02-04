@@ -187,7 +187,7 @@ class ServerWebSocket(object):
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown', 'server_id': self.server.CONFIG.ID})
             self.server.PLEX_SERVER_UP = False
 
-        activity_processor.ActivityProcessor().set_temp_stopped()
+        activity_processor.ActivityProcessor(server=self.server).set_temp_stopped()
         self.server.initialize_scheduler()
 
     def send_ping(self):

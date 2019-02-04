@@ -583,7 +583,6 @@ class plexServer(object):
 
         return True
 
-
     def undelete(self):
         self.CONFIG.PMS_IS_DELETED = False
         self.refresh()
@@ -600,7 +599,7 @@ class plexServer(object):
             ap = activity_processor.ActivityProcessor(server=self)
             for item in result:
                 ap.delete_session(session_key=item['session_key'])
-                activity_handler.delete_metadata_cache(session_key=item['session_key'])
+                activity_handler.delete_metadata_cache(session_key=item['session_key'], server=self)
             sessions_del = \
                 monitor_db.action('DELETE FROM '
                                   'sessions '
