@@ -122,6 +122,7 @@ class ActivityProcessor(object):
                       }
 
             keys = {'session_key': session.get('session_key', ''),
+                    'server_id': session.get('server_id', ''),
                     'rating_key': session.get('rating_key', '')}
 
             result = self.db.upsert('sessions', values, keys)
@@ -471,8 +472,8 @@ class ActivityProcessor(object):
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
             session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_key = ? ',
-                                            args=[session_key])
+                                            'WHERE session_key = ? AND server_id = ?',
+                                            args=[session_key, self.server.CONFIG.ID])
             if session:
                 return session
 
@@ -481,8 +482,8 @@ class ActivityProcessor(object):
     def get_session_by_id(self, session_id=None):
         if session_id:
             session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_id = ? ',
-                                            args=[session_id])
+                                            'WHERE session_id = ? AND server_id = ? ',
+                                            args=[session_id, self.server.CONFIG.ID])
             if session:
                 return session
 
@@ -507,15 +508,15 @@ class ActivityProcessor(object):
 
     def delete_session(self, session_key=None, row_id=None):
         if str(session_key).isdigit():
-            self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
+            self.db.action('DELETE FROM sessions WHERE session_key = ? AND server_id = ?', [session_key, self.server.CONFIG.ID])
         elif str(row_id).isdigit():
-            self.db.action('DELETE FROM sessions WHERE id = ?', [row_id])
+            self.db.action('DELETE FROM sessions WHERE id = ? AND server_id = ?', [row_id, self.server.CONFIG.ID])
 
     def set_session_last_paused(self, session_key=None, timestamp=None):
         if str(session_key).isdigit():
             result = self.db.select('SELECT last_paused, paused_counter '
                                     'FROM sessions '
-                                    'WHERE session_key = ?', args=[session_key])
+                                    'WHERE session_key = ? AND server_id = ?', args=[session_key, self.server.CONFIG.ID])
 
             paused_counter = None
             for session in result:
@@ -537,15 +538,15 @@ class ActivityProcessor(object):
     def increment_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
             self.db.action('UPDATE sessions SET buffer_count = buffer_count + 1 '
-                           'WHERE session_key = ?',
-                           [session_key])
+                           'WHERE session_key = ? AND server_id = ?',
+                           [session_key, self.server.CONFIG.ID])
 
     def get_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
             buffer_count = self.db.select_single('SELECT buffer_count '
                                                  'FROM sessions '
-                                                 'WHERE session_key = ?',
-                                                 [session_key])
+                                                 'WHERE session_key = ? AND server_id = ?',
+                                                 [session_key, self.server.CONFIG.ID])
             if buffer_count:
                 return buffer_count['buffer_count']
 
@@ -554,15 +555,15 @@ class ActivityProcessor(object):
     def set_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
             self.db.action('UPDATE sessions SET buffer_last_triggered = strftime("%s","now") '
-                           'WHERE session_key = ?',
-                           [session_key])
+                           'WHERE session_key = ? AND server_id = ?',
+                           [session_key, self.server.CONFIG.ID])
 
     def get_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
             last_time = self.db.select_single('SELECT buffer_last_triggered '
                                               'FROM sessions '
-                                              'WHERE session_key = ?',
-                                              [session_key])
+                                              'WHERE session_key = ? AND server_id = ?',
+                                              [session_key, self.server.CONFIG.ID])
             if last_time:
                 return last_time['buffer_last_triggered']
 
@@ -570,15 +571,15 @@ class ActivityProcessor(object):
 
     def set_temp_stopped(self):
         stopped_time = int(time.time())
-        self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
+        self.db.action('UPDATE sessions SET stopped = ? WHERE server_id = ?', [stopped_time, self.server.CONFIG.ID])
 
     def increment_write_attempts(self, session_key=None):
         if str(session_key).isdigit():
             session = self.get_session_by_key(session_key=session_key)
-            self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
-                           [session['write_attempts'] + 1, session_key])
+            self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ? AND server_id = ?',
+                           [session['write_attempts'] + 1, session_key, self.server.CONFIG.ID])
 
     def set_watched(self, session_key=None):
         self.db.action('UPDATE sessions SET watched = ?'
-                       'WHERE session_key = ?',
-                       [1, session_key])
+                       'WHERE session_key = ? AND server_id = ?',
+                       [1, session_key, self.server.CONFIG.ID])
