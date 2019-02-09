@@ -282,23 +282,27 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def return_plex_xml_url(self, endpoint='', plextv=False, server_id=None, **kwargs):
+    def return_plex_xml_url(self, endpoint='', plextv=False, server_id=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
-        server = (plexpy.PMS_SERVERS.get_server_by_id(int(server_id)) if server_id and server_id.isdigit() else None)
+        xml_url = []
 
-        if plextv == 'true':
-            base_url = 'https://plex.tv'
-        elif server:
-            if server.CONFIG.PMS_URL_OVERRIDE:
-                base_url = server.CONFIG.PMS_URL_OVERRIDE
+        for server in plexpy.PMS_SERVERS:
+            if plextv == 'true':
+                base_url = 'https://plex.tv'
             else:
-                base_url = server.CONFIG.PMS_URL
+                base_url = (server.CONFIG.PMS_URL_OVERRIDE if server.CONFIG.PMS_URL_OVERRIDE else server.CONFIG.PMS_URL)
+            ep = endpoint
+            if '{machine_id}' in endpoint:
+                ep = ep.format(machine_id=server.CONFIG.PMS_IDENTIFIER)
+            if (server_id and server_id.isdigit() and int(server_id) == server.CONFIG.ID) \
+                    or (plextv == 'true' and '{machine_id}' not in endpoint):
+                xml_url.append(base_url + ep + '?' + urllib.urlencode(kwargs))
+                break
+            elif not server_id or server_id == 'false':
+                xml_url.append(base_url + ep + '?' + urllib.urlencode(kwargs))
 
-        if '{machine_id}' in endpoint and server:
-            endpoint = endpoint.format(machine_id=server.CONFIG.PMS_IDENTIFIER)
-
-        return base_url + endpoint + '?' + urllib.urlencode(kwargs)
+        return xml_url
 
     @cherrypy.expose
     @requireAuth()

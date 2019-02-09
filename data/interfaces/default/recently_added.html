@@ -36,7 +36,7 @@ DOCUMENTATION :: END
 <div class="row">
     <div class="col-md-12">
             <div class="button-bar pull-left">
-                <span class="btn btn-dark active" style="cursor: default">${server['server_name']}</span>
+                <span class="btn btn-dark active" id="recently-added-xml-${server['server_id']}"  data-server_id="${server['server_id']}" style="cursor: default">${server['server_name']}</span>
             </div>
             <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
                 <li>
@@ -201,3 +201,9 @@ DOCUMENTATION :: END
 % else:
 <div class="text-muted">No plex servers are enabled or online.</div><br>
 % endif
+<script>
+    $("[id^='recently-added-xml-']").on('tripleclick', function () {
+        var server_id = parseInt($(this).data('server_id'));
+        openPlexXML('/library/recentlyAdded', false, server_id, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
+    });
+</script>

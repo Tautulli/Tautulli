@@ -499,7 +499,9 @@ $.fn.slideToggleBool = function(bool, options) {
 function openPlexXML(endpoint, plextv, server_id, params) {
     var data = $.extend({endpoint: endpoint, plextv: plextv, server_id: server_id}, params);
     $.getJSON('return_plex_xml_url', data, function(xml_url) {
-       window.open(xml_url, '_blank');
+       xml_url.forEach(function(url) {
+        window.open(url, '_blank');
+       })
     });
 }
 
