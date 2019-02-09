@@ -165,6 +165,20 @@ users_list_table_options = {
             "className": "no-wrap modal-control"
         },
         {
+            "targets": "last_server",
+            "data": "last_server",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                } else {
+                    $(td).html('n/a');
+                }
+            },
+            "searchable": false,
+            "width": "9%",
+            "className": "no-wrap"
+        },
+        {
             "targets": "last_played",
             "data":"last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
