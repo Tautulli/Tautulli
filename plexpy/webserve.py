@@ -4944,8 +4944,15 @@ class WebInterface(object):
                 string:     "Winterfell-Server"
             ```
         """
-        server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
-        result = server.PMSCONNECTION.get_server_friendly_name()
+        server_names = []
+        if server_id == None:
+            for server in plexpy.PMS_SERVERS:
+                server_names.append(server.CONFIG.PMS_NAME)
+        else:
+            server = plexpy.PMS_SERVERS.get_server_by_id(int(server_id))
+            server_names.append(server.CONFIG.PMS_NAME)
+
+        result = ', '.join(server_names)
 
         if result:
             return result
