@@ -92,7 +92,8 @@ AGENT_IDS = {'growl': 0,
              'groupme': 22,
              'mqtt': 23,
              'zapier': 24,
-             'webhook': 25
+             'webhook': 25,
+             'synochat': 26
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -194,6 +195,10 @@ def available_notification_agents():
               {'label': 'Webhook',
                'name': 'webhook',
                'id': AGENT_IDS['webhook']
+               },
+              {'label': 'Synology Chat',
+               'name': 'synochat',
+               'id': AGENT_IDS['synochat']
                },
               {'label': 'Zapier',
                'name': 'zapier',
@@ -401,6 +406,8 @@ def get_agent_class(agent_id=None, config=None):
             return ZAPIER(config=config)
         elif agent_id == 25:
             return WEBHOOK(config=config)
+        elif agent_id == 26:
+            return SYNOCHAT(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -3614,6 +3621,37 @@ class WEBHOOK(Notifier):
                                              'POST': 'POST',
                                              'PUT': 'PUT',
                                              'DELETE': 'DELETE'}
+                          }
+                         ]
+
+        return config_option
+
+
+class SYNOCHAT(Notifier):
+    """
+    Synology Chat notifications
+    """
+    NAME = 'Synology Chat'
+    _DEFAULT_CONFIG = {'hook': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+
+        text = '{"text": "' + body.encode('utf-8') + '"}'
+
+        data = {'payload': text}
+
+        headers = {'Content-type': 'application/x-www-form-urlencoded'}
+
+        return self.make_request(self.config['hook'], headers=headers, data=data)
+
+
+    def return_config_options(self):
+        config_option = [{'label': 'Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'synochat_hook',
+                          'description': 'Your Webhook URL.',
+                          'input_type': 'text'
                           }
                          ]
 
