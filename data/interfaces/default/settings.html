@@ -2530,8 +2530,10 @@ $(document).ready(function() {
                     .prop('selected', selected));
             }
 
+            var download_url = 'https://plex.tv/api/downloads/' + (plex_update_channel === 'plexpass' ? '5' : '1') + '.json?channel=' + plex_update_channel;
+
             $.ajax({
-                url: 'https://plex.tv/api/downloads/1.json?channel=' + plex_update_channel,
+                url: download_url,
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function (xhr) {
