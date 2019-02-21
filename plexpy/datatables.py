@@ -101,10 +101,6 @@ class DataTables(object):
         # Paginate results
         result = filtered[parameters['start']:(parameters['start'] + parameters['length'])]
 
-        # Sanitize on the way out
-        result = [{k: helpers.sanitize(v) if isinstance(v, basestring) else v for k, v in row.iteritems()}
-                  for row in result]
-
         output = {'result': result,
                   'draw': draw_counter,
                   'filteredCount': len(filtered),
