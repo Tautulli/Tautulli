@@ -176,7 +176,8 @@ class WebInterface(object):
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
+            "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG,
+            "first_run_complete": plexpy.CONFIG.FIRST_RUN_COMPLETE
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
