@@ -522,11 +522,28 @@ def process_json_kwargs(json_kwargs):
     return params
 
 
-def sanitize(string):
-    if string:
-        return unicode(string).replace('<','&lt;').replace('>','&gt;')
+def sanitize_out(*dargs, **dkwargs):
+    """ Helper decorator that sanitized the output
+    """
+    def rd(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return sanitize(function(*args, **kwargs))
+        return wrapper
+    return rd
+
+
+def sanitize(obj):
+    if isinstance(obj, basestring):
+        return unicode(obj).replace('<', '&lt;').replace('>', '&gt;')
+    elif isinstance(obj, list):
+        return [sanitize(o) for o in obj]
+    elif isinstance(obj, dict):
+        return {k: sanitize(v) for k, v in obj.iteritems()}
+    elif isinstance(obj, tuple):
+        return tuple(sanitize(list(obj)))
     else:
-        return ''
+        return obj
 
 
 def is_public_ip(host):
