@@ -27,6 +27,8 @@
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
                 % elif config['pms_is_cloud']:
                 <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
+                % elif not config['first_run_complete']:
+                <div id="dashboard-no-activity" class="text-muted">The Tautulli setup wizard has not been completed. Please click <a href="welcome">here</a> to go to the setup wizard.</div>
                 % else:
                 <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
                     % if _session['user_group'] == 'admin':
