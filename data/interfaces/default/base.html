@@ -209,7 +209,7 @@ ${next.modalIncludes()}
     </div>
 </div>
 % else:
-<div id="donate-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="crypto-donate-modal">
+<div id="donate-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="donate-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -230,10 +230,6 @@ ${next.modalIncludes()}
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
                     <li class="active"><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
                     <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoin" data-name="Bitcoin" data-address="3FdfJAyNWU15Sf11U9FTgPHuP1hPz32eEN">Bitcoin</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="bitcoincash" data-name="Bitcoin Cash" data-address="1H2atabxAQGaFAWYQEiLkXKSnK9CZZvt2n">Bitcoin Cash</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="ethereum" data-name="Ethereum" data-address="0x77ae4c2b8de1a1ccfa93553db39971da58c873d3">Ethereum</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" class="crypto-donation" data-coin="litecoin" data-name="Litecoin" data-address="LWpPmUqQYHBhMV83XSCsHzPmKLhJt6r57J">Litecoin</a></li>
                 </ul>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="patreon-donation" style="text-align: center">
@@ -251,12 +247,6 @@ ${next.modalIncludes()}
                         <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
                         </a>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="crypto-donation">
-                        <label>QR Code</label>
-                        <pre id="crypto_qr_code" style="text-align: center"></pre>
-                        <label><span id="crypto_type_label"></span> Address</label>
-                        <pre id="crypto_address" style="text-align: center"></pre>
                     </div>
                 </div>
             </div>
@@ -293,7 +283,6 @@ ${next.modalIncludes()}
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/platform.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
-<script src="${http_root}js/jquery.qrcode.min.js"></script>
 <script src="${http_root}js/jquery.tripleclick.min.js"></script>
 % if _session['user_group'] == 'admin' and BROWSER_NOTIFIERS:
 <script src="${http_root}js/ajaxNotifications.js"></script>
@@ -365,16 +354,6 @@ ${next.modalIncludes()}
         checkUpdate(function () { $('#nav-update').html('<i class="fa fa-fw fa-arrow-alt-circle-up"></i> Check for Updates'); });
     });
 
-    $('#donation_type a.crypto-donation').on('shown.bs.tab', function () {
-        var crypto_coin = $(this).data('coin');
-        var crypto_name = $(this).data('name');
-        var crypto_address = $(this).data('address')
-        $('#crypto_qr_code').empty().qrcode({
-            text: crypto_coin + ":" + crypto_address
-        });
-        $('#crypto_type_label').html(crypto_name);
-        $('#crypto_address').html(crypto_address);
-    });
     % endif
 
     $('.dropdown-toggle').click(function (e) {
