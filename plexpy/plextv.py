@@ -254,7 +254,7 @@ class PlexTV(object):
 
     def get_plextv_downloads(self, plexpass=False, output_format=''):
         if plexpass:
-            uri = '/api/downloads/1.json?channel=plexpass'
+            uri = '/api/downloads/5.json?channel=plexpass'
         else:
             uri = '/api/downloads/1.json'
         request = self.request_handler.make_request(uri=uri,
