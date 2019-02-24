@@ -8,7 +8,12 @@
             % if text:
             % for item in text:
             <div style="padding-bottom: 10px;">
-                <h4>${item['media_type'].capitalize()}</h4>
+                <h4>
+                    ${item['media_type'].capitalize()}
+                    % if item['media_type'] != 'server':
+                    <span class="inline-pre">&lt;${item['media_type']}&gt;&lt;/${item['media_type']}&gt;</span> tags
+                    % endif
+                </h4>
                 % if agent != 'webhook':
                 <pre>${item['subject']}</pre>
                 % endif
