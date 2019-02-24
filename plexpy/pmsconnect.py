@@ -1587,7 +1587,7 @@ class PmsConnect(object):
         transcode_details['transcode_hw_encoding'] = int(transcode_details['transcode_hw_encode'].lower() in common.HW_ENCODERS)
 
         # Determine if a synced version is being played
-        sync_id = None
+        sync_id = synced_session_data = synced_item_details = None
         if media_type not in ('photo', 'clip') \
                 and not session.getElementsByTagName('Session') \
                 and not session.getElementsByTagName('TranscodeSession') \
@@ -1604,6 +1604,8 @@ class PmsConnect(object):
                 sync_id = synced_item_details['sync_id']
                 synced_xml = self.get_sync_item(sync_id=sync_id, output_format='xml')
                 synced_xml_head = synced_xml.getElementsByTagName('MediaContainer')
+
+                synced_xml_items = []
                 if synced_xml_head[0].getElementsByTagName('Track'):
                     synced_xml_items = synced_xml_head[0].getElementsByTagName('Track')
                 elif synced_xml_head[0].getElementsByTagName('Video'):
@@ -1614,7 +1616,7 @@ class PmsConnect(object):
                         break
 
         # Figure out which version is being played
-        if sync_id:
+        if sync_id and synced_session_data:
             media_info_all = synced_session_data.getElementsByTagName('Media')
         else:
             media_info_all = session.getElementsByTagName('Media')
@@ -1688,6 +1690,7 @@ class PmsConnect(object):
                                 'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision')
                                 }
         else:
+            subtitle_selected = None
             subtitle_details = {'stream_subtitle_codec': '',
                                 'stream_subtitle_container': '',
                                 'stream_subtitle_format': '',
@@ -1924,6 +1927,7 @@ class PmsConnect(object):
                     quality_profile = 'Original'
 
             if stream_details['optimized_version']:
+                source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 optimized_version_profile = '{} Mbps {}'.format(round(source_bitrate / 1000.0, 1),
                     plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(source_media_details['video_resolution'],
                                                                  source_media_details['video_resolution']))
