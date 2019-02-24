@@ -4204,7 +4204,7 @@ a[data-tab-destination] {
     background: #cc7b19;
     text-align: center;
     font-weight: bold;
-    padding-top: 2px;
+    padding: 2px 10px;
     position: absolute;
     top: 0;
     z-index: 9999;

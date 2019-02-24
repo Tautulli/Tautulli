@@ -9,18 +9,34 @@ if (typeof platform !== 'undefined') {
     p.os = platform.os.toString();
 }
 
-if (['IE', 'Microsoft Edge', 'IE Mobile'].indexOf(p.name) > -1) {
-    $('body').prepend('<div id="browser-warning"><i class="fa fa-exclamation-circle"></i>&nbsp;' +
-        'Tautulli does not support Internet Explorer or Microsoft Edge! ' +
-        'Please use a different browser such as Chrome or Firefox.</div>');
-    var offset = $('#browser-warning').height();
-    var navbar = $('.navbar-fixed-top');
-    if (navbar.length) {
-        navbar.offset({top: navbar.offset().top + offset});
-    }
-    var container = $('.body-container');
-    if (container.length) {
-        container.offset({top: container.offset().top + offset});
+if (['IE', 'Microsoft Edge', 'IE Mobile'].indexOf(p.name) <= -1) >
+    if (!getCookie('browserDismiss')) {
+        var $browser_warning = $('<div id="browser-warning">' +
+            '<i class="fa fa-exclamation-circle"></i>&nbsp;' +
+            'Tautulli does not support Internet Explorer or Microsoft Edge! ' +
+            'Please use a different browser such as Chrome or Firefox.' +
+            '<button type="button" class="close"><i class="fa fa-remove"></i></button>' +
+            '</div>');
+        $('body').prepend($browser_warning);
+        var offset = $browser_warning.height();
+        warningOffset(offset);
+
+        $browser_warning.one('click', 'button.close', function () {
+            $browser_warning.remove();
+            warningOffset(-offset);
+            setCookie('browserDismiss', 'true', 7);
+        });
+
+        function warningOffset(offset) {
+            var navbar = $('.navbar-fixed-top');
+            if (navbar.length) {
+                navbar.offset({top: navbar.offset().top + offset});
+            }
+            var container = $('.body-container');
+            if (container.length) {
+                container.offset({top: container.offset().top + offset});
+            }
+        }
     }
 }
 
