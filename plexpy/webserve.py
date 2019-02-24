@@ -3784,6 +3784,7 @@ class WebInterface(object):
                     'update': True,
                     'release': True,
                     'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                    'current_release': plexpy.common.RELEASE,
                     'latest_release': plexpy.LATEST_RELEASE,
                     'release_url': helpers.anon_url(
                         'https://github.com/%s/%s/releases/tag/%s'
@@ -3797,6 +3798,7 @@ class WebInterface(object):
                     'update': True,
                     'release': False,
                     'message': 'A newer version of Tautulli is available.',
+                    'current_version': plexpy.CURRENT_VERSION,
                     'latest_version': plexpy.LATEST_VERSION,
                     'commits_behind': plexpy.COMMITS_BEHIND,
                     'compare_url': helpers.anon_url(
