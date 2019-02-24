@@ -44,8 +44,6 @@
 #
 #    - Uncomment the two lines Restart= and RestartSec= below to allow Tautulli
 #       to restart if it crashes.
-#       Warning! If your setup is broken and Tautulli crashes on startup, these
-#       lines will cause it to restart forever until you stop it!
 
 [Unit]
 Description=Tautulli - Stats for Plex Media Server usage
@@ -60,6 +58,8 @@ User=tautulli
 Group=tautulli
 # Restart=on-abnormal
 # RestartSec=5
+StartLimitInterval=90
+StartLimitBurst=3
 
 [Install]
 WantedBy=multi-user.target
