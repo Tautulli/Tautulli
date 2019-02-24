@@ -53,6 +53,10 @@ GuessMainPID=no
 Type=forking
 User=tautulli
 Group=tautulli
+Restart=on-abnormal
+RestartSec=5
+StartLimitInterval=90
+StartLimitBurst=3
 
 [Install]
 WantedBy=multi-user.target
