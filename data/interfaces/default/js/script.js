@@ -9,7 +9,7 @@ if (typeof platform !== 'undefined') {
     p.os = platform.os.toString();
 }
 
-if (['IE', 'Microsoft Edge', 'IE Mobile'].indexOf(p.name) <= -1) >
+if (['IE', 'Microsoft Edge', 'IE Mobile'].indexOf(p.name) > -1) {
     if (!getCookie('browserDismiss')) {
         var $browser_warning = $('<div id="browser-warning">' +
             '<i class="fa fa-exclamation-circle"></i>&nbsp;' +
