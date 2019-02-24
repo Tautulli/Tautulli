@@ -41,9 +41,6 @@
 #    - WantedBy= specifies which target (i.e. runlevel) to start Tautulli for.
 #       multi-user.target equates to runlevel 3 (multi-user text mode)
 #       graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
-#
-#    - Uncomment the two lines Restart= and RestartSec= below to allow Tautulli
-#       to restart if it crashes.
 
 [Unit]
 Description=Tautulli - Stats for Plex Media Server usage
@@ -56,8 +53,8 @@ GuessMainPID=no
 Type=forking
 User=tautulli
 Group=tautulli
-# Restart=on-abnormal
-# RestartSec=5
+Restart=on-abnormal
+RestartSec=5
 StartLimitInterval=90
 StartLimitBurst=3
 
