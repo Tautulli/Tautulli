@@ -1363,7 +1363,7 @@ class EMAIL(Notifier):
             success = True
 
         except Exception as e:
-            logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
 
         finally:
             if mailserver:
