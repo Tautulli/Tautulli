@@ -99,7 +99,7 @@ def initialize(options):
         '/': {
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
             'tools.proxy.on': bool(options['http_proxy']),
-            'tools.gzip.on': True,
+            'tools.gzip.on': bool(options['http_gzip']),
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],

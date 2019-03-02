@@ -493,6 +493,12 @@
                             </label>
                             <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
                         </div>
+                       <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="http_gzip" id="http_gzip" value="1" ${config['http_gzip']}> Enable Gzip Encoding
+                            </label>
+                            <p class="help-block">Enable Gzip encoding in web responses. Disabling this can help with an IIS reverse proxy.</p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
