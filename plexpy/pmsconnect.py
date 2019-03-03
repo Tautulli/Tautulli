@@ -446,7 +446,10 @@ class PmsConnect(object):
 
         Output: array
         """
-        if media_type in ('movie', 'show', 'artist', 'other_video'):
+        media_types = ('movie', 'show', 'artist', 'other_video')
+        recents_list = []
+
+        if media_type in media_types:
             other_video = False
             if media_type == 'movie':
                 media_type = '1'
@@ -461,15 +464,18 @@ class PmsConnect(object):
         elif section_id:
             recent = self.get_library_recently_added(section_id, start, count, output_format='xml')
         else:
-            recent = self.get_recently_added(start, count, output_format='xml')
+            for media_type in media_types:
+                recents = self.get_recently_added_details(start, count, media_type)
+                recents_list += recents['recently_added']
+
+            output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)[:int(count)]}
+            return output
 
         try:
             xml_head = recent.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn(u"Tautulli Pmsconnect :: Unable to parse XML for get_recently_added: %s." % e)
             return []
-
-        recents_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
