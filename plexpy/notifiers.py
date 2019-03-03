@@ -746,14 +746,14 @@ class PrettyMetadata(object):
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
         elif self.media_type == 'track':
             title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
-        return title.encode("utf-8")
+        return title.encode('utf-8')
 
     def get_description(self):
         if self.media_type == 'track':
             description = self.parameters['album_name']
         else:
             description = self.parameters['summary']
-        return description.encode("utf-8")
+        return description.encode('utf-8')
 
     def get_plex_url(self):
         return self.parameters['plex_url']
@@ -863,9 +863,9 @@ class ANDROIDAPP(Notifier):
         pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
         plaintext_data = {'notification_id': notification_id,
-                          'subject': subject.encode('UTF-8'),
-                          'body': body.encode('UTF-8'),
-                          'action': action.encode('UTF-8'),
+                          'subject': subject.encode('utf-8'),
+                          'body': body.encode('utf-8'),
+                          'action': action.encode('utf-8'),
                           'priority': self.config['priority'],
                           'session_key': pretty_metadata.parameters.get('session_key',''),
                           'session_id': pretty_metadata.parameters.get('session_id',''),
@@ -1130,9 +1130,9 @@ class DISCORD(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            text = subject.encode('utf-8') + '\r\n' + body.encode('utf-8')
         else:
-            text = body.encode("utf-8")
+            text = body.encode('utf-8')
 
         data = {'content': text}
         if self.config['username']:
@@ -1363,7 +1363,8 @@ class EMAIL(Notifier):
             success = True
 
         except Exception as e:
-            logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            logger.error(u"Tautulli Notifiers :: {name} notification failed: {e}".format(
+                name=self.NAME, e=str(e).decode('utf-8')))
 
         finally:
             if mailserver:
@@ -1545,9 +1546,9 @@ class FACEBOOK(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            text = subject.encode('utf-8') + '\r\n' + body.encode('utf-8')
         else:
-            text = body.encode("utf-8")
+            text = body.encode('utf-8')
 
         data = {'message': text}
 
@@ -1999,8 +2000,8 @@ class IFTTT(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         event = unicode(self.config['event']).format(action=action)
 
-        data = {'value1': subject.encode("utf-8"),
-                'value2': body.encode("utf-8")}
+        data = {'value1': subject.encode('utf-8'),
+                'value2': body.encode('utf-8')}
 
         if self.config['value3']:
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
@@ -2060,10 +2061,10 @@ class JOIN(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['api_key'],
                 'deviceNames': ','.join(self.config['device_names']),
-                'text': body.encode("utf-8")}
+                'text': body.encode('utf-8')}
 
         if self.config['incl_subject']:
-            data['title'] = subject.encode("utf-8")
+            data['title'] = subject.encode('utf-8')
 
         if kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
@@ -2216,9 +2217,9 @@ class MQTT(Notifier):
             logger.error(u"Tautulli Notifiers :: MQTT topic not specified.")
             return
 
-        data = {'subject': subject.encode("utf-8"),
-                'body': body.encode("utf-8"),
-                'topic': self.config['topic'].encode("utf-8")}
+        data = {'subject': subject.encode('utf-8'),
+                'body': body.encode('utf-8'),
+                'topic': self.config['topic'].encode('utf-8')}
 
         auth = {}
         if self.config['username']:
@@ -2577,8 +2578,8 @@ class PROWL(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'apikey': self.config['key'],
                 'application': 'Tautulli',
-                'event': subject.encode("utf-8"),
-                'description': body.encode("utf-8"),
+                'event': subject.encode('utf-8'),
+                'description': body.encode('utf-8'),
                 'priority': self.config['priority']}
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
@@ -2615,7 +2616,7 @@ class PUSHALOT(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'AuthorizationToken': self.config['api_key'],
                 'Title': subject.encode('utf-8'),
-                'Body': body.encode("utf-8")}
+                'Body': body.encode('utf-8')}
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
@@ -2647,14 +2648,14 @@ class PUSHBULLET(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'type': 'note',
-                'body': body.encode("utf-8")}
+                'body': body.encode('utf-8')}
 
         headers = {'Content-type': 'application/json',
                    'Access-Token': self.config['api_key']
                    }
 
         if self.config['incl_subject']:
-            data['title'] = subject.encode("utf-8")
+            data['title'] = subject.encode('utf-8')
 
         # Can only send to a device or channel, not both.
         if self.config['device_id']:
@@ -2783,14 +2784,14 @@ class PUSHOVER(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         data = {'token': self.config['api_token'],
                 'user': self.config['key'],
-                'message': body.encode("utf-8"),
+                'message': body.encode('utf-8'),
                 'sound': self.config['sound'],
                 'html': self.config['html_support'],
                 'priority': self.config['priority'],
                 'timestamp': int(time.time())}
 
         if self.config['incl_subject']:
-            data['title'] = subject.encode("utf-8")
+            data['title'] = subject.encode('utf-8')
 
         if self.config['priority'] == 2:
             data['retry'] = max(30, self.config['retry'])
@@ -3207,9 +3208,9 @@ class SLACK(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+            text = subject.encode('utf-8') + '\r\n' + body.encode('utf-8')
         else:
-            text = body.encode("utf-8")
+            text = body.encode('utf-8')
 
         data = {'text': text}
         if self.config['channel'] and self.config['channel'].startswith('#'):
@@ -3753,9 +3754,9 @@ class ZAPIER(Notifier):
         return self.agent_notify(_test_data=_test_data)
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        data = {'subject': subject.encode("utf-8"),
-                'body': body.encode("utf-8"),
-                'action': action.encode("utf-8")}
+        data = {'subject': subject.encode('utf-8'),
+                'body': body.encode('utf-8'),
+                'action': action.encode('utf-8')}
 
         if kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
