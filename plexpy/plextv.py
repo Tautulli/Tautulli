@@ -686,16 +686,16 @@ class PlexTV(object):
                                         helpers.get_xml_attr(c, 'local') == '0':
                                     continue
 
-                            server = {'pms_ssl': 1 if is_cloud else int(helpers.get_xml_attr(d, 'httpsRequired')),
+                            server = {'pms_ssl': 1 if is_cloud else int(helpers.get_xml_attr(d, 'httpsRequired') or 0),
                                       'pms_identifier': helpers.get_xml_attr(d, 'clientIdentifier'),
                                       'pms_name': helpers.get_xml_attr(d, 'name'),
                                       'pms_ip': helpers.get_xml_attr(c, 'address'),
                                       'pms_port': helpers.get_xml_attr(c, 'port'),
                                       'pms_uri': helpers.get_xml_attr(c, 'uri'),
-                                      'pms_is_remote': int(not int(helpers.get_xml_attr(c, 'local'))),
+                                      'pms_is_remote': int(not int(helpers.get_xml_attr(c, 'local') or 0)),
                                       'pms_platform': helpers.get_xml_attr(d, 'platform'),
                                       'pms_version': helpers.get_xml_attr(d, 'productVersion'),
-                                      'pms_is_cloud': int(is_cloud),
+                                      'pms_is_cloud': int(is_cloud or 0),
                                       'pms_token': plexpy.CONFIG.PMS_TOKEN,
                                       }
 
