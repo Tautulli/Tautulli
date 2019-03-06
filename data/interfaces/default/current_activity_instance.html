@@ -283,10 +283,17 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Location</div>
                                 <div class="sub-value time-right">
+                                    % if data['secure'] is not None:
+                                    % if data['secure']:
+                                    <span data-toggle="tooltip" title="Secure Connection"><i class="fa fa-lock"></i></span>
+                                    % else:
+                                    <span data-toggle="tooltip" title="Insecure Connection"><i class="fa fa-unlock"></i></span>
+                                    % endif
+                                    % endif
                                     <span id="location-${sk}">${data['location'].upper()}</span>:
                                     % if data['ip_address'] != 'N/A':
                                     <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
-                                        % if data['relay']:
+                                        % if data['relayed']:
                                         <span data-toggle="tooltip" title="Plex Relay"><i class="fa fa-exclamation-circle"></i></span>
                                         % else:
                                         <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
