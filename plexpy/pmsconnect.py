@@ -1510,7 +1510,9 @@ class PmsConnect(object):
                           'player': helpers.get_xml_attr(player_info, 'title') or helpers.get_xml_attr(player_info, 'product'),
                           'machine_id': helpers.get_xml_attr(player_info, 'machineIdentifier'),
                           'state': helpers.get_xml_attr(player_info, 'state'),
-                          'local': helpers.get_xml_attr(player_info, 'local')
+                          'local': int(helpers.get_xml_attr(player_info, 'local') == '1'),
+                          'relayed': helpers.get_xml_attr(player_info, 'relayed', default_return=None),
+                          'secure': helpers.get_xml_attr(player_info, 'secure', default_return=None)
                           }
 
         # Get the session details
@@ -1524,12 +1526,17 @@ class PmsConnect(object):
         else:
             session_details = {'session_id': '',
                                'bandwidth': '',
-                               'location': 'wan' if player_details['local'] == '0' else 'lan'
+                               'location': 'lan' if player_details['local'] else 'wan'
                                }
 
         # Check if using Plex Relay
-        session_details['relay'] = int(session_details['location'] != 'lan'
-                                       and player_details['ip_address_public'] == '127.0.0.1')
+        if player_details['relayed'] is None:
+            player_details['relayed'] = int(session_details['location'] != 'lan' and
+                                            player_details['ip_address_public'] == '127.0.0.1')
+
+        # Check if secure connection
+        if player_details['secure'] is not None:
+            player_details['secure'] = int(player_details['secure'] == '1')
 
         # Get the transcode details
         if session.getElementsByTagName('TranscodeSession'):
