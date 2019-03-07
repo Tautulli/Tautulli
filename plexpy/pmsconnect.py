@@ -1534,6 +1534,9 @@ class PmsConnect(object):
             player_details['relayed'] = int(session_details['location'] != 'lan' and
                                             player_details['ip_address_public'] == '127.0.0.1')
 
+        else:
+            player_details['relayed'] = helpers.cast_to_int(player_details['relayed'])
+
         # Check if secure connection
         if player_details['secure'] is not None:
             player_details['secure'] = int(player_details['secure'] == '1')
