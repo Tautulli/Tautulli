@@ -1259,8 +1259,11 @@ class DataFactory(object):
                     'GROUP BY rating_key' % where
             results = monitor_db.select(query, args=args)
 
-            for cloudinary_info in results:
-                helpers.delete_from_cloudinary(rating_key=cloudinary_info['rating_key'])
+            if delete_all:
+                helpers.delete_from_cloudinary(delete_all=delete_all)
+            else:
+                for cloudinary_info in results:
+                    helpers.delete_from_cloudinary(rating_key=cloudinary_info['rating_key'])
 
             logger.info(u"Tautulli DataFactory :: Deleting Cloudinary info%s from the database."
                         % log_msg)
