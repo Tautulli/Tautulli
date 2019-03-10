@@ -847,7 +847,7 @@ def delete_from_cloudinary(rating_key=None, delete_all=False):
         delete_resources_by_tag(str(rating_key))
         logger.debug(u"Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
     else:
-        logger.debug(u"Tautulli Helpers :: Failed to deleted images from Cloudinary: No rating_key provided.")
+        logger.debug(u"Tautulli Helpers :: Unable to delete images from Cloudinary: No rating_key provided.")
 
     return True
 
