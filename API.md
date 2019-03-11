@@ -1020,6 +1020,7 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
+    query_days (str):       Days to query (multiple queries separated by commas)
 
 Returns:
     json:
@@ -2272,6 +2273,7 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
+    query_days (str):       Days to query (multiple queries separated by commas)
 
 Returns:
     json:

@@ -759,7 +759,7 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_watch_time_stats(self, section_id=None, grouping=None):
+    def get_watch_time_stats(self, section_id=None, grouping=None, time_queries=None):
         if not session.allow_session_library(section_id):
             return []
 
@@ -768,7 +768,6 @@ class Libraries(object):
 
         monitor_db = database.MonitorDatabase()
 
-        time_queries = [1, 7, 30, 0]
         library_watch_time_stats = []
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'

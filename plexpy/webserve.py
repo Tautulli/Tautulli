@@ -552,7 +552,7 @@ class WebInterface(object):
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id)
+            result = library_data.get_watch_time_stats(section_id=section_id, time_queries=[1, 7, 30, 0])
         else:
             result = None
 
@@ -785,7 +785,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, grouping=None, query_days=None, **kwargs):
         """ Get a library's watch time statistics.
 
             ```
@@ -794,6 +794,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                query_days (str):       Days to query (multiple queries separated by commas)
 
             Returns:
                 json:
@@ -816,11 +817,17 @@ class WebInterface(object):
                      ]
             ```
         """
+        if query_days:
+            query_days = map(int, query_days.split(","))
+        else:
+            # Default values for backwards compatibility
+            query_days = [1, 7, 30, 0]
+
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping, time_queries=query_days)
             if result:
                 return result
             else:
@@ -1183,7 +1190,7 @@ class WebInterface(object):
 
         if user_id or user:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id)
+            result = user_data.get_watch_time_stats(user_id=user_id, time_queries=[1, 7, 30, 0])
         else:
             result = None
 
@@ -1400,7 +1407,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_watch_time_stats(self, user_id=None, grouping=None, **kwargs):
+    def get_user_watch_time_stats(self, user_id=None, grouping=None, query_days=None, **kwargs):
         """ Get a user's watch time statistics.
 
             ```
@@ -1409,6 +1416,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                query_days (str):       Days to query (multiple queries separated by commas)
 
             Returns:
                 json:
@@ -1431,11 +1439,17 @@ class WebInterface(object):
                      ]
             ```
         """
+        if query_days:
+            query_days = map(int, query_days.split(","))
+        else:
+            # Default values for backwards compatibility
+            query_days = [1, 7, 30, 0]
+
         grouping = int(grouping) if str(grouping).isdigit() else grouping
 
         if user_id:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping)
+            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping, time_queries=query_days)
             if result:
                 return result
             else:
