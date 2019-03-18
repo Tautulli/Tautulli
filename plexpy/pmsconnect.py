@@ -101,7 +101,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, reason)
+        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, urllib.quote_plus(reason))
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -2018,25 +2018,41 @@ class PmsConnect(object):
 
         Output: bool
         """
-        message = message.encode('utf-8') or 'The server owner has ended the stream.'
+        plex_tv = plextv.PlexTV()
+        if not plex_tv.get_plexpass_status():
+            msg = 'No Plex Pass subscription'
+            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            return msg
 
-        if session_key and not session_id:
+        message = message.encode('utf-8') or 'The server owner has ended the stream.'
+        session = None
+
+        if not session_key and not session_id:
+            session_key = session_id = None
+
+        elif session_key and not session_id:
             ap = activity_processor.ActivityProcessor()
             session = ap.get_session_by_key(session_key=session_key)
-            session_id = session['session_id']
+            session_id = session['session_id'] if session else None
 
         elif session_id and not session_key:
             ap = activity_processor.ActivityProcessor()
             session = ap.get_session_by_id(session_id=session_id)
-            session_key = session['session_key']
+            session_key = session['session_key'] if session else None
+
+        if not session:
+            msg = 'Invalid session_key (%s) or session_id (%s)' % (session_key, session_id)
+            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            return msg
 
         if session_id:
             logger.info(u"Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
-            result = self.get_sessions_terminate(session_id=session_id, reason=urllib.quote_plus(message))
-            return result
+            result = self.get_sessions_terminate(session_id=session_id, reason=message)
+            return True
         else:
-            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session %s. Missing session_id." % session_key)
-            return False
+            msg = 'Missing session_id'
+            logger.warn(u"Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            return msg
 
     def get_item_children(self, rating_key='', get_grandchildren=False):
         """
