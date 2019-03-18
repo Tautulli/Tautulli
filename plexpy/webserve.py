@@ -4354,7 +4354,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query)
+        result = pms_connect.get_search_results(query=query, limit=limit)
 
         if result:
             return result
