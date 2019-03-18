@@ -3,7 +3,7 @@
 ## v2.1.28 (2019-03-10)
 
 * Monitoring:
-  * New: Added secure/insecure connection icon on the activity cards. Requires Plex Media Server v1.15+
+  * New: Added secure/insecure connection icon on the activity cards. Requires Plex Media Server v1.15+.
 * Other:
   * Change: Improved mass deleting of all images from Cloudinary. Requires all previous images on Cloudinary to be manually tagged with "tautulli". New uploads are automatically tagged.
 
