@@ -246,7 +246,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def terminate_session(self, session_key=None, session_id=None, message=None, **kwargs):
+    def terminate_session(self, session_key='', session_id='', message='', **kwargs):
         """ Stop a streaming session.
 
             ```
@@ -264,8 +264,10 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
-        if result:
+        if result is True:
             return {'result': 'success', 'message': 'Session terminated.'}
+        elif result:
+            return {'result': 'error', 'message': 'Failed to terminate session: {}.'.format(result)}
         else:
             return {'result': 'error', 'message': 'Failed to terminate session.'}
 
