@@ -2030,11 +2030,13 @@ class PmsConnect(object):
 
         if session_key:
             session = ap.get_session_by_key(session_key=session_key)
-            session_id = session['session_id'] if session and not session_id else None
+            if session and not session_id:
+                session_id = session['session_id']
 
         elif session_id:
             session = ap.get_session_by_id(session_id=session_id)
-            session_key = session['session_key'] if session and not session_key else None
+            if session and not session_key:
+                session_key = session['session_key']
 
         else:
             session = session_key = session_id = None
