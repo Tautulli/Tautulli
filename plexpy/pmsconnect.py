@@ -2025,20 +2025,19 @@ class PmsConnect(object):
             return msg
 
         message = message.encode('utf-8') or 'The server owner has ended the stream.'
-        session = None
 
-        if not session_key and not session_id:
-            session_key = session_id = None
+        ap = activity_processor.ActivityProcessor()
 
-        elif session_key and not session_id:
-            ap = activity_processor.ActivityProcessor()
+        if session_key:
             session = ap.get_session_by_key(session_key=session_key)
-            session_id = session['session_id'] if session else None
+            session_id = session['session_id'] if session and not session_id else None
 
-        elif session_id and not session_key:
-            ap = activity_processor.ActivityProcessor()
+        elif session_id:
             session = ap.get_session_by_id(session_id=session_id)
-            session_key = session['session_key'] if session else None
+            session_key = session['session_key'] if session and not session_key else None
+
+        else:
+            session = session_key = session_id = None
 
         if not session:
             msg = 'Invalid session_key (%s) or session_id (%s)' % (session_key, session_id)
