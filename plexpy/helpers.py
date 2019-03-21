@@ -1117,13 +1117,13 @@ def get_plexpy_url(hostname=None):
     else:
         hostname = hostname or plexpy.CONFIG.HTTP_HOST
 
-    if plexpy.CONFIG.HTTP_PORT not in (80, 443):
-        port = ':' + str(plexpy.CONFIG.HTTP_PORT)
+    if plexpy.HTTP_PORT not in (80, 443):
+        port = ':' + str(plexpy.HTTP_PORT)
     else:
         port = ''
 
-    if plexpy.CONFIG.HTTP_ROOT.strip('/'):
-        root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/')
+    if plexpy.HTTP_ROOT.strip('/'):
+        root = '/' + plexpy.HTTP_ROOT.strip('/')
     else:
         root = ''
 
