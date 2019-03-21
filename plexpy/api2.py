@@ -700,7 +700,7 @@ General optional parameters:
         if ret is None:
             ret = result
 
-        if ret is not None or self._api_result_type == 'success':
+        if (ret is not None or self._api_result_type == 'success') and self._api_authenticated:
             # To allow override for restart etc
             # if the call returns some data we are gonna assume its a success
             self._api_result_type = 'success'
