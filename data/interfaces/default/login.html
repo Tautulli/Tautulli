@@ -150,6 +150,7 @@
             token: token,
             remember_me: remember_me
         };
+        var x_plex_headers = getPlexHeaders();
         data = $.extend(data, x_plex_headers);
 
         $.ajax({

@@ -560,16 +560,18 @@ function uuidv4() {
     });
 }
 
-var x_plex_headers = {
-    'Accept': 'application/json',
-    'X-Plex-Product': 'Tautulli',
-    'X-Plex-Version': 'Plex OAuth',
-    'X-Plex-Client-Identifier': getLocalStorage('Tautulli_ClientID', uuidv4(), false),
-    'X-Plex-Platform': p.name,
-    'X-Plex-Platform-Version': p.version,
-    'X-Plex-Device': p.os,
-    'X-Plex-Device-Name': p.name
-};
+function getPlexHeaders() {
+    return {
+        'Accept': 'application/json',
+        'X-Plex-Product': 'Tautulli',
+        'X-Plex-Version': 'Plex OAuth',
+        'X-Plex-Client-Identifier': getLocalStorage('Tautulli_ClientID', uuidv4(), false),
+        'X-Plex-Platform': p.name,
+        'X-Plex-Platform-Version': p.version,
+        'X-Plex-Device': p.os,
+        'X-Plex-Device-Name': p.name
+    };
+}
 
 var plex_oauth_window = null;
 const plex_oauth_loader = '<style>' +
@@ -620,6 +622,7 @@ function closePlexOAuthWindow() {
 }
 
 getPlexOAuthPin = function () {
+    var x_plex_headers = getPlexHeaders();
     var deferred = $.Deferred();
 
     $.ajax({
@@ -648,6 +651,7 @@ function PlexOAuth(success, error, pre) {
     $(plex_oauth_window.document.body).html(plex_oauth_loader);
 
     getPlexOAuthPin().then(function (data) {
+        var x_plex_headers = getPlexHeaders();
         const pin = data.pin;
         const code = data.code;
 
