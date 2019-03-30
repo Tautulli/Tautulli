@@ -205,7 +205,7 @@ class Users(object):
         custom_where = ['users.user_id', user_id]
 
         columns = ['session_history.id',
-                   'session_history.started AS last_seen',
+                   'MAX(session_history.started) AS last_seen',
                    'session_history.ip_address',
                    'COUNT(session_history.id) AS play_count',
                    'session_history.platform',
