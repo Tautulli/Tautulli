@@ -89,7 +89,7 @@ class DataTables(object):
         query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
                 % (extracted_columns['column_string'], table_name, join, c_where, group, union, where, order)
 
-        # logger.debug("Query: %s" % query)
+        # logger.debug(u"Query: %s" % query)
 
         # Execute the query
         filtered = self.ssp_db.select(query, args=args)

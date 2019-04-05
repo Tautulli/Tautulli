@@ -58,20 +58,20 @@ class ServerWebSocket(object):
             self.WS_THREAD.start()
 
     def shutdown(self):
-        logger.info("Tautulli WebSocket :: %s: Shutting Down Websocket..." % self.server.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli WebSocket :: %s: Shutting Down Websocket..." % self.server.CONFIG.PMS_NAME)
         self.ws_shutdown = True
         self.close()
         self.WS_THREAD.join(timeout=30)
 
     def close(self):
-        logger.info("Tautulli WebSocket :: %s: Disconnecting websocket..." % self.server.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli WebSocket :: %s: Disconnecting websocket..." % self.server.CONFIG.PMS_NAME)
         self.server.WS_CONNECTED = False
         if self.WS_CONNECTION:
             self.WS_CONNECTION.close()
 
     def reconnect(self):
         self.close()
-        logger.info("Tautulli WebSocket :: %s: Reconnecting websocket..." % self.server.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli WebSocket :: %s: Reconnecting websocket..." % self.server.CONFIG.PMS_NAME)
         self.connect()
 
     def connect(self):
@@ -96,13 +96,13 @@ class ServerWebSocket(object):
         reconnects = 0
 
         # Try an open the websocket connection
-        logger.info("Tautulli WebSocket :: %s: Opening %s websocket." % (self.server.CONFIG.PMS_NAME, secure))
+        logger.info(u"Tautulli WebSocket :: %s: Opening %s websocket." % (self.server.CONFIG.PMS_NAME, secure))
         try:
             self.WS_CONNECTION = create_connection(uri, header=header)
-            logger.info("Tautulli WebSocket :: %s: Ready" % self.server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli WebSocket :: %s: Ready" % self.server.CONFIG.PMS_NAME)
             self.server.WS_CONNECTED = True
         except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error("Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
+            logger.error(u"Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
 
         if self.server.WS_CONNECTED:
             self.on_connect()
@@ -121,7 +121,7 @@ class ServerWebSocket(object):
                     break
 
                 if reconnects == 0:
-                    logger.warn("Tautulli WebSocket :: %s: Connection has closed." % self.server.CONFIG.PMS_NAME)
+                    logger.warn(u"Tautulli WebSocket :: %s: Connection has closed." % self.server.CONFIG.PMS_NAME)
 
                 if not self.server.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                     reconnects += 1
@@ -130,14 +130,14 @@ class ServerWebSocket(object):
                     if reconnects > 1:
                         time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-                    logger.warn("Tautulli WebSocket :: %s: Reconnection attempt %s." % (self.server.CONFIG.PMS_NAME, str(reconnects)))
+                    logger.warn(u"Tautulli WebSocket :: %s: Reconnection attempt %s." % (self.server.CONFIG.PMS_NAME, str(reconnects)))
 
                     try:
                         self.WS_CONNECTION = create_connection(uri, header=header)
-                        logger.info("Tautulli WebSocket :: %s: Ready" % self.server.CONFIG.PMS_NAME)
+                        logger.info(u"Tautulli WebSocket :: %s: Ready" % self.server.CONFIG.PMS_NAME)
                         self.server.WS_CONNECTED = True
                     except (websocket.WebSocketException, IOError, Exception) as e:
-                        logger.error("Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
+                        logger.error(u"Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
 
                 else:
                     self.close()
@@ -149,30 +149,30 @@ class ServerWebSocket(object):
 
                 if e.message == '[Errno 110] Connection timed out.':
                     if reconnects == 0:
-                        logger.warn("Tautulli WebSocket :: %s: Connection timed out." % self.server.CONFIG.PMS_NAME)
+                        logger.warn(u"Tautulli WebSocket :: %s: Connection timed out." % self.server.CONFIG.PMS_NAME)
 
                     if not self.server.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                         reconnects += 1
                     else:
-                        logger.error("Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
+                        logger.error(u"Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
                         self.close()
                         break
                 else:
-                    logger.error("Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
+                    logger.error(u"Tautulli WebSocket :: %s: %s." % (self.server.CONFIG.PMS_NAME, e))
                     self.close()
                     break
 
         if not self.server.WS_CONNECTED and not self.ws_shutdown:
             self.on_disconnect()
 
-        logger.debug("Tautulli WebSocket :: %s: Leaving thread." % self.server.CONFIG.PMS_NAME)
+        logger.debug(u"Tautulli WebSocket :: %s: Leaving thread." % self.server.CONFIG.PMS_NAME)
 
     def on_connect(self):
         if self.server.PLEX_SERVER_UP is None:
             self.server.PLEX_SERVER_UP = True
 
         if not self.server.PLEX_SERVER_UP:
-            logger.info("Tautulli WebSocket :: %s: The Plex Media Server is back up." % self.server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli WebSocket :: %s: The Plex Media Server is back up." % self.server.CONFIG.PMS_NAME)
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup', 'server_id': self.server.CONFIG.ID})
             self.server.PLEX_SERVER_UP = True
 
@@ -183,7 +183,7 @@ class ServerWebSocket(object):
 
     def on_disconnect(self):
         if self.server.PLEX_SERVER_UP is None or self.server.PLEX_SERVER_UP:
-            logger.info("Tautulli WebSocket :: %s: Unable to get a response from the server, Plex server is down." % self.server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli WebSocket :: %s: Unable to get a response from the server, Plex server is down." % self.server.CONFIG.PMS_NAME)
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown', 'server_id': self.server.CONFIG.ID})
             self.server.PLEX_SERVER_UP = False
 
@@ -192,7 +192,7 @@ class ServerWebSocket(object):
 
     def send_ping(self):
         if self.server.WS_CONNECTED:
-            #logger.debug("Tautulli WebSocket :: %s: Sending ping." % self.server.CONFIG.PMS_NAME)
+            #logger.debug(u"Tautulli WebSocket :: %s: Sending ping." % self.server.CONFIG.PMS_NAME)
             self.WS_CONNECTION.ping("Hi?")
 
             self.pong_timer = threading.Timer(5.0, self.wait_pong)
@@ -209,7 +209,7 @@ class ServerWebSocket(object):
             self.close()
 
     def receive_pong(self):
-        #logger.debug("Tautulli WebSocket :: %s: Received pong." % self.server.CONFIG.PMS_NAME)
+        #logger.debug(u"Tautulli WebSocket :: %s: Received pong." % self.server.CONFIG.PMS_NAME)
         if self.pong_timer:
             self.pong_timer = self.pong_timer.cancel()
             self.pong_count = 0
@@ -225,7 +225,7 @@ class ServerWebSocket(object):
             ws.send_close()
             return frame.opcode, None
         elif frame.opcode == websocket.ABNF.OPCODE_PING:
-            #logger.debug("Tautulli WebSocket :: %s: Received ping, sending pong." % self.server.CONFIG.PMS_NAME)
+            #logger.debug(u"Tautulli WebSocket :: %s: Received ping, sending pong." % self.server.CONFIG.PMS_NAME)
             ws.pong("Hi!")
         elif frame.opcode == websocket.ABNF.OPCODE_PONG:
             self.receive_pong()
@@ -240,7 +240,7 @@ class ServerWebSocket(object):
             logger.websocket_debug(data)
             info = json.loads(data)
         except Exception as e:
-            logger.warn("Tautulli WebSocket :: %s: Error decoding message from websocket: %s" % (self.server.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli WebSocket :: %s: Error decoding message from websocket: %s" % (self.server.CONFIG.PMS_NAME, e))
             logger.websocket_error(data)
             return False
 
@@ -254,26 +254,26 @@ class ServerWebSocket(object):
             time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
             if not time_line:
-                logger.debug("Tautulli WebSocket :: %s: Session found but unable to get timeline data." % self.server.CONFIG.PMS_NAME)
+                logger.debug(u"Tautulli WebSocket :: %s: Session found but unable to get timeline data." % self.server.CONFIG.PMS_NAME)
                 return False
 
             try:
                 activity = activity_handler.ActivityHandler(self.server, timeline=time_line[0])
                 activity.process()
             except Exception as e:
-                logger.error("Tautulli WebSocket :: %s: Failed to process session data: %s." % (self.server.CONFIG.PMS_NAME, e))
+                logger.error(u"Tautulli WebSocket :: %s: Failed to process session data: %s." % (self.server.CONFIG.PMS_NAME, e))
 
         if type == 'timeline':
             time_line = info.get('TimelineEntry', info.get('_children', {}))
 
             if not time_line:
-                logger.debug("Tautulli WebSocket :: %s: Timeline event found but unable to get timeline data." % self.server.CONFIG.PMS_NAME)
+                logger.debug(u"Tautulli WebSocket :: %s: Timeline event found but unable to get timeline data." % self.server.CONFIG.PMS_NAME)
                 return False
 
             try:
                 activity = activity_handler.TimelineHandler(self.server, timeline=time_line[0])
                 activity.process()
             except Exception as e:
-                logger.error("Tautulli WebSocket :: %s: Failed to process timeline data: %s." % (self.server.CONFIG.PMS_NAME, e))
+                logger.error(u"Tautulli WebSocket :: %s: Failed to process timeline data: %s." % (self.server.CONFIG.PMS_NAME, e))
 
         return True

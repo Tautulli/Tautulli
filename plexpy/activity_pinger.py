@@ -33,7 +33,7 @@ def check_active_sessions(server=None, ws_request=False):
             session_list = server.PMSCONNECTION.get_current_activity()
             monitor_db = database.MonitorDatabase()
             monitor_process = activity_processor.ActivityProcessor(server)
-            logger.debug("Tautulli Monitor :: %s: Checking for active streams." % server.CONFIG.PMS_NAME)
+            logger.debug(u"Tautulli Monitor :: %s: Checking for active streams." % server.CONFIG.PMS_NAME)
 
             if session_list:
                 media_container = session_list['sessions']
@@ -51,13 +51,13 @@ def check_active_sessions(server=None, ws_request=False):
                                 # Here we can check the play states
                                 if session['state'] != stream['state']:
                                     if session['state'] == 'paused':
-                                        logger.debug("Tautulli Monitor :: %s: Session %s paused."
+                                        logger.debug(u"Tautulli Monitor :: %s: Session %s paused."
                                                      % (server.CONFIG.PMS_NAME, stream['session_key']))
 
                                         plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_pause'})
 
                                     if session['state'] == 'playing' and stream['state'] == 'paused':
-                                        logger.debug("Tautulli Monitor :: %s: Session %s resumed."
+                                        logger.debug(u"Tautulli Monitor :: %s: Session %s resumed."
                                                      % (server.CONFIG.PMS_NAME, stream['session_key']))
 
                                         plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_resume'})
@@ -90,7 +90,7 @@ def check_active_sessions(server=None, ws_request=False):
                                         # Push it on it's own thread so we don't hold up our db actions
                                         # Our first buffer notification
                                         if buffer_values[0]['buffer_count'] == plexpy.CONFIG.BUFFER_THRESHOLD:
-                                            logger.info("Tautulli Monitor :: %s: User '%s' has triggered a buffer warning."
+                                            logger.info(u"Tautulli Monitor :: %s: User '%s' has triggered a buffer warning."
                                                         % (server.CONFIG.PMS_NAME, stream['user']))
                                             # Set the buffer trigger time
                                             monitor_db.action('UPDATE sessions '
@@ -104,7 +104,7 @@ def check_active_sessions(server=None, ws_request=False):
                                             # Subsequent buffer notifications after wait time
                                             if int(time.time()) > buffer_values[0]['buffer_last_triggered'] + \
                                                     plexpy.CONFIG.BUFFER_WAIT:
-                                                logger.info("Tautulli Monitor :: %s: User '%s' has triggered multiple buffer warnings."
+                                                logger.info(u"Tautulli Monitor :: %s: User '%s' has triggered multiple buffer warnings."
                                                         % (server.CONFIG.PMS_NAME, stream['user']))
                                                 # Set the buffer trigger time
                                                 monitor_db.action('UPDATE sessions '
@@ -114,7 +114,7 @@ def check_active_sessions(server=None, ws_request=False):
 
                                                 plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_buffer'})
 
-                                    logger.debug("Tautulli Monitor :: %s: Session %s is buffering. Count is now %s. Last triggered %s."
+                                    logger.debug(u"Tautulli Monitor :: %s: Session %s is buffering. Count is now %s. Last triggered %s."
                                                  % (server.CONFIG.PMS_NAME, stream['session_key'],
                                                     buffer_values[0]['buffer_count'],
                                                     buffer_values[0]['buffer_last_triggered']))
@@ -134,7 +134,7 @@ def check_active_sessions(server=None, ws_request=False):
                     else:
                         # The user has stopped playing a stream
                         if stream['state'] != 'stopped':
-                            logger.debug("Tautulli Monitor :: %s: Session %s stopped."
+                            logger.debug(u"Tautulli Monitor :: %s: Session %s stopped."
                                          % (server.CONFIG.PMS_NAME, stream['session_key']))
 
                             if not stream['stopped']:
@@ -159,24 +159,24 @@ def check_active_sessions(server=None, ws_request=False):
 
                         if row_id:
                             # If session is written to the databaase successfully, remove the session from the session table
-                            logger.debug("Tautulli Monitor :: %s: Removing sessionKey %s ratingKey %s from session queue"
+                            logger.debug(u"Tautulli Monitor :: %s: Removing sessionKey %s ratingKey %s from session queue"
                                          % (server.CONFIG.PMS_NAME, stream['session_key'], stream['rating_key']))
                             monitor_process.delete_session(row_id=row_id)
                         else:
                             stream['write_attempts'] += 1
 
                             if stream['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
-                                logger.warn("Tautulli Monitor :: %s: Failed to write sessionKey %s ratingKey %s to the database. " \
+                                logger.warn(u"Tautulli Monitor :: %s: Failed to write sessionKey %s ratingKey %s to the database. " \
                                             "Will try again on the next pass. Write attempt %s."
                                             % (server.CONFIG.PMS_NAME, stream['session_key'], stream['rating_key'],
                                                str(stream['write_attempts'])))
                                 monitor_process.increment_write_attempts(session_key=stream['session_key'])
                             else:
-                                logger.warn("Tautulli Monitor :: %s: Failed to write sessionKey %s ratingKey %s to the database. " \
+                                logger.warn(u"Tautulli Monitor :: %s: Failed to write sessionKey %s ratingKey %s to the database. " \
                                             "Removing session from the database. Write attempt %s."
                                             % (server.CONFIG.PMS_NAME, stream['session_key'],
                                                stream['rating_key'], str(stream['write_attempts'])))
-                                logger.debug("Tautulli Monitor :: %s: Removing sessionKey %s ratingKey %s from session queue"
+                                logger.debug(u"Tautulli Monitor :: %s: Removing sessionKey %s ratingKey %s from session queue"
                                              % (server.CONFIG.PMS_NAME, stream['session_key'], stream['rating_key']))
                                 monitor_process.delete_session(session_key=stream['session_key'])
 
@@ -185,11 +185,11 @@ def check_active_sessions(server=None, ws_request=False):
                     new_session = monitor_process.write_session(session)
 
                     if new_session:
-                        logger.debug("Tautulli Monitor :: %s: Session %s started by user %s with ratingKey %s."
+                        logger.debug(u"Tautulli Monitor :: %s: Session %s started by user %s with ratingKey %s."
                                      % (server.CONFIG.PMS_NAME, session['session_key'], session['user_id'], session['rating_key']))
 
             else:
-                logger.debug("Tautulli Monitor :: %s: Unable to read session list." % server.CONFIG.PMS_NAME)
+                logger.debug(u"Tautulli Monitor :: %s: Unable to read session list." % server.CONFIG.PMS_NAME)
 
 
 def check_recently_added(server=None):
@@ -224,13 +224,13 @@ def check_recently_added(server=None):
                             if metadata:
                                 metadata = [metadata]
                             else:
-                                logger.error("Tautulli Monitor :: %s: Unable to retrieve metadata for rating_key %s" \
+                                logger.error(u"Tautulli Monitor :: %s: Unable to retrieve metadata for rating_key %s" \
                                              % (server.CONFIG.PMS_NAME, str(item['rating_key'])))
 
                         else:
                             metadata = server.PMSCONNECTION.get_metadata_children_details(item['rating_key'])
                             if not metadata:
-                                logger.error("Tautulli Monitor :: %s: Unable to retrieve children metadata for rating_key %s" \
+                                logger.error(u"Tautulli Monitor :: %s: Unable to retrieve children metadata for rating_key %s" \
                                              % (server.CONFIG.PMS_NAME, str(item['rating_key'])))
 
                     if metadata:
@@ -239,7 +239,7 @@ def check_recently_added(server=None):
                             for item in metadata:
 
                                 if 0 < time_threshold - int(item['added_at']) <= time_interval:
-                                    logger.debug("Tautulli Monitor :: %s: Library item %s added to Plex."
+                                    logger.debug(u"Tautulli Monitor :: %s: Library item %s added to Plex."
                                                  % (server.CONFIG.PMS_NAME, str(item['rating_key'])))
 
                                     plexpy.NOTIFY_QUEUE.put({'timeline_data': item.copy(), 'notify_action': 'on_created'})
@@ -254,10 +254,10 @@ def check_recently_added(server=None):
                                     if metadata:
                                         item = metadata
                                     else:
-                                        logger.error("Tautulli Monitor :: %s: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
+                                        logger.error(u"Tautulli Monitor :: %s: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
                                                      % (server.CONFIG.PMS_NAME, str(item['rating_key'])))
 
-                                logger.debug("Tautulli Monitor :: %s: Library item %s added to Plex."
+                                logger.debug(u"Tautulli Monitor :: %s: Library item %s added to Plex."
                                              % (server.CONFIG.PMS_NAME, str(item['rating_key'])))
 
                                 # Check if any notification agents have notifications enabled
@@ -268,18 +268,18 @@ def connect_server(server=None, log=True, startup=False):
 
     if server.CONFIG.PMS_IS_CLOUD:
         if log:
-            logger.info("Tautulli Monitor :: %s: Checking for Plex Cloud server status..." % server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Monitor :: %s: Checking for Plex Cloud server status..." % server.CONFIG.PMS_NAME)
 
         status = plexpy.PLEXTV.get_cloud_server_status(server=server)
 
         if status is True:
-            logger.info("Tautulli Monitor :: %s: Plex Cloud server is active." % server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Monitor :: %s: Plex Cloud server is active." % server.CONFIG.PMS_NAME)
         elif status is False:
             if log:
-                logger.info("Tautulli Monitor :: %s: Plex Cloud server is sleeping." % server.CONFIG.PMS_NAME)
+                logger.info(u"Tautulli Monitor :: %s: Plex Cloud server is sleeping." % server.CONFIG.PMS_NAME)
         else:
             if log:
-                logger.error("Tautulli Monitor :: %s: Failed to retrieve Plex Cloud server status." % server.CONFIG.PMS_NAME)
+                logger.error(u"Tautulli Monitor :: %s: Failed to retrieve Plex Cloud server status." % server.CONFIG.PMS_NAME)
 
         if not status and startup:
             server.WS.on_disconnect()
@@ -289,11 +289,11 @@ def connect_server(server=None, log=True, startup=False):
 
     if status:
         if log and not startup and not server.WS_CONNECTED and not server.server_shutdown and server.CONFIG.PMS_IS_ENABLED:
-            logger.info("Tautulli Monitor :: %s: Attempting to reconnect Plex server..." % server.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Monitor :: %s: Attempting to reconnect Plex server..." % server.CONFIG.PMS_NAME)
             try:
                 server.WS.start()
             except Exception as e:
-                logger.error("Websocket :: %s: Unable to open connection: %s." % (server.CONFIG.PMS_NAME, e))
+                logger.error(u"Websocket :: %s: Unable to open connection: %s." % (server.CONFIG.PMS_NAME, e))
 
 
 def check_server_access(server=None):
@@ -310,17 +310,17 @@ def check_server_access(server=None):
                 # Check if the port is mapped
                 if not mapping_state == 'mapped':
                     server.ping_count += 1
-                    logger.warn("Tautulli Monitor :: %s: Plex remote access port not mapped, ping attempt %s." \
+                    logger.warn(u"Tautulli Monitor :: %s: Plex remote access port not mapped, ping attempt %s." \
                                 % (server.CONFIG.PMS_NAME, str(server.ping_count)))
                 # Check if the port is open
                 elif mapping_error == 'unreachable':
                     server.ping_count += 1
-                    logger.warn("Tautulli Monitor :: %s: Plex remote access port mapped, but mapping failed, ping attempt %s." \
+                    logger.warn(u"Tautulli Monitor :: %s: Plex remote access port mapped, but mapping failed, ping attempt %s." \
                                 % (server.CONFIG.PMS_NAME, str(server.ping_count)))
                 # Reset external ping counter
                 else:
                     if server.ping_count >= plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
-                        logger.info("Tautulli Monitor :: %s: Plex remote access is back up." % server.CONFIG.PMS_NAME)
+                        logger.info(u"Tautulli Monitor :: %s: Plex remote access is back up." % server.CONFIG.PMS_NAME)
                         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'server_id': server.CONFIG.ID})
                     server.ping_count = 0
                     server.remote_access_status = True
@@ -340,7 +340,7 @@ def check_server_updates(server=None):
             download_info = server.PMSCONNECTION.get_server_info()
 
             if download_info and download_info['update_available']:
-                logger.info("Tautulli Monitor :: %s: PMS update available version: %s" % (server.CONFIG.PMS_NAME, download_info['version']))
+                logger.info(u"Tautulli Monitor :: %s: PMS update available version: %s" % (server.CONFIG.PMS_NAME, download_info['version']))
                 plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_pmsupdate', 'pms_download_info': download_info, 'server_id': server.CONFIG.ID})
                 server.update_available = True
             else:
@@ -421,8 +421,8 @@ def check_rclone_status(server, kwargs=None):
             raise requests.exceptions.RequestException
 
     except requests.exceptions.RequestException as e:
-        logger.debug("Tautulli Monitor :: %s: rClone mount not responding. %s" % (server.CONFIG.PMS_NAME, e))
-        logger.debug("Tautulli Monitor :: %s: rClone uri: %s" % (server.CONFIG.PMS_NAME, uri))
+        logger.debug(u"Tautulli Monitor :: %s: rClone mount not responding. %s" % (server.CONFIG.PMS_NAME, e))
+        logger.debug(u"Tautulli Monitor :: %s: rClone uri: %s" % (server.CONFIG.PMS_NAME, uri))
         if server.rclone_status == True:
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_rclonedown', 'server_id': server.CONFIG.ID})
 

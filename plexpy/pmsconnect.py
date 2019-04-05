@@ -454,7 +454,7 @@ class PmsConnect(object):
         try:
             xml_head = recent.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_recently_added: %s." % (self.server.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_recently_added: %s." % (self.server.CONFIG.PMS_NAME, e))
             return []
 
         recents_list = []
@@ -597,7 +597,7 @@ class PmsConnect(object):
         try:
             xml_head = metadata_xml.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_metadata_details: %s." % (self.server.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_metadata_details: %s." % (self.server.CONFIG.PMS_NAME, e))
             return {}
 
         for a in xml_head:
@@ -614,7 +614,7 @@ class PmsConnect(object):
             elif a.getElementsByTagName('Photo'):
                 metadata_main_list = a.getElementsByTagName('Photo')
             else:
-                logger.debug("Tautulli Pmsconnect :: %s: Metadata failed" % self.server.CONFIG.PMS_NAME)
+                logger.debug(u"Tautulli Pmsconnect :: %s: Metadata failed" % self.server.CONFIG.PMS_NAME)
                 return {}
 
             if sync_id and len(metadata_main_list) > 1:
@@ -1349,7 +1349,7 @@ class PmsConnect(object):
                     with open(out_file_path, 'w') as outFile:
                         json.dump(metadata, outFile)
                 except (IOError, ValueError) as e:
-                    logger.error("Tautulli Pmsconnect :: %s: Unable to create cache file for metadata (sessionKey %s): %s"
+                    logger.error(u"Tautulli Pmsconnect :: %s: Unable to create cache file for metadata (sessionKey %s): %s"
                                  % (self.server.CONFIG.PMS_NAME, cache_key, e))
 
             return metadata
@@ -1369,7 +1369,7 @@ class PmsConnect(object):
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_metadata_children: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_metadata_children: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -1420,7 +1420,7 @@ class PmsConnect(object):
         try:
             xml_head = libraries_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_metadata_details: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_metadata_details: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -1467,7 +1467,7 @@ class PmsConnect(object):
             try:
                 xml_head = session_data.getElementsByTagName('MediaContainer')
             except Exception as e:
-                logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_current_activity: %s."
+                logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_current_activity: %s."
                             % (self.server.CONFIG.PMS_NAME, e))
                 return []
 
@@ -2058,12 +2058,12 @@ class PmsConnect(object):
             session_key = session['session_key']
 
         if session_id:
-            logger.info("Tautulli Pmsconnect :: %s: Terminating session %s (session_id %s)."
+            logger.info(u"Tautulli Pmsconnect :: %s: Terminating session %s (session_id %s)."
                         % (self.server.CONFIG.PMS_NAME, session_key, session_id))
             result = self.get_sessions_terminate(session_id=session_id, reason=urllib.quote_plus(message))
             return result
         else:
-            logger.warn("Tautulli Pmsconnect :: %s: Failed to terminate session %s. Missing session_id."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Failed to terminate session %s. Missing session_id."
                         % (self.server.CONFIG.PMS_NAME, session_key))
             return False
 
@@ -2081,7 +2081,7 @@ class PmsConnect(object):
         try:
             xml_head = children_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_item_children: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_item_children: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -2090,7 +2090,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug("Tautulli Pmsconnect :: %s: No children data." % self.server.CONFIG.PMS_NAME)
+                    logger.debug(u"Tautulli Pmsconnect :: %s: No children data." % self.server.CONFIG.PMS_NAME)
                     children_list = {'children_count': '0',
                                      'children_list': []
                                      }
@@ -2197,7 +2197,7 @@ class PmsConnect(object):
         try:
             xml_head = children_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_item_children_related: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_item_children_related: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -2263,14 +2263,14 @@ class PmsConnect(object):
         """
 
         update_channel = self.get_server_update_channel()
-        #logger.debug("Tautulli Pmsconnect :: %s: Plex update channel is %s." % (self.server.CONFIG.PMS_NAME, update_channel))
+        #logger.debug(u"Tautulli Pmsconnect :: %s: Plex update channel is %s." % (self.server.CONFIG.PMS_NAME, update_channel))
 
         plex_downloads = plexpy.PLEXTV.get_plextv_downloads(plexpass=(update_channel == 'beta'))
 
         try:
             available_downloads = json.loads(plex_downloads)
         except Exception as e:
-            logger.warn("Tautulli PmsConnect :: %s: Unable to load JSON for get_plex_updates." % self.server.CONFIG.PMS_NAME)
+            logger.warn(u"Tautulli PmsConnect :: %s: Unable to load JSON for get_plex_updates." % self.server.CONFIG.PMS_NAME)
             return {}
 
         # Get the updates for the platform
@@ -2279,7 +2279,7 @@ class PmsConnect(object):
             available_downloads.get('nas').get(pms_platform)
 
         if not platform_downloads:
-            logger.error("Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Could not match server platform: %s."
+            logger.error(u"Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Could not match server platform: %s."
                          % (self.server.CONFIG.PMS_NAME, pms_platform))
             return {}
 
@@ -2287,11 +2287,11 @@ class PmsConnect(object):
         v_new = helpers.cast_to_int("".join(v.zfill(4) for v in platform_downloads.get('version', '').split('-')[0].split('.')[:4]))
 
         if not v_old:
-            logger.error("Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Invalid current server version: %s."
+            logger.error(u"Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Invalid current server version: %s."
                          % (self.server.CONFIG.PMS_NAME, self.server.CONFIG.PMS_VERSION))
             return {}
         if not v_new:
-            logger.error("Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Invalid new server version: %s."
+            logger.error(u"Tautulli Pmsconnect :: %s: Unable to retrieve Plex updates: Invalid new server version: %s."
                          % (self.server.CONFIG.PMS_NAME, platform_downloads.get('version')))
             return {}
 
@@ -2326,7 +2326,7 @@ class PmsConnect(object):
         try:
             xml_head = identity.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_local_server_identity: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_local_server_identity: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return {}
 
@@ -2353,7 +2353,7 @@ class PmsConnect(object):
                 try:
                     xml_head = prefs.getElementsByTagName('Setting')
                 except Exception as e:
-                    logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_server_prefs: %s."
+                    logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_server_prefs: %s."
                                 % (self.server_name, e))
                     return ''
 
@@ -2365,7 +2365,7 @@ class PmsConnect(object):
 
                 return pref_value
         else:
-            logger.debug("Tautulli Pmsconnect :: %s: Server preferences queried but no parameter received."
+            logger.debug(u"Tautulli Pmsconnect :: %s: Server preferences queried but no parameter received."
                          % self.server_name)
         return None
 
@@ -2380,7 +2380,7 @@ class PmsConnect(object):
         try:
             xml_head = libraries_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_libraries_list: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_libraries_list: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -2389,7 +2389,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug("Tautulli Pmsconnect :: %s: No libraries data." % self.server.CONFIG.PMS_NAME)
+                    logger.debug(u"Tautulli Pmsconnect :: %s: No libraries data." % self.server.CONFIG.PMS_NAME)
                     libraries_list = {'libraries_count': '0',
                                       'libraries_list': []
                                       }
@@ -2457,14 +2457,14 @@ class PmsConnect(object):
         elif str(rating_key).isdigit():
             library_data = self.get_metadata_children(str(rating_key), output_format='xml')
         else:
-            logger.warn("Tautulli Pmsconnect :: %s: get_library_children called by invalid section_id or rating_key provided."
+            logger.warn(u"Tautulli Pmsconnect :: %s: get_library_children called by invalid section_id or rating_key provided."
                         % self.server.CONFIG.PMS_NAME)
             return []
 
         try:
             xml_head = library_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_children_details: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_children_details: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -2473,7 +2473,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug("Tautulli Pmsconnect :: %s: No library data." % self.server.CONFIG.PMS_NAME)
+                    logger.debug(u"Tautulli Pmsconnect :: %s: No library data." % self.server.CONFIG.PMS_NAME)
                     children_list = {'library_count': '0',
                                      'children_list': []
                                      }
@@ -2619,7 +2619,7 @@ class PmsConnect(object):
         try:
             xml_head = labels_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_label_details: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_library_label_details: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return None
 
@@ -2628,7 +2628,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug("Tautulli Pmsconnect :: %s: No labels data." % self.server.CONFIG.PMS_NAME)
+                    logger.debug(u"Tautulli Pmsconnect :: %s: No labels data." % self.server.CONFIG.PMS_NAME)
                     return labels_list
 
             if a.getElementsByTagName('Directory'):
@@ -2687,7 +2687,7 @@ class PmsConnect(object):
                 return result[0], result[1]
 
         else:
-            logger.error("Tautulli Pmsconnect :: %s: Image proxy queried but no input received." % self.server.CONFIG.PMS_NAME)
+            logger.error(u"Tautulli Pmsconnect :: %s: Image proxy queried but no input received." % self.server.CONFIG.PMS_NAME)
 
     def get_search_results(self, query='', limit=''):
         """
@@ -2700,7 +2700,7 @@ class PmsConnect(object):
         try:
             xml_head = search_results.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_search_result: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_search_result: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return []
 
@@ -2784,7 +2784,7 @@ class PmsConnect(object):
                 section_id = metadata['section_id']
                 library_name = metadata['library_name']
             except Exception as e:
-                logger.warn("Tautulli Pmsconnect :: %s: Unable to get parent_rating_key for get_rating_keys_list: %s."
+                logger.warn(u"Tautulli Pmsconnect :: %s: Unable to get parent_rating_key for get_rating_keys_list: %s."
                             % (self.server.CONFIG.PMS_NAME, e))
                 return {}
 
@@ -2795,7 +2795,7 @@ class PmsConnect(object):
                 section_id = metadata['section_id']
                 library_name = metadata['library_name']
             except Exception as e:
-                logger.warn("Tautulli Pmsconnect :: %s: Unable to get grandparent_rating_key for get_rating_keys_list: %s."
+                logger.warn(u"Tautulli Pmsconnect :: %s: Unable to get grandparent_rating_key for get_rating_keys_list: %s."
                             % (self.server.CONFIG.PMS_NAME, e))
                 return {}
 
@@ -2805,7 +2805,7 @@ class PmsConnect(object):
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_rating_keys_list: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_rating_keys_list: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return {}
 
@@ -2834,7 +2834,7 @@ class PmsConnect(object):
                     try:
                         xml_head = metadata.getElementsByTagName('MediaContainer')
                     except Exception as e:
-                        logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_rating_keys_list: %s."
+                        logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_rating_keys_list: %s."
                                     % (self.server.CONFIG.PMS_NAME, e))
                         return {}
 
@@ -2883,7 +2883,7 @@ class PmsConnect(object):
         try:
             xml_head = account_data.getElementsByTagName('MyPlex')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_server_response: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_server_response: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
             return None
 
@@ -2906,15 +2906,15 @@ class PmsConnect(object):
         try:
             xml_head = updater_status.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: %s: Unable to parse XML for get_update_staus: %s."
+            logger.warn(u"Tautulli Pmsconnect :: %s: Unable to parse XML for get_update_staus: %s."
                         % (self.server.CONFIG.PMS_NAME, e))
 
             # Catch the malformed XML on certain PMS version.
             # XML parser helper returns empty list if there is an error parsing XML
             if updater_status == []:
-                logger.warn("Tautulli Pmsconnecrt :: %s: Plex API updater XML is broken on the current PMS version. Please update your PMS manually."
+                logger.warn(u"Tautulli Pmsconnecrt :: %s: Plex API updater XML is broken on the current PMS version. Please update your PMS manually."
                             % self.server.CONFIG.PMS_NAME)
-                logger.info("Tautulli Pmsconnect :: %s: Tautulli is unable to check for Plex updates. Disabling check for Plex updates."
+                logger.info(u"Tautulli Pmsconnect :: %s: Tautulli is unable to check for Plex updates. Disabling check for Plex updates."
                             % self.server.CONFIG.PMS_NAME)
 
                 # Disable check for Plex updates

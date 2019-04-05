@@ -104,7 +104,7 @@ class ActivityHandler(object):
                 if not session:
                     return
 
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s started by user %s (%s) with ratingKey %s (%s)."
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s started by user %s (%s) with ratingKey %s (%s)."
                          % (self.server.CONFIG.PMS_NAME, str(session['session_key']), str(session['user_id']),
                             session['username'], str(session['rating_key']), session['full_title']))
 
@@ -121,7 +121,7 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s %sstopped."
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s %sstopped."
                          % (self.server.CONFIG.PMS_NAME, str(self.get_session_key()), 'force ' if force_stop else ''))
 
             # Set the session last_paused timestamp
@@ -146,7 +146,7 @@ class ActivityHandler(object):
                 schedule_callback('session_key-{}-{}'.format(self.server.CONFIG.ID, self.get_session_key()), remove_job=True)
 
                 # Remove the session from our temp session table
-                logger.debug("Tautulli ActivityHandler :: %s: Removing sessionKey %s ratingKey %s from session queue"
+                logger.debug(u"Tautulli ActivityHandler :: %s: Removing sessionKey %s ratingKey %s from session queue"
                              % (self.server.CONFIG.PMS_NAME, str(self.get_session_key()), str(self.get_rating_key())))
                 ap.delete_session(row_id=row_id)
                 delete_metadata_cache(self.get_session_key(), self.server)
@@ -159,7 +159,7 @@ class ActivityHandler(object):
     def on_pause(self, still_paused=False):
         if self.is_valid_session():
             if not still_paused:
-                logger.debug("Tautulli ActivityHandler :: %s: Session %s paused."
+                logger.debug(u"Tautulli ActivityHandler :: %s: Session %s paused."
                              % (self.server.CONFIG.PMS_NAME, str(self.get_session_key())))
 
             # Set the session last_paused timestamp
@@ -177,7 +177,7 @@ class ActivityHandler(object):
 
     def on_resume(self):
         if self.is_valid_session():
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s resumed."
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s resumed."
                          % (self.server.CONFIG.PMS_NAME, str(self.get_session_key())))
 
             # Set the session last_paused timestamp
@@ -194,7 +194,7 @@ class ActivityHandler(object):
 
     def on_change(self):
         if self.is_valid_session():
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s has changed transcode decision."
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s has changed transcode decision."
                          % (self.server.CONFIG.PMS_NAME, str(self.get_session_key())))
 
             # Update the session state and viewOffset
@@ -208,7 +208,7 @@ class ActivityHandler(object):
 
     def on_buffer(self):
         if self.is_valid_session():
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s is buffering."
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s is buffering."
                          % (self.server.CONFIG.PMS_NAME, self.get_session_key()))
             ap = activity_processor.ActivityProcessor(server=self.server)
             db_stream = ap.get_session_by_key(session_key=self.get_session_key())
@@ -218,7 +218,7 @@ class ActivityHandler(object):
 
             # Get our current buffer count
             current_buffer_count = ap.get_session_buffer_count(self.get_session_key())
-            logger.debug("Tautulli ActivityHandler :: %s: Session %s buffer count is %s." %
+            logger.debug(u"Tautulli ActivityHandler :: %s: Session %s buffer count is %s." %
                          (self.server.CONFIG.PMS_NAME, self.get_session_key(), current_buffer_count))
 
             # Get our last triggered time
@@ -229,7 +229,7 @@ class ActivityHandler(object):
 
             time_since_last_trigger = None
             if buffer_last_triggered:
-                logger.debug("Tautulli ActivityHandler :: %s: Session %s buffer last triggered at %s." %
+                logger.debug(u"Tautulli ActivityHandler :: %s: Session %s buffer last triggered at %s." %
                              (self.server.CONFIG.PMS_NAME, self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
@@ -316,7 +316,7 @@ class ActivityHandler(object):
                                        }
 
                     if progress_percent >= watched_percent.get(db_session['media_type'], 101):
-                        logger.debug("Tautulli ActivityHandler :: %s: Session %s watched."
+                        logger.debug(u"Tautulli ActivityHandler :: %s: Session %s watched."
                                      % (self.server.CONFIG.PMS_NAME, str(self.get_session_key())))
                         ap.set_watched(session_key=self.get_session_key())
 
@@ -412,7 +412,7 @@ class TimelineHandler(object):
 
                         self.RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
 
-                        logger.debug("Tautulli TimelineHandler :: %s: Library item '%s' (%s, grandparent %s) added to recently added queue."
+                        logger.debug(u"Tautulli TimelineHandler :: %s: Library item '%s' (%s, grandparent %s) added to recently added queue."
                                      % (self.server.CONFIG.PMS_NAME, title, str(rating_key), str(grandparent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
@@ -432,7 +432,7 @@ class TimelineHandler(object):
                         parent_set.add(rating_key)
                         self.RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        logger.debug("Tautulli TimelineHandler :: %s: Library item '%s' (%s , parent %s) added to recently added queue."
+                        logger.debug(u"Tautulli TimelineHandler :: %s: Library item '%s' (%s , parent %s) added to recently added queue."
                                      % (self.server.CONFIG.PMS_NAME, title, str(rating_key), str(parent_rating_key)))
 
                         # Schedule a callback to clear the recently added queue
@@ -446,7 +446,7 @@ class TimelineHandler(object):
                     queue_set = self.RECENTLY_ADDED_QUEUE.get(rating_key, set())
                     self.RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
-                    logger.debug("Tautulli TimelineHandler :: %s: Library item '%s' (%s) added to recently added queue."
+                    logger.debug(u"Tautulli TimelineHandler :: %s: Library item '%s' (%s) added to recently added queue."
                                  % (self.server.CONFIG.PMS_NAME, title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
@@ -460,13 +460,13 @@ class TimelineHandler(object):
                 state_type == 5 and metadata_state is None and queue_size is None and \
                 rating_key in self.RECENTLY_ADDED_QUEUE:
 
-                logger.debug("Tautulli TimelineHandler :: %s: Library item '%s' (%s) done processing metadata."
+                logger.debug(u"Tautulli TimelineHandler :: %s: Library item '%s' (%s) done processing metadata."
                              % (self.server.CONFIG.PMS_NAME, title, str(rating_key)))
 
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
                 if rating_key in self.RECENTLY_ADDED_QUEUE and not self.RECENTLY_ADDED_QUEUE[rating_key]:
-                    logger.debug("Tautulli TimelineHandler :: %s: Library item %s removed from recently added queue."
+                    logger.debug(u"Tautulli TimelineHandler :: %s: Library item %s removed from recently added queue."
                                  % (self.server.CONFIG.PMS_NAME, str(rating_key)))
                     del_keys(rating_key, self.RECENTLY_ADDED_QUEUE)
 
@@ -504,7 +504,7 @@ def force_stop_stream(session_key, title, user, server_name, server):
 
     if row_id:
         # If session is written to the database successfully, remove the session from the session table
-        logger.info("Tautulli ActivityHandler :: %s: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+        logger.info(u"Tautulli ActivityHandler :: %s: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (server.CONFIG.PMS_NAME, session['session_key'], session['rating_key']))
         ap.delete_session(row_id=row_id)
         delete_metadata_cache(session_key, server)
@@ -513,7 +513,7 @@ def force_stop_stream(session_key, title, user, server_name, server):
         session['write_attempts'] += 1
 
         if session['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
-            logger.warn("Tautulli ActivityHandler :: %s: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+            logger.warn(u"Tautulli ActivityHandler :: %s: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Will try again in 30 seconds. Write attempt %s."
                         % (server.CONFIG.PMS_NAME, session['session_key'], session['rating_key'], str(session['write_attempts'])))
             ap.increment_write_attempts(session_key=session_key)
@@ -523,10 +523,10 @@ def force_stop_stream(session_key, title, user, server_name, server):
                               args=[session_key, session['full_title'], session['user'], server.CONFIG.PMS_NAME, server], seconds=30)
 
         else:
-            logger.warn("Tautulli ActivityHandler :: %s: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+            logger.warn(u"Tautulli ActivityHandler :: %s: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
                         "Removing session from the database. Write attempt %s."
                         % (server.CONFIG.PMS_NAME, session['session_key'], session['rating_key'], str(session['write_attempts'])))
-            logger.info("Tautulli ActivityHandler :: %s: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+            logger.info(u"Tautulli ActivityHandler :: %s: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (server.CONFIG.PMS_NAME, session['session_key'], session['rating_key']))
             ap.delete_session(session_key=session_key)
             delete_metadata_cache(session_key, server)
@@ -560,7 +560,7 @@ def clear_recently_added_queue(rating_key, title, server_name, server, queue):
 
 
 def on_created(server, rating_key, **kwargs):
-    logger.debug("Tautulli TimelineHandler :: %s: Library item %s added to Plex." % (server.CONFIG.PMS_NAME, str(rating_key)))
+    logger.debug(u"Tautulli TimelineHandler :: %s: Library item %s added to Plex." % (server.CONFIG.PMS_NAME, str(rating_key)))
     metadata = server.PMSCONNECTION.get_metadata_details(rating_key)
 
     if metadata:
@@ -568,14 +568,14 @@ def on_created(server, rating_key, **kwargs):
         # now = int(time.time())
         #
         # if helpers.cast_to_int(metadata['added_at']) < now - 86400:  # Updated more than 24 hours ago
-        #     logger.debug("Tautulli TimelineHandler :: %s: Library item %s added more than 24 hours ago. Not notifying."
+        #     logger.debug(u"Tautulli TimelineHandler :: %s: Library item %s added more than 24 hours ago. Not notifying."
         #                  % (server.CONFIG.PMS_NAME, str(rating_key)))
         #     notify = False
 
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
             if data_factory.get_recently_added_item(server.CONFIG.ID, rating_key):
-                logger.debug("Tautulli TimelineHandler :: %s: Library item %s added already. Not notifying again."
+                logger.debug(u"Tautulli TimelineHandler :: %s: Library item %s added already. Not notifying again."
                              % (server.CONFIG.PMS_NAME, str(rating_key)))
                 notify = False
 
@@ -591,11 +591,11 @@ def on_created(server, rating_key, **kwargs):
         for key in all_keys:
             data_factory.set_recently_added_item(server.CONFIG.ID, key)
 
-        logger.debug("Tautulli TimelineHandler :: %s: Added %s items to the recently_added database table."
+        logger.debug(u"Tautulli TimelineHandler :: %s: Added %s items to the recently_added database table."
                      % (server.CONFIG.PMS_NAME, str(len(all_keys))))
 
     else:
-        logger.error("Tautulli TimelineHandler :: %s: Unable to retrieve metadata for rating_key %s"
+        logger.error(u"Tautulli TimelineHandler :: %s: Unable to retrieve metadata for rating_key %s"
                      % (server.CONFIG.PMS_NAME, str(rating_key)))
 
 
@@ -603,5 +603,5 @@ def delete_metadata_cache(session_key, server):
     try:
         os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s-%s.json' % (server.CONFIG.ID, session_key)))
     except IOError as e:
-        logger.error("Tautulli ActivityHandler :: %s: Failed to remove metadata cache file (sessionKey %s): %s"
+        logger.error(u"Tautulli ActivityHandler :: %s: Failed to remove metadata cache file (sessionKey %s): %s"
                      % (server.CONFIG.PMS_NAME, session_key, e))

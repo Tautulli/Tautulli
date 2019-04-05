@@ -86,7 +86,7 @@ class HTTPHandler(object):
         self.timeout = timeout or self.timeout
 
         if self.request_type not in self.valid_request_types:
-            logger.debug("HTTP request made but unsupported request type given.")
+            logger.debug(u"HTTP request made but unsupported request type given.")
             return None
 
         if uri:
@@ -104,7 +104,7 @@ class HTTPHandler(object):
             return responses[0]
 
         else:
-            logger.debug("HTTP request made but no endpoint given.")
+            logger.debug(u"HTTP request made but no enpoint given.")
             return None
 
     def _http_requests_pool(self, urls, workers=10, chunk=None):
@@ -134,7 +134,7 @@ class HTTPHandler(object):
                     yield work
             except Exception as e:
                 if not self._silent:
-                    logger.error("Failed to yield request: %s" % e)
+                    logger.error(u"Failed to yield request: %s" % e)
             finally:
                 pool.close()
                 pool.join()
@@ -145,15 +145,15 @@ class HTTPHandler(object):
             r = session.request(self.request_type, url, headers=self.headers, timeout=self.timeout)
         except IOError as e:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s with error %s" % (self.uri, e))
+                logger.warn(u"Failed to access uri endpoint %s with error %s" % (self.uri, e))
             return None
         except Exception as e:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (self.uri, e))
+                logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (self.uri, e))
             return None
         except:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s with Uncaught exception." % self.uri)
+                logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % self.uri)
             return None
 
         response_status = r.status
@@ -164,7 +164,7 @@ class HTTPHandler(object):
             return self._http_format_output(response_content, response_headers)
         else:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
+                logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
             return None
 
     def _http_format_output(self, response_content, response_headers):
@@ -191,5 +191,5 @@ class HTTPHandler(object):
 
         except Exception as e:
             if not self._silent:
-                logger.warn("Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
+                logger.warn(u"Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
             return None

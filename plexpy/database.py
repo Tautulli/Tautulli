@@ -34,7 +34,7 @@ def drop_session_db():
 
 
 def clear_history_tables():
-    logger.debug("Tautulli Database :: Deleting all session_history records... No turning back now bub.")
+    logger.debug(u"Tautulli Database :: Deleting all session_history records... No turning back now bub.")
     monitor_db = MonitorDatabase()
     monitor_db.action('DELETE FROM session_history')
     monitor_db.action('DELETE FROM session_history_media_info')
@@ -43,7 +43,7 @@ def clear_history_tables():
 
 
 def delete_sessions():
-    logger.debug("Tautulli Database :: Clearing temporary sessions from database.")
+    logger.debug(u"Tautulli Database :: Clearing temporary sessions from database.")
     monitor_db = MonitorDatabase()
 
     try:
@@ -51,7 +51,7 @@ def delete_sessions():
         monitor_db.action('VACUUM')
         return True
     except Exception as e:
-        logger.warn("Tautulli Database :: Unable to clear temporary sessions from database: %s." % e)
+        logger.warn(u"Tautulli Database :: Unable to clear temporary sessions from database: %s." % e)
         return False
 
 def db_filename(filename=FILENAME):
@@ -89,13 +89,13 @@ def make_backup(cleanup=False, scheduler=False):
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.error(u"Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug("Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
+        logger.debug(u"Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
-        logger.error("Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
+        logger.error(u"Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
         return False
 
 
@@ -148,15 +148,15 @@ class MonitorDatabase(object):
 
                 except sqlite3.OperationalError as e:
                     if "unable to open database file" in e or "database is locked" in e:
-                        logger.warn("Tautulli Database :: Database Error: %s", e)
+                        logger.warn(u"Tautulli Database :: Database Error: %s", e)
                         attempts += 1
                         time.sleep(1)
                     else:
-                        logger.error("Tautulli Database :: Database error: %s", e)
+                        logger.error(u"Tautulli Database :: Database error: %s", e)
                         raise
 
                 except sqlite3.DatabaseError as e:
-                    logger.error("Tautulli Database :: Fatal Error executing %s :: %s", query, e)
+                    logger.error(u"Tautulli Database :: Fatal Error executing %s :: %s", query, e)
                     raise
 
             return sql_result
@@ -200,9 +200,9 @@ class MonitorDatabase(object):
             try:
                 self.action(insert_query, value_dict.values() + key_dict.values())
             except sqlite3.IntegrityError:
-                logger.info("Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
-                logger.debug("Tautulli Database :: Keys:   %s", json.dumps(key_dict))
-                logger.debug("Tautulli Database :: Values: %s", json.dumps(value_dict))
+                logger.info(u"Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
+                logger.debug(u"Tautulli Database :: Keys:   %s", json.dumps(key_dict))
+                logger.debug(u"Tautulli Database :: Values: %s", json.dumps(value_dict))
 
         # We want to know if it was an update or insert
         return trans_type

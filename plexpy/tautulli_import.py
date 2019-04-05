@@ -28,17 +28,17 @@ def validate_database(database=None):
 
     try:
         if not os.path.isfile(database):
-            logger.error("Tautulli Importer :: File Not Found.")
+            logger.error(u"Tautulli Importer :: File Not Found.")
             return 'File Not Found'
         connection = sqlite3.connect(database, timeout=20)
     except sqlite3.OperationalError:
-        logger.error("Tautulli Importer :: Invalid database specified.")
+        logger.error(u"Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except ValueError:
-        logger.error("Tautulli Importer :: Invalid database specified.")
+        logger.error(u"Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error("Tautulli Importer :: Uncaught exception.")
+        logger.error(u"Tautulli Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     try:
@@ -46,13 +46,13 @@ def validate_database(database=None):
         connection.close()
     except sqlite3.OperationalError as e:
         if e.message == 'no such table: servers':
-            logger.error("Tautulli Importer :: This database is not a V3.0.00 or higher database.")
+            logger.error(u"Tautulli Importer :: This database is not a V3.0.00 or higher database.")
             return 'This database is not a V3.0.00 or higher database.'
         else:
-            logger.error("Tautulli Importer :: %s" % e)
+            logger.error(u"Tautulli Importer :: %s" % e)
             return e
     except:
-        logger.error("Tautulli Importer :: Uncaught exception.")
+        logger.error(u"Tautulli Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     return 'success'
@@ -65,20 +65,20 @@ def import_from_tautulli(import_database=None, import_ignore_interval=0):
         import_db.row_factory = database.dict_factory
         monitor_db = database.MonitorDatabase()
     except sqlite3.OperationalError:
-        logger.error("Tautulli Importer :: Invalid filename.")
+        logger.error(u"Tautulli Importer :: Invalid filename.")
         return None
     except ValueError:
-        logger.error("Tautulli Importer :: Invalid filename.")
+        logger.error(u"Tautulli Importer :: Invalid filename.")
         return None
 
-    logger.info("Tautulli Importer :: Data import from %s in progress..." % import_database)
+    logger.info(u"Tautulli Importer :: Data import from %s in progress..." % import_database)
 
     try:
         servers_list = import_db.execute('SELECT * FROM servers').fetchall()
         for server in servers_list:
             new_server = False
             old_server_id = server.pop('id')
-            logger.info("Tautulli Importer :: Importing Server: %s(%s)" % (server['pms_name'], old_server_id))
+            logger.info(u"Tautulli Importer :: Importing Server: %s(%s)" % (server['pms_name'], old_server_id))
             query = 'SELECT id FROM servers WHERE pms_identifier = "%s"' % server['pms_identifier']
             existing_server_result = monitor_db.select_single(query)
             if not existing_server_result:
@@ -105,19 +105,19 @@ def import_from_tautulli(import_database=None, import_ignore_interval=0):
         notifier_lookup = import_notifiers(import_db, monitor_db)
         import_newsletters(import_db, monitor_db, notifier_lookup)
 
-        logger.info("Tautulli Importer :: Tautulli data import complete successfully.")
+        logger.info(u"Tautulli Importer :: Tautulli data import complete successfully.")
         import_db.close()
         plexpy.PMS_SERVERS.refresh()
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
-        logger.error("Tautulli Importer :: Failed to import tautulli database: %s" % e)
+        logger.error(u"Tautulli Importer :: Failed to import tautulli database: %s" % e)
 
 
 def import_session_history(import_db, monitor_db, old_server_id, new_server_id, import_ignore_interval):
-    logger.info("Tautulli Importer :: Importing session_history table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing session_history table for ServerID: %s" % old_server_id)
 
     import_ignore_interval = (int(import_ignore_interval) if import_ignore_interval.isdigit() else 0)
 
@@ -152,17 +152,17 @@ def import_session_history(import_db, monitor_db, old_server_id, new_server_id, 
         import_session_history_media_info(import_db, monitor_db, old_server_id, new_server_id, session_history_lookup)
         import_session_history_metadata(import_db, monitor_db, old_server_id, new_server_id, session_history_lookup)
 
-        logger.info("Tautulli Importer :: session_history imported.")
+        logger.info(u"Tautulli Importer :: session_history imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Session History Import failed: %s' % e)
 
 
 def import_session_history_media_info(import_db, monitor_db, old_server_id, new_server_id, session_history_lookup):
-    logger.info("Tautulli Importer :: Importing session_history_media_info table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing session_history_media_info table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM session_history_media_info WHERE server_id = %s' % old_server_id
@@ -177,17 +177,17 @@ def import_session_history_media_info(import_db, monitor_db, old_server_id, new_
                 )
                 monitor_db.action(query, session_history_media_info.values())
 
-        logger.info("Tautulli Importer :: session_history_media_info imported.")
+        logger.info(u"Tautulli Importer :: session_history_media_info imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Session History Media Info Import failed: %s' % e)
 
 
 def import_session_history_metadata(import_db, monitor_db, old_server_id, new_server_id, session_history_lookup):
-    logger.info("Tautulli Importer :: Importing session_history_metadata table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing session_history_metadata table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM session_history_metadata WHERE server_id = %s' % old_server_id
@@ -203,17 +203,17 @@ def import_session_history_metadata(import_db, monitor_db, old_server_id, new_se
                 )
                 monitor_db.action(query, session_history_metadata.values())
 
-        logger.info("Tautulli Importer :: session_history_metadata imported.")
+        logger.info(u"Tautulli Importer :: session_history_metadata imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Session History Metadata Import failed: %s' % e)
 
 
 def import_library_sections(import_db, monitor_db, old_server_id, new_server_id):
-    logger.info("Tautulli Importer :: Importing library_sections table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing library_sections table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM library_sections WHERE server_id = %s' % old_server_id
@@ -226,17 +226,17 @@ def import_library_sections(import_db, monitor_db, old_server_id, new_server_id)
             key_dict['section_id'] = library_section.pop('section_id')
             result = monitor_db.upsert('library_sections', key_dict=key_dict, value_dict=library_section)
 
-        logger.info("Tautulli Importer :: library_sections imported.")
+        logger.info(u"Tautulli Importer :: library_sections imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Library Sections Import failed: %s' % e)
 
 
 def import_recently_added(import_db, monitor_db, old_server_id, new_server_id):
-    logger.info("Tautulli Importer :: Importing recently_added table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing recently_added table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM recently_added WHERE server_id = %s' % old_server_id
@@ -250,17 +250,17 @@ def import_recently_added(import_db, monitor_db, old_server_id, new_server_id):
             key_dict['added_at'] = recently_added.pop('added_at')
             result = monitor_db.upsert('recently_added', key_dict=key_dict, value_dict=recently_added)
 
-        logger.info("Tautulli Importer :: recently_added imported.")
+        logger.info(u"Tautulli Importer :: recently_added imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Recently Added Import failed: %s' % e)
 
 
 def import_themoviedb_lookup(import_db, monitor_db, old_server_id, new_server_id):
-    logger.info("Tautulli Importer :: Importing recently_added_lookup table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing recently_added_lookup table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM themoviedb_lookup WHERE server_id = %s' % old_server_id
@@ -273,17 +273,17 @@ def import_themoviedb_lookup(import_db, monitor_db, old_server_id, new_server_id
             key_dict['rating_key'] = themoviedb_lookup.pop('rating_key')
             result = monitor_db.upsert('themoviedb_lookup', key_dict=key_dict, value_dict=themoviedb_lookup)
 
-        logger.info("Tautulli Importer :: themoviedb_lookup imported.")
+        logger.info(u"Tautulli Importer :: themoviedb_lookup imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('TheMovieDB Lookup Import failed: %s' % e)
 
 
 def import_tvmaze_lookup(import_db, monitor_db, old_server_id, new_server_id):
-    logger.info("Tautulli Importer :: Importing tvmaze_lookup table for ServerID: %s" % old_server_id)
+    logger.info(u"Tautulli Importer :: Importing tvmaze_lookup table for ServerID: %s" % old_server_id)
 
     try:
         query = 'SELECT * FROM tvmaze_lookup WHERE server_id = %s' % old_server_id
@@ -296,17 +296,17 @@ def import_tvmaze_lookup(import_db, monitor_db, old_server_id, new_server_id):
             key_dict['rating_key'] = tvmaze_lookup.pop('rating_key')
             result = monitor_db.upsert('tvmaze_lookup', key_dict=key_dict, value_dict=tvmaze_lookup)
 
-        logger.info("Tautulli Importer :: tvmaze_lookup imported.")
+        logger.info(u"Tautulli Importer :: tvmaze_lookup imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('TVMaze Lookup Import failed: %s' % e)
 
 
 def import_newsletters(import_db, monitor_db, notifier_lookup):
-    logger.info("Tautulli Importer :: Importing Newsletters table...")
+    logger.info(u"Tautulli Importer :: Importing Newsletters table...")
 
     try:
         query = 'SELECT * FROM newsletters'
@@ -351,17 +351,17 @@ def import_newsletters(import_db, monitor_db, notifier_lookup):
 
             result = monitor_db.upsert('newsletters', key_dict=key_dict, value_dict=newsletter)
 
-        logger.info("Tautulli Importer :: Newsletters imported.")
+        logger.info(u"Tautulli Importer :: Newsletters imported.")
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Newsletters Import failed: %s' % e)
 
 
 def import_notifiers(import_db, monitor_db):
-    logger.info("Tautulli Importer :: Importing Notifiers table...")
+    logger.info(u"Tautulli Importer :: Importing Notifiers table...")
 
     try:
         notifiers_lookup = {}
@@ -388,18 +388,18 @@ def import_notifiers(import_db, monitor_db):
                 new_notifier_id = result['id']
             notifiers_lookup[old_notifier_id] = new_notifier_id
 
-        logger.info("Tautulli Importer :: Notifiers imported.")
+        logger.info(u"Tautulli Importer :: Notifiers imported.")
         return notifiers_lookup
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Notifiers Import failed: %s' % e)
 
 
 def import_notify_log(import_db, monitor_db, old_notifier_id, new_notifier_id):
-    logger.info("Tautulli Importer :: Importing Notifier_log table entries for notifier ID %s" % old_notifier_id)
+    logger.info(u"Tautulli Importer :: Importing Notifier_log table entries for notifier ID %s" % old_notifier_id)
 
     try:
         query = 'SELECT * FROM notify_log WHERE notifier_id = %s' % old_notifier_id
@@ -413,10 +413,10 @@ def import_notify_log(import_db, monitor_db, old_notifier_id, new_notifier_id):
             )
             monitor_db.action(query, notify_log.values())
 
-        logger.info("Tautulli Importer :: Notify_log imported for notifier ID %s." % old_notifier_id)
+        logger.info(u"Tautulli Importer :: Notify_log imported for notifier ID %s." % old_notifier_id)
 
     except sqlite3.IntegrityError:
-        logger.error("Tautulli Import_Tautulli :: Queries failed: %s", query)
+        logger.error(u"Tautulli Import_Tautulli :: Queries failed: %s", query)
 
     except Exception as e:
         raise Exception('Notify Log Import failed: %s' % e)

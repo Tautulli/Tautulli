@@ -101,7 +101,7 @@ class plexServers(object):
         return result
 
     def refresh(self):
-        logger.info("Tautulli Servers :: Servers refreshing...")
+        logger.info(u"Tautulli Servers :: Servers refreshing...")
         thread_list = []
         new_servers = False
 
@@ -119,7 +119,7 @@ class plexServers(object):
                     else:
                         new_servers = True
                         pmsServer = plexServer(server)
-                        logger.info("Tautulli Servers :: %s: Server Discovered..." % pmsServer.CONFIG.PMS_NAME)
+                        logger.info(u"Tautulli Servers :: %s: Server Discovered..." % pmsServer.CONFIG.PMS_NAME)
                         t = threading.Thread(target=pmsServer.refresh)
                         t.start()
                         thread_list.append(t)
@@ -296,7 +296,7 @@ class plexServer(object):
 
     def start(self):
         if self.CONFIG.PMS_IS_ENABLED:
-            logger.info("Tautulli Servers :: %s: Monitor Starting." % self.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Servers :: %s: Monitor Starting." % self.CONFIG.PMS_NAME)
             self.PMSCONNECTION = PmsConnect(server=self)
             self.server_shutdown = False
             ready = Event()
@@ -318,14 +318,14 @@ class plexServer(object):
             self.initialize_scheduler()
 
     def shutdown(self):
-        logger.info("Tautulli Servers :: %s: Stopping Server Monitoring." % self.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Servers :: %s: Stopping Server Monitoring." % self.CONFIG.PMS_NAME)
         self.server_shutdown = True
         self.WS.shutdown()
         self.initialize_scheduler()
         self.PLEX_SERVER_UP = None
 
     def restart(self):
-        logger.info("Tautulli Servers :: %s: Restarting Server." % self.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Servers :: %s: Restarting Server." % self.CONFIG.PMS_NAME)
         self.shutdown()
         self.start()
 
@@ -372,7 +372,7 @@ class plexServer(object):
         return config
 
     def refresh(self):
-        logger.info("Tautulli Servers :: %s: Refreshing..." % self.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Servers :: %s: Refreshing..." % self.CONFIG.PMS_NAME)
         self.PMSCONNECTION = PmsConnect(server=self)
         self.refresh_libraries()
 
@@ -559,7 +559,7 @@ class plexServer(object):
                         plexpy.schedule_job(self.SCHED, None, job.id, hours=0, minutes=0, seconds=0)
 
     def delete(self, keep_history=False):
-        logger.info("Tautulli Servers :: %s: Deleting server from database." % self.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Servers :: %s: Deleting server from database." % self.CONFIG.PMS_NAME)
         self.CONFIG.PMS_IS_ENABLED = False
         self.CONFIG.PMS_IS_DELETED = True
         if self.WS_CONNECTED:
@@ -571,7 +571,7 @@ class plexServer(object):
                 delete_libraries = self.delete_all_libraries()
                 delete_users = self.delete_all_users()
                 monitor_db = database.MonitorDatabase()
-                logger.info("Tautulli Servers :: %s: Deleting server from database." % self.CONFIG.PMS_NAME)
+                logger.info(u"Tautulli Servers :: %s: Deleting server from database." % self.CONFIG.PMS_NAME)
                 server_del = monitor_db.action('DELETE FROM servers '
                                                'WHERE id = ?', [self.CONFIG.ID])
                 return True
@@ -594,7 +594,7 @@ class plexServer(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            logger.info("Tautulli Servers :: %s: Deleting all history from database." % self.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Servers :: %s: Deleting all history from database." % self.CONFIG.PMS_NAME)
             query = 'SELECT session_key FROM sessions WHERE server_id = ?'
             result = monitor_db.select(query, [self.CONFIG.ID])
             ap = activity_processor.ActivityProcessor(server=self)
@@ -633,14 +633,14 @@ class plexServer(object):
             return True
 
         except Exception as e:
-            logger.warn("Tautulli Servers :: %s: Unable to execute database query for delete_all_history: %s." % (self.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli Servers :: %s: Unable to execute database query for delete_all_history: %s." % (self.CONFIG.PMS_NAME, e))
             return False
 
     def delete_all_users(self):
         monitor_db = database.MonitorDatabase()
 
         try:
-            logger.info("Tautulli Servers :: %s: Deleting all user tokens from database." % self.CONFIG.PMS_NAME)
+            logger.info(u"Tautulli Servers :: %s: Deleting all user tokens from database." % self.CONFIG.PMS_NAME)
             user_shared_libraries_del = \
                 monitor_db.action('DELETE FROM '
                                   'user_shared_libraries '
@@ -649,11 +649,11 @@ class plexServer(object):
             return True
 
         except Exception as e:
-            logger.warn("Tautulli Servers :: %s: Unable to execute database query for delete_all_users: %s." % (self.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli Servers :: %s: Unable to execute database query for delete_all_users: %s." % (self.CONFIG.PMS_NAME, e))
             return False
 
     def delete_all_libraries(self):
-        logger.info("Tautulli Servers :: %s: Deleting all libraries from database." % self.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Servers :: %s: Deleting all libraries from database." % self.CONFIG.PMS_NAME)
 
         monitor_db = database.MonitorDatabase()
         query = 'SELECT id FROM library_sections ' \
@@ -676,7 +676,7 @@ class plexServer(object):
             return True
 
         except Exception as e:
-            logger.warn("Tautulli Servers :: %s: Unable to execute database query for delete_all_libraries: %s." % (self.CONFIG.PMS_NAME, e))
+            logger.warn(u"Tautulli Servers :: %s: Unable to execute database query for delete_all_libraries: %s." % (self.CONFIG.PMS_NAME, e))
             return False
 
     def test_websocket(self):
@@ -685,12 +685,12 @@ class plexServer(object):
         ws_url = self.CONFIG.PMS_URL.replace('http', 'ws', 1) + '/:/websockets/notifications'
         header = ['X-Plex-Token: %s' % self.CONFIG.PMS_TOKEN]
 
-        logger.debug("Testing websocket connection...")
+        logger.debug(u"Testing websocket connection...")
         try:
             test_ws = websocket.create_connection(ws_url, header=header)
             test_ws.close()
-            logger.debug("Websocket connection test for %s successful." % self.CONFIG.PMS_NAME)
+            logger.debug(u"Websocket connection test for %s successful." % self.CONFIG.PMS_NAME)
             return True
         except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error("Websocket connection test for %s failed: %s" % (self.CONFIG.PMS_NAME, e))
+            logger.error(u"Websocket connection test for %s failed: %s" % (self.CONFIG.PMS_NAME, e))
             return False

@@ -32,7 +32,7 @@ config_lock = threading.Lock()
 def refresh_libraries(server_id, section_id=None):
 
     server = plexpy.PMS_SERVERS.get_server_by_id(server_id)
-    logger.info("Tautulli Libraries :: %s: Requesting libraries list refresh..." % server.CONFIG.PMS_NAME)
+    logger.info(u"Tautulli Libraries :: %s: Requesting libraries list refresh..." % server.CONFIG.PMS_NAME)
 
     library_sections = pmsconnect.PmsConnect(server=server).get_library_details()
 
@@ -85,10 +85,10 @@ def refresh_libraries(server_id, section_id=None):
                 plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
                 plexpy.CONFIG.write()
 
-        logger.info("Tautulli Libraries :: %s: Libraries list refreshed." % server.CONFIG.PMS_NAME)
+        logger.info(u"Tautulli Libraries :: %s: Libraries list refreshed." % server.CONFIG.PMS_NAME)
         return True
     else:
-        logger.warn("Tautulli Libraries :: %s: Unable to refresh libraries list." % server.CONFIG.PMS_NAME)
+        logger.warn(u"Tautulli Libraries :: %s: Unable to refresh libraries list." % server.CONFIG.PMS_NAME)
         return False
 
 
@@ -104,9 +104,9 @@ def update_section_ids():
         query = 'SELECT server_id, section_id, section_type FROM library_sections ORDER BY server_id'
         library_results = monitor_db.select(query=query)
     except Exception as e:
-        logger.warn("Tautulli Libraries :: Unable to execute database query for update_section_ids: %s." % e)
+        logger.warn(u"Tautulli Libraries :: Unable to execute database query for update_section_ids: %s." % e)
 
-        logger.warn("Tautulli Libraries :: Unable to update section_id's in database.")
+        logger.warn(u"Tautulli Libraries :: Unable to update section_id's in database.")
         plexpy.CONFIG.UPDATE_SECTION_IDS = 1
         plexpy.CONFIG.write()
         return None
@@ -116,7 +116,7 @@ def update_section_ids():
         plexpy.CONFIG.write()
         return None
 
-    logger.debug("Tautulli Libraries :: Updating section_id's in database.")
+    logger.debug(u"Tautulli Libraries :: Updating section_id's in database.")
 
     # Get rating_key: section_id mapping pairs
     key_mappings = {}
@@ -135,7 +135,7 @@ def update_section_ids():
                 children_list = library_children['children_list']
                 key_mappings.update({child['rating_key']: child['section_id'] for child in children_list})
             else:
-                logger.warn("Tautulli Libraries :: Unable to get a list of library items for section_id %s." % section_id)
+                logger.warn(u"Tautulli Libraries :: Unable to get a list of library items for section_id %s." % section_id)
 
     error_keys = set()
     for item in history_results:
@@ -153,10 +153,10 @@ def update_section_ids():
             error_keys.add(item['rating_key'])
 
     if error_keys:
-        logger.info("Tautulli Libraries :: Updated all section_id's in database except for rating_keys: %s." %
+        logger.info(u"Tautulli Libraries :: Updated all section_id's in database except for rating_keys: %s." %
                      ', '.join(str(key) for key in error_keys))
     else:
-        logger.info("Tautulli Libraries :: Updated all section_id's in database.")
+        logger.info(u"Tautulli Libraries :: Updated all section_id's in database.")
 
     plexpy.CONFIG.UPDATE_SECTION_IDS = 0
     plexpy.CONFIG.write()
@@ -173,9 +173,9 @@ def update_labels():
         query = 'SELECT server_id, section_id, section_type FROM library_sections ORDER BY server_id '
         library_results = monitor_db.select(query=query)
     except Exception as e:
-        logger.warn("Tautulli Libraries :: Unable to execute database query for update_labels: %s." % e)
+        logger.warn(u"Tautulli Libraries :: Unable to execute database query for update_labels: %s." % e)
 
-        logger.warn("Tautulli Libraries :: Unable to update labels in database.")
+        logger.warn(u"Tautulli Libraries :: Unable to update labels in database.")
         plexpy.CONFIG.UPDATE_LABELS = 1
         plexpy.CONFIG.write()
         return None
@@ -185,7 +185,7 @@ def update_labels():
         plexpy.CONFIG.write()
         return None
 
-    logger.debug("Tautulli Libraries :: Updating labels in database.")
+    logger.debug(u"Tautulli Libraries :: Updating labels in database.")
 
     # Get rating_key: section_id mapping pairs
     key_mappings = {}
@@ -218,7 +218,7 @@ def update_labels():
                                 key_mappings[rating_key] = [label['label_title']]
 
                     else:
-                        logger.warn("Tautulli Libraries :: Unable to get a list of library items for section_id %s."
+                        logger.warn(u"Tautulli Libraries :: Unable to get a list of library items for section_id %s."
                                     % section_id)
 
     error_keys = set()
@@ -232,10 +232,10 @@ def update_labels():
             error_keys.add(rating_key)
 
     if error_keys:
-        logger.info("Tautulli Libraries :: Updated all labels in database except for rating_keys: %s." %
+        logger.info(u"Tautulli Libraries :: Updated all labels in database except for rating_keys: %s." %
                      ', '.join(str(key) for key in error_keys))
     else:
-        logger.info("Tautulli Libraries :: Updated all labels in database.")
+        logger.info(u"Tautulli Libraries :: Updated all labels in database.")
 
     plexpy.CONFIG.UPDATE_LABELS = 0
     plexpy.CONFIG.write()
@@ -331,7 +331,7 @@ class Libraries(object):
                                                       ['library_sections.server_id', 'servers.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
             return default_return
 
         result = query['result']
@@ -402,13 +402,13 @@ class Libraries(object):
             return default_return
         
         if id and not str(id).isdigit():
-            logger.warn("Tautulli Libraries :: Datatable media info called but invalid section_id provided.")
+            logger.warn(u"Tautulli Libraries :: Datatable media info called but invalid section_id provided.")
             return default_return
         elif rating_key and not str(rating_key).isdigit():
-            logger.warn("Tautulli Libraries :: Datatable media info called but invalid rating_key provided.")
+            logger.warn(u"Tautulli Libraries :: Datatable media info called but invalid rating_key provided.")
             return default_return
         elif not id and not rating_key:
-            logger.warn("Tautulli Libraries :: Datatable media info called but no input provided.")
+            logger.warn(u"Tautulli Libraries :: Datatable media info called but no input provided.")
             return default_return
 
         monitor_db = database.MonitorDatabase()
@@ -420,7 +420,7 @@ class Libraries(object):
         # Get the library details
         library_details = self.get_details(id=id)
         if library_details['section_id'] == None:
-            logger.debug("Tautulli Libraries :: Library section_id %s on server_id %s not found." % (section_id, server_id))
+            logger.debug(u"Tautulli Libraries :: Library section_id %s on server_id %s not found." % (section_id, server_id))
             return default_return
 
         if not section_type:
@@ -451,7 +451,7 @@ class Libraries(object):
                     'GROUP BY session_history.%s ' % (count_by, group_by)
             result = monitor_db.select(query, args=[section_id, server_id])
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
             return default_return
 
         watched_list = {}
@@ -468,8 +468,8 @@ class Libraries(object):
                     rows = json.load(inFile)
                     library_count = len(rows)
             except IOError as e:
-                #logger.debug("Tautulli Libraries :: No JSON file for rating_key %s." % rating_key)
-                #logger.debug("Tautulli Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"Tautulli Libraries :: No JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"Tautulli Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
                 pass
         elif section_id:
             try:
@@ -478,8 +478,8 @@ class Libraries(object):
                     rows = json.load(inFile)
                     library_count = len(rows)
             except IOError as e:
-                #logger.debug("Tautulli Libraries :: No JSON file for library section_id %s." % section_id)
-                #logger.debug("Tautulli Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
+                #logger.debug(u"Tautulli Libraries :: No JSON file for library section_id %s." % section_id)
+                #logger.debug(u"Tautulli Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
                 pass
 
         # If no cache was imported, get all library children items
@@ -499,7 +499,7 @@ class Libraries(object):
                 library_count = library_children['library_count']
                 children_list = library_children['children_list']
             else:
-                logger.warn("Tautulli Libraries :: Unable to get a list of library items.")
+                logger.warn(u"Tautulli Libraries :: Unable to get a list of library items.")
                 return default_return
             
             new_rows = []
@@ -546,14 +546,14 @@ class Libraries(object):
                     with open(outFilePath, 'w') as outFile:
                         json.dump(rows, outFile)
                 except IOError as e:
-                    logger.debug("Tautulli Libraries :: Unable to create cache file for rating_key %s." % rating_key)
+                    logger.debug(u"Tautulli Libraries :: Unable to create cache file for rating_key %s." % rating_key)
             elif id:
                 try:
                     outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (server_id, section_id))
                     with open(outFilePath, 'w') as outFile:
                         json.dump(rows, outFile)
                 except IOError as e:
-                    logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
+                    logger.debug(u"Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
         # Update the last_played and play_count
         for item in rows:
@@ -623,16 +623,16 @@ class Libraries(object):
             return False
         
         if id and not str(id).isdigit():
-            logger.warn("Tautulli Libraries :: Datatable media info file size called but invalid section_id provided.")
+            logger.warn(u"Tautulli Libraries :: Datatable media info file size called but invalid section_id provided.")
             return False
         elif rating_key and not str(rating_key).isdigit():
-            logger.warn("Tautulli Libraries :: Datatable media info file size called but invalid rating_key provided.")
+            logger.warn(u"Tautulli Libraries :: Datatable media info file size called but invalid rating_key provided.")
             return False
 
         # Get the library details
         library_details = self.get_details(id=id)
         if library_details['section_id'] == None:
-            logger.debug("Tautulli Libraries :: Library section_id %s not found." % id)
+            logger.debug(u"Tautulli Libraries :: Library section_id %s not found." % id)
             return False
         if library_details['section_type'] == 'photo':
             return False
@@ -643,24 +643,24 @@ class Libraries(object):
         rows = []
         # Import media info cache from json file
         if rating_key:
-            #logger.debug("Tautulli Libraries :: Getting file sizes for rating_key %s." % rating_key)
+            #logger.debug(u"Tautulli Libraries :: Getting file sizes for rating_key %s." % rating_key)
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s-%s.json' % (server_id, section_id, rating_key))
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
             except IOError as e:
-                #logger.debug("Tautulli Libraries :: No JSON file for rating_key %s." % rating_key)
-                #logger.debug("Tautulli Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"Tautulli Libraries :: No JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"Tautulli Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
                 pass
         elif section_id:
-            logger.debug("Tautulli Libraries :: Getting file sizes for section_id %s." % section_id)
+            logger.debug(u"Tautulli Libraries :: Getting file sizes for section_id %s." % section_id)
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (server_id, section_id))
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
             except IOError as e:
-                #logger.debug("Tautulli Libraries :: No JSON file for library section_id %s." % section_id)
-                #logger.debug("Tautulli Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
+                #logger.debug(u"Tautulli Libraries :: No JSON file for library section_id %s." % section_id)
+                #logger.debug(u"Tautulli Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
                 pass
 
         # Get the total file size for each item
@@ -693,20 +693,20 @@ class Libraries(object):
                 with open(outFilePath, 'w') as outFile:
                     json.dump(rows, outFile)
             except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file with file sizes for rating_key %s." % rating_key)
+                logger.debug(u"Tautulli Libraries :: Unable to create cache file with file sizes for rating_key %s." % rating_key)
         elif section_id:
             try:
                 outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (server_id, section_id))
                 with open(outFilePath, 'w') as outFile:
                     json.dump(rows, outFile)
             except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file with file sizes for section_id %s." % section_id)
+                logger.debug(u"Tautulli Libraries :: Unable to create cache file with file sizes for section_id %s." % section_id)
 
         if rating_key:
-            #logger.debug("Tautulli Libraries :: File sizes updated for rating_key %s." % rating_key)
+            #logger.debug(u"Tautulli Libraries :: File sizes updated for rating_key %s." % rating_key)
             pass
         elif section_id:
-            logger.debug("Tautulli Libraries :: File sizes updated for section_id %s." % section_id)
+            logger.debug(u"Tautulli Libraries :: File sizes updated for section_id %s." % section_id)
 
         return True
     
@@ -722,7 +722,7 @@ class Libraries(object):
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
+                logger.warn(u"Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, id=None):
         default_return = {'section_id': 0,
@@ -762,7 +762,7 @@ class Libraries(object):
                 else:
                     result = []
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_details: %s." % e)
+                logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_details: %s." % e)
                 result = []
 
             library_details = {}
@@ -798,7 +798,7 @@ class Libraries(object):
             return library_details
 
         else:
-            logger.warn("Tautulli Libraries :: Unable to retrieve library %s from database. Requesting library list refresh."
+            logger.warn(u"Tautulli Libraries :: Unable to retrieve library %s from database. Requesting library list refresh."
                         % id)
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
             refresh_libraries()
@@ -809,7 +809,7 @@ class Libraries(object):
                 return library_details
             
             else:
-                logger.warn("Tautulli Libraries :: Unable to retrieve library %s from database. Returning 'Local' library."
+                logger.warn(u"Tautulli Libraries :: Unable to retrieve library %s from database. Returning 'Local' library."
                             % id)
                 # If there is no library data we must return something
                 return default_return
@@ -858,7 +858,7 @@ class Libraries(object):
                     else:
                         result = []
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
                 result = []
 
             for item in result:
@@ -910,7 +910,7 @@ class Libraries(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
             result = []
         
         for item in result:
@@ -953,7 +953,7 @@ class Libraries(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_recently_watched: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_recently_watched: %s." % e)
             result = []
 
         for row in result:
@@ -1005,7 +1005,7 @@ class Libraries(object):
                     '%s' % where_server_id
             result = monitor_db.select(query=query)
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
             return None
 
         libraries = []
@@ -1032,7 +1032,7 @@ class Libraries(object):
 
         try:
             if section_id:
-                logger.info("Tautulli Libraries :: Deleting all history for library id %s for server id %s from database." % (section_id, server_id))
+                logger.info(u"Tautulli Libraries :: Deleting all history for library id %s for server id %s from database." % (section_id, server_id))
                 session_history_media_info_del = \
                     monitor_db.action('DELETE FROM '
                                       'session_history_media_info '
@@ -1056,7 +1056,7 @@ class Libraries(object):
             else:
                 return 'Unable to delete items, section_id not valid.'
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for delete_all_history: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for delete_all_history: %s." % e)
 
     def delete(self, id=None):
         monitor_db = database.MonitorDatabase()
@@ -1068,7 +1068,7 @@ class Libraries(object):
         try:
             if id.isdigit():
                 self.delete_all_history(id)
-                logger.info("Tautulli Libraries :: Deleting library with id %s for server %s from database." % (section_id, server_id))
+                logger.info(u"Tautulli Libraries :: Deleting library with id %s for server %s from database." % (section_id, server_id))
                 monitor_db.action('UPDATE library_sections SET '
                                     'deleted_section = 1, '
                                     'keep_history = 0, '
@@ -1086,14 +1086,14 @@ class Libraries(object):
             else:
                 return 'Unable to delete library, section_id not valid.'
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
 
     def undelete(self, server_id=None, section_id=None, section_name=None):
         monitor_db = database.MonitorDatabase()
 
         try:
             if section_id and section_id.isdigit():
-                logger.info("Tautulli Libraries :: Re-adding library with id %s for server %s to database." % (section_id, server_id))
+                logger.info(u"Tautulli Libraries :: Re-adding library with id %s for server %s to database." % (section_id, server_id))
                 monitor_db.action('UPDATE library_sections SET '
                                     'deleted_section = 0, '
                                     'keep_history = 1, '
@@ -1103,7 +1103,7 @@ class Libraries(object):
 
                 return 'Re-added library with id %s to server %s.' % (section_id, server_id)
             elif section_name:
-                logger.info("Tautulli Libraries :: Re-adding library with name %s for server %s to database." % (section_name, server_id))
+                logger.info(u"Tautulli Libraries :: Re-adding library with name %s for server %s to database." % (section_name, server_id))
                 monitor_db.action('UPDATE library_sections SET '
                                   'deleted_section = 0, '
                                   'keep_history = 1, '
@@ -1115,7 +1115,7 @@ class Libraries(object):
             else:
                 return 'Unable to re-add library, section_id or section_name not valid.'
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for undelete: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to execute database query for undelete: %s." % e)
 
     def delete_media_info_cache(self, server_id=None, section_id=None):
         import os
@@ -1125,12 +1125,12 @@ class Libraries(object):
                 [os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, f)) for f in os.listdir(plexpy.CONFIG.CACHE_DIR)
                  if f.startswith('media_info_%s-%s' % (server_id, section_id)) and f.endswith('.json')]
 
-                logger.debug("Tautulli Libraries :: Deleted media info table cache for server_id %s section_id %s." % (server_id, section_id))
+                logger.debug(u"Tautulli Libraries :: Deleted media info table cache for server_id %s section_id %s." % (server_id, section_id))
                 return 'Deleted media info table cache for library with id %s for server %s.' % (section_id, server_id)
             else:
                 return 'Unable to delete media info table cache, section_id not valid.'
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to delete media info table cache: %s." % e)
+            logger.warn(u"Tautulli Libraries :: Unable to delete media info table cache: %s." % e)
 
     def delete_duplicate_libraries(self, server_id):
         monitor_db = database.MonitorDatabase()
@@ -1141,16 +1141,16 @@ class Libraries(object):
                 break
 
         try:
-            logger.debug("Tautulli Libraries :: Deleting libraries where server_id does not match %s." % server_id)
+            logger.debug(u"Tautulli Libraries :: Deleting libraries where server_id does not match %s." % server_id)
             monitor_db.action('DELETE FROM library_sections WHERE server_id = ? AND pms_identifier != ?', [server_id, pms_identifier])
 
             return 'Deleted duplicate libraries from the database for %s.' % server.CONFIG.PMS_NAME
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to delete duplicate libraries for %s: %s." % [server.CONFIG.PMS_NAME, e])
+            logger.warn(u"Tautulli Libraries :: Unable to delete duplicate libraries for %s: %s." % [server.CONFIG.PMS_NAME, e])
 
 
 def update_libraries_db_notify():
-    logger.info("Tautulli Libraries :: Upgrading library notification toggles...")
+    logger.info(u"Tautulli Libraries :: Upgrading library notification toggles...")
 
     # Set flag first in case something fails we don't want to keep re-adding the notifiers
     plexpy.CONFIG.__setattr__('UPDATE_LIBRARIES_DB_NOTIFY', 0)

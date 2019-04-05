@@ -54,7 +54,7 @@ class PlexTV(object):
                     self.token = plexpy.CONFIG.PMS_TOKEN
 
             if not self.token:
-                logger.error("Tautulli PlexTV :: PlexTV called, but no token provided.")
+                logger.error(u"Tautulli PlexTV :: PlexTV called, but no token provided.")
                 return
 
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
@@ -92,9 +92,9 @@ class PlexTV(object):
                             'user_id': xml_head[0].getAttribute('id')
                             }
                 else:
-                    logger.warn("Tautulli PlexTV :: Could not get Plex authentication token.")
+                    logger.warn(u"Tautulli PlexTV :: Could not get Plex authentication token.")
             except Exception as e:
-                logger.warn("Tautulli PlexTV :: Unable to parse XML for get_token: %s." % e)
+                logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_token: %s." % e)
                 return None
 
             return user
@@ -103,27 +103,27 @@ class PlexTV(object):
 
     def get_plexpy_pms_token(self, force=False):
         if force:
-            logger.debug("Tautulli PlexTV :: Forcing refresh of Plex.tv token.")
+            logger.debug(u"Tautulli PlexTV :: Forcing refresh of Plex.tv token.")
             devices_list = self.get_devices_list()
             device_id = next((d for d in devices_list if d['device_identifier'] == plexpy.CONFIG.PMS_UUID), {}).get('device_id', None)
 
             if device_id:
-                logger.debug("Tautulli PlexTV :: Removing Tautulli from Plex.tv devices.")
+                logger.debug(u"Tautulli PlexTV :: Removing Tautulli from Plex.tv devices.")
                 try:
                     self.delete_plextv_device(device_id=device_id)
                 except:
-                    logger.error("Tautulli PlexTV :: Failed to remove Tautulli from Plex.tv devices.")
+                    logger.error(u"Tautulli PlexTV :: Failed to remove Tautulli from Plex.tv devices.")
                     return None
             else:
-                logger.warn("Tautulli PlexTV :: No existing Tautulli device found.")
+                logger.warn(u"Tautulli PlexTV :: No existing Tautulli device found.")
         
-        logger.info("Tautulli PlexTV :: Fetching a new Plex.tv token for Tautulli.")
+        logger.info(u"Tautulli PlexTV :: Fetching a new Plex.tv token for Tautulli.")
         user = self.get_token()
         if user:
             token = user['auth_token']
             plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
             plexpy.CONFIG.write()
-            logger.info("Tautulli PlexTV :: Updated Plex.tv token for Tautulli.")
+            logger.info(u"Tautulli PlexTV :: Updated Plex.tv token for Tautulli.")
             return token
 
     def get_server_token(self):
@@ -132,7 +132,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('Device')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_server_token: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_token: %s." % e)
             return None
 
         server_tokens = {}
@@ -175,11 +175,11 @@ class PlexTV(object):
                            }
                     return pin
                 else:
-                    logger.warn("Tautulli PlexTV :: Could not get Plex authentication pin.")
+                    logger.warn(u"Tautulli PlexTV :: Could not get Plex authentication pin.")
                     return None
 
             except Exception as e:
-                logger.warn("Tautulli PlexTV :: Unable to parse XML for get_pin: %s." % e)
+                logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_pin: %s." % e)
                 return None
 
         else:
@@ -305,7 +305,7 @@ class PlexTV(object):
         try:
             xml_head = own_account.getElementsByTagName('user')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse own account XML for get_full_users_list: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse own account XML for get_full_users_list: %s." % e)
             return []
 
         for a in xml_head:
@@ -335,7 +335,7 @@ class PlexTV(object):
         try:
             xml_head = friends_list.getElementsByTagName('User')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse friends list XML for get_full_users_list: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse friends list XML for get_full_users_list: %s." % e)
             return []
 
         for a in xml_head:
@@ -363,7 +363,7 @@ class PlexTV(object):
             try:
                 xml_head = shared_servers.getElementsByTagName('SharedServer')
             except Exception as e:
-                logger.warn("Tautulli PlexTV :: %s: Unable to parse shared server list XML for get_full_users_list: %s."
+                logger.warn(u"Tautulli PlexTV :: %s: Unable to parse shared server list XML for get_full_users_list: %s."
                             % (server.CONFIG.PMS_NAME, e))
                 return []
 
@@ -416,7 +416,7 @@ class PlexTV(object):
             try:
                 xml_head = sync_list.getElementsByTagName('SyncList')
             except Exception as e:
-                logger.warn("Tautulli PlexTV :: Unable to parse XML for get_synced_items: %s." % e)
+                logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_synced_items: %s." % e)
                 return {}
 
             for a in xml_head:
@@ -530,13 +530,13 @@ class PlexTV(object):
         return session.filter_session_info(synced_items, filter_key='user_id')
 
     def delete_sync(self, client_id, sync_id):
-        logger.info("Tautulli PlexTV :: Deleting sync item '%s'." % sync_id)
+        logger.info(u"Tautulli PlexTV :: Deleting sync item '%s'." % sync_id)
         self.delete_plextv_sync(client_id=client_id, sync_id=sync_id)
 
     def get_server_connections(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True):
 
         if not pms_identifier:
-            logger.error("Tautulli PlexTV :: Unable to retrieve server connections: no pms_identifier provided.")
+            logger.error(u"Tautulli PlexTV :: Unable to retrieve server connections: no pms_identifier provided.")
             return {}
 
         plextv_resources = self.get_plextv_resources(include_https=include_https,
@@ -544,7 +544,7 @@ class PlexTV(object):
         try:
             xml_head = plextv_resources.getElementsByTagName('Device')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
             return {}
 
         # Function to get all connections for a device
@@ -604,7 +604,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('Server')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_server_times: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_server_times: %s." % e)
             return {}
 
         server_list = {}
@@ -652,7 +652,7 @@ class PlexTV(object):
         try:
             xml_head = servers.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Failed to get servers from plex: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Failed to get servers from plex: %s." % e)
             return []
 
         for a in xml_head:
@@ -735,13 +735,13 @@ class PlexTV(object):
         try:
             subscription = account_data.getElementsByTagName('subscription')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_plexpass_status: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_plexpass_status: %s." % e)
             return False
 
         if subscription and helpers.get_xml_attr(subscription[0], 'active') == '1':
             return True
         else:
-            logger.debug("Tautulli PlexTV :: Plex Pass subscription not found.")
+            logger.debug(u"Tautulli PlexTV :: Plex Pass subscription not found.")
             return False
 
     def get_devices_list(self):
@@ -750,7 +750,7 @@ class PlexTV(object):
         try:
             xml_head = devices.getElementsByTagName('Device')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_devices_list: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_devices_list: %s." % e)
             return []
 
         devices_list = []
@@ -778,7 +778,7 @@ class PlexTV(object):
         try:
             status_info = cloud_status.getElementsByTagName('info')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_cloud_server_status: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_cloud_server_status: %s." % e)
             return False
 
         for info in status_info:
@@ -796,7 +796,7 @@ class PlexTV(object):
         try:
             xml_head = account_data.getElementsByTagName('user')
         except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_plex_account_details: %s." % e)
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_plex_account_details: %s." % e)
             return None
 
         for a in xml_head:
@@ -816,7 +816,7 @@ class PlexTV(object):
             return account_details
 
     def get_server_resources(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True, **kwargs):
-        logger.info("Tautulli PlexTV :: Requesting resources for server...")
+        logger.info(u"Tautulli PlexTV :: Requesting resources for server...")
 
         server = {'pms_ip': pms_ip,
                   'pms_port': pms_port,
