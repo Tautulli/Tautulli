@@ -637,6 +637,8 @@ class Graphs(object):
         for item in result:
             offset = (datetime.datetime.strptime(item['datestring'], '%Y-%m').year * 12 + datetime.datetime.strptime(item['datestring'], '%Y-%m').month)\
                      - (start_month.year * 12 + start_month.month)
+            if offset < 0:
+                break
             for col in data.keys():
                 data[col]['series'][offset] = item[col]
 
