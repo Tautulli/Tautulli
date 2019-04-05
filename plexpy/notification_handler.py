@@ -1456,9 +1456,8 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
 
 class CustomFormatter(Formatter):
-    def __init__(self, default='{{{0}}}', default_format_spec='{{{0}:{1}}}'):
+    def __init__(self, default='{{{0}}}'):
         self.default = default
-        self.default_format_spec = default_format_spec
 
     def convert_field(self, value, conversion):
         if conversion is None:
@@ -1478,23 +1477,99 @@ class CustomFormatter(Formatter):
 
     def format_field(self, value, format_spec):
         if format_spec.startswith('[') and format_spec.endswith(']'):
-            pattern = re.compile(r'\[(-?\d*):?(-?\d*)\]')
-            if re.match(pattern, format_spec):  # slice
+            pattern = re.compile(r'\[(?P<start>-?\d*)(?P<slice>:?)(?P<end>-?\d*)\]')
+            match = re.match(pattern, format_spec)
+            if value and match:
+                groups = match.groupdict()
                 items = [x.strip() for x in unicode(value).split(',')]
-                slice_start, slice_end = re.search(pattern, format_spec).groups()
-                slice_start = helpers.cast_to_int(slice_start) or None
-                slice_end = helpers.cast_to_int(slice_end) or None
-                return ', '.join(items[slice(slice_start, slice_end)])
-            else:
-                return value
+                start = groups['start'] or None
+                end = groups['end'] or None
+                if start is not None:
+                    start = helpers.cast_to_int(start)
+                if end is not None:
+                    end = helpers.cast_to_int(end)
+                if not groups['slice']:
+                    end = start + 1
+                value = ', '.join(items[slice(start, end)])
+            return value
         else:
             try:
                 return super(CustomFormatter, self).format_field(value, format_spec)
             except ValueError:
-                return self.default_format_spec.format(value[1:-1], format_spec)
+                return value
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, basestring):
             return kwargs.get(key, self.default.format(key))
         else:
             return super(CustomFormatter, self).get_value(key, args, kwargs)
+
+    def parse(self, format_string):
+        parsed = super(CustomFormatter, self).parse(format_string)
+        for literal_text, field_name, format_spec, conversion in parsed:
+            real_format_string = ''
+            if field_name:
+                real_format_string += field_name
+            if conversion:
+                real_format_string += '!' + conversion
+            if format_spec:
+                real_format_string += ':' + format_spec
+
+            prefix = None
+            suffix = None
+
+            if real_format_string != format_string[1:-1]:
+                prefix_split = real_format_string.split('<')
+                if len(prefix_split) == 2:
+                    prefix = prefix_split[0].replace('\\n', '\n')
+                    real_format_string = prefix_split[1]
+
+                suffix_split = real_format_string.split('>')
+                if len(suffix_split) == 2:
+                    suffix = suffix_split[1].replace('\\n', '\n')
+                    real_format_string = suffix_split[0]
+
+                if prefix or suffix:
+                    real_format_string = '{' + real_format_string + '}'
+                    _, field_name, format_spec, conversion, _, _ = self.parse(real_format_string).next()
+
+            yield literal_text, field_name, format_spec, conversion, prefix, suffix
+
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth,
+                 auto_arg_index=0):
+        if recursion_depth < 0:
+            raise ValueError('Max string recursion exceeded')
+        result = []
+        for literal_text, field_name, format_spec, conversion, prefix, suffix in self.parse(format_string):
+            # output the literal text
+            if literal_text:
+                result.append(literal_text)
+
+            # if there's a field, output it
+            if field_name is not None:
+                # this is some markup, find the object and do
+                #  the formatting
+
+                # given the field_name, find the object it references
+                #  and the argument it came from
+                obj, arg_used = self.get_field(field_name, args, kwargs)
+                used_args.add(arg_used)
+
+                # do any conversion on the resulting object
+                obj = self.convert_field(obj, conversion)
+
+                # expand the format spec, if needed
+                format_spec = self._vformat(format_spec, args, kwargs,
+                                            used_args, recursion_depth - 1)
+
+                # format the object and append to the result
+                formatted_field = self.format_field(obj, format_spec)
+                if formatted_field:
+                    if prefix:
+                        result.append(prefix)
+                    result.append(formatted_field)
+                    if suffix:
+                        result.append(suffix)
+                # result.append(self.format_field(obj, format_spec))
+
+        return ''.join(result)
