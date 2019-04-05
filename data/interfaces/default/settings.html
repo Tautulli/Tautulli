@@ -1588,7 +1588,7 @@
                     <div>
                         <h4>List Slicing</h4>
                     </div>
-                    <div>
+                    <div style="padding-bottom: 10px;">
                         <p class="help-block">
                             Notification parameters which have a list of items can be sliced with a slice formatter <span class="inline-pre">:[X:Y]</span> to limit the number of items.
                             Note: the first item in the list is numbered <span class="inline-pre">0</span>.
@@ -1599,6 +1599,41 @@
 {actors:[2:]}  --> Only the 3rd to last actors (Actors: 2, 3, 4, ...)
 {actors:[1:5]} --> Only the 2nd to 5th actors (Actors: 1, 2, 3, 4)</pre>
                     </div>
+                    <div>
+                        <h4>Prefix and Suffix</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            A prefix or a suffix can be added to the notification parameters using <span class="inline-pre">Prefix&lt;</span> and <span class="inline-pre">&gt;Suffix</span>.
+                            If the notification parameter is unavailable, the prefix or suffix will not be displayed.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{rating}              --> 8.9
+{Rating: &lt;rating}     --> Rating: 8.9
+{rating&gt;/10}          --> 8.9/10
+{Rating: &lt;rating&gt;/10} --> Rating: 8.9/10</pre>
+                        <p><strong style="color: #fff;">Example with unavailable parameter:</strong></p>
+                        <pre>{rating}              -->
+Rating: {rating}/10   --> Rating: /10
+{Rating: &lt;rating&gt;/10} --> </pre>
+                    </div>
+                    <div>
+                        <h4>Combined</h4>
+                    </div>
+                    <div>
+                        <p class="help-block">
+                            If combining multiple notification text modifiers, the order of the modifiers must be:
+                        </p>
+                        <ol class="help-block">
+                            <li>Prefix</li>
+                            <li>Parameter</li>
+                            <li>Case Modifier</li>
+                            <li>List Slicing</li>
+                            <li>Suffix</li>
+                        </ol>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{Starring &lt;actors!c:[0]&gt; as the main character.} --> Starring Arnold Schwarzenegger as the main character.
+</pre>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1620,7 +1655,7 @@
             <div class="modal-body">
                 <div>
                     <p class="help-block">
-                        If the value for a selected parameter cannot be provided, it will display as blank.
+                        If the value for a selected parameter is unavailable, it will display as blank.
                     </p>
                     % for category in common.NEWSLETTER_PARAMETERS:
                     <table class="notification-params">

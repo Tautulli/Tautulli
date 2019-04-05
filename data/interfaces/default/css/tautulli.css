@@ -4209,3 +4209,8 @@ a[data-tab-destination] {
     top: 0;
     z-index: 9999;
 }
+
+.help-block li {
+    margin-top: 0;
+    color: #737373;
+}
