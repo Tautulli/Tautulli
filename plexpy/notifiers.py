@@ -92,7 +92,8 @@ AGENT_IDS = {'growl': 0,
              'groupme': 22,
              'mqtt': 23,
              'zapier': 24,
-             'webhook': 25
+             'webhook': 25,
+             'gotify': 26
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -122,6 +123,10 @@ def available_notification_agents():
               {'label': 'Facebook',
                'name': 'facebook',
                'id': AGENT_IDS['facebook']
+               },
+              {'label': 'Gotify',
+               'name': 'gotify',
+               'id': AGENT_IDS['gotify']
                },
               {'label': 'GroupMe',
                'name': 'groupme',
@@ -401,6 +406,8 @@ def get_agent_class(agent_id=None, config=None):
             return ZAPIER(config=config)
         elif agent_id == 25:
             return WEBHOOK(config=config)
+        elif agent_id == 26:
+            return GOTIFY(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -1643,6 +1650,114 @@ class FACEBOOK(Notifier):
                           'value': self.config['music_provider'],
                           'name': 'facebook_music_provider',
                           'description': 'Select the source for music links on the info cards. Leave blank to disable.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
+                          }
+                         ]
+
+        return config_option
+
+
+class GOTIFY(Notifier):
+    """
+    Gotify notifications
+    """
+    NAME = 'Gotify'
+    _DEFAULT_CONFIG = {'api_token': '',
+                       'host': '',
+                       'priority': 4,
+                       'incl_url': 0,
+                       'incl_subject': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        data = {'message': body.encode('utf-8'),
+                'priority': self.config['priority']}
+
+        if self.config['incl_subject']:
+            data['title'] = subject.encode('utf-8')
+
+        if self.config['incl_url'] and kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
+            provider_link = pretty_metadata.get_provider_link(provider)
+            caption = pretty_metadata.get_caption(provider)
+
+            data['message'] += u"\n[{}]({})".format(caption, provider_link)
+
+        headers = {'Content-type': 'application/json'}
+
+        return self.make_request(u"{}/message?token={}".format(self.config['host'], self.config['api_token']), headers=headers, json=data)
+
+    def return_config_options(self):
+        config_option = [{'label': 'Gotify Host',
+                          'value': self.config['host'],
+                          'name': 'gotify_host',
+                          'description': 'Your Gotify hostname or IP address.<br>'
+                                         'Ex: https://gotify.example.com',
+                          'input_type': 'text',
+                          'refresh': True
+                          },
+                         {'label': 'Gotify API Token',
+                          'value': self.config['api_token'],
+                          'name': 'gotify_api_token',
+                          'description': 'Your Gotify API application token.',
+                          'input_type': 'text',
+                          'refresh': True
+                          },
+                         {'label': 'Priority',
+                          'value': self.config['priority'],
+                          'name': 'gotify_priority',
+                          'description': 'Set the notification priority.<br>'
+                                         'Note: Minimal importance 0, low 1-3, default 4-7, high 8-10',
+                          'input_type': 'select',
+                          'select_options': {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10}
+                          },
+                         {'label': 'Include supplementary URL',
+                          'value': self.config['incl_url'],
+                          'name': 'gotify_incl_url',
+                          'description': 'Include a supplementary URL with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'gotify_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'gotify_movie_provider',
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'gotify_tv_provider',
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
+                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'gotify_music_provider',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
                           }
