@@ -54,6 +54,7 @@ class API2:
         self._api_apikey = None
         self._api_callback = None  # JSONP
         self._api_result_type = 'error'
+        self._api_response_code = None
         self._api_profileme = None  # For profiling the api call
         self._api_kwargs = None  # Cleaned kwargs
         self._api_app = False
@@ -85,21 +86,27 @@ class API2:
 
         if not plexpy.CONFIG.API_ENABLED:
             self._api_msg = 'API not enabled'
+            self._api_response_code = 404
 
         elif not plexpy.CONFIG.API_KEY:
             self._api_msg = 'API key not generated'
+            self._api_response_code = 401
 
         elif len(plexpy.CONFIG.API_KEY) != 32:
             self._api_msg = 'API key not generated correctly'
+            self._api_response_code = 401
 
         elif 'apikey' not in kwargs:
             self._api_msg = 'Parameter apikey is required'
+            self._api_response_code = 401
 
         elif 'cmd' not in kwargs:
             self._api_msg = 'Parameter cmd is required. Possible commands are: %s' % ', '.join(self._api_valid_methods)
+            self._api_response_code = 400
 
         elif 'cmd' in kwargs and kwargs.get('cmd') not in self._api_valid_methods:
             self._api_msg = 'Unknown command: %s. Possible commands are: %s' % (kwargs.get('cmd', ''), ', '.join(sorted(self._api_valid_methods)))
+            self._api_response_code = 400
 
         self._api_callback = kwargs.pop('callback', None)
         self._api_apikey = kwargs.pop('apikey', None)
@@ -112,7 +119,7 @@ class API2:
         if 'app' in kwargs and kwargs.pop('app') == 'true':
             self._api_app = True
 
-        if plexpy.CONFIG.API_ENABLED and not self._api_msg:
+        if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
             if self._api_apikey == plexpy.CONFIG.API_KEY or (self._api_app and self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN):
                 self._api_authenticated = True
 
@@ -122,6 +129,7 @@ class API2:
 
             else:
                 self._api_msg = 'Invalid apikey'
+                self._api_response_code = 401
 
             if self._api_authenticated and self._api_cmd in self._api_valid_methods:
                 self._api_msg = None
@@ -620,7 +628,7 @@ General optional parameters:
             # if we fail to generate the output fake an error
             except Exception as e:
                 logger.api_exception(u'Tautulli APIv2 :: ' + traceback.format_exc())
-                cherrypy.response.status = 500
+                self._api_response_code = 500
                 out['message'] = traceback.format_exc()
                 out['result'] = 'error'
 
@@ -630,7 +638,7 @@ General optional parameters:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
                 logger.api_error(u'Tautulli APIv2 :: Failed to parse xml result')
-                cherrypy.response.status = 500
+                self._api_response_code = 500
                 try:
                     out['message'] = e
                     out['result'] = 'error'
@@ -671,12 +679,12 @@ General optional parameters:
                 result = call(**self._api_kwargs)
             except Exception as e:
                 logger.api_error(u'Tautulli APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
-                cherrypy.response.status = 400
+                self._api_response_code = 500
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True
                     # Reraise the exception so the traceback hits the browser
                     raise
-                self._api_msg = 'Check the logs'
+                self._api_msg = 'Check the logs for errors'
 
         ret = None
         # The api decorated function can return different result types.
@@ -704,8 +712,7 @@ General optional parameters:
             # To allow override for restart etc
             # if the call returns some data we are gonna assume its a success
             self._api_result_type = 'success'
-        else:
-            self._api_result_type = 'error'
+            self._api_response_code = 200
 
         # Since some of them methods use a api like response for the ui
         # {result: error, message: 'Some shit happened'}
@@ -716,7 +723,13 @@ General optional parameters:
             if ret.get('result'):
                 self._api_result_type = ret.pop('result', None)
 
-        if self._api_result_type == 'error':
-            cherrypy.response.status = 500
+        if self._api_result_type == 'success' and not self._api_response_code:
+            self._api_response_code = 200
+        elif self._api_result_type == 'error' and not self._api_response_code:
+            self._api_response_code = 400
 
+        if not self._api_response_code:
+            self._api_response_code = 500
+
+        cherrypy.response.status = self._api_response_code
         return self._api_out_as(self._api_responds(result_type=self._api_result_type, msg=self._api_msg, data=ret))
