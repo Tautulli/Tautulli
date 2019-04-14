@@ -3062,6 +3062,7 @@ class SCRIPTS(Notifier):
                     timer.start()
                 output, error = process.communicate()
                 status = process.returncode
+                logger.debug(u"Tautulli Notifiers :: Subprocess returned with status code %s." % status)
             finally:
                 if timer:
                     timer.cancel()
