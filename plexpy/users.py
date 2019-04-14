@@ -668,21 +668,29 @@ class Users(object):
 
         try:
             if user_id and str(user_id).isdigit():
-                logger.info(u"Tautulli Users :: Re-adding user with id %s to database." % user_id)
-                monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
-                monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
-                monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
+                query = 'SELECT * FROM users WHERE user_id = ?'
+                result = monitor_db.select(query=query, args=[user_id])
+                if result:
+                    logger.info(u"Tautulli Users :: Re-adding user with id %s to database." % user_id)
+                    monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
+                    monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
+                    monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
+                    return True
+                else:
+                    return False
 
-                return 'Re-added user with id %s.' % user_id
             elif username:
-                logger.info(u"Tautulli Users :: Re-adding user with username %s to database." % username)
-                monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
-                monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
-                monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
+                query = 'SELECT * FROM users WHERE username = ?'
+                result = monitor_db.select(query=query, args=[username])
+                if result:
+                    logger.info(u"Tautulli Users :: Re-adding user with username %s to database." % username)
+                    monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
+                    monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
+                    monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
+                    return True
+                else:
+                    return False
 
-                return 'Re-added user with username %s.' % username
-            else:
-                return 'Unable to re-add user, user_id or username not valid.'
         except Exception as e:
             logger.warn(u"Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 

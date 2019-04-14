@@ -21,6 +21,7 @@ is_restricted       Returns bool value for whether the user account is restricte
 do_notify           Returns bool value for whether to send notifications for the user.
 keep_history        Returns bool value for whether to keep history for the user.
 allow_guest         Returns bool value for whether to allow guest access for the user.
+deleted_user        Returns bool value for whether the user is marked as deleted.
 
 DOCUMENTATION :: END
 </%doc>
@@ -74,6 +75,12 @@ DOCUMENTATION :: END
                     <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this user. This is permanent!</p>
                 </div>
                 % endif
+                % if data['deleted_user']:
+                <div class="form-group">
+                    <button class="btn btn-bright" id="undelete-user">Undelete</button>
+                    <p class="help-block">Click to re-add the user to the Tautulli users list.</p>
+                </div>
+                % endif
             </fieldset>
         </div>
         <div class="modal-footer">
@@ -119,6 +126,12 @@ DOCUMENTATION :: END
         var msg = 'Are you REALLY sure you want to purge all history for the <strong>${data["username"]}</strong> user?<br>' +
             'This is permanent and cannot be undone!';
         var url = 'delete_all_user_history';
+        confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { location.reload(); });
+    });
+
+    $('#undelete-user').click(function () {
+        var msg = 'Are you sure you want to undelete this user?';
+        var url = 'undelete_user';
         confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { location.reload(); });
     });
 

@@ -761,6 +761,7 @@ class WebInterface(object):
                 json:
                     {"child_count": null,
                      "count": 887,
+                     "deleted_section": 0,
                      "do_notify": 1,
                      "do_notify_created": 1,
                      "keep_history": 1,
@@ -949,19 +950,14 @@ class WebInterface(object):
             ```
         """
         library_data = libraries.Libraries()
-
-        if section_id:
-            delete_row = library_data.undelete(section_id=section_id)
-
-            if delete_row:
-                return {'message': delete_row}
-        elif section_name:
-            delete_row = library_data.undelete(section_name=section_name)
-
-            if delete_row:
-                return {'message': delete_row}
-        else:
-            return {'message': 'no data received'}
+        result = library_data.undelete(section_id=section_id, section_name=section_name)
+        if result:
+            if section_id:
+                msg ='section_id %s' % section_id
+            elif section_name:
+                msg = 'section_name %s' % section_name
+            return {'result': 'success', 'message': 'Re-added library with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to re-add library. Invalid section_id or section_name.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1559,18 +1555,15 @@ class WebInterface(object):
                 None
             ```
         """
-        if user_id:
-            user_data = users.Users()
-            delete_row = user_data.undelete(user_id=user_id)
-            if delete_row:
-                return {'message': delete_row}
-        elif username:
-            user_data = users.Users()
-            delete_row = user_data.undelete(username=username)
-            if delete_row:
-                return {'message': delete_row}
-        else:
-            return {'message': 'no data received'}
+        user_data = users.Users()
+        result = user_data.undelete(user_id=user_id, username=username)
+        if result:
+            if user_id:
+                msg ='user_id %s' % user_id
+            elif username:
+                msg = 'username %s' % username
+            return {'result': 'success', 'message': 'Re-added user with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to re-add user. Invalid user_id or username.'}
 
 
     ##### History #####

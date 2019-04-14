@@ -21,6 +21,7 @@ parent_count        Returns the parent item count for the library.
 child_count         Returns the child item count for the library.
 do_notify           Returns bool value for whether to send notifications for the library.
 keep_history        Returns bool value for whether to keep history for the library.
+deleted_section     Returns bool value for whether the library is marked as deleted.
 
 DOCUMENTATION :: END
 </%doc>
@@ -57,6 +58,12 @@ DOCUMENTATION :: END
                 <div class="form-group">
                     <button class="btn btn-danger" id="delete-all-history">Purge</button>
                     <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this library. This is permanent!</p>
+                </div>
+                % endif
+                % if data['deleted_section']:
+                <div class="form-group">
+                    <button class="btn btn-bright" id="undelete-library">Undelete</button>
+                    <p class="help-block">Click to re-add the library to the Tautulli libraries list.</p>
                 </div>
                 % endif
             </fieldset>
@@ -97,6 +104,12 @@ DOCUMENTATION :: END
         var msg = 'Are you REALLY sure you want to purge all history for the <strong>${data["section_name"]}</strong> library?<br>' + 
             'This is permanent and cannot be undone!';
         var url = 'delete_all_library_history';
+        confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
+    });
+
+    $('#undelete-library').click(function () {
+        var msg = 'Are you sure you want to undelete this user?';
+        var url = 'undelete_library';
         confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
     });
 
