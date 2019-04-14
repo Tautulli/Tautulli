@@ -893,6 +893,7 @@ Returns:
     json:
         {"child_count": null,
          "count": 887,
+         "deleted_section": 0,
          "do_notify": 1,
          "do_notify_created": 1,
          "keep_history": 1,
