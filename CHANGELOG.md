@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.1.29-beta (2019-04-14)
+
+* Monitoring:
+  * Change: "Required Bandwidth" changed to "Reserved Bandwidth" in order to match the Plex dashboard.
+* Notifications:
+  * New: Added prefix and suffix notification text modifiers. See the "Notification Text Modifiers" help modal for details.
+* UI:
+  * New: Added "Undelete" button to the edit library and edit user modals.
+  * Fix: User IP address history table showing incorrect "Last Seen" values.
+* API:
+  * Fix: Search API only returning 3 results.
+  * Fix: Terminate stream API failing when both session_key and session_id were provided.
+  * Change: Improved API response HTTP status codes and error messages.
+
+
 ## v2.1.28 (2019-03-10)
 
 * Monitoring:
