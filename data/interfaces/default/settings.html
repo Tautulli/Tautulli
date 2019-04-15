@@ -825,15 +825,6 @@
                                 <p class="help-block">
                                     The interval (in hours) Tautulli will check for a new Plex Media Server update. Minimum 1, default 24.
                                 </p>
-                                    <div class="col-md-2">
-                                        <label for="pms_update_notify_interval">Notify Interval</label>
-                                        <input type="text" class="form-control" data-parsley-type="integer" id="pms_update_notify_interval" name="pms_update_notify_interval" value="${config['pms_update_notify_interval']}" size="3" data-parsley-range="[1,999]" data-parsley-trigger="change" data-parsley-errors-container="#pms_update_notify_interval_error" required>
-                                    </div>
-                                    <div id="pms_update_notify_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                                </div>
-                                <p class="help-block">
-                                    The interval (in hours) Tautulli will notify about a new Plex Media Server version. Minimum 1, maximum 999, default 24.
-                                </p>
                             </div>
                         </div>
                         <div class="checkbox">
