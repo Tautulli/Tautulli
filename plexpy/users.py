@@ -51,7 +51,7 @@ def refresh_users():
                 else:
                     user['custom_avatar_url'] = user['thumb']
 
-            shared_libraries = user.pop('shared_libraries')
+            shared_libraries = user.pop('shared_libraries') if 'shared_libraries' in user else []
 
             monitor_db.upsert('users', user, keys_dict)
 
@@ -72,8 +72,9 @@ def refresh_users():
                             libs = libraries.Libraries().get_sections(server_id=server_id)
                             shared_library['shared_libraries'] = ';'.join([str(l['library_id']) for l in libs])
 
-                        if shared_library['shared_libraries']:
+                        if 'shared_libraries' in shared_library:
                             monitor_db.upsert('user_shared_libraries', shared_library, shared_library_keys)
+
         logger.info(u"Tautulli Users :: Users list refreshed.")
         return True
     else:
