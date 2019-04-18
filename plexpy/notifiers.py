@@ -3029,17 +3029,23 @@ class SCRIPTS(Notifier):
 
         return scripts
 
-    def run_script(self, script):
+    def run_script(self, script, user_id):
         # Common environment variables
         env = os.environ.copy()
         env.update({
             'PLEX_URL': plexpy.CONFIG.PMS_URL,
             'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
+            'PLEX_USER_TOKEN': '',
             'TAUTULLI_URL': helpers.get_plexpy_url(hostname='localhost'),
             'TAUTULLI_PUBLIC_URL': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT,
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
             'TAUTULLI_ENCODING': plexpy.SYS_ENCODING
             })
+
+        if user_id:
+            user_tokens = users.Users().get_tokens(user_id=user_id)
+            if user_tokens and user_tokens['server_token']:
+                env['PLEX_USER_TOKEN'] = str(user_tokens['server_token'])
 
         if self.pythonpath:
             env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
@@ -3106,6 +3112,7 @@ class SCRIPTS(Notifier):
                      % (action, script_args))
 
         script = kwargs.get('script', self.config.get('script', ''))
+        user_id = kwargs.get('parameters', {}).get('user_id')
 
         # Don't try to run the script if the action does not have one
         if action and not script:
@@ -3152,7 +3159,7 @@ class SCRIPTS(Notifier):
 
         logger.debug(u"Tautulli Notifiers :: Full script is: %s" % script)
         logger.debug(u"Tautulli Notifiers :: Executing script in a new thread.")
-        thread = threading.Thread(target=self.run_script, args=(script,)).start()
+        thread = threading.Thread(target=self.run_script, args=(script, user_id)).start()
 
         return True
 
