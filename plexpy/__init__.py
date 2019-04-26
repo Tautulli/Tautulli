@@ -423,19 +423,19 @@ def initialize_scheduler():
     SCHED_LIST.append({'name': 'Check GitHub for updates',
                        'time': {'hours': 0, 'minutes': github_minutes, 'seconds': 0},
                        'func': versioncheck.check_update,
-                       'args': [(bool(CONFIG.PLEXPY_AUTO_UPDATE), True)],
+                       'args': [bool(CONFIG.PLEXPY_AUTO_UPDATE), True],
                        })
 
     SCHED_LIST.append({'name': 'Backup Tautulli Database',
                        'time': {'hours': backup_hours, 'minutes': 0, 'seconds': 0},
                        'func': database.make_backup,
-                       'args': [(True, True)],
+                       'args': [True, True],
                        })
 
     SCHED_LIST.append({'name': 'Backup Tautulli Config',
                        'time': {'hours': backup_hours, 'minutes': 0, 'seconds': 0},
                        'func': config.make_backup,
-                       'args': [(True, True)],
+                       'args': [True, True],
                        })
 
     schedule_joblist(lock=SCHED_LOCK, scheduler=SCHED, jobList=SCHED_LIST)

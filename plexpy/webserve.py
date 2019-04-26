@@ -2930,7 +2930,7 @@ class WebInterface(object):
             reschedule_plexServers = True
 
         # If we change any plexServer monitoring settings, make sure we reschedule tasks.
-        if kwargs.get('monitor_rclone') != str(plexpy.CONFIG.MONITOR_RCLONE):
+        if kwargs.get('monitor_rclone') != plexpy.CONFIG.MONITOR_RCLONE:
             reschedule_plexServer = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
@@ -3076,6 +3076,22 @@ class WebInterface(object):
         reschedule = False
         restart = False
 
+        checked_configs = [
+            "monitor_rclone_mount",
+            "rclone_ssl",
+            "monitor_pms_updates",
+            "monitor_remote_access",
+            "pms_ssl",
+            "pms_url_manual",
+            "refresh_libraries_on_startup",
+        ]
+        for checked_config in checked_configs:
+            if checked_config not in kwargs:
+                # checked items should be zero or one. if they were not sent then the item was not checked
+                kwargs[checked_config] = 0
+            else:
+                kwargs[checked_config] = int(kwargs[checked_config])
+
         kwargs_to_ignore = ['pms_ip',
                             'pms_port',
                             'pms_is_remote',
@@ -3091,7 +3107,7 @@ class WebInterface(object):
             kwargs.pop(kw, None)
 
         url = kwargs.pop('url', None)
-        if bool(int(kwargs['pms_url_manual'])):
+        if kwargs.get('pms_url_manual'):
             kwargs['pms_url_override'] = url
 
         if kwargs.pop('server_changed', None):
@@ -3104,14 +3120,14 @@ class WebInterface(object):
 
             # If we change any monitoring settings, make sure we reschedule tasks.
             if kwargs.get('refresh_libraries_interval') != str(server.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
-               kwargs.get('monitor_pms_updates') != str(server.CONFIG.MONITOR_PMS_UPDATES) or \
-               kwargs.get('monitor_remote_access') != str(server.CONFIG.MONITOR_REMOTE_ACCESS) or \
-               kwargs.get('monitor_rclone_mount') != str(server.CONFIG.MONITOR_RCLONE_MOUNT):
+               kwargs.get('monitor_pms_updates') != server.CONFIG.MONITOR_PMS_UPDATES or \
+               kwargs.get('monitor_remote_access') != server.CONFIG.MONITOR_REMOTE_ACCESS or \
+               kwargs.get('monitor_rclone_mount') != server.CONFIG.MONITOR_RCLONE_MOUNT:
                 reschedule = True
 
             # If we change the SSL setting for PMS or PMS remote setting,server monitoring needs to be restarted.
-            if kwargs.get('pms_ssl') != str(server.CONFIG.PMS_SSL) or \
-               kwargs.get('pms_url_manual') != str(server.CONFIG.PMS_URL_MANUAL):
+            if kwargs.get('pms_ssl') != server.CONFIG.PMS_SSL or \
+               kwargs.get('pms_url_manual') != server.CONFIG.PMS_URL_MANUAL:
                 restart = True
                 reschedule = True
 
