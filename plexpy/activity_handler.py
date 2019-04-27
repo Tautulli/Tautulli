@@ -596,6 +596,6 @@ def on_created(rating_key, **kwargs):
 def delete_metadata_cache(session_key):
     try:
         os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % session_key))
-    except IOError as e:
+    except OSError as e:
         logger.error(u"Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
                      % (session_key, e))
