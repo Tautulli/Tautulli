@@ -586,7 +586,7 @@ def dbcheck():
         'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
-        'live INTEGER, live_uuid TEXT, '
+        'live INTEGER, live_uuid TEXT, secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
         'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
     )
@@ -595,8 +595,9 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, '
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
-        'bandwidth INTEGER, location TEXT, quality_profile TEXT, '
+        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, '
+        'platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
+        'bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER'
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
     )
 
@@ -1143,6 +1144,18 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN original_title TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT secure FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN secure INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN relayed INTEGER'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1191,6 +1204,18 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE session_history ADD COLUMN quality_profile TEXT'
+        )
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT secure FROM session_history')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN secure INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN relayed INTEGER'
         )
 
     # Upgrade session_history_metadata table from earlier versions

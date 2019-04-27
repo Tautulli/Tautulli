@@ -115,6 +115,8 @@ class ActivityProcessor(object):
                       'subtitles': session.get('subtitles', 0),
                       'live': session.get('live', 0),
                       'live_uuid': session.get('live_uuid', ''),
+                      'secure': session.get('secure', None),
+                      'relayed': session.get('relayed', 0),
                       'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }
@@ -261,7 +263,9 @@ class ActivityProcessor(object):
                           'bandwidth': session['bandwidth'],
                           'location': session['location'],
                           'quality_profile': session['quality_profile'],
-                          'view_offset': session['view_offset']
+                          'view_offset': session['view_offset'],
+                          'secure': session['secure'],
+                          'relayed': session['relayed']
                           }
 
                 # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
