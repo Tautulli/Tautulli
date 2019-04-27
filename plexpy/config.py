@@ -66,6 +66,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
+    'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
     'API_ENABLED': (int, 'General', 1),
