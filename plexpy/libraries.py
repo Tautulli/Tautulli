@@ -694,7 +694,7 @@ class Libraries(object):
                           'deleted_section': 0
                           }
 
-        if not section_id:
+        if not section_id or helpers.cast_to_int(section_id) <= 0:
             return default_return
 
         def get_library_details(section_id=section_id):
