@@ -252,6 +252,14 @@ def human_duration(s, sig='dhms'):
     return hd
 
 
+def format_timedelta_Hms(td):
+    s = td.total_seconds()
+    hours = s // 3600
+    minutes = (s % 3600) // 60
+    seconds = s % 60
+    return '{:02d}:{:02d}:{:02d}'.format(int(hours), int(minutes), int(seconds))
+
+
 def get_age(date):
 
     try:
