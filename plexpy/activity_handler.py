@@ -69,6 +69,7 @@ class ActivityHandler(object):
                     # Get it from the websocket data
                     if not session['rating_key']:
                         session['rating_key'] = self.get_rating_key()
+                    session['rating_key_websocket'] = self.get_rating_key()
                     return session
 
         return None
@@ -267,9 +268,12 @@ class ActivityHandler(object):
                 last_live_uuid = db_session['live_uuid']
                 last_transcode_key = db_session['transcode_key'].split('/')[-1]
                 last_paused = db_session['last_paused']
+                last_rating_key_websocket = db_session['rating_key_websocket']
 
                 # Make sure the same item is being played
-                if this_rating_key == last_rating_key or this_live_uuid == last_live_uuid:
+                if this_rating_key == last_rating_key \
+                        or this_rating_key == last_rating_key_websocket \
+                        or this_live_uuid == last_live_uuid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table

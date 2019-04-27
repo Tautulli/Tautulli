@@ -1156,6 +1156,15 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN relayed INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT rating_key_websocket FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN rating_key_websocket TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')

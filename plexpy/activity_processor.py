@@ -117,6 +117,7 @@ class ActivityProcessor(object):
                       'live_uuid': session.get('live_uuid', ''),
                       'secure': session.get('secure', None),
                       'relayed': session.get('relayed', 0),
+                      'rating_key_websocket': session.get('rating_key_websocket', ''),
                       'raw_stream_info': json.dumps(session),
                       'stopped': int(time.time())
                       }
