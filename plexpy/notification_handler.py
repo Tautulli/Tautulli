@@ -771,6 +771,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
+        'secure': 'unknown' if notify_params['secure'] is None else notify_params['secure'],
+        'relayed': notify_params['relayed'],
         'stream_local': notify_params['local'],
         'stream_location': notify_params['location'],
         'stream_bandwidth': notify_params['bandwidth'],
