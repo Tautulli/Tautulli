@@ -1,5 +1,6 @@
 <%
-    import arrow
+    import datetime
+    from plexpy import helpers
     from plexpy.activity_handler import ACTIVITY_SCHED, schedule_callback
 
     if queue == 'active sessions':
@@ -44,12 +45,12 @@
                     % for job in scheduled_jobs:
                     <%
                         sched_job = ACTIVITY_SCHED.get_job(job)
-                        next_run_in = arrow.get(sched_job.next_run_time).timestamp - arrow.now().timestamp
+                        now = datetime.datetime.now(sched_job.next_run_time.tzinfo)
                     %>
                     <tr>
                         <td><strong>${title_format.format(*sched_job.args)}</strong></td>
-                        <td>${arrow.get(next_run_in).format('HH:mm:ss')}</td>
-                        <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
+                        <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - now)}</td>
+                        <td>${sched_job.next_run_time.strftime('%Y-%m-%d %H:%M:%S')}</td>
                     </tr>
                     % endfor
                     % else:
