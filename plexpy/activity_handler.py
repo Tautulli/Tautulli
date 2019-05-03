@@ -17,8 +17,8 @@ import datetime
 import os
 import time
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.date import DateTrigger
+import pytz
 
 import plexpy
 import activity_processor
@@ -29,7 +29,7 @@ import notification_handler
 import pmsconnect
 
 
-ACTIVITY_SCHED = BackgroundScheduler()
+ACTIVITY_SCHED = None
 
 RECENTLY_ADDED_QUEUE = {}
 
@@ -488,11 +488,13 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
         else:
             ACTIVITY_SCHED.reschedule_job(
                 id, args=args, trigger=DateTrigger(
-                    run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
+                    run_date=datetime.datetime.now(pytz.UTC) + datetime.timedelta(**kwargs),
+                    timezone=pytz.UTC))
     elif not remove_job:
         ACTIVITY_SCHED.add_job(
             func, args=args, id=id, trigger=DateTrigger(
-                run_date=datetime.datetime.now() + datetime.timedelta(**kwargs)))
+                run_date=datetime.datetime.now(pytz.UTC) + datetime.timedelta(**kwargs),
+                timezone=pytz.UTC))
 
 
 def force_stop_stream(session_key, title, user):

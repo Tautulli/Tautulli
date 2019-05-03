@@ -71,7 +71,7 @@ PIDFILE = None
 NOFORK = False
 DOCKER = False
 
-SCHED = BackgroundScheduler()
+SCHED = None
 SCHED_LOCK = threading.Lock()
 
 NOTIFY_QUEUE = Queue()
@@ -509,11 +509,11 @@ def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):
             logger.info(u"Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes, seconds=seconds), args=args)
+                hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC), args=args)
             logger.info(u"Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(func, id=name, trigger=IntervalTrigger(
-            hours=hours, minutes=minutes, seconds=seconds), args=args)
+            hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC), args=args)
         logger.info(u"Scheduled background task: %s", name)
 
 
@@ -521,6 +521,11 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        global SCHED
+        SCHED = BackgroundScheduler(timezone=pytz.UTC)
+        activity_handler.ACTIVITY_SCHED = BackgroundScheduler(timezone=pytz.UTC)
+        newsletter_handler.NEWSLETTER_SCHED = BackgroundScheduler(timezone=pytz.UTC)
+
         # Start the scheduler for stale stream callbacks
         activity_handler.ACTIVITY_SCHED.start()
 

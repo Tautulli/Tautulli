@@ -16,7 +16,6 @@
 import os
 import time
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import email.utils
 
@@ -26,7 +25,7 @@ import logger
 import newsletters
 
 
-NEWSLETTER_SCHED = BackgroundScheduler()
+NEWSLETTER_SCHED = None
 
 
 def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
@@ -62,11 +61,13 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
             logger.info(u"Tautulli NewsletterHandler :: Removed scheduled newsletter: %s" % name)
         else:
             NEWSLETTER_SCHED.reschedule_job(
-                newsletter_job_id, args=args, trigger=CronTrigger().from_crontab(cron))
+                newsletter_job_id, args=args, trigger=CronTrigger().from_crontab(
+                    cron, timezone=plexpy.SYS_TIMEZONE))
             logger.info(u"Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
     elif not remove_job:
         NEWSLETTER_SCHED.add_job(
-            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron))
+            func, args=args, id=newsletter_job_id, trigger=CronTrigger().from_crontab(
+                cron, timezone=plexpy.SYS_TIMEZONE))
         logger.info(u"Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
 
 

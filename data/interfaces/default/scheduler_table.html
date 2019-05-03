@@ -39,7 +39,7 @@ DOCUMENTATION :: END
             <td><i class="fa fa-sm fa-fw fa-check"></i> Active</td>
             <td>${helpers.format_timedelta_Hms(sched_job.trigger.interval)}</td>
             <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - now)}</td>
-            <td>${sched_job.next_run_time.strftime('%Y-%m-%d %H:%M:%S')}</td>
+            <td>${sched_job.next_run_time.astimezone(plexpy.SYS_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}</td>
         </tr>
         % elif job in ('Check for server response', 'Check for active sessions', 'Check for recently added items') and plexpy.WS_CONNECTED:
         <tr>

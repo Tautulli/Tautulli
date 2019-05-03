@@ -1,7 +1,7 @@
 <%
     import datetime
-    from plexpy import helpers
-    from plexpy.activity_handler import ACTIVITY_SCHED, schedule_callback
+    import plexpy
+    from plexpy import activity_handler, helpers
 
     if queue == 'active sessions':
         filter_key = 'session_key-'
@@ -14,7 +14,7 @@
         title_key = title_format.format('Rating Key', 'Title')
         description  = 'Queue to flush recently added items to the database and send notifications if enabled.'
 
-    scheduled_jobs = [j.id for j in ACTIVITY_SCHED.get_jobs() if j.id.startswith(filter_key)]
+    scheduled_jobs = [j.id for j in activity_handler.ACTIVITY_SCHED.get_jobs() if j.id.startswith(filter_key)]
 %>
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -44,13 +44,13 @@
                     % if scheduled_jobs:
                     % for job in scheduled_jobs:
                     <%
-                        sched_job = ACTIVITY_SCHED.get_job(job)
+                        sched_job = activity_handler.ACTIVITY_SCHED.get_job(job)
                         now = datetime.datetime.now(sched_job.next_run_time.tzinfo)
                     %>
                     <tr>
                         <td><strong>${title_format.format(*sched_job.args)}</strong></td>
                         <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - now)}</td>
-                        <td>${sched_job.next_run_time.strftime('%Y-%m-%d %H:%M:%S')}</td>
+                        <td>${sched_job.next_run_time.astimezone(plexpy.SYS_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}</td>
                     </tr>
                     % endfor
                     % else:
