@@ -33,6 +33,7 @@ import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
+import pytz
 
 import activity_handler
 import activity_pinger
@@ -160,7 +161,7 @@ def initialize(config_file):
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info(u"{} (UTC{})".format(
-            plexpy.SYS_TIMEZONE, plexpy.SYS_UTC_OFFSET
+            plexpy.SYS_TIMEZONE.zone, plexpy.SYS_UTC_OFFSET
         ))
         logger.info(u"Python {}".format(
             sys.version

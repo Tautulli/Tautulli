@@ -110,12 +110,12 @@ def main():
                       verbose=plexpy.VERBOSE)
 
     try:
-        plexpy.SYS_TIMEZONE = str(tzlocal.get_localzone())
-        plexpy.SYS_UTC_OFFSET = datetime.datetime.now(pytz.timezone(plexpy.SYS_TIMEZONE)).strftime('%z')
+        plexpy.SYS_TIMEZONE = tzlocal.get_localzone()
     except (pytz.UnknownTimeZoneError, LookupError, ValueError) as e:
         logger.error("Could not determine system timezone: %s" % e)
-        plexpy.SYS_TIMEZONE = 'Unknown'
-        plexpy.SYS_UTC_OFFSET = '+0000'
+        plexpy.SYS_TIMEZONE = pytz.UTC
+
+    plexpy.SYS_UTC_OFFSET = datetime.datetime.now(plexpy.SYS_TIMEZONE).strftime('%z')
 
     if os.getenv('TAUTULLI_DOCKER', False) == 'True':
         plexpy.DOCKER = True
