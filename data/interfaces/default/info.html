@@ -24,7 +24,7 @@ parent_thumb            Returns the location of the item's thumbnail. Use with p
 writers                 Returns an array of writers.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 parent_title            Returns the name of the show, or artist.
-rating                  Returns the 5 star rating value for the movie. Between 1 and 5.
+rating                  Returns the 5 star rating value for the movie. The value is between 1 and 10 and needs to be recalculated before used.
 year                    Returns the release year of the movie, or show.
 genres                  Returns an array of genres.
 actors                  Returns an array of actors.
@@ -220,7 +220,7 @@ DOCUMENTATION :: END
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
                             % if data['rating']:
-                            <div class="star-rating hidden-xs hidden-sm" title="${data['rating']}">
+                            <div class="star-rating hidden-xs hidden-sm" title="${float(data['rating']) / 2}">
                                 % for i in range(0,5):
                                 % if round(float(data['rating']) / 2) > i:
                                 <i class="star-icon fa fa-star"></i>
