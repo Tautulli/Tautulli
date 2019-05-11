@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.1.30-beta (2019-05-11)
+
+* Monitoring:
+  * Fix: Activity crashing with Plex's Artist TV feature.
+  * New: Added setting for Plex Media Server Update Check Interval. (Thanks @abiacco)
+* Notifications:
+  * New: Added secure and relayed connection notification parameters.
+  * New: Added PLEX_USER_TOKEN to script environment variables.
+  * Change: Schedule notifications using UTC to prevent missing notifications due to misconfigured timezones.
+* API:
+  * New: Added status API command to check the status of Tautulli.
+
+
 ## v2.1.29 (2019-05-11)
 * No additional changes from v2.1.29-beta.
 
