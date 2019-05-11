@@ -604,7 +604,7 @@ def dbcheck():
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, '
         'platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
-        'bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER'
+        'bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
     )
 
