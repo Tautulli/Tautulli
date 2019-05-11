@@ -2653,7 +2653,7 @@ Required parameters:
     None
 
 Optional parameters:
-    None
+    check (str):        database
 
 Returns:
     json:

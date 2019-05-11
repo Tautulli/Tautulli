@@ -27,6 +27,12 @@ FILENAME = "tautulli.db"
 db_lock = threading.Lock()
 
 
+def integrity_check():
+    monitor_db = MonitorDatabase()
+    result = monitor_db.select_single('PRAGMA integrity_check')
+    return result
+
+
 def drop_session_db():
     monitor_db = MonitorDatabase()
     monitor_db.action('DROP TABLE sessions')
@@ -52,6 +58,7 @@ def delete_sessions():
     except Exception as e:
         logger.warn(u"Tautulli Database :: Unable to clear temporary sessions from database: %s." % e)
         return False
+
 
 def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """

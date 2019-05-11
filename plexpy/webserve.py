@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
 import json
 import os
 import shutil
@@ -57,7 +56,7 @@ import web_socket
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-from plexpy.webauth import AuthController, requireAuth, member_of
+from plexpy.webauth import AuthController, requireAuth, member_of, check_auth
 
 
 def serve_template(templatename, **kwargs):
@@ -5858,7 +5857,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def support(self, query='', **kwargs):
+    def support(self, **kwargs):
         return serve_template(templatename="support.html", title="Support")
 
     @cherrypy.expose
@@ -5872,7 +5871,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                check (str):        database
 
             Returns:
                 json:
@@ -5882,4 +5881,20 @@ class WebInterface(object):
             ```
         """
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        return {'result': 'success', 'message': 'Ok'}
+        status = {'result': 'success', 'message': 'Ok'}
+
+        if args or kwargs:
+            if not cherrypy.request.path_info == '/api/v2':
+                cherrypy.request.config['auth.require'] = []
+                check_auth()
+
+            if 'database' in (args[:1] or kwargs.get('check')):
+                result = database.integrity_check()
+                status.update(result)
+                if result['integrity_check'] == 'ok':
+                    status['message'] = 'Database ok'
+                else:
+                    status['result'] = 'error'
+                    status['message'] = 'Database not ok'
+
+        return status
