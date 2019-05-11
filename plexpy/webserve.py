@@ -5860,3 +5860,26 @@ class WebInterface(object):
     @requireAuth()
     def support(self, query='', **kwargs):
         return serve_template(templatename="support.html", title="Support")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @addtoapi()
+    def status(self, *args, **kwargs):
+        """ Get the current status of Tautulli.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Ok",
+                     }
+            ```
+        """
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        return {'result': 'success', 'message': 'Ok'}

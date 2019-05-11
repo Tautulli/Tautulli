@@ -2645,6 +2645,24 @@ Returns:
 ```
 
 
+### status
+Get the current status of Tautulli.
+
+```
+Required parameters:
+    None
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"result": "success",
+         "message": "Ok",
+         }
+```
+
+
 ### terminate_session
 Stop a streaming session.
 

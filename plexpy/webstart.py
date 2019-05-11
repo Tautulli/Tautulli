@@ -15,6 +15,7 @@
 
 import os
 import sys
+from urllib import urlencode
 
 import plexpy
 import cherrypy
@@ -110,6 +111,9 @@ def initialize(options):
                 options['http_username']: options['http_password']})
         },
         '/api': {
+            'tools.auth_basic.on': False
+        },
+        '/status': {
             'tools.auth_basic.on': False
         },
         '/interfaces': {
@@ -230,6 +234,12 @@ class BaseRedirect(object):
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
+    @cherrypy.expose
+    def status(self, *args, **kwargs):
+        path = '/' + '/'.join(args) if args else ''
+        query = '?' + urlencode(kwargs) if kwargs else ''
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + 'status' + path + query)
 
 
 def proxy():
