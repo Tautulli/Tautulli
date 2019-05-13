@@ -1646,10 +1646,10 @@ class PmsConnect(object):
             if helpers.get_xml_attr(stream, 'streamType') == '1':
                 video_stream_info = stream
 
-            elif helpers.get_xml_attr(stream, 'streamType') == '2':
+            elif helpers.get_xml_attr(stream, 'streamType') == '2' and helpers.get_xml_attr(stream, 'selected') == '1':
                 audio_stream_info = stream
 
-            elif helpers.get_xml_attr(stream, 'streamType') == '3':
+            elif helpers.get_xml_attr(stream, 'streamType') == '3' and helpers.get_xml_attr(stream, 'selected') == '1':
                 subtitle_stream_info = stream
 
         video_id = audio_id = subtitle_id = None

@@ -430,7 +430,7 @@
                         if (s.stream_container_decision === 'transcode') {
                             transcode_container = 'Transcode (' + s.container.toUpperCase() + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_container.toUpperCase() + ')';
                         } else {
-                            transcode_container = 'Direct Play (' + s.container.toUpperCase() + ')';
+                            transcode_container = 'Direct Play (' + s.stream_container.toUpperCase() + ')';
                         }
                         $('#transcode_container-' + key).html(transcode_container);
 
@@ -465,7 +465,7 @@
                             } else if (s.stream_video_decision === 'copy') {
                                 video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
                             } else {
-                                video_decision = 'Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')';
+                                video_decision = 'Direct Play (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
                             }
                         } else if (s.media_type === 'photo') {
                             video_decision = 'Direct Play (' + s.width + 'x' + s.height + ')';
@@ -481,7 +481,7 @@
                             } else if (s.stream_audio_decision === 'copy') {
                                 audio_decision = 'Direct Stream (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else {
-                                audio_decision = 'Direct Play (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Play (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
@@ -495,7 +495,7 @@
                             } else if (s.stream_subtitle_decision === 'burn') {
                                 subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
                             } else {
-                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? s.stream_subtitle_codec.toUpperCase() : s.subtitle_codec.toUpperCase()) + ')';
+                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? s.subtitle_codec.toUpperCase() : s.stream_subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
