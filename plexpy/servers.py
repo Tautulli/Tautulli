@@ -692,5 +692,5 @@ class plexServer(object):
             logger.debug(u"Websocket connection test for %s successful." % self.CONFIG.PMS_NAME)
             return True
         except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error(u"Websocket connection test for %s failed: %s" % (self.CONFIG.PMS_NAME, e))
+            logger.error("Websocket connection test for %s failed: %s" % (self.CONFIG.PMS_NAME, e))
             return False
