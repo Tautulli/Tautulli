@@ -1859,9 +1859,17 @@ def dbcheck():
 
     # Create servers table and migrate library_sections and session_history_metadata
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
-        if 'server_id TEXT' in result[0]:
+        result = c_db.execute('PRAGMA TABLE_INFO(library_sections)').fetchall()
+        doV3Migration = False
+        for row in result:
+            if row[1] == 'server_id':
+                if row[2] == 'TEXT':
+                    doV3Migration = True
+                break
+
+        if doV3Migration:
             logger.debug(u"Multi-Server Migration - Converting Database to Multi-Server Format.")
+            result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
             library_sections_temp = result[0].replace("server_id TEXT", "server_id INTEGER").replace("library_sections", "library_sections_temp")
 
             logger.debug(u"Multi-Server Migration - Inserting configured server into servers table.")
