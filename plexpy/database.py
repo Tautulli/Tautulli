@@ -126,12 +126,12 @@ class MonitorDatabase(object):
     def __init__(self, filename=FILENAME):
         self.filename = filename
         self.connection = sqlite3.connect(db_filename(filename), timeout=20)
-        # Don't wait for the disk to finish writing
-        self.connection.execute("PRAGMA synchronous = OFF")
-        # Journal disabled since we never do rollbacks
+        # Set database synchronous mode (default NORMAL)
+        self.connection.execute("PRAGMA synchronous = %s" % plexpy.CONFIG.SYNCHRONOUS_MODE)
+        # Set database journal mode (default WAL)
         self.connection.execute("PRAGMA journal_mode = %s" % plexpy.CONFIG.JOURNAL_MODE)
-        # 64mb of cache memory, probably need to make it user configurable
-        self.connection.execute("PRAGMA cache_size=-%s" % (get_cache_size() * 1024))
+        # Set database cache size (default 32MB)
+        self.connection.execute("PRAGMA cache_size = -%s" % (get_cache_size() * 1024))
         self.connection.row_factory = dict_factory
 
     def action(self, query, args=None, return_last_id=False):
