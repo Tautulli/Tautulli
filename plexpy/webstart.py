@@ -80,14 +80,15 @@ def initialize(options):
         logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s.", ' and '.join(login_allowed))
 
         if options['http_basic_auth']:
-            auth_enabled = False
+            plexpy.AUTH_ENABLED = False
             basic_auth_enabled = True
         else:
-            auth_enabled = True
+            plexpy.AUTH_ENABLED = True
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth, priority=2)
     else:
-        auth_enabled = basic_auth_enabled = False
+        plexpy.AUTH_ENABLED = False
+        basic_auth_enabled = False
 
     if options['http_root'].strip('/'):
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
@@ -104,7 +105,7 @@ def initialize(options):
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
-            'tools.auth.on': auth_enabled,
+            'tools.auth.on': plexpy.AUTH_ENABLED,
             'tools.auth_basic.on': basic_auth_enabled,
             'tools.auth_basic.realm': 'Tautulli web server',
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({

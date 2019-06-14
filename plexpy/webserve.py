@@ -5884,7 +5884,7 @@ class WebInterface(object):
         status = {'result': 'success', 'message': 'Ok'}
 
         if args or kwargs:
-            if not cherrypy.request.path_info == '/api/v2':
+            if not cherrypy.request.path_info == '/api/v2' and plexpy.AUTH_ENABLED:
                 cherrypy.request.config['auth.require'] = []
                 check_auth()
 

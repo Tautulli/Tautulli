@@ -100,6 +100,7 @@ UMASK = None
 
 HTTP_PORT = None
 HTTP_ROOT = None
+AUTH_ENABLED = None
 
 DEV = False
 
@@ -113,6 +114,7 @@ WIN_SYS_TRAY_ICON = None
 
 SYS_TIMEZONE = None
 SYS_UTC_OFFSET = None
+
 
 def initialize(config_file):
     with INIT_LOCK:
