@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.1.31-beta (2019-06-13)
+
+* Monitoring:
+  * Fix: Synced content showing incorrect stream info.
+* Other:
+  * Fix: Unable to view database status when authentication is enabled.
+  * Change: Default database synchronous mode changed to prevent database corruption. Database response may be slower.
+
+
 ## v2.1.30-beta (2019-05-11)
 
 * Monitoring:
