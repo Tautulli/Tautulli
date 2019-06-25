@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.31 (2019-06-24)
+
+* No additional changes from v2.1.31-beta.
+
+
 ## v2.1.31-beta (2019-06-13)
 
 * Monitoring:
@@ -23,6 +28,7 @@
 
 
 ## v2.1.29 (2019-05-11)
+
 * No additional changes from v2.1.29-beta.
 
 
@@ -167,6 +173,7 @@
 
 
 ## v2.1.20 (2018-09-05)
+
 * No additional changes from v2.1.20-beta.
 
 
