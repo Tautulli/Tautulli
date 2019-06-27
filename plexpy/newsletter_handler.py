@@ -61,13 +61,11 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
             logger.info(u"Tautulli NewsletterHandler :: Removed scheduled newsletter: %s" % name)
         else:
             NEWSLETTER_SCHED.reschedule_job(
-                newsletter_job_id, args=args, trigger=CronTrigger().from_crontab(
-                    cron, timezone=plexpy.SYS_TIMEZONE))
+                newsletter_job_id, args=args, trigger=CronTrigger.from_crontab(cron))
             logger.info(u"Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
     elif not remove_job:
         NEWSLETTER_SCHED.add_job(
-            func, args=args, id=newsletter_job_id, trigger=CronTrigger().from_crontab(
-                cron, timezone=plexpy.SYS_TIMEZONE))
+            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron))
         logger.info(u"Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
 
 
