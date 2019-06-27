@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.32 (2019-06-26)
+
+* Newsletters:
+  * Fix: Newsletter scheduler issue for QNAP devices using an invalid "local" timezone preventing Tautulli from starting.
+
+
 ## v2.1.31 (2019-06-24)
 
 * No additional changes from v2.1.31-beta.
