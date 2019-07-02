@@ -253,7 +253,7 @@ def initialize(config_file):
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
-                LATEST_VERSION = versioncheck.check_update()
+                versioncheck.check_update()
             except:
                 logger.exception(u"Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION
