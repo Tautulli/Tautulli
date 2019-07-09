@@ -455,7 +455,7 @@ def delete_notifier(notifier_id=None):
         return False
 
 
-def get_notifier_config(notifier_id=None):
+def get_notifier_config(notifier_id=None, mask_passwords=False):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
@@ -472,10 +472,12 @@ def get_notifier_config(notifier_id=None):
     try:
         config = json.loads(result.pop('notifier_config', '{}'))
         notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
-        notifier_config = notifier_agent.return_config_options()
     except Exception as e:
         logger.error(u"Tautulli Notifiers :: Failed to get notifier config options: %s." % e)
         return
+
+    if mask_passwords:
+        notifier_agent.config = helpers.mask_config_passwords(notifier_agent.config)
 
     notify_actions = get_notify_actions(return_dict=True)
 
@@ -503,8 +505,8 @@ def get_notifier_config(notifier_id=None):
     if not result['custom_conditions_logic']:
         result['custom_conditions_logic'] = ''
 
-    result['config'] = config
-    result['config_options'] = notifier_config
+    result['config'] = notifier_agent.config
+    result['config_options'] = notifier_agent.return_config_options(mask_passwords=mask_passwords)
     result['actions'] = notifier_actions
     result['notify_text'] = notifier_text
 
@@ -586,6 +588,13 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
                  for k in kwargs.keys() if k.startswith(notify_actions) and k.endswith('_body')}
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in kwargs.keys() if k.startswith(config_prefix)}
+
+    for cfg, val in notifier_config.iteritems():
+        # Check for a password config keys and a blank password from the HTML form
+        if 'password' in cfg and val == '    ':
+            # Get the previous password so we don't overwrite it with a blank value
+            old_notifier_config = get_notifier_config(notifier_id=notifier_id)
+            notifier_config[cfg] = old_notifier_config['config'][cfg]
 
     agent_class = get_agent_class(agent_id=agent['id'], config=notifier_config)
 
@@ -835,7 +844,16 @@ class Notifier(object):
 
             return False
 
-    def return_config_options(self):
+    def return_config_options(self, mask_passwords=False):
+        config_options = self._return_config_options()
+
+        # Mask password config options
+        if mask_passwords:
+            helpers.mask_config_passwords(config_options)
+
+        return config_options
+
+    def _return_config_options(self):
         config_options = []
         return config_options
 
@@ -942,7 +960,7 @@ class ANDROIDAPP(Notifier):
 
         return devices
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = []
 
         if not CRYPTODOME:
@@ -1058,7 +1076,7 @@ class BOXCAR(Notifier):
 
         return sounds
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Boxcar Access Token',
                           'value': self.config['token'],
                           'name': 'boxcar_token',
@@ -1089,7 +1107,7 @@ class BROWSER(Notifier):
         logger.info(u"Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
         return True
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Allow Notifications',
                           'value': 'Allow Notifications',
                           'name': 'browser_allow_browser',
@@ -1202,7 +1220,7 @@ class DISCORD(Notifier):
 
         return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Discord Webhook URL',
                           'value': self.config['hook'],
                           'name': 'discord_hook',
@@ -1389,7 +1407,7 @@ class EMAIL(Notifier):
 
         return user_emails_to, user_emails_cc, user_emails_bcc
 
-    def return_config_options(self):
+    def _return_config_options(self):
         user_emails_to, user_emails_cc, user_emails_bcc = self.get_user_emails()
 
         config_option = [{'label': 'From Name',
@@ -1569,7 +1587,7 @@ class FACEBOOK(Notifier):
 
         return self._post_facebook(**data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'OAuth Redirect URI',
                           'value': self.config['redirect_uri'],
                           'name': 'facebook_redirect_uri',
@@ -1699,7 +1717,7 @@ class GROUPME(Notifier):
 
         return self.make_request('https://api.groupme.com/v3/bots/post', json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'GroupMe Access Token',
                           'value': self.config['access_token'],
                           'name': 'groupme_access_token',
@@ -1796,7 +1814,7 @@ class GROWL(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed: network error".format(name=self.NAME))
             return False
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Growl Host',
                           'value': self.config['host'],
                           'name': 'growl_host',
@@ -1901,7 +1919,7 @@ class HIPCHAT(Notifier):
 
         return self.make_request(self.config['hook'], headers=headers, json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Hipchat Custom Integrations URL',
                           'value': self.config['hook'],
                           'name': 'hipchat_hook',
@@ -2012,7 +2030,7 @@ class IFTTT(Notifier):
         return self.make_request('https://maker.ifttt.com/trigger/{}/with/key/{}'.format(event, self.config['key']),
                                  headers=headers, json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'IFTTT Webhook Key',
                           'value': self.config['key'],
                           'name': 'ifttt_key',
@@ -2131,7 +2149,7 @@ class JOIN(Notifier):
 
         return devices
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Join API Key',
                           'value': self.config['api_key'],
                           'name': 'join_api_key',
@@ -2233,7 +2251,7 @@ class MQTT(Notifier):
 
         return True
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Broker',
                           'value': self.config['broker'],
                           'name': 'mqtt_broker',
@@ -2335,7 +2353,7 @@ class NMA(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
             return False
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'NotifyMyAndroid API Key',
                           'value': self.config['api_key'],
                           'name': 'nma_api_key',
@@ -2437,7 +2455,7 @@ class OSX(Notifier):
             logger.error(u"Tautulli Notifiers :: {name} failed: {e}".format(name=self.NAME, e=e))
             return False
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Register Notify App',
                           'value': self.config['notify_app'],
                           'name': 'osx_notify_app',
@@ -2530,7 +2548,7 @@ class PLEX(Notifier):
 
         return True
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Plex Home Theater Host Address',
                           'value': self.config['hosts'],
                           'name': 'plex_hosts',
@@ -2586,7 +2604,7 @@ class PROWL(Notifier):
 
         return self.make_request('https://api.prowlapp.com/publicapi/add', headers=headers, data=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Prowl API Key',
                           'value': self.config['key'],
                           'name': 'prowl_key',
@@ -2622,7 +2640,7 @@ class PUSHALOT(Notifier):
 
         return self.make_request('https://pushalot.com/api/sendmessage', headers=headers, data=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Pushalot API Key',
                           'value': self.config['api_key'],
                           'name': 'pushalot_api_key',
@@ -2722,7 +2740,7 @@ class PUSHBULLET(Notifier):
 
         return devices
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Pushbullet Access Token',
                           'value': self.config['api_key'],
                           'name': 'pushbullet_api_key',
@@ -2888,7 +2906,7 @@ class PUSHOVER(Notifier):
         # else:
         #     return {'': ''}
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Pushover API Token',
                           'value': self.config['api_token'],
                           'name': 'pushover_api_token',
@@ -3163,7 +3181,7 @@ class SCRIPTS(Notifier):
 
         return True
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Supported File Types',
                           'description': '<span class="inline-pre">' + \
                               ', '.join(self.script_exts.keys()) + '</span>',
@@ -3286,7 +3304,7 @@ class SLACK(Notifier):
 
         return self.make_request(self.config['hook'], headers=headers, json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Slack Webhook URL',
                           'value': self.config['hook'],
                           'name': 'slack_hook',
@@ -3439,7 +3457,7 @@ class TELEGRAM(Notifier):
         return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']),
                                  headers=headers, data=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Telegram Bot Token',
                           'value': self.config['bot_token'],
                           'name': 'telegram_bot_token',
@@ -3537,7 +3555,7 @@ class TWITTER(Notifier):
         else:
             return self._send_tweet(body, attachment=poster_url)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Twitter Consumer Key',
                           'value': self.config['consumer_key'],
                           'name': 'twitter_consumer_key',
@@ -3606,7 +3624,7 @@ class WEBHOOK(Notifier):
 
         return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Webhook URL',
                           'value': self.config['hook'],
                           'name': 'webhook_hook',
@@ -3703,7 +3721,7 @@ class XBMC(Notifier):
 
         return True
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Kodi Host Address',
                           'value': self.config['hosts'],
                           'name': 'xbmc_hosts',
@@ -3796,7 +3814,7 @@ class ZAPIER(Notifier):
 
         return self.make_request(self.config['hook'], headers=headers, json=data)
 
-    def return_config_options(self):
+    def _return_config_options(self):
         config_option = [{'label': 'Zapier Webhook URL',
                           'value': self.config['hook'],
                           'name': 'zapier_hook',

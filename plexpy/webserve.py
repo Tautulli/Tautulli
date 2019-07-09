@@ -3168,13 +3168,13 @@ class WebInterface(object):
                      }
             ```
         """
-        result = notifiers.get_notifier_config(notifier_id=notifier_id)
+        result = notifiers.get_notifier_config(notifier_id=notifier_id, mask_passwords=True)
         return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_notifier_config_modal(self, notifier_id=None, **kwargs):
-        result = notifiers.get_notifier_config(notifier_id=notifier_id)
+        result = notifiers.get_notifier_config(notifier_id=notifier_id, mask_passwords=True)
 
         parameters = [
                 {'name': param['name'], 'type': param['type'], 'value': param['value']}
@@ -5667,13 +5667,13 @@ class WebInterface(object):
                      }
             ```
         """
-        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id, mask_passwords=True)
         return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_newsletter_config_modal(self, newsletter_id=None, **kwargs):
-        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
+        result = newsletters.get_newsletter_config(newsletter_id=newsletter_id, mask_passwords=True)
         return serve_template(templatename="newsletter_config.html", newsletter=result)
 
     @cherrypy.expose

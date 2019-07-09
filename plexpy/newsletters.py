@@ -125,7 +125,7 @@ def delete_newsletter(newsletter_id=None):
         return False
 
 
-def get_newsletter_config(newsletter_id=None):
+def get_newsletter_config(newsletter_id=None, mask_passwords=False):
     if str(newsletter_id).isdigit():
         newsletter_id = int(newsletter_id)
     else:
@@ -153,13 +153,16 @@ def get_newsletter_config(newsletter_id=None):
         logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
+    if mask_passwords:
+        newsletter_agent.email_config = helpers.mask_config_passwords(newsletter_agent.email_config)
+
     result['subject'] = newsletter_agent.subject
     result['body'] = newsletter_agent.body
     result['message'] = newsletter_agent.message
     result['config'] = newsletter_agent.config
     result['email_config'] = newsletter_agent.email_config
-    result['config_options'] = newsletter_agent.return_config_options()
-    result['email_config_options'] = newsletter_agent.return_email_config_options()
+    result['config_options'] = newsletter_agent.return_config_options(mask_passwords=mask_passwords)
+    result['email_config_options'] = newsletter_agent.return_email_config_options(mask_passwords=mask_passwords)
 
     return result
 
@@ -229,6 +232,13 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
                          for k in kwargs.keys() if k.startswith(config_prefix)}
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in kwargs.keys() if k.startswith(email_config_prefix)}
+
+    for cfg, val in email_config.iteritems():
+        # Check for a password config keys and a blank password from the HTML form
+        if 'password' in cfg and val == '    ':
+            # Get the previous password so we don't overwrite it with a blank value
+            old_newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
+            email_config[cfg] = old_newsletter_config['email_config'][cfg]
 
     subject = kwargs.pop('subject')
     body = kwargs.pop('body')
@@ -647,16 +657,21 @@ class Newsletter(object):
 
         return filename
 
-    def return_config_options(self):
-        return self._return_config_options()
+    def return_config_options(self, mask_passwords=False):
+        config_options = self._return_config_options()
 
-    def _return_config_options(self):
-        config_options = []
+        # Mask password config options
+        if mask_passwords:
+            helpers.mask_config_passwords(config_options)
 
         return config_options
 
-    def return_email_config_options(self):
-        config_options = EMAIL(self.email_config).return_config_options()
+    def _return_config_options(self):
+        config_options = []
+        return config_options
+
+    def return_email_config_options(self, mask_passwords=False):
+        config_options = EMAIL(self.email_config).return_config_options(mask_passwords=mask_passwords)
         for c in config_options:
             c['name'] = 'newsletter_' + c['name']
         return config_options
@@ -926,10 +941,8 @@ class RecentlyAdded(Newsletter):
 
         return parameters
 
-    def return_config_options(self):
-        config_options = self._return_config_options()
-
-        additional_config = [
+    def _return_config_options(self):
+        config_options = [
             {'label': 'Included Libraries',
              'value': self.config['incl_libraries'],
              'description': 'Select the libraries to include in the newsletter.',
@@ -939,4 +952,4 @@ class RecentlyAdded(Newsletter):
              }
         ]
 
-        return additional_config + config_options
+        return config_options

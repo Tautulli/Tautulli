@@ -1178,3 +1178,18 @@ def split_args(args=None):
         return [arg.decode(plexpy.SYS_ENCODING, 'ignore')
                 for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
     return []
+
+def mask_config_passwords(config):
+    if isinstance(config, list):
+        for cfg in config:
+            if 'password' in cfg['name'] and cfg['value'] != '':
+                cfg['value'] = '    '
+
+    elif isinstance(config, dict):
+        for cfg, val in config.iteritems():
+            # Check for a password config keys and if the password is not blank
+            if 'password' in cfg and val != '':
+                # Set the password to blank so it is not exposed in the HTML form
+                config[cfg] = '    '
+
+    return config
