@@ -69,7 +69,7 @@ DOCUMENTATION :: END
         % endif
         <tr>
             <td>Platform:</td>
-            <td>${common.PLATFORM} ${common.PLATFORM_RELEASE} (${common.PLATFORM_VERSION + (' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else '')})</td>
+            <td>${'[Docker] ' if plexpy.DOCKER else ''}${common.PLATFORM} ${common.PLATFORM_RELEASE} (${common.PLATFORM_VERSION + (' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else '')})</td>
         </tr>
         <tr>
             <td>System Timezone:</td>

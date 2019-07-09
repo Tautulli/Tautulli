@@ -158,8 +158,8 @@ def initialize(config_file):
         logger.info(u"Starting Tautulli {}".format(
             common.RELEASE
         ))
-        logger.info(u"{} {} ({}{})".format(
-            common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
+        logger.info(u"{}{} {} ({}{})".format(
+            '[Docker] ' if DOCKER else '', common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info(u"{} (UTC{})".format(
