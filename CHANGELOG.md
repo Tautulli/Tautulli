@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.1.33 (2019-07-27)
+
+* Notifications:
+  * Change: Mask notification agent password fields.
+  * Change: Enable searching by email address in dropdown menu.
+* Other:
+  * Fix: Version number being overwritten with "None" which prevented updating in some instances.
+  * Change: Update Plex OAuth request headers.
+
+
 ## v2.1.32 (2019-06-26)
 
 * Newsletters:
