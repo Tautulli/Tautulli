@@ -358,28 +358,29 @@ class PlexTV(object):
 
         user_map = {}
         for server in plexpy.PMS_SERVERS:
-            shared_servers = self.get_plextv_shared_servers(machine_id=server.CONFIG.PMS_IDENTIFIER,
-                                                            output_format='xml')
-            try:
-                xml_head = shared_servers.getElementsByTagName('SharedServer')
-            except Exception as e:
-                logger.warn(u"Tautulli PlexTV :: %s: Unable to parse shared server list XML for get_full_users_list: %s."
-                            % (server.CONFIG.PMS_NAME, e))
-                return []
+            if server.CONFIG.PMS_IS_ENABLED:
+                shared_servers = self.get_plextv_shared_servers(machine_id=server.CONFIG.PMS_IDENTIFIER,
+                                                                output_format='xml')
+                try:
+                    xml_head = shared_servers.getElementsByTagName('SharedServer')
+                except Exception as e:
+                    logger.warn(u"Tautulli PlexTV :: %s: Unable to parse shared server list XML for get_full_users_list: %s."
+                                % (server.CONFIG.PMS_NAME, e))
+                    return []
 
-            for a in xml_head:
-                user_id = helpers.get_xml_attr(a, 'userID')
-                server_token = helpers.get_xml_attr(a, 'accessToken')
+                for a in xml_head:
+                    user_id = helpers.get_xml_attr(a, 'userID')
+                    server_token = helpers.get_xml_attr(a, 'accessToken')
 
-                sections = a.getElementsByTagName('Section')
-                shared_libraries = [helpers.get_xml_attr(s, 'key')
-                                    for s in sections if helpers.get_xml_attr(s, 'shared') == '1']
-                if user_id not in user_map:
-                    user_map[user_id] = {'shared_libraries': []}
-                user_map[user_id]['shared_libraries'].append({'server_token': server_token,
-                                                              'server_id': server.CONFIG.ID,
-                                                              'shared_libraries': shared_libraries
-                                                              })
+                    sections = a.getElementsByTagName('Section')
+                    shared_libraries = [helpers.get_xml_attr(s, 'key')
+                                        for s in sections if helpers.get_xml_attr(s, 'shared') == '1']
+                    if user_id not in user_map:
+                        user_map[user_id] = {'shared_libraries': []}
+                    user_map[user_id]['shared_libraries'].append({'server_token': server_token,
+                                                                  'server_id': server.CONFIG.ID,
+                                                                  'shared_libraries': shared_libraries
+                                                                  })
 
         for u in users_list:
             d = user_map.get(u['user_id'], {})
