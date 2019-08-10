@@ -353,7 +353,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_libraries_table")
-    def get_library_list(self, **kwargs):
+    def get_library_list(self, grouping=None, **kwargs):
         """ Get the data on the Tautulli libraries table.
 
             ```
@@ -361,6 +361,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
+                grouping (int):                 0 or 1
                 order_column (str):             "library_thumb", "section_name", "section_type", "count", "parent_count",
                                                 "child_count", "last_accessed", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -423,7 +424,7 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "section_name")
 
         library_data = libraries.Libraries()
-        library_list = library_data.get_datatables_list(kwargs=kwargs)
+        library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
 
         return library_list
 
@@ -1016,7 +1017,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_users_table")
-    def get_user_list(self, **kwargs):
+    def get_user_list(self, grouping=None, **kwargs):
         """ Get the data on Tautulli users table.
 
             ```
@@ -1024,6 +1025,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
+                grouping (int):                 0 or 1
                 order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                                 "player", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1082,7 +1084,7 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "friendly_name")
 
         user_data = users.Users()
-        user_list = user_data.get_datatables_list(kwargs=kwargs)
+        user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
 
         return user_list
 

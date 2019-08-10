@@ -833,6 +833,7 @@ Required parameters:
     None
 
 Optional parameters:
+    grouping (int):                 0 or 1
     order_column (str):             "library_thumb", "section_name", "section_type", "count", "parent_count",
                                     "child_count", "last_accessed", "last_played", "plays", "duration"
     order_dir (str):                "desc" or "asc"
@@ -2341,6 +2342,7 @@ Required parameters:
     None
 
 Optional parameters:
+    grouping (int):                 0 or 1
     order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                     "player", "last_played", "plays", "duration"
     order_dir (str):                "desc" or "asc"

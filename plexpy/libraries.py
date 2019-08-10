@@ -239,7 +239,7 @@ class Libraries(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None):
+    def get_datatables_list(self, kwargs=None, grouping=None):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -250,8 +250,13 @@ class Libraries(object):
 
         custom_where = [['library_sections.deleted_section', 0]]
 
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
         if session.get_session_shared_libraries():
             custom_where.append(['library_sections.section_id', session.get_session_shared_libraries()])
+
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         columns = ['library_sections.section_id',
                    'library_sections.section_name',
@@ -262,7 +267,7 @@ class Libraries(object):
                    'library_sections.thumb AS library_thumb',
                    'library_sections.custom_thumb_url AS custom_thumb',
                    'library_sections.art',
-                   'COUNT(session_history.id) AS plays',
+                   'COUNT(DISTINCT %s) AS plays' % group_by,
                    'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
                     ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
                     session_history.paused_counter END) AS duration',

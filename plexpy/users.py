@@ -70,7 +70,7 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None):
+    def get_datatables_list(self, kwargs=None, grouping=None):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -81,18 +81,23 @@ class Users(object):
 
         custom_where = [['users.deleted_user', 0]]
 
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
         if session.get_session_user_id():
             custom_where.append(['users.user_id', session.get_session_user_id()])
 
         if kwargs.get('user_id'):
             custom_where.append(['users.user_id', kwargs.get('user_id')])
 
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
         columns = ['users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name',
                    'users.thumb AS user_thumb',
                    'users.custom_avatar_url AS custom_thumb',
-                   'COUNT(session_history.id) AS plays',
+                   'COUNT(DISTINCT %s) AS plays' % group_by,
                    'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
                     ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
                     session_history.paused_counter END) AS duration',
