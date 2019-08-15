@@ -538,7 +538,7 @@ class Libraries(object):
         # Search results
         search_value = json_data['search']['value'].lower()
         if search_value:
-            searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
+            searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']] + ['title']
             for row in rows:
                 for k,v in row.iteritems():
                     if k in searchable_columns and search_value in v.lower():
