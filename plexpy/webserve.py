@@ -3659,10 +3659,10 @@ class WebInterface(object):
                     identifier = server['clientIdentifier']
                     break
 
-            # Fallback to checking /identity endpoint is server is unpublished
+            # Fallback to checking /identity endpoint if the server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                scheme = 'https' if ssl else 'http'
+                scheme = 'https' if helpers.cast_to_int(ssl) else 'http'
                 url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
                 uri = '/identity'
 
