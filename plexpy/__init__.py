@@ -222,6 +222,12 @@ def initialize(config_file):
             CONFIG.JWT_SECRET = generate_uuid()
             CONFIG.write()
 
+        if CONFIG.JWT_UUID == '' or CONFIG.JWT_UPDATE_UUID:
+            logger.debug(u"Generating JWT UUID...")
+            CONFIG.JWT_UUID = generate_uuid()
+            CONFIG.JWT_UPDATE_UUID = False
+            CONFIG.write()
+
         # Get the previous version from the file
         version_lock_file = os.path.join(DATA_DIR, "version.lock")
         prev_version = None

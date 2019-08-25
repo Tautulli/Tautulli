@@ -625,6 +625,7 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0),
     'JWT_SECRET': (str, 'Advanced', ''),
     'JWT_UUID': (str, 'Advanced', ''),
+    'JWT_UPDATE_UUID': (bool_int, 'Advanced', 0),
     'SYSTEM_ANALYTICS': (int, 'Advanced', 1),
     'WIN_SYS_TRAY': (int, 'General', 1)
 }
