@@ -217,15 +217,10 @@ def initialize(config_file):
             CONFIG.write()
 
         # Check if Tautulli has a jwt_secret
-        if CONFIG.JWT_SECRET == '' or not CONFIG.JWT_SECRET:
+        if CONFIG.JWT_SECRET == '' or not CONFIG.JWT_SECRET or CONFIG.JWT_UPDATE_SECRET:
             logger.debug(u"Generating JWT secret...")
             CONFIG.JWT_SECRET = generate_uuid()
-            CONFIG.write()
-
-        if CONFIG.JWT_UUID == '' or CONFIG.JWT_UPDATE_UUID:
-            logger.debug(u"Generating JWT UUID...")
-            CONFIG.JWT_UUID = generate_uuid()
-            CONFIG.JWT_UPDATE_UUID = False
+            CONFIG.JWT_UPDATE_SECRET = False
             CONFIG.write()
 
         # Get the previous version from the file

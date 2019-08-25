@@ -139,7 +139,7 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
 
 
 def check_jwt_token():
-    jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.JWT_UUID
+    jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
     jwt_token = cherrypy.request.cookie.get(jwt_cookie)
 
     if jwt_token:
@@ -285,7 +285,7 @@ class AuthController(object):
         if payload:
             self.on_logout(payload['user'], payload['user_group'])
 
-        jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.JWT_UUID
+        jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
         cherrypy.response.cookie[jwt_cookie] = 'expire'
         cherrypy.response.cookie[jwt_cookie]['expires'] = 0
         cherrypy.response.cookie[jwt_cookie]['path'] = '/'
@@ -331,14 +331,14 @@ class AuthController(object):
                           success=True,
                           oauth=bool(token))
 
-            jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.JWT_UUID
+            jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
             cherrypy.response.cookie[jwt_cookie] = jwt_token
             cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
             cherrypy.response.cookie[jwt_cookie]['path'] = '/'
 
             cherrypy.request.login = payload
             cherrypy.response.status = 200
-            return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.JWT_UUID}
+            return {'status': 'success', 'token': jwt_token.decode('utf-8'), 'uuid': plexpy.CONFIG.PMS_UUID}
 
         elif admin_login == '1' and username:
             self.on_login(username=username)
