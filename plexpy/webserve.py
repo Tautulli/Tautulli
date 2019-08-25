@@ -53,6 +53,7 @@ import pmsconnect
 import users
 import versioncheck
 import web_socket
+import webauth
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -2855,9 +2856,15 @@ class WebInterface(object):
                 else:
                     kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
+                # Refresh JWT uuid to log out clients
+                webauth.jwt_uuid(refresh=True)
+
             elif kwargs['http_password'] and kwargs.get('http_hash_password'):
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
                 kwargs['http_hashed_password'] = 1
+
+                # Refresh JWT uuid to log out clients
+                webauth.jwt_uuid(refresh=True)
 
             elif not kwargs.get('http_hash_password'):
                 kwargs['http_hashed_password'] = 0

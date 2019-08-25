@@ -624,6 +624,7 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_CONCURRENT': (int, 'XBMC', 0),
     'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0),
     'JWT_SECRET': (str, 'Advanced', ''),
+    'JWT_UUID': (str, 'Advanced', ''),
     'SYSTEM_ANALYTICS': (int, 'Advanced', 1),
     'WIN_SYS_TRAY': (int, 'General', 1)
 }
@@ -921,3 +922,8 @@ class Config(object):
             self.BUFFER_THRESHOLD = max(self.BUFFER_THRESHOLD, 10)
 
             self.CONFIG_VERSION = 13
+
+        if self.CONFIG_VERSION == 13:
+            self.JWT_UUID = self.PMS_UUID
+
+            self.CONFIG_VERSION = 14
