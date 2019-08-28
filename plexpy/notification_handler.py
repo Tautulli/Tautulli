@@ -1332,6 +1332,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
                            'tvmaze_json': json.dumps(tvmaze_json)}
             db.upsert(table_name='tvmaze_lookup', key_dict=keys, value_dict=tvmaze_info)
 
+            tvmaze_info.update(keys)
             tvmaze_info.pop('tvmaze_json')
 
         else:
@@ -1394,6 +1395,7 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
                 db.upsert(table_name='themoviedb_lookup', key_dict=keys, value_dict=themoviedb_info)
 
+                themoviedb_info.update(keys)
                 themoviedb_info.pop('themoviedb_json')
 
         else:
@@ -1446,6 +1448,8 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
                            }
 
         db.upsert(table_name='themoviedb_lookup', key_dict=keys, value_dict=themoviedb_info)
+
+        themoviedb_info.update(keys)
 
     else:
         if err_msg:
