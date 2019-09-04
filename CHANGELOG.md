@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.1.34 (2019-09-03)
+
+* History:
+  * New: Added Product column to history tables.
+* Notifications:
+  * Fix: IMDB/TMDb/TVDB/TVmaze ID notification parameters showing blank values after lookup.
+* UI:
+  * Fix: Libraries and Users tables did not respect the group history setting.
+* API:
+  * Fix: Title field was not searchable in get_library_media_info command.
+  * New: Added grouping option to get_libraries_table and get_users_table commands.
+  * New: Added product value to get_history command.
+* Other:
+  * Fix: Could not verify Plex Media Server with unpublished hostnames.
+  * Change: Automatically logout all Tautulli instances when changing the admin password.
+
+
 ## v2.1.33 (2019-07-27)
 
 * Notifications:
