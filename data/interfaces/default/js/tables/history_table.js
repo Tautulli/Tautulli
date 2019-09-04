@@ -49,7 +49,7 @@ history_table_options = {
         },
         {
             "targets": [1],
-            "data":"date",
+            "data": "date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var date = moment(cellData, "X").format(date_format);
                 if (rowData['state'] !== null) {
@@ -77,7 +77,7 @@ history_table_options = {
         },
         {
             "targets": [2],
-            "data":"friendly_name",
+            "data": "friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['user_id']) {
@@ -112,7 +112,18 @@ history_table_options = {
         },
         {
             "targets": [4],
-            "data":"platform",
+            "data": "platform",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(capitalizeFirstLetter(cellData));
+                }
+            },
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [5],
+            "data": "product",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
@@ -122,7 +133,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -137,12 +148,12 @@ history_table_options = {
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp;' + cellData + '</div></a></div>');
                 }
             },
-            "width": "12%",
+            "width": "10%",
             "className": "no-wrap modal-control"
         },
         {
-            "targets": [6],
-            "data":"full_title",
+            "targets": [7],
+            "data": "full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var parent_info = '';
@@ -171,12 +182,12 @@ history_table_options = {
                     }
                 }
             },
-            "width": "33%",
+            "width": "25%",
             "className": "datatable-wrap"
         },
         {
-            "targets": [7],
-            "data":"started",
+            "targets": [8],
+            "data": "started",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null) {
                     $(td).html('n/a');
@@ -189,8 +200,8 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [8],
-            "data":"paused_counter",
+            "targets": [9],
+            "data": "paused_counter",
             "render": function (data, type, full) {
                 if (data !== null) {
                     return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
@@ -203,8 +214,8 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [9],
-            "data":"stopped",
+            "targets": [10],
+            "data": "stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null || (rowData['state'] != null && rowData['state'] != "stopped")) {
                     $(td).html('n/a');
@@ -217,8 +228,8 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [10],
-            "data":"duration",
+            "targets": [11],
+            "data": "duration",
             "render": function (data, type, full) {
                 if (data !== null) {
                     return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
@@ -231,7 +242,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [11],
+            "targets": [12],
             "data": "watched_status",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData == 1) {
@@ -489,7 +500,8 @@ function childTableFormat(rowData) {
                 '<th align="left" id="friendly_name">User</th>' +
                 '<th align="left" id="ip_address">IP Address</th>' +
                 '<th align="left" id="platform">Platform</th>' +
-                '<th align="left" id="platform">Player</th>' +
+                '<th align="left" id="product">Product</th>' +
+                '<th align="left" id="player">Player</th>' +
                 '<th align="left" id="title">Title</th>' +
                 '<th align="left" id="started">Started</th>' +
                 '<th align="left" id="paused_counter">Paused</th>' +

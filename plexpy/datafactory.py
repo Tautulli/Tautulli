@@ -76,6 +76,7 @@ class DataFactory(object):
             '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
              THEN users.username ELSE users.friendly_name END) AS friendly_name',
             'platform',
+            'product',
             'player',
             'ip_address',
             'session_history.media_type',
@@ -123,6 +124,7 @@ class DataFactory(object):
                 '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
                  THEN user ELSE friendly_name END) AS friendly_name',
                 'platform',
+                'product',
                 'player',
                 'ip_address',
                 'media_type',
@@ -225,6 +227,7 @@ class DataFactory(object):
                    'user': item['user'],
                    'friendly_name': item['friendly_name'],
                    'platform': platform,
+                   'product': item['product'],
                    'player': item['player'],
                    'ip_address': item['ip_address'],
                    'media_type': item['media_type'],

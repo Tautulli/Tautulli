@@ -184,6 +184,7 @@ DOCUMENTATION :: END
                                                     <th align="left" id="friendly_name">User</th>
                                                     <th align="left" id="ip_address">IP Address</th>
                                                     <th align="left" id="platform">Platform</th>
+                                                    <th align="left" id="product">Product</th>
                                                     <th align="left" id="player">Player</th>
                                                     <th align="left" id="title">Title</th>
                                                     <th align="left" id="started">Started</th>
@@ -425,7 +426,7 @@ DOCUMENTATION :: END
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
         history_table.column(2).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
         $(colvis.button()).appendTo('#button-bar-history');
 
         clearSearchButton('history_table-UID-${data["user_id"]}', history_table);
