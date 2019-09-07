@@ -1101,6 +1101,8 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
 
 def strip_tag(data, agent_id=None):
+    # Substitute temporary tokens for < and > in parameter prefix and suffix
+    data = re.sub(r'{.+?}', lambda m: m.group().replace('<', '%temp_lt_token%').replace('>', '%temp_gt_token%'), data)
 
     if agent_id == 7:
         # Allow tags b, i, u, a[href], font[color] for Pushover
@@ -1109,11 +1111,11 @@ def strip_tag(data, agent_id=None):
                      'u': [],
                      'a': ['href'],
                      'font': ['color']}
-        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id in (10, 14, 20):
         # Don't remove tags for Email, Slack, and Discord
-        return data
+        pass
 
     elif agent_id == 13:
         # Allow tags b, i, code, pre, a[href] for Telegram
@@ -1122,11 +1124,14 @@ def strip_tag(data, agent_id=None):
                      'code': [],
                      'pre': [],
                      'a': ['href']}
-        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     else:
         whitelist = {}
-        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+
+    # Resubstitute temporary tokens for < and > in parameter prefix and suffix
+    return data.replace('%temp_lt_token%', '<').replace('%temp_gt_token%', '>')
 
 
 def format_group_index(group_keys):
