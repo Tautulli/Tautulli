@@ -172,7 +172,6 @@ HW_DECODERS = [
 ]
 HW_ENCODERS = [
     'qsv',
-    'nvenc',
     'mf',
     'videotoolbox',
     'mediacodecndk',
