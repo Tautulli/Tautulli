@@ -168,7 +168,8 @@ HW_DECODERS = [
     'dxva2',
     'videotoolbox',
     'mediacodecndk',
-    'vaapi'
+    'vaapi',
+    'nvdec'
 ]
 HW_ENCODERS = [
     'qsv',
