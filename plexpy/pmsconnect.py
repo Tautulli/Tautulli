@@ -1957,8 +1957,7 @@ class PmsConnect(object):
             if stream_details['optimized_version']:
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 optimized_version_profile = '{} Mbps {}'.format(round(source_bitrate / 1000.0, 1),
-                    plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(source_media_details['video_resolution'],
-                                                                 source_media_details['video_resolution']))
+                                                                source_media_details['video_full_resolution'])
             else:
                 optimized_version_profile = ''
 
