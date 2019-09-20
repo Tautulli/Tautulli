@@ -17,13 +17,13 @@ import threading
 import time
 
 import plexpy
+import activity_handler
 import activity_processor
 import database
 import helpers
 import libraries
 import logger
 import notification_handler
-import notifiers
 import plextv
 import pmsconnect
 import web_socket
@@ -49,6 +49,9 @@ def check_active_sessions(ws_request=False):
             # Check our temp table for what we must do with the new streams
             db_streams = monitor_process.get_sessions()
             for stream in db_streams:
+                # Clear the metadata cache
+                activity_handler.delete_metadata_cache(stream['session_key'])
+
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):
                     # The user's session is still active
