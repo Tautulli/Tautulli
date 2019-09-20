@@ -430,7 +430,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Album Count', 'type': 'int', 'value': 'album_count', 'description': 'The number of albums.'},
              {'name': 'Track Count', 'type': 'int', 'value': 'track_count', 'description': 'The number of tracks.'},
              {'name': 'Year', 'type': 'int', 'value': 'year', 'description': 'The release year for the item.'},
-             {'name': 'Release Date', 'type': 'int', 'value': 'release_date', 'description': 'The release date (in date format) for the item.'},
+             {'name': 'Release Date', 'type': 'str', 'value': 'release_date', 'description': 'The release date (in date format) for the item.'},
              {'name': 'Air Date', 'type': 'str', 'value': 'air_date', 'description': 'The air date (in date format) for the item.'},
              {'name': 'Added Date', 'type': 'str', 'value': 'added_date', 'description': 'The date (in date format) the item was added to Plex.'},
              {'name': 'Updated Date', 'type': 'str', 'value': 'updated_date', 'description': 'The date (in date format) the item was updated on Plex.'},
