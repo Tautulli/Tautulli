@@ -1242,6 +1242,7 @@ class PmsConnect(object):
                                             'video_language': helpers.get_xml_attr(stream, 'language'),
                                             'video_language_code': helpers.get_xml_attr(stream, 'languageCode'),
                                             'video_profile': helpers.get_xml_attr(stream, 'profile'),
+                                            'video_scan_type': helpers.get_xml_attr(stream, 'scanType'),
                                             'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
@@ -1661,6 +1662,7 @@ class PmsConnect(object):
                              'stream_video_ref_frames': helpers.get_xml_attr(video_stream_info, 'refFrames'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
+                             'stream_video_scan_type': helpers.get_xml_attr(video_stream_info, 'scanType'),
                              'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision') or 'direct play'
                              }
         else:
@@ -1670,6 +1672,7 @@ class PmsConnect(object):
                              'stream_video_ref_frames': '',
                              'stream_video_language': '',
                              'stream_video_language_code': '',
+                             'stream_video_scan_type': '',
                              'stream_video_decision': ''
                              }
 
@@ -1849,6 +1852,7 @@ class PmsConnect(object):
                                     'video_width': '',
                                     'video_language': '',
                                     'video_language_code': '',
+                                    'video_scan_type': '',
                                     'video_profile': ''
                                     }
             source_audio_details = {'id': '',
