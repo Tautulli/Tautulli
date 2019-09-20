@@ -297,7 +297,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
-                            'GROUP BY t.full_title ' \
+                            'GROUP BY t.full_title, t.year ' \
                             'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
@@ -348,7 +348,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
-                            'GROUP BY t.full_title ' \
+                            'GROUP BY t.full_title, t.year ' \
                             'ORDER BY users_watched DESC, %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
