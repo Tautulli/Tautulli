@@ -37,21 +37,24 @@ int_ping_count = 0
 def check_active_sessions(ws_request=False):
 
     with monitor_lock:
-        pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity()
         monitor_db = database.MonitorDatabase()
         monitor_process = activity_processor.ActivityProcessor()
+        db_streams = monitor_process.get_sessions()
+
+        # Clear the metadata cache
+        for stream in db_streams:
+            activity_handler.delete_metadata_cache(stream['session_key'])
+
+        pms_connect = pmsconnect.PmsConnect()
+        session_list = pms_connect.get_current_activity()
+
         logger.debug(u"Tautulli Monitor :: Checking for active streams.")
 
         if session_list:
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
-            db_streams = monitor_process.get_sessions()
             for stream in db_streams:
-                # Clear the metadata cache
-                activity_handler.delete_metadata_cache(stream['session_key'])
-
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):
                     # The user's session is still active
