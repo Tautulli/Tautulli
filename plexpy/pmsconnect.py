@@ -1290,7 +1290,7 @@ class PmsConnect(object):
                                'width': helpers.get_xml_attr(media, 'width'),
                                'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
                                'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
@@ -1730,7 +1730,7 @@ class PmsConnect(object):
         if helpers.cast_to_int(stream_video_width) >= 3840:
             stream_video_resolution = '4k'
         else:
-            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p')
+            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p').lower()
 
         stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 
@@ -1810,7 +1810,7 @@ class PmsConnect(object):
                                 'height': helpers.get_xml_attr(stream_media_info, 'height'),
                                 'width': helpers.get_xml_attr(stream_media_info, 'width'),
                                 'video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
-                                'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                                'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution').lower(),
                                 'audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
@@ -2467,7 +2467,7 @@ class PmsConnect(object):
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                                       'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                                      'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                                      'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
                                       'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                       'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                       'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
