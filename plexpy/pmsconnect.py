@@ -1925,6 +1925,14 @@ class PmsConnect(object):
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
+            # Set the full resolution by combining video_resolution and video_scan_type
+            source_media_details['video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
+                source_media_details['video_resolution'],
+                source_media_details['video_resolution'] + (source_video_details['video_scan_type'][:1] or 'p'))
+            # Set the full resolution by combining stream_video_resolution and stream_video_scan_type
+            stream_details['stream_video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
+                stream_details['stream_video_resolution'],
+                stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
             if sync_id:
                 quality_profile = 'Original'
 
