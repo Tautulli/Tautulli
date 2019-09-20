@@ -445,7 +445,7 @@
                                     v_res = '4k';
                                     break;
                                 default:
-                                    v_res = s.video_resolution + 'p'
+                                    v_res = s.video_full_resolution;
                             }
                             var sv_res = '';
                             switch (s.stream_video_resolution.toLowerCase()) {
@@ -456,7 +456,7 @@
                                     sv_res = '4k';
                                     break;
                                 default:
-                                    sv_res = s.stream_video_resolution + 'p'
+                                    sv_res = s.stream_video_full_resolution;
                             }
                             if (s.stream_video_decision === 'transcode') {
                                 var hw_d = (s.transcode_hw_decoding === 1) ? ' (HW)' : '';

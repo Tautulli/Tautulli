@@ -1242,6 +1242,7 @@ class PmsConnect(object):
                                             'video_language': helpers.get_xml_attr(stream, 'language'),
                                             'video_language_code': helpers.get_xml_attr(stream, 'languageCode'),
                                             'video_profile': helpers.get_xml_attr(stream, 'profile'),
+                                            'video_scan_type': helpers.get_xml_attr(stream, 'scanType'),
                                             'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
@@ -1290,7 +1291,7 @@ class PmsConnect(object):
                                'width': helpers.get_xml_attr(media, 'width'),
                                'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
                                'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
@@ -1661,6 +1662,7 @@ class PmsConnect(object):
                              'stream_video_ref_frames': helpers.get_xml_attr(video_stream_info, 'refFrames'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
+                             'stream_video_scan_type': helpers.get_xml_attr(video_stream_info, 'scanType'),
                              'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision') or 'direct play'
                              }
         else:
@@ -1670,6 +1672,7 @@ class PmsConnect(object):
                              'stream_video_ref_frames': '',
                              'stream_video_language': '',
                              'stream_video_language_code': '',
+                             'stream_video_scan_type': '',
                              'stream_video_decision': ''
                              }
 
@@ -1730,7 +1733,7 @@ class PmsConnect(object):
         if helpers.cast_to_int(stream_video_width) >= 3840:
             stream_video_resolution = '4k'
         else:
-            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p')
+            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p').lower()
 
         stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 
@@ -1810,7 +1813,7 @@ class PmsConnect(object):
                                 'height': helpers.get_xml_attr(stream_media_info, 'height'),
                                 'width': helpers.get_xml_attr(stream_media_info, 'width'),
                                 'video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
-                                'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                                'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution').lower(),
                                 'audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
@@ -1849,6 +1852,7 @@ class PmsConnect(object):
                                     'video_width': '',
                                     'video_language': '',
                                     'video_language_code': '',
+                                    'video_scan_type': '',
                                     'video_profile': ''
                                     }
             source_audio_details = {'id': '',
@@ -1919,6 +1923,15 @@ class PmsConnect(object):
         if transcode_details['transcode_video_codec'] == '*':
             transcode_details['transcode_video_codec'] = source_video_details['video_codec']
 
+        # Set the full resolution by combining video_resolution and video_scan_type
+        source_media_details['video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
+            source_media_details['video_resolution'],
+            source_media_details['video_resolution'] + (source_video_details['video_scan_type'][:1] or 'p'))
+        # Set the full resolution by combining stream_video_resolution and stream_video_scan_type
+        stream_details['stream_video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
+            stream_details['stream_video_resolution'],
+            stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
+
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
             if sync_id:
@@ -1945,8 +1958,7 @@ class PmsConnect(object):
             if stream_details['optimized_version']:
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 optimized_version_profile = '{} Mbps {}'.format(round(source_bitrate / 1000.0, 1),
-                    plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(source_media_details['video_resolution'],
-                                                                 source_media_details['video_resolution']))
+                                                                source_media_details['video_full_resolution'])
             else:
                 optimized_version_profile = ''
 
@@ -2467,7 +2479,7 @@ class PmsConnect(object):
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                                       'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                                      'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                                      'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
                                       'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                       'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                       'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),

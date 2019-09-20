@@ -232,11 +232,11 @@ DOCUMENTATION :: END
                                             hw_d = ' (HW)' if data['transcode_hw_decoding'] else ''
                                             hw_e = ' (HW)' if data['transcode_hw_encoding'] else ''
                                         %>
-                                        Transcode (${data['video_codec'].upper()}${hw_d} ${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
+                                        Transcode (${data['video_codec'].upper()}${hw_d} ${data['video_full_resolution']} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${data['stream_video_full_resolution']})
                                         % elif data['stream_video_decision'] == 'copy':
-                                        Direct Stream (${data['stream_video_codec'].upper()} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
+                                        Direct Stream (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']})
                                         % else:
-                                        Direct Play (${data['stream_video_codec'].upper()} ${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})
+                                        Direct Play (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']})
                                         % endif
                                     % elif data['media_type'] == 'photo':
                                     Direct Play (${data['width']}x${data['height']})
