@@ -2857,9 +2857,6 @@ class WebInterface(object):
                 else:
                     kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
-                # Flag to refresh JWT uuid to log out clients
-                kwargs['jwt_update_secret'] = True
-
             elif kwargs['http_password'] and kwargs.get('http_hash_password'):
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
                 kwargs['http_hashed_password'] = 1
@@ -2869,6 +2866,10 @@ class WebInterface(object):
 
             elif not kwargs.get('http_hash_password'):
                 kwargs['http_hashed_password'] = 0
+
+                # Flag to refresh JWT uuid to log out clients
+                kwargs['jwt_update_secret'] = True
+
         else:
             kwargs['http_hashed_password'] = 0
 
