@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.1.35-beta (2019-09-24)
+
+* Monitoring:
+  * Fix: Audio shown as blank on activity cards when changing audio tracks during direct play.
+  * Fix: Display correct interlaced or progressive video scan type on activity cards.
+  * New: Added flag for Nvidia hardware decoding on activity cards.
+* Notifications:
+  * Fix: Notification parameter prefix and suffix were not substituted correctly.
+  * Fix: Release Date notification parameter was incorrectly casted to an integer instead of a string.
+  * New: Added video scan type and full resolution notification parameters.
+* UI:
+  * Fix: Movies with the same title but different year being grouped on the homepage stats cards.
+* API:
+  * New: Added video scan type and full resolution values to get_activity command.
+* Other:
+  * Fix: Tautulli logging out every time after saving settings and restarting.
+
+
 ## v2.1.34 (2019-09-03)
 
 * History:
