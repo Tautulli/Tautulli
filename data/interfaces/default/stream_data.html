@@ -96,8 +96,8 @@ DOCUMENTATION :: END
                     % if data['media_type'] != 'track':
                     <tr>
                         <td>Resolution</td>
-                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])}</td>
-                        <td>${VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])}</td>
+                        <td>${data['stream_video_full_resolution']}</td>
+                        <td>${data['video_full_resolution']}</td>
                     </tr>
                     % endif
                     <tr>

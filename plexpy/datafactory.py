@@ -875,12 +875,12 @@ class DataFactory(object):
             user_cond = 'AND %s.user_id = %s ' % (table, session.get_session_user_id())
 
         if row_id:
-            query = 'SELECT bitrate, video_resolution, ' \
+            query = 'SELECT bitrate, video_full_resolution, ' \
                     'optimized_version, optimized_version_profile, optimized_version_title, ' \
                     'synced_version, synced_version_profile, ' \
                     'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
-                    'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
+                    'stream_bitrate, stream_video_full_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
                     'stream_video_framerate, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
@@ -896,12 +896,12 @@ class DataFactory(object):
                     'WHERE session_history_media_info.id = ? %s' % user_cond
             result = monitor_db.select(query, args=[row_id])
         elif session_key:
-            query = 'SELECT bitrate, video_resolution, ' \
+            query = 'SELECT bitrate, video_full_resolution, ' \
                     'optimized_version, optimized_version_profile, optimized_version_title, ' \
                     'synced_version, synced_version_profile, ' \
                     'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
-                    'stream_bitrate, stream_video_resolution, quality_profile, stream_container_decision, stream_container, ' \
+                    'stream_bitrate, stream_video_full_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
                     'stream_video_framerate, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
@@ -924,7 +924,7 @@ class DataFactory(object):
 
             # For backwards compatibility. Pick one new Tautulli key to check and override with old values.
             if not item['stream_container']:
-                item['stream_video_resolution'] = item['video_resolution']
+                item['stream_video_full_resolution'] = item['video_full_resolution']
                 item['stream_container'] = item['transcode_container'] or item['container']
                 item['stream_video_decision'] = item['video_decision']
                 item['stream_video_codec'] = item['transcode_video_codec'] or item['video_codec']
@@ -938,7 +938,7 @@ class DataFactory(object):
                 pre_tautulli = 1
 
             stream_output = {'bitrate': item['bitrate'],
-                             'video_resolution': item['video_resolution'],
+                             'video_full_resolution': item['video_full_resolution'],
                              'optimized_version': item['optimized_version'],
                              'optimized_version_profile': item['optimized_version_profile'],
                              'optimized_version_title': item['optimized_version_title'],
@@ -956,7 +956,7 @@ class DataFactory(object):
                              'audio_channels': item['audio_channels'],
                              'subtitle_codec': item['subtitle_codec'],
                              'stream_bitrate': item['stream_bitrate'],
-                             'stream_video_resolution': item['stream_video_resolution'],
+                             'stream_video_full_resolution': item['stream_video_full_resolution'],
                              'quality_profile': item['quality_profile'],
                              'stream_container_decision': item['stream_container_decision'],
                              'stream_container': item['stream_container'],
