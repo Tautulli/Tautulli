@@ -582,12 +582,12 @@ def dbcheck():
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
         'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
         'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, '
-        'video_framerate TEXT, aspect_ratio TEXT, '
+        'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, aspect_ratio TEXT, '
         'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, subtitle_codec TEXT, '
         'stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
         'stream_container_decision TEXT, stream_container TEXT, '
         'stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, '
-        'stream_video_height INTEGER, stream_video_framerate TEXT, '
+        'stream_video_height INTEGER, stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
         'subtitles INTEGER, stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
         'transcode_protocol TEXT, transcode_container TEXT, '
@@ -617,7 +617,7 @@ def dbcheck():
         'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, '
         'container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, video_bitrate INTEGER, video_bit_depth INTEGER, '
         'video_codec TEXT, video_codec_level TEXT, video_width INTEGER, video_height INTEGER, video_resolution TEXT, '
-        'video_framerate TEXT, aspect_ratio TEXT, '
+        'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, aspect_ratio TEXT, '
         'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
         'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, '
@@ -627,7 +627,7 @@ def dbcheck():
         'stream_container TEXT, stream_container_decision TEXT, stream_bitrate INTEGER, '
         'stream_video_decision TEXT, stream_video_bitrate INTEGER, stream_video_codec TEXT, stream_video_codec_level TEXT, '
         'stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, '
-        'stream_video_framerate TEXT, '
+        'stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
         'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, '
         'subtitles INTEGER, subtitle_codec TEXT, synced_version INTEGER, synced_version_profile TEXT, '
@@ -1175,6 +1175,24 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN rating_key_websocket TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT video_scan_type FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_scan_type TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_full_resolution TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_scan_type TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_video_full_resolution TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1473,6 +1491,45 @@ def dbcheck():
             )
     except sqlite3.OperationalError:
         logger.warn(u"Unable to remove NULL values from session_history_media_info table.")
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT video_scan_type FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_scan_type TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN video_full_resolution TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_scan_type TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_full_resolution TEXT'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET video_scan_type = "progressive" '
+            'WHERE video_resolution != ""'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET stream_video_scan_type = "progressive" '
+            'WHERE stream_video_resolution != "" AND stream_video_resolution IS NOT NULL'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET video_full_resolution = (CASE '
+            'WHEN video_resolution = "" OR video_resolution = "SD" OR video_resolution = "4k" THEN video_resolution '
+            'WHEN video_resolution = "sd" THEN "SD" '
+            'ELSE video_resolution || "p" END)'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET stream_video_full_resolution = ( '
+            'CASE WHEN stream_video_resolution = "" OR stream_video_resolution = "SD" OR stream_video_resolution = "4k" '
+            'THEN stream_video_resolution '
+            'WHEN stream_video_resolution = "sd" THEN "SD" '
+            'ELSE stream_video_resolution || "p" END)'
+        )
 
     # Upgrade users table from earlier versions
     try:
