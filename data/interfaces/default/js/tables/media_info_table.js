@@ -50,7 +50,7 @@ media_info_table_options = {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Episodes"><i class="fa fa-plus-circle fa-fw"></i></span>';
                         $(td).html('<div><a href="#"><div style="float: left;">' + expand_details + '&nbsp;' + date + '</div></a></div>');
                     } else if (rowData['media_type'] === 'artist') {
-                        expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Albumns"><i class="fa fa-plus-circle fa-fw"></i></span>';
+                        expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Albums"><i class="fa fa-plus-circle fa-fw"></i></span>';
                         $(td).html('<div><a href="#"><div style="float: left;">' + expand_details + '&nbsp;' + date + '</div></a></div>');
                     } else if (rowData['media_type'] === 'album') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Tracks"><i class="fa fa-plus-circle fa-fw"></i></span>';
