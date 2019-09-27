@@ -1220,6 +1220,7 @@ class PmsConnect(object):
             medias = []
             media_items = metadata_main.getElementsByTagName('Media')
             for media in media_items:
+                video_full_resolution_scan_type = None
 
                 parts = []
                 part_items = media.getElementsByTagName('Part')
@@ -1229,6 +1230,10 @@ class PmsConnect(object):
                     stream_items = part.getElementsByTagName('Stream')
                     for stream in stream_items:
                         if helpers.get_xml_attr(stream, 'streamType') == '1':
+                            video_scan_type = helpers.get_xml_attr(stream, 'scanType')
+                            if video_full_resolution_scan_type is None:
+                                video_full_resolution_scan_type = video_scan_type
+
                             streams.append({'id': helpers.get_xml_attr(stream, 'id'),
                                             'type': helpers.get_xml_attr(stream, 'streamType'),
                                             'video_codec': helpers.get_xml_attr(stream, 'codec'),
@@ -1282,6 +1287,13 @@ class PmsConnect(object):
                                   'selected': int(helpers.get_xml_attr(part, 'selected') == '1')
                                   })
 
+                video_resolution = helpers.get_xml_attr(media, 'videoResolution').lower()
+                video_full_resolution = ''
+                if video_full_resolution_scan_type is not None:
+                    video_full_resolution = common.VIDEO_RESOLUTION_OVERRIDES.get(
+                        video_resolution, video_resolution + (video_full_resolution_scan_type[:1] or 'p')
+                    )
+
                 audio_channels = helpers.get_xml_attr(media, 'audioChannels')
 
                 medias.append({'id': helpers.get_xml_attr(media, 'id'),
@@ -1291,7 +1303,8 @@ class PmsConnect(object):
                                'width': helpers.get_xml_attr(media, 'width'),
                                'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
                                'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
+                               'video_resolution': video_resolution,
+                               'video_full_resolution': video_full_resolution,
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
@@ -1301,7 +1314,9 @@ class PmsConnect(object):
                                'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
                                'parts': parts
                                })
-        
+
+                video_full_resolution = helpers.get_xml_attr(media, 'videoResolution').lower()
+
             metadata['media_info'] = medias
 
         if metadata:
@@ -1926,14 +1941,11 @@ class PmsConnect(object):
         if transcode_details['transcode_video_codec'] == '*':
             transcode_details['transcode_video_codec'] = source_video_details['video_codec']
 
-        # Set the full resolution by combining video_resolution and video_scan_type
-        source_media_details['video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
-            source_media_details['video_resolution'],
-            source_media_details['video_resolution'] + (source_video_details['video_scan_type'][:1] or 'p'))
-        # Set the full resolution by combining stream_video_resolution and stream_video_scan_type
-        stream_details['stream_video_full_resolution'] = plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(
-            stream_details['stream_video_resolution'],
-            stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
+        if media_type in ('movie', 'episode', 'clip'):
+            # Set the full resolution by combining stream_video_resolution and stream_video_scan_type
+            stream_details['stream_video_full_resolution'] = common.VIDEO_RESOLUTION_OVERRIDES.get(
+                stream_details['stream_video_resolution'],
+                stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:

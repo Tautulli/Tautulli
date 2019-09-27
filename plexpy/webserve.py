@@ -4599,6 +4599,7 @@ class WebInterface(object):
                                              "video_language_code": "",
                                              "video_profile": "high",
                                              "video_ref_frames": "4",
+                                             "video_scan_type": "progressive",
                                              "video_width": "1920",
                                              "selected": 0
                                          },
@@ -4633,6 +4634,7 @@ class WebInterface(object):
                              ],
                              "video_codec": "h264",
                              "video_framerate": "24p",
+                             "video_full_resolution": "1080p",
                              "video_profile": "high",
                              "video_resolution": "1080",
                              "width": "1920"
