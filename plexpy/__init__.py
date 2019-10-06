@@ -751,6 +751,13 @@ def dbcheck():
         'themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
     )
 
+    # musicbrainz_lookup table :: This table keeps record of the MusicBrainz lookups
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS musicbrainz_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'rating_key INTEGER, musicbrainz_id INTEGER, musicbrainz_url TEXT, musicbrainz_type TEXT, '
+        'musicbrainz_json TEXT)'
+    )
+
     # image_hash_lookup table :: This table keeps record of the image hash lookups
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -1927,6 +1934,9 @@ def dbcheck():
     )
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup ON themoviedb_lookup (rating_key)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_musicbrainz_lookup ON musicbrainz_lookup (rating_key)'
     )
 
     conn_db.commit()

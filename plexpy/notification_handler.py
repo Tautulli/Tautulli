@@ -643,11 +643,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             tracks = notify_params['children_count']
             tnum = notify_params['media_index']
 
-        result = lookup_musicbrainz(musicbrainz_type=musicbrainz_type, artist=artist, release=release,
-                                    recording=recording, tracks=tracks, tnum=tnum)
-        if result:
-            notify_params['musicbrainz_id'] = result['id']
-            notify_params['musicbrainz_url'] = 'https://musicbrainz.org/' + musicbrainz_type + '/' + notify_params['musicbrainz_id']
+        musicbrainz_info = lookup_musicbrainz_info(musicbrainz_type=musicbrainz_type, rating_key=rating_key,
+                                                   artist=artist, release=release, recording=recording, tracks=tracks,
+                                                   tnum=tnum)
+        notify_params.update(musicbrainz_info)
 
     if notify_params['media_type'] in ('movie', 'show', 'artist'):
         poster_thumb = notify_params['thumb']
@@ -1499,30 +1498,67 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
     return themoviedb_json
 
 
-def lookup_musicbrainz(musicbrainz_type=None, artist=None, release=None, recording=None, tracks=None, tnum=None):
-    musicbrainzngs.set_useragent(
-        common.PRODUCT,
-        common.RELEASE,
-        "https://tautulli.com",
-    )
+def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None, release=None, recording=None,
+                            tracks=None, tnum=None):
+    db = database.MonitorDatabase()
 
-    if musicbrainz_type == 'artist':
-        result = musicbrainzngs.search_artists(artist=artist, strict=True, limit=1)
-        if result['artist-list']:
-            return result['artist-list'][0]
+    try:
+        query = 'SELECT musicbrainz_id, musicbrainz_url, musicbrainz_type FROM musicbrainz_lookup ' \
+                'WHERE rating_key = ?'
+        musicbrainz_info = db.select_single(query, args=[rating_key])
+    except Exception as e:
+        logger.warn(u"Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e)
+        return {}
 
-    elif musicbrainz_type == 'release':
-        result = musicbrainzngs.search_releases(artist=artist, release=release, tracks=tracks,
-                                                strict=True, limit=1)
-        if result['release-list']:
-            return result['release-list'][0]
+    if not musicbrainz_info:
+        musicbrainzngs.set_useragent(
+            common.PRODUCT,
+            common.RELEASE,
+            "https://tautulli.com",
+        )
 
-    elif musicbrainz_type == 'recording':
-        result = musicbrainzngs.search_recordings(artist=artist, release=release, recording=recording,
-                                                  tracks=tracks, tnum=tnum,
-                                                  strict=True, limit=1)
-        if result['recording-list']:
-            return result['recording-list'][0]
+        if musicbrainz_type == 'artist':
+            logger.debug(u"Tautulli NotificationHandler :: Looking up MusicBrainz info for "
+                         u"{} '{}'.".format(musicbrainz_type, artist))
+            result = musicbrainzngs.search_artists(artist=artist, strict=True, limit=1)
+            if result['artist-list']:
+                musicbrainz_info = result['artist-list'][0]
+
+        elif musicbrainz_type == 'release':
+            logger.debug(u"Tautulli NotificationHandler :: Looking up MusicBrainz info for "
+                         u"{} '{} - {}'.".format(musicbrainz_type, artist, release))
+            result = musicbrainzngs.search_releases(artist=artist, release=release, tracks=tracks,
+                                                    strict=True, limit=1)
+            if result['release-list']:
+                musicbrainz_info = result['release-list'][0]
+
+        elif musicbrainz_type == 'recording':
+            logger.debug(u"Tautulli NotificationHandler :: Looking up MusicBrainz info for "
+                         u"{} '{} - {} - {}'.".format(musicbrainz_type, artist, release, recording))
+            result = musicbrainzngs.search_recordings(artist=artist, release=release, recording=recording,
+                                                      tracks=tracks, tnum=tnum,
+                                                      strict=True, limit=1)
+            if result['recording-list']:
+                musicbrainz_info = result['recording-list'][0]
+
+        if musicbrainz_info:
+            musicbrainz_id = musicbrainz_info['id']
+            musicbrainz_url = 'https://musicbrainz.org/' + musicbrainz_type + '/' + musicbrainz_id
+
+            keys = {'musicbrainz_id': musicbrainz_id}
+            musicbrainz_info = {'rating_key': rating_key,
+                                'musicbrainz_url': musicbrainz_url,
+                                'musicbrainz_type': musicbrainz_type,
+                                'musicbrainz_json': json.dumps(musicbrainz_info)}
+            db.upsert(table_name='musicbrainz_lookup', key_dict=keys, value_dict=musicbrainz_info)
+
+            musicbrainz_info.update(keys)
+            musicbrainz_info.pop('musicbrainz_json')
+
+        else:
+            logger.warning(u"Tautulli NotificationHandler :: No match found on MusicBrainz.")
+
+    return musicbrainz_info
 
 
 class CustomFormatter(Formatter):
