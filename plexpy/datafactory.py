@@ -1316,15 +1316,16 @@ class DataFactory(object):
         if str(rating_key).isdigit():
             lookup_key = rating_key
         elif metadata:
-            if metadata['media_type'] in ('movie', 'show', 'artist'):
+            if metadata['media_type'] in ('movie', 'show', 'artist', 'album', 'track'):
                 lookup_key = metadata['rating_key']
-            elif metadata['media_type'] in ('season', 'album'):
+            elif metadata['media_type'] == 'season':
                 lookup_key = metadata['parent_rating_key']
-            elif metadata['media_type'] in ('episode', 'track'):
+            elif metadata['media_type'] == 'episode':
                 lookup_key = metadata['grandparent_rating_key']
 
         lookup_info = {'tvmaze_id': '',
-                       'themoviedb_id': ''}
+                       'themoviedb_id': '',
+                       'musizbrainz_id': ''}
 
         if lookup_key:
             try:
@@ -1339,6 +1340,13 @@ class DataFactory(object):
                 themoviedb_info = monitor_db.select_single(query, args=[lookup_key])
                 if themoviedb_info:
                     lookup_info['themoviedb_id'] = themoviedb_info['themoviedb_id']
+
+                query = 'SELECT musicbrainz_id FROM musicbrainz_lookup ' \
+                        'WHERE rating_key = ?'
+                musicbrainz_info = monitor_db.select_single(query, args=[lookup_key])
+                if musicbrainz_info:
+                    lookup_info['musicbrainz_id'] = musicbrainz_info['musicbrainz_id']
+
             except Exception as e:
                 logger.warn(u"Tautulli DataFactory :: Unable to execute database query for get_lookup_info: %s." % e)
 
@@ -1352,7 +1360,8 @@ class DataFactory(object):
                         % (title, rating_key))
             result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
             result_themoviedb = monitor_db.action('DELETE FROM themoviedb_lookup WHERE rating_key = ?', [rating_key])
-            return True if (result_tvmaze or result_themoviedb) else False
+            result_musicbrainz = monitor_db.action('DELETE FROM musicbrainz_lookup WHERE rating_key = ?', [rating_key])
+            return True if (result_tvmaze or result_themoviedb or result_musicbrainz) else False
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

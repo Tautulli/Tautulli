@@ -4302,7 +4302,7 @@ class WebInterface(object):
             ```
             Required parameters:
                 rating_key (int):       1234
-                                        (Note: Must be the movie, show, or artist rating key)
+                                        (Note: Must be the movie, show, artist, album, or track rating key)
             Optional parameters:
                 None
 

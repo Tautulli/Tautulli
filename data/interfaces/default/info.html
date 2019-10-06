@@ -405,11 +405,11 @@ DOCUMENTATION :: END
                                 </a>
                             </div>
                             % endif
-                            % if data.get('tvmaze_id') or data.get('themoviedb_id'):
+                            % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
                             <div class="btn-group">
                                 <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-lookup-info"
-                                        data-id="${data['grandparent_rating_key'] if data['media_type'] in ('episode', 'track') else data['parent_rating_key'] if data['media_type'] in ('season', 'album') else data['rating_key']}"
-                                        data-title="${data['grandparent_title'] if data['media_type'] in ('episode', 'track') else data['parent_title'] if data['media_type'] in ('season', 'album') else data['title']}">
+                                        data-id="${data['grandparent_rating_key'] if data['media_type'] == 'episode' else data['parent_rating_key'] if data['media_type'] == 'season' else data['rating_key']}"
+                                        data-title="${data['grandparent_title'] if data['media_type'] == 'episode' else data['parent_title'] if data['media_type'] == 'season' else data['title']}">
                                     <i class="fa fa-search"></i> Delete Lookup Info
                                 </button>
                             </div>
@@ -751,7 +751,7 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data.get('tvmaze_id') or data.get('themoviedb_id'):
+% if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
 <script>
     $('#delete-lookup-info').on('click', function () {
         var msg = 'Are you sure you want to delete the 3rd party API lookup for <strong>' + $(this).data('title') + '</strong>?<br><br>' +
