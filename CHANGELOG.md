@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.36-beta (2019-10-05)
+
+* Monitoring:
+  * Fix: Activity card title not updating after pre-rolls or auto-play.
+* History:
+  * Fix: Display correct interlaced or progressive video scan type on stream data modal.
+* Graphs:
+  * New: Separate interlaced and progressive video scan type on source and stream resolution graphs.
+* API:
+  * New: Added parent_guid and grandparent_guid to get_activity and get_metadata commands.
+
+
 ## v2.1.35-beta (2019-09-24)
 
 * Monitoring:
