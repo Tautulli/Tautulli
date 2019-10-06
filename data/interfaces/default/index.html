@@ -355,8 +355,9 @@
                         var session_id = s.session_id;
                         var instance = $('#activity-instance-' + key);
 
-                        // Create a new instance if it doesn't exist
-                        if (!(instance.length)) {
+                        // Create a new instance if it doesn't exist or recreate the entire instance
+                        // if the rating key changed (for movies or episodes) with the same session key
+                        if (!(instance.length) || (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString())) {
                             create_instances.push(key);
                             getActivityInstance(key);
                             return;
@@ -382,7 +383,7 @@
                         // Switching tracks can be under the same session key, so need to update the info.
                         if (s.media_type === 'track') {
                             // Update if artist changed
-                            if (s.grandparent_rating_key !== instance.data('grandparent_rating_key')) {
+                            if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
                                 $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
@@ -390,7 +391,7 @@
                                     .text(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
-                            if (s.parent_rating_key !== instance.data('parent_rating_key')) {
+                            if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
                                 $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
                                 $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
                                 $('#poster-url-' + key)
@@ -402,7 +403,7 @@
                                     .text(s.parent_title);
                             }
                             // Update cover if track changed
-                            if (s.rating_key !== instance.data('rating_key')) {
+                            if (s.rating_key !== instance.data('rating_key').toString()) {
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
                                     .attr('title', s.original_title || s.grandparent_title)
@@ -580,7 +581,14 @@
                 session_key: session_key
             },
             complete: function(xhr, status) {
-                $('#currentActivity').append(xhr.responseText);
+                var instance = $('#activity-instance-' + session_key);
+
+                if (instance.length) {
+                    instance.replaceWith(xhr.responseText);
+                } else {
+                    $('#currentActivity').append(xhr.responseText);
+                }
+
                 $('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller').scrollbar();
                 $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
                 $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
