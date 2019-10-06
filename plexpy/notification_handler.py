@@ -27,6 +27,8 @@ from string import Formatter
 import threading
 import time
 
+import musicbrainzngs
+
 import plexpy
 import activity_processor
 import common
@@ -622,6 +624,31 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
 
+    # Get MusicBrainz info (for music only)
+    if plexpy.CONFIG.MUSICBRAINZ_LOOKUP and notify_params['media_type'] in ('artist', 'album', 'track'):
+        artist = release = recording = tracks = tnum = None
+        if notify_params['media_type'] == 'artist':
+            musicbrainz_type = 'artist'
+            artist = notify_params['title']
+        elif notify_params['media_type'] == 'album':
+            musicbrainz_type = 'release'
+            artist = notify_params['parent_title']
+            release = notify_params['title']
+            tracks = notify_params['children_count']
+        else:
+            musicbrainz_type = 'recording'
+            artist = notify_params['original_title']
+            release = notify_params['parent_title']
+            recording = notify_params['title']
+            tracks = notify_params['children_count']
+            tnum = notify_params['media_index']
+
+        result = lookup_musicbrainz(musicbrainz_type=musicbrainz_type, artist=artist, release=release,
+                                    recording=recording, tracks=tracks, tnum=tnum)
+        if result:
+            notify_params['musicbrainz_id'] = result['id']
+            notify_params['musicbrainz_url'] = 'https://musicbrainz.org/' + musicbrainz_type + '/' + notify_params['musicbrainz_id']
+
     if notify_params['media_type'] in ('movie', 'show', 'artist'):
         poster_thumb = notify_params['thumb']
         poster_key = notify_params['rating_key']
@@ -882,6 +909,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'themoviedb_url': notify_params['themoviedb_url'],
         'tvmaze_id': notify_params['tvmaze_id'],
         'tvmaze_url': notify_params['tvmaze_url'],
+        'musicbrainz_id': notify_params['musicbrainz_id'],
+        'musicbrainz_url': notify_params['musicbrainz_url'],
         'lastfm_url': notify_params['lastfm_url'],
         'trakt_url': notify_params['trakt_url'],
         'container': notify_params['container'],
@@ -1468,6 +1497,32 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
             logger.debug(u"Tautulli NotificationHandler :: Request response: {}".format(req_msg))
 
     return themoviedb_json
+
+
+def lookup_musicbrainz(musicbrainz_type=None, artist=None, release=None, recording=None, tracks=None, tnum=None):
+    musicbrainzngs.set_useragent(
+        common.PRODUCT,
+        common.RELEASE,
+        "https://tautulli.com",
+    )
+
+    if musicbrainz_type == 'artist':
+        result = musicbrainzngs.search_artists(artist=artist, strict=True, limit=1)
+        if result['artist-list']:
+            return result['artist-list'][0]
+
+    elif musicbrainz_type == 'release':
+        result = musicbrainzngs.search_releases(artist=artist, release=release, tracks=tracks,
+                                                strict=True, limit=1)
+        if result['release-list']:
+            return result['release-list'][0]
+
+    elif musicbrainz_type == 'recording':
+        result = musicbrainzngs.search_recordings(artist=artist, release=release, recording=recording,
+                                                  tracks=tracks, tnum=tnum,
+                                                  strict=True, limit=1)
+        if result['recording-list']:
+            return result['recording-list'][0]
 
 
 class CustomFormatter(Formatter):
