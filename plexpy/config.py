@@ -302,6 +302,7 @@ _CONFIG_DEFINITIONS = {
     'MUSIC_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'MUSIC_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
     'MUSIC_WATCHED_PERCENT': (int, 'Monitoring', 85),
+    'MUSICBRAINZ_LOOKUP': (int, 'General', 0),
     'MONITOR_PMS_UPDATES': (int, 'Monitoring', 0),
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
