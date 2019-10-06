@@ -4559,6 +4559,7 @@ class WebInterface(object):
                         "Drama",
                         "Fantasy"
                      ],
+                     "grandparent_guid": "com.plexapp.agents.thetvdb://121361?lang=en",
                      "grandparent_rating_key": "1219",
                      "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                      "grandparent_title": "Game of Thrones",
@@ -4643,6 +4644,7 @@ class WebInterface(object):
                      "media_type": "episode",
                      "original_title": "",
                      "originally_available_at": "2016-04-24",
+                     "parent_guid": "com.plexapp.agents.thetvdb://121361/6?lang=en",
                      "parent_media_index": "6",
                      "parent_rating_key": "153036",
                      "parent_thumb": "/library/metadata/153036/thumb/1462175062",
@@ -4953,6 +4955,7 @@ class WebInterface(object):
                                  "Drama",
                                  "Fantasy"
                              ],
+                             "grandparent_guid": "com.plexapp.agents.thetvdb://121361?lang=en",
                              "grandparent_rating_key": "1219",
                              "grandparent_thumb": "/library/metadata/1219/thumb/1503306930",
                              "grandparent_title": "Game of Thrones",
@@ -4980,6 +4983,7 @@ class WebInterface(object):
                              "optimized_version_title": "",
                              "originally_available_at": "2016-04-24",
                              "original_title": "",
+                             "parent_guid": "com.plexapp.agents.thetvdb://121361/6?lang=en",
                              "parent_media_index": "6",
                              "parent_rating_key": "153036",
                              "parent_thumb": "/library/metadata/153036/thumb/1503889210",
