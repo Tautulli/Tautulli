@@ -577,7 +577,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
 
     if 'lastfm://' in notify_params['guid']:
-        notify_params['lastfm_id'] = notify_params['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
+        notify_params['lastfm_id'] = '/'.join(notify_params['guid'].split('lastfm://')[1].split('?')[0].split('/')[:2])
         notify_params['lastfm_url'] = 'https://www.last.fm/music/' + notify_params['lastfm_id']
 
     # Get TheMovieDB info
