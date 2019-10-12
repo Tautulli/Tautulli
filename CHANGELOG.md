@@ -4,7 +4,7 @@
 
 * Notifications:
   * Fix: Last.fm URLs linking to artist page instead of the album page.
-  * New: Added option for MusicBrainz lookup for music notifications. Option must be enabled under 3rd Part APIs in the settings.
+  * New: Added option for MusicBrainz lookup for music notifications. Option must be enabled under 3rd Party APIs in the settings.
   * New: Added MusicBrainz ID and MusicBrainz URL notification parameters.
   * Change: Automatically truncate Discord description summary to 2048 characters.
 
