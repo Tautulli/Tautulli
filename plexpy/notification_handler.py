@@ -326,7 +326,6 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
                 return False
         else:
-
             evaluated_logic = all(evaluated_conditions[1:])
             logger.debug(u"Tautulli NotificationHandler :: Condition logic [blank]: %s > %s"
                          % (' and '.join(['{%s}' % (i+1) for i in range(len(custom_conditions))]), evaluated_logic))
