@@ -232,7 +232,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
         evaluated_conditions = [None]  # Set condition {0} to None
 
-        for condition in custom_conditions:
+        for i, condition in enumerate(custom_conditions):
             parameter = condition['parameter']
             operator = condition['operator']
             values = condition['value']
@@ -241,7 +241,9 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
             # Set blank conditions to True (skip)
             if not parameter or not operator or not values:
-                evaluated_conditions.append(True)
+                evaluated = True
+                evaluated_conditions.append(evaluated)
+                logger.debug(u"Tautulli NotificationHandler :: {%s} Blank condition > %s" % (i+1, evaluated))
                 continue
 
             # Make sure the condition values is in a list
@@ -260,8 +262,8 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                     values = [helpers.cast_to_float(v) for v in values]
 
             except ValueError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast condition '%s', values '%s', to type '%s'."
-                             % (parameter, values, parameter_type))
+                logger.error(u"Tautulli NotificationHandler :: {%s} Unable to cast condition '%s', values '%s', to type '%s'."
+                             % (i+1, parameter, values, parameter_type))
                 return False
 
             # Cast the parameter value to the correct type
@@ -276,50 +278,60 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                     parameter_value = helpers.cast_to_float(parameter_value)
 
             except ValueError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to cast parameter '%s', value '%s', to type '%s'."
-                             % (parameter, parameter_value, parameter_type))
+                logger.error(u"Tautulli NotificationHandler :: {%s} Unable to cast parameter '%s', value '%s', to type '%s'."
+                             % (i+1, parameter, parameter_value, parameter_type))
                 return False
 
             # Check each condition
             if operator == 'contains':
-                evaluated_conditions.append(any(c in parameter_value for c in values))
+                evaluated = any(c in parameter_value for c in values)
 
             elif operator == 'does not contain':
-                evaluated_conditions.append(all(c not in parameter_value for c in values))
+                evaluated = all(c not in parameter_value for c in values)
 
             elif operator == 'is':
-                evaluated_conditions.append(any(parameter_value == c for c in values))
+                evaluated = any(parameter_value == c for c in values)
 
             elif operator == 'is not':
-                evaluated_conditions.append(all(parameter_value != c for c in values))
+                evaluated = all(parameter_value != c for c in values)
 
             elif operator == 'begins with':
-                evaluated_conditions.append(parameter_value.startswith(tuple(values)))
+                evaluated = parameter_value.startswith(tuple(values))
 
             elif operator == 'ends with':
-                evaluated_conditions.append(parameter_value.endswith(tuple(values)))
+                evaluated = parameter_value.endswith(tuple(values))
 
             elif operator == 'is greater than':
-                evaluated_conditions.append(any(parameter_value > c for c in values))
+                evaluated = any(parameter_value > c for c in values)
 
             elif operator == 'is less than':
-                evaluated_conditions.append(any(parameter_value < c for c in values))
+                evaluated = any(parameter_value < c for c in values)
 
             else:
-                logger.warn(u"Tautulli NotificationHandler :: Invalid condition operator '%s'." % operator)
-                evaluated_conditions.append(None)
+                evaluated = None
+                logger.warn(u"Tautulli NotificationHandler :: {%s} Invalid condition operator '%s' > %s."
+                            % (i+1, operator, evaluated))
+
+            evaluated_conditions.append(evaluated)
+            logger.debug(u"Tautulli NotificationHandler :: {%s} %s | %s | %s > '%s' > %s"
+                         % (i+1, parameter, operator, ' or '.join(["'%s'" % v for v in values]), parameter_value, evaluated))
 
         if logic_groups:
             # Format and evaluate the logic string
             try:
                 evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
+                logger.debug(u"Tautulli NotificationHandler :: Condition logic: %s > %s"
+                             % (custom_conditions_logic, evaluated_logic))
             except Exception as e:
                 logger.error(u"Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
                 return False
         else:
-            evaluated_logic = all(evaluated_conditions[1:])
 
-        logger.debug(u"Tautulli NotificationHandler :: Custom condition evaluated to '{}'. Conditions: {}.".format(
+            evaluated_logic = all(evaluated_conditions[1:])
+            logger.debug(u"Tautulli NotificationHandler :: Condition logic [blank]: %s > %s"
+                         % (' and '.join(['{%s}' % (i+1) for i in range(len(custom_conditions))]), evaluated_logic))
+
+        logger.debug(u"Tautulli NotificationHandler :: Custom conditions evaluated to '{}'. Conditions: {}.".format(
             evaluated_logic, evaluated_conditions[1:]))
 
         return evaluated_logic
