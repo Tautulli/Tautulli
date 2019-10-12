@@ -881,7 +881,10 @@
         async: true,
         complete: function (xhr, status) {
             $("#changelog-modal .modal-body").html(xhr.responseText);
-            $('#changelog-modal').modal();
+            $('#changelog-modal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
         }
     });
 </script>
