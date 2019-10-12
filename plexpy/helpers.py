@@ -1130,7 +1130,7 @@ def get_plexpy_url(hostname=None):
     else:
         port = ''
 
-    if plexpy.HTTP_ROOT.strip('/'):
+    if plexpy.HTTP_ROOT is not None and plexpy.HTTP_ROOT.strip('/'):
         root = '/' + plexpy.HTTP_ROOT.strip('/')
     else:
         root = ''
