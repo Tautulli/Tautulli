@@ -25,6 +25,7 @@ import socket
 import errno
 import os
 import sys
+import certifi
 
 if six.PY3:
     from base64 import encodebytes as base64encode
@@ -143,8 +144,7 @@ def _wrap_sni_socket(sock, sslopt, hostname, check_hostname):
 
 def _ssl_socket(sock, user_sslopt, hostname):
     sslopt = dict(cert_reqs=ssl.CERT_REQUIRED)
-    certPath = os.path.join(
-        os.path.dirname(__file__), "cacert.pem")
+    certPath = certifi.where()
     if os.path.isfile(certPath):
         sslopt['ca_certs'] = certPath
     sslopt.update(user_sslopt)

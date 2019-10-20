@@ -74,3 +74,4 @@ _ReSharper*/
 /logs
 .project
 .pydevproject
+env

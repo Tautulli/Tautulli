@@ -21,7 +21,7 @@ import struct
 import warnings
 
 from .__version__ import __version__
-from . import certs
+import certifi
 # to_native_string is unused here, but imported here for backwards compatibility
 from ._internal_utils import to_native_string
 from .compat import parse_http_list as _parse_list_header
@@ -36,7 +36,7 @@ from .exceptions import (
 
 NETRC_FILES = ('.netrc', '_netrc')
 
-DEFAULT_CA_BUNDLE_PATH = certs.where()
+DEFAULT_CA_BUNDLE_PATH = certifi.where()
 
 
 if platform.system() == 'Windows':
