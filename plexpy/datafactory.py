@@ -691,7 +691,7 @@ class DataFactory(object):
                             '((CASE WHEN t.view_offset IS NULL THEN 0.1 ELSE t.view_offset * 1.0 END) / ' \
                             '   (CASE WHEN t.duration IS NULL THEN 1.0 ELSE t.duration * 1.0 END) * 100) ' \
                             '   AS percent_complete ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'FROM (SELECT *, MAX(session_history.id) FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
