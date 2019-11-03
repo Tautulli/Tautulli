@@ -41,7 +41,11 @@ infi.systray==0.1.11
 tqdm==4.21.0
 python-twitter==3.4.1
 tzlocal==1.5.1
+<<<<<<< HEAD
 pyOpenSSL==17.0.0
 cryptography==2.0.3
 websocket_client==0.32.0
 xmltodict==0.9.2
+=======
+python-twitter==3.4.1
+>>>>>>> Install python-twitter from requirements.txt
