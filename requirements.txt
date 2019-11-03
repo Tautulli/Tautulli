@@ -2,3 +2,4 @@ certifi==2019.9.11
 httpagentparser==1.7.8
 futures==3.0.3
 tzlocal==1.5.1
+python-twitter==3.4.1
