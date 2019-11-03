@@ -1,1 +1,2 @@
 certifi==2019.9.11
+httpagentparser==1.7.8
