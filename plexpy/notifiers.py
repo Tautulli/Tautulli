@@ -92,7 +92,8 @@ AGENT_IDS = {'growl': 0,
              'groupme': 22,
              'mqtt': 23,
              'zapier': 24,
-             'webhook': 25
+             'webhook': 25,
+             'grafana': 26,
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -198,6 +199,10 @@ def available_notification_agents():
               {'label': 'Zapier',
                'name': 'zapier',
                'id': AGENT_IDS['zapier']
+               },
+              {'label': 'Grafana',
+               'name': 'grafana',
+               'id': AGENT_IDS['grafana']
                }
               ]
 
@@ -401,6 +406,8 @@ def get_agent_class(agent_id=None, config=None):
             return ZAPIER(config=config)
         elif agent_id == 25:
             return WEBHOOK(config=config)
+        elif agent_id == 26:
+            return GRAFANA(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -4004,3 +4011,54 @@ def get_browser_notifications():
         notifications.append(notification)
 
     return {'notifications': notifications}
+
+
+class GRAFANA(Notifier):
+    """
+    Grafana annotations
+    """
+    NAME = 'Grafana'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'api_key': '',
+                       'tags': 'tautulli'
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if body:
+            data = body
+        else:
+            data = ''
+
+        webhook_data = {
+            'what': subject,
+            'data': data,
+            'tags': [x.strip() for x in self.config['tags'].split(',')]
+        }
+
+        headers = {'Content-type': 'application/json',
+                   'Authorization': 'Bearer {key}'.format(key=self.config['api_key'])}
+
+        return self.make_request(self.config['hook'] + "annotations/graphite", method="POST", headers=headers, json=webhook_data)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Grafana API URL',
+                          'value': self.config['hook'],
+                          'name': 'grafana_hook',
+                          'description': 'Your Grafana API URL with trailing slash. ex.: https://mydomain.tld/grafana/api/',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Grafana API Key',
+                          'value': self.config['api_key'],
+                          'name': 'grafana_api_key',
+                          'description': 'Your Grafana API key for authorization.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Annotation tags',
+                          'value': self.config['tags'],
+                          'name': 'grafana_tags',
+                          'description': 'Comma separated tags',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
