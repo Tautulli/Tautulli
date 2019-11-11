@@ -17,6 +17,7 @@
 import arrow
 import bleach
 from collections import Counter, defaultdict
+from functools import partial
 import hashlib
 from itertools import groupby
 import json
@@ -1086,11 +1087,11 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     if test:
         return subject, body
 
-    custom_formatter = CustomFormatter()
+    str_formatter = partial(str_format, parameters=parameters)
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg, **parameters) for arg in helpers.split_args(subject)]
+            script_args = [str_formatter(arg) for arg in helpers.split_args(subject)]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
@@ -1098,41 +1099,53 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
 
-    try:
-        subject = custom_formatter.format(unicode(subject), **parameters)
-    except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
-    except Exception as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
+    elif agent_id == 25:
+        if subject:
+            try:
+                subject = json.loads(subject)
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json header data: %s. Using fallback." % e)
+                subject = ''
+        if subject:
+            try:
+                subject = json.dumps(helpers.traverse_map(subject, str_formatter))
+            except LookupError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook header data. Using fallback." % e)
+                subject = ''
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook header data: %s. Using fallback." % e)
+                subject = ''
 
-    if agent_id == 25:
         if body:
             try:
                 body = json.loads(body)
             except ValueError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json data: %s. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json body data: %s. Using fallback." % e)
                 body = ''
-
         if body:
-            def str_format(s):
-                if isinstance(s, basestring):
-                    return custom_formatter.format(unicode(s), **parameters)
-                return s
-
             try:
-                body = json.dumps(helpers.traverse_map(body, str_format))
+                body = json.dumps(helpers.traverse_map(body, str_formatter))
             except LookupError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook data. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook body data. Using fallback." % e)
                 body = ''
             except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook data: %s. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e)
                 body = ''
 
     else:
         try:
-            body = custom_formatter.format(unicode(body), **parameters)
+            subject = str_formatter(subject)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
+
+        try:
+            body = str_formatter(body)
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
             body = unicode(default_body).format(**parameters)
@@ -1570,6 +1583,13 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
             logger.warning(u"Tautulli NotificationHandler :: No match found on MusicBrainz.")
 
     return musicbrainz_info
+
+
+def str_format(s, parameters):
+    custom_formatter = CustomFormatter()
+    if isinstance(s, basestring):
+        return custom_formatter.format(unicode(s), **parameters)
+    return s
 
 
 class CustomFormatter(Formatter):

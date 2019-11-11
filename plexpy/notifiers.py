@@ -3613,19 +3613,29 @@ class WEBHOOK(Notifier):
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
+        if subject:
+            try:
+                webhook_headers = json.loads(subject)
+            except ValueError as e:
+                logger.error(u"Tautulli Notifiers :: Invalid {name} json header data: {e}".format(name=self.NAME, e=e))
+                return False
+        else:
+            webhook_headers = None
+
         if body:
             try:
-                webhook_data = json.loads(body)
+                webhook_body = json.loads(body)
             except ValueError as e:
-                logger.error(u"Tautulli Notifiers :: Invalid {name} json data: {e}".format(name=self.NAME, e=e))
+                logger.error(u"Tautulli Notifiers :: Invalid {name} json body data: {e}".format(name=self.NAME, e=e))
                 return False
-
         else:
-            webhook_data = None
+            webhook_body = None
 
         headers = {'Content-type': 'application/json'}
+        if webhook_headers:
+            headers.update(webhook_headers)
 
-        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_data)
+        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_body)
 
     def _return_config_options(self):
         config_option = [{'label': 'Webhook URL',

@@ -244,6 +244,11 @@
                                     <ul class="submenu">
                                         <li>
                                             <div class="form-group">
+                                                <label for="${action['name']}_subject">JSON Headers</label>
+                                                <textarea class="form-control" id="${action['name']}_subject" name="${action['name']}_subject" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['subject']}</textarea>
+                                                <p class="help-block">Set custom JSON headers.</p>
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="${action['name']}_body">JSON Data</label>
                                                 <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
                                                 <p class="help-block">Set custom JSON data.</p>
@@ -326,6 +331,15 @@
                                 <p class="help-block">Set custom arguments passed to the script.</p>
                             </div>
                             % elif notifier['agent_name'] == 'webhook':
+                            <div class="form-group">
+                                <label for="test_subject">JSON Headers</label>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <textarea class="form-control" id="test_subject" name="test_subject" data-autoresize></textarea>
+                                    </div>
+                                </div>
+                                <p class="help-block">Set custom JSON headers sent to the webhook.</p>
+                            </div>
                             <div class="form-group">
                                 <label for="test_body">JSON Data</label>
                                 <div class="row">
