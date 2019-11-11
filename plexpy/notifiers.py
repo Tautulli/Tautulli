@@ -3613,6 +3613,7 @@ class WEBHOOK(Notifier):
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
+        subject = kwargs.get('headers', subject)
         if subject:
             try:
                 webhook_headers = json.loads(subject)
@@ -3631,7 +3632,7 @@ class WEBHOOK(Notifier):
         else:
             webhook_body = None
 
-        headers = {'Content-type': 'application/json'}
+        headers = {'Content-Type': 'application/json'}
         if webhook_headers:
             headers.update(webhook_headers)
 

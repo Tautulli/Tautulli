@@ -1179,6 +1179,7 @@ def split_args(args=None):
                 for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
     return []
 
+
 def mask_config_passwords(config):
     if isinstance(config, list):
         for cfg in config:

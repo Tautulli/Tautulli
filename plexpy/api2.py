@@ -421,6 +421,7 @@ class API2:
                 body (str):             The body of the message
 
             Optional parameters:
+                headers (str):          The JSON headers for webhook notifications
                 script_args (str):      The arguments for script notifications
 
             Returns:
