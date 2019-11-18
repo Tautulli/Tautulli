@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.1.38 (2019-11-17)
+
+* Notifications:
+  * New: Added custom JSON headers to the webhook notification agent.
+* UI:
+  * Fix: Homepage recently watched card not showing grouped history.
+* Other:
+  * New: Added GitHub sponsor donation option.
+  * Change: Improve resolving hostnames.
+
+
 ## v2.1.37 (2019-10-11)
 
 * Notifications:
