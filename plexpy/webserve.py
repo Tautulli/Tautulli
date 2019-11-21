@@ -53,6 +53,7 @@ import pmsconnect
 import users
 import versioncheck
 import web_socket
+import webstart
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -2829,6 +2830,18 @@ class WebInterface(object):
     def configUpdate(self, **kwargs):
         # Handle the variable config options. Note - keys with False values aren't getting passed
 
+        # Check if we should refresh our data
+        first_run = False
+        server_changed = False
+        reschedule = False
+        https_changed = False
+        refresh_libraries = False
+        refresh_users = False
+
+        # First run from the setup wizard
+        if kwargs.pop('first_run', None):
+            first_run = True
+
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
@@ -2863,13 +2876,13 @@ class WebInterface(object):
                 kwargs['http_hashed_password'] = 1
 
                 # Flag to refresh JWT uuid to log out clients
-                kwargs['jwt_update_secret'] = True
+                kwargs['jwt_update_secret'] = True and not first_run
 
             elif not kwargs.get('http_hash_password'):
                 kwargs['http_hashed_password'] = 0
 
                 # Flag to refresh JWT uuid to log out clients
-                kwargs['jwt_update_secret'] = True
+                kwargs['jwt_update_secret'] = True and not first_run
 
         else:
             kwargs['http_hashed_password'] = 0
@@ -2879,18 +2892,6 @@ class WebInterface(object):
             kwargs[plain_config] = kwargs[use_config]
             del kwargs[use_config]
 
-        # Check if we should refresh our data
-        first_run = False
-        server_changed = False
-        reschedule = False
-        https_changed = False
-        refresh_libraries = False
-        refresh_users = False
-
-        # First run from the setup wizard
-        if kwargs.pop('first_run', None):
-            first_run = True
-            
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
@@ -2965,8 +2966,9 @@ class WebInterface(object):
 
         # If first run, start websocket
         if first_run:
+            webstart.restart()
             activity_pinger.connect_server(log=True, startup=True)
-        
+
         # Reconfigure scheduler if intervals changed
         if reschedule:
             plexpy.initialize_scheduler()

@@ -67,7 +67,36 @@
                         </p>
                     </div>
                 </div>
+
                 <div class="wizard-card" data-cardname="card2">
+                    <h3>Authentication</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Please setup an admin username and password for Tautulli.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_username">HTTP Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="" size="30">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_password">HTTP Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="" size="30" autocomplete="new-password">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" class="form-control" name="http_hash_password" id="http_hash_password" value="1">
+                    <input type="hidden" id="authentication_valid" data-validate="validateAuthentication" value="">
+                    <span style="display: none;" id="authentication-status"></span>
+                </div>
+
+                <div class="wizard-card" data-cardname="card3">
                     <h3>Plex Authentication</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -78,7 +107,8 @@
                     <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
-                <div class="wizard-card" data-cardname="card3">
+
+                <div class="wizard-card" data-cardname="card4">
                     <h3>Plex Media Server</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -137,7 +167,7 @@
                     <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
 
-                <div class="wizard-card" data-cardname="card4">
+                <div class="wizard-card" data-cardname="card5">
                     <h3>Activity Logging</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -162,7 +192,7 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card4">
+                <div class="wizard-card" data-cardname="card6">
                     <h3>Notifications</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -175,7 +205,7 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card5">
+                <div class="wizard-card" data-cardname="card7">
                     <h3>Database Import</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -227,11 +257,29 @@
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
+    function validateAuthentication(el) {
+        var http_username = $("#http_username").val();
+        var http_password = $("#http_password").val();
+        var valid_authentication = el.val();
+        var retValue = {};
+
+        if (http_username === "" || http_password === "") {
+            retValue.status = false;
+            retValue.msg = "Please enter a username and password.";
+            $("#authentication-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a username and password.');
+            $('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
     function validatePMSip(el) {
         var valid_pms_ip = el.val();
         var retValue = {};
 
-        if (valid_pms_ip == "") {
+        if (valid_pms_ip === "") {
             retValue.status = false;
             retValue.msg = "Please verify your server.";
             $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
@@ -247,7 +295,7 @@
         var valid_pms_token = el.val();
         var retValue = {};
 
-        if (valid_pms_token == "") {
+        if (valid_pms_token === "") {
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');

@@ -29,7 +29,6 @@ try:
 except ImportError:
     no_browser = True
 
-import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
@@ -51,6 +50,7 @@ import plextv
 import users
 import versioncheck
 import web_socket
+import webstart
 import plexpy.config
 
 PROG_DIR = None
@@ -1972,8 +1972,7 @@ def upgrade():
 
 
 def shutdown(restart=False, update=False, checkout=False):
-    logger.info(u"Stopping Tautulli web server...")
-    cherrypy.engine.exit()
+    webstart.stop()
 
     # Shutdown the websocket connection
     if WEBSOCKET:

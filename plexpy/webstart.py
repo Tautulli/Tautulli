@@ -25,6 +25,36 @@ from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
 
 
+def start():
+    logger.info(u"Tautulli WebStart :: Initializing Tautulli web server...")
+    web_config = {
+        'http_port': plexpy.HTTP_PORT,
+        'http_host': plexpy.CONFIG.HTTP_HOST,
+        'http_root': plexpy.CONFIG.HTTP_ROOT,
+        'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
+        'http_proxy': plexpy.CONFIG.HTTP_PROXY,
+        'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
+        'https_cert': plexpy.CONFIG.HTTPS_CERT,
+        'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
+        'https_key': plexpy.CONFIG.HTTPS_KEY,
+        'http_username': plexpy.CONFIG.HTTP_USERNAME,
+        'http_password': plexpy.CONFIG.HTTP_PASSWORD,
+        'http_basic_auth': plexpy.CONFIG.HTTP_BASIC_AUTH
+    }
+    initialize(web_config)
+
+
+def stop():
+    logger.info(u"Tautulli WebStart :: Stopping Tautulli web server...")
+    cherrypy.engine.exit()
+
+
+def restart():
+    logger.info(u"Tautulli WebStart :: Restarting Tautulli web server...")
+    stop()
+    start()
+
+
 def initialize(options):
 
     # HTTPS stuff stolen from sickbeard
