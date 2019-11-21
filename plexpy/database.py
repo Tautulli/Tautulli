@@ -69,10 +69,17 @@ def db_filename(filename=FILENAME):
 def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of db, removes all but the last 5 backups """
 
+    # Check the integrity of the database first
+    integrity = (integrity_check() == 'ok')
+
+    corrupt = ''
+    if not integrity:
+        corrupt = '.corrupt'
+
     if scheduler:
-        backup_file = 'tautulli.backup-%s.sched.db' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'tautulli.backup-{}{}.sched.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)
     else:
-        backup_file = 'tautulli.backup-%s.db' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'tautulli.backup-{}{}.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 
@@ -85,7 +92,8 @@ def make_backup(cleanup=False, scheduler=False):
     shutil.copyfile(db_filename(), backup_file_fp)
     db.connection.rollback()
 
-    if cleanup:
+    # Only cleanup if the database integrity is okay
+    if cleanup and integrity:
         now = time.time()
         # Delete all scheduled backup older than BACKUP_DAYS.
         for root, dirs, files in os.walk(backup_folder):
