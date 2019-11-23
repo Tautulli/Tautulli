@@ -9,7 +9,7 @@ __all__ = ('AllExpression', 'RangeExpression', 'WeekdayRangeExpression',
            'WeekdayPositionExpression', 'LastDayOfMonthExpression')
 
 
-WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
 

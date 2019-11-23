@@ -104,7 +104,7 @@ class DayOfWeekField(BaseField):
     COMPILERS = BaseField.COMPILERS + [WeekdayRangeExpression]
 
     def get_value(self, dateval):
-        return dateval.isoweekday() % 7
+        return dateval.weekday()
 
 
 class MonthField(BaseField):

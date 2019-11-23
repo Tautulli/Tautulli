@@ -3,12 +3,11 @@ from __future__ import absolute_import
 import sys
 
 from apscheduler.executors.base import BaseExecutor, run_job
+from apscheduler.util import iscoroutinefunction_partial
 
 try:
-    from asyncio import iscoroutinefunction
     from apscheduler.executors.base_py3 import run_coroutine_job
 except ImportError:
-    from trollius import iscoroutinefunction
     run_coroutine_job = None
 
 
@@ -46,7 +45,7 @@ class AsyncIOExecutor(BaseExecutor):
             else:
                 self._run_job_success(job.id, events)
 
-        if iscoroutinefunction(job.func):
+        if iscoroutinefunction_partial(job.func):
             if run_coroutine_job is not None:
                 coro = run_coroutine_job(job, job._jobstore_alias, run_times, self._logger.name)
                 f = self._eventloop.create_task(coro)

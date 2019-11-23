@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 from abc import ABCMeta, abstractmethod
-from collections import MutableMapping
 from threading import RLock
 from datetime import datetime, timedelta
 from logging import getLogger
@@ -19,12 +18,18 @@ from apscheduler.jobstores.base import ConflictingIdError, JobLookupError, BaseJ
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.job import Job
 from apscheduler.triggers.base import BaseTrigger
-from apscheduler.util import asbool, asint, astimezone, maybe_ref, timedelta_seconds, undefined
+from apscheduler.util import (
+    asbool, asint, astimezone, maybe_ref, timedelta_seconds, undefined, TIMEOUT_MAX)
 from apscheduler.events import (
     SchedulerEvent, JobEvent, JobSubmissionEvent, EVENT_SCHEDULER_START, EVENT_SCHEDULER_SHUTDOWN,
     EVENT_JOBSTORE_ADDED, EVENT_JOBSTORE_REMOVED, EVENT_ALL, EVENT_JOB_MODIFIED, EVENT_JOB_REMOVED,
     EVENT_JOB_ADDED, EVENT_EXECUTOR_ADDED, EVENT_EXECUTOR_REMOVED, EVENT_ALL_JOBS_REMOVED,
     EVENT_JOB_SUBMITTED, EVENT_JOB_MAX_INSTANCES, EVENT_SCHEDULER_RESUMED, EVENT_SCHEDULER_PAUSED)
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 #: constant indicating a scheduler's stopped state
 STATE_STOPPED = 0
@@ -126,10 +131,13 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
 
         :param bool paused: if ``True``, don't start job processing until :meth:`resume` is called
         :raises SchedulerAlreadyRunningError: if the scheduler is already running
+        :raises RuntimeError: if running under uWSGI with threads disabled
 
         """
         if self.state != STATE_STOPPED:
             raise SchedulerAlreadyRunningError
+
+        self._check_uwsgi()
 
         with self._executors_lock:
             # Create a default executor if nothing else is configured
@@ -177,12 +185,13 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
 
         self.state = STATE_STOPPED
 
-        with self._jobstores_lock, self._executors_lock:
-            # Shut down all executors
+        # Shut down all executors
+        with self._executors_lock:
             for executor in six.itervalues(self._executors):
                 executor.shutdown(wait)
 
-            # Shut down all job stores
+        # Shut down all job stores
+        with self._jobstores_lock:
             for jobstore in six.itervalues(self._jobstores):
                 jobstore.shutdown()
 
@@ -546,7 +555,7 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
         """
         if pending is not None:
             warnings.warn('The "pending" option is deprecated -- get_jobs() always returns '
-                          'pending jobs if the scheduler has been started and scheduled jobs '
+                          'scheduled jobs if the scheduler has been started and pending jobs '
                           'otherwise', DeprecationWarning)
 
         with self._jobstores_lock:
@@ -589,14 +598,13 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
         """
         jobstore_alias = None
         with self._jobstores_lock:
+            # Check if the job is among the pending jobs
             if self.state == STATE_STOPPED:
-                # Check if the job is among the pending jobs
-                if self.state == STATE_STOPPED:
-                    for i, (job, alias, replace_existing) in enumerate(self._pending_jobs):
-                        if job.id == job_id and jobstore in (None, alias):
-                            del self._pending_jobs[i]
-                            jobstore_alias = alias
-                            break
+                for i, (job, alias, replace_existing) in enumerate(self._pending_jobs):
+                    if job.id == job_id and jobstore in (None, alias):
+                        del self._pending_jobs[i]
+                        jobstore_alias = alias
+                        break
             else:
                 # Otherwise, try to remove it from each store until it succeeds or we run out of
                 # stores to check
@@ -824,6 +832,14 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
                 except BaseException:
                     self._logger.exception('Error notifying listener')
 
+    def _check_uwsgi(self):
+        """Check if we're running under uWSGI with threads disabled."""
+        uwsgi_module = sys.modules.get('uwsgi')
+        if not getattr(uwsgi_module, 'has_threads', True):
+            raise RuntimeError('The scheduler seems to be running under uWSGI, but threads have '
+                               'been disabled. You must run uWSGI with the --enable-threads '
+                               'option for the scheduler to work.')
+
     def _real_add_job(self, job, jobstore_alias, replace_existing):
         """
         :param Job job: the job to add
@@ -999,7 +1015,7 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
             wait_seconds = None
             self._logger.debug('No jobs; waiting until a job is added')
         else:
-            wait_seconds = max(timedelta_seconds(next_wakeup_time - now), 0)
+            wait_seconds = min(max(timedelta_seconds(next_wakeup_time - now), 0), TIMEOUT_MAX)
             self._logger.debug('Next wakeup is due at %s (in %f seconds)', next_wakeup_time,
                                wait_seconds)
 

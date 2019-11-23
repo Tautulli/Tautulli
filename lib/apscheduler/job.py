@@ -1,4 +1,4 @@
-from collections import Iterable, Mapping
+from inspect import ismethod, isclass
 from uuid import uuid4
 
 import six
@@ -7,6 +7,11 @@ from apscheduler.triggers.base import BaseTrigger
 from apscheduler.util import (
     ref_to_obj, obj_to_ref, datetime_repr, repr_escape, get_callable_name, check_callable_args,
     convert_to_datetime)
+
+try:
+    from collections.abc import Iterable, Mapping
+except ImportError:
+    from collections import Iterable, Mapping
 
 
 class Job(object):
@@ -235,13 +240,20 @@ class Job(object):
                 'be determined. Consider giving a textual reference (module:function name) '
                 'instead.' % (self.func,))
 
+        # Instance methods cannot survive serialization as-is, so store the "self" argument
+        # explicitly
+        if ismethod(self.func) and not isclass(self.func.__self__):
+            args = (self.func.__self__,) + tuple(self.args)
+        else:
+            args = self.args
+
         return {
             'version': 1,
             'id': self.id,
             'func': self.func_ref,
             'trigger': self.trigger,
             'executor': self.executor,
-            'args': self.args,
+            'args': args,
             'kwargs': self.kwargs,
             'name': self.name,
             'misfire_grace_time': self.misfire_grace_time,
