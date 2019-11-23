@@ -40,8 +40,8 @@ def start_thread():
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
     except Exception as e:
-        logger.error(u"Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
-        logger.warn(u"Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
+        logger.error("Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
+        logger.warn("Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
         database.delete_sessions()
 
     # Start the websocket listener on it's own thread
@@ -55,7 +55,7 @@ def on_connect():
         plexpy.PLEX_SERVER_UP = True
 
     if not plexpy.PLEX_SERVER_UP:
-        logger.info(u"Tautulli WebSocket :: The Plex Media Server is back up.")
+        logger.info("Tautulli WebSocket :: The Plex Media Server is back up.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
         plexpy.PLEX_SERVER_UP = True
 
@@ -69,7 +69,7 @@ def on_disconnect():
         plexpy.PLEX_SERVER_UP = False
 
     if plexpy.PLEX_SERVER_UP:
-        logger.info(u"Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
+        logger.info("Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
         plexpy.PLEX_SERVER_UP = False
 
@@ -79,7 +79,7 @@ def on_disconnect():
 
 def reconnect():
     close()
-    logger.info(u"Tautulli WebSocket :: Reconnecting websocket...")
+    logger.info("Tautulli WebSocket :: Reconnecting websocket...")
     start_thread()
 
 
@@ -90,14 +90,14 @@ def shutdown():
 
 
 def close():
-    logger.info(u"Tautulli WebSocket :: Disconnecting websocket...")
+    logger.info("Tautulli WebSocket :: Disconnecting websocket...")
     plexpy.WEBSOCKET.close()
     plexpy.WS_CONNECTED = False
 
 
 def send_ping():
     if plexpy.WS_CONNECTED:
-        # logger.debug(u"Tautulli WebSocket :: Sending ping.")
+        # logger.debug("Tautulli WebSocket :: Sending ping.")
         plexpy.WEBSOCKET.ping("Hi?")
 
         global pong_timer
@@ -110,7 +110,7 @@ def wait_pong():
     global pong_count
     pong_count += 1
 
-    logger.warning(u"Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
+    logger.warn("Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
 
     if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
         pong_count = 0
@@ -118,7 +118,7 @@ def wait_pong():
 
 
 def receive_pong():
-    # logger.debug(u"Tautulli WebSocket :: Received pong.")
+    # logger.debug("Tautulli WebSocket :: Received pong.")
     global pong_timer
     global pong_count
     if pong_timer:
@@ -150,10 +150,10 @@ def run():
     reconnects = 0
 
     # Try an open the websocket connection
-    logger.info(u"Tautulli WebSocket :: Opening %swebsocket." % secure)
+    logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
     try:
         plexpy.WEBSOCKET = create_connection(uri, header=header)
-        logger.info(u"Tautulli WebSocket :: Ready")
+        logger.info("Tautulli WebSocket :: Ready")
         plexpy.WS_CONNECTED = True
     except (websocket.WebSocketException, IOError, Exception) as e:
         logger.error("Tautulli WebSocket :: %s." % e)
@@ -173,7 +173,7 @@ def run():
                 break
 
             if reconnects == 0:
-                logger.warn(u"Tautulli WebSocket :: Connection has closed.")
+                logger.warn("Tautulli WebSocket :: Connection has closed.")
 
             if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
@@ -182,11 +182,11 @@ def run():
                 if reconnects > 1:
                     time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
-                logger.warn(u"Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
+                logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
                     plexpy.WEBSOCKET = create_connection(uri, header=header)
-                    logger.info(u"Tautulli WebSocket :: Ready")
+                    logger.info("Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:
                     logger.error("Tautulli WebSocket :: %s." % e)
@@ -206,7 +206,7 @@ def run():
     if not plexpy.WS_CONNECTED and not ws_shutdown:
         on_disconnect()
 
-    logger.debug(u"Tautulli WebSocket :: Leaving thread.")
+    logger.debug("Tautulli WebSocket :: Leaving thread.")
 
 
 def receive(ws):
@@ -220,7 +220,7 @@ def receive(ws):
         ws.send_close()
         return frame.opcode, None
     elif frame.opcode == websocket.ABNF.OPCODE_PING:
-        # logger.debug(u"Tautulli WebSocket :: Received ping, sending pong.")
+        # logger.debug("Tautulli WebSocket :: Received ping, sending pong.")
         ws.pong("Hi!")
     elif frame.opcode == websocket.ABNF.OPCODE_PONG:
         receive_pong()
@@ -236,7 +236,7 @@ def process(opcode, data):
         logger.websocket_debug(data)
         info = json.loads(data)
     except Exception as e:
-        logger.warn(u"Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
+        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
         logger.websocket_error(data)
         return False
 
@@ -250,26 +250,26 @@ def process(opcode, data):
         time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
         if not time_line:
-            logger.debug(u"Tautulli WebSocket :: Session found but unable to get timeline data.")
+            logger.debug("Tautulli WebSocket :: Session found but unable to get timeline data.")
             return False
 
         try:
             activity = activity_handler.ActivityHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error(u"Tautulli WebSocket :: Failed to process session data: %s." % e)
+            logger.error("Tautulli WebSocket :: Failed to process session data: %s." % e)
 
     if type == 'timeline':
         time_line = info.get('TimelineEntry', info.get('_children', {}))
 
         if not time_line:
-            logger.debug(u"Tautulli WebSocket :: Timeline event found but unable to get timeline data.")
+            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get timeline data.")
             return False
 
         try:
             activity = activity_handler.TimelineHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error(u"Tautulli WebSocket :: Failed to process timeline data: %s." % e)
+            logger.error("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
 
     return True

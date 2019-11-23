@@ -117,7 +117,7 @@ def delete_newsletter(newsletter_id=None):
     db = database.MonitorDatabase()
 
     if str(newsletter_id).isdigit():
-        logger.debug(u"Tautulli Newsletters :: Deleting newsletter_id %s from the database."
+        logger.debug("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
                      % newsletter_id)
         result = db.action('DELETE FROM newsletters WHERE id = ?', args=[newsletter_id])
         return True
@@ -129,7 +129,7 @@ def get_newsletter_config(newsletter_id=None, mask_passwords=False):
     if str(newsletter_id).isdigit():
         newsletter_id = int(newsletter_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve newsletter config: invalid newsletter_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve newsletter config: invalid newsletter_id %s."
                      % newsletter_id)
         return None
 
@@ -150,7 +150,7 @@ def get_newsletter_config(newsletter_id=None, mask_passwords=False):
                                            config=config, email_config=email_config,
                                            subject=subject, body=body, message=message)
     except Exception as e:
-        logger.error(u"Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
+        logger.error("Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
     if mask_passwords:
@@ -171,14 +171,14 @@ def add_newsletter_config(agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to add new newsletter: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to add new newsletter: invalid agent_id %s."
                      % agent_id)
         return False
 
     agent = next((a for a in available_newsletter_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve new newsletter agent: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve new newsletter agent: invalid agent_id %s."
                      % agent_id)
         return False
 
@@ -201,12 +201,12 @@ def add_newsletter_config(agent_id=None, **kwargs):
     try:
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
         newsletter_id = db.last_insert_id()
-        logger.info(u"Tautulli Newsletters :: Added new newsletter agent: %s (newsletter_id %s)."
+        logger.info("Tautulli Newsletters :: Added new newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
         blacklist_logger()
         return newsletter_id
     except Exception as e:
-        logger.warn(u"Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
+        logger.warn("Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
         return False
 
 
@@ -214,14 +214,14 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"Tautulli Newsletters :: Unable to set existing newsletter: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to set existing newsletter: invalid agent_id %s."
                      % agent_id)
         return False
 
     agent = next((a for a in available_newsletter_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"Tautulli Newsletters :: Unable to retrieve existing newsletter agent: invalid agent_id %s."
+        logger.error("Tautulli Newsletters :: Unable to retrieve existing newsletter agent: invalid agent_id %s."
                      % agent_id)
         return False
 
@@ -266,13 +266,13 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     db = database.MonitorDatabase()
     try:
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
-        logger.info(u"Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
+        logger.info("Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
                     % (agent['label'], newsletter_id))
         newsletter_handler.schedule_newsletters(newsletter_id=newsletter_id)
         blacklist_logger()
         return True
     except Exception as e:
-        logger.warn(u"Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
+        logger.warn("Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
         return False
 
 
@@ -287,7 +287,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
                                 messsage=message)
         return agent.send()
     else:
-        logger.debug(u"Tautulli Newsletters :: Notification requested but no newsletter_id received.")
+        logger.debug("Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
 
 def blacklist_logger():
@@ -492,11 +492,11 @@ class Newsletter(object):
         self.newsletter = self.generate_newsletter()
 
         if self.template_error:
-            logger.error(u"Tautulli Newsletters :: %s newsletter failed to render template. Newsletter not sent." % self.NAME)
+            logger.error("Tautulli Newsletters :: %s newsletter failed to render template. Newsletter not sent." % self.NAME)
             return False
 
         if not self._has_data():
-            logger.warn(u"Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
+            logger.warn("Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False
 
         self._save()
@@ -522,9 +522,9 @@ class Newsletter(object):
                         n_file.write(line + '\r\n')
                         #n_file.write(line.strip())
 
-            logger.info(u"Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
+            logger.info("Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
         except OSError as e:
-            logger.error(u"Tautulli Newsletters :: Failed to save %s newsletter to '%s': %s"
+            logger.error("Tautulli Newsletters :: Failed to save %s newsletter to '%s': %s"
                          % (self.NAME, newsletter_file, e))
 
     def _send(self):
@@ -608,34 +608,28 @@ class Newsletter(object):
         try:
             subject = custom_formatter.format(unicode(self.subject), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
             subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
             subject = unicode(self._DEFAULT_SUBJECT).format(**self.parameters)
 
         try:
             body = custom_formatter.format(unicode(self.body), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
             body = unicode(self._DEFAULT_BODY).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
             body = unicode(self._DEFAULT_BODY).format(**self.parameters)
 
         try:
             message = custom_formatter.format(unicode(self.message), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
             message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
             message = unicode(self._DEFAULT_MESSAGE).format(**self.parameters)
 
         return subject, body, message
@@ -647,12 +641,10 @@ class Newsletter(object):
         try:
             filename = custom_formatter.format(unicode(self.filename), **self.parameters)
         except LookupError as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
             filename = unicode(self._DEFAULT_FILENAME).format(**self.parameters)
         except Exception as e:
-            logger.error(
-                u"Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
             filename = unicode(self._DEFAULT_FILENAME).format(**self.parameters)
 
         return filename
@@ -809,7 +801,7 @@ class RecentlyAdded(Newsletter):
         from notification_handler import get_img_info, set_hash_image_info
 
         if not self.config['incl_libraries']:
-            logger.warn(u"Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
+            logger.warn("Tautulli Newsletters :: Failed to retrieve %s newsletter data: no libraries selected." % self.NAME)
 
         media_types = set()
         for s in self._get_sections():

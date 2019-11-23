@@ -226,7 +226,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="current_activity.html", data=result)
         else:
-            logger.warn(u"Unable to retrieve data for get_current_activity.")
+            logger.warn("Unable to retrieve data for get_current_activity.")
             return serve_template(templatename="current_activity.html", data=None)
 
     @cherrypy.expose
@@ -324,7 +324,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="recently_added.html", data=result['recently_added'])
         else:
-            logger.warn(u"Unable to retrieve data for get_recently_added.")
+            logger.warn("Unable to retrieve data for get_recently_added.")
             return serve_template(templatename="recently_added.html", data=None)
 
     @cherrypy.expose
@@ -459,14 +459,14 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_library_sections.")
+            logger.warn("Unable to retrieve data for get_library_sections.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
         """ Manually refresh the libraries list. """
-        logger.info(u"Manual libraries list refresh requested.")
+        logger.info("Manual libraries list refresh requested.")
         result = libraries.refresh_libraries()
 
         if result:
@@ -490,10 +490,10 @@ class WebInterface(object):
                 library_data = libraries.Libraries()
                 library_details = library_data.get_details(section_id=section_id)
             except:
-                logger.warn(u"Unable to retrieve library details for section_id %s " % section_id)
+                logger.warn("Unable to retrieve library details for section_id %s " % section_id)
                 return serve_template(templatename="library.html", title="Library", data=None, config=config)
         else:
-            logger.debug(u"Library page requested but no section_id received.")
+            logger.debug("Library page requested but no section_id received.")
             return serve_template(templatename="library.html", title="Library", data=None, config=config)
 
         return serve_template(templatename="library.html", title="Library", data=library_details, config=config)
@@ -562,7 +562,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for library_watch_time_stats.")
+            logger.warn("Unable to retrieve data for library_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
@@ -580,7 +580,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for library_user_stats.")
+            logger.warn("Unable to retrieve data for library_user_stats.")
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
@@ -598,7 +598,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
         else:
-            logger.warn(u"Unable to retrieve data for library_recently_watched.")
+            logger.warn("Unable to retrieve data for library_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
@@ -616,7 +616,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
-            logger.warn(u"Unable to retrieve data for library_recently_added.")
+            logger.warn("Unable to retrieve data for library_recently_added.")
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
@@ -781,9 +781,9 @@ class WebInterface(object):
             if library_details:
                 return library_details
             else:
-                logger.warn(u"Unable to retrieve data for get_library.")
+                logger.warn("Unable to retrieve data for get_library.")
         else:
-            logger.warn(u"Library details requested but no section_id received.")
+            logger.warn("Library details requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -828,9 +828,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_library_watch_time_stats.")
+                logger.warn("Unable to retrieve data for get_library_watch_time_stats.")
         else:
-            logger.warn(u"Library watch time stats requested but no section_id received.")
+            logger.warn("Library watch time stats requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -871,9 +871,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_library_user_stats.")
+                logger.warn("Unable to retrieve data for get_library_user_stats.")
         else:
-            logger.warn(u"Library user stats requested but no section_id received.")
+            logger.warn("Library user stats requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1094,7 +1094,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
         """ Manually refresh the users list. """
-        logger.info(u"Manual users list refresh requested.")
+        logger.info("Manual users list refresh requested.")
         result = users.refresh_users()
 
         if result:
@@ -1113,10 +1113,10 @@ class WebInterface(object):
                 user_data = users.Users()
                 user_details = user_data.get_details(user_id=user_id)
             except:
-                logger.warn(u"Unable to retrieve user details for user_id %s " % user_id)
+                logger.warn("Unable to retrieve user details for user_id %s " % user_id)
                 return serve_template(templatename="user.html", title="User", data=None)
         else:
-            logger.debug(u"User page requested but no user_id received.")
+            logger.debug("User page requested but no user_id received.")
             return serve_template(templatename="user.html", title="User", data=None)
 
         return serve_template(templatename="user.html", title="User", data=user_details)
@@ -1190,7 +1190,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for user_watch_time_stats.")
+            logger.warn("Unable to retrieve data for user_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
@@ -1208,7 +1208,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_player_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for user_player_stats.")
+            logger.warn("Unable to retrieve data for user_player_stats.")
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
@@ -1226,7 +1226,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
         else:
-            logger.warn(u"Unable to retrieve data for get_user_recently_watched.")
+            logger.warn("Unable to retrieve data for get_user_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
@@ -1392,9 +1392,9 @@ class WebInterface(object):
             if user_details:
                 return user_details
             else:
-                logger.warn(u"Unable to retrieve data for get_user.")
+                logger.warn("Unable to retrieve data for get_user.")
         else:
-            logger.warn(u"User details requested but no user_id received.")
+            logger.warn("User details requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1439,9 +1439,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_user_watch_time_stats.")
+                logger.warn("Unable to retrieve data for get_user_watch_time_stats.")
         else:
-            logger.warn(u"User watch time stats requested but no user_id received.")
+            logger.warn("User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1482,9 +1482,9 @@ class WebInterface(object):
             if result:
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_user_player_stats.")
+                logger.warn("Unable to retrieve data for get_user_player_stats.")
         else:
-            logger.warn(u"User watch time stats requested but no user_id received.")
+            logger.warn("User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1890,7 +1890,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_date.")
+            logger.warn("Unable to retrieve data for get_plays_by_date.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1929,7 +1929,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_dayofweek.")
+            logger.warn("Unable to retrieve data for get_plays_by_dayofweek.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1968,7 +1968,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_hourofday.")
+            logger.warn("Unable to retrieve data for get_plays_by_hourofday.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2007,7 +2007,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_per_month.")
+            logger.warn("Unable to retrieve data for get_plays_per_month.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2046,7 +2046,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_top_10_platforms.")
+            logger.warn("Unable to retrieve data for get_plays_by_top_10_platforms.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2085,7 +2085,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_top_10_users.")
+            logger.warn("Unable to retrieve data for get_plays_by_top_10_users.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2124,7 +2124,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_stream_type.")
+            logger.warn("Unable to retrieve data for get_plays_by_stream_type.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2163,7 +2163,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_source_resolution.")
+            logger.warn("Unable to retrieve data for get_plays_by_source_resolution.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2202,7 +2202,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_plays_by_stream_resolution.")
+            logger.warn("Unable to retrieve data for get_plays_by_stream_resolution.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2241,7 +2241,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_users.")
+            logger.warn("Unable to retrieve data for get_stream_type_by_top_10_users.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2280,7 +2280,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
+            logger.warn("Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
     @cherrypy.expose
     @requireAuth()
@@ -2312,7 +2312,7 @@ class WebInterface(object):
         if result:
             output = {"data": result}
         else:
-            logger.warn(u"Unable to retrieve data for get_sync.")
+            logger.warn("Unable to retrieve data for get_sync.")
             output = {"data": []}
 
         return output
@@ -2435,7 +2435,7 @@ class WebInterface(object):
         try:
             log_lines = {'data': log_reader.get_log_tail(window=window, parsed=True, log_type=log_type)}
         except:
-            logger.warn(u"Unable to retrieve Plex Logs.")
+            logger.warn("Unable to retrieve Plex Logs.")
 
         return log_lines
 
@@ -2659,7 +2659,7 @@ class WebInterface(object):
         except Exception as e:
             result = 'error'
             msg = 'Failed to clear the %s file.' % filename
-            logger.exception(u'Failed to clear the %s file: %s.' % (filename, e))
+            logger.exception('Failed to clear the %s file: %s.' % (filename, e))
 
         return {'result': result, 'message': msg}
 
@@ -2669,15 +2669,15 @@ class WebInterface(object):
         plexpy.VERBOSE = not plexpy.VERBOSE
         logger.initLogger(console=not plexpy.QUIET,
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
-        logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
-        logger.debug(u"If you read this message, debug logging is available")
+        logger.info("Verbose toggled, set to %s", plexpy.VERBOSE)
+        logger.debug("If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
     @requireAuth()
     def log_js_errors(self, page, message, file, line, **kwargs):
         """ Logs javascript errors from the web interface. """
-        logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
+        logger.error("WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
                                                       message,
                                                       file.rpartition('/')[-1].partition('?')[0],
                                                       line))
@@ -3336,7 +3336,7 @@ class WebInterface(object):
             notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
 
             if notifier:
-                logger.debug(u"Sending %s%s notification." % (test, notifier['agent_label']))
+                logger.debug("Sending %s%s notification." % (test, notifier['agent_label']))
                 notification_handler.add_notifier_each(notifier_id=notifier_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -3345,10 +3345,10 @@ class WebInterface(object):
                                                        **kwargs)
                 return {'result': 'success', 'message': 'Notification queued.'}
             else:
-                logger.debug(u"Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
+                logger.debug("Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
                 return {'result': 'error', 'message': 'Invalid notifier id %s.' % notifier_id}
         else:
-            logger.debug(u"Unable to send %snotification, no notifier_id received." % test)
+            logger.debug("Unable to send %snotification, no notifier_id received." % test)
             return {'result': 'error', 'message': 'No notifier id received.'}
 
     @cherrypy.expose
@@ -3421,7 +3421,7 @@ class WebInterface(object):
         if result:
             osx_notify = notifiers.OSX()
             osx_notify.notify(subject='Registered', body='Success :-)', subtitle=result)
-            # logger.info(u"Registered %s, to re-register a different app, delete this app first" % result)
+            # logger.info("Registered %s, to re-register a different app, delete this app first" % result)
         else:
             logger.warn(msg)
         return msg
@@ -3585,7 +3585,7 @@ class WebInterface(object):
         elif app == 'plexivity':
             return serve_template(templatename="app_import.html", title="Import Plexivity Database", app="Plexivity")
 
-        logger.warn(u"No app specified for import.")
+        logger.warn("No app specified for import.")
         return
 
     @cherrypy.expose
@@ -3616,7 +3616,7 @@ class WebInterface(object):
         if result:
             return result['auth_token']
         else:
-            logger.warn(u"Unable to retrieve Plex.tv token.")
+            logger.warn("Unable to retrieve Plex.tv token.")
             return None
 
     @cherrypy.expose
@@ -3741,7 +3741,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_pref.")
+            logger.warn("Unable to retrieve data for get_server_pref.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3751,7 +3751,7 @@ class WebInterface(object):
         while not apikey or apikey == plexpy.CONFIG.API_KEY or mobile_app.get_mobile_device_by_token(device_token=apikey):
             apikey = plexpy.generate_uuid()
 
-        logger.info(u"New API key generated.")
+        logger.info("New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)
 
         if device == 'true':
@@ -3862,7 +3862,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
-            logger.error(u"Already on the %s branch" % git_branch)
+            logger.error("Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         
         # Set the new git remote and branch
@@ -3942,7 +3942,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="info_children_list.html", data=result, title="Children List")
         else:
-            logger.warn(u"Unable to retrieve data for get_item_children.")
+            logger.warn("Unable to retrieve data for get_item_children.")
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
@@ -4098,10 +4098,10 @@ class WebInterface(object):
 
                     return result[0]
                 else:
-                    raise Exception(u'PMS image request failed')
+                    raise Exception('PMS image request failed')
 
             except Exception as e:
-                logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
+                logger.warn('Failed to get image %s, falling back to %s.' % (img, fallback))
                 fbi = None
                 if fallback == 'poster':
                     fbi = common.DEFAULT_POSTER_THUMB
@@ -4246,7 +4246,7 @@ class WebInterface(object):
         except OSError as e:
             result = 'error'
             msg = 'Failed to delete %s.' % cache_dir
-            logger.exception(u'Failed to delete %s: %s.' % (cache_dir, e))
+            logger.exception('Failed to delete %s: %s.' % (cache_dir, e))
             return {'result': result, 'message': msg}
 
         try:
@@ -4254,7 +4254,7 @@ class WebInterface(object):
         except OSError as e:
             result = 'error'
             msg = 'Failed to make %s.' % cache_dir
-            logger.exception(u'Failed to create %s: %s.' % (cache_dir, e))
+            logger.exception('Failed to create %s: %s.' % (cache_dir, e))
             return {'result': result, 'message': msg}
 
         logger.info(msg)
@@ -4369,7 +4369,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for search_results.")
+            logger.warn("Unable to retrieve data for search_results.")
 
     @cherrypy.expose
     @requireAuth()
@@ -4387,7 +4387,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
         else:
-            logger.warn(u"Unable to retrieve data for get_search_results_children.")
+            logger.warn("Unable to retrieve data for get_search_results_children.")
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
 
@@ -4407,7 +4407,7 @@ class WebInterface(object):
         if query:
             return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
         else:
-            logger.warn(u"Unable to retrieve data for update_metadata.")
+            logger.warn("Unable to retrieve data for update_metadata.")
             return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
@@ -4476,7 +4476,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_new_rating_keys.")
+            logger.warn("Unable to retrieve data for get_new_rating_keys.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4505,7 +4505,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_old_rating_keys.")
+            logger.warn("Unable to retrieve data for get_old_rating_keys.")
 
 
     @cherrypy.expose
@@ -4519,7 +4519,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_pms_sessions_json.")
+            logger.warn("Unable to retrieve data for get_pms_sessions_json.")
             return False
 
     @cherrypy.expose
@@ -4678,7 +4678,7 @@ class WebInterface(object):
         if metadata:
             return metadata
         else:
-            logger.warn(u"Unable to retrieve data for get_metadata_details.")
+            logger.warn("Unable to retrieve data for get_metadata_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4733,7 +4733,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_recently_added_details.")
+            logger.warn("Unable to retrieve data for get_recently_added_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4747,7 +4747,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_friends_list.")
+            logger.warn("Unable to retrieve data for get_friends_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4761,7 +4761,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_user_details.")
+            logger.warn("Unable to retrieve data for get_user_details.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4775,7 +4775,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_list.")
+            logger.warn("Unable to retrieve data for get_server_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4788,7 +4788,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_sync_lists.")
+            logger.warn("Unable to retrieve data for get_sync_lists.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4800,7 +4800,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_servers.")
+            logger.warn("Unable to retrieve data for get_servers.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4833,7 +4833,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_servers_info.")
+            logger.warn("Unable to retrieve data for get_servers_info.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4863,7 +4863,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_identity.")
+            logger.warn("Unable to retrieve data for get_server_identity.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4888,7 +4888,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_server_friendly_name.")
+            logger.warn("Unable to retrieve data for get_server_friendly_name.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5168,9 +5168,9 @@ class WebInterface(object):
 
                 return result
             else:
-                logger.warn(u"Unable to retrieve data for get_activity.")
+                logger.warn("Unable to retrieve data for get_activity.")
         except Exception as e:
-            logger.exception(u"Unable to retrieve data for get_activity: %s" % e)
+            logger.exception("Unable to retrieve data for get_activity: %s" % e)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5208,7 +5208,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_full_libraries_list.")
+            logger.warn("Unable to retrieve data for get_full_libraries_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5256,7 +5256,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_full_users_list.")
+            logger.warn("Unable to retrieve data for get_full_users_list.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5310,7 +5310,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_synced_items.")
+            logger.warn("Unable to retrieve data for get_synced_items.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5323,7 +5323,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_sync_transcode_queue.")
+            logger.warn("Unable to retrieve data for get_sync_transcode_queue.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5418,7 +5418,7 @@ class WebInterface(object):
         if result:
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_home_stats.")
+            logger.warn("Unable to retrieve data for get_home_stats.")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5778,7 +5778,7 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                logger.debug(u"Sending %s%s newsletter." % (test, newsletter['agent_label']))
+                logger.debug("Sending %s%s newsletter." % (test, newsletter['agent_label']))
                 newsletter_handler.add_newsletter_each(newsletter_id=newsletter_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -5787,10 +5787,10 @@ class WebInterface(object):
                                                         **kwargs)
                 return {'result': 'success', 'message': 'Newsletter queued.'}
             else:
-                logger.debug(u"Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
+                logger.debug("Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
                 return {'result': 'error', 'message': 'Invalid newsletter id %s.' % newsletter_id}
         else:
-            logger.debug(u"Unable to send %snotification, no newsletter_id received." % test)
+            logger.debug("Unable to send %snotification, no newsletter_id received." % test)
             return {'result': 'error', 'message': 'No newsletter id received.'}
 
     @cherrypy.expose
@@ -5873,10 +5873,10 @@ class WebInterface(object):
 
                 return newsletter_agent.generate_newsletter(preview=preview)
 
-            logger.error(u"Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
+            logger.error("Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
             return "Failed to retrieve newsletter: invalid newsletter_id parameter"
 
-        logger.error(u"Failed to retrieve newsletter: Missing newsletter_id parameter.")
+        logger.error("Failed to retrieve newsletter: Missing newsletter_id parameter.")
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
 
     @cherrypy.expose

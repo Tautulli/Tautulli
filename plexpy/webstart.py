@@ -26,7 +26,7 @@ from plexpy.webserve import WebInterface
 
 
 def start():
-    logger.info(u"Tautulli WebStart :: Initializing Tautulli web server...")
+    logger.info("Tautulli WebStart :: Initializing Tautulli web server...")
     web_config = {
         'http_port': plexpy.HTTP_PORT,
         'http_host': plexpy.CONFIG.HTTP_HOST,
@@ -45,12 +45,12 @@ def start():
 
 
 def stop():
-    logger.info(u"Tautulli WebStart :: Stopping Tautulli web server...")
+    logger.info("Tautulli WebStart :: Stopping Tautulli web server...")
     cherrypy.engine.exit()
 
 
 def restart():
-    logger.info(u"Tautulli WebStart :: Restarting Tautulli web server...")
+    logger.info("Tautulli WebStart :: Restarting Tautulli web server...")
     stop()
     start()
 
@@ -69,11 +69,11 @@ def initialize(options):
                 (not (https_cert and os.path.exists(https_cert)) or
                  not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
-                logger.warn(u"Tautulli WebStart :: Unable to create certificate and key. Disabling HTTPS")
+                logger.warn("Tautulli WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
 
         if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.warn(u"Tautulli WebStart :: Disabled HTTPS because of missing certificate and key.")
+            logger.warn("Tautulli WebStart :: Disabled HTTPS because of missing certificate and key.")
             enable_https = False
 
     options_dict = {
@@ -107,7 +107,7 @@ def initialize(options):
         if plexpy.CONFIG.HTTP_PLEX_ADMIN:
             login_allowed.append("Plex admin")
 
-        logger.info(u"Tautulli WebStart :: Web server authentication is enabled: %s.", ' and '.join(login_allowed))
+        logger.info("Tautulli WebStart :: Web server authentication is enabled: %s.", ' and '.join(login_allowed))
 
         if options['http_basic_auth']:
             plexpy.AUTH_ENABLED = False
@@ -245,7 +245,7 @@ def initialize(options):
         cherrypy.tree.mount(BaseRedirect(), '/')
 
     try:
-        logger.info(u"Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
+        logger.info("Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
@@ -274,7 +274,7 @@ class BaseRedirect(object):
 
 
 def proxy():
-    # logger.debug(u"REQUEST URI: %s, HEADER [X-Forwarded-Host]: %s, [X-Host]: %s, [Origin]: %s, [Host]: %s",
+    # logger.debug("REQUEST URI: %s, HEADER [X-Forwarded-Host]: %s, [X-Host]: %s, [Origin]: %s, [Host]: %s",
     #              cherrypy.request.wsgi_environ['REQUEST_URI'],
     #              cherrypy.request.headers.get('X-Forwarded-Host'),
     #              cherrypy.request.headers.get('X-Host'),
@@ -290,7 +290,7 @@ def proxy():
             local = 'Origin'
         elif cherrypy.request.headers.get('Host'):  # nginx
             local = 'Host'
-        # logger.debug(u"cherrypy.tools.proxy.local set to [%s]", local)
+        # logger.debug("cherrypy.tools.proxy.local set to [%s]", local)
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)

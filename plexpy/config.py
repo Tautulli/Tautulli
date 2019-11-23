@@ -661,13 +661,13 @@ def make_backup(cleanup=False, scheduler=False):
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error(u"Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.error("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug(u"Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.debug("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
-        logger.error(u"Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.error("Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return False
 
 
@@ -748,12 +748,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        logger.info(u"Tautulli Config :: Writing configuration to file")
+        logger.info("Tautulli Config :: Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            logger.error(u"Tautulli Config :: Error writing configuration file: %s", e)
+            logger.error("Tautulli Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 

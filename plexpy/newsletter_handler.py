@@ -30,7 +30,7 @@ NEWSLETTER_SCHED = None
 
 def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
     if not notify_action:
-        logger.debug(u"Tautulli NewsletterHandler :: Notify called but no action received.")
+        logger.debug("Tautulli NewsletterHandler :: Notify called but no action received.")
         return
 
     data = {'newsletter': True,
@@ -58,19 +58,19 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
     if NEWSLETTER_SCHED.get_job(newsletter_job_id):
         if remove_job:
             NEWSLETTER_SCHED.remove_job(newsletter_job_id)
-            logger.info(u"Tautulli NewsletterHandler :: Removed scheduled newsletter: %s" % name)
+            logger.info("Tautulli NewsletterHandler :: Removed scheduled newsletter: %s" % name)
         else:
             NEWSLETTER_SCHED.reschedule_job(
                 newsletter_job_id, args=args, trigger=CronTrigger.from_crontab(cron))
-            logger.info(u"Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
+            logger.info("Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
     elif not remove_job:
         NEWSLETTER_SCHED.add_job(
             func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron))
-        logger.info(u"Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
+        logger.info("Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
 
 
 def notify(newsletter_id=None, notify_action=None, **kwargs):
-    logger.info(u"Tautulli NewsletterHandler :: Preparing newsletter for newsletter_id %s." % newsletter_id)
+    logger.info("Tautulli NewsletterHandler :: Preparing newsletter for newsletter_id %s." % newsletter_id)
 
     newsletter_config = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
@@ -149,7 +149,7 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
         db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
         return db.last_insert_id()
     else:
-        logger.error(u"Tautulli NewsletterHandler :: Unable to set notify state.")
+        logger.error("Tautulli NewsletterHandler :: Unable to set notify state.")
 
 
 def set_notify_success(newsletter_log_id):
@@ -202,6 +202,6 @@ def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):
                     newsletter = n_file.read()
                 return newsletter
             except OSError as e:
-                logger.error(u"Tautulli NewsletterHandler :: Failed to retrieve newsletter '%s': %s" % (newsletter_uuid, e))
+                logger.error("Tautulli NewsletterHandler :: Failed to retrieve newsletter '%s': %s" % (newsletter_uuid, e))
         else:
-            logger.warn(u"Tautulli NewsletterHandler :: Newsletter file '%s' is missing." % newsletter_file)
+            logger.warn("Tautulli NewsletterHandler :: Newsletter file '%s' is missing." % newsletter_file)

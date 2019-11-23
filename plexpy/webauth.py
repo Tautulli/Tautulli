@@ -84,7 +84,7 @@ def plex_user_login(username=None, password=None, token=None, headers=None):
             # Register the new user / update the access tokens.
             monitor_db = MonitorDatabase()
             try:
-                logger.debug(u"Tautulli WebAuth :: Registering token for user '%s' in the database."
+                logger.debug("Tautulli WebAuth :: Registering token for user '%s' in the database."
                              % user_details['username'])
                 result = monitor_db.action('UPDATE users SET server_token = ? WHERE user_id = ?',
                                            [server_token, user_details['user_id']])
@@ -95,23 +95,23 @@ def plex_user_login(username=None, password=None, token=None, headers=None):
                     # Successful login
                     return user_details, 'guest'
                 else:
-                    logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database."
+                    logger.warn("Tautulli WebAuth :: Unable to register user '%s' in database."
                                 % user_details['username'])
                     return None
             except Exception as e:
-                logger.warn(u"Tautulli WebAuth :: Unable to register user '%s' in database: %s."
+                logger.warn("Tautulli WebAuth :: Unable to register user '%s' in database: %s."
                             % (user_details['username'], e))
                 return None
         else:
-            logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'."
+            logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'."
                         % user_details['username'])
             return None
     elif username:
-        logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
+        logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
     elif token:
-        logger.warn(u"Tautulli WebAuth :: Unable to retrieve Plex.tv user token for Plex OAuth.")
+        logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv user token for Plex OAuth.")
         return None
 
 
@@ -256,12 +256,12 @@ class AuthController(object):
 
         if success:
             use_oauth = 'Plex OAuth' if oauth else 'form'
-            logger.debug(u"Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
+            logger.debug("Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
                          % (user_group.capitalize(), username, use_oauth))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
+        logger.debug("Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
     
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
@@ -342,18 +342,18 @@ class AuthController(object):
 
         elif admin_login == '1' and username:
             self.on_login(username=username)
-            logger.debug(u"Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
+            logger.debug("Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
             cherrypy.response.status = 401
             return error_message
 
         elif username:
             self.on_login(username=username)
-            logger.debug(u"Tautulli WebAuth :: Invalid user login attempt from '%s'." % username)
+            logger.debug("Tautulli WebAuth :: Invalid user login attempt from '%s'." % username)
             cherrypy.response.status = 401
             return error_message
 
         elif token:
             self.on_login(username='Plex OAuth', oauth=True)
-            logger.debug(u"Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
+            logger.debug("Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message

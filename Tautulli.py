@@ -1,8 +1,4 @@
-#!/bin/sh
-''''which python    >/dev/null 2>&1 && exec python    "$0" "$@" # '''
-''''which python2   >/dev/null 2>&1 && exec python2   "$0" "$@" # '''
-''''which python2.7 >/dev/null 2>&1 && exec python2.7 "$0" "$@" # '''
-''''exec echo "Error: Python not found!" # '''
+#!/usr/bin/env python
 
 # -*- coding: utf-8 -*-
 
@@ -20,6 +16,8 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -122,7 +120,7 @@ def main():
 
     if args.dev:
         plexpy.DEV = True
-        logger.debug(u"Tautulli is running in the dev environment.")
+        logger.debug("Tautulli is running in the dev environment.")
 
     if args.daemon:
         if sys.platform == 'win32':
