@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2014, 2015, 2016 Philip Hane
+# Copyright (c) 2013-2019 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,64 +23,89 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-class NetError(Exception):
+class BaseIpwhoisException(Exception):
+    """
+    Base exception for all the ipwhois custom ones.
+    """
+
+
+class NetError(BaseIpwhoisException):
     """
     An Exception for when a parameter provided is not an instance of
     ipwhois.net.Net.
     """
 
 
-class IPDefinedError(Exception):
+class IPDefinedError(BaseIpwhoisException):
     """
     An Exception for when the IP is defined (does not need to be resolved).
     """
 
 
-class ASNLookupError(Exception):
+class ASNLookupError(BaseIpwhoisException):
     """
     An Exception for when the ASN lookup failed.
     """
 
 
-class ASNRegistryError(Exception):
+class ASNRegistryError(BaseIpwhoisException):
     """
     An Exception for when the ASN registry does not match one of the five
     expected values (arin, ripencc, apnic, lacnic, afrinic).
     """
 
 
-class HostLookupError(Exception):
+class ASNParseError(BaseIpwhoisException):
+    """
+    An Exception for when the ASN parsing failed.
+    """
+
+
+class ASNOriginLookupError(BaseIpwhoisException):
+    """
+    An Exception for when the ASN origin lookup failed.
+    """
+
+
+class HostLookupError(BaseIpwhoisException):
     """
     An Exception for when the host lookup failed.
     """
 
 
-class BlacklistError(Exception):
+class BlacklistError(BaseIpwhoisException):
     """
     An Exception for when the server is in a blacklist.
     """
 
 
-class WhoisLookupError(Exception):
+class WhoisLookupError(BaseIpwhoisException):
     """
     An Exception for when the whois lookup failed.
     """
 
 
-class HTTPLookupError(Exception):
+class WhoisRateLimitError(BaseIpwhoisException):
+    """
+    An Exception for when Whois queries exceed the NIC's request limit and have
+    exhausted all retries.
+    """
+
+
+class HTTPLookupError(BaseIpwhoisException):
     """
     An Exception for when the RDAP lookup failed.
     """
 
 
-class HTTPRateLimitError(Exception):
+class HTTPRateLimitError(BaseIpwhoisException):
     """
     An Exception for when HTTP queries exceed the NIC's request limit and have
     exhausted all retries.
     """
 
 
-class InvalidEntityContactObject(Exception):
+class InvalidEntityContactObject(BaseIpwhoisException):
     """
     An Exception for when JSON output is not an RDAP entity contact information
     object:
@@ -88,14 +113,14 @@ class InvalidEntityContactObject(Exception):
     """
 
 
-class InvalidNetworkObject(Exception):
+class InvalidNetworkObject(BaseIpwhoisException):
     """
     An Exception for when JSON output is not an RDAP network object:
     https://tools.ietf.org/html/rfc7483#section-5.4
     """
 
 
-class InvalidEntityObject(Exception):
+class InvalidEntityObject(BaseIpwhoisException):
     """
     An Exception for when JSON output is not an RDAP entity object:
     https://tools.ietf.org/html/rfc7483#section-5.1

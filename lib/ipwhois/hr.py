@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2014, 2015, 2016 Philip Hane
+# Copyright (c) 2013-2019 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,45 @@ HR_ASN = {
         '_short': 'ASN Registry',
         '_name': 'ASN Assigned Registry',
         '_description': 'ASN assigned regional internet registry.'
+    },
+    'asn_description': {
+        '_short': 'ASN Description',
+        '_name': 'ASN Description',
+        '_description': 'A brief description for the assigned ASN.'
+    }
+}
+
+HR_ASN_ORIGIN = {
+    'nets': {
+        '_short': 'Network',
+        '_name': 'ASN Network',
+        '_description': 'A network associated with an Autonomous System Number'
+                        ' (ASN)',
+        'cidr': {
+            '_short': 'CIDR',
+            '_name': 'Classless Inter-Domain Routing Block',
+            '_description': 'The network routing block.'
+        },
+        'description': {
+            '_short': 'Description',
+            '_name': 'Description',
+            '_description': 'Description for the registered network.'
+        },
+        'maintainer': {
+            '_short': 'Maintainer',
+            '_name': 'Maintainer',
+            '_description': 'The entity that maintains the network.'
+        },
+        'updated': {
+            '_short': 'Updated',
+            '_name': 'Updated Timestamp',
+            '_description': 'Network registration updated information.'
+        },
+        'source': {
+            '_short': 'Source',
+            '_name': 'ASN Network Information Source',
+            '_description': 'The source of the network information.'
+        }
     }
 }
 
@@ -351,5 +390,120 @@ HR_WHOIS = {
         '_short': 'Referral',
         '_name': 'Referral Whois',
         '_description': 'The referral whois data if referenced and enabled.',
+    }
+}
+
+HR_WHOIS_NIR = {
+    'nets': {
+        '_short': 'NIR Network',
+        '_name': 'National Internet Registry Network',
+        '_description': 'The assigned NIR (JPNIC, KRNIC) network for an IP '
+                        'address. May be a parent or child network.',
+        'address': {
+            '_short': 'Address',
+            '_name': 'Postal Address',
+            '_description': 'The network contact postal address.'
+        },
+        'cidr': {
+            '_short': 'CIDR Blocks',
+            '_name': 'Classless Inter-Domain Routing Blocks',
+            '_description': 'Network routing blocks an IP address belongs to.'
+        },
+        'country': {
+            '_short': 'Country Code',
+            '_name': 'Country Code',
+            '_description': 'Country code registered for the network in '
+                            'ISO 3166-1 format.'
+        },
+        'handle': {
+            '_short': 'Handle',
+            '_name': 'NIR Network Handle',
+            '_description': 'Unique identifier for a registered NIR network.'
+        },
+        'name': {
+            '_short': 'Name',
+            '_name': 'NIR Network Name',
+            '_description': 'The identifier assigned to the network '
+                            'registration for an IP address.'
+        },
+        'postal_code': {
+            '_short': 'Postal',
+            '_name': 'Postal Code',
+            '_description': 'The postal code registered with a NIR network.'
+        },
+        'range': {
+            '_short': 'Ranges',
+            '_name': 'CIDR Block Ranges',
+            '_description': 'Network routing blocks an IP address belongs to.'
+        },
+        'nameservers': {
+            '_short': 'NS',
+            '_name': 'Nameservers',
+            '_description': 'Nameservers associated with a NIR network.'
+        },
+        'created': {
+            '_short': 'Created',
+            '_name': 'Created Timestamp',
+            '_description': 'The date the network was created in ISO 8601 '
+                            'format.'
+        },
+        'updated': {
+            '_short': 'Updated',
+            '_name': 'Updated Timestamp',
+            '_description': 'The date the network was updated in ISO 8601 '
+                            'format.'
+        },
+        'contacts': {
+            '_short': 'Contacts',
+            '_name': 'NIR Contacts',
+            '_description': 'The contacts (admin, tech) registered with a NIR '
+                            'network.',
+            'organization': {
+                '_short': 'Org',
+                '_name': 'Organization',
+                '_description': 'The contact organization.'
+            },
+            'division': {
+                '_short': 'Div',
+                '_name': 'Division',
+                '_description': 'The contact division of the organization.'
+            },
+            'name': {
+                '_short': 'Name',
+                '_name': 'Name',
+                '_description': 'The contact name.'
+            },
+            'title': {
+                '_short': 'Title',
+                '_name': 'Title',
+                '_description': 'The contact position or job title.'
+            },
+            'phone': {
+                '_short': 'Phone',
+                '_name': 'Phone Number',
+                '_description': 'The contact phone number.'
+            },
+            'fax': {
+                '_short': 'Fax',
+                '_name': 'Fax Number',
+                '_description': 'The contact fax number.'
+            },
+            'email': {
+                '_short': 'Email',
+                '_name': 'Email Address',
+                '_description': 'The contact email address.'
+            },
+            'reply_email': {
+                '_short': 'Reply Email',
+                '_name': 'Reply Email Address',
+                '_description': 'The contact reply email address.'
+            },
+            'updated': {
+                '_short': 'Updated',
+                '_name': 'Updated Timestamp',
+                '_description': 'The date the contact was updated in ISO 8601 '
+                                'format.'
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2014, 2015, 2016 Philip Hane
+# Copyright (c) 2013-2019 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,8 @@ class _RDAPContact:
     https://tools.ietf.org/html/rfc7095
 
     Args:
-        vcard: The vcard list from an RDAP IP address query.
+        vcard (:obj:`list` of :obj:`list`): The vcard list from an RDAP IP
+            address query.
 
     Raises:
         InvalidEntityContactObject: vcard is not an RDAP entity contact
@@ -93,7 +94,7 @@ class _RDAPContact:
         The function for parsing the vcard name.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         self.vars['name'] = val[3].strip()
@@ -103,7 +104,7 @@ class _RDAPContact:
         The function for parsing the vcard kind.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         self.vars['kind'] = val[3].strip()
@@ -113,7 +114,7 @@ class _RDAPContact:
         The function for parsing the vcard address.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         ret = {
@@ -151,7 +152,7 @@ class _RDAPContact:
         The function for parsing the vcard phone numbers.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         ret = {
@@ -183,7 +184,7 @@ class _RDAPContact:
         The function for parsing the vcard email addresses.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         ret = {
@@ -215,7 +216,7 @@ class _RDAPContact:
         The function for parsing the vcard role.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         self.vars['role'] = val[3].strip()
@@ -225,7 +226,7 @@ class _RDAPContact:
         The function for parsing the vcard title.
 
         Args:
-            val: The value to parse.
+            val (:obj:`list`): The value to parse.
         """
 
         self.vars['title'] = val[3].strip()
@@ -263,7 +264,7 @@ class _RDAPCommon:
     https://tools.ietf.org/html/rfc7483#section-5
 
     Args:
-        json_result: The JSON response from an RDAP query.
+        json_result (:obj:`dict`): The JSON response from an RDAP query.
 
     Raises:
         ValueError: vcard is not a known RDAP object.
@@ -292,10 +293,11 @@ class _RDAPCommon:
         https://tools.ietf.org/html/rfc7483#section-4.2
 
         Args:
-            links_json: A json dictionary of links from RDAP results.
+            links_json (:obj:`dict`): A json mapping of links from RDAP
+                results.
 
         Returns:
-            List: A unique list of found RDAP link dictionaries.
+            list of str: Unique RDAP links.
         """
 
         ret = []
@@ -314,10 +316,20 @@ class _RDAPCommon:
         https://tools.ietf.org/html/rfc7483#section-4.3
 
         Args:
-            notices_json: A json dictionary of notices from RDAP results.
+            notices_json (:obj:`dict`): A json mapping of notices from RDAP
+                results.
 
         Returns:
-            List: A unique list of found RDAP notices dictionaries.
+            list of dict: Unique RDAP notices information:
+
+            ::
+
+                [{
+                    'title' (str) - The title/header of the notice.
+                    'description' (str) - The description/body of the notice.
+                    'links' (list) - Unique links returned by
+                        :obj:`ipwhois.rdap._RDAPCommon.summarize_links()`.
+               }]
         """
 
         ret = []
@@ -354,7 +366,7 @@ class _RDAPCommon:
 
                 pass
 
-            if all(tmp.values()):
+            if any(tmp.values()):
 
                 ret.append(tmp)
 
@@ -366,10 +378,20 @@ class _RDAPCommon:
         https://tools.ietf.org/html/rfc7483#section-4.5
 
         Args:
-            events_json: A json dictionary of events from RDAP results.
+            events_json (:obj:`dict`): A json mapping of events from RDAP
+                results.
 
         Returns:
-            List: A unique list of found RDAP events dictionaries.
+            list of dict: Unique RDAP events information:
+
+            ::
+
+                [{
+                    'action' (str) - The reason for an event.
+                    'timestamp' (str) - The timestamp for when an event
+                        occured.
+                    'actor' (str) - The identifier for an event initiator.
+               }]
         """
 
         ret = []
@@ -440,7 +462,8 @@ class _RDAPNetwork(_RDAPCommon):
     https://tools.ietf.org/html/rfc7483#section-5.4
 
     Args:
-        json_result: The JSON response from an RDAP IP address query.
+        json_result (:obj:`dict`): The JSON response from an RDAP IP address
+            query.
 
     Raises:
         InvalidNetworkObject: json_result is not an RDAP network object.
@@ -551,7 +574,7 @@ class _RDAPEntity(_RDAPCommon):
     https://tools.ietf.org/html/rfc7483#section-5.1
 
     Args:
-        json_result: The JSON response from an RDAP query.
+        json_result (:obj:`dict`): The JSON response from an RDAP query.
 
     Raises:
         InvalidEntityObject: json_result is not an RDAP entity object.
@@ -645,7 +668,7 @@ class RDAP:
     https://www.arin.net/resources/rdap.html
 
     Args:
-        net: A ipwhois.net.Net object.
+        net (:obj:`ipwhois.net.Net`): The network object.
 
     Raises:
         NetError: The parameter provided is not an instance of
@@ -673,34 +696,45 @@ class RDAP:
         address via RDAP (HTTP).
 
         Args:
-            inc_raw: Boolean for whether to include the raw results in the
-                returned dictionary.
-            retry_count: The number of times to retry in case socket errors,
-                timeouts, connection resets, etc. are encountered.
-            asn_data: Result dictionary from ipwhois.net.Net.lookup_asn().
-                Optional if the bootstrap parameter is True.
-            depth: How many levels deep to run queries when additional
-                referenced objects are found.
-            excluded_entities: A list of entity handles to not perform lookups.
-            response: Optional response object, this bypasses the RDAP lookup.
-            bootstrap: If True, performs lookups via ARIN bootstrap rather
-                than lookups based on ASN data.
-            rate_limit_timeout: The number of seconds to wait before retrying
-                when a rate limit notice is returned via rdap+json.
+            inc_raw (:obj:`bool`, optional): Whether to include the raw
+                results in the returned dictionary. Defaults to False.
+            retry_count (:obj:`int`): The number of times to retry in case
+                socket errors, timeouts, connection resets, etc. are
+                encountered. Defaults to 3.
+            asn_data (:obj:`dict`): Result from
+                :obj:`ipwhois.asn.IPASN.lookup`. Optional if the bootstrap
+                parameter is True.
+            depth (:obj:`int`): How many levels deep to run queries when
+                additional referenced objects are found. Defaults to 0.
+            excluded_entities (:obj:`list`): Entity handles to not perform
+                lookups. Defaults to None.
+            response (:obj:`str`): Optional response object, this bypasses the
+                RDAP lookup.
+            bootstrap (:obj:`bool`): If True, performs lookups via ARIN
+                bootstrap rather than lookups based on ASN data. Defaults to
+                False.
+            rate_limit_timeout (:obj:`int`): The number of seconds to wait
+                before retrying when a rate limit notice is returned via
+                rdap+json. Defaults to 120.
 
         Returns:
-            Dictionary:
+            dict: The IP RDAP lookup results
 
-            :query: The IP address (String)
-            :network: Dictionary of values returned by _RDAPNetwork. The raw
-                result is included for each entity if the inc_raw parameter is
-                True.
-            :entities: List of entity keys referenced by the top level IP
-                address query.
-            :objects: Dictionary of objects with the handles as keys, and the
-                dictionary returned by _RDAPEntity, etc as the values. The raw
-                result is included for each object if the inc_raw parameter is
-                True.
+            ::
+
+                {
+                    'query' (str) - The IP address
+                    'entities' (list) - Entity handles referred by the top
+                        level query.
+                    'network' (dict) - Network information which consists of
+                        the fields listed in the ipwhois.rdap._RDAPNetwork
+                        dict.
+                    'objects' (dict) - Mapping of entity handle->entity dict
+                        which consists of the fields listed in the
+                        ipwhois.rdap._RDAPEntity dict. The raw result is
+                        included for each object if the inc_raw parameter
+                        is True.
+                }
         """
 
         if not excluded_entities:
@@ -747,6 +781,7 @@ class RDAP:
         results['network'] = result_net.vars
         results['entities'] = []
         results['objects'] = {}
+        roles = {}
 
         # Iterate through and parse the root level entities.
         log.debug('Parsing RDAP root level entities')
@@ -763,6 +798,16 @@ class RDAP:
                     results['objects'][ent['handle']] = result_ent.vars
 
                     results['entities'].append(ent['handle'])
+
+                    try:
+
+                        for tmp in ent['entities']:
+
+                            roles[tmp['handle']] = tmp['roles']
+
+                    except KeyError:
+
+                        pass
 
         except KeyError:
 
@@ -810,6 +855,27 @@ class RDAP:
                                 result_ent = _RDAPEntity(response)
                                 result_ent.parse()
                                 new_objects[ent] = result_ent.vars
+
+                                new_objects[ent]['roles'] = None
+                                try:
+
+                                    new_objects[ent]['roles'] = roles[ent]
+
+                                except KeyError:  # pragma: no cover
+
+                                    pass
+
+                                try:
+
+                                    for tmp in response['entities']:
+
+                                        if tmp['handle'] not in roles:
+
+                                            roles[tmp['handle']] = tmp['roles']
+
+                                except (IndexError, KeyError):
+
+                                    pass
 
                                 if inc_raw:
 

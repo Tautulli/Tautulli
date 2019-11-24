@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2014, 2015, 2016 Philip Hane
+# Copyright (c) 2013-2019 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ import re
 import copy
 import io
 import csv
+import random
+from collections import namedtuple
 import logging
 
 if sys.version_info >= (3, 3):  # pragma: no cover
@@ -117,10 +119,10 @@ def ipv4_lstrip_zeros(address):
     The function to strip leading zeros in each octet of an IPv4 address.
 
     Args:
-        address: An IPv4 address in string format.
+        address (:obj:`str`): An IPv4 address.
 
     Returns:
-        String: The modified IPv4 address string.
+        str: The modified IPv4 address.
     """
 
     # Split  the octets.
@@ -141,11 +143,11 @@ def calculate_cidr(start_address, end_address):
     The function to calculate a CIDR range(s) from a start and end IP address.
 
     Args:
-        start_address: The starting IP address in string format.
-        end_address: The ending IP address in string format.
+        start_address (:obj:`str`): The starting IP address.
+        end_address (:obj:`str`): The ending IP address.
 
     Returns:
-        List: A list of calculated CIDR ranges.
+        list of str: The calculated CIDR ranges.
     """
 
     tmp_addrs = []
@@ -179,12 +181,12 @@ def get_countries(is_legacy_xml=False):
     to names.
 
     Args:
-        is_legacy_xml: Boolean for whether to use the older country code
+        is_legacy_xml (:obj:`bool`): Whether to use the older country code
             list (iso_3166-1_list_en.xml).
 
     Returns:
-        Dictionary: A dictionary with the country codes as the keys and the
-            country names as the values.
+        dict: A mapping of country codes as the keys to the country names as
+            the values.
     """
 
     # Initialize the countries dictionary.
@@ -265,82 +267,95 @@ def ipv4_is_defined(address):
     be resolved).
 
     Args:
-        address: An IPv4 address in string format.
+        address (:obj:`str`): An IPv4 address.
 
     Returns:
-        Tuple:
+        namedtuple:
 
-        :Boolean: True if given address is defined, otherwise False
-        :String: IETF assignment name if given address is defined, otherwise ''
-        :String: IETF assignment RFC if given address is defined, otherwise ''
+        :is_defined (bool): True if given address is defined, otherwise
+            False
+        :ietf_name (str): IETF assignment name if given address is
+            defined, otherwise ''
+        :ietf_rfc (str): IETF assignment RFC if given address is defined,
+            otherwise ''
     """
 
     # Initialize the IP address object.
     query_ip = IPv4Address(str(address))
 
+    # Initialize the results named tuple
+    results = namedtuple('ipv4_is_defined_results', 'is_defined, ietf_name, '
+                                                    'ietf_rfc')
+
     # This Network
     if query_ip in IPv4Network('0.0.0.0/8'):
 
-        return True, 'This Network', 'RFC 1122, Section 3.2.1.3'
+        return results(True, 'This Network', 'RFC 1122, Section 3.2.1.3')
 
     # Loopback
     elif query_ip.is_loopback:
 
-        return True, 'Loopback', 'RFC 1122, Section 3.2.1.3'
+        return results(True, 'Loopback', 'RFC 1122, Section 3.2.1.3')
 
     # Link Local
     elif query_ip.is_link_local:
 
-        return True, 'Link Local', 'RFC 3927'
+        return results(True, 'Link Local', 'RFC 3927')
 
     # IETF Protocol Assignments
     elif query_ip in IPv4Network('192.0.0.0/24'):
 
-        return True, 'IETF Protocol Assignments', 'RFC 5736'
+        return results(True, 'IETF Protocol Assignments', 'RFC 5736')
 
     # TEST-NET-1
     elif query_ip in IPv4Network('192.0.2.0/24'):
 
-        return True, 'TEST-NET-1', 'RFC 5737'
+        return results(True, 'TEST-NET-1', 'RFC 5737')
 
     # 6to4 Relay Anycast
     elif query_ip in IPv4Network('192.88.99.0/24'):
 
-        return True, '6to4 Relay Anycast', 'RFC 3068'
+        return results(True, '6to4 Relay Anycast', 'RFC 3068')
 
     # Network Interconnect Device Benchmark Testing
     elif query_ip in IPv4Network('198.18.0.0/15'):
 
-        return (True,
+        return (results(True,
                 'Network Interconnect Device Benchmark Testing',
-                'RFC 2544')
+                        'RFC 2544'))
 
     # TEST-NET-2
     elif query_ip in IPv4Network('198.51.100.0/24'):
 
-        return True, 'TEST-NET-2', 'RFC 5737'
+        return results(True, 'TEST-NET-2', 'RFC 5737')
 
     # TEST-NET-3
     elif query_ip in IPv4Network('203.0.113.0/24'):
 
-        return True, 'TEST-NET-3', 'RFC 5737'
+        return results(True, 'TEST-NET-3', 'RFC 5737')
 
     # Multicast
     elif query_ip.is_multicast:
 
-        return True, 'Multicast', 'RFC 3171'
+        return results(True, 'Multicast', 'RFC 3171')
 
     # Limited Broadcast
     elif query_ip in IPv4Network('255.255.255.255/32'):
 
-        return True, 'Limited Broadcast', 'RFC 919, Section 7'
+        return results(True, 'Limited Broadcast', 'RFC 919, Section 7')
 
     # Private-Use Networks
     elif query_ip.is_private:
 
-        return True, 'Private-Use Networks', 'RFC 1918'
+        return results(True, 'Private-Use Networks', 'RFC 1918')
 
-    return False, '', ''
+    # New IANA Reserved
+    # TODO: Someone needs to find the RFC for this
+    elif query_ip in IPv4Network('198.97.38.0/24'):
+
+        return results(True, 'IANA Reserved', '')
+
+    return results(False, '', '')
 
 
 def ipv6_is_defined(address):
@@ -349,55 +364,61 @@ def ipv6_is_defined(address):
     be resolved).
 
     Args:
-        address: An IPv6 address in string format.
+        address (:obj:`str`): An IPv6 address.
 
     Returns:
-        Tuple:
+        namedtuple:
 
-        :Boolean: True if address is defined, otherwise False
-        :String: IETF assignment name if address is defined, otherwise ''
-        :String: IETF assignment RFC if address is defined, otherwise ''
+        :is_defined (bool): True if given address is defined, otherwise
+            False
+        :ietf_name (str): IETF assignment name if given address is
+            defined, otherwise ''
+        :ietf_rfc (str): IETF assignment RFC if given address is defined,
+            otherwise ''
     """
 
     # Initialize the IP address object.
     query_ip = IPv6Address(str(address))
 
+    # Initialize the results named tuple
+    results = namedtuple('ipv6_is_defined_results', 'is_defined, ietf_name, '
+                                                    'ietf_rfc')
     # Multicast
     if query_ip.is_multicast:
 
-        return True, 'Multicast', 'RFC 4291, Section 2.7'
+        return results(True, 'Multicast', 'RFC 4291, Section 2.7')
 
     # Unspecified
     elif query_ip.is_unspecified:
 
-        return True, 'Unspecified', 'RFC 4291, Section 2.5.2'
+        return results(True, 'Unspecified', 'RFC 4291, Section 2.5.2')
 
     # Loopback.
     elif query_ip.is_loopback:
 
-        return True, 'Loopback', 'RFC 4291, Section 2.5.3'
+        return results(True, 'Loopback', 'RFC 4291, Section 2.5.3')
 
     # Reserved
     elif query_ip.is_reserved:
 
-        return True, 'Reserved', 'RFC 4291'
+        return results(True, 'Reserved', 'RFC 4291')
 
     # Link-Local
     elif query_ip.is_link_local:
 
-        return True, 'Link-Local', 'RFC 4291, Section 2.5.6'
+        return results(True, 'Link-Local', 'RFC 4291, Section 2.5.6')
 
     # Site-Local
     elif query_ip.is_site_local:
 
-        return True, 'Site-Local', 'RFC 4291, Section 2.5.7'
+        return results(True, 'Site-Local', 'RFC 4291, Section 2.5.7')
 
     # Unique Local Unicast
     elif query_ip.is_private:
 
-        return True, 'Unique Local Unicast', 'RFC 4193'
+        return results(True, 'Unique Local Unicast', 'RFC 4193')
 
-    return False, '', ''
+    return results(False, '', '')
 
 
 def unique_everseen(iterable, key=None):
@@ -406,11 +427,12 @@ def unique_everseen(iterable, key=None):
     elements ever seen. This was taken from the itertools recipes.
 
     Args:
-        iterable: An iterable to process.
-        key: Optional function to run when checking elements (e.g., str.lower)
+        iterable (:obj:`iter`): An iterable to process.
+        key (:obj:`callable`): Optional function to run when checking
+            elements (e.g., str.lower)
 
-    Returns:
-        Generator: Yields a generator object.
+    Yields:
+        The next unique element found.
     """
 
     seen = set()
@@ -442,17 +464,23 @@ def unique_addresses(data=None, file_path=None):
     If both a string and file_path are provided, it will process them both.
 
     Args:
-        data: A string to process.
-        file_path: An optional file path to process.
+        data (:obj:`str`): The data to process.
+        file_path (:obj:`str`): An optional file path to process.
 
     Returns:
-        Dictionary:
+        dict: The addresses/networks mapped to ports and counts:
 
-        :ip address/network: Each address or network found is a dictionary w/\:
+        ::
 
-            :count: Total number of times seen (Integer)
-            :ports: Dictionary with port numbers as keys and the number of
-                times seen for this ip as values (Dictionary)
+            {
+                '1.2.3.4' (dict) - Each address or network found is a
+                    dictionary:
+                    {
+                        'count' (int) - Total number of times seen.
+                        'ports' (dict) - Mapping of port numbers as keys and
+                            the number of times seen for this ip as values.
+                    }
+            }
 
     Raises:
         ValueError: Arguments provided are invalid.
@@ -551,3 +579,53 @@ def unique_addresses(data=None, file_path=None):
                     continue
 
     return ret
+
+
+def ipv4_generate_random(total=100):
+    """
+    The generator to produce random, unique IPv4 addresses that are not
+    defined (can be looked up using ipwhois).
+
+    Args:
+        total (:obj:`int`): The total number of IPv4 addresses to generate.
+
+    Yields:
+        str: The next IPv4 address.
+    """
+
+    count = 0
+    yielded = set()
+    while count < total:
+
+        address = str(IPv4Address(random.randint(0, 2**32-1)))
+
+        if not ipv4_is_defined(address)[0] and address not in yielded:
+
+            count += 1
+            yielded.add(address)
+            yield address
+
+
+def ipv6_generate_random(total=100):
+    """
+    The generator to produce random, unique IPv6 addresses that are not
+    defined (can be looked up using ipwhois).
+
+    Args:
+        total (:obj:`int`): The total number of IPv6 addresses to generate.
+
+    Yields:
+        str: The next IPv6 address.
+    """
+
+    count = 0
+    yielded = set()
+    while count < total:
+
+        address = str(IPv6Address(random.randint(0, 2**128-1)))
+
+        if not ipv6_is_defined(address)[0] and address not in yielded:
+
+            count += 1
+            yielded.add(address)
+            yield address

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, 2014, 2015, 2016 Philip Hane
+# Copyright (c) 2013-2019 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -186,7 +186,7 @@ class Whois:
     The class for parsing via whois
 
     Args:
-        net: A ipwhois.net.Net object.
+        net (:obj:`ipwhois.net.Net`): The network object.
 
     Raises:
         NetError: The parameter provided is not an instance of
@@ -209,25 +209,33 @@ class Whois:
             raise NetError('The provided net parameter is not an instance of '
                            'ipwhois.net.Net')
 
-    def _parse_fields(self, response, fields_dict, net_start=None,
-                      net_end=None, dt_format=None, field_list=None):
+    def parse_fields(self, response, fields_dict, net_start=None,
+                     net_end=None, dt_format=None, field_list=None):
         """
         The function for parsing whois fields from a data input.
 
         Args:
-            response: The response from the whois/rwhois server.
-            fields_dict: The dictionary of fields -> regex search values.
-            net_start: The starting point of the network (if parsing multiple
-                networks).
-            net_end: The ending point of the network (if parsing multiple
-                networks).
-            dt_format: The format of datetime fields if known.
-            field_list: If provided, a list of fields to parse:
-                ['name', 'handle', 'description', 'country', 'state', 'city',
-                'address', 'postal_code', 'emails', 'created', 'updated']
+            response (:obj:`str`): The response from the whois/rwhois server.
+            fields_dict (:obj:`dict`): The mapping of fields to regex search
+                values (required).
+            net_start (:obj:`int`): The starting point of the network (if
+                parsing multiple networks). Defaults to None.
+            net_end (:obj:`int`): The ending point of the network (if parsing
+                multiple networks). Defaults to None.
+            dt_format (:obj:`str`): The format of datetime fields if known.
+                Defaults to None.
+            field_list (:obj:`list` of :obj:`str`): If provided, fields to
+                parse. Defaults to:
+
+                ::
+
+                    ['name', 'handle', 'description', 'country', 'state',
+                    'city', 'address', 'postal_code', 'emails', 'created',
+                    'updated']
 
         Returns:
-            Dictionary: A dictionary of fields provided in fields_dict.
+            dict: A dictionary of fields provided in fields_dict, mapping to
+                the results of the regex searches.
         """
 
         ret = {}
@@ -297,10 +305,14 @@ class Whois:
                             values[0],
                             str(dt_format)).isoformat('T')
 
+                    elif field in ['emails']:
+
+                        value = list(unique_everseen(values))
+
                     else:
 
                         values = unique_everseen(values)
-                        value = '\n'.join(values)
+                        value = '\n'.join(values).strip()
 
                 except ValueError as e:
 
@@ -312,15 +324,33 @@ class Whois:
 
         return ret
 
-    def _get_nets_arin(self, response):
+    def _parse_fields(self, *args, **kwargs):
+        """
+        Deprecated. This will be removed in a future release.
+        """
+
+        from warnings import warn
+        warn('Whois._parse_fields() has been deprecated and will be '
+             'removed. You should now use Whois.parse_fields().')
+        return self.parse_fields(*args, **kwargs)
+
+    def get_nets_arin(self, response):
         """
         The function for parsing network blocks from ARIN whois data.
 
         Args:
-            response: The response from the ARIN whois server.
+            response (:obj:`str`): The response from the ARIN whois server.
 
         Returns:
-            List: A of dictionaries containing keys: cidr, start, end.
+            list of dict: Mapping of networks with start and end positions.
+
+            ::
+
+                [{
+                    'cidr' (str) - The network routing block
+                    'start' (int) - The starting point of the network
+                    'end' (int) - The endpoint point of the network
+                }]
         """
 
         nets = []
@@ -359,7 +389,17 @@ class Whois:
 
                 if net_range is not None:
                     if net_range_start < match.start() or len(nets) > 0:
-                        net['range'] = net_range
+
+                        try:
+
+                            net['range'] = '{0} - {1}'.format(
+                                ip_network(net_range)[0].__str__(),
+                                ip_network(net_range)[-1].__str__()
+                            ) if '/' in net_range else net_range
+
+                        except ValueError:  # pragma: no cover
+
+                            net['range'] = net_range
 
                 net['cidr'] = ', '.join(
                     [ip_network(c.strip()).__str__()
@@ -375,15 +415,33 @@ class Whois:
 
         return nets
 
-    def _get_nets_lacnic(self, response):
+    def _get_nets_arin(self, *args, **kwargs):
+        """
+        Deprecated. This will be removed in a future release.
+        """
+
+        from warnings import warn
+        warn('Whois._get_nets_arin() has been deprecated and will be '
+             'removed. You should now use Whois.get_nets_arin().')
+        return self.get_nets_arin(*args, **kwargs)
+
+    def get_nets_lacnic(self, response):
         """
         The function for parsing network blocks from LACNIC whois data.
 
         Args:
-            response: The response from the LACNIC whois server.
+            response (:obj:`str`): The response from the LACNIC whois server.
 
         Returns:
-            List: A of dictionaries containing keys: cidr, start, end.
+            list of dict: Mapping of networks with start and end positions.
+
+            ::
+
+                [{
+                    'cidr' (str) - The network routing block
+                    'start' (int) - The starting point of the network
+                    'end' (int) - The endpoint point of the network
+                }]
         """
 
         nets = []
@@ -399,10 +457,21 @@ class Whois:
             try:
 
                 net = copy.deepcopy(BASE_NET)
-                net['range'] = match.group(2).strip()
+                net_range = match.group(2).strip()
+
+                try:
+
+                    net['range'] = net['range'] = '{0} - {1}'.format(
+                        ip_network(net_range)[0].__str__(),
+                        ip_network(net_range)[-1].__str__()
+                    ) if '/' in net_range else net_range
+
+                except ValueError:  # pragma: no cover
+
+                    net['range'] = net_range
 
                 temp = []
-                for addr in match.group(2).strip().split(', '):
+                for addr in net_range.split(', '):
 
                     count = addr.count('.')
                     if count is not 0 and count < 4:
@@ -426,15 +495,33 @@ class Whois:
 
         return nets
 
-    def _get_nets_other(self, response):
+    def _get_nets_lacnic(self, *args, **kwargs):
+        """
+        Deprecated. This will be removed in a future release.
+        """
+
+        from warnings import warn
+        warn('Whois._get_nets_lacnic() has been deprecated and will be '
+             'removed. You should now use Whois.get_nets_lacnic().')
+        return self.get_nets_lacnic(*args, **kwargs)
+
+    def get_nets_other(self, response):
         """
         The function for parsing network blocks from generic whois data.
 
         Args:
-            response: The response from the whois/rwhois server.
+            response (:obj:`str`): The response from the whois/rwhois server.
 
         Returns:
-            List: A of dictionaries containing keys: cidr, start, end.
+            list of dict: Mapping of networks with start and end positions.
+
+            ::
+
+                [{
+                    'cidr' (str) - The network routing block
+                    'start' (int) - The starting point of the network
+                    'end' (int) - The endpoint point of the network
+                }]
         """
 
         nets = []
@@ -451,7 +538,18 @@ class Whois:
             try:
 
                 net = copy.deepcopy(BASE_NET)
-                net['range'] = match.group(2)
+                net_range = match.group(2).strip()
+
+                try:
+
+                    net['range'] = net['range'] = '{0} - {1}'.format(
+                        ip_network(net_range)[0].__str__(),
+                        ip_network(net_range)[-1].__str__()
+                    ) if '/' in net_range else net_range
+
+                except ValueError:  # pragma: no cover
+
+                    net['range'] = net_range
 
                 if match.group(3) and match.group(4):
 
@@ -466,7 +564,7 @@ class Whois:
 
                 else:
 
-                    cidr = ip_network(match.group(2).strip()).__str__()
+                    cidr = ip_network(net_range).__str__()
 
                 net['cidr'] = cidr
                 net['start'] = match.start()
@@ -479,6 +577,16 @@ class Whois:
 
         return nets
 
+    def _get_nets_other(self, *args, **kwargs):
+        """
+        Deprecated. This will be removed in a future release.
+        """
+
+        from warnings import warn
+        warn('Whois._get_nets_other() has been deprecated and will be '
+             'removed. You should now use Whois.get_nets_other().')
+        return self.get_nets_other(*args, **kwargs)
+
     def lookup(self, inc_raw=False, retry_count=3, response=None,
                get_referral=False, extra_blacklist=None,
                ignore_referral_errors=False, asn_data=None,
@@ -488,42 +596,60 @@ class Whois:
         address via port 43/tcp (WHOIS).
 
         Args:
-            inc_raw: Boolean for whether to include the raw results in the
-                returned dictionary.
-            retry_count: The number of times to retry in case socket errors,
-                timeouts, connection resets, etc. are encountered.
-            response: Optional response object, this bypasses the Whois lookup.
-            get_referral: Boolean for whether to retrieve referral whois
-                information, if available.
-            extra_blacklist: A list of blacklisted whois servers in addition to
-                the global BLACKLIST.
-            ignore_referral_errors: Boolean for whether to ignore and continue
-                when an exception is encountered on referral whois lookups.
-            asn_data: Optional ASN result object, this bypasses the ASN lookup.
-            field_list: If provided, a list of fields to parse:
-                ['name', 'handle', 'description', 'country', 'state', 'city',
-                'address', 'postal_code', 'emails', 'created', 'updated']
-            is_offline: Boolean for whether to perform lookups offline. If
+            inc_raw (:obj:`bool`, optional): Whether to include the raw
+                results in the returned dictionary. Defaults to False.
+            retry_count (:obj:`int`): The number of times to retry in case
+                socket errors, timeouts, connection resets, etc. are
+                encountered. Defaults to 3.
+            response (:obj:`str`): Optional response object, this bypasses the
+                NIR lookup. Required when is_offline=True.
+            get_referral (:obj:`bool`): Whether to retrieve referral whois
+                information, if available. Defaults to False.
+            extra_blacklist (:obj:`list`): Blacklisted whois servers in
+                addition to the global BLACKLIST. Defaults to None.
+            ignore_referral_errors (:obj:`bool`): Whether to ignore and
+                continue when an exception is encountered on referral whois
+                lookups. Defaults to False.
+            asn_data (:obj:`dict`): Result from
+                :obj:`ipwhois.asn.IPASN.lookup` (required).
+            field_list (:obj:`list` of :obj:`str`): If provided, fields to
+                parse. Defaults to:
+
+                ::
+
+                    ['name', 'handle', 'description', 'country', 'state',
+                    'city', 'address', 'postal_code', 'emails', 'created',
+                    'updated']
+
+            is_offline (:obj:`bool`): Whether to perform lookups offline. If
                 True, response and asn_data must be provided. Primarily used
-                for testing.
+                for testing. Defaults to False.
 
         Returns:
-            Dictionary:
+            dict: The IP whois lookup results
 
-            :query: The IP address (String)
-            :asn: The Autonomous System Number (String)
-            :asn_date: The ASN Allocation date (String)
-            :asn_registry: The assigned ASN registry (String)
-            :asn_cidr: The assigned ASN CIDR (String)
-            :asn_country_code: The assigned ASN country code (String)
-            :nets: Dictionaries containing network information which consists
-                of the fields listed in the NIC_WHOIS dictionary. (List)
-            :raw: Raw whois results if the inc_raw parameter is True. (String)
-            :referral: Dictionary of referral whois information if get_referral
-                is True and the server isn't blacklisted. Consists of fields
-                listed in the RWHOIS dictionary.
-            :raw_referral: Raw referral whois results if the inc_raw parameter
-                is True. (String)
+            ::
+
+                {
+                    'query' (str) - The IP address
+                    'asn' (str) - The Autonomous System Number
+                    'asn_date' (str) - The ASN Allocation date
+                    'asn_registry' (str) - The assigned ASN registry
+                    'asn_cidr' (str) - The assigned ASN CIDR
+                    'asn_country_code' (str) - The assigned ASN country code
+                    'asn_description' (str) - The ASN description
+                    'nets' (list) - Dictionaries containing network
+                        information which consists of the fields listed in the
+                        ipwhois.whois.RIR_WHOIS dictionary.
+                    'raw' (str) - Raw whois results if the inc_raw parameter
+                        is True.
+                    'referral' (dict) - Referral whois information if
+                        get_referral is True and the server is not blacklisted.
+                        Consists of fields listed in the ipwhois.whois.RWHOIS
+                        dictionary.
+                    'raw_referral' (str) - Raw referral whois results if the
+                        inc_raw parameter is True.
+                }
         """
 
         # Create the return dictionary.
@@ -614,7 +740,7 @@ class Whois:
 
                     results['raw_referral'] = response_ref
 
-                temp_rnet = self._parse_fields(
+                temp_rnet = self.parse_fields(
                     response_ref,
                     RWHOIS['fields'],
                     field_list=field_list
@@ -632,15 +758,15 @@ class Whois:
 
         if asn_data['asn_registry'] == 'arin':
 
-            nets_response = self._get_nets_arin(response)
+            nets_response = self.get_nets_arin(response)
 
         elif asn_data['asn_registry'] == 'lacnic':
 
-            nets_response = self._get_nets_lacnic(response)
+            nets_response = self.get_nets_lacnic(response)
 
         else:
 
-            nets_response = self._get_nets_other(response)
+            nets_response = self.get_nets_other(response)
 
         nets.extend(nets_response)
 
@@ -662,7 +788,7 @@ class Whois:
 
                 dt_format = None
 
-            temp_net = self._parse_fields(
+            temp_net = self.parse_fields(
                 response,
                 RIR_WHOIS[asn_data['asn_registry']]['fields'],
                 section_end,
