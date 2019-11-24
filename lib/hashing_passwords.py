@@ -19,7 +19,7 @@
 import hashlib
 from os import urandom
 from base64 import b64encode, b64decode
-from itertools import izip
+
 
 # From https://github.com/mitsuhiko/python-pbkdf2
 from pbkdf2 import pbkdf2_bin
@@ -37,7 +37,7 @@ COST_FACTOR = 10000
 
 def make_hash(password):
     """Generate a random salt and return a new hash for the password."""
-    if isinstance(password, unicode):
+    if isinstance(password, str):
         password = password.encode('utf-8')
     salt = b64encode(urandom(SALT_LENGTH))
     return 'PBKDF2${}${}${}${}'.format(
@@ -50,7 +50,7 @@ def make_hash(password):
 
 def check_hash(password, hash_):
     """Check a password against an existing hash."""
-    if isinstance(password, unicode):
+    if isinstance(password, str):
         password = password.encode('utf-8')
     algorithm, hash_function, cost_factor, salt, hash_a = hash_.split('$')
     assert algorithm == 'PBKDF2'
@@ -61,6 +61,6 @@ def check_hash(password, hash_):
     # Same as "return hash_a == hash_b" but takes a constant time.
     # See http://carlos.bueno.org/2011/10/timing.html
     diff = 0
-    for char_a, char_b in izip(hash_a, hash_b):
+    for char_a, char_b in zip(hash_a, hash_b):
         diff |= ord(char_a) ^ ord(char_b)
     return diff == 0
