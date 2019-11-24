@@ -1339,7 +1339,7 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
 
     img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
         plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)
-    img_hash = hashlib.sha256(img_string).hexdigest()
+    img_hash = hashlib.sha256(img_string.encode('utf-8')).hexdigest()
 
     if add_to_db:
         keys = {'img_hash': img_hash}
