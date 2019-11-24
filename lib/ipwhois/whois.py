@@ -474,7 +474,7 @@ class Whois:
                 for addr in net_range.split(', '):
 
                     count = addr.count('.')
-                    if count is not 0 and count < 4:
+                    if count != 0 and count < 4:
 
                         addr_split = addr.strip().split('/')
                         for i in range(count + 1, 4):
@@ -667,7 +667,7 @@ class Whois:
 
         # Only fetch the response if we haven't already.
         if response is None or (not is_offline and
-                                asn_data['asn_registry'] is not 'arin'):
+                                asn_data['asn_registry'] != 'arin'):
 
             log.debug('Response not given, perform WHOIS lookup for {0}'
                       .format(self._net.address_str))
