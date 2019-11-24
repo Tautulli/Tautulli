@@ -1543,7 +1543,7 @@ class PmsConnect(object):
         if not platform and helpers.get_xml_attr(player_info, 'product') == 'DLNA':
             platform = 'DLNA'
 
-        platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
+        platform_name = next((v for k, v in list(common.PLATFORM_NAMES.items()) if k in platform.lower()), 'default')
 
         player_details = {'ip_address': helpers.get_xml_attr(player_info, 'address').split('::ffff:')[-1],
                           'ip_address_public': helpers.get_xml_attr(player_info, 'remotePublicAddress').split('::ffff:')[-1],

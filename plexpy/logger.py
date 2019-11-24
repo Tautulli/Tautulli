@@ -61,7 +61,7 @@ def blacklist_config(config):
     blacklist = set()
     blacklist_keys = ['HOOK', 'APIKEY', 'KEY', 'PASSWORD', 'TOKEN']
 
-    for key, value in config.items():
+    for key, value in list(config.items()):
         if isinstance(value, basestring) and len(value.strip()) > 5 and \
             key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or
                                                     any(bk in key.upper() for bk in _BLACKLIST_KEYS)):

@@ -664,7 +664,7 @@ class DataFactory(object):
                 for item in result:
                     # Rename Mystery platform names
                     platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
-                    platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
+                    platform_name = next((v for k, v in list(common.PLATFORM_NAMES.items()) if k in platform.lower()), 'default')
 
                     row = {'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
@@ -994,7 +994,7 @@ class DataFactory(object):
                              'pre_tautulli': pre_tautulli
                              }
 
-        stream_output = {k: v or '' for k, v in stream_output.items()}
+        stream_output = {k: v or '' for k, v in list(stream_output.items())}
         return stream_output
 
     def get_metadata_details(self, rating_key):
@@ -1527,7 +1527,7 @@ class DataFactory(object):
         # function to map rating keys pairs
         def get_pairs(old, new):
             pairs = {}
-            for k, v in old.items():
+            for k, v in list(old.items()):
                 if k in new:
                     pairs.update({v['rating_key']: new[k]['rating_key']})
                     if 'children' in old[k]:
@@ -1542,7 +1542,7 @@ class DataFactory(object):
 
         if mapping:
             logger.info("Tautulli DataFactory :: Updating metadata in the database.")
-            for old_key, new_key in mapping.items():
+            for old_key, new_key in list(mapping.items()):
                 metadata = pms_connect.get_metadata_details(new_key)
 
                 if metadata:

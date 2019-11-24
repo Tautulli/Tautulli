@@ -693,8 +693,8 @@ class Config(object):
         """ Add tokens and passwords to blacklisted words in logger """
         blacklist = set()
 
-        for key, subkeys in self._config.items():
-            for subkey, value in subkeys.items():
+        for key, subkeys in list(self._config.items()):
+            for subkey, value in list(subkeys.items()):
                 if isinstance(value, basestring) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.add(value.strip())

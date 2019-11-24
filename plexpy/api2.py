@@ -274,10 +274,10 @@ class API2(object):
         config = {}
 
         # Truthify the dict
-        for k, v in conf.items():
+        for k, v in list(conf.items()):
             if isinstance(v, dict):
                 d = {}
-                for kk, vv in v.items():
+                for kk, vv in list(v.items()):
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:

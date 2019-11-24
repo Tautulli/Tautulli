@@ -598,7 +598,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in list(kwargs.keys()) if k.startswith(config_prefix)}
 
-    for cfg, val in notifier_config.items():
+    for cfg, val in list(notifier_config.items()):
         # Check for a password config keys and a blank password from the HTML form
         if 'password' in cfg and val == '    ':
             # Get the previous password so we don't overwrite it with a blank value
@@ -802,7 +802,7 @@ class Notifier(object):
             return default
 
         new_config = {}
-        for k, v in default.items():
+        for k, v in list(default.items()):
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             elif isinstance(v, list):
@@ -1413,9 +1413,9 @@ class EMAIL(Notifier):
         user_emails_cc.update(emails)
         user_emails_bcc.update(emails)
 
-        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.items()]
-        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.items()]
-        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.items()]
+        user_emails_to = [{'value': k, 'text': v} for k, v in list(user_emails_to.items())]
+        user_emails_cc = [{'value': k, 'text': v} for k, v in list(user_emails_cc.items())]
+        user_emails_bcc = [{'value': k, 'text': v} for k, v in list(user_emails_bcc.items())]
 
         return user_emails_to, user_emails_cc, user_emails_bcc
 
@@ -3956,7 +3956,7 @@ def upgrade_config_to_db():
 
             # Update the new config with the old config values
             notifier_config = {}
-            for conf, val in notifier_default_config.items():
+            for conf, val in list(notifier_default_config.items()):
                 c_key = agent_config_key + '_' + config_key_overrides.get(agent, {}).get(conf, conf)
                 notifier_config[agent + '_' + conf] = agent_config.get(c_key, val)
 

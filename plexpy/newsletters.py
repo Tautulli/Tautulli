@@ -240,7 +240,7 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in list(kwargs.keys()) if k.startswith(email_config_prefix)}
 
-    for cfg, val in email_config.items():
+    for cfg, val in list(email_config.items()):
         # Check for a password config keys and a blank password from the HTML form
         if 'password' in cfg and val == '    ':
             # Get the previous password so we don't overwrite it with a blank value
@@ -425,7 +425,7 @@ class Newsletter(object):
             return default
 
         new_config = {}
-        for k, v in default.items():
+        for k, v in list(default.items()):
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             elif isinstance(v, list):

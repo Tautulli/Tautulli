@@ -518,7 +518,7 @@ class Users(object):
         for item in result:
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
-            platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
+            platform_name = next((v for k, v in list(common.PLATFORM_NAMES.items()) if k in platform.lower()), 'default')
 
             row = {'player_name': item['player'],
                    'platform': platform,
@@ -781,7 +781,7 @@ class Users(object):
             result = {}
 
         filters_list = {}
-        for k, v in result.items():
+        for k, v in list(result.items()):
             filters = {}
 
             for f in v.split('|'):
