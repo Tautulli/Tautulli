@@ -139,6 +139,7 @@ def initialize(options):
 
     conf = {
         '/': {
+            'engine.timeout_monitor.on': False,
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
             'tools.proxy.on': bool(options['http_proxy']),
             'tools.gzip.on': True,
@@ -248,8 +249,6 @@ def initialize(options):
         }
     }
 
-    # Prevent time-outs
-    cherrypy.engine.timeout_monitor.unsubscribe()
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
     if plexpy.HTTP_ROOT != '/':
         cherrypy.tree.mount(BaseRedirect(), '/')
@@ -257,7 +256,7 @@ def initialize(options):
     try:
         logger.info("Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
-        cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
+        #cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
             cherrypy.server.start()
         else:
