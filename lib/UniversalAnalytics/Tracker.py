@@ -16,7 +16,7 @@ def generate_uuid(basedata=None):
     if basedata is None:
         return str(uuid.uuid4())
     elif isinstance(basedata, str):
-        checksum = hashlib.md5(str(basedata).encode('UTF-8')).hexdigest()
+        checksum = hashlib.md5(str(basedata).encode('utf-8')).hexdigest()
         return '%8s-%4s-%4s-%4s-%12s' % (
         checksum[0:8], checksum[8:12], checksum[12:16], checksum[16:20], checksum[20:32])
 
@@ -84,7 +84,7 @@ class HTTPRequest(object):
     # Apply stored properties to the given dataset & POST to the configured endpoint
     def send(self, data):
         request = Request(
-            self.endpoint + '?' + urlencode(self.fixUTF8(data)),
+            self.endpoint + '?' + urlencode(self.fixUTF8(data)).encode('utf-8'),
             headers={
                 'User-Agent': self.user_agent
             }
@@ -112,7 +112,7 @@ class HTTPPost(HTTPRequest):
     def send(self, data):
         request = Request(
             self.endpoint,
-            data=urlencode(self.fixUTF8(data)),
+            data=urlencode(self.fixUTF8(data)).encode('utf-8'),
             headers={
                 'User-Agent': self.user_agent
             }
