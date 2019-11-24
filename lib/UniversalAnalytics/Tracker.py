@@ -7,10 +7,14 @@
 # assistance in strategy, implementation, or auditing existing work.
 ###############################################################################
 
-from urllib2 import urlopen, build_opener, install_opener
-from urllib2 import Request, HTTPSHandler
-from urllib2 import URLError, HTTPError
-from urllib import urlencode
+import six
+basestring = six.string_types
+unicode = six.text_type
+
+from six.moves.urllib.request import urlopen, build_opener, install_opener
+from six.moves.urllib.request import Request, HTTPSHandler
+from six.moves.urllib.error import URLError, HTTPError
+from six.moves.urllib.parse import urlencode
 
 import random
 import datetime
@@ -44,7 +48,7 @@ class Time(datetime.datetime):
     def to_unix(cls, timestamp):
         """ Wrapper over time module to produce Unix epoch time as a float """
         if not isinstance(timestamp, datetime.datetime):
-            raise TypeError, 'Time.milliseconds expects a datetime object'
+            raise TypeError('Time.milliseconds expects a datetime object')
         base = time.mktime(timestamp.timetuple())
         return base
 
@@ -150,7 +154,7 @@ class Tracker(object):
             typecast, param_name = cls.parameter_alias.get(name)
             return param_name, typecast(value)
         else:
-            raise KeyError, 'Parameter "{0}" is not recognized'.format(name)
+            raise KeyError('Parameter "{0}" is not recognized'.format(name))
 
     def payload(self, data):
         for key, value in data.iteritems():
