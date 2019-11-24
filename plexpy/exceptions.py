@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
