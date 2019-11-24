@@ -61,7 +61,6 @@ except ImportError:
 import gntp.notifier
 import facebook
 import twitter
-import pynma
 
 import plexpy
 from plexpy import common
@@ -157,10 +156,6 @@ def available_notification_agents():
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc']
                },
-              # {'label': 'Notify My Android',
-              #  'name': 'nma',
-              #  'id': AGENT_IDS['nma']
-              #  },
               {'label': 'MQTT',
                'name': 'mqtt',
                'id': AGENT_IDS['mqtt']
@@ -173,10 +168,6 @@ def available_notification_agents():
                'name': 'prowl',
                'id': AGENT_IDS['prowl']
                },
-              # {'label': 'Pushalot',
-              #  'name': 'pushalot',
-              #  'id': AGENT_IDS['pushalot']
-              #  },
               {'label': 'Pushbullet',
                'name': 'pushbullet',
                'id': AGENT_IDS['pushbullet']
@@ -2337,54 +2328,6 @@ class MQTT(Notifier):
         return config_option
 
 
-class NMA(Notifier):
-    """
-    Notify My Android notifications
-    """
-    NAME = 'Notify My Android'
-    _DEFAULT_CONFIG = {'api_key': '',
-                       'priority': 0
-                       }
-
-    def agent_notify(self, subject='', body='', action='', **kwargs):
-        title = 'Tautulli'
-        batch = False
-
-        p = pynma.PyNMA()
-        keys = self.config['api_key'].split(',')
-        p.addkey(keys)
-
-        if len(keys) > 1:
-            batch = True
-
-        response = p.push(title, subject, body, priority=self.config['priority'], batch_mode=batch)
-
-        if response[self.config['api_key']]['code'] == '200':
-            logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
-            return True
-        else:
-            logger.error("Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
-            return False
-
-    def _return_config_options(self):
-        config_option = [{'label': 'NotifyMyAndroid API Key',
-                          'value': self.config['api_key'],
-                          'name': 'nma_api_key',
-                          'description': 'Your NotifyMyAndroid API key. Separate multiple api keys with commas.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Priority',
-                          'value': self.config['priority'],
-                          'name': 'nma_priority',
-                          'description': 'Set the notification priority.',
-                          'input_type': 'select',
-                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
-                          }
-                         ]
-
-        return config_option
-
-
 class OSX(Notifier):
     """
     macOS notifications
@@ -2630,35 +2573,6 @@ class PROWL(Notifier):
                           'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
-                          }
-                         ]
-
-        return config_option
-
-
-class PUSHALOT(Notifier):
-    """
-    Pushalot notifications
-    """
-    NAME = 'Pushalot'
-    _DEFAULT_CONFIG = {'api_key': ''
-                       }
-
-    def agent_notify(self, subject='', body='', action='', **kwargs):
-        data = {'AuthorizationToken': self.config['api_key'],
-                'Title': subject.encode('utf-8'),
-                'Body': body.encode('utf-8')}
-
-        headers = {'Content-type': 'application/x-www-form-urlencoded'}
-
-        return self.make_request('https://pushalot.com/api/sendmessage', headers=headers, data=data)
-
-    def _return_config_options(self):
-        config_option = [{'label': 'Pushalot API Key',
-                          'value': self.config['api_key'],
-                          'name': 'pushalot_api_key',
-                          'description': 'Your Pushalot API key.',
-                          'input_type': 'text'
                           }
                          ]
 
