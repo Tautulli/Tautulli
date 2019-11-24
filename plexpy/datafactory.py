@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,17 +15,24 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
+from __future__ import absolute_import
+from builtins import next
+from builtins import str
+from builtins import object
+from past.utils import old_div
+
 import json
 from itertools import groupby
 
 import plexpy
-import common
-import database
-import datatables
-import helpers
-import logger
-import pmsconnect
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import session
 
 
 class DataFactory(object):
@@ -208,7 +217,7 @@ class DataFactory(object):
 
             if item['percent_complete'] >= watched_percent[item['media_type']]:
                 watched_status = 1
-            elif item['percent_complete'] >= watched_percent[item['media_type']]/2:
+            elif item['percent_complete'] >= old_div(watched_percent[item['media_type']],2):
                 watched_status = 0.5
             else:
                 watched_status = 0
@@ -655,7 +664,7 @@ class DataFactory(object):
                 for item in result:
                     # Rename Mystery platform names
                     platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
-                    platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
+                    platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
 
                     row = {'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
@@ -750,7 +759,7 @@ class DataFactory(object):
                     for item in result:
                         times.append({'time': str(item['started']) + 'B', 'count': 1})
                         times.append({'time': str(item['stopped']) + 'A', 'count': -1})
-                    times = sorted(times, key=lambda k: k['time']) 
+                    times = sorted(times, key=lambda k: k['time'])
 
                     count = 0
                     last_count = 0
@@ -985,7 +994,7 @@ class DataFactory(object):
                              'pre_tautulli': pre_tautulli
                              }
 
-        stream_output = {k: v or '' for k, v in stream_output.iteritems()}
+        stream_output = {k: v or '' for k, v in stream_output.items()}
         return stream_output
 
     def get_metadata_details(self, rating_key):
@@ -1079,7 +1088,7 @@ class DataFactory(object):
             metadata_list.append(metadata)
 
         filtered_metadata_list = session.filter_session_info(metadata_list, filter_key='section_id')
-        
+
         if filtered_metadata_list:
             return filtered_metadata_list[0]
         else:
@@ -1093,7 +1102,7 @@ class DataFactory(object):
             where = 'WHERE ' + ' AND '.join([w[0] + ' = "' + w[1] + '"' for w in custom_where])
         else:
             where = ''
-        
+
         try:
             query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
                     'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
@@ -1518,7 +1527,7 @@ class DataFactory(object):
         # function to map rating keys pairs
         def get_pairs(old, new):
             pairs = {}
-            for k, v in old.iteritems():
+            for k, v in old.items():
                 if k in new:
                     pairs.update({v['rating_key']: new[k]['rating_key']})
                     if 'children' in old[k]:
@@ -1533,27 +1542,27 @@ class DataFactory(object):
 
         if mapping:
             logger.info("Tautulli DataFactory :: Updating metadata in the database.")
-            for old_key, new_key in mapping.iteritems():
+            for old_key, new_key in mapping.items():
                 metadata = pms_connect.get_metadata_details(new_key)
 
                 if metadata:
                     if metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
                         # check grandparent_rating_key (2 tables)
-                        monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                        monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?',
                                           [new_key, old_key])
-                        monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                        monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?',
                                           [new_key, old_key])
                     elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
                         # check parent_rating_key (2 tables)
-                        monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                        monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?',
                                           [new_key, old_key])
-                        monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                        monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?',
                                           [new_key, old_key])
                     else:
                         # check rating_key (2 tables)
-                        monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
+                        monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?',
                                           [new_key, old_key])
-                        monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', 
+                        monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?',
                                           [new_key, old_key])
 
                         # update session_history_metadata table
@@ -1601,7 +1610,7 @@ class DataFactory(object):
                     metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
                     metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], metadata['media_type'],
                     metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
-                    metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
+                    metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'],
                     metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres,
                     metadata['studio'], labels,
                     old_rating_key]

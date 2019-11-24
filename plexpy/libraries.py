@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,18 +15,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import next
+from builtins import object
+
 import json
 import os
 
 import plexpy
-import common
-import database
-import datatables
-import helpers
-import logger
-import plextv
-import pmsconnect
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import session
 
 
 def refresh_libraries():
@@ -121,7 +128,7 @@ def update_section_ids():
     for library in library_results:
         section_id = library['section_id']
         section_type = library['section_type']
-        
+
         if section_type != 'photo':
             library_children = pms_connect.get_library_children_details(section_id=section_id,
                                                                         section_type=section_type)
@@ -135,7 +142,7 @@ def update_section_ids():
     for item in history_results:
         rating_key = item['grandparent_rating_key'] if item['media_type'] != 'movie' else item['rating_key']
         section_id = key_mappings.get(str(rating_key), None)
-        
+
         if section_id:
             try:
                 section_keys = {'id': item['id']}
@@ -187,7 +194,7 @@ def update_labels():
     for library in library_results:
         section_id = library['section_id']
         section_type = library['section_type']
-        
+
         if section_type != 'photo':
             library_children = []
             library_labels = pms_connect.get_library_label_details(section_id=section_id)
@@ -213,7 +220,7 @@ def update_labels():
                                     % section_id)
 
     error_keys = set()
-    for rating_key, labels in key_mappings.iteritems():
+    for rating_key, labels in key_mappings.items():
         try:
             labels = ';'.join(labels)
             monitor_db.action('UPDATE session_history_metadata SET labels = ? '
@@ -309,7 +316,7 @@ class Libraries(object):
             return default_return
 
         result = query['result']
-        
+
         rows = []
         for item in result:
             if item['media_type'] == 'episode' and item['parent_thumb']:
@@ -354,13 +361,13 @@ class Libraries(object):
                    }
 
             rows.append(row)
-        
+
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': session.mask_session_info(rows),
                 'draw': query['draw']
                 }
-        
+
         return dict
 
     def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
@@ -372,7 +379,7 @@ class Libraries(object):
 
         if not session.allow_session_library(section_id):
             return default_return
-        
+
         if section_id and not str(section_id).isdigit():
             logger.warn("Tautulli Libraries :: Datatable media info called but invalid section_id provided.")
             return default_return
@@ -466,7 +473,7 @@ class Libraries(object):
             else:
                 logger.warn("Tautulli Libraries :: Unable to get a list of library items.")
                 return default_return
-            
+
             new_rows = []
             for item in children_list:
                 ## TODO: Check list of media info items, currently only grabs first item
@@ -529,8 +536,8 @@ class Libraries(object):
                 item['play_count'] = None
 
         results = []
-        
-        # Get datatables JSON data            
+
+        # Get datatables JSON data
         if kwargs.get('json_data'):
             json_data = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
             #print json_data
@@ -540,7 +547,7 @@ class Libraries(object):
         if search_value:
             searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']] + ['title']
             for row in rows:
-                for k,v in row.iteritems():
+                for k,v in row.items():
                     if k in searchable_columns and search_value in v.lower():
                         results.append(row)
                         break
@@ -578,13 +585,13 @@ class Libraries(object):
                 'filtered_file_size': filtered_file_size,
                 'total_file_size': total_file_size
                 }
-        
+
         return dict
 
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
         if not session.allow_session_library(section_id):
             return False
-        
+
         if section_id and not str(section_id).isdigit():
             logger.warn("Tautulli Libraries :: Datatable media info file size called but invalid section_id provided.")
             return False
@@ -629,7 +636,7 @@ class Libraries(object):
         for item in rows:
             if item['rating_key'] and not item['file_size']:
                 file_size = 0
-            
+
                 metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
                                                                      get_children=True)
 
@@ -669,7 +676,7 @@ class Libraries(object):
             logger.debug("Tautulli Libraries :: File sizes updated for section_id %s." % section_id)
 
         return True
-    
+
     def set_config(self, section_id=None, custom_thumb='', do_notify=1, keep_history=1, do_notify_created=1):
         if section_id:
             monitor_db = database.MonitorDatabase()
@@ -759,7 +766,7 @@ class Libraries(object):
 
             if library_details:
                 return library_details
-            
+
             else:
                 logger.warn("Tautulli Users :: Unable to retrieve library %s from database. Returning 'Local' library."
                             % section_id)
@@ -856,7 +863,7 @@ class Libraries(object):
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
             result = []
-        
+
         for item in result:
             row = {'friendly_name': item['friendly_name'],
                    'user_id': item['user_id'],
@@ -864,7 +871,7 @@ class Libraries(object):
                    'total_plays': item['user_count']
                    }
             user_stats.append(row)
-        
+
         return session.mask_session_info(user_stats, mask_metadata=False)
 
     def get_recently_watched(self, section_id=None, limit='10'):

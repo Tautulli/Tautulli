@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,14 +15,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+
 import os
 import sys
-from urllib import urlencode
+from urllib.parse import urlencode
+
+import cherrypy
 
 import plexpy
-import cherrypy
-import logger
-import webauth
+from plexpy import logger
+from plexpy import webauth
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
 

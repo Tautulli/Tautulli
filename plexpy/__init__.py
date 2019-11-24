@@ -13,13 +13,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+
+import datetime
 import os
-from Queue import Queue
+import queue
 import sqlite3
 import sys
 import subprocess
 import threading
-import datetime
 import uuid
 
 # Some cut down versions of Python may not include this module and it's not critical for us
@@ -34,24 +39,25 @@ from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
 import pytz
 
-import activity_handler
-import activity_pinger
-import common
-import database
-import datafactory
-import libraries
-import logger
-import mobile_app
-import newsletters
-import newsletter_handler
-import notification_handler
-import notifiers
-import plextv
-import users
-import versioncheck
-import web_socket
-import webstart
-import plexpy.config
+from plexpy import activity_handler
+from plexpy import activity_pinger
+from plexpy import common
+from plexpy import database
+from plexpy import datafactory
+from plexpy import libraries
+from plexpy import logger
+from plexpy import mobile_app
+from plexpy import newsletters
+from plexpy import newsletter_handler
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plextv
+from plexpy import users
+from plexpy import versioncheck
+from plexpy import web_socket
+from plexpy import webstart
+from plexpy import config
+
 
 PROG_DIR = None
 FULL_PATH = None
@@ -74,7 +80,7 @@ DOCKER = False
 SCHED = None
 SCHED_LOCK = threading.Lock()
 
-NOTIFY_QUEUE = Queue()
+NOTIFY_QUEUE = queue.Queue()
 
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
@@ -128,7 +134,7 @@ def initialize(config_file):
         global UMASK
         global _UPDATE
 
-        CONFIG = plexpy.config.Config(config_file)
+        CONFIG = config.Config(config_file)
         CONFIG_FILE = config_file
 
         assert CONFIG is not None
@@ -137,7 +143,7 @@ def initialize(config_file):
             return False
 
         if CONFIG.HTTP_PORT < 21 or CONFIG.HTTP_PORT > 65535:
-            plexpy.logger.warn("HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
+            logger.warn("HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
         if not CONFIG.HTTPS_CERT:
@@ -162,7 +168,7 @@ def initialize(config_file):
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info("{} (UTC{})".format(
-            plexpy.SYS_TIMEZONE.zone, plexpy.SYS_UTC_OFFSET
+            SYS_TIMEZONE.zone, SYS_UTC_OFFSET
         ))
         logger.info("Python {}".format(
             sys.version
@@ -379,29 +385,29 @@ def win_system_tray():
     from systray import SysTrayIcon
 
     def tray_open(sysTrayIcon):
-        launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+        launch_browser(CONFIG.HTTP_HOST, HTTP_PORT, HTTP_ROOT)
 
     def tray_check_update(sysTrayIcon):
         versioncheck.check_update()
 
     def tray_update(sysTrayIcon):
-        if plexpy.UPDATE_AVAILABLE:
-            plexpy.SIGNAL = 'update'
+        if UPDATE_AVAILABLE:
+            SIGNAL = 'update'
         else:
             hover_text = common.PRODUCT + ' - No Update Available'
-            plexpy.WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
+            WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
 
     def tray_restart(sysTrayIcon):
-        plexpy.SIGNAL = 'restart'
+        SIGNAL = 'restart'
 
     def tray_quit(sysTrayIcon):
-        plexpy.SIGNAL = 'shutdown'
+        SIGNAL = 'shutdown'
 
-    if plexpy.UPDATE_AVAILABLE:
-        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray-update.ico')
+    if UPDATE_AVAILABLE:
+        icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo_tray-update.ico')
         hover_text = common.PRODUCT + ' - Update Available!'
     else:
-        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray.ico')
+        icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo_tray.ico')
         hover_text = common.PRODUCT
 
     menu_options = (('Open Tautulli', None, tray_open, 'default'),
@@ -413,11 +419,11 @@ def win_system_tray():
     logger.info("Launching system tray icon.")
 
     try:
-        plexpy.WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
-        plexpy.WIN_SYS_TRAY_ICON.start()
+        WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
+        WIN_SYS_TRAY_ICON.start()
     except Exception as e:
         logger.error("Unable to launch system tray icon: %s." % e)
-        plexpy.WIN_SYS_TRAY_ICON = None
+        WIN_SYS_TRAY_ICON = None
 
 
 def initialize_scheduler():
@@ -2055,12 +2061,12 @@ def initialize_tracker():
         'dataSource': 'server',
         'appName': common.PRODUCT,
         'appVersion': common.RELEASE,
-        'appId': plexpy.INSTALL_TYPE,
-        'appInstallerId': plexpy.CONFIG.GIT_BRANCH,
+        'appId': INSTALL_TYPE,
+        'appInstallerId': CONFIG.GIT_BRANCH,
         'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_RELEASE),  # App Platform
         'dimension2': common.PLATFORM_LINUX_DISTRO,  # Linux Distro
-        'userLanguage': plexpy.SYS_LANGUAGE,
-        'documentEncoding': plexpy.SYS_ENCODING,
+        'userLanguage': SYS_LANGUAGE,
+        'documentEncoding': SYS_ENCODING,
         'noninteractive': True
         }
 

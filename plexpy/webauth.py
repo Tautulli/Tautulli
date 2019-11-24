@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -18,15 +20,21 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+
 from datetime import datetime, timedelta
-from urllib import quote, unquote
+from urllib.parse import quote, unquote
 
 import cherrypy
 from hashing_passwords import check_hash
 import jwt
 
 import plexpy
-import logger
+from plexpy import logger
 from plexpy.database import MonitorDatabase
 from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
@@ -258,15 +266,15 @@ class AuthController(object):
             use_oauth = 'Plex OAuth' if oauth else 'form'
             logger.debug("Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
                          % (user_group.capitalize(), username, use_oauth))
-    
+
     def on_logout(self, username, user_group):
         """Called on logout"""
         logger.debug("Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
-    
+
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
         return serve_template(templatename="login.html", title="Login", redirect_uri=unquote(redirect_uri))
-    
+
     @cherrypy.expose
     def index(self, *args, **kwargs):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")

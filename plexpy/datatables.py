@@ -13,11 +13,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import object
+
 import re
 
-import database
-import helpers
-import logger
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
 
 
 class DataTables(object):
@@ -90,7 +93,7 @@ class DataTables(object):
         filtered = self.ssp_db.select(query, args=args)
 
         # Remove NULL rows
-        filtered = [row for row in filtered if not all(v is None for v in row.values())]
+        filtered = [row for row in filtered if not all(v is None for v in list(row.values()))]
 
         # Build grand totals
         totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']

@@ -13,6 +13,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+
 import datetime
 import os
 import time
@@ -21,12 +25,12 @@ from apscheduler.triggers.date import DateTrigger
 import pytz
 
 import plexpy
-import activity_processor
-import datafactory
-import helpers
-import logger
-import notification_handler
-import pmsconnect
+from plexpy import activity_processor
+from plexpy import datafactory
+from plexpy import helpers
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import pmsconnect
 
 
 ACTIVITY_SCHED = None

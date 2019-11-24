@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # This file is part of PlexPy.
@@ -16,16 +15,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from past.builtins import basestring
+from builtins import object
+
 from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import certifi
 import urllib3
 
 import plexpy
-import helpers
-import logger
+from plexpy import helpers
+from plexpy import logger
 
 
 class HTTPHandler(object):
@@ -78,7 +83,7 @@ class HTTPHandler(object):
         Output: list
         """
 
-        self.uri = uri.encode('utf-8')
+        self.uri = uri
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
         self.return_type = return_type

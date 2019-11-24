@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,6 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+
 from bs4 import BeautifulSoup
 from xml.dom import minidom
 
@@ -21,13 +26,13 @@ import collections
 import requests
 
 import plexpy
-import plexpy.lock
-import logger
+from plexpy import lock
+from plexpy import logger
 
 
 # Dictionary with last request times, for rate limiting.
 last_requests = collections.defaultdict(int)
-fake_lock = plexpy.lock.FakeLock()
+fake_lock = lock.FakeLock()
 
 
 def request_response(url, method="get", auto_raise=True,
@@ -319,7 +324,7 @@ def server_message(response, return_msg=False):
 
         if return_msg:
             try:
-                return unicode(message, 'UTF-8')
+                return str(message, 'UTF-8')
             except:
                 return message
 

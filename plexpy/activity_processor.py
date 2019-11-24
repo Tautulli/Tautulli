@@ -13,17 +13,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+
 from collections import defaultdict
 import json
 import time
 
 import plexpy
-import database
-import helpers
-import libraries
-import logger
-import pmsconnect
-import users
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import users
 
 
 class ActivityProcessor(object):
@@ -498,7 +502,7 @@ class ActivityProcessor(object):
             if state:
                 values['state'] = state
 
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 values[k] = v
 
             keys = {'session_key': session_key}

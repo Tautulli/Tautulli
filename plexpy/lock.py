@@ -1,11 +1,28 @@
-"""
-Locking-related classes
-"""
+# -*- coding: utf-8 -*-
 
-import plexpy.logger
+# This file is part of Tautulli.
+#
+#  Tautulli is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Tautulli is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import absolute_import
+from builtins import object
+
+import queue
 import time
 import threading
-import Queue
+
+from plexpy import logger
 
 
 class TimedLock(object):
@@ -28,7 +45,7 @@ class TimedLock(object):
         self.lock = threading.Lock()
         self.last_used = 0
         self.minimum_delta = minimum_delta
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
     def __enter__(self):
         """
@@ -39,14 +56,14 @@ class TimedLock(object):
         sleep_amount = self.minimum_delta - delta
         if sleep_amount >= 0:
             # zero sleeps give the cpu a chance to task-switch
-            plexpy.logger.debug('Sleeping %s (interval)', sleep_amount)
+            logger.debug('Sleeping %s (interval)', sleep_amount)
             time.sleep(sleep_amount)
         while not self.queue.empty():
             try:
                 seconds = self.queue.get(False)
-                plexpy.logger.debug('Sleeping %s (queued)', seconds)
+                logger.debug('Sleeping %s (queued)', seconds)
                 time.sleep(seconds)
-            except Queue.Empty:
+            except queue.Empty:
                 continue
             self.queue.task_done()
 
@@ -65,7 +82,7 @@ class TimedLock(object):
         """
         # We use a queue so that we don't have to synchronize
         # across threads and with or without locks
-        plexpy.logger.info('Adding %s to queue', seconds)
+        logger.info('Adding %s to queue', seconds)
         self.queue.put(seconds)
 
 

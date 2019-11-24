@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,17 +15,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
+import distro
 import platform
 from collections import OrderedDict
 
-import version
+from plexpy import version
+
 
 # Identify Our Application
 PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
-PLATFORM_LINUX_DISTRO = ' '.join(x for x in platform.linux_distribution() if x)
+PLATFORM_LINUX_DISTRO = ' '.join(x for x in distro.linux_distribution() if x)
 PLATFORM_DEVICE_NAME = platform.node()
 BRANCH = version.PLEXPY_BRANCH
 RELEASE = version.PLEXPY_RELEASE_VERSION
@@ -98,7 +104,7 @@ PLATFORM_NAMES = {
     'xbmc': 'xbmc',
     'xbox': 'xbox'
 }
-PLATFORM_NAMES = OrderedDict(sorted(PLATFORM_NAMES.items(), key=lambda k: k[0], reverse=True))
+PLATFORM_NAMES = OrderedDict(sorted(list(PLATFORM_NAMES.items()), key=lambda k: k[0], reverse=True))
 
 MEDIA_FLAGS_AUDIO = {
     'ac.?3': 'dolby_digital',
@@ -147,7 +153,7 @@ VIDEO_QUALITY_PROFILES = {
     96: '0.096 Mbps',
     64: '0.064 Mbps'
 }
-VIDEO_QUALITY_PROFILES = OrderedDict(sorted(VIDEO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
+VIDEO_QUALITY_PROFILES = OrderedDict(sorted(list(VIDEO_QUALITY_PROFILES.items()), key=lambda k: k[0], reverse=True))
 
 AUDIO_QUALITY_PROFILES = {
     512: '512 kbps',
@@ -157,7 +163,7 @@ AUDIO_QUALITY_PROFILES = {
     128: '128 kbps',
     96: '96 kbps'
 }
-AUDIO_QUALITY_PROFILES = OrderedDict(sorted(AUDIO_QUALITY_PROFILES.items(), key=lambda k: k[0], reverse=True))
+AUDIO_QUALITY_PROFILES = OrderedDict(sorted(list(AUDIO_QUALITY_PROFILES.items()), key=lambda k: k[0], reverse=True))
 
 HW_DECODERS = [
     'dxva2',

@@ -13,20 +13,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+
 import threading
 import time
 
 import plexpy
-import activity_handler
-import activity_processor
-import database
-import helpers
-import libraries
-import logger
-import notification_handler
-import plextv
-import pmsconnect
-import web_socket
+from plexpy import activity_handler
+from plexpy import activity_processor
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import web_socket
 
 
 monitor_lock = threading.Lock()
@@ -223,7 +226,7 @@ def check_recently_added():
                     continue
 
                 metadata = []
-                
+
                 if 0 < time_threshold - int(item['added_at']) <= time_interval:
                     if item['media_type'] == 'movie':
                         metadata = pms_connect.get_metadata_details(item['rating_key'])
@@ -250,7 +253,7 @@ def check_recently_added():
                                 logger.debug("Tautulli Monitor :: Library item %s added to Plex." % str(item['rating_key']))
 
                                 plexpy.NOTIFY_QUEUE.put({'timeline_data': item.copy(), 'notify_action': 'on_created'})
-                    
+
                     else:
                         item = max(metadata, key=lambda x:x['added_at'])
 

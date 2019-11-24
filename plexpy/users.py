@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,18 +15,25 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import object
+
 import httpagentparser
 import time
 
 import plexpy
-import common
-import database
-import datatables
-import helpers
-import libraries
-import logger
-import plextv
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
 
 
 def refresh_users():
@@ -509,7 +518,7 @@ class Users(object):
         for item in result:
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
-            platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
+            platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
 
             row = {'player_name': item['player'],
                    'platform': platform,
@@ -717,7 +726,7 @@ class Users(object):
 
     def get_user_names(self, kwargs=None):
         monitor_db = database.MonitorDatabase()
-        
+
         user_cond = ''
         if session.get_session_user_id():
             user_cond = 'AND user_id = %s ' % session.get_session_user_id()
@@ -733,9 +742,9 @@ class Users(object):
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
             return None
-        
+
         return session.friendly_name_to_username(result)
-    
+
     def get_tokens(self, user_id=None):
         if user_id:
             try:
@@ -757,7 +766,7 @@ class Users(object):
         return None
 
     def get_filters(self, user_id=None):
-        import urlparse
+        import urllib.parse
 
         if not user_id:
             return {}
@@ -772,13 +781,13 @@ class Users(object):
             result = {}
 
         filters_list = {}
-        for k, v in result.iteritems():
+        for k, v in result.items():
             filters = {}
-                
+
             for f in v.split('|'):
                 if 'contentRating=' in f or 'label=' in f:
-                    filters.update(dict(urlparse.parse_qsl(f)))
-                        
+                    filters.update(dict(urllib.parse.parse_qsl(f)))
+
             filters['content_rating'] = tuple(f for f in filters.pop('contentRating', '').split(',') if f)
             filters['labels'] = tuple(f for f in filters.pop('label', '').split(',') if f)
 

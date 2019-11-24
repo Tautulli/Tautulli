@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
@@ -17,6 +16,10 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+
 import hashlib
 import inspect
 import json
@@ -30,22 +33,22 @@ import cherrypy
 import xmltodict
 
 import plexpy
-import config
-import database
-import helpers
-import libraries
-import logger
-import mobile_app
-import notification_handler
-import notifiers
-import newsletter_handler
-import newsletters
-import users
+from plexpy import config
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import mobile_app
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import newsletter_handler
+from plexpy import newsletters
+from plexpy import users
 
 
-class API2:
+class API2(object):
     def __init__(self, **kwargs):
-        self._api_valid_methods = self._api_docs().keys()
+        self._api_valid_methods = list(self._api_docs().keys())
         self._api_authenticated = False
         self._api_out_type = 'json'  # default
         self._api_msg = None
@@ -201,7 +204,7 @@ class API2:
                 except IndexError:
                     # We assume this is a traceback
                     tl = (len(templog) - 1)
-                    templog[tl]['msg'] += helpers.sanitize(unicode(line.replace('\n', ''), 'utf-8'))
+                    templog[tl]['msg'] += helpers.sanitize(str(line.replace('\n', ''), 'utf-8'))
                     continue
 
                 if len(line) > 1 and temp_loglevel_and_time is not None and loglvl in line:
@@ -209,7 +212,7 @@ class API2:
                     d = {
                         'time': temp_loglevel_and_time[0],
                         'loglevel': loglvl,
-                        'msg': helpers.sanitize(unicode(msg.replace('\n', ''), 'utf-8')),
+                        'msg': helpers.sanitize(str(msg.replace('\n', ''), 'utf-8')),
                         'thread': thread
                     }
                     templog.append(d)
@@ -227,7 +230,7 @@ class API2:
 
         if search:
             logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
-            tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
+            tt = [d for d in templog for k, v in list(d.items()) if search.lower() in v.lower()]
 
             if len(tt):
                 templog = tt
@@ -235,7 +238,7 @@ class API2:
         if regex:
             tt = []
             for l in templog:
-                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
+                stringdict = ' '.join('{}{}'.format(k, v) for k, v in list(l.items()))
                 if reg.search(stringdict):
                     tt.append(l)
 
@@ -271,10 +274,10 @@ class API2:
         config = {}
 
         # Truthify the dict
-        for k, v in conf.iteritems():
+        for k, v in conf.items():
             if isinstance(v, dict):
                 d = {}
-                for kk, vv in v.iteritems():
+                for kk, vv in v.items():
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:

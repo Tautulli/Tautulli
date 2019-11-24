@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,6 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
+from __future__ import absolute_import
+from builtins import next
+from builtins import str
+from past.utils import old_div
+
 import os
 import platform
 import re
@@ -20,9 +28,9 @@ import subprocess
 import tarfile
 
 import plexpy
-import common
-import logger
-import request
+from plexpy import common
+from plexpy import logger
+from plexpy import request
 
 
 def runGit(args):
@@ -44,7 +52,7 @@ def runGit(args):
             logger.debug('Trying to execute: "' + cmd + '" with shell in ' + plexpy.PROG_DIR)
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=plexpy.PROG_DIR)
             output, err = p.communicate()
-            output = output.strip()
+            output = output.strip().decode()
 
             logger.debug('Git output: ' + output)
         except OSError:
@@ -372,7 +380,7 @@ def read_changelog(latest_only=False, since_prev_release=False):
                     output[-1] += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
 
                 elif line_list_match:
-                    line_level = len(line_list_match.group(1)) / 2
+                    line_level = old_div(len(line_list_match.group(1)), 2)
                     line_text = line_list_match.group(2)
 
                     if line_level > prev_level:

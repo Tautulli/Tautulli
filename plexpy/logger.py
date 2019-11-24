@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,6 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
+
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
 
@@ -27,8 +33,9 @@ import threading
 import traceback
 
 import plexpy
-import helpers
+from plexpy.helpers import is_public_ip
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+
 
 # These settings are for file logging only
 FILENAME = "tautulli.log"
@@ -54,7 +61,7 @@ def blacklist_config(config):
     blacklist = set()
     blacklist_keys = ['HOOK', 'APIKEY', 'KEY', 'PASSWORD', 'TOKEN']
 
-    for key, value in config.iteritems():
+    for key, value in config.items():
         if isinstance(value, basestring) and len(value.strip()) > 5 and \
             key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or
                                                     any(bk in key.upper() for bk in _BLACKLIST_KEYS)):
@@ -113,14 +120,14 @@ class PublicIPFilter(logging.Filter):
             # Currently only checking for ipv4 addresses
             ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', record.msg)
             for ip in ipv4:
-                if helpers.is_public_ip(ip):
+                if is_public_ip(ip):
                     record.msg = record.msg.replace(ip, ip.partition('.')[0] + '.***.***.***')
 
             args = []
             for arg in record.args:
                 ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', arg) if isinstance(arg, basestring) else []
                 for ip in ipv4:
-                    if helpers.is_public_ip(ip):
+                    if is_public_ip(ip):
                         arg = arg.replace(ip, ip.partition('.')[0] + '.***.***.***')
                 args.append(arg)
             record.args = tuple(args)

@@ -1,4 +1,6 @@
-﻿#  This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+#  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,10 +15,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+
 import cherrypy
 
-import common
-import users
+from plexpy import common
+from plexpy import users
 
 
 def get_session_info():
@@ -216,14 +221,14 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
 
     for d in list_of_dicts:
         if session_user_id and not (str(d.get('user_id')) == session_user_id or d.get('user') == session_user):
-            for k, v in keys_to_mask.iteritems():
+            for k, v in keys_to_mask.items():
                 if k in d: d[k] = keys_to_mask[k]
 
         if not mask_metadata:
             continue
 
         if str(d.get('section_id','')) not in session_library_ids:
-            for k, v in metadata_to_mask.iteritems():
+            for k, v in metadata_to_mask.items():
                 if k in d: d[k] = metadata_to_mask[k]
             continue
 
@@ -247,7 +252,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
                 if d_content_rating in f_content_rating or set(d_labels).intersection(set(f_labels)):
                     continue
 
-            for k, v in metadata_to_mask.iteritems():
+            for k, v in metadata_to_mask.items():
                 if k in d: d[k] = metadata_to_mask[k]
 
     return list_of_dicts

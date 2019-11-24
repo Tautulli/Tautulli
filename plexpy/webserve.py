@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,11 +15,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+
 import json
 import os
 import shutil
 import threading
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -30,30 +40,30 @@ from mako import exceptions
 import websocket
 
 import plexpy
-import activity_pinger
-import common
-import config
-import database
-import datafactory
-import graphs
-import helpers
-import http_handler
-import libraries
-import log_reader
-import logger
-import newsletter_handler
-import newsletters
-import mobile_app
-import notification_handler
-import notifiers
-import plextv
-import plexivity_import
-import plexwatch_import
-import pmsconnect
-import users
-import versioncheck
-import web_socket
-import webstart
+from plexpy import activity_pinger
+from plexpy import common
+from plexpy import config
+from plexpy import database
+from plexpy import datafactory
+from plexpy import graphs
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import libraries
+from plexpy import log_reader
+from plexpy import logger
+from plexpy import newsletter_handler
+from plexpy import newsletters
+from plexpy import mobile_app
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plextv
+from plexpy import plexivity_import
+from plexpy import plexwatch_import
+from plexpy import pmsconnect
+from plexpy import users
+from plexpy import versioncheck
+from plexpy import web_socket
+from plexpy import webstart
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -288,7 +298,7 @@ class WebInterface(object):
         if '{machine_id}' in endpoint:
             endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
 
-        return base_url + endpoint + '?' + urllib.urlencode(kwargs)
+        return base_url + endpoint + '?' + urllib.parse.urlencode(kwargs)
 
     @cherrypy.expose
     @requireAuth()
@@ -685,7 +695,7 @@ class WebInterface(object):
             # Alias 'title' to 'sort_title'
             if kwargs.get('order_column') == 'title':
                 kwargs['order_column'] = 'sort_title'
-                
+
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),
                           ("sort_title", True, True),
@@ -2364,13 +2374,13 @@ class WebInterface(object):
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
                     loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = helpers.sanitize(unicode(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8'))
+                    msg = helpers.sanitize(str(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8'))
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(unicode(l[n:], 'utf-8'))
+                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(str(l[n:], 'utf-8'))
                     filt[tl][2] += '<br>' + ll
                     continue
 
@@ -2918,14 +2928,14 @@ class WebInterface(object):
 
         # Remove config with 'hsec-' prefix and change home_sections to list
         if kwargs.get('home_sections'):
-            for k in kwargs.keys():
+            for k in list(kwargs.keys()):
                 if k.startswith('hsec-'):
                     del kwargs[k]
             kwargs['home_sections'] = kwargs['home_sections'].split(',')
 
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if kwargs.get('home_stats_cards'):
-            for k in kwargs.keys():
+            for k in list(kwargs.keys()):
                 if k.startswith('hscard-'):
                     del kwargs[k]
             kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
@@ -2935,7 +2945,7 @@ class WebInterface(object):
 
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
         if kwargs.get('home_library_cards'):
-            for k in kwargs.keys():
+            for k in list(kwargs.keys()):
                 if k.startswith('hlcard-'):
                     del kwargs[k]
             kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
@@ -3304,7 +3314,7 @@ class WebInterface(object):
                        'type': param['type'],
                        'value': param['value']
                        }
-                      for category in common.NOTIFICATION_PARAMETERS 
+                      for category in common.NOTIFICATION_PARAMETERS
                       for param in category['parameters']]
 
         return parameters
@@ -3864,7 +3874,7 @@ class WebInterface(object):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
             logger.error("Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
-        
+
         # Set the new git remote and branch
         plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
         plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)

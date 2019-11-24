@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,20 +15,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import object
+
 import json
 import os
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import plexpy
-import activity_processor
-import common
-import helpers
-import http_handler
-import logger
-import plextv
-import session
-import users
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
+from plexpy import users
 
 
 def get_server_friendly_name():
@@ -101,7 +110,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, urllib.quote_plus(reason))
+        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, urllib.parse.quote_plus(reason))
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -352,7 +361,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/hubs/search?query=' + urllib.quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
+        uri = '/hubs/search?query=' + urllib.parse.quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -726,7 +735,7 @@ class PmsConnect(object):
             # Workaround for for duration sometimes reported in minutes for a show
             duration = helpers.get_xml_attr(metadata_main, 'duration')
             if duration.isdigit() and int(duration) < 1000:
-                duration = unicode(int(duration) * 60 * 1000)
+                duration = str(int(duration) * 60 * 1000)
 
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
@@ -1500,7 +1509,7 @@ class PmsConnect(object):
                     session_list.append(session_output)
 
         session_list = sorted(session_list, key=lambda k: k['session_key'])
-         
+
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'sessions': session.mask_session_info(session_list)
                   }
@@ -1534,7 +1543,7 @@ class PmsConnect(object):
         if not platform and helpers.get_xml_attr(player_info, 'product') == 'DLNA':
             platform = 'DLNA'
 
-        platform_name = next((v for k, v in common.PLATFORM_NAMES.iteritems() if k in platform.lower()), 'default')
+        platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
 
         player_details = {'ip_address': helpers.get_xml_attr(player_info, 'address').split('::ffff:')[-1],
                           'ip_address_public': helpers.get_xml_attr(player_info, 'remotePublicAddress').split('::ffff:')[-1],
@@ -2043,7 +2052,7 @@ class PmsConnect(object):
                           'user': user_details['username'],  # Keep for backwards compatibility
                           'channel_stream': channel_stream
                           }
-        
+
         session_output.update(metadata_details)
         session_output.update(source_media_details)
         session_output.update(source_media_part_details)
@@ -2254,7 +2263,7 @@ class PmsConnect(object):
                 hub_identifier = helpers.get_xml_attr(h, 'hubIdentifier')
 
                 if size == '0' or not hub_identifier.startswith('collection.related') or \
-                        media_type not in children_results_list.keys():
+                        media_type not in list(children_results_list.keys()):
                     continue
 
                 result_data = []
@@ -2280,7 +2289,7 @@ class PmsConnect(object):
                                       }
                     children_results_list[media_type].append(children_output)
 
-            output = {'results_count': sum(len(s) for s in children_results_list.items()),
+            output = {'results_count': sum(len(s) for s in list(children_results_list.items())),
                       'results_list': children_results_list,
                       }
 
@@ -2648,9 +2657,9 @@ class PmsConnect(object):
                 img = '{}/{}'.format(img.rstrip('/'), int(time.time()))
 
             if clip:
-                params = {'url': '%s&%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+                params = {'url': '%s&%s' % (img, urllib.parse.urlencode({'X-Plex-Token': self.token}))}
             else:
-                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.parse.urlencode({'X-Plex-Token': self.token}))}
 
             params['width'] = width
             params['height'] = height
@@ -2663,7 +2672,7 @@ class PmsConnect(object):
             if blur:
                 params['blur'] = blur
 
-            uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
+            uri = '/photo/:/transcode?%s' % urllib.parse.urlencode(params)
             result = self.request_handler.make_request(uri=uri,
                                                        request_type='GET',
                                                        return_type=True)
@@ -2705,7 +2714,7 @@ class PmsConnect(object):
 
             for h in hubs:
                 if helpers.get_xml_attr(h, 'size') == '0' or \
-                    helpers.get_xml_attr(h, 'type') not in search_results_list.keys():
+                    helpers.get_xml_attr(h, 'type') not in list(search_results_list.keys()):
                     continue
 
                 if h.getElementsByTagName('Video'):
@@ -2737,7 +2746,7 @@ class PmsConnect(object):
                         metadata = self.get_metadata_details(rating_key=rating_key)
                         search_results_list[metadata['media_type']].append(metadata)
 
-        output = {'results_count': sum(len(s) for s in search_results_list.values()),
+        output = {'results_count': sum(len(s) for s in list(search_results_list.values())),
                   'results_list': search_results_list
                   }
 

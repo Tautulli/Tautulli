@@ -13,6 +13,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import object
+
 import arrow
 import os
 import sqlite3
@@ -21,7 +24,8 @@ import threading
 import time
 
 import plexpy
-import logger
+from plexpy import logger
+
 
 FILENAME = "tautulli.db"
 db_lock = threading.Lock()
@@ -198,21 +202,21 @@ class MonitorDatabase(object):
         trans_type = 'update'
         changes_before = self.connection.total_changes
 
-        gen_params = lambda my_dict: [x + " = ?" for x in my_dict.keys()]
+        gen_params = lambda my_dict: [x + " = ?" for x in list(my_dict.keys())]
 
         update_query = "UPDATE " + table_name + " SET " + ", ".join(gen_params(value_dict)) + \
                        " WHERE " + " AND ".join(gen_params(key_dict))
 
-        self.action(update_query, value_dict.values() + key_dict.values())
+        self.action(update_query, list(value_dict.values()) + list(key_dict.values()))
 
         if self.connection.total_changes == changes_before:
             trans_type = 'insert'
             insert_query = (
-                "INSERT INTO " + table_name + " (" + ", ".join(value_dict.keys() + key_dict.keys()) + ")" +
-                " VALUES (" + ", ".join(["?"] * len(value_dict.keys() + key_dict.keys())) + ")"
+                "INSERT INTO " + table_name + " (" + ", ".join(list(value_dict.keys()) + list(key_dict.keys())) + ")" +
+                " VALUES (" + ", ".join(["?"] * len(list(value_dict.keys()) + list(key_dict.keys()))) + ")"
             )
             try:
-                self.action(insert_query, value_dict.values() + key_dict.values())
+                self.action(insert_query, list(value_dict.values()) + list(key_dict.values()))
             except sqlite3.IntegrityError:
                 logger.info("Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
 

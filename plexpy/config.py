@@ -13,6 +13,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from past.builtins import basestring
+from builtins import object
+
 import arrow
 import os
 import re
@@ -22,7 +26,7 @@ import time
 from configobj import ConfigObj
 
 import plexpy
-import logger
+from plexpy import logger
 
 
 def bool_int(value):
@@ -49,7 +53,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_IS_REMOTE': (int, 'PMS', 0),
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
-    'PMS_NAME': (unicode, 'PMS', ''),
+    'PMS_NAME': (str, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
@@ -345,35 +349,35 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
-    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_START_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) started playing {title}.'),
-    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_STOP_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has stopped {title}.'),
-    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_PAUSE_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has paused {title}.'),
-    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_RESUME_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has resumed {title}.'),
-    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_BUFFER_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) is buffering {title}.'),
-    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_WATCHED_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has watched {title}.'),
-    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_CREATED_BODY_TEXT': (unicode, 'Monitoring', '{title} was recently added to Plex.'),
-    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_EXTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is down.'),
-    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_INTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is down.'),
-    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_EXTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is back up.'),
-    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_INTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is back up.'),
-    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (unicode, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
-    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_CONCURRENT_BODY_TEXT': (unicode, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
-    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'Tautulli ({server_name})'),
-    'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (unicode, 'Monitoring', '{user} is streaming from a new device: {player}.'),
-    'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
+    'NOTIFY_ON_START_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_START_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) started playing {title}.'),
+    'NOTIFY_ON_STOP_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_STOP_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) has stopped {title}.'),
+    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_PAUSE_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) has paused {title}.'),
+    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_RESUME_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) has resumed {title}.'),
+    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_BUFFER_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) is buffering {title}.'),
+    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_WATCHED_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) has watched {title}.'),
+    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_CREATED_BODY_TEXT': (str, 'Monitoring', '{title} was recently added to Plex.'),
+    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_EXTDOWN_BODY_TEXT': (str, 'Monitoring', 'The Plex Media Server remote access is down.'),
+    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_INTDOWN_BODY_TEXT': (str, 'Monitoring', 'The Plex Media Server is down.'),
+    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_EXTUP_BODY_TEXT': (str, 'Monitoring', 'The Plex Media Server remote access is back up.'),
+    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_INTUP_BODY_TEXT': (str, 'Monitoring', 'The Plex Media Server is back up.'),
+    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (str, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
+    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_CONCURRENT_BODY_TEXT': (str, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
+    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (str, 'Monitoring', 'Tautulli ({server_name})'),
+    'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (str, 'Monitoring', '{user} is streaming from a new device: {player}.'),
+    'NOTIFY_SCRIPTS_ARGS_TEXT': (str, 'Monitoring', ''),
     'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/Tautulli'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_PLAY': (int, 'OSX_Notify', 0),
@@ -512,7 +516,7 @@ _CONFIG_DEFINITIONS = {
     'SLACK_ON_CONCURRENT': (int, 'Slack', 0),
     'SLACK_ON_NEWDEVICE': (int, 'Slack', 0),
     'SCRIPTS_ENABLED': (int, 'Scripts', 0),
-    'SCRIPTS_FOLDER': (unicode, 'Scripts', ''),
+    'SCRIPTS_FOLDER': (str, 'Scripts', ''),
     'SCRIPTS_TIMEOUT': (int, 'Scripts', 30),
     'SCRIPTS_ON_PLAY': (int, 'Scripts', 0),
     'SCRIPTS_ON_STOP': (int, 'Scripts', 0),
@@ -528,20 +532,20 @@ _CONFIG_DEFINITIONS = {
     'SCRIPTS_ON_PMSUPDATE': (int, 'Scripts', 0),
     'SCRIPTS_ON_CONCURRENT': (int, 'Scripts', 0),
     'SCRIPTS_ON_NEWDEVICE': (int, 'Scripts', 0),
-    'SCRIPTS_ON_PLAY_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_STOP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_PAUSE_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_RESUME_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_BUFFER_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_WATCHED_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_CREATED_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_EXTDOWN_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_EXTUP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_INTDOWN_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_INTUP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_PMSUPDATE_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_CONCURRENT_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_NEWDEVICE_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_PLAY_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_STOP_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_PAUSE_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_RESUME_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_BUFFER_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_WATCHED_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_CREATED_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_EXTDOWN_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_EXTUP_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_INTDOWN_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_INTUP_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_PMSUPDATE_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_CONCURRENT_SCRIPT': (str, 'Scripts', ''),
+    'SCRIPTS_ON_NEWDEVICE_SCRIPT': (str, 'Scripts', ''),
     'SYNCHRONOUS_MODE': (str, 'Advanced', 'NORMAL'),
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
@@ -680,7 +684,7 @@ class Config(object):
         """ Initialize the config with values from a file """
         self._config_file = config_file
         self._config = ConfigObj(self._config_file, encoding='utf-8')
-        for key in _CONFIG_DEFINITIONS.keys():
+        for key in list(_CONFIG_DEFINITIONS.keys()):
             self.check_setting(key)
         self._upgrade()
         self._blacklist()
@@ -689,8 +693,8 @@ class Config(object):
         """ Add tokens and passwords to blacklisted words in logger """
         blacklist = set()
 
-        for key, subkeys in self._config.iteritems():
-            for subkey, value in subkeys.iteritems():
+        for key, subkeys in self._config.items():
+            for subkey, value in subkeys.items():
                 if isinstance(value, basestring) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.add(value.strip())
@@ -733,14 +737,14 @@ class Config(object):
 
         # first copy over everything from the old config, even if it is not
         # correctly defined to keep from losing data
-        for key, subkeys in self._config.items():
+        for key, subkeys in list(self._config.items()):
             if key not in new_config:
                 new_config[key] = {}
-            for subkey, value in subkeys.items():
+            for subkey, value in list(subkeys.items()):
                 new_config[key][subkey] = value
 
         # next make sure that everything we expect to have defined is so
-        for key in _CONFIG_DEFINITIONS.keys():
+        for key in list(_CONFIG_DEFINITIONS.keys()):
             key, definition_type, section, ini_key, default = self._define(key)
             self.check_setting(key)
             if section not in new_config:
@@ -784,7 +788,7 @@ class Config(object):
         """
         Given a big bunch of key value pairs, apply them to the ini.
         """
-        for name, value in kwargs.items():
+        for name, value in list(kwargs.items()):
             key, definition_type, section, ini_key, default = self._define(name)
             self._config[section][ini_key] = definition_type(value)
 

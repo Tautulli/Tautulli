@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,16 +15,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+
 import sqlite3
 from xml.dom import minidom
 
 import plexpy
-import activity_pinger
-import activity_processor
-import database
-import helpers
-import logger
-import users
+from plexpy import activity_pinger
+from plexpy import activity_processor
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import users
 
 
 def extract_plexwatch_xml(xml=None):

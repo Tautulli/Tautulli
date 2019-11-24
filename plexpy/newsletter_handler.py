@@ -1,4 +1,6 @@
-﻿#  This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+#  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,6 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import os
 import time
 
@@ -20,9 +24,9 @@ from apscheduler.triggers.cron import CronTrigger
 import email.utils
 
 import plexpy
-import database
-import logger
-import newsletters
+from plexpy import database
+from plexpy import logger
+from plexpy import newsletters
 
 
 NEWSLETTER_SCHED = None

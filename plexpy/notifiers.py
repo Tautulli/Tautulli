@@ -1,4 +1,6 @@
-﻿#  This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+#  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,6 +14,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import object
 
 import base64
 import bleach
@@ -28,8 +37,8 @@ import subprocess
 import sys
 import threading
 import time
-from urllib import urlencode
-from urlparse import urlparse
+from urllib.parse import urlencode
+from urllib.parse import urlparse
 import uuid
 
 try:
@@ -54,14 +63,14 @@ import twitter
 import pynma
 
 import plexpy
-import common
-import database
-import helpers
-import logger
-import mobile_app
-import pmsconnect
-import request
-import users
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import mobile_app
+from plexpy import pmsconnect
+from plexpy import request
+from plexpy import users
 
 
 BROWSER_NOTIFIERS = {}
@@ -438,7 +447,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
                        % (', '.join(notify_actions), where), args=args)
 
     for item in result:
-        item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
+        item['active'] = int(any([item.pop(k) for k in list(item.keys()) if k in notify_actions]))
 
     return result
 
@@ -483,7 +492,7 @@ def get_notifier_config(notifier_id=None, mask_passwords=False):
 
     notifier_actions = {}
     notifier_text = {}
-    for k in result.keys():
+    for k in list(result.keys()):
         if k in notify_actions:
             subject = result.pop(k + '_subject')
             body = result.pop(k + '_body')
@@ -581,15 +590,15 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     config_prefix = agent['name'] + '_'
 
     actions = {k: helpers.cast_to_int(kwargs.pop(k))
-               for k in kwargs.keys() if k in notify_actions}
+               for k in list(kwargs.keys()) if k in notify_actions}
     subject_text = {k: kwargs.pop(k)
-                    for k in kwargs.keys() if k.startswith(notify_actions) and k.endswith('_subject')}
+                    for k in list(kwargs.keys()) if k.startswith(notify_actions) and k.endswith('_subject')}
     body_text = {k: kwargs.pop(k)
-                 for k in kwargs.keys() if k.startswith(notify_actions) and k.endswith('_body')}
+                 for k in list(kwargs.keys()) if k.startswith(notify_actions) and k.endswith('_body')}
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
-                       for k in kwargs.keys() if k.startswith(config_prefix)}
+                       for k in list(kwargs.keys()) if k.startswith(config_prefix)}
 
-    for cfg, val in notifier_config.iteritems():
+    for cfg, val in notifier_config.items():
         # Check for a password config keys and a blank password from the HTML form
         if 'password' in cfg and val == '    ':
             # Get the previous password so we don't overwrite it with a blank value
@@ -793,7 +802,7 @@ class Notifier(object):
             return default
 
         new_config = {}
-        for k, v in default.iteritems():
+        for k, v in default.items():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             elif isinstance(v, list):
@@ -1404,9 +1413,9 @@ class EMAIL(Notifier):
         user_emails_cc.update(emails)
         user_emails_bcc.update(emails)
 
-        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.iteritems()]
-        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.iteritems()]
-        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.iteritems()]
+        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.items()]
+        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.items()]
+        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.items()]
 
         return user_emails_to, user_emails_cc, user_emails_bcc
 
@@ -2019,7 +2028,7 @@ class IFTTT(Notifier):
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        event = unicode(self.config['event']).format(action=action)
+        event = str(self.config['event']).format(action=action)
 
         data = {'value1': subject.encode('utf-8'),
                 'value2': body.encode('utf-8')}
@@ -3043,7 +3052,7 @@ class SCRIPTS(Notifier):
         for root, dirs, files in os.walk(scriptdir):
             for f in files:
                 name, ext = os.path.splitext(f)
-                if ext in self.script_exts.keys():
+                if ext in list(self.script_exts.keys()):
                     rfp = os.path.join(os.path.relpath(root, scriptdir), f)
                     fp = os.path.join(root, f)
                     scripts[fp] = rfp
@@ -3187,7 +3196,7 @@ class SCRIPTS(Notifier):
     def _return_config_options(self):
         config_option = [{'label': 'Supported File Types',
                           'description': '<span class="inline-pre">' + \
-                              ', '.join(self.script_exts.keys()) + '</span>',
+                              ', '.join(list(self.script_exts.keys())) + '</span>',
                           'input_type': 'help'
                           },
                          {'label': 'Script Folder',
@@ -3947,7 +3956,7 @@ def upgrade_config_to_db():
 
             # Update the new config with the old config values
             notifier_config = {}
-            for conf, val in notifier_default_config.iteritems():
+            for conf, val in notifier_default_config.items():
                 c_key = agent_config_key + '_' + config_key_overrides.get(agent, {}).get(conf, conf)
                 notifier_config[agent + '_' + conf] = agent_config.get(c_key, val)
 
@@ -3964,15 +3973,15 @@ def upgrade_config_to_db():
 
                 # Reverse the dict to {script: [actions]}
                 script_actions = {}
-                for k, v in action_scripts.items():
+                for k, v in list(action_scripts.items()):
                     if v: script_actions.setdefault(v, set()).add(k)
 
                 # Add a new script notifier for each script if the action was enabled
-                for script, actions in script_actions.items():
+                for script, actions in list(script_actions.items()):
                     if any(agent_actions[a] for a in actions):
                         temp_config = notifier_config
-                        temp_config.update({a: 0 for a in agent_actions.keys()})
-                        temp_config.update({a + '_subject': '' for a in agent_actions.keys()})
+                        temp_config.update({a: 0 for a in list(agent_actions.keys())})
+                        temp_config.update({a + '_subject': '' for a in list(agent_actions.keys())})
                         for a in actions:
                             if agent_actions[a]:
                                 temp_config[a] = agent_actions[a]

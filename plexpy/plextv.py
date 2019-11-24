@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
@@ -16,17 +15,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import next
+from builtins import str
+from builtins import object
+
 import base64
 import json
 
 import plexpy
-import common
-import helpers
-import http_handler
-import logger
-import users
-import pmsconnect
-import session
+from plexpy import common
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import logger
+from plexpy import users
+from plexpy import pmsconnect
+from plexpy import session
 
 
 def get_server_resources(return_presence=False, return_server=False, **kwargs):
@@ -155,7 +159,7 @@ class PlexTV(object):
         base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
         headers = {'Content-Type': 'application/xml; charset=utf-8',
                    'Authorization': 'Basic %s' % base64string}
-        
+
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='POST',
                                                     headers=headers,
@@ -199,7 +203,7 @@ class PlexTV(object):
                     return None
             else:
                 logger.warn("Tautulli PlexTV :: No existing Tautulli device found.")
-        
+
         logger.info("Tautulli PlexTV :: Fetching a new Plex.tv token for Tautulli.")
         user = self.get_token()
         if user:

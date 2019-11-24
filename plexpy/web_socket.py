@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,6 +17,11 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+
 import json
 import threading
 import time
@@ -22,11 +29,12 @@ import time
 import websocket
 
 import plexpy
-import activity_handler
-import activity_pinger
-import activity_processor
-import database
-import logger
+from plexpy import activity_handler
+from plexpy import activity_pinger
+from plexpy import activity_processor
+from plexpy import database
+from plexpy import logger
+
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)

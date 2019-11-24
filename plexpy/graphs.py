@@ -1,4 +1,6 @@
-﻿# This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,13 +15,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
+
 import datetime
 
 import plexpy
-import common
-import database
-import logger
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import logger
+from plexpy import session
 
 
 class Graphs(object):
@@ -32,7 +39,7 @@ class Graphs(object):
 
         if not time_range.isdigit():
             time_range = '30'
-        
+
         user_cond = ''
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
@@ -44,7 +51,7 @@ class Graphs(object):
 
         group_by = 'reference_id' if grouping else 'id'
 
-        try:    
+        try:
             if y_axis == 'plays':
                 query = 'SELECT date(started, "unixepoch", "localtime") AS date_played, ' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \

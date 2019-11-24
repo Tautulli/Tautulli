@@ -1,4 +1,6 @@
-﻿#  This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+#  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,6 +15,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 
 import arrow
 import bleach
@@ -31,19 +44,16 @@ import time
 import musicbrainzngs
 
 import plexpy
-import activity_processor
-import common
-import database
-import datafactory
-import libraries
-import logger
-import helpers
-import notifiers
-import plextv
-import pmsconnect
-import request
-import users
-from newsletter_handler import notify as notify_newsletter
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import database
+from plexpy import datafactory
+from plexpy import logger
+from plexpy import helpers
+from plexpy import notifiers
+from plexpy import pmsconnect
+from plexpy import request
+from plexpy.newsletter_handler import notify as notify_newsletter
 
 
 def process_queue():
@@ -63,7 +73,7 @@ def process_queue():
                     add_notifier_each(**params)
             except Exception as e:
                 logger.exception("Tautulli NotificationHandler :: Notification thread exception: %s" % e)
-                
+
         queue.task_done()
 
     logger.info("Tautulli NotificationHandler :: Notification thread exiting...")
@@ -174,12 +184,12 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
 
         elif stream_data['media_type'] in ('movie', 'episode', 'clip'):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
-            
+
             if notify_action == 'on_stop':
                 return (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
-                    (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT) or 
+                    (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT) or
                     (stream_data['media_type'] == 'episode' and progress_percent < plexpy.CONFIG.TV_WATCHED_PERCENT))
-            
+
             elif notify_action == 'on_resume':
                 return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
 
@@ -254,7 +264,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the condition values to the correct type
             try:
                 if parameter_type == 'str':
-                    values = [unicode(v).lower() for v in values]
+                    values = [str(v).lower() for v in values]
 
                 elif parameter_type == 'int':
                     values = [helpers.cast_to_int(v) for v in values]
@@ -270,7 +280,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = unicode(parameter_value).lower()
+                    parameter_value = str(parameter_value).lower()
 
                 elif parameter_type == 'int':
                     parameter_value = helpers.cast_to_int(parameter_value)
@@ -540,9 +550,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         transcode_decision = 'Direct Play'
 
     if notify_action != 'on_play':
-        stream_duration = int((time.time() -
-                               helpers.cast_to_int(session.get('started', 0)) -
-                               helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
+        stream_duration = int(old_div((time.time() -
+                              helpers.cast_to_int(session.get('started', 0)) -
+                              helpers.cast_to_int(session.get('paused_counter', 0))), 60))
     else:
         stream_duration = 0
 
@@ -1137,19 +1147,19 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             subject = str_formatter(subject)
         except LookupError as e:
             logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
-            subject = unicode(default_subject).format(**parameters)
+            subject = str(default_subject).format(**parameters)
         except Exception as e:
             logger.error("Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
-            subject = unicode(default_subject).format(**parameters)
+            subject = str(default_subject).format(**parameters)
 
         try:
             body = str_formatter(body)
         except LookupError as e:
             logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
-            body = unicode(default_body).format(**parameters)
+            body = str(default_body).format(**parameters)
         except Exception as e:
             logger.error("Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
-            body = unicode(default_body).format(**parameters)
+            body = str(default_body).format(**parameters)
 
     return subject, body, script_args
 
@@ -1165,7 +1175,7 @@ def strip_tag(data, agent_id=None):
                      'u': [],
                      'a': ['href'],
                      'font': ['color']}
-        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
 
     elif agent_id in (10, 14, 20):
         # Don't remove tags for Email, Slack, and Discord
@@ -1178,11 +1188,11 @@ def strip_tag(data, agent_id=None):
                      'code': [],
                      'pre': [],
                      'a': ['href']}
-        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
 
     else:
         whitelist = {}
-        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
 
     # Resubstitute temporary tokens for < and > in parameter prefix and suffix
     return data.replace('%temp_lt_token%', '<').replace('%temp_gt_token%', '>')
@@ -1194,8 +1204,8 @@ def format_group_index(group_keys):
     num = []
     num00 = []
 
-    for k, g in groupby(enumerate(group_keys), lambda (i, x): i-x):
-        group = map(itemgetter(1), g)
+    for k, g in groupby(enumerate(group_keys), lambda i_x: i_x[0]-i_x[1]):
+        group = list(map(itemgetter(1), g))
         g_min, g_max = min(group), max(group)
 
         if g_min == g_max:
@@ -1382,7 +1392,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
             imdb_id = tvmaze_json.get('externals', {}).get('imdb', '')
             tvmaze_id = tvmaze_json.get('id', '')
             tvmaze_url = tvmaze_json.get('url', '')
-            
+
             keys = {'tvmaze_id': tvmaze_id}
             tvmaze_info = {'rating_key': rating_key,
                            'thetvdb_id': thetvdb_id,
@@ -1586,7 +1596,7 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
 def str_format(s, parameters):
     custom_formatter = CustomFormatter()
     if isinstance(s, basestring):
-        return custom_formatter.format(unicode(s), **parameters)
+        return custom_formatter.format(str(s), **parameters)
     return s
 
 
@@ -1602,11 +1612,11 @@ class CustomFormatter(Formatter):
         elif conversion == 'r':
             return repr(value)
         elif conversion == 'u':  # uppercase
-            return unicode(value).upper()
+            return str(value).upper()
         elif conversion == 'l':  # lowercase
-            return unicode(value).lower()
+            return str(value).lower()
         elif conversion == 'c':  # capitalize
-            return unicode(value).title()
+            return str(value).title()
         else:
             return value
 
@@ -1616,7 +1626,7 @@ class CustomFormatter(Formatter):
             match = re.match(pattern, format_spec)
             if value and match:
                 groups = match.groupdict()
-                items = [x.strip() for x in unicode(value).split(',')]
+                items = [x.strip() for x in str(value).split(',')]
                 start = groups['start'] or None
                 end = groups['end'] or None
                 if start is not None:
@@ -1666,7 +1676,7 @@ class CustomFormatter(Formatter):
 
                 if prefix or suffix:
                     real_format_string = '{' + real_format_string + '}'
-                    _, field_name, format_spec, conversion, _, _ = self.parse(real_format_string).next()
+                    _, field_name, format_spec, conversion, _, _ = next(self.parse(real_format_string))
 
             yield literal_text, field_name, format_spec, conversion, prefix, suffix
 

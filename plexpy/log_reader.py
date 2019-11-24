@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,11 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from builtins import str
+
 import os
 
 import plexpy
-import helpers
-import logger
+from plexpy import helpers
+from plexpy import logger
+
 
 def get_log_tail(window=20, parsed=True, log_type="server"):
 
@@ -45,7 +51,7 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
             try:
                 log_time = i.split(' [')[0]
                 log_level = i.split('] ', 1)[1].split(' - ', 1)[0]
-                log_msg = unicode(i.split('] ', 1)[1].split(' - ', 1)[1], 'utf-8')
+                log_msg = str(i.split('] ', 1)[1].split(' - ', 1)[1], 'utf-8')
                 full_line = [log_time, log_level, log_msg]
                 clean_lines.append(full_line)
             except:

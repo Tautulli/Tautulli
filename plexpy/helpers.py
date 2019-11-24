@@ -1,4 +1,6 @@
-﻿#  This file is part of Tautulli.
+﻿# -*- coding: utf-8 -*-
+
+#  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,6 +15,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
+from __future__ import absolute_import
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+
 import base64
 import cloudinary
 from cloudinary.api import delete_resources_by_tag
@@ -20,12 +32,15 @@ from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 import datetime
 from functools import wraps
-import geoip2.database, geoip2.errors
+import geoip2.database
+import geoip2.errors
 import gzip
 import hashlib
 import imghdr
-from itertools import izip_longest
-import ipwhois, ipwhois.exceptions, ipwhois.utils
+from itertools import zip_longest
+import ipwhois
+import ipwhois.exceptions
+import ipwhois.utils
 from IPy import IP
 import json
 import math
@@ -38,13 +53,18 @@ import socket
 import sys
 import time
 import unicodedata
-import urllib, urllib2
+import urllib.request
+import urllib.parse
+import urllib.error
+import urllib.request
+import urllib.error
+import urllib.parse
 from xml.dom import minidom
 import xmltodict
 
 import plexpy
-import logger
-import request
+from plexpy import logger
+from plexpy import request
 from plexpy.api2 import API2
 
 
@@ -158,7 +178,7 @@ def latinToAscii(unicrap):
 
 def convert_milliseconds(ms):
 
-    seconds = ms / 1000
+    seconds = old_div(ms, 1000)
     gmtime = time.gmtime(seconds)
     if seconds > 3600:
         minutes = time.strftime("%H:%M:%S", gmtime)
@@ -172,7 +192,7 @@ def convert_milliseconds_to_minutes(ms):
 
     if str(ms).isdigit():
         seconds = float(ms) / 1000
-        minutes = round(seconds / 60, 0)
+        minutes = round(old_div(seconds, 60), 0)
 
         return math.trunc(minutes)
 
@@ -224,9 +244,9 @@ def human_duration(s, sig='dhms'):
     hd = ''
 
     if str(s).isdigit() and s > 0:
-        d = int(s / 86400)
-        h = int((s % 86400) / 3600)
-        m = int(((s % 86400) % 3600) / 60)
+        d = int(old_div(s, 86400))
+        h = int(old_div((s % 86400), 3600))
+        m = int(old_div(((s % 86400) % 3600), 60))
         s = int(((s % 86400) % 3600) % 60)
 
         hd_list = []
@@ -277,7 +297,7 @@ def get_age(date):
 
 def bytes_to_mb(bytes):
 
-    mb = int(bytes) / 1048576
+    mb = old_div(int(bytes), 1048576)
     size = '%.1f MB' % mb
     return size
 
@@ -318,7 +338,7 @@ def replace_all(text, dic, normalize=False):
     if not text:
         return ''
 
-    for i, j in dic.iteritems():
+    for i, j in dic.items():
         if normalize:
             try:
                 if sys.platform == 'darwin':
@@ -476,7 +496,7 @@ def get_percent(value1, value2):
     value2 = cast_to_float(value2)
 
     if value1 != 0 and value2 != 0:
-        percent = (value1 / value2) * 100
+        percent = (old_div(value1, value2)) * 100
     else:
         percent = 0
 
@@ -543,11 +563,11 @@ def sanitize_out(*dargs, **dkwargs):
 
 def sanitize(obj):
     if isinstance(obj, basestring):
-        return unicode(obj).replace('<', '&lt;').replace('>', '&gt;')
+        return str(obj).replace('<', '&lt;').replace('>', '&gt;')
     elif isinstance(obj, list):
         return [sanitize(o) for o in obj]
     elif isinstance(obj, dict):
-        return {k: sanitize(v) for k, v in obj.iteritems()}
+        return {k: sanitize(v) for k, v in obj.items()}
     elif isinstance(obj, tuple):
         return tuple(sanitize(list(obj)))
     else:
@@ -596,9 +616,9 @@ def install_geoip_db():
     # Retrieve the GeoLite2 gzip file
     logger.debug("Tautulli Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
     try:
-        maxmind = urllib.URLopener()
+        maxmind = urllib.request.URLopener()
         maxmind.retrieve(maxmind_url + geolite2_gz, temp_gz)
-        md5_checksum = urllib2.urlopen(maxmind_url + geolite2_md5).read()
+        md5_checksum = urllib.request.urlopen(maxmind_url + geolite2_md5).read()
     except Exception as e:
         logger.error("Tautulli Helpers :: Failed to download GeoLite2 gzip file from MaxMind: %s" % e)
         return False
@@ -1151,7 +1171,7 @@ def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    return izip_longest(fillvalue=fillvalue, *args)
+    return zip_longest(fillvalue=fillvalue, *args)
 
 
 def traverse_map(obj, func):
@@ -1162,7 +1182,7 @@ def traverse_map(obj, func):
 
     elif isinstance(obj, dict):
         new_obj = {}
-        for k, v in obj.iteritems():
+        for k, v in obj.items():
             new_obj[traverse_map(k, func)] = traverse_map(v, func)
 
     else:
@@ -1187,7 +1207,7 @@ def mask_config_passwords(config):
                 cfg['value'] = '    '
 
     elif isinstance(config, dict):
-        for cfg, val in config.iteritems():
+        for cfg, val in config.items():
             # Check for a password config keys and if the password is not blank
             if 'password' in cfg and val != '':
                 # Set the password to blank so it is not exposed in the HTML form
