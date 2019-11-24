@@ -797,6 +797,11 @@ class Config(object):
         """
         Upgrades config file from previous verisions and bumps up config version
         """
+
+        ## Temporarily disable analytics for python3 branch
+        ## TODO: Remove before pushing to nightly
+        self.SYSTEM_ANALYTICS = 0
+
         if self.CONFIG_VERSION == 0:
             # Separate out movie and tv notifications
             if self.MOVIE_NOTIFY_ENABLE == 1:
