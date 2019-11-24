@@ -1,15 +1,22 @@
 # mako/parsetree.py
-# Copyright (C) 2006-2015 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2019 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """defines the parse tree components for Mako templates."""
 
-from mako import exceptions, ast, util, filters, compat
 import re
 
+from mako import ast
+from mako import compat
+from mako import exceptions
+from mako import filters
+from mako import util
+
+
 class Node(object):
+
     """base class for a Node in the parse tree."""
 
     def __init__(self, source, lineno, pos, filename):
@@ -20,8 +27,12 @@ class Node(object):
 
     @property
     def exception_kwargs(self):
-        return {'source': self.source, 'lineno': self.lineno,
-                'pos': self.pos, 'filename': self.filename}
+        return {
+            "source": self.source,
+            "lineno": self.lineno,
+            "pos": self.pos,
+            "filename": self.filename,
+        }
 
     def get_children(self):
         return []
@@ -34,11 +45,13 @@ class Node(object):
         method = getattr(visitor, "visit" + self.__class__.__name__, traverse)
         method(self)
 
+
 class TemplateNode(Node):
+
     """a 'container' node that stores the overall collection of nodes."""
 
     def __init__(self, filename):
-        super(TemplateNode, self).__init__('', 0, 0, filename)
+        super(TemplateNode, self).__init__("", 0, 0, filename)
         self.nodes = []
         self.page_attributes = {}
 
@@ -47,10 +60,13 @@ class TemplateNode(Node):
 
     def __repr__(self):
         return "TemplateNode(%s, %r)" % (
-                    util.sorted_dict_repr(self.page_attributes),
-                    self.nodes)
+            util.sorted_dict_repr(self.page_attributes),
+            self.nodes,
+        )
+
 
 class ControlLine(Node):
+
     """defines a control line, a line-oriented python line or end tag.
 
     e.g.::
@@ -68,7 +84,7 @@ class ControlLine(Node):
         self.text = text
         self.keyword = keyword
         self.isend = isend
-        self.is_primary = keyword in ['for', 'if', 'while', 'try', 'with']
+        self.is_primary = keyword in ["for", "if", "while", "try", "with"]
         self.nodes = []
         if self.isend:
             self._declared_identifiers = []
@@ -92,9 +108,9 @@ class ControlLine(Node):
         for this ControlLine"""
 
         return keyword in {
-            'if':set(['else', 'elif']),
-            'try':set(['except', 'finally']),
-            'for':set(['else'])
+            "if": set(["else", "elif"]),
+            "try": set(["except", "finally"]),
+            "for": set(["else"]),
         }.get(self.keyword, [])
 
     def __repr__(self):
@@ -102,10 +118,12 @@ class ControlLine(Node):
             self.keyword,
             self.text,
             self.isend,
-            (self.lineno, self.pos)
+            (self.lineno, self.pos),
         )
 
+
 class Text(Node):
+
     """defines plain text in the template."""
 
     def __init__(self, content, **kwargs):
@@ -115,7 +133,9 @@ class Text(Node):
     def __repr__(self):
         return "Text(%r, %r)" % (self.content, (self.lineno, self.pos))
 
+
 class Code(Node):
+
     """defines a Python code block, either inline or module level.
 
     e.g.::
@@ -148,10 +168,12 @@ class Code(Node):
         return "Code(%r, %r, %r)" % (
             self.text,
             self.ismodule,
-            (self.lineno, self.pos)
+            (self.lineno, self.pos),
         )
 
+
 class Comment(Node):
+
     """defines a comment line.
 
     # this is a comment
@@ -165,7 +187,9 @@ class Comment(Node):
     def __repr__(self):
         return "Comment(%r, %r)" % (self.text, (self.lineno, self.pos))
 
+
 class Expression(Node):
+
     """defines an inline expression.
 
     ${x+y}
@@ -185,62 +209,76 @@ class Expression(Node):
     def undeclared_identifiers(self):
         # TODO: make the "filter" shortcut list configurable at parse/gen time
         return self.code.undeclared_identifiers.union(
-                self.escapes_code.undeclared_identifiers.difference(
-                    set(filters.DEFAULT_ESCAPES.keys())
-                )
-            ).difference(self.code.declared_identifiers)
+            self.escapes_code.undeclared_identifiers.difference(
+                set(filters.DEFAULT_ESCAPES.keys())
+            )
+        ).difference(self.code.declared_identifiers)
 
     def __repr__(self):
         return "Expression(%r, %r, %r)" % (
             self.text,
             self.escapes_code.args,
-            (self.lineno, self.pos)
+            (self.lineno, self.pos),
         )
 
+
 class _TagMeta(type):
+
     """metaclass to allow Tag to produce a subclass according to
     its keyword"""
 
     _classmap = {}
 
-    def __init__(cls, clsname, bases, dict):
-        if getattr(cls, '__keyword__', None) is not None:
+    def __init__(cls, clsname, bases, dict_):
+        if getattr(cls, "__keyword__", None) is not None:
             cls._classmap[cls.__keyword__] = cls
-        super(_TagMeta, cls).__init__(clsname, bases, dict)
+        super(_TagMeta, cls).__init__(clsname, bases, dict_)
 
     def __call__(cls, keyword, attributes, **kwargs):
         if ":" in keyword:
-            ns, defname = keyword.split(':')
-            return type.__call__(CallNamespaceTag, ns, defname,
-                                        attributes, **kwargs)
+            ns, defname = keyword.split(":")
+            return type.__call__(
+                CallNamespaceTag, ns, defname, attributes, **kwargs
+            )
 
         try:
             cls = _TagMeta._classmap[keyword]
         except KeyError:
             raise exceptions.CompileException(
                 "No such tag: '%s'" % keyword,
-                source=kwargs['source'],
-                lineno=kwargs['lineno'],
-                pos=kwargs['pos'],
-                filename=kwargs['filename']
+                source=kwargs["source"],
+                lineno=kwargs["lineno"],
+                pos=kwargs["pos"],
+                filename=kwargs["filename"],
             )
         return type.__call__(cls, keyword, attributes, **kwargs)
+
 
 class Tag(compat.with_metaclass(_TagMeta, Node)):
     """abstract base class for tags.
 
-    <%sometag/>
+    e.g.::
 
-    <%someothertag>
-        stuff
-    </%someothertag>
+        <%sometag/>
+
+        <%someothertag>
+            stuff
+        </%someothertag>
 
     """
+
     __keyword__ = None
 
-    def __init__(self, keyword, attributes, expressions,
-                        nonexpressions, required, **kwargs):
-        """construct a new Tag instance.
+    def __init__(
+        self,
+        keyword,
+        attributes,
+        expressions,
+        nonexpressions,
+        required,
+        **kwargs
+    ):
+        r"""construct a new Tag instance.
 
         this constructor not called directly, and is only called
         by subclasses.
@@ -266,9 +304,10 @@ class Tag(compat.with_metaclass(_TagMeta, Node)):
         missing = [r for r in required if r not in self.parsed_attributes]
         if len(missing):
             raise exceptions.CompileException(
-                "Missing attribute(s): %s" %
-                    ",".join([repr(m) for m in missing]),
-                **self.exception_kwargs)
+                "Missing attribute(s): %s"
+                % ",".join([repr(m) for m in missing]),
+                **self.exception_kwargs
+            )
         self.parent = None
         self.nodes = []
 
@@ -284,36 +323,40 @@ class Tag(compat.with_metaclass(_TagMeta, Node)):
         for key in self.attributes:
             if key in expressions:
                 expr = []
-                for x in re.compile(r'(\${.+?})',
-                                    re.S).split(self.attributes[key]):
-                    m = re.compile(r'^\${(.+?)}$', re.S).match(x)
+                for x in re.compile(r"(\${.+?})", re.S).split(
+                    self.attributes[key]
+                ):
+                    m = re.compile(r"^\${(.+?)}$", re.S).match(x)
                     if m:
-                        code = ast.PythonCode(m.group(1).rstrip(),
-                                **self.exception_kwargs)
+                        code = ast.PythonCode(
+                            m.group(1).rstrip(), **self.exception_kwargs
+                        )
                         # we aren't discarding "declared_identifiers" here,
                         # which we do so that list comprehension-declared
                         # variables aren't counted.   As yet can't find a
                         # condition that requires it here.
-                        undeclared_identifiers = \
-                            undeclared_identifiers.union(
-                                    code.undeclared_identifiers)
-                        expr.append('(%s)' % m.group(1))
+                        undeclared_identifiers = undeclared_identifiers.union(
+                            code.undeclared_identifiers
+                        )
+                        expr.append("(%s)" % m.group(1))
                     else:
                         if x:
                             expr.append(repr(x))
-                self.parsed_attributes[key] = " + ".join(expr) or repr('')
+                self.parsed_attributes[key] = " + ".join(expr) or repr("")
             elif key in nonexpressions:
-                if re.search(r'\${.+?}', self.attributes[key]):
+                if re.search(r"\${.+?}", self.attributes[key]):
                     raise exceptions.CompileException(
-                           "Attibute '%s' in tag '%s' does not allow embedded "
-                           "expressions"  % (key, self.keyword),
-                           **self.exception_kwargs)
+                        "Attibute '%s' in tag '%s' does not allow embedded "
+                        "expressions" % (key, self.keyword),
+                        **self.exception_kwargs
+                    )
                 self.parsed_attributes[key] = repr(self.attributes[key])
             else:
                 raise exceptions.CompileException(
-                                    "Invalid attribute for tag '%s': '%s'" %
-                                    (self.keyword, key),
-                                    **self.exception_kwargs)
+                    "Invalid attribute for tag '%s': '%s'"
+                    % (self.keyword, key),
+                    **self.exception_kwargs
+                )
         self.expression_undeclared_identifiers = undeclared_identifiers
 
     def declared_identifiers(self):
@@ -323,54 +366,64 @@ class Tag(compat.with_metaclass(_TagMeta, Node)):
         return self.expression_undeclared_identifiers
 
     def __repr__(self):
-        return "%s(%r, %s, %r, %r)" % (self.__class__.__name__,
-                                    self.keyword,
-                                    util.sorted_dict_repr(self.attributes),
-                                    (self.lineno, self.pos),
-                                    self.nodes
-                                )
+        return "%s(%r, %s, %r, %r)" % (
+            self.__class__.__name__,
+            self.keyword,
+            util.sorted_dict_repr(self.attributes),
+            (self.lineno, self.pos),
+            self.nodes,
+        )
+
 
 class IncludeTag(Tag):
-    __keyword__ = 'include'
+    __keyword__ = "include"
 
     def __init__(self, keyword, attributes, **kwargs):
         super(IncludeTag, self).__init__(
-                                    keyword,
-                                    attributes,
-                                    ('file', 'import', 'args'),
-                                    (), ('file',), **kwargs)
+            keyword,
+            attributes,
+            ("file", "import", "args"),
+            (),
+            ("file",),
+            **kwargs
+        )
         self.page_args = ast.PythonCode(
-                                "__DUMMY(%s)" % attributes.get('args', ''),
-                                 **self.exception_kwargs)
+            "__DUMMY(%s)" % attributes.get("args", ""), **self.exception_kwargs
+        )
 
     def declared_identifiers(self):
         return []
 
     def undeclared_identifiers(self):
-        identifiers = self.page_args.undeclared_identifiers.\
-                            difference(set(["__DUMMY"])).\
-                            difference(self.page_args.declared_identifiers)
-        return identifiers.union(super(IncludeTag, self).
-                                    undeclared_identifiers())
+        identifiers = self.page_args.undeclared_identifiers.difference(
+            set(["__DUMMY"])
+        ).difference(self.page_args.declared_identifiers)
+        return identifiers.union(
+            super(IncludeTag, self).undeclared_identifiers()
+        )
+
 
 class NamespaceTag(Tag):
-    __keyword__ = 'namespace'
+    __keyword__ = "namespace"
 
     def __init__(self, keyword, attributes, **kwargs):
         super(NamespaceTag, self).__init__(
-                                        keyword, attributes,
-                                        ('file',),
-                                        ('name','inheritable',
-                                        'import','module'),
-                                        (), **kwargs)
+            keyword,
+            attributes,
+            ("file",),
+            ("name", "inheritable", "import", "module"),
+            (),
+            **kwargs
+        )
 
-        self.name = attributes.get('name', '__anon_%s' % hex(abs(id(self))))
-        if not 'name' in attributes and not 'import' in attributes:
+        self.name = attributes.get("name", "__anon_%s" % hex(abs(id(self))))
+        if "name" not in attributes and "import" not in attributes:
             raise exceptions.CompileException(
                 "'name' and/or 'import' attributes are required "
                 "for <%namespace>",
-                **self.exception_kwargs)
-        if 'file' in attributes and 'module' in attributes:
+                **self.exception_kwargs
+            )
+        if "file" in attributes and "module" in attributes:
             raise exceptions.CompileException(
                 "<%namespace> may only have one of 'file' or 'module'",
                 **self.exception_kwargs
@@ -379,52 +432,53 @@ class NamespaceTag(Tag):
     def declared_identifiers(self):
         return []
 
+
 class TextTag(Tag):
-    __keyword__ = 'text'
+    __keyword__ = "text"
 
     def __init__(self, keyword, attributes, **kwargs):
         super(TextTag, self).__init__(
-                                    keyword,
-                                    attributes, (),
-                                    ('filter'), (), **kwargs)
+            keyword, attributes, (), ("filter"), (), **kwargs
+        )
         self.filter_args = ast.ArgumentList(
-                                    attributes.get('filter', ''),
-                                    **self.exception_kwargs)
+            attributes.get("filter", ""), **self.exception_kwargs
+        )
 
     def undeclared_identifiers(self):
-        return self.filter_args.\
-                            undeclared_identifiers.\
-                            difference(filters.DEFAULT_ESCAPES.keys()).union(
-                        self.expression_undeclared_identifiers
-                    )
+        return self.filter_args.undeclared_identifiers.difference(
+            filters.DEFAULT_ESCAPES.keys()
+        ).union(self.expression_undeclared_identifiers)
+
 
 class DefTag(Tag):
-    __keyword__ = 'def'
+    __keyword__ = "def"
 
     def __init__(self, keyword, attributes, **kwargs):
-        expressions = ['buffered', 'cached'] + [
-                c for c in attributes if c.startswith('cache_')]
-
+        expressions = ["buffered", "cached"] + [
+            c for c in attributes if c.startswith("cache_")
+        ]
 
         super(DefTag, self).__init__(
-                keyword,
-                attributes,
-                expressions,
-                ('name', 'filter', 'decorator'),
-                ('name',),
-                **kwargs)
-        name = attributes['name']
-        if re.match(r'^[\w_]+$', name):
+            keyword,
+            attributes,
+            expressions,
+            ("name", "filter", "decorator"),
+            ("name",),
+            **kwargs
+        )
+        name = attributes["name"]
+        if re.match(r"^[\w_]+$", name):
             raise exceptions.CompileException(
-                                "Missing parenthesis in %def",
-                                **self.exception_kwargs)
-        self.function_decl = ast.FunctionDecl("def " + name + ":pass",
-                                                    **self.exception_kwargs)
+                "Missing parenthesis in %def", **self.exception_kwargs
+            )
+        self.function_decl = ast.FunctionDecl(
+            "def " + name + ":pass", **self.exception_kwargs
+        )
         self.name = self.function_decl.funcname
-        self.decorator = attributes.get('decorator', '')
+        self.decorator = attributes.get("decorator", "")
         self.filter_args = ast.ArgumentList(
-                                attributes.get('filter', ''),
-                                **self.exception_kwargs)
+            attributes.get("filter", ""), **self.exception_kwargs
+        )
 
     is_anonymous = False
     is_block = False
@@ -442,51 +496,58 @@ class DefTag(Tag):
     def undeclared_identifiers(self):
         res = []
         for c in self.function_decl.defaults:
-            res += list(ast.PythonCode(c, **self.exception_kwargs).
-                                    undeclared_identifiers)
-        return set(res).union(
-            self.filter_args.\
-                            undeclared_identifiers.\
-                            difference(filters.DEFAULT_ESCAPES.keys())
-        ).union(
-            self.expression_undeclared_identifiers
-        ).difference(
-            self.function_decl.allargnames
+            res += list(
+                ast.PythonCode(
+                    c, **self.exception_kwargs
+                ).undeclared_identifiers
+            )
+        return (
+            set(res)
+            .union(
+                self.filter_args.undeclared_identifiers.difference(
+                    filters.DEFAULT_ESCAPES.keys()
+                )
+            )
+            .union(self.expression_undeclared_identifiers)
+            .difference(self.function_decl.allargnames)
         )
 
+
 class BlockTag(Tag):
-    __keyword__ = 'block'
+    __keyword__ = "block"
 
     def __init__(self, keyword, attributes, **kwargs):
-        expressions = ['buffered', 'cached', 'args'] + [
-                 c for c in attributes if c.startswith('cache_')]
+        expressions = ["buffered", "cached", "args"] + [
+            c for c in attributes if c.startswith("cache_")
+        ]
 
         super(BlockTag, self).__init__(
-                keyword,
-                attributes,
-                expressions,
-                ('name','filter', 'decorator'),
-                (),
-                **kwargs)
-        name = attributes.get('name')
-        if name and not re.match(r'^[\w_]+$',name):
+            keyword,
+            attributes,
+            expressions,
+            ("name", "filter", "decorator"),
+            (),
+            **kwargs
+        )
+        name = attributes.get("name")
+        if name and not re.match(r"^[\w_]+$", name):
             raise exceptions.CompileException(
-                               "%block may not specify an argument signature",
-                               **self.exception_kwargs)
-        if not name and attributes.get('args', None):
+                "%block may not specify an argument signature",
+                **self.exception_kwargs
+            )
+        if not name and attributes.get("args", None):
             raise exceptions.CompileException(
-                                "Only named %blocks may specify args",
-                                **self.exception_kwargs
-                                )
-        self.body_decl = ast.FunctionArgs(attributes.get('args', ''),
-                                            **self.exception_kwargs)
+                "Only named %blocks may specify args", **self.exception_kwargs
+            )
+        self.body_decl = ast.FunctionArgs(
+            attributes.get("args", ""), **self.exception_kwargs
+        )
 
         self.name = name
-        self.decorator = attributes.get('decorator', '')
+        self.decorator = attributes.get("decorator", "")
         self.filter_args = ast.ArgumentList(
-                                attributes.get('filter', ''),
-                                **self.exception_kwargs)
-
+            attributes.get("filter", ""), **self.exception_kwargs
+        )
 
     is_block = True
 
@@ -496,7 +557,7 @@ class BlockTag(Tag):
 
     @property
     def funcname(self):
-        return self.name or "__M_anon_%d" % (self.lineno, )
+        return self.name or "__M_anon_%d" % (self.lineno,)
 
     def get_argument_expressions(self, **kw):
         return self.body_decl.get_argument_expressions(**kw)
@@ -505,90 +566,100 @@ class BlockTag(Tag):
         return self.body_decl.allargnames
 
     def undeclared_identifiers(self):
-        return (self.filter_args.\
-                            undeclared_identifiers.\
-                            difference(filters.DEFAULT_ESCAPES.keys())
-                ).union(self.expression_undeclared_identifiers)
-
+        return (
+            self.filter_args.undeclared_identifiers.difference(
+                filters.DEFAULT_ESCAPES.keys()
+            )
+        ).union(self.expression_undeclared_identifiers)
 
 
 class CallTag(Tag):
-    __keyword__ = 'call'
+    __keyword__ = "call"
 
     def __init__(self, keyword, attributes, **kwargs):
-        super(CallTag, self).__init__(keyword, attributes,
-                                    ('args'), ('expr',), ('expr',), **kwargs)
-        self.expression = attributes['expr']
-        self.code = ast.PythonCode(self.expression, **self.exception_kwargs)
-        self.body_decl = ast.FunctionArgs(attributes.get('args', ''),
-                                            **self.exception_kwargs)
-
-    def declared_identifiers(self):
-        return self.code.declared_identifiers.union(self.body_decl.allargnames)
-
-    def undeclared_identifiers(self):
-        return self.code.undeclared_identifiers.\
-                    difference(self.code.declared_identifiers)
-
-class CallNamespaceTag(Tag):
-
-    def __init__(self, namespace, defname, attributes, **kwargs):
-        super(CallNamespaceTag, self).__init__(
-                    namespace + ":" + defname,
-                    attributes,
-                    tuple(attributes.keys()) + ('args', ),
-                    (),
-                    (),
-                    **kwargs)
-
-        self.expression = "%s.%s(%s)" % (
-                                namespace,
-                                defname,
-                                ",".join(["%s=%s" % (k, v) for k, v in
-                                            self.parsed_attributes.items()
-                                            if k != 'args'])
-                            )
+        super(CallTag, self).__init__(
+            keyword, attributes, ("args"), ("expr",), ("expr",), **kwargs
+        )
+        self.expression = attributes["expr"]
         self.code = ast.PythonCode(self.expression, **self.exception_kwargs)
         self.body_decl = ast.FunctionArgs(
-                                    attributes.get('args', ''),
-                                    **self.exception_kwargs)
+            attributes.get("args", ""), **self.exception_kwargs
+        )
 
     def declared_identifiers(self):
         return self.code.declared_identifiers.union(self.body_decl.allargnames)
 
     def undeclared_identifiers(self):
-        return self.code.undeclared_identifiers.\
-                    difference(self.code.declared_identifiers)
+        return self.code.undeclared_identifiers.difference(
+            self.code.declared_identifiers
+        )
+
+
+class CallNamespaceTag(Tag):
+    def __init__(self, namespace, defname, attributes, **kwargs):
+        super(CallNamespaceTag, self).__init__(
+            namespace + ":" + defname,
+            attributes,
+            tuple(attributes.keys()) + ("args",),
+            (),
+            (),
+            **kwargs
+        )
+
+        self.expression = "%s.%s(%s)" % (
+            namespace,
+            defname,
+            ",".join(
+                [
+                    "%s=%s" % (k, v)
+                    for k, v in self.parsed_attributes.items()
+                    if k != "args"
+                ]
+            ),
+        )
+        self.code = ast.PythonCode(self.expression, **self.exception_kwargs)
+        self.body_decl = ast.FunctionArgs(
+            attributes.get("args", ""), **self.exception_kwargs
+        )
+
+    def declared_identifiers(self):
+        return self.code.declared_identifiers.union(self.body_decl.allargnames)
+
+    def undeclared_identifiers(self):
+        return self.code.undeclared_identifiers.difference(
+            self.code.declared_identifiers
+        )
+
 
 class InheritTag(Tag):
-    __keyword__ = 'inherit'
+    __keyword__ = "inherit"
 
     def __init__(self, keyword, attributes, **kwargs):
         super(InheritTag, self).__init__(
-                                keyword, attributes,
-                                ('file',), (), ('file',), **kwargs)
+            keyword, attributes, ("file",), (), ("file",), **kwargs
+        )
+
 
 class PageTag(Tag):
-    __keyword__ = 'page'
+    __keyword__ = "page"
 
     def __init__(self, keyword, attributes, **kwargs):
-        expressions =   ['cached', 'args', 'expression_filter', 'enable_loop'] + [
-                    c for c in attributes if c.startswith('cache_')]
+        expressions = [
+            "cached",
+            "args",
+            "expression_filter",
+            "enable_loop",
+        ] + [c for c in attributes if c.startswith("cache_")]
 
         super(PageTag, self).__init__(
-                keyword,
-                attributes,
-                expressions,
-                (),
-                (),
-                **kwargs)
-        self.body_decl = ast.FunctionArgs(attributes.get('args', ''),
-                                            **self.exception_kwargs)
+            keyword, attributes, expressions, (), (), **kwargs
+        )
+        self.body_decl = ast.FunctionArgs(
+            attributes.get("args", ""), **self.exception_kwargs
+        )
         self.filter_args = ast.ArgumentList(
-                                attributes.get('expression_filter', ''),
-                                **self.exception_kwargs)
+            attributes.get("expression_filter", ""), **self.exception_kwargs
+        )
 
     def declared_identifiers(self):
         return self.body_decl.allargnames
-
-

@@ -1,11 +1,12 @@
 # ext/babelplugin.py
-# Copyright (C) 2006-2015 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2019 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """gettext message extraction via Babel: http://babel.edgewall.org/"""
 from babel.messages.extract import extract_python
+
 from mako.ext.extract import MessageExtractor
 
 
@@ -14,22 +15,30 @@ class BabelMakoExtractor(MessageExtractor):
         self.keywords = keywords
         self.options = options
         self.config = {
-                'comment-tags': u' '.join(comment_tags),
-                'encoding': options.get('input_encoding',
-                    options.get('encoding', None)),
-            }
+            "comment-tags": u" ".join(comment_tags),
+            "encoding": options.get(
+                "input_encoding", options.get("encoding", None)
+            ),
+        }
         super(BabelMakoExtractor, self).__init__()
 
     def __call__(self, fileobj):
         return self.process_file(fileobj)
 
     def process_python(self, code, code_lineno, translator_strings):
-        comment_tags = self.config['comment-tags']
-        for lineno, funcname, messages, python_translator_comments \
-                in extract_python(code,
-                        self.keywords, comment_tags, self.options):
-            yield (code_lineno + (lineno - 1), funcname, messages,
-                   translator_strings + python_translator_comments)
+        comment_tags = self.config["comment-tags"]
+        for (
+            lineno,
+            funcname,
+            messages,
+            python_translator_comments,
+        ) in extract_python(code, self.keywords, comment_tags, self.options):
+            yield (
+                code_lineno + (lineno - 1),
+                funcname,
+                messages,
+                translator_strings + python_translator_comments,
+            )
 
 
 def extract(fileobj, keywords, comment_tags, options):
