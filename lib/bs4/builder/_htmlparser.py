@@ -1,13 +1,23 @@
+# encoding: utf-8
 """Use the HTMLParser library to parse HTML files that aren't too bad."""
+
+# Use of this source code is governed by the MIT license.
+__license__ = "MIT"
 
 __all__ = [
     'HTMLParserTreeBuilder',
     ]
 
-from HTMLParser import (
-    HTMLParser,
-    HTMLParseError,
-    )
+from html.parser import HTMLParser
+
+try:
+    from html.parser import HTMLParseError
+except ImportError as e:
+    # HTMLParseError is removed in Python 3.5. Since it can never be
+    # thrown in 3.5, we can just define our own class as a placeholder.
+    class HTMLParseError(Exception):
+        pass
+
 import sys
 import warnings
 
@@ -19,10 +29,10 @@ import warnings
 # At the end of this file, we monkeypatch HTMLParser so that
 # strict=True works well on Python 3.2.2.
 major, minor, release = sys.version_info[:3]
-CONSTRUCTOR_TAKES_STRICT = (
-    major > 3
-    or (major == 3 and minor > 2)
-    or (major == 3 and minor == 2 and release >= 3))
+CONSTRUCTOR_TAKES_STRICT = major == 3 and minor == 2 and release >= 3
+CONSTRUCTOR_STRICT_IS_DEPRECATED = major == 3 and minor == 3
+CONSTRUCTOR_TAKES_CONVERT_CHARREFS = major == 3 and minor >= 4
+
 
 from bs4.element import (
     CData,
@@ -43,7 +53,42 @@ from bs4.builder import (
 HTMLPARSER = 'html.parser'
 
 class BeautifulSoupHTMLParser(HTMLParser):
-    def handle_starttag(self, name, attrs):
+
+    def __init__(self, *args, **kwargs):
+        HTMLParser.__init__(self, *args, **kwargs)
+
+        # Keep a list of empty-element tags that were encountered
+        # without an explicit closing tag. If we encounter a closing tag
+        # of this type, we'll associate it with one of those entries.
+        #
+        # This isn't a stack because we don't care about the
+        # order. It's a list of closing tags we've already handled and
+        # will ignore, assuming they ever show up.
+        self.already_closed_empty_element = []
+
+    def error(self, msg):
+        """In Python 3, HTMLParser subclasses must implement error(), although this
+        requirement doesn't appear to be documented.
+
+        In Python 2, HTMLParser implements error() as raising an exception.
+
+        In any event, this method is called only on very strange markup and our best strategy
+        is to pretend it didn't happen and keep going.
+        """
+        warnings.warn(msg)
+        
+    def handle_startendtag(self, name, attrs):
+        # This is only called when the markup looks like
+        # <tag/>.
+
+        # is_startend() tells handle_starttag not to close the tag
+        # just because its name matches a known empty-element tag. We
+        # know that this is an empty-element tag and we want to call
+        # handle_endtag ourselves.
+        tag = self.handle_starttag(name, attrs, handle_empty_element=False)
+        self.handle_endtag(name)
+        
+    def handle_starttag(self, name, attrs, handle_empty_element=True):
         # XXX namespace
         attr_dict = {}
         for key, value in attrs:
@@ -53,17 +98,46 @@ class BeautifulSoupHTMLParser(HTMLParser):
                 value = ''
             attr_dict[key] = value
             attrvalue = '""'
-        self.soup.handle_starttag(name, None, None, attr_dict)
+        #print "START", name
+        sourceline, sourcepos = self.getpos()
+        tag = self.soup.handle_starttag(
+            name, None, None, attr_dict, sourceline=sourceline,
+            sourcepos=sourcepos
+        )
+        if tag and tag.is_empty_element and handle_empty_element:
+            # Unlike other parsers, html.parser doesn't send separate end tag
+            # events for empty-element tags. (It's handled in
+            # handle_startendtag, but only if the original markup looked like
+            # <tag/>.)
+            #
+            # So we need to call handle_endtag() ourselves. Since we
+            # know the start event is identical to the end event, we
+            # don't want handle_endtag() to cross off any previous end
+            # events for tags of this name.
+            self.handle_endtag(name, check_already_closed=False)
 
-    def handle_endtag(self, name):
-        self.soup.handle_endtag(name)
+            # But we might encounter an explicit closing tag for this tag
+            # later on. If so, we want to ignore it.
+            self.already_closed_empty_element.append(name)
+            
+    def handle_endtag(self, name, check_already_closed=True):
+        #print "END", name
+        if check_already_closed and name in self.already_closed_empty_element:
+            # This is a redundant end tag for an empty-element tag.
+            # We've already called handle_endtag() for it, so just
+            # check it off the list.
+            # print "ALREADY CLOSED", name
+            self.already_closed_empty_element.remove(name)
+        else:
+            self.soup.handle_endtag(name)
 
     def handle_data(self, data):
         self.soup.handle_data(data)
 
     def handle_charref(self, name):
         # XXX workaround for a bug in HTMLParser. Remove this once
-        # it's fixed.
+        # it's fixed in all supported versions.
+        # http://bugs.python.org/issue13633
         if name.startswith('x'):
             real_name = int(name.lstrip('x'), 16)
         elif name.startswith('X'):
@@ -71,11 +145,26 @@ class BeautifulSoupHTMLParser(HTMLParser):
         else:
             real_name = int(name)
 
-        try:
-            data = unichr(real_name)
-        except (ValueError, OverflowError), e:
-            data = u"\N{REPLACEMENT CHARACTER}"
-
+        data = None
+        if real_name < 256:
+            # HTML numeric entities are supposed to reference Unicode
+            # code points, but sometimes they reference code points in
+            # some other encoding (ahem, Windows-1252). E.g. &#147;
+            # instead of &#201; for LEFT DOUBLE QUOTATION MARK. This
+            # code tries to detect this situation and compensate.
+            for encoding in (self.soup.original_encoding, 'windows-1252'):
+                if not encoding:
+                    continue
+                try:
+                    data = bytearray([real_name]).decode(encoding)
+                except UnicodeDecodeError as e:
+                    pass
+        if not data:
+            try:
+                data = chr(real_name)
+            except (ValueError, OverflowError) as e:
+                pass
+        data = data or "\N{REPLACEMENT CHARACTER}"
         self.handle_data(data)
 
     def handle_entityref(self, name):
@@ -83,7 +172,12 @@ class BeautifulSoupHTMLParser(HTMLParser):
         if character is not None:
             data = character
         else:
-            data = "&%s;" % name
+            # If this were XML, it would be ambiguous whether "&foo"
+            # was an character entity reference with a missing
+            # semicolon or the literal string "&foo". Since this is
+            # HTML, we have a complete list of all character entity references,
+            # and this one wasn't found, so assume it's the literal string "&foo".
+            data = "&%s" % name
         self.handle_data(data)
 
     def handle_comment(self, data):
@@ -113,14 +207,6 @@ class BeautifulSoupHTMLParser(HTMLParser):
 
     def handle_pi(self, data):
         self.soup.endData()
-        if data.endswith("?") and data.lower().startswith("xml"):
-            # "An XHTML processing instruction using the trailing '?'
-            # will cause the '?' to be included in data." - HTMLParser
-            # docs.
-            #
-            # Strip the question mark so we don't end up with two
-            # question marks.
-            data = data[:-1]
         self.soup.handle_data(data)
         self.soup.endData(ProcessingInstruction)
 
@@ -128,26 +214,38 @@ class BeautifulSoupHTMLParser(HTMLParser):
 class HTMLParserTreeBuilder(HTMLTreeBuilder):
 
     is_xml = False
-    features = [HTML, STRICT, HTMLPARSER]
+    picklable = True
+    NAME = HTMLPARSER
+    features = [NAME, HTML, STRICT]
 
-    def __init__(self, *args, **kwargs):
-        if CONSTRUCTOR_TAKES_STRICT:
-            kwargs['strict'] = False
-        self.parser_args = (args, kwargs)
+    # The html.parser knows which line number and position in the
+    # original file is the source of an element.
+    TRACKS_LINE_NUMBERS = True
+    
+    def __init__(self, parser_args=None, parser_kwargs=None, **kwargs):
+        super(HTMLParserTreeBuilder, self).__init__(**kwargs)
+        parser_args = parser_args or []
+        parser_kwargs = parser_kwargs or {}
+        if CONSTRUCTOR_TAKES_STRICT and not CONSTRUCTOR_STRICT_IS_DEPRECATED:
+            parser_kwargs['strict'] = False
+        if CONSTRUCTOR_TAKES_CONVERT_CHARREFS:
+            parser_kwargs['convert_charrefs'] = False
+        self.parser_args = (parser_args, parser_kwargs)
 
     def prepare_markup(self, markup, user_specified_encoding=None,
-                       document_declared_encoding=None):
+                       document_declared_encoding=None, exclude_encodings=None):
         """
         :return: A 4-tuple (markup, original encoding, encoding
         declared within markup, whether any characters had to be
         replaced with REPLACEMENT CHARACTER).
         """
-        if isinstance(markup, unicode):
+        if isinstance(markup, str):
             yield (markup, None, None, False)
             return
 
         try_encodings = [user_specified_encoding, document_declared_encoding]
-        dammit = UnicodeDammit(markup, try_encodings, is_html=True)
+        dammit = UnicodeDammit(markup, try_encodings, is_html=True,
+                               exclude_encodings=exclude_encodings)
         yield (dammit.markup, dammit.original_encoding,
                dammit.declared_html_encoding,
                dammit.contains_replacement_characters)
@@ -158,10 +256,12 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
         parser.soup = self.soup
         try:
             parser.feed(markup)
-        except HTMLParseError, e:
+            parser.close()
+        except HTMLParseError as e:
             warnings.warn(RuntimeWarning(
                 "Python's built-in HTMLParser cannot parse the given document. This is not a bug in Beautiful Soup. The best solution is to install an external parser (lxml or html5lib), and use Beautiful Soup with that parser. See http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser for help."))
             raise e
+        parser.already_closed_empty_element = []
 
 # Patch 3.2 versions of HTMLParser earlier than 3.2.3 to use some
 # 3.2.3 code. This ensures they don't treat markup like <p></p> as a

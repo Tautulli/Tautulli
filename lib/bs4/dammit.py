@@ -3,12 +3,14 @@
 
 This library converts a bytestream to Unicode through any means
 necessary. It is heavily based on code from Mark Pilgrim's Universal
-Feed Parser. It works best on XML and XML, but it does not rewrite the
+Feed Parser. It works best on XML and HTML, but it does not rewrite the
 XML or HTML to reflect a new encoding; that's the tree builder's job.
 """
+# Use of this source code is governed by the MIT license.
+__license__ = "MIT"
 
 import codecs
-from htmlentitydefs import codepoint2name
+from html.entities import codepoint2name
 import re
 import logging
 import string
@@ -20,6 +22,8 @@ try:
     #  PyPI package: cchardet
     import cchardet
     def chardet_dammit(s):
+        if isinstance(s, str):
+            return None
         return cchardet.detect(s)['encoding']
 except ImportError:
     try:
@@ -28,6 +32,8 @@ except ImportError:
         #  PyPI package: chardet
         import chardet
         def chardet_dammit(s):
+            if isinstance(s, str):
+                return None
             return chardet.detect(s)['encoding']
         #import chardet.constants
         #chardet.constants._debug = 1
@@ -42,10 +48,19 @@ try:
 except ImportError:
     pass
 
-xml_encoding_re = re.compile(
-    '^<\?.*encoding=[\'"](.*?)[\'"].*\?>'.encode(), re.I)
-html_meta_re = re.compile(
-    '<\s*meta[^>]+charset\s*=\s*["\']?([^>]*?)[ /;\'">]'.encode(), re.I)
+# Build bytestring and Unicode versions of regular expressions for finding
+# a declared encoding inside an XML or HTML document.
+xml_encoding = '^\s*<\\?.*encoding=[\'"](.*?)[\'"].*\\?>'
+html_meta = '<\\s*meta[^>]+charset\\s*=\\s*["\']?([^>]*?)[ /;\'">]'
+encoding_res = dict()
+encoding_res[bytes] = {
+    'html' : re.compile(html_meta.encode("ascii"), re.I),
+    'xml' : re.compile(xml_encoding.encode("ascii"), re.I),
+}
+encoding_res[str] = {
+    'html' : re.compile(html_meta, re.I),
+    'xml' : re.compile(xml_encoding, re.I)
+}
 
 class EntitySubstitution(object):
 
@@ -55,15 +70,24 @@ class EntitySubstitution(object):
         lookup = {}
         reverse_lookup = {}
         characters_for_re = []
-        for codepoint, name in list(codepoint2name.items()):
-            character = unichr(codepoint)
-            if codepoint != 34:
+
+        # &apos is an XHTML entity and an HTML 5, but not an HTML 4
+        # entity. We don't want to use it, but we want to recognize it on the way in.
+        #
+        # TODO: Ideally we would be able to recognize all HTML 5 named
+        # entities, but that's a little tricky.
+        extra = [(39, 'apos')]
+        for codepoint, name in list(codepoint2name.items()) + extra:
+            character = chr(codepoint)
+            if codepoint not in (34, 39):
                 # There's no point in turning the quotation mark into
-                # &quot;, unless it happens within an attribute value, which
-                # is handled elsewhere.
+                # &quot; or the single quote into &apos;, unless it
+                # happens within an attribute value, which is handled
+                # elsewhere.
                 characters_for_re.append(character)
                 lookup[character] = name
-            # But we do want to turn &quot; into the quotation mark.
+            # But we do want to recognize those entities on the way in and
+            # convert them to Unicode characters.
             reverse_lookup[name] = character
         re_definition = "[%s]" % "".join(characters_for_re)
         return lookup, reverse_lookup, re.compile(re_definition)
@@ -79,7 +103,7 @@ class EntitySubstitution(object):
         }
 
     BARE_AMPERSAND_OR_BRACKET = re.compile("([<>]|"
-                                           "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
+                                           "&(?!#\\d+;|#x[0-9a-fA-F]+;|\\w+;)"
                                            ")")
 
     AMPERSAND_OR_BRACKET = re.compile("([<>&])")
@@ -212,8 +236,11 @@ class EncodingDetector:
 
     5. Windows-1252.
     """
-    def __init__(self, markup, override_encodings=None, is_html=False):
+    def __init__(self, markup, override_encodings=None, is_html=False,
+                 exclude_encodings=None):
         self.override_encodings = override_encodings or []
+        exclude_encodings = exclude_encodings or []
+        self.exclude_encodings = set([x.lower() for x in exclude_encodings])
         self.chardet_encoding = None
         self.is_html = is_html
         self.declared_encoding = None
@@ -224,6 +251,8 @@ class EncodingDetector:
     def _usable(self, encoding, tried):
         if encoding is not None:
             encoding = encoding.lower()
+            if encoding in self.exclude_encodings:
+                return False
             if encoding not in tried:
                 tried.add(encoding)
                 return True
@@ -266,6 +295,9 @@ class EncodingDetector:
     def strip_byte_order_mark(cls, data):
         """If a byte-order mark is present, strip it and return the encoding it implies."""
         encoding = None
+        if isinstance(data, str):
+            # Unicode data cannot have a byte-order mark.
+            return data, encoding
         if (len(data) >= 4) and (data[:2] == b'\xfe\xff') \
                and (data[2:4] != '\x00\x00'):
             encoding = 'utf-16be'
@@ -300,14 +332,22 @@ class EncodingDetector:
             xml_endpos = 1024
             html_endpos = max(2048, int(len(markup) * 0.05))
 
+        if isinstance(markup, bytes):
+            res = encoding_res[bytes]
+        else:
+            res = encoding_res[str]
+
+        xml_re = res['xml']
+        html_re = res['html']
         declared_encoding = None
-        declared_encoding_match = xml_encoding_re.search(markup, endpos=xml_endpos)
+        declared_encoding_match = xml_re.search(markup, endpos=xml_endpos)
         if not declared_encoding_match and is_html:
-            declared_encoding_match = html_meta_re.search(markup, endpos=html_endpos)
+            declared_encoding_match = html_re.search(markup, endpos=html_endpos)
         if declared_encoding_match is not None:
-            declared_encoding = declared_encoding_match.groups()[0].decode(
-                'ascii')
+            declared_encoding = declared_encoding_match.groups()[0]
         if declared_encoding:
+            if isinstance(declared_encoding, bytes):
+                declared_encoding = declared_encoding.decode('ascii', 'replace')
             return declared_encoding.lower()
         return None
 
@@ -331,18 +371,19 @@ class UnicodeDammit:
         ]
 
     def __init__(self, markup, override_encodings=[],
-                 smart_quotes_to=None, is_html=False):
+                 smart_quotes_to=None, is_html=False, exclude_encodings=[]):
         self.smart_quotes_to = smart_quotes_to
         self.tried_encodings = []
         self.contains_replacement_characters = False
         self.is_html = is_html
-
-        self.detector = EncodingDetector(markup, override_encodings, is_html)
+        self.log = logging.getLogger(__name__)
+        self.detector = EncodingDetector(
+            markup, override_encodings, is_html, exclude_encodings)
 
         # Short-circuit if the data is in Unicode to begin with.
-        if isinstance(markup, unicode) or markup == '':
+        if isinstance(markup, str) or markup == '':
             self.markup = markup
-            self.unicode_markup = unicode(markup)
+            self.unicode_markup = str(markup)
             self.original_encoding = None
             return
 
@@ -365,9 +406,10 @@ class UnicodeDammit:
                 if encoding != "ascii":
                     u = self._convert_from(encoding, "replace")
                 if u is not None:
-                    logging.warning(
+                    self.log.warning(
                             "Some characters could not be decoded, and were "
-                            "replaced with REPLACEMENT CHARACTER.")
+                            "replaced with REPLACEMENT CHARACTER."
+                    )
                     self.contains_replacement_characters = True
                     break
 
@@ -425,7 +467,7 @@ class UnicodeDammit:
     def _to_unicode(self, data, encoding, errors="strict"):
         '''Given a string and its encoding, decodes the string into Unicode.
         %encoding is a string recognized by encodings.aliases'''
-        return unicode(data, encoding, errors)
+        return str(data, encoding, errors)
 
     @property
     def declared_html_encoding(self):
@@ -723,7 +765,7 @@ class UnicodeDammit:
         0xde : b'\xc3\x9e',     # Þ
         0xdf : b'\xc3\x9f',     # ß
         0xe0 : b'\xc3\xa0',     # à
-        0xe1 : b'\xa1',     # á
+        0xe1 : b'\xa1',         # á
         0xe2 : b'\xc3\xa2',     # â
         0xe3 : b'\xc3\xa3',     # ã
         0xe4 : b'\xc3\xa4',     # ä

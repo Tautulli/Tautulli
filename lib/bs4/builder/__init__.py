@@ -1,10 +1,13 @@
+# Use of this source code is governed by the MIT license.
+__license__ = "MIT"
+
 from collections import defaultdict
 import itertools
 import sys
 from bs4.element import (
     CharsetMetaAttributeValue,
     ContentMetaAttributeValue,
-    whitespace_re
+    nonwhitespace_re
     )
 
 __all__ = [
@@ -80,21 +83,70 @@ builder_registry = TreeBuilderRegistry()
 class TreeBuilder(object):
     """Turn a document into a Beautiful Soup object tree."""
 
+    NAME = "[Unknown tree builder]"
+    ALTERNATE_NAMES = []
     features = []
 
     is_xml = False
-    preserve_whitespace_tags = set()
+    picklable = False
     empty_element_tags = None # A tag will be considered an empty-element
                               # tag when and only when it has no contents.
-
+    
     # A value for these tag/attribute combinations is a space- or
     # comma-separated list of CDATA, rather than a single CDATA.
-    cdata_list_attributes = {}
+    DEFAULT_CDATA_LIST_ATTRIBUTES = {}
 
+    DEFAULT_PRESERVE_WHITESPACE_TAGS = set()
+    
+    USE_DEFAULT = object()
 
-    def __init__(self):
+    # Most parsers don't keep track of line numbers.
+    TRACKS_LINE_NUMBERS = False
+    
+    def __init__(self, multi_valued_attributes=USE_DEFAULT,
+                 preserve_whitespace_tags=USE_DEFAULT,
+                 store_line_numbers=USE_DEFAULT):
+        """Constructor.
+
+        :param multi_valued_attributes: If this is set to None, the
+        TreeBuilder will not turn any values for attributes like
+        'class' into lists. Setting this do a dictionary will
+        customize this behavior; look at DEFAULT_CDATA_LIST_ATTRIBUTES
+        for an example.
+
+        Internally, these are called "CDATA list attributes", but that
+        probably doesn't make sense to an end-user, so the argument name
+        is `multi_valued_attributes`.
+
+        :param preserve_whitespace_tags: A list of tags to treat
+        the way <pre> tags are treated in HTML. Tags in this list
+        will have 
+
+        :param store_line_numbers: If the parser keeps track of the
+        line numbers and positions of the original markup, that
+        information will, by default, be stored in each corresponding
+        `Tag` object. You can turn this off by passing
+        store_line_numbers=False. If the parser you're using doesn't 
+        keep track of this information, then setting store_line_numbers=True
+        will do nothing.
+        """
         self.soup = None
-
+        if multi_valued_attributes is self.USE_DEFAULT:
+            multi_valued_attributes = self.DEFAULT_CDATA_LIST_ATTRIBUTES
+        self.cdata_list_attributes = multi_valued_attributes
+        if preserve_whitespace_tags is self.USE_DEFAULT:
+            preserve_whitespace_tags = self.DEFAULT_PRESERVE_WHITESPACE_TAGS
+        self.preserve_whitespace_tags = preserve_whitespace_tags
+        if store_line_numbers == self.USE_DEFAULT:
+            store_line_numbers = self.TRACKS_LINE_NUMBERS
+        self.store_line_numbers = store_line_numbers
+        
+    def initialize_soup(self, soup):
+        """The BeautifulSoup object has been initialized and is now
+        being associated with the TreeBuilder.
+        """
+        self.soup = soup
+        
     def reset(self):
         pass
 
@@ -118,13 +170,13 @@ class TreeBuilder(object):
         if self.empty_element_tags is None:
             return True
         return tag_name in self.empty_element_tags
-
+    
     def feed(self, markup):
         raise NotImplementedError()
 
     def prepare_markup(self, markup, user_specified_encoding=None,
-                       document_declared_encoding=None):
-        return markup, None, None, False
+                       document_declared_encoding=None, exclude_encodings=None):
+        yield markup, None, None, False
 
     def test_fragment_to_document(self, fragment):
         """Wrap an HTML fragment to make it look like a document.
@@ -153,14 +205,14 @@ class TreeBuilder(object):
             universal = self.cdata_list_attributes.get('*', [])
             tag_specific = self.cdata_list_attributes.get(
                 tag_name.lower(), None)
-            for attr in attrs.keys():
+            for attr in list(attrs.keys()):
                 if attr in universal or (tag_specific and attr in tag_specific):
                     # We have a "class"-type attribute whose string
                     # value is a whitespace-separated list of
                     # values. Split it into a list.
                     value = attrs[attr]
-                    if isinstance(value, basestring):
-                        values = whitespace_re.split(value)
+                    if isinstance(value, str):
+                        values = nonwhitespace_re.findall(value)
                     else:
                         # html5lib sometimes calls setAttributes twice
                         # for the same tag when rearranging the parse
@@ -224,10 +276,20 @@ class HTMLTreeBuilder(TreeBuilder):
     Such as which tags are empty-element tags.
     """
 
-    preserve_whitespace_tags = set(['pre', 'textarea'])
-    empty_element_tags = set(['br' , 'hr', 'input', 'img', 'meta',
-                              'spacer', 'link', 'frame', 'base'])
+    empty_element_tags = set([
+        # These are from HTML5.
+        'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr',
+        
+        # These are from earlier versions of HTML and are removed in HTML5.
+        'basefont', 'bgsound', 'command', 'frame', 'image', 'isindex', 'nextid', 'spacer'
+    ])
 
+    # The HTML standard defines these as block-level elements. Beautiful
+    # Soup does not treat these elements differently from other elements,
+    # but it may do so eventually, and this information is available if
+    # you need to use it.
+    block_elements = set(["address", "article", "aside", "blockquote", "canvas", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav", "noscript", "ol", "output", "p", "pre", "section", "table", "tfoot", "ul", "video"])
+    
     # The HTML standard defines these attributes as containing a
     # space-separated list of values, not a single value. That is,
     # class="foo bar" means that the 'class' attribute has two values,
@@ -235,7 +297,7 @@ class HTMLTreeBuilder(TreeBuilder):
     # encounter one of these attributes, we will parse its value into
     # a list of values if possible. Upon output, the list will be
     # converted back into a string.
-    cdata_list_attributes = {
+    DEFAULT_CDATA_LIST_ATTRIBUTES = {
         "*" : ['class', 'accesskey', 'dropzone'],
         "a" : ['rel', 'rev'],
         "link" :  ['rel', 'rev'],
@@ -252,6 +314,8 @@ class HTMLTreeBuilder(TreeBuilder):
         "output" : ["for"],
         }
 
+    DEFAULT_PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
+    
     def set_up_substitutions(self, tag):
         # We are only interested in <meta> tags
         if tag.name != 'meta':
@@ -299,8 +363,15 @@ def register_treebuilders_from(module):
             this_module.builder_registry.register(obj)
 
 class ParserRejectedMarkup(Exception):
-    pass
-
+    def __init__(self, message_or_exception):
+        """Explain why the parser rejected the given markup, either
+        with a textual explanation or another exception.
+        """
+        if isinstance(message_or_exception, Exception):
+            e = message_or_exception
+            message_or_exception = "%s: %s" % (e.__class__.__name__, str(e))
+        super(ParserRejectedMarkup, self).__init__(message_or_exception)
+            
 # Builders are registered in reverse order of priority, so that custom
 # builder registrations will take precedence. In general, we want lxml
 # to take precedence over html5lib, because it's faster. And we only
