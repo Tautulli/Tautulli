@@ -1,15 +1,18 @@
-
-import os
 import sys
 import time
-import warnings
+
+import uuid
+
+import six
+from six.moves.http_cookies import SimpleCookie, CookieError
+
+from more_itertools import consume
 
 import cherrypy
-from cherrypy._cpcompat import basestring, copykeys, ntob, unicodestr
-from cherrypy._cpcompat import SimpleCookie, CookieError, py3k
-from cherrypy import _cpreqbody, _cpconfig
+from cherrypy._cpcompat import ntob
+from cherrypy import _cpreqbody
 from cherrypy._cperror import format_exc, bare_error
-from cherrypy.lib import httputil, file_generator
+from cherrypy.lib import httputil, reprconf, encoding
 
 
 class Hook(object):
@@ -41,22 +44,21 @@ class Hook(object):
         self.callback = callback
 
         if failsafe is None:
-            failsafe = getattr(callback, "failsafe", False)
+            failsafe = getattr(callback, 'failsafe', False)
         self.failsafe = failsafe
 
         if priority is None:
-            priority = getattr(callback, "priority", 50)
+            priority = getattr(callback, 'priority', 50)
         self.priority = priority
 
         self.kwargs = kwargs
 
     def __lt__(self, other):
-        # Python 3
+        """
+        Hooks sort by priority, ascending, such that
+        hooks of lower priority are run first.
+        """
         return self.priority < other.priority
-
-    def __cmp__(self, other):
-        # Python 2
-        return cmp(self.priority, other.priority)
 
     def __call__(self):
         """Run self.callback(**self.kwargs)."""
@@ -64,10 +66,10 @@ class Hook(object):
 
     def __repr__(self):
         cls = self.__class__
-        return ("%s.%s(callback=%r, failsafe=%r, priority=%r, %s)"
+        return ('%s.%s(callback=%r, failsafe=%r, priority=%r, %s)'
                 % (cls.__module__, cls.__name__, self.callback,
                    self.failsafe, self.priority,
-                   ", ".join(['%s=%r' % (k, v)
+                   ', '.join(['%s=%r' % (k, v)
                               for k, v in self.kwargs.items()])))
 
 
@@ -107,7 +109,7 @@ class HookMap(dict):
                 except (cherrypy.HTTPError, cherrypy.HTTPRedirect,
                         cherrypy.InternalRedirect):
                     exc = sys.exc_info()[1]
-                except:
+                except Exception:
                     exc = sys.exc_info()[1]
                     cherrypy.log(traceback=True, severity=40)
         if exc:
@@ -124,10 +126,10 @@ class HookMap(dict):
 
     def __repr__(self):
         cls = self.__class__
-        return "%s.%s(points=%r)" % (
+        return '%s.%s(points=%r)' % (
             cls.__module__,
             cls.__name__,
-            copykeys(self)
+            list(self)
         )
 
 
@@ -138,9 +140,9 @@ def hooks_namespace(k, v):
     # Use split again to allow multiple hooks for a single
     # hookpoint per path (e.g. "hooks.before_handler.1").
     # Little-known fact you only get from reading source ;)
-    hookpoint = k.split(".", 1)[0]
-    if isinstance(v, basestring):
-        v = cherrypy.lib.attributes(v)
+    hookpoint = k.split('.', 1)[0]
+    if isinstance(v, six.string_types):
+        v = cherrypy.lib.reprconf.attributes(v)
     if not isinstance(v, Hook):
         v = Hook(v)
     cherrypy.serving.request.hooks[hookpoint].append(v)
@@ -199,23 +201,23 @@ class Request(object):
     unless we are processing an InternalRedirect."""
 
     # Conversation/connection attributes
-    local = httputil.Host("127.0.0.1", 80)
-    "An httputil.Host(ip, port, hostname) object for the server socket."
+    local = httputil.Host('127.0.0.1', 80)
+    'An httputil.Host(ip, port, hostname) object for the server socket.'
 
-    remote = httputil.Host("127.0.0.1", 1111)
-    "An httputil.Host(ip, port, hostname) object for the client socket."
+    remote = httputil.Host('127.0.0.1', 1111)
+    'An httputil.Host(ip, port, hostname) object for the client socket.'
 
-    scheme = "http"
+    scheme = 'http'
     """
     The protocol used between client and server. In most cases,
     this will be either 'http' or 'https'."""
 
-    server_protocol = "HTTP/1.1"
+    server_protocol = 'HTTP/1.1'
     """
     The HTTP version for which the HTTP server is at least
     conditionally compliant."""
 
-    base = ""
+    base = ''
     """The (scheme://host) portion of the requested URL.
     In some cases (e.g. when proxying via mod_rewrite), this may contain
     path segments which cherrypy.url uses when constructing url's, but
@@ -223,13 +225,13 @@ class Request(object):
     MUST NOT end in a slash."""
 
     # Request-Line attributes
-    request_line = ""
+    request_line = ''
     """
     The complete Request-Line received from the client. This is a
     single string consisting of the request method, URI, and protocol
     version (joined by spaces). Any final CRLF is removed."""
 
-    method = "GET"
+    method = 'GET'
     """
     Indicates the HTTP method to be performed on the resource identified
     by the Request-URI. Common methods include GET, HEAD, POST, PUT, and
@@ -237,7 +239,7 @@ class Request(object):
     servers and gateways may restrict the set of allowable methods.
     CherryPy applications SHOULD restrict the set (on a per-URI basis)."""
 
-    query_string = ""
+    query_string = ''
     """
     The query component of the Request-URI, a string of information to be
     interpreted by the resource. The query portion of a URI follows the
@@ -312,7 +314,7 @@ class Request(object):
     If True, the rfile (if any) is automatically read and parsed,
     and the result placed into request.params or request.body."""
 
-    methods_with_bodies = ("POST", "PUT")
+    methods_with_bodies = ('POST', 'PUT', 'PATCH')
     """
     A sequence of HTTP methods for which CherryPy will automatically
     attempt to read a body from the rfile. If you are going to change
@@ -341,7 +343,7 @@ class Request(object):
     to a hierarchical arrangement of objects, starting at request.app.root.
     See help(cherrypy.dispatch) for more information."""
 
-    script_name = ""
+    script_name = ''
     """
     The 'mount point' of the application which is handling this request.
 
@@ -349,7 +351,7 @@ class Request(object):
     the root of the URI, it MUST be an empty string (not "/").
     """
 
-    path_info = "/"
+    path_info = '/'
     """
     The 'relative path' portion of the Request-URI. This is relative
     to the script_name ('mount point') of the application which is
@@ -467,16 +469,19 @@ class Request(object):
     A string containing the stage reached in the request-handling process.
     This is useful when debugging a live server with hung requests."""
 
-    namespaces = _cpconfig.NamespaceSet(
-        **{"hooks": hooks_namespace,
-           "request": request_namespace,
-           "response": response_namespace,
-           "error_page": error_page_namespace,
-           "tools": cherrypy.tools,
+    unique_id = None
+    """A lazy object generating and memorizing UUID4 on ``str()`` render."""
+
+    namespaces = reprconf.NamespaceSet(
+        **{'hooks': hooks_namespace,
+           'request': request_namespace,
+           'response': response_namespace,
+           'error_page': error_page_namespace,
+           'tools': cherrypy.tools,
            })
 
-    def __init__(self, local_host, remote_host, scheme="http",
-                 server_protocol="HTTP/1.1"):
+    def __init__(self, local_host, remote_host, scheme='http',
+                 server_protocol='HTTP/1.1'):
         """Populate a new Request object.
 
         local_host should be an httputil.Host object with the server info.
@@ -497,6 +502,8 @@ class Request(object):
         self.namespaces = self.namespaces.copy()
 
         self.stage = None
+
+        self.unique_id = LazyUUID4()
 
     def close(self):
         """Run cleanup code. (Core)"""
@@ -544,7 +551,7 @@ class Request(object):
             self.error_response = cherrypy.HTTPError(500).set_response
 
             self.method = method
-            path = path or "/"
+            path = path or '/'
             self.query_string = query_string or ''
             self.params = {}
 
@@ -590,7 +597,7 @@ class Request(object):
 
         except self.throws:
             raise
-        except:
+        except Exception:
             if self.throw_errors:
                 raise
             else:
@@ -600,94 +607,91 @@ class Request(object):
                 if self.show_tracebacks:
                     body = format_exc()
                 else:
-                    body = ""
+                    body = ''
                 r = bare_error(body)
                 response.output_status, response.header_list, response.body = r
 
-        if self.method == "HEAD":
+        if self.method == 'HEAD':
             # HEAD requests MUST NOT return a message-body in the response.
             response.body = []
 
         try:
             cherrypy.log.access()
-        except:
+        except Exception:
             cherrypy.log.error(traceback=True)
-
-        if response.timed_out:
-            raise cherrypy.TimeoutError()
 
         return response
 
-    # Uncomment for stage debugging
-    # stage = property(lambda self: self._stage, lambda self, v: print(v))
-
     def respond(self, path_info):
         """Generate a response for the resource at self.path_info. (Core)"""
-        response = cherrypy.serving.response
         try:
             try:
                 try:
-                    if self.app is None:
-                        raise cherrypy.NotFound()
-
-                    # Get the 'Host' header, so we can HTTPRedirect properly.
-                    self.stage = 'process_headers'
-                    self.process_headers()
-
-                    # Make a copy of the class hooks
-                    self.hooks = self.__class__.hooks.copy()
-                    self.toolmaps = {}
-
-                    self.stage = 'get_resource'
-                    self.get_resource(path_info)
-
-                    self.body = _cpreqbody.RequestBody(
-                        self.rfile, self.headers, request_params=self.params)
-
-                    self.namespaces(self.config)
-
-                    self.stage = 'on_start_resource'
-                    self.hooks.run('on_start_resource')
-
-                    # Parse the querystring
-                    self.stage = 'process_query_string'
-                    self.process_query_string()
-
-                    # Process the body
-                    if self.process_request_body:
-                        if self.method not in self.methods_with_bodies:
-                            self.process_request_body = False
-                    self.stage = 'before_request_body'
-                    self.hooks.run('before_request_body')
-                    if self.process_request_body:
-                        self.body.process()
-
-                    # Run the handler
-                    self.stage = 'before_handler'
-                    self.hooks.run('before_handler')
-                    if self.handler:
-                        self.stage = 'handler'
-                        response.body = self.handler()
-
-                    # Finalize
-                    self.stage = 'before_finalize'
-                    self.hooks.run('before_finalize')
-                    response.finalize()
+                    self._do_respond(path_info)
                 except (cherrypy.HTTPRedirect, cherrypy.HTTPError):
                     inst = sys.exc_info()[1]
                     inst.set_response()
                     self.stage = 'before_finalize (HTTPError)'
                     self.hooks.run('before_finalize')
-                    response.finalize()
+                    cherrypy.serving.response.finalize()
             finally:
                 self.stage = 'on_end_resource'
                 self.hooks.run('on_end_resource')
         except self.throws:
             raise
-        except:
+        except Exception:
             if self.throw_errors:
                 raise
             self.handle_error()
+
+    def _do_respond(self, path_info):
+        response = cherrypy.serving.response
+
+        if self.app is None:
+            raise cherrypy.NotFound()
+
+        self.hooks = self.__class__.hooks.copy()
+        self.toolmaps = {}
+
+        # Get the 'Host' header, so we can HTTPRedirect properly.
+        self.stage = 'process_headers'
+        self.process_headers()
+
+        self.stage = 'get_resource'
+        self.get_resource(path_info)
+
+        self.body = _cpreqbody.RequestBody(
+            self.rfile, self.headers, request_params=self.params)
+
+        self.namespaces(self.config)
+
+        self.stage = 'on_start_resource'
+        self.hooks.run('on_start_resource')
+
+        # Parse the querystring
+        self.stage = 'process_query_string'
+        self.process_query_string()
+
+        # Process the body
+        if self.process_request_body:
+            if self.method not in self.methods_with_bodies:
+                self.process_request_body = False
+        self.stage = 'before_request_body'
+        self.hooks.run('before_request_body')
+        if self.process_request_body:
+            self.body.process()
+
+        # Run the handler
+        self.stage = 'before_handler'
+        self.hooks.run('before_handler')
+        if self.handler:
+            self.stage = 'handler'
+            response.body = self.handler()
+
+        # Finalize
+        self.stage = 'before_finalize'
+        self.hooks.run('before_finalize')
+        response.finalize()
 
     def process_query_string(self):
         """Parse the query string into Python structures. (Core)"""
@@ -696,14 +700,14 @@ class Request(object):
                 self.query_string, encoding=self.query_string_encoding)
         except UnicodeDecodeError:
             raise cherrypy.HTTPError(
-                404, "The given query string could not be processed. Query "
-                "strings for this resource must be encoded with %r." %
+                404, 'The given query string could not be processed. Query '
+                'strings for this resource must be encoded with %r.' %
                 self.query_string_encoding)
 
         # Python 2 only: keyword arguments must be byte strings (type 'str').
-        if not py3k:
+        if six.PY2:
             for key, value in p.items():
-                if isinstance(key, unicode):
+                if isinstance(key, six.text_type):
                     del p[key]
                     p[key.encode(self.query_string_encoding)] = value
         self.params.update(p)
@@ -718,23 +722,16 @@ class Request(object):
             name = name.title()
             value = value.strip()
 
-            # Warning: if there is more than one header entry for cookies
-            # (AFAIK, only Konqueror does that), only the last one will
-            # remain in headers (but they will be correctly stored in
-            # request.cookie).
-            if "=?" in value:
-                dict.__setitem__(headers, name, httputil.decode_TEXT(value))
-            else:
-                dict.__setitem__(headers, name, value)
+            headers[name] = httputil.decode_TEXT_maybe(value)
 
-            # Handle cookies differently because on Konqueror, multiple
-            # cookies come on different lines with the same key
+            # Some clients, notably Konquoror, supply multiple
+            # cookies on different lines with the same key. To
+            # handle this case, store all cookies in self.cookie.
             if name == 'Cookie':
                 try:
                     self.cookie.load(value)
-                except CookieError:
-                    msg = "Illegal cookie name %s" % value.split('=')[0]
-                    raise cherrypy.HTTPError(400, msg)
+                except CookieError as exc:
+                    raise cherrypy.HTTPError(400, str(exc))
 
         if not dict.__contains__(headers, 'Host'):
             # All Internet-based HTTP/1.1 servers MUST respond with a 400
@@ -746,7 +743,7 @@ class Request(object):
         host = dict.get(headers, 'Host')
         if not host:
             host = self.local.name or self.local.ip
-        self.base = "%s://%s" % (self.scheme, host)
+        self.base = '%s://%s' % (self.scheme, host)
 
     def get_resource(self, path):
         """Call a dispatcher (which sets self.handler and .config). (Core)"""
@@ -754,7 +751,7 @@ class Request(object):
         # dispatchers can only be specified in app.config, not in _cp_config
         # (since custom dispatchers may not even have an app.root).
         dispatch = self.app.find_config(
-            path, "request.dispatch", self.dispatch)
+            path, 'request.dispatch', self.dispatch)
 
         # dispatch() should set self.handler and self.config
         dispatch(path)
@@ -762,46 +759,23 @@ class Request(object):
     def handle_error(self):
         """Handle the last unanticipated exception. (Core)"""
         try:
-            self.hooks.run("before_error_response")
+            self.hooks.run('before_error_response')
             if self.error_response:
                 self.error_response()
-            self.hooks.run("after_error_response")
+            self.hooks.run('after_error_response')
             cherrypy.serving.response.finalize()
         except cherrypy.HTTPRedirect:
             inst = sys.exc_info()[1]
             inst.set_response()
             cherrypy.serving.response.finalize()
 
-    # ------------------------- Properties ------------------------- #
-
-    def _get_body_params(self):
-        warnings.warn(
-            "body_params is deprecated in CherryPy 3.2, will be removed in "
-            "CherryPy 3.3.",
-            DeprecationWarning
-        )
-        return self.body.params
-    body_params = property(_get_body_params,
-                           doc="""
-    If the request Content-Type is 'application/x-www-form-urlencoded' or
-    multipart, this will be a dict of the params pulled from the entity
-    body; that is, it will be the portion of request.params that come
-    from the message body (sometimes called "POST params", although they
-    can be sent with various HTTP method verbs). This value is set between
-    the 'before_request_body' and 'before_handler' hooks (assuming that
-    process_request_body is True).
-
-    Deprecated in 3.2, will be removed for 3.3 in favor of
-    :attr:`request.body.params<cherrypy._cprequest.RequestBody.params>`.""")
-
 
 class ResponseBody(object):
 
     """The body of the HTTP response (the response entity)."""
 
-    if py3k:
-        unicode_err = ("Page handlers MUST return bytes. Use tools.encode "
-                       "if you wish to return unicode.")
+    unicode_err = ('Page handlers MUST return bytes. Use tools.encode '
+                   'if you wish to return unicode.')
 
     def __get__(self, obj, objclass=None):
         if obj is None:
@@ -812,37 +786,21 @@ class ResponseBody(object):
 
     def __set__(self, obj, value):
         # Convert the given value to an iterable object.
-        if py3k and isinstance(value, str):
+        if isinstance(value, six.text_type):
             raise ValueError(self.unicode_err)
-
-        if isinstance(value, basestring):
-            # strings get wrapped in a list because iterating over a single
-            # item list is much faster than iterating over every character
-            # in a long string.
-            if value:
-                value = [value]
-            else:
-                # [''] doesn't evaluate to False, so replace it with [].
-                value = []
-        elif py3k and isinstance(value, list):
+        elif isinstance(value, list):
             # every item in a list must be bytes...
-            for i, item in enumerate(value):
-                if isinstance(item, str):
-                    raise ValueError(self.unicode_err)
-        # Don't use isinstance here; io.IOBase which has an ABC takes
-        # 1000 times as long as, say, isinstance(value, str)
-        elif hasattr(value, 'read'):
-            value = file_generator(value)
-        elif value is None:
-            value = []
-        obj._body = value
+            if any(isinstance(item, six.text_type) for item in value):
+                raise ValueError(self.unicode_err)
+
+        obj._body = encoding.prepare_iter(value)
 
 
 class Response(object):
 
     """An HTTP Response, including status, headers, and body."""
 
-    status = ""
+    status = ''
     """The HTTP Status-Code and Reason-Phrase."""
 
     header_list = []
@@ -872,14 +830,6 @@ class Response(object):
     time = None
     """The value of time.time() when created. Use in HTTP dates."""
 
-    timeout = 300
-    """Seconds after which the response will be aborted."""
-
-    timed_out = False
-    """
-    Flag to indicate the response should be aborted, because it has
-    exceeded its timeout."""
-
     stream = False
     """If False, buffer the response body."""
 
@@ -893,27 +843,25 @@ class Response(object):
         # Since we know all our keys are titled strings, we can
         # bypass HeaderMap.update and get a big speed boost.
         dict.update(self.headers, {
-            "Content-Type": 'text/html',
-            "Server": "CherryPy/" + cherrypy.__version__,
-            "Date": httputil.HTTPDate(self.time),
+            'Content-Type': 'text/html',
+            'Server': 'CherryPy/' + cherrypy.__version__,
+            'Date': httputil.HTTPDate(self.time),
         })
         self.cookie = SimpleCookie()
 
     def collapse_body(self):
         """Collapse self.body to a single string; replace it and return it."""
-        if isinstance(self.body, basestring):
-            return self.body
+        new_body = b''.join(self.body)
+        self.body = new_body
+        return new_body
 
-        newbody = []
-        for chunk in self.body:
-            if py3k and not isinstance(chunk, bytes):
-                raise TypeError("Chunk %s is not of type 'bytes'." %
-                                repr(chunk))
-            newbody.append(chunk)
-        newbody = ntob('').join(newbody)
-
-        self.body = newbody
-        return newbody
+    def _flush_body(self):
+        """
+        Discard self.body but consume any generator such that
+        any finalization can occur, such as is required by
+        caching.tee_output().
+        """
+        consume(iter(self.body))
 
     def finalize(self):
         """Transform headers (and cookies) into self.header_list. (Core)"""
@@ -924,9 +872,9 @@ class Response(object):
 
         headers = self.headers
 
-        self.status = "%s %s" % (code, reason)
+        self.status = '%s %s' % (code, reason)
         self.output_status = ntob(str(code), 'ascii') + \
-            ntob(" ") + headers.encode(reason)
+            b' ' + headers.encode(reason)
 
         if self.stream:
             # The upshot: wsgiserver will chunk the response if
@@ -939,7 +887,8 @@ class Response(object):
             # and 304 (not modified) responses MUST NOT
             # include a message-body."
             dict.pop(headers, 'Content-Length', None)
-            self.body = ntob("")
+            self._flush_body()
+            self.body = b''
         else:
             # Responses which are not streamed should have a Content-Length,
             # but allow user code to set Content-Length if desired.
@@ -952,22 +901,30 @@ class Response(object):
 
         cookie = self.cookie.output()
         if cookie:
-            for line in cookie.split("\n"):
-                if line.endswith("\r"):
-                    # Python 2.4 emits cookies joined by LF but 2.5+ by CRLF.
-                    line = line[:-1]
-                name, value = line.split(": ", 1)
-                if isinstance(name, unicodestr):
-                    name = name.encode("ISO-8859-1")
-                if isinstance(value, unicodestr):
+            for line in cookie.split('\r\n'):
+                name, value = line.split(': ', 1)
+                if isinstance(name, six.text_type):
+                    name = name.encode('ISO-8859-1')
+                if isinstance(value, six.text_type):
                     value = headers.encode(value)
                 h.append((name, value))
 
-    def check_timeout(self):
-        """If now > self.time + self.timeout, set self.timed_out.
 
-        This purposefully sets a flag, rather than raising an error,
-        so that a monitor thread can interrupt the Response thread.
+class LazyUUID4(object):
+    def __str__(self):
+        """Return UUID4 and keep it for future calls."""
+        return str(self.uuid4)
+
+    @property
+    def uuid4(self):
+        """Provide unique id on per-request basis using UUID4.
+
+        It's evaluated lazily on render.
         """
-        if time.time() > self.time + self.timeout:
-            self.timed_out = True
+        try:
+            self._uuid4
+        except AttributeError:
+            # evaluate on first access
+            self._uuid4 = uuid.uuid4()
+
+        return self._uuid4

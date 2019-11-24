@@ -22,17 +22,22 @@ Tools may be implemented as any object with a namespace. The builtins
 are generally either modules or instances of the tools.Tool class.
 """
 
-import sys
-import warnings
+import six
 
 import cherrypy
+from cherrypy._helper import expose
+
+from cherrypy.lib import cptools, encoding, static, jsontools
+from cherrypy.lib import sessions as _sessions, xmlrpcutil as _xmlrpc
+from cherrypy.lib import caching as _caching
+from cherrypy.lib import auth_basic, auth_digest
 
 
 def _getargs(func):
     """Return the names of all static arguments to the given function."""
     # Use this instead of importing inspect for less mem overhead.
     import types
-    if sys.version_info >= (3, 0):
+    if six.PY3:
         if isinstance(func, types.MethodType):
             func = func.__func__
         co = func.__code__
@@ -44,8 +49,8 @@ def _getargs(func):
 
 
 _attr_error = (
-    "CherryPy Tools cannot be turned on directly. Instead, turn them "
-    "on via config, or use them as decorators on your page handlers."
+    'CherryPy Tools cannot be turned on directly. Instead, turn them '
+    'on via config, or use them as decorators on your page handlers.'
 )
 
 
@@ -56,7 +61,7 @@ class Tool(object):
     help(tool.callable) should give you more information about this Tool.
     """
 
-    namespace = "tools"
+    namespace = 'tools'
 
     def __init__(self, point, callable, name=None, priority=50):
         self._point = point
@@ -66,12 +71,13 @@ class Tool(object):
         self.__doc__ = self.callable.__doc__
         self._setargs()
 
-    def _get_on(self):
+    @property
+    def on(self):
         raise AttributeError(_attr_error)
 
-    def _set_on(self, value):
+    @on.setter
+    def on(self, value):
         raise AttributeError(_attr_error)
-    on = property(_get_on, _set_on)
 
     def _setargs(self):
         """Copy func parameter names to obj attributes."""
@@ -79,7 +85,7 @@ class Tool(object):
             for arg in _getargs(self.callable):
                 setattr(self, arg, None)
         except (TypeError, AttributeError):
-            if hasattr(self.callable, "__call__"):
+            if hasattr(self.callable, '__call__'):
                 for arg in _getargs(self.callable.__call__):
                     setattr(self, arg, None)
         # IronPython 1.0 raises NotImplementedError because
@@ -103,8 +109,8 @@ class Tool(object):
         if self._name in tm:
             conf.update(tm[self._name])
 
-        if "on" in conf:
-            del conf["on"]
+        if 'on' in conf:
+            del conf['on']
 
         return conf
 
@@ -113,21 +119,21 @@ class Tool(object):
 
         For example::
 
+            @expose
             @tools.proxy()
             def whats_my_base(self):
                 return cherrypy.request.base
-            whats_my_base.exposed = True
         """
         if args:
-            raise TypeError("The %r Tool does not accept positional "
-                            "arguments; you must use keyword arguments."
+            raise TypeError('The %r Tool does not accept positional '
+                            'arguments; you must use keyword arguments.'
                             % self._name)
 
         def tool_decorator(f):
-            if not hasattr(f, "_cp_config"):
+            if not hasattr(f, '_cp_config'):
                 f._cp_config = {}
-            subspace = self.namespace + "." + self._name + "."
-            f._cp_config[subspace + "on"] = True
+            subspace = self.namespace + '.' + self._name + '.'
+            f._cp_config[subspace + 'on'] = True
             for k, v in kwargs.items():
                 f._cp_config[subspace + k] = v
             return f
@@ -140,9 +146,9 @@ class Tool(object):
         method when the tool is "turned on" in config.
         """
         conf = self._merged_args()
-        p = conf.pop("priority", None)
+        p = conf.pop('priority', None)
         if p is None:
-            p = getattr(self.callable, "priority", self._priority)
+            p = getattr(self.callable, 'priority', self._priority)
         cherrypy.serving.request.hooks.attach(self._point, self.callable,
                                               priority=p, **conf)
 
@@ -171,12 +177,12 @@ class HandlerTool(Tool):
                 nav = tools.staticdir.handler(section="/nav", dir="nav",
                                               root=absDir)
         """
+        @expose
         def handle_func(*a, **kw):
             handled = self.callable(*args, **self._merged_args(kwargs))
             if not handled:
                 raise cherrypy.NotFound()
             return cherrypy.serving.response.body
-        handle_func.exposed = True
         return handle_func
 
     def _wrapper(self, **kwargs):
@@ -190,9 +196,9 @@ class HandlerTool(Tool):
         method when the tool is "turned on" in config.
         """
         conf = self._merged_args()
-        p = conf.pop("priority", None)
+        p = conf.pop('priority', None)
         if p is None:
-            p = getattr(self.callable, "priority", self._priority)
+            p = getattr(self.callable, 'priority', self._priority)
         cherrypy.serving.request.hooks.attach(self._point, self._wrapper,
                                               priority=p, **conf)
 
@@ -253,11 +259,6 @@ class ErrorTool(Tool):
 
 #                              Builtin tools                              #
 
-from cherrypy.lib import cptools, encoding, auth, static, jsontools
-from cherrypy.lib import sessions as _sessions, xmlrpcutil as _xmlrpc
-from cherrypy.lib import caching as _caching
-from cherrypy.lib import auth_basic, auth_digest
-
 
 class SessionTool(Tool):
 
@@ -271,7 +272,7 @@ class SessionTool(Tool):
         body. This is off by default for safety reasons; for example,
         a large upload would block the session, denying an AJAX
         progress meter
-        (`issue <https://bitbucket.org/cherrypy/cherrypy/issue/630>`_).
+        (`issue <https://github.com/cherrypy/cherrypy/issues/630>`_).
 
         When 'explicit' (or any other value), you need to call
         cherrypy.session.acquire_lock() yourself before using
@@ -295,9 +296,9 @@ class SessionTool(Tool):
 
         conf = self._merged_args()
 
-        p = conf.pop("priority", None)
+        p = conf.pop('priority', None)
         if p is None:
-            p = getattr(self.callable, "priority", self._priority)
+            p = getattr(self.callable, 'priority', self._priority)
 
         hooks.attach(self._point, self.callable, priority=p, **conf)
 
@@ -321,9 +322,12 @@ class SessionTool(Tool):
         sess.regenerate()
 
         # Grab cookie-relevant tool args
-        conf = dict([(k, v) for k, v in self._merged_args().items()
-                     if k in ('path', 'path_header', 'name', 'timeout',
-                              'domain', 'secure')])
+        relevant = 'path', 'path_header', 'name', 'timeout', 'domain', 'secure'
+        conf = dict(
+            (k, v)
+            for k, v in self._merged_args().items()
+            if k in relevant
+        )
         _sessions.set_response_cookie(**conf)
 
 
@@ -365,6 +369,7 @@ class XMLRPCController(object):
     # would be if someone actually disabled the default_toolbox. Meh.
     _cp_config = {'tools.xmlrpc.on': True}
 
+    @expose
     def default(self, *vpath, **params):
         rpcparams, rpcmethod = _xmlrpc.process_body()
 
@@ -372,30 +377,25 @@ class XMLRPCController(object):
         for attr in str(rpcmethod).split('.'):
             subhandler = getattr(subhandler, attr, None)
 
-        if subhandler and getattr(subhandler, "exposed", False):
+        if subhandler and getattr(subhandler, 'exposed', False):
             body = subhandler(*(vpath + rpcparams), **params)
 
         else:
-            # https://bitbucket.org/cherrypy/cherrypy/issue/533
+            # https://github.com/cherrypy/cherrypy/issues/533
             # if a method is not found, an xmlrpclib.Fault should be returned
             # raising an exception here will do that; see
             # cherrypy.lib.xmlrpcutil.on_error
             raise Exception('method "%s" is not supported' % attr)
 
-        conf = cherrypy.serving.request.toolmaps['tools'].get("xmlrpc", {})
+        conf = cherrypy.serving.request.toolmaps['tools'].get('xmlrpc', {})
         _xmlrpc.respond(body,
                         conf.get('encoding', 'utf-8'),
                         conf.get('allow_none', 0))
         return cherrypy.serving.response.body
-    default.exposed = True
 
 
 class SessionAuthTool(HandlerTool):
-
-    def _setargs(self):
-        for name in dir(cptools.SessionAuth):
-            if not name.startswith("__"):
-                setattr(self, name, None)
+    pass
 
 
 class CachingTool(Tool):
@@ -410,14 +410,14 @@ class CachingTool(Tool):
             if request.cacheable:
                 # Note the devious technique here of adding hooks on the fly
                 request.hooks.attach('before_finalize', _caching.tee_output,
-                                     priority=90)
-    _wrapper.priority = 20
+                                     priority=100)
+    _wrapper.priority = 90
 
     def _setup(self):
         """Hook caching into cherrypy.request."""
         conf = self._merged_args()
 
-        p = conf.pop("priority", None)
+        p = conf.pop('priority', None)
         cherrypy.serving.request.hooks.attach('before_handler', self._wrapper,
                                               priority=p, **conf)
 
@@ -446,7 +446,7 @@ class Toolbox(object):
         cherrypy.serving.request.toolmaps[self.namespace] = map = {}
 
         def populate(k, v):
-            toolname, arg = k.split(".", 1)
+            toolname, arg = k.split('.', 1)
             bucket = map.setdefault(toolname, {})
             bucket[arg] = v
         return populate
@@ -456,33 +456,24 @@ class Toolbox(object):
         map = cherrypy.serving.request.toolmaps.get(self.namespace)
         if map:
             for name, settings in map.items():
-                if settings.get("on", False):
+                if settings.get('on', False):
                     tool = getattr(self, name)
                     tool._setup()
 
-
-class DeprecatedTool(Tool):
-
-    _name = None
-    warnmsg = "This Tool is deprecated."
-
-    def __init__(self, point, warnmsg=None):
-        self.point = point
-        if warnmsg is not None:
-            self.warnmsg = warnmsg
-
-    def __call__(self, *args, **kwargs):
-        warnings.warn(self.warnmsg)
-
-        def tool_decorator(f):
-            return f
-        return tool_decorator
-
-    def _setup(self):
-        warnings.warn(self.warnmsg)
+    def register(self, point, **kwargs):
+        """
+        Return a decorator which registers the function
+        at the given hook point.
+        """
+        def decorator(func):
+            attr_name = kwargs.get('name', func.__name__)
+            tool = Tool(point, func, **kwargs)
+            setattr(self, attr_name, tool)
+            return func
+        return decorator
 
 
-default_toolbox = _d = Toolbox("tools")
+default_toolbox = _d = Toolbox('tools')
 _d.session_auth = SessionAuthTool(cptools.session_auth)
 _d.allow = Tool('on_start_resource', cptools.allow)
 _d.proxy = Tool('before_request_body', cptools.proxy, priority=30)
@@ -502,20 +493,8 @@ _d.sessions = SessionTool()
 _d.xmlrpc = ErrorTool(_xmlrpc.on_error)
 _d.caching = CachingTool('before_handler', _caching.get, 'caching')
 _d.expires = Tool('before_finalize', _caching.expires)
-_d.tidy = DeprecatedTool(
-    'before_finalize',
-    "The tidy tool has been removed from the standard distribution of "
-    "CherryPy. The most recent version can be found at "
-    "http://tools.cherrypy.org/browser.")
-_d.nsgmls = DeprecatedTool(
-    'before_finalize',
-    "The nsgmls tool has been removed from the standard distribution of "
-    "CherryPy. The most recent version can be found at "
-    "http://tools.cherrypy.org/browser.")
 _d.ignore_headers = Tool('before_request_body', cptools.ignore_headers)
 _d.referer = Tool('before_request_body', cptools.referer)
-_d.basic_auth = Tool('on_start_resource', auth.basic_auth)
-_d.digest_auth = Tool('on_start_resource', auth.digest_auth)
 _d.trailing_slash = Tool('before_handler', cptools.trailing_slash, priority=60)
 _d.flatten = Tool('before_finalize', cptools.flatten)
 _d.accept = Tool('on_start_resource', cptools.accept)
@@ -525,5 +504,6 @@ _d.json_in = Tool('before_request_body', jsontools.json_in, priority=30)
 _d.json_out = Tool('before_handler', jsontools.json_out, priority=30)
 _d.auth_basic = Tool('before_handler', auth_basic.basic_auth, priority=1)
 _d.auth_digest = Tool('before_handler', auth_digest.digest_auth, priority=1)
+_d.params = Tool('before_handler', cptools.convert_params, priority=15)
 
-del _d, cptools, encoding, auth, static
+del _d, cptools, encoding, static

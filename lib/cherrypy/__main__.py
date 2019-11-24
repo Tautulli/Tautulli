@@ -1,4 +1,5 @@
-import cherrypy.daemon
+"""CherryPy'd cherryd daemon runner."""
+from cherrypy.daemon import run
 
-if __name__ == '__main__':
-    cherrypy.daemon.run()
+
+__name__ == '__main__' and run()

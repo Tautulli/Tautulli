@@ -11,7 +11,7 @@ class Timer(object):
     A simple timer that will indicate when an expiration time has passed.
     """
     def __init__(self, expiration):
-        "Create a timer that expires at `expiration` (UTC datetime)"
+        'Create a timer that expires at `expiration` (UTC datetime)'
         self.expiration = expiration
 
     @classmethod
@@ -26,7 +26,7 @@ class Timer(object):
 
 
 class LockTimeout(Exception):
-    "An exception when a lock could not be acquired before a timeout period"
+    'An exception when a lock could not be acquired before a timeout period'
 
 
 class LockChecker(object):
@@ -43,5 +43,5 @@ class LockChecker(object):
     def expired(self):
         if self.timer.expired():
             raise LockTimeout(
-                "Timeout acquiring lock for %(session_id)s" % vars(self))
+                'Timeout acquiring lock for %(session_id)s' % vars(self))
         return False

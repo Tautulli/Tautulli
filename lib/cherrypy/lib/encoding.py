@@ -1,8 +1,11 @@
 import struct
 import time
+import io
+
+import six
 
 import cherrypy
-from cherrypy._cpcompat import basestring, BytesIO, ntob, unicodestr
+from cherrypy._cpcompat import text_or_bytes
 from cherrypy.lib import file_generator
 from cherrypy.lib import is_closable_iterator
 from cherrypy.lib import set_vary_header
@@ -34,6 +37,7 @@ def decode(encoding=None, default_encoding='utf-8'):
             default_encoding = [default_encoding]
         body.attempt_charsets = body.attempt_charsets + default_encoding
 
+
 class UTF8StreamEncoder:
     def __init__(self, iterator):
         self._iterator = iterator
@@ -46,7 +50,7 @@ class UTF8StreamEncoder:
 
     def __next__(self):
         res = next(self._iterator)
-        if isinstance(res, unicodestr):
+        if isinstance(res, six.text_type):
             res = res.encode('utf-8')
         return res
 
@@ -63,7 +67,7 @@ class UTF8StreamEncoder:
 class ResponseEncoder:
 
     default_encoding = 'utf-8'
-    failmsg = "Response body could not be encoded with %r."
+    failmsg = 'Response body could not be encoded with %r.'
     encoding = None
     errors = 'strict'
     text_only = True
@@ -95,7 +99,7 @@ class ResponseEncoder:
 
         def encoder(body):
             for chunk in body:
-                if isinstance(chunk, unicodestr):
+                if isinstance(chunk, six.text_type):
                     chunk = chunk.encode(encoding, self.errors)
                 yield chunk
         self.body = encoder(self.body)
@@ -108,7 +112,7 @@ class ResponseEncoder:
         self.attempted_charsets.add(encoding)
         body = []
         for chunk in self.body:
-            if isinstance(chunk, unicodestr):
+            if isinstance(chunk, six.text_type):
                 try:
                     chunk = chunk.encode(encoding, self.errors)
                 except (LookupError, UnicodeError):
@@ -128,7 +132,7 @@ class ResponseEncoder:
             encoder = self.encode_stream
         else:
             encoder = self.encode_string
-            if "Content-Length" in response.headers:
+            if 'Content-Length' in response.headers:
                 # Delete Content-Length header so finalize() recalcs it.
                 # Encoded strings may be of different lengths from their
                 # unicode equivalents, and even from each other. For example:
@@ -139,7 +143,7 @@ class ResponseEncoder:
                 # 6
                 # >>> len(t.encode("utf7"))
                 # 8
-                del response.headers["Content-Length"]
+                del response.headers['Content-Length']
 
         # Parse the Accept-Charset request header, and try to provide one
         # of the requested charsets (in order of user preference).
@@ -154,7 +158,7 @@ class ResponseEncoder:
             if self.debug:
                 cherrypy.log('Specified encoding %r' %
                              encoding, 'TOOLS.ENCODE')
-            if (not charsets) or "*" in charsets or encoding in charsets:
+            if (not charsets) or '*' in charsets or encoding in charsets:
                 if self.debug:
                     cherrypy.log('Attempting encoding %r' %
                                  encoding, 'TOOLS.ENCODE')
@@ -174,7 +178,7 @@ class ResponseEncoder:
             else:
                 for element in encs:
                     if element.qvalue > 0:
-                        if element.value == "*":
+                        if element.value == '*':
                             # Matches any charset. Try our default.
                             if self.debug:
                                 cherrypy.log('Attempting default encoding due '
@@ -189,7 +193,7 @@ class ResponseEncoder:
                             if encoder(encoding):
                                 return encoding
 
-                if "*" not in charsets:
+                if '*' not in charsets:
                     # If no "*" is present in an Accept-Charset field, then all
                     # character sets not explicitly mentioned get a quality
                     # value of 0, except for ISO-8859-1, which gets a quality
@@ -205,39 +209,27 @@ class ResponseEncoder:
         # No suitable encoding found.
         ac = request.headers.get('Accept-Charset')
         if ac is None:
-            msg = "Your client did not send an Accept-Charset header."
+            msg = 'Your client did not send an Accept-Charset header.'
         else:
-            msg = "Your client sent this Accept-Charset header: %s." % ac
-        _charsets = ", ".join(sorted(self.attempted_charsets))
-        msg += " We tried these charsets: %s." % (_charsets,)
+            msg = 'Your client sent this Accept-Charset header: %s.' % ac
+        _charsets = ', '.join(sorted(self.attempted_charsets))
+        msg += ' We tried these charsets: %s.' % (_charsets,)
         raise cherrypy.HTTPError(406, msg)
 
     def __call__(self, *args, **kwargs):
         response = cherrypy.serving.response
         self.body = self.oldhandler(*args, **kwargs)
 
-        if isinstance(self.body, basestring):
-            # strings get wrapped in a list because iterating over a single
-            # item list is much faster than iterating over every character
-            # in a long string.
-            if self.body:
-                self.body = [self.body]
-            else:
-                # [''] doesn't evaluate to False, so replace it with [].
-                self.body = []
-        elif hasattr(self.body, 'read'):
-            self.body = file_generator(self.body)
-        elif self.body is None:
-            self.body = []
+        self.body = prepare_iter(self.body)
 
-        ct = response.headers.elements("Content-Type")
+        ct = response.headers.elements('Content-Type')
         if self.debug:
             cherrypy.log('Content-Type: %r' % [str(h)
                          for h in ct], 'TOOLS.ENCODE')
         if ct and self.add_charset:
             ct = ct[0]
             if self.text_only:
-                if ct.value.lower().startswith("text/"):
+                if ct.value.lower().startswith('text/'):
                     if self.debug:
                         cherrypy.log(
                             'Content-Type %s starts with "text/"' % ct,
@@ -261,9 +253,32 @@ class ResponseEncoder:
                 if self.debug:
                     cherrypy.log('Setting Content-Type %s' % ct,
                                  'TOOLS.ENCODE')
-                response.headers["Content-Type"] = str(ct)
+                response.headers['Content-Type'] = str(ct)
 
         return self.body
+
+
+def prepare_iter(value):
+    """
+    Ensure response body is iterable and resolves to False when empty.
+    """
+    if isinstance(value, text_or_bytes):
+        # strings get wrapped in a list because iterating over a single
+        # item list is much faster than iterating over every character
+        # in a long string.
+        if value:
+            value = [value]
+        else:
+            # [''] doesn't evaluate to False, so replace it with [].
+            value = []
+    # Don't use isinstance here; io.IOBase which has an ABC takes
+    # 1000 times as long as, say, isinstance(value, str)
+    elif hasattr(value, 'read'):
+        value = file_generator(value)
+    elif value is None:
+        value = []
+    return value
+
 
 # GZIP
 
@@ -273,15 +288,15 @@ def compress(body, compress_level):
     import zlib
 
     # See http://www.gzip.org/zlib/rfc-gzip.html
-    yield ntob('\x1f\x8b')       # ID1 and ID2: gzip marker
-    yield ntob('\x08')           # CM: compression method
-    yield ntob('\x00')           # FLG: none set
+    yield b'\x1f\x8b'       # ID1 and ID2: gzip marker
+    yield b'\x08'           # CM: compression method
+    yield b'\x00'           # FLG: none set
     # MTIME: 4 bytes
-    yield struct.pack("<L", int(time.time()) & int('FFFFFFFF', 16))
-    yield ntob('\x02')           # XFL: max compression, slowest algo
-    yield ntob('\xff')           # OS: unknown
+    yield struct.pack('<L', int(time.time()) & int('FFFFFFFF', 16))
+    yield b'\x02'           # XFL: max compression, slowest algo
+    yield b'\xff'           # OS: unknown
 
-    crc = zlib.crc32(ntob(""))
+    crc = zlib.crc32(b'')
     size = 0
     zobj = zlib.compressobj(compress_level,
                             zlib.DEFLATED, -zlib.MAX_WBITS,
@@ -293,15 +308,15 @@ def compress(body, compress_level):
     yield zobj.flush()
 
     # CRC32: 4 bytes
-    yield struct.pack("<L", crc & int('FFFFFFFF', 16))
+    yield struct.pack('<L', crc & int('FFFFFFFF', 16))
     # ISIZE: 4 bytes
-    yield struct.pack("<L", size & int('FFFFFFFF', 16))
+    yield struct.pack('<L', size & int('FFFFFFFF', 16))
 
 
 def decompress(body):
     import gzip
 
-    zbuf = BytesIO()
+    zbuf = io.BytesIO()
     zbuf.write(body)
     zbuf.seek(0)
     zfile = gzip.GzipFile(mode='rb', fileobj=zbuf)
@@ -318,9 +333,9 @@ def gzip(compress_level=5, mime_types=['text/html', 'text/plain'],
     values in the mime_types arg before calling this function.
 
     The provided list of mime-types must be of one of the following form:
-        * type/subtype
-        * type/*
-        * type/*+subtype
+        * `type/subtype`
+        * `type/*`
+        * `type/*+subtype`
 
     No compression is performed if any of the following hold:
         * The client sends no Accept-Encoding request header
@@ -332,7 +347,7 @@ def gzip(compress_level=5, mime_types=['text/html', 'text/plain'],
     request = cherrypy.serving.request
     response = cherrypy.serving.response
 
-    set_vary_header(response, "Accept-Encoding")
+    set_vary_header(response, 'Accept-Encoding')
 
     if not response.body:
         # Response body is empty (might be a 304 for instance)
@@ -342,7 +357,7 @@ def gzip(compress_level=5, mime_types=['text/html', 'text/plain'],
 
     # If returning cached content (which should already have been gzipped),
     # don't re-zip.
-    if getattr(request, "cached", False):
+    if getattr(request, 'cached', False):
         if debug:
             cherrypy.log('Not gzipping cached response', context='TOOLS.GZIP')
         return
@@ -410,12 +425,12 @@ def gzip(compress_level=5, mime_types=['text/html', 'text/plain'],
             # Return a generator that compresses the page
             response.headers['Content-Encoding'] = 'gzip'
             response.body = compress(response.body, compress_level)
-            if "Content-Length" in response.headers:
+            if 'Content-Length' in response.headers:
                 # Delete Content-Length header so finalize() recalcs it.
-                del response.headers["Content-Length"]
+                del response.headers['Content-Length']
 
             return
 
     if debug:
         cherrypy.log('No acceptable encoding found.', context='GZIP')
-    cherrypy.HTTPError(406, "identity, gzip").set_response()
+    cherrypy.HTTPError(406, 'identity, gzip').set_response()

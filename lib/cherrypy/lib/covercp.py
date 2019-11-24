@@ -23,10 +23,15 @@ it will call ``serve()`` for you.
 import re
 import sys
 import cgi
-from cherrypy._cpcompat import quote_plus
 import os
 import os.path
-localFile = os.path.join(os.path.dirname(__file__), "coverage.cache")
+
+from six.moves import urllib
+
+import cherrypy
+
+
+localFile = os.path.join(os.path.dirname(__file__), 'coverage.cache')
 
 the_coverage = None
 try:
@@ -42,8 +47,8 @@ except ImportError:
 
     import warnings
     warnings.warn(
-        "No code coverage will be performed; "
-        "coverage.py could not be imported.")
+        'No code coverage will be performed; '
+        'coverage.py could not be imported.')
 
     def start():
         pass
@@ -193,7 +198,7 @@ def _percent(statements, missing):
     return 0
 
 
-def _show_branch(root, base, path, pct=0, showpct=False, exclude="",
+def _show_branch(root, base, path, pct=0, showpct=False, exclude='',
                  coverage=the_coverage):
 
     # Show the directory name and any of our children
@@ -204,11 +209,11 @@ def _show_branch(root, base, path, pct=0, showpct=False, exclude="",
 
         if newpath.lower().startswith(base):
             relpath = newpath[len(base):]
-            yield "| " * relpath.count(os.sep)
+            yield '| ' * relpath.count(os.sep)
             yield (
                 "<a class='directory' "
                 "href='menu?base=%s&exclude=%s'>%s</a>\n" %
-                (newpath, quote_plus(exclude), name)
+                (newpath, urllib.parse.quote_plus(exclude), name)
             )
 
         for chunk in _show_branch(
@@ -225,22 +230,22 @@ def _show_branch(root, base, path, pct=0, showpct=False, exclude="",
         for name in files:
             newpath = os.path.join(path, name)
 
-            pc_str = ""
+            pc_str = ''
             if showpct:
                 try:
                     _, statements, _, missing, _ = coverage.analysis2(newpath)
-                except:
+                except Exception:
                     # Yes, we really want to pass on all errors.
                     pass
                 else:
                     pc = _percent(statements, missing)
-                    pc_str = ("%3d%% " % pc).replace(' ', '&nbsp;')
+                    pc_str = ('%3d%% ' % pc).replace(' ', '&nbsp;')
                     if pc < float(pct) or pc == -1:
                         pc_str = "<span class='fail'>%s</span>" % pc_str
                     else:
                         pc_str = "<span class='pass'>%s</span>" % pc_str
 
-            yield TEMPLATE_ITEM % ("| " * (relpath.count(os.sep) + 1),
+            yield TEMPLATE_ITEM % ('| ' * (relpath.count(os.sep) + 1),
                                    pc_str, newpath, name)
 
 
@@ -260,8 +265,8 @@ def _graft(path, tree):
             break
         atoms.append(tail)
     atoms.append(p)
-    if p != "/":
-        atoms.append("/")
+    if p != '/':
+        atoms.append('/')
 
     atoms.reverse()
     for node in atoms:
@@ -286,15 +291,15 @@ class CoverStats(object):
         if root is None:
             # Guess initial depth. Files outside this path will not be
             # reachable from the web interface.
-            import cherrypy
             root = os.path.dirname(cherrypy.__file__)
         self.root = root
 
+    @cherrypy.expose
     def index(self):
         return TEMPLATE_FRAMESET % self.root.lower()
-    index.exposed = True
 
-    def menu(self, base="/", pct="50", showpct="",
+    @cherrypy.expose
+    def menu(self, base='/', pct='50', showpct='',
              exclude=r'python\d\.\d|test|tut\d|tutorial'):
 
         # The coverage module uses all-lower-case names.
@@ -305,37 +310,36 @@ class CoverStats(object):
 
         # Start by showing links for parent paths
         yield "<div id='crumbs'>"
-        path = ""
+        path = ''
         atoms = base.split(os.sep)
         atoms.pop()
         for atom in atoms:
             path += atom + os.sep
             yield ("<a href='menu?base=%s&exclude=%s'>%s</a> %s"
-                   % (path, quote_plus(exclude), atom, os.sep))
-        yield "</div>"
+                   % (path, urllib.parse.quote_plus(exclude), atom, os.sep))
+        yield '</div>'
 
         yield "<div id='tree'>"
 
         # Then display the tree
         tree = get_tree(base, exclude, self.coverage)
         if not tree:
-            yield "<p>No modules covered.</p>"
+            yield '<p>No modules covered.</p>'
         else:
-            for chunk in _show_branch(tree, base, "/", pct,
+            for chunk in _show_branch(tree, base, '/', pct,
                                       showpct == 'checked', exclude,
                                       coverage=self.coverage):
                 yield chunk
 
-        yield "</div>"
-        yield "</body></html>"
-    menu.exposed = True
+        yield '</div>'
+        yield '</body></html>'
 
     def annotated_file(self, filename, statements, excluded, missing):
         source = open(filename, 'r')
         buffer = []
         for lineno, line in enumerate(source.readlines()):
             lineno += 1
-            line = line.strip("\n\r")
+            line = line.strip('\n\r')
             empty_the_buffer = True
             if lineno in excluded:
                 template = TEMPLATE_LOC_EXCLUDED
@@ -352,6 +356,7 @@ class CoverStats(object):
                 buffer = []
                 yield template % (lineno, cgi.escape(line))
 
+    @cherrypy.expose
     def report(self, name):
         filename, statements, excluded, missing, _ = self.coverage.analysis2(
             name)
@@ -366,22 +371,21 @@ class CoverStats(object):
         yield '</table>'
         yield '</body>'
         yield '</html>'
-    report.exposed = True
 
 
 def serve(path=localFile, port=8080, root=None):
     if coverage is None:
-        raise ImportError("The coverage module could not be imported.")
+        raise ImportError('The coverage module could not be imported.')
     from coverage import coverage
     cov = coverage(data_file=path)
     cov.load()
 
-    import cherrypy
     cherrypy.config.update({'server.socket_port': int(port),
                             'server.thread_pool': 10,
-                            'environment': "production",
+                            'environment': 'production',
                             })
     cherrypy.quickstart(CoverStats(cov, root))
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     serve(*tuple(sys.argv[1:]))

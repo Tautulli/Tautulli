@@ -8,12 +8,16 @@ still be translatable to bytes via the Latin-1 encoding!"
 """
 
 import sys as _sys
+import io
+
+import six
 
 import cherrypy as _cherrypy
-from cherrypy._cpcompat import BytesIO, bytestr, ntob, ntou, py3k, unicodestr
+from cherrypy._cpcompat import ntou
 from cherrypy import _cperror
 from cherrypy.lib import httputil
 from cherrypy.lib import is_closable_iterator
+
 
 def downgrade_wsgi_ux_to_1x(environ):
     """Return a new environ dict for WSGI 1.x from the given WSGI u.x environ.
@@ -24,7 +28,7 @@ def downgrade_wsgi_ux_to_1x(environ):
     for k, v in list(environ.items()):
         if k in [ntou('PATH_INFO'), ntou('SCRIPT_NAME'), ntou('QUERY_STRING')]:
             v = v.encode(url_encoding)
-        elif isinstance(v, unicodestr):
+        elif isinstance(v, six.text_type):
             v = v.encode('ISO-8859-1')
         env1x[k.encode('ISO-8859-1')] = v
 
@@ -43,10 +47,13 @@ class VirtualHost(object):
         Domain2App = cherrypy.Application(root)
         SecureApp = cherrypy.Application(Secure())
 
-        vhost = cherrypy._cpwsgi.VirtualHost(RootApp,
-            domains={'www.domain2.example': Domain2App,
-                     'www.domain2.example:443': SecureApp,
-                     })
+        vhost = cherrypy._cpwsgi.VirtualHost(
+            RootApp,
+            domains={
+                'www.domain2.example': Domain2App,
+                'www.domain2.example:443': SecureApp,
+            },
+        )
 
         cherrypy.tree.graft(vhost)
     """
@@ -75,7 +82,7 @@ class VirtualHost(object):
     def __call__(self, environ, start_response):
         domain = environ.get('HTTP_HOST', '')
         if self.use_x_forwarded_host:
-            domain = environ.get("HTTP_X_FORWARDED_HOST", domain)
+            domain = environ.get('HTTP_X_FORWARDED_HOST', domain)
 
         nextapp = self.domains.get(domain)
         if nextapp is None:
@@ -106,7 +113,7 @@ class InternalRedirector(object):
                 # Add the *previous* path_info + qs to redirections.
                 old_uri = sn + path
                 if qs:
-                    old_uri += "?" + qs
+                    old_uri += '?' + qs
                 redirections.append(old_uri)
 
                 if not self.recursive:
@@ -114,18 +121,20 @@ class InternalRedirector(object):
                     # already
                     new_uri = sn + ir.path
                     if ir.query_string:
-                        new_uri += "?" + ir.query_string
+                        new_uri += '?' + ir.query_string
                     if new_uri in redirections:
                         ir.request.close()
-                        raise RuntimeError("InternalRedirector visited the "
-                                           "same URL twice: %r" % new_uri)
+                        tmpl = (
+                            'InternalRedirector visited the same URL twice: %r'
+                        )
+                        raise RuntimeError(tmpl % new_uri)
 
                 # Munge the environment and try again.
-                environ['REQUEST_METHOD'] = "GET"
+                environ['REQUEST_METHOD'] = 'GET'
                 environ['PATH_INFO'] = ir.path
                 environ['QUERY_STRING'] = ir.query_string
-                environ['wsgi.input'] = BytesIO()
-                environ['CONTENT_LENGTH'] = "0"
+                environ['wsgi.input'] = io.BytesIO()
+                environ['CONTENT_LENGTH'] = '0'
                 environ['cherrypy.previous_request'] = ir.request
 
 
@@ -157,19 +166,20 @@ class _TrappedResponse(object):
         self.throws = throws
         self.started_response = False
         self.response = self.trap(
-            self.nextapp, self.environ, self.start_response)
+            self.nextapp, self.environ, self.start_response,
+        )
         self.iter_response = iter(self.response)
 
     def __iter__(self):
         self.started_response = True
         return self
 
-    if py3k:
-        def __next__(self):
-            return self.trap(next, self.iter_response)
-    else:
-        def next(self):
-            return self.trap(self.iter_response.next)
+    def __next__(self):
+        return self.trap(next, self.iter_response)
+
+    # todo: https://pythonhosted.org/six/#six.Iterator
+    if six.PY2:
+        next = __next__
 
     def close(self):
         if hasattr(self.response, 'close'):
@@ -182,18 +192,19 @@ class _TrappedResponse(object):
             raise
         except StopIteration:
             raise
-        except:
+        except Exception:
             tb = _cperror.format_exc()
-            #print('trapped (started %s):' % self.started_response, tb)
             _cherrypy.log(tb, severity=40)
             if not _cherrypy.request.show_tracebacks:
-                tb = ""
+                tb = ''
             s, h, b = _cperror.bare_error(tb)
-            if py3k:
+            if six.PY3:
                 # What fun.
                 s = s.decode('ISO-8859-1')
-                h = [(k.decode('ISO-8859-1'), v.decode('ISO-8859-1'))
-                     for k, v in h]
+                h = [
+                    (k.decode('ISO-8859-1'), v.decode('ISO-8859-1'))
+                    for k, v in h
+                ]
             if self.started_response:
                 # Empty our iterable (so future calls raise StopIteration)
                 self.iter_response = iter([])
@@ -202,7 +213,7 @@ class _TrappedResponse(object):
 
             try:
                 self.start_response(s, h, _sys.exc_info())
-            except:
+            except Exception:
                 # "The application must not trap any exceptions raised by
                 # start_response, if it called start_response with exc_info.
                 # Instead, it should allow such exceptions to propagate
@@ -212,7 +223,7 @@ class _TrappedResponse(object):
                 raise
 
             if self.started_response:
-                return ntob("").join(b)
+                return b''.join(b)
             else:
                 return b
 
@@ -227,7 +238,7 @@ class AppResponse(object):
     def __init__(self, environ, start_response, cpapp):
         self.cpapp = cpapp
         try:
-            if not py3k:
+            if six.PY2:
                 if environ.get(ntou('wsgi.version')) == (ntou('u'), 0):
                     environ = downgrade_wsgi_ux_to_1x(environ)
             self.environ = environ
@@ -236,45 +247,47 @@ class AppResponse(object):
             r = _cherrypy.serving.response
 
             outstatus = r.output_status
-            if not isinstance(outstatus, bytestr):
-                raise TypeError("response.output_status is not a byte string.")
+            if not isinstance(outstatus, bytes):
+                raise TypeError('response.output_status is not a byte string.')
 
             outheaders = []
             for k, v in r.header_list:
-                if not isinstance(k, bytestr):
-                    raise TypeError(
-                        "response.header_list key %r is not a byte string." %
-                        k)
-                if not isinstance(v, bytestr):
-                    raise TypeError(
-                        "response.header_list value %r is not a byte string." %
-                        v)
+                if not isinstance(k, bytes):
+                    tmpl = 'response.header_list key %r is not a byte string.'
+                    raise TypeError(tmpl % k)
+                if not isinstance(v, bytes):
+                    tmpl = (
+                        'response.header_list value %r is not a byte string.'
+                    )
+                    raise TypeError(tmpl % v)
                 outheaders.append((k, v))
 
-            if py3k:
+            if six.PY3:
                 # According to PEP 3333, when using Python 3, the response
                 # status and headers must be bytes masquerading as unicode;
                 # that is, they must be of type "str" but are restricted to
                 # code points in the "latin-1" set.
                 outstatus = outstatus.decode('ISO-8859-1')
-                outheaders = [(k.decode('ISO-8859-1'), v.decode('ISO-8859-1'))
-                              for k, v in outheaders]
+                outheaders = [
+                    (k.decode('ISO-8859-1'), v.decode('ISO-8859-1'))
+                    for k, v in outheaders
+                ]
 
             self.iter_response = iter(r.body)
             self.write = start_response(outstatus, outheaders)
-        except:
+        except BaseException:
             self.close()
             raise
 
     def __iter__(self):
         return self
 
-    if py3k:
-        def __next__(self):
-            return next(self.iter_response)
-    else:
-        def next(self):
-            return self.iter_response.next()
+    def __next__(self):
+        return next(self.iter_response)
+
+    # todo: https://pythonhosted.org/six/#six.Iterator
+    if six.PY2:
+        next = __next__
 
     def close(self):
         """Close and de-reference the current request and response. (Core)"""
@@ -296,14 +309,18 @@ class AppResponse(object):
         """Create a Request object using environ."""
         env = self.environ.get
 
-        local = httputil.Host('',
-                              int(env('SERVER_PORT', 80) or -1),
-                              env('SERVER_NAME', ''))
-        remote = httputil.Host(env('REMOTE_ADDR', ''),
-                               int(env('REMOTE_PORT', -1) or -1),
-                               env('REMOTE_HOST', ''))
+        local = httputil.Host(
+            '',
+            int(env('SERVER_PORT', 80) or -1),
+            env('SERVER_NAME', ''),
+        )
+        remote = httputil.Host(
+            env('REMOTE_ADDR', ''),
+            int(env('REMOTE_PORT', -1) or -1),
+            env('REMOTE_HOST', ''),
+        )
         scheme = env('wsgi.url_scheme')
-        sproto = env('ACTUAL_SERVER_PROTOCOL', "HTTP/1.1")
+        sproto = env('ACTUAL_SERVER_PROTOCOL', 'HTTP/1.1')
         request, resp = self.cpapp.get_serving(local, remote, scheme, sproto)
 
         # LOGON_USER is served by IIS, and is the name of the
@@ -317,44 +334,54 @@ class AppResponse(object):
 
         meth = self.environ['REQUEST_METHOD']
 
-        path = httputil.urljoin(self.environ.get('SCRIPT_NAME', ''),
-                                self.environ.get('PATH_INFO', ''))
+        path = httputil.urljoin(
+            self.environ.get('SCRIPT_NAME', ''),
+            self.environ.get('PATH_INFO', ''),
+        )
         qs = self.environ.get('QUERY_STRING', '')
 
-        if py3k:
-            # This isn't perfect; if the given PATH_INFO is in the
-            # wrong encoding, it may fail to match the appropriate config
-            # section URI. But meh.
-            old_enc = self.environ.get('wsgi.url_encoding', 'ISO-8859-1')
-            new_enc = self.cpapp.find_config(self.environ.get('PATH_INFO', ''),
-                                             "request.uri_encoding", 'utf-8')
-            if new_enc.lower() != old_enc.lower():
-                # Even though the path and qs are unicode, the WSGI server
-                # is required by PEP 3333 to coerce them to ISO-8859-1
-                # masquerading as unicode. So we have to encode back to
-                # bytes and then decode again using the "correct" encoding.
-                try:
-                    u_path = path.encode(old_enc).decode(new_enc)
-                    u_qs = qs.encode(old_enc).decode(new_enc)
-                except (UnicodeEncodeError, UnicodeDecodeError):
-                    # Just pass them through without transcoding and hope.
-                    pass
-                else:
-                    # Only set transcoded values if they both succeed.
-                    path = u_path
-                    qs = u_qs
+        path, qs = self.recode_path_qs(path, qs) or (path, qs)
 
         rproto = self.environ.get('SERVER_PROTOCOL')
         headers = self.translate_headers(self.environ)
         rfile = self.environ['wsgi.input']
         request.run(meth, path, qs, rproto, headers, rfile)
 
-    headerNames = {'HTTP_CGI_AUTHORIZATION': 'Authorization',
-                   'CONTENT_LENGTH': 'Content-Length',
-                   'CONTENT_TYPE': 'Content-Type',
-                   'REMOTE_HOST': 'Remote-Host',
-                   'REMOTE_ADDR': 'Remote-Addr',
-                   }
+    headerNames = {
+        'HTTP_CGI_AUTHORIZATION': 'Authorization',
+        'CONTENT_LENGTH': 'Content-Length',
+        'CONTENT_TYPE': 'Content-Type',
+        'REMOTE_HOST': 'Remote-Host',
+        'REMOTE_ADDR': 'Remote-Addr',
+    }
+
+    def recode_path_qs(self, path, qs):
+        if not six.PY3:
+            return
+
+        # This isn't perfect; if the given PATH_INFO is in the
+        # wrong encoding, it may fail to match the appropriate config
+        # section URI. But meh.
+        old_enc = self.environ.get('wsgi.url_encoding', 'ISO-8859-1')
+        new_enc = self.cpapp.find_config(
+            self.environ.get('PATH_INFO', ''),
+            'request.uri_encoding', 'utf-8',
+        )
+        if new_enc.lower() == old_enc.lower():
+            return
+
+        # Even though the path and qs are unicode, the WSGI server
+        # is required by PEP 3333 to coerce them to ISO-8859-1
+        # masquerading as unicode. So we have to encode back to
+        # bytes and then decode again using the "correct" encoding.
+        try:
+            return (
+                path.encode(old_enc).decode(new_enc),
+                qs.encode(old_enc).decode(new_enc),
+            )
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            # Just pass them through without transcoding and hope.
+            pass
 
     def translate_headers(self, environ):
         """Translate CGI-environ header names to HTTP header names."""
@@ -362,9 +389,9 @@ class AppResponse(object):
             # We assume all incoming header keys are uppercase already.
             if cgiName in self.headerNames:
                 yield self.headerNames[cgiName], environ[cgiName]
-            elif cgiName[:5] == "HTTP_":
+            elif cgiName[:5] == 'HTTP_':
                 # Hackish attempt at recovering original header names.
-                translatedHeader = cgiName[5:].replace("_", "-")
+                translatedHeader = cgiName[5:].replace('_', '-')
                 yield translatedHeader, environ[cgiName]
 
 
@@ -372,9 +399,10 @@ class CPWSGIApp(object):
 
     """A WSGI application object for a CherryPy Application."""
 
-    pipeline = [('ExceptionTrapper', ExceptionTrapper),
-                ('InternalRedirector', InternalRedirector),
-                ]
+    pipeline = [
+        ('ExceptionTrapper', ExceptionTrapper),
+        ('InternalRedirector', InternalRedirector),
+    ]
     """A list of (name, wsgiapp) pairs. Each 'wsgiapp' MUST be a
     constructor that takes an initial, positional 'nextapp' argument,
     plus optional keyword arguments, and returns a WSGI application
@@ -424,16 +452,16 @@ class CPWSGIApp(object):
 
     def namespace_handler(self, k, v):
         """Config handler for the 'wsgi' namespace."""
-        if k == "pipeline":
+        if k == 'pipeline':
             # Note this allows multiple 'wsgi.pipeline' config entries
             # (but each entry will be processed in a 'random' order).
             # It should also allow developers to set default middleware
             # in code (passed to self.__init__) that deployers can add to
             # (but not remove) via config.
             self.pipeline.extend(v)
-        elif k == "response_class":
+        elif k == 'response_class':
             self.response_class = v
         else:
-            name, arg = k.split(".", 1)
+            name, arg = k.split('.', 1)
             bucket = self.config.setdefault(name, {})
             bucket[arg] = v

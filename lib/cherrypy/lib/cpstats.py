@@ -187,9 +187,19 @@ To format statistics reports::
 
 """
 
+import logging
+import os
+import sys
+import threading
+import time
+
+import six
+
+import cherrypy
+from cherrypy._cpcompat import json
+
 # ------------------------------- Statistics -------------------------------- #
 
-import logging
 if not hasattr(logging, 'statistics'):
     logging.statistics = {}
 
@@ -209,12 +219,6 @@ def extrapolate_statistics(scope):
 
 
 # -------------------- CherryPy Applications Statistics --------------------- #
-
-import sys
-import threading
-import time
-
-import cherrypy
 
 appstats = logging.statistics.setdefault('CherryPy Applications', {})
 appstats.update({
@@ -246,7 +250,9 @@ appstats.update({
     'Requests': {},
 })
 
-proc_time = lambda s: time.time() - s['Start Time']
+
+def proc_time(s):
+    return time.time() - s['Start Time']
 
 
 class ByteCountWrapper(object):
@@ -292,13 +298,15 @@ class ByteCountWrapper(object):
         return data
 
 
-average_uriset_time = lambda s: s['Count'] and (s['Sum'] / s['Count']) or 0
+def average_uriset_time(s):
+    return s['Count'] and (s['Sum'] / s['Count']) or 0
 
 
 def _get_threading_ident():
     if sys.version_info >= (3, 3):
         return threading.get_ident()
     return threading._get_ident()
+
 
 class StatsTool(cherrypy.Tool):
 
@@ -390,28 +398,22 @@ class StatsTool(cherrypy.Tool):
                 sq.pop(0)
 
 
-import cherrypy
 cherrypy.tools.cpstats = StatsTool()
 
 
 # ---------------------- CherryPy Statistics Reporting ---------------------- #
 
-import os
 thisdir = os.path.abspath(os.path.dirname(__file__))
-
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        json = None
-
 
 missing = object()
 
-locale_date = lambda v: time.strftime('%c', time.gmtime(v))
-iso_format = lambda v: time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(v))
+
+def locale_date(v):
+    return time.strftime('%c', time.gmtime(v))
+
+
+def iso_format(v):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(v))
 
 
 def pause_resume(ns):
@@ -475,6 +477,7 @@ class StatsPage(object):
         },
     }
 
+    @cherrypy.expose
     def index(self):
         # Transform the raw data into pretty output for HTML
         yield """
@@ -578,7 +581,6 @@ table.stats2 th {
 </body>
 </html>
 """
-    index.exposed = True
 
     def get_namespaces(self):
         """Yield (title, scalars, collections) for each namespace."""
@@ -611,12 +613,7 @@ table.stats2 th {
         """Return ([headers], [rows]) for the given collection."""
         # E.g., the 'Requests' dict.
         headers = []
-        try:
-            # python2
-            vals = v.itervalues()
-        except AttributeError:
-            # python3
-            vals = v.values()
+        vals = six.itervalues(v)
         for record in vals:
             for k3 in record:
                 format = formatting.get(k3, missing)
@@ -678,22 +675,22 @@ table.stats2 th {
         return headers, subrows
 
     if json is not None:
+        @cherrypy.expose
         def data(self):
             s = extrapolate_statistics(logging.statistics)
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.dumps(s, sort_keys=True, indent=4)
-        data.exposed = True
 
+    @cherrypy.expose
     def pause(self, namespace):
         logging.statistics.get(namespace, {})['Enabled'] = False
         raise cherrypy.HTTPRedirect('./')
-    pause.exposed = True
     pause.cp_config = {'tools.allow.on': True,
                        'tools.allow.methods': ['POST']}
 
+    @cherrypy.expose
     def resume(self, namespace):
         logging.statistics.get(namespace, {})['Enabled'] = True
         raise cherrypy.HTTPRedirect('./')
-    resume.exposed = True
     resume.cp_config = {'tools.allow.on': True,
                         'tools.allow.methods': ['POST']}

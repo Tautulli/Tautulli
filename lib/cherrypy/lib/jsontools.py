@@ -1,17 +1,15 @@
 import cherrypy
-from cherrypy._cpcompat import basestring, ntou, json_encode, json_decode
+from cherrypy._cpcompat import text_or_bytes, ntou, json_encode, json_decode
 
 
 def json_processor(entity):
     """Read application/json data into request.json."""
-    if not entity.headers.get(ntou("Content-Length"), ntou("")):
+    if not entity.headers.get(ntou('Content-Length'), ntou('')):
         raise cherrypy.HTTPError(411)
 
     body = entity.fp.read()
-    try:
+    with cherrypy.HTTPError.handle(ValueError, 400, 'Invalid JSON document'):
         cherrypy.serving.request.json = json_decode(body.decode('utf-8'))
-    except ValueError:
-        raise cherrypy.HTTPError(400, 'Invalid JSON document')
 
 
 def json_in(content_type=[ntou('application/json'), ntou('text/javascript')],
@@ -36,12 +34,9 @@ def json_in(content_type=[ntou('application/json'), ntou('text/javascript')],
     request header, or it will raise "411 Length Required". If for any
     other reason the request entity cannot be deserialized from JSON,
     it will raise "400 Bad Request: Invalid JSON document".
-
-    You must be using Python 2.6 or greater, or have the 'simplejson'
-    package importable; otherwise, ValueError is raised during processing.
     """
     request = cherrypy.serving.request
-    if isinstance(content_type, basestring):
+    if isinstance(content_type, text_or_bytes):
         content_type = [content_type]
 
     if force:
@@ -74,9 +69,6 @@ def json_out(content_type='application/json', debug=False,
     Provide your own handler to use a custom encoder.  For example
     cherrypy.config['tools.json_out.handler'] = <function>, or
     @json_out(handler=function).
-
-    You must be using Python 2.6 or greater, or have the 'simplejson'
-    package importable; otherwise, ValueError is raised during processing.
     """
     request = cherrypy.serving.request
     # request.handler may be set to None by e.g. the caching tool
