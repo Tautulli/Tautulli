@@ -19,10 +19,7 @@
 import hashlib
 from os import urandom
 from base64 import b64encode, b64decode
-
-
-# From https://github.com/mitsuhiko/python-pbkdf2
-from pbkdf2 import pbkdf2_bin
+from hashlib import pbkdf2_hmac
 
 
 # Parameters to PBKDF2. Only affect new passwords.
@@ -43,9 +40,8 @@ def make_hash(password):
     return 'PBKDF2${}${}${}${}'.format(
         HASH_FUNCTION,
         COST_FACTOR,
-        salt,
-        b64encode(pbkdf2_bin(password, salt, COST_FACTOR, KEY_LENGTH,
-                             getattr(hashlib, HASH_FUNCTION))))
+        salt.decode('utf-8'),
+        b64encode(pbkdf2_hmac(HASH_FUNCTION, password, salt, COST_FACTOR, KEY_LENGTH)).decode('utf-8'))
 
 
 def check_hash(password, hash_):
@@ -54,13 +50,12 @@ def check_hash(password, hash_):
         password = password.encode('utf-8')
     algorithm, hash_function, cost_factor, salt, hash_a = hash_.split('$')
     assert algorithm == 'PBKDF2'
-    hash_a = b64decode(hash_a)
-    hash_b = pbkdf2_bin(password, salt, int(cost_factor), len(hash_a),
-                        getattr(hashlib, hash_function))
+    hash_a = b64decode(hash_a.encode('utf-8'))
+    hash_b = pbkdf2_hmac(hash_function, password, salt.encode('utf-8'), int(cost_factor), len(hash_a))
     assert len(hash_a) == len(hash_b)  # we requested this from pbkdf2_bin()
     # Same as "return hash_a == hash_b" but takes a constant time.
     # See http://carlos.bueno.org/2011/10/timing.html
     diff = 0
     for char_a, char_b in zip(hash_a, hash_b):
-        diff |= ord(char_a) ^ ord(char_b)
+        diff |= char_a ^ char_b
     return diff == 0
