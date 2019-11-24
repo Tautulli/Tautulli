@@ -1,20 +1,7 @@
-###############################################################################
-# Universal Analytics for Python
-# Copyright (c) 2013, Analytics Pros
-# 
-# This project is free software, distributed under the BSD license. 
-# Analytics Pros offers consulting and integration services if your firm needs 
-# assistance in strategy, implementation, or auditing existing work.
-###############################################################################
-
-import six
-basestring = six.string_types
-unicode = six.text_type
-
-from six.moves.urllib.request import urlopen, build_opener, install_opener
-from six.moves.urllib.request import Request, HTTPSHandler
-from six.moves.urllib.error import URLError, HTTPError
-from six.moves.urllib.parse import urlencode
+from urllib.request import urlopen, build_opener, install_opener
+from urllib.request import Request, HTTPSHandler
+from urllib.error import URLError, HTTPError
+from urllib.parse import urlencode
 
 import random
 import datetime
@@ -28,7 +15,7 @@ def generate_uuid(basedata=None):
     """ Provides a _random_ UUID with no input, or a UUID4-format MD5 checksum of any input data provided """
     if basedata is None:
         return str(uuid.uuid4())
-    elif isinstance(basedata, basestring):
+    elif isinstance(basedata, str):
         checksum = hashlib.md5(basedata).hexdigest()
         return '%8s-%4s-%4s-%4s-%12s' % (
         checksum[0:8], checksum[8:12], checksum[12:16], checksum[16:20], checksum[20:32])
@@ -90,7 +77,7 @@ class HTTPRequest(object):
     def fixUTF8(cls, data):  # Ensure proper encoding for UA's servers...
         """ Convert all strings to UTF-8 """
         for key in data:
-            if isinstance(data[key], basestring):
+            if isinstance(data[key], str):
                 data[key] = data[key].encode('utf-8')
         return data
 
@@ -148,7 +135,7 @@ class Tracker(object):
 
     @classmethod
     def coerceParameter(cls, name, value=None):
-        if isinstance(name, basestring) and name[0] == '&':
+        if isinstance(name, str) and name[0] == '&':
             return name[1:], str(value)
         elif name in cls.parameter_alias:
             typecast, param_name = cls.parameter_alias.get(name)
@@ -157,17 +144,17 @@ class Tracker(object):
             raise KeyError('Parameter "{0}" is not recognized'.format(name))
 
     def payload(self, data):
-        for key, value in data.iteritems():
+        for key, value in data.items():
             try:
                 yield self.coerceParameter(key, value)
             except KeyError:
                 continue
 
     option_sequence = {
-        'pageview': [(basestring, 'dp')],
-        'event': [(basestring, 'ec'), (basestring, 'ea'), (basestring, 'el'), (int, 'ev')],
-        'social': [(basestring, 'sn'), (basestring, 'sa'), (basestring, 'st')],
-        'timing': [(basestring, 'utc'), (basestring, 'utv'), (basestring, 'utt'), (basestring, 'utl')]
+        'pageview': [(str, 'dp')],
+        'event': [(str, 'ec'), (str, 'ea'), (str, 'el'), (int, 'ev')],
+        'social': [(str, 'sn'), (str, 'sa'), (str, 'st')],
+        'timing': [(str, 'utc'), (str, 'utv'), (str, 'utt'), (str, 'utl')]
     }
 
     @classmethod
@@ -236,7 +223,7 @@ class Tracker(object):
                 for key, val in self.payload(item):
                     data[key] = val
 
-        for k, v in self.params.iteritems():  # update only absent parameters
+        for k, v in self.params.items():  # update only absent parameters
             if k not in data:
                 data[k] = v
 
@@ -251,13 +238,13 @@ class Tracker(object):
     # Setting persistent attibutes of the session/hit/etc (inc. custom dimensions/metrics)
     def set(self, name, value=None):
         if isinstance(name, dict):
-            for key, value in name.iteritems():
+            for key, value in name.items():
                 try:
                     param, value = self.coerceParameter(key, value)
                     self.params[param] = value
                 except KeyError:
                     pass
-        elif isinstance(name, basestring):
+        elif isinstance(name, str):
             try:
                 param, value = self.coerceParameter(name, value)
                 self.params[param] = value
@@ -281,7 +268,7 @@ class Tracker(object):
 def safe_unicode(obj):
     """ Safe convertion to the Unicode string version of the object """
     try:
-        return unicode(obj)
+        return str(obj)
     except UnicodeDecodeError:
         return obj.decode('utf-8')
 
@@ -384,7 +371,7 @@ for i in range(0, 5):
 # Enhanced Ecommerce
 Tracker.alias(str, 'pa')  # Product action
 Tracker.alias(str, 'tcc')  # Coupon code
-Tracker.alias(unicode, 'pal')  # Product action list
+Tracker.alias(str, 'pal')  # Product action list
 Tracker.alias(int, 'cos')  # Checkout step
 Tracker.alias(str, 'col')  # Checkout step option
 
@@ -392,10 +379,10 @@ Tracker.alias(str, 'promoa')  # Promotion action
 
 for product_index in range(1, MAX_EC_PRODUCTS):
     Tracker.alias(str, 'pr{0}id'.format(product_index))  # Product SKU
-    Tracker.alias(unicode, 'pr{0}nm'.format(product_index))  # Product name
-    Tracker.alias(unicode, 'pr{0}br'.format(product_index))  # Product brand
-    Tracker.alias(unicode, 'pr{0}ca'.format(product_index))  # Product category
-    Tracker.alias(unicode, 'pr{0}va'.format(product_index))  # Product variant
+    Tracker.alias(str, 'pr{0}nm'.format(product_index))  # Product name
+    Tracker.alias(str, 'pr{0}br'.format(product_index))  # Product brand
+    Tracker.alias(str, 'pr{0}ca'.format(product_index))  # Product category
+    Tracker.alias(str, 'pr{0}va'.format(product_index))  # Product variant
     Tracker.alias(str, 'pr{0}pr'.format(product_index))  # Product price
     Tracker.alias(int, 'pr{0}qt'.format(product_index))  # Product quantity
     Tracker.alias(str, 'pr{0}cc'.format(product_index))  # Product coupon code
@@ -407,10 +394,10 @@ for product_index in range(1, MAX_EC_PRODUCTS):
 
     for list_index in range(1, MAX_EC_LISTS):
         Tracker.alias(str, 'il{0}pi{1}id'.format(list_index, product_index))  # Product impression SKU
-        Tracker.alias(unicode, 'il{0}pi{1}nm'.format(list_index, product_index))  # Product impression name
-        Tracker.alias(unicode, 'il{0}pi{1}br'.format(list_index, product_index))  # Product impression brand
-        Tracker.alias(unicode, 'il{0}pi{1}ca'.format(list_index, product_index))  # Product impression category
-        Tracker.alias(unicode, 'il{0}pi{1}va'.format(list_index, product_index))  # Product impression variant
+        Tracker.alias(str, 'il{0}pi{1}nm'.format(list_index, product_index))  # Product impression name
+        Tracker.alias(str, 'il{0}pi{1}br'.format(list_index, product_index))  # Product impression brand
+        Tracker.alias(str, 'il{0}pi{1}ca'.format(list_index, product_index))  # Product impression category
+        Tracker.alias(str, 'il{0}pi{1}va'.format(list_index, product_index))  # Product impression variant
         Tracker.alias(int, 'il{0}pi{1}ps'.format(list_index, product_index))  # Product impression position
         Tracker.alias(int, 'il{0}pi{1}pr'.format(list_index, product_index))  # Product impression price
 
@@ -421,11 +408,11 @@ for product_index in range(1, MAX_EC_PRODUCTS):
                                                         custom_index))  # Product impression custom metric
 
 for list_index in range(1, MAX_EC_LISTS):
-    Tracker.alias(unicode, 'il{0}nm'.format(list_index))  # Product impression list name
+    Tracker.alias(str, 'il{0}nm'.format(list_index))  # Product impression list name
 
 for promotion_index in range(1, MAX_EC_PROMOTIONS):
     Tracker.alias(str, 'promo{0}id'.format(promotion_index))  # Promotion ID
-    Tracker.alias(unicode, 'promo{0}nm'.format(promotion_index))  # Promotion name
+    Tracker.alias(str, 'promo{0}nm'.format(promotion_index))  # Promotion name
     Tracker.alias(str, 'promo{0}cr'.format(promotion_index))  # Promotion creative
     Tracker.alias(str, 'promo{0}ps'.format(promotion_index))  # Promotion position
 

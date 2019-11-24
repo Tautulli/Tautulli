@@ -10,7 +10,7 @@
 
 
 import sys, re, os
-from cStringIO import StringIO
+from io import StringIO
 
 
 
@@ -116,6 +116,6 @@ def consume(outbuffer = None): # Capture standard output
 
 if __name__ == '__main__':
     consume(sys.stdout).write(sys.stdin.read())
-    print '\n'
+    print('\n')
 
 # vim: set nowrap tabstop=4 shiftwidth=4 softtabstop=0 expandtab textwidth=0 filetype=python foldmethod=indent foldcolumn=4
