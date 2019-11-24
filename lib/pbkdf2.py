@@ -44,7 +44,7 @@ import hmac
 import hashlib
 from struct import Struct
 from operator import xor
-from itertools import izip, starmap
+from itertools import starmap
 
 
 _pack_int = Struct('>I').pack
@@ -66,13 +66,13 @@ def pbkdf2_bin(data, salt, iterations=1000, keylen=24, hashfunc=None):
     def _pseudorandom(x, mac=mac):
         h = mac.copy()
         h.update(x)
-        return map(ord, h.digest())
+        return list(map(ord, h.digest()))
     buf = []
-    for block in xrange(1, -(-keylen // mac.digest_size) + 1):
+    for block in range(1, -(-keylen // mac.digest_size) + 1):
         rv = u = _pseudorandom(salt + _pack_int(block))
-        for i in xrange(iterations - 1):
+        for i in range(iterations - 1):
             u = _pseudorandom(''.join(map(chr, u)))
-            rv = list(starmap(xor, izip(rv, u)))
+            rv = list(starmap(xor, zip(rv, u)))
         buf.extend(rv)
     return ''.join(map(chr, buf))[:keylen]
 
@@ -82,14 +82,14 @@ def test():
     def check(data, salt, iterations, keylen, expected):
         rv = pbkdf2_hex(data, salt, iterations, keylen)
         if rv != expected:
-            print 'Test failed:'
-            print '  Expected:   %s' % expected
-            print '  Got:        %s' % rv
-            print '  Parameters:'
-            print '    data=%s' % data
-            print '    salt=%s' % salt
-            print '    iterations=%d' % iterations
-            print
+            print('Test failed:')
+            print('  Expected:   %s' % expected)
+            print('  Got:        %s' % rv)
+            print('  Parameters:')
+            print('    data=%s' % data)
+            print('    salt=%s' % salt)
+            print('    iterations=%d' % iterations)
+            print()
             failed.append(1)
 
     # From RFC 6070
