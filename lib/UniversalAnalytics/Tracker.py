@@ -16,7 +16,7 @@ def generate_uuid(basedata=None):
     if basedata is None:
         return str(uuid.uuid4())
     elif isinstance(basedata, str):
-        checksum = hashlib.md5(basedata).hexdigest()
+        checksum = hashlib.md5(str(basedata).encode('UTF-8')).hexdigest()
         return '%8s-%4s-%4s-%4s-%12s' % (
         checksum[0:8], checksum[8:12], checksum[12:16], checksum[16:20], checksum[20:32])
 
