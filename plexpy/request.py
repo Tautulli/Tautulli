@@ -323,10 +323,9 @@ def server_message(response, return_msg=False):
         if len(message) > 150:
             message = message[:150] + "..."
 
+        message = str(message, 'utf-8', 'replace')
+
         if return_msg:
-            try:
-                return str(message, 'UTF-8')
-            except:
-                return message
+            return message
 
         logger.debug("Server responded with message: %s", message)
