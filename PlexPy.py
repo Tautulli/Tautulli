@@ -1,5 +1,5 @@
 #!/bin/sh
-''''which python    >/dev/null 2>&1 && exec python    "$0" "$@" # '''
+''''which python    >/dev/null 2>&1 && python -c "import sys; exit(0 if (sys.version_info.major == 2) else 1);" >/dev/null 2>&1 && exec python    "$0" "$@" # '''
 ''''which python2   >/dev/null 2>&1 && exec python2   "$0" "$@" # '''
 ''''which python2.7 >/dev/null 2>&1 && exec python2.7 "$0" "$@" # '''
 ''''exec echo "Error: Python not found!" # '''
