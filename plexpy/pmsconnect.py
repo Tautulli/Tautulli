@@ -729,7 +729,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'show':
@@ -781,7 +781,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'season':
@@ -831,7 +831,7 @@ class PmsConnect(object):
                         'collections': show_details['collections'],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'episode':
@@ -897,7 +897,7 @@ class PmsConnect(object):
                         'collections': show_details['collections'],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'artist':
@@ -944,7 +944,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'album':
@@ -994,7 +994,7 @@ class PmsConnect(object):
                         'collections': collections,
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'track':
@@ -1046,7 +1046,7 @@ class PmsConnect(object):
                         'collections': album_details['collections'],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
                                                         track_artist),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'photo_album':
@@ -1093,7 +1093,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'photo':
@@ -1143,7 +1143,7 @@ class PmsConnect(object):
                         'collections': photo_album_details.get('collections', ''),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                         helpers.get_xml_attr(metadata_main, 'title')),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'collection':
@@ -1194,7 +1194,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount'))
                         }
 
         elif metadata_type == 'clip':
@@ -2137,7 +2137,7 @@ class PmsConnect(object):
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
                     logger.debug("Tautulli Pmsconnect :: No children data.")
-                    children_list = {'children_count': '0',
+                    children_list = {'children_count': 0,
                                      'children_list': []
                                      }
                     return children_list
@@ -2222,7 +2222,7 @@ class PmsConnect(object):
                                        }
                     children_list.append(children_output)
 
-        output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
+        output = {'children_count': helpers.cast_to_int(helpers.get_xml_attr(xml_head[0], 'size')),
                   'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
                   'children_list': children_list
@@ -2734,7 +2734,7 @@ class PmsConnect(object):
 
                         if metadata['media_type'] == 'show':
                             show_seasons = self.get_item_children(rating_key=metadata['rating_key'])
-                            if show_seasons['children_count'] != '0':
+                            if show_seasons['children_count'] != 0:
                                 for season in show_seasons['children_list']:
                                     if season['rating_key']:
                                         metadata = self.get_metadata_details(rating_key=season['rating_key'])
