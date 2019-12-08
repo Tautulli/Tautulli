@@ -75,7 +75,7 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of db, removes all but the last 5 backups """
 
     # Check the integrity of the database first
-    integrity = (integrity_check() == 'ok')
+    integrity = (integrity_check()['integrity_check'] == 'ok')
 
     corrupt = ''
     if not integrity:

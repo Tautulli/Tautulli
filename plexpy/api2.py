@@ -415,7 +415,7 @@ class API2(object):
 
         return
 
-    def notify(self, notifier_id='', subject='Tautulli', body='Test notification', **kwargs):
+    def notify(self, notifier_id='', subject='', body='', **kwargs):
         """ Send a notification using Tautulli.
 
             ```
