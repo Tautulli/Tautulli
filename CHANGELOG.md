@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.1.39 (2019-12-08)
+
+* UI:
+  * New: Added creating admin username and password to setup wizard.
+* API:
+  * Change: Remove default notification subject and body for notify API command.
+* Other:
+  * Change: Check for database corruption when making backup.
+
+
 ## v2.1.38 (2019-11-17)
 
 * Notifications:
