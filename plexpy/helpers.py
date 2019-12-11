@@ -586,7 +586,7 @@ def get_ip(host):
     ip_address = ''
     if is_valid_ip(host):
         return host
-    elif not re.fullmatch(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', host):
+    elif not re.match(r'^[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})$', host):
         try:
             ip_address = socket.getaddrinfo(host, None)[0][4][0]
             logger.debug("IP Checker :: Resolved %s to %s." % (host, ip_address))
