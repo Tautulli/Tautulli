@@ -90,6 +90,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
     if notifiers_enabled and not manual_trigger:
+        logger.debug(u"Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s'." % notify_action)
+
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
                                        stream_data=stream_data,
@@ -98,6 +100,9 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         conditions = True
 
     if notifiers_enabled and (manual_trigger or conditions):
+        if manual_trigger:
+            logger.debug(u"Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s' (manual trigger)." % notify_action)
+
         if stream_data or timeline_data:
             # Build the notification parameters
             parameters = build_media_notify_params(notify_action=notify_action,
@@ -138,6 +143,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
     # Activity notifications
     if stream_data:
+        logger.debug(u"Tautulli NotificationHandler :: Checking global notification conditions.")
 
         # Check if notifications enabled for user and library
         # user_data = users.Users()
@@ -163,36 +169,37 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
                 user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
 
             if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                return len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                evaluated = len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
             else:
-                return len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
         elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
-            return stream_data['machine_id'] not in user_devices
+            evaluated = stream_data['machine_id'] not in user_devices
 
         elif stream_data['media_type'] in ('movie', 'episode', 'clip'):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
             
             if notify_action == 'on_stop':
-                return (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
+                evaluated = (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
                     (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT) or 
                     (stream_data['media_type'] == 'episode' and progress_percent < plexpy.CONFIG.TV_WATCHED_PERCENT))
             
             elif notify_action == 'on_resume':
-                return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
+                evaluated = plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
 
             # All other activity notify actions
             else:
-                return True
+                evaluated = True
 
         elif stream_data['media_type'] == 'track':
-            return True
+            evaluated = True
 
         else:
-            return False
+            evaluated = False
 
+        logger.debug(u"Tautulli NotificationHandler :: Global notification conditions evaluated to '{}'.".format(evaluated))
     # Recently Added notifications
     elif timeline_data:
 
@@ -204,11 +211,13 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         #     # logger.debug(u"Tautulli NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
         #     return False
 
-        return True
+        evaluated = True
 
     # Server notifications
     else:
-        return True
+        evaluated = True
+
+    return evaluated
 
 
 def notify_custom_conditions(notifier_id=None, parameters=None):
