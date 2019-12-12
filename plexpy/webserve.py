@@ -2370,18 +2370,18 @@ class WebInterface(object):
         else:
             filename = logger.FILENAME
 
-        with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename)) as f:
+        with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
             for l in f.readlines():
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
                     loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = helpers.sanitize(str(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8'))
+                    msg = helpers.sanitize(l.split(' : ', 1)[1].replace('\n', ''))
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(str(l[n:], 'utf-8'))
+                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(l[n:])
                     filt[tl][2] += '<br>' + ll
                     continue
 
@@ -2705,7 +2705,7 @@ class WebInterface(object):
             filename = logger.FILENAME
 
         try:
-            with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r') as f:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
                 return '<pre>%s</pre>' % f.read()
         except IOError as e:
             return "Log file not found."

@@ -264,7 +264,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         # Main Tautulli logger
         filename = os.path.join(log_dir, FILENAME)
-        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
+        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES, encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
 
@@ -272,7 +272,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         # Tautulli API logger
         filename = os.path.join(log_dir, FILENAME_API)
-        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
+        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES, encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
 
@@ -280,7 +280,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
         # Tautulli websocket logger
         filename = os.path.join(log_dir, FILENAME_PLEX_WEBSOCKET)
-        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
+        file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES, encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
 

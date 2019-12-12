@@ -38,7 +38,7 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
         return []
 
     try:
-        logfile = open(log_file, "r")
+        logfile = open(log_file, "r", encoding="utf-8")
     except IOError as e:
         logger.error('Unable to open Plex Log file. %s' % e)
         return []
@@ -52,7 +52,7 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
             try:
                 log_time = i.split(' [')[0]
                 log_level = i.split('] ', 1)[1].split(' - ', 1)[0]
-                log_msg = str(i.split('] ', 1)[1].split(' - ', 1)[1], 'utf-8')
+                log_msg = i.split('] ', 1)[1].split(' - ', 1)[1]
                 full_line = [log_time, log_level, log_msg]
                 clean_lines.append(full_line)
             except:
