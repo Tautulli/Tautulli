@@ -377,19 +377,23 @@ class Graphs(object):
 
         # create our date range as some months may not have any data
         # but we still want to display them
-        base = time.localtime()
-        month_range = [time.localtime(
-            time.mktime((base.tm_year, base.tm_mon - n, 1, 0, 0, 0, 0, 0, 0))) for n in range(int(time_range))]
+        dt_today = datetime.date.today()
+        dt = dt_today
+        month_range = [dt]
+        for n in range(int(time_range)-1):
+            if not ((dt_today.month-n) % 12)-1:
+                dt = datetime.date(dt.year-1, 12, 1)
+            else:
+                dt = datetime.date(dt.year, dt.month-1, 1)
+            month_range.append(dt)
 
         categories = []
         series_1 = []
         series_2 = []
         series_3 = []
 
-        for month_item in sorted(month_range):
-            dt = datetime.datetime(*month_item[:6])
+        for dt in sorted(month_range):
             date_string = dt.strftime('%Y-%m')
-
             categories.append(dt.strftime('%b %Y').decode(plexpy.SYS_ENCODING, 'replace'))
             series_1_value = 0
             series_2_value = 0
