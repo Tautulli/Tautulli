@@ -88,7 +88,7 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
-                                                    % for key, value in sorted(item['select_options'].iteritems()):
+                                                    % for key, value in sorted(item['select_options'].items()):
                                                     % if key == item['value']:
                                                     <option value="${key}" selected>${value}</option>
                                                     % else:
@@ -109,7 +109,7 @@
                                                     <option value="select-all">Select All</option>
                                                     <option value="remove-all">Remove All</option>
                                                     % if isinstance(item['select_options'], dict):
-                                                    % for section, options in item['select_options'].iteritems():
+                                                    % for section, options in item['select_options'].items():
                                                     <optgroup label="${section}">
                                                         % for option in sorted(options, key=lambda x: x['text'].lower()):
                                                             <option value="${option['value']}">${option['text']}</option>
@@ -313,7 +313,7 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <select class="form-control" id="test_script" name="test_script">
-                                            % for key, value in sorted(notifier['config_options'][2]['select_options'].iteritems()):
+                                            % for key, value in sorted(notifier['config_options'][2]['select_options'].items()):
                                             <option value="${key}">${value}</option>
                                             % endfor
                                         </select>

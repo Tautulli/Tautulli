@@ -43,14 +43,14 @@ DOCUMENTATION :: END
 
     # Get audio codec file
     def af(codec):
-        for pattern, file_type in MEDIA_FLAGS_AUDIO.iteritems():
+        for pattern, file_type in MEDIA_FLAGS_AUDIO.items():
             if re.match(pattern, codec):
                 return file_type
         return codec
 
     # Get audio codec file
     def vf(codec):
-        for pattern, file_type in MEDIA_FLAGS_VIDEO.iteritems():
+        for pattern, file_type in MEDIA_FLAGS_VIDEO.items():
             if re.match(pattern, codec):
                 return file_type
         return codec
