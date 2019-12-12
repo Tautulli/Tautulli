@@ -394,7 +394,7 @@ class Graphs(object):
 
         for dt in sorted(month_range):
             date_string = dt.strftime('%Y-%m')
-            categories.append(dt.strftime('%b %Y').decode(plexpy.SYS_ENCODING, 'replace'))
+            categories.append(dt.strftime('%b %Y'))
             series_1_value = 0
             series_2_value = 0
             series_3_value = 0
