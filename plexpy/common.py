@@ -441,6 +441,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Labels', 'type': 'str', 'value': 'labels', 'description': 'A list of labels for the item.'},
              {'name': 'Collections', 'type': 'str', 'value': 'collections', 'description': 'A list of collections for the item.'},
              {'name': 'Summary', 'type': 'str', 'value': 'summary', 'description': 'A short plot summary for the item.'},
+             {'name': 'Summary_short', 'type': 'str', 'value': 'summary_short', 'description': 'A very short plot summary for the item.'},
              {'name': 'Tagline', 'type': 'str', 'value': 'tagline', 'description': 'A tagline for the media item.'},
              {'name': 'Rating', 'type': 'float', 'value': 'rating', 'description': 'The rating (out of 10) for the item.'},
              {'name': 'Critic Rating', 'type': 'int', 'value': 'critic_rating', 'description': 'The critic rating (%) for the item.', 'help_text': 'Ratings source must be Rotten Tomatoes for the Plex Movie agent'},
