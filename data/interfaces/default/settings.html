@@ -1008,7 +1008,7 @@
                                 <p class="help-block" id="self_host_newsletter_message">
                                     Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
                                 </p>
-                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="web_interface" data-target="http_base_url">Web Interface</a>.</p>
                             </div>
                             <div class="form-group">
                                 <label for="newsletter_auth">Newsletter Authentication</label>
@@ -1022,7 +1022,7 @@
                                     </div>
                                 </div>
                                 <p class="help-block">Select the authentication method to use for self-hosted newsletters.</p>
-                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="tabs-web_interface" data-target="#allow_guest_access">Web Interface</a>.</p>
+                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="web_interface" data-target="allow_guest_access">Web Interface</a>.</p>
                             </div>
                             <div class="form-group" id="newsletter_password_option">
                                 <label for="newsletter_password">Newsletter Password</label>
@@ -1204,7 +1204,7 @@
                             Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Warning: The <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
+                            Warning: The <a data-tab-destination="notifications" data-target="notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
                         </p>
                         <br/>
                         <div id="plexpy-newsletters-table">
@@ -1316,7 +1316,7 @@
                         <div class="form-group">
                             <label>Registered Devices</label>
                             <p class="help-block">Register a new device using a QR code, or configure an existing device by clicking the settings icon on the right.</p>
-                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface" data-target="#api_enabled">Web Interface</a> to use the app.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">Warning: The API must be enabled under <a data-tab-destination="web_interface" data-target="api_enabled">Web Interface</a> to use the app.</p>
                             <div class="row">
                                 <div id="plexpy-mobile-devices-table" class="col-md-12">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
@@ -2773,20 +2773,26 @@ $(document).ready(function() {
 
     $('#allow_guest_access').click(function () {
         newsletterPasswordEnabled();
-    })
+    });
+
+    function gotoSetting(tab, setting){
+        $("a[href=#tabs-" + tab + "]").click();
+        if (setting) {
+            _setting = '#' + setting;
+            if ($(_setting).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
+                $('#menu_link_show_advanced_settings').click()
+            }
+            var body_container = $('.body-container');
+            var scroll_pos = setting ? body_container.scrollTop() + $(_setting).offset().top - 100 : 0;
+            body_container.animate({scrollTop: scroll_pos});
+            $(_setting).closest('.form-group, .checkbox').delay(500).fadeOut().fadeIn('slow').fadeOut().fadeIn('slow');
+        }
+    }
 
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');
-        $("a[href=#" + tab + "]").click();
-        var scroll_destination = $(this).data('target');
-        if (scroll_destination) {
-            if ($(scroll_destination).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
-                $('#menu_link_show_advanced_settings').click()
-            }
-            var body_container = $('.body-container')
-            var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
-            body_container.animate({scrollTop: scroll_pos});
-        }
+        var setting = $(this).data('target');
+        gotoSetting(tab, setting)
     });
 
     $('#resources-xml').on('tripleclick', function () {
