@@ -53,14 +53,6 @@ DOCUMENTATION :: END
             <td>Newsletter Directory:</td>
             <td>${plexpy.CONFIG.NEWSLETTER_DIR}</td>
         </tr>
-        <tr>
-            <td>GeoLite2 Database:</td>
-            % if plexpy.CONFIG.GEOIP_DB:
-            <td>${plexpy.CONFIG.GEOIP_DB} | <a class="no-highlight" href="#" id="reinstall_geoip_db">Reinstall / Update</a> | <a class="no-highlight" href="#" id="uninstall_geoip_db">Uninstall</a></td>
-            % else:
-            <td><a class="no-highlight" href="#" id="install_geoip_db">Click here to install the GeoLite2 database.</a></td>
-            % endif
-        </tr>
         % if plexpy.ARGS:
         <tr>
             <td>Arguments:</td>
@@ -102,22 +94,6 @@ DOCUMENTATION :: END
 
 <script>
     $(document).ready(function () {
-        $("#install_geoip_db, #reinstall_geoip_db").click(function () {
-            var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
-                'The database is used to lookup IP address geolocation info.<br />' +
-                'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-                'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />'
-            var url = 'install_geoip_db';
-            confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', getConfigurationTable);
-        });
-
-        $("#uninstall_geoip_db").click(function () {
-            var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
-                'You will not be able to lookup IP address geolocation info.';
-            var url = 'uninstall_geoip_db';
-            confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', getConfigurationTable);
-        });
-
         $('.guidelines-modal-link').on('click', function (e) {
             e.preventDefault();
             $('#guidelines-type').text($(this).data('id'))

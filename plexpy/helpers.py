@@ -36,6 +36,7 @@ import re
 import shlex
 import socket
 import sys
+import tarfile
 import time
 import unicodedata
 import urllib, urllib2
@@ -584,61 +585,79 @@ def is_valid_ip(address):
 
 
 def install_geoip_db():
-    maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
-    geolite2_gz = 'GeoLite2-City.mmdb.gz'
-    geolite2_md5 = 'GeoLite2-City.md5'
-    geolite2_db = geolite2_gz[:-3]
-    md5_checksum = ''
+    if not plexpy.CONFIG.MAXMIND_LICENSE_KEY:
+        logger.error(u"Tautulli Helpers :: Failed to download GeoLite2 database file from MaxMind: Missing MaxMindLicense Key")
+        return False
+
+    maxmind_db = 'GeoLite2-City'
+    maxmind_url = 'https://download.maxmind.com/app/geoip_download?edition_id={db}&suffix={{suffix}}&license_key={key}'.format(
+        db=maxmind_db, key=plexpy.CONFIG.MAXMIND_LICENSE_KEY)
+    geolite2_db_url = maxmind_url.format(suffix='tar.gz')
+    geolite2_md5_url = maxmind_url.format(suffix='tar.gz.md5')
+    geolite2_gz = maxmind_db + '.tar.gz'
+    geolite2_md5 = geolite2_gz + '.md5'
+    geolite2_db = maxmind_db + '.mmdb'
+    geolite2_db_path = plexpy.CONFIG.GEOIP_DB or os.path.join(plexpy.DATA_DIR, geolite2_db)
 
     temp_gz = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_gz)
-    geolite2_db = plexpy.CONFIG.GEOIP_DB or os.path.join(plexpy.DATA_DIR, geolite2_db)
+    temp_md5 = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_md5)
 
     # Retrieve the GeoLite2 gzip file
     logger.debug(u"Tautulli Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
     try:
         maxmind = urllib.URLopener()
-        maxmind.retrieve(maxmind_url + geolite2_gz, temp_gz)
-        md5_checksum = urllib2.urlopen(maxmind_url + geolite2_md5).read()
+        maxmind.retrieve(geolite2_db_url, temp_gz)
+        maxmind.retrieve(geolite2_md5_url, temp_md5)
     except Exception as e:
         logger.error(u"Tautulli Helpers :: Failed to download GeoLite2 gzip file from MaxMind: %s" % e)
         return False
 
-    # Extract the GeoLite2 database file
-    logger.debug(u"Tautulli Helpers :: Extracting GeoLite2 database...")
-    try:
-        with gzip.open(temp_gz, 'rb') as gz:
-            with open(geolite2_db, 'wb') as db:
-                db.write(gz.read())
-    except Exception as e:
-        logger.error(u"Tautulli Helpers :: Failed to extract the GeoLite2 database: %s" % e)
-        return False
-
-    # Check MD5 hash for GeoLite2 database file
-    logger.debug(u"Tautulli Helpers :: Checking MD5 checksum for GeoLite2 database...")
+    # Check MD5 hash for GeoLite2 tar.gz file
+    logger.debug(u"Tautulli Helpers :: Checking MD5 checksum for GeoLite2 gzip file...")
     try:
         hash_md5 = hashlib.md5()
-        with open(geolite2_db, 'rb') as f:
+        with open(temp_gz, 'rb') as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         md5_hash = hash_md5.hexdigest()
+
+        with open(temp_md5, 'r') as f:
+            md5_checksum = f.read()
 
         if md5_hash != md5_checksum:
             logger.error(u"Tautulli Helpers :: MD5 checksum doesn't match for GeoLite2 database. "
                          "Checksum: %s, file hash: %s" % (md5_checksum, md5_hash))
             return False
     except Exception as e:
-        logger.error(u"Tautulli Helpers :: Failed to generate MD5 checksum for GeoLite2 database: %s" % e)
+        logger.error(u"Tautulli Helpers :: Failed to generate MD5 checksum for GeoLite2 gzip file: %s" % e)
+        return False
+
+    # Extract the GeoLite2 database file
+    logger.debug(u"Tautulli Helpers :: Extracting GeoLite2 database...")
+    try:
+        with tarfile.open(temp_gz, 'r:gz') as tar:
+            for tarinfo in tar:
+                if tarinfo.isdir():
+                    member = tar.getmember(os.path.join(tarinfo.name, geolite2_db))
+                    mmdb = tar.extractfile(member)
+                    with open(geolite2_db_path, 'wb') as db:
+                        db.write(mmdb.read())
+                    break
+    except Exception as e:
+        logger.error(u"Tautulli Helpers :: Failed to extract the GeoLite2 database: %s" % e)
         return False
 
     # Delete temportary GeoLite2 gzip file
     logger.debug(u"Tautulli Helpers :: Deleting temporary GeoLite2 gzip file...")
     try:
         os.remove(temp_gz)
+        os.remove(temp_md5)
     except Exception as e:
         logger.warn(u"Tautulli Helpers :: Failed to remove temporary GeoLite2 gzip file: %s" % e)
 
     logger.debug(u"Tautulli Helpers :: GeoLite2 database installed successfully.")
-    plexpy.CONFIG.__setattr__('GEOIP_DB', geolite2_db)
+    plexpy.CONFIG.__setattr__('GEOIP_DB', geolite2_db_path)
+    plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', int(time.time()))
     plexpy.CONFIG.write()
 
     return True
@@ -648,7 +667,7 @@ def uninstall_geoip_db():
     logger.debug(u"Tautulli Helpers :: Uninstalling the GeoLite2 database...")
     try:
         os.remove(plexpy.CONFIG.GEOIP_DB)
-        plexpy.CONFIG.__setattr__('GEOIP_DB', '')
+        plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', 0)
         plexpy.CONFIG.write()
     except Exception as e:
         logger.error(u"Tautulli Helpers :: Failed to uninstall the GeoLite2 database: %s" % e)
@@ -659,7 +678,7 @@ def uninstall_geoip_db():
 
 
 def geoip_lookup(ip_address):
-    if not plexpy.CONFIG.GEOIP_DB:
+    if not plexpy.CONFIG.GEOIP_DB_INSTALLED:
         return 'GeoLite2 database not installed. Please install from the ' \
             '<a href="settings?install_geoip=true">Settings</a> page.'
 
@@ -677,7 +696,7 @@ def geoip_lookup(ip_address):
             '<a href="settings?install_geoip=true">Settings</a> page.'
     except maxminddb.InvalidDatabaseError as e:
         return 'Invalid GeoLite2 database. Please reinstall from the ' \
-            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
+            '<a href="settings?install_geoip=true">Settings</a> page.'
     except geoip2.errors.AddressNotFoundError as e:
         return '%s' % e
     except Exception as e:

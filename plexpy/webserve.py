@@ -2819,7 +2819,9 @@ class WebInterface(object):
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
-            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
+            "geoip_db": plexpy.CONFIG.GEOIP_DB,
+            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)

@@ -175,6 +175,7 @@ _CONFIG_DEFINITIONS = {
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
     'GEOIP_DB': (str, 'General', ''),
+    'GEOIP_DB_INSTALLED': (int, 'General', 0),
     'GET_FILE_SIZES': (int, 'General', 0),
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
@@ -289,6 +290,7 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
+    'MAXMIND_LICENSE_KEY': (str, 'General', ''),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
@@ -923,3 +925,10 @@ class Config(object):
             self.BUFFER_THRESHOLD = max(self.BUFFER_THRESHOLD, 10)
 
             self.CONFIG_VERSION = 13
+
+        if self.CONFIG_VERSION == 13:
+            self.GEOIP_DB_INSTALLED = int(bool(self.GEOIP_DB))
+            if not self.GEOIP_DB:
+                self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
+
+            self.CONFIG_VERSION = 14
