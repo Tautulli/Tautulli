@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -167,7 +167,7 @@ def initialize(config_file):
             plexpy.SYS_TIMEZONE.zone, plexpy.SYS_UTC_OFFSET
         ))
         logger.info(u"Python {}".format(
-            sys.version
+            sys.version.replace('\n', '')
         ))
         logger.info(u"Program Dir: {}".format(
             PROG_DIR
