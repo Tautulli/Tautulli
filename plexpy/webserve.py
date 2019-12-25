@@ -2820,9 +2820,10 @@ class WebInterface(object):
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
             "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
+            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY,
             "geoip_db": plexpy.CONFIG.GEOIP_DB,
             "geoip_db_installed": plexpy.CONFIG.GEOIP_DB_INSTALLED,
-            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY
+            "geoip_db_update_days": plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)

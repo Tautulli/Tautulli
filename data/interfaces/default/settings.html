@@ -1260,6 +1260,16 @@
                                 GeoLite2 Database last updated <strong><span id="geoip_db_updated">never</span></strong>.
                             </p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="geoip_db_update_days">GeoLite2 Database Update Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="geoip_db_update_days" name="geoip_db_update_days" value="${config['geoip_db_update_days']}" size="5" data-parsley-min="7" data-parsley-trigger="change" data-parsley-errors-container="#geoip_db_update_days_error" required>
+                                </div>
+                                <div id="geoip_db_update_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in days) Tautulli will automatically update the GeoLite2 database. Minimum 7, default 30.</p>
+                        </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 

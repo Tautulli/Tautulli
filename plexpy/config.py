@@ -176,6 +176,7 @@ _CONFIG_DEFINITIONS = {
     'FREEZE_DB': (int, 'General', 0),
     'GEOIP_DB': (str, 'General', ''),
     'GEOIP_DB_INSTALLED': (int, 'General', 0),
+    'GEOIP_DB_UPDATE_DAYS': (int, 'General', 30),
     'GET_FILE_SIZES': (int, 'General', 0),
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
