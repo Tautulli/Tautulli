@@ -1250,7 +1250,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting}>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
+                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] > 1 else 'Install'}</button>
                                             <button class="btn btn-form" type="button" id="uninstall_geoip_db">Uninstall</button>
                                         </span>
                                     </div>
