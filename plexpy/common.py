@@ -197,7 +197,8 @@ SCHEDULER_LIST = [
     'Refresh libraries list',
     'Refresh Plex server URLs',
     'Backup Tautulli database',
-    'Backup Tautulli config'
+    'Backup Tautulli config',
+    'Update GeoLite2 database'
 ]
 
 DATE_TIME_FORMATS = [

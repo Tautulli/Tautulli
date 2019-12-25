@@ -1178,20 +1178,25 @@
                                 </div>
                             </div>
                             <p class="help-block">
-                                Enter your MaxMind License Key. You can register for a license key  <a href="${anon_url('https://www.maxmind.com/en/geolite2/signup')}" target="_blank">here</a>.
+                                Enter your MaxMind License Key to install the GeoLite2 database. You can register for a license key  <a href="${anon_url('https://www.maxmind.com/en/geolite2/signup')}" target="_blank">here</a>.
                             </p>
                         </div>
                         <div class="form-group">
-                            <label for="geoip_db">GeoIP Database File</label> ${docker_msg | n}
+                            <label for="geoip_db">GeoLite2 Database File</label> ${docker_msg | n}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting}>
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if plexpy.CONFIG.GEOIP_DB_INSTALLED else 'Install'}</button>
-                                        <button class="btn btn-form" type="button" id="uninstall_geoip_db">Uninstall</button>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
+                                            <button class="btn btn-form" type="button" id="uninstall_geoip_db">Uninstall</button>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
+                            <p class="help-block">
+                                The GeoLite2 database is used to geolocate IP addresses. Database last updated <strong><span id="geoip_db_updated">never</span></strong>.
+                            </p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -2818,24 +2823,43 @@ $(document).ready(function() {
         openPlexXML('/api/resources', true, {includeHttps: 1});
     });
 
-    if ("${kwargs.get('install_geoip')}" == 'true') {
+    if ("${kwargs.get('install_geoip')}" === 'true') {
         gotoSetting('notifications', 'geoip_db')
+    }
+
+    if ("${config['geoip_db_installed']}" > "0") {
+        $("#geoip_db_updated").text(moment("${config['geoip_db_installed']}", "X").fromNow());
     }
 
     $("#install_geoip_db").click(function () {
         var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
             'The database is used to lookup IP address geolocation info.<br />' +
             'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-            'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />'
+            'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />';
         var url = 'install_geoip_db';
-        confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', function () {$('#install_geoip_db').text('Update');});
+        if ($(this).text() === 'Update') {
+            url += '?update=true';
+        }
+        confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', function (result) {
+            if (result.result === "success") {
+                $('#install_geoip_db').text('Update');
+                $('#geoip_db_updated').text(moment(result.updated, "X").fromNow());
+            }
+            getSchedulerTable();
+        });
     });
 
     $("#uninstall_geoip_db").click(function () {
         var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
             'You will not be able to lookup IP address geolocation info.';
         var url = 'uninstall_geoip_db';
-        confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', function () {$('#install_geoip_db').text('Install');});
+        confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', function (result) {
+            if (result.result === "success") {
+                $('#install_geoip_db').text('Install');
+                $('#geoip_db_updated').text('never');
+            }
+            getSchedulerTable();
+        });
     });
 });
 </script>

@@ -39,6 +39,7 @@ import activity_pinger
 import common
 import database
 import datafactory
+import helpers
 import libraries
 import logger
 import mobile_app
@@ -444,6 +445,8 @@ def initialize_scheduler():
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
         schedule_job(config.make_backup, 'Backup Tautulli config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+        schedule_job(helpers.update_geoip_db, 'Update GeoLite2 database',
+                     hours=12 * bool(CONFIG.GEOIP_DB_INSTALLED > 1), minutes=0, seconds=0)
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',

@@ -2821,6 +2821,7 @@ class WebInterface(object):
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
             "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
             "geoip_db": plexpy.CONFIG.GEOIP_DB,
+            "geoip_db_installed": plexpy.CONFIG.GEOIP_DB_INSTALLED,
             "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY
         }
 
@@ -3057,15 +3058,17 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def install_geoip_db(self, **kwargs):
+    def install_geoip_db(self, update=False, **kwargs):
         """ Downloads and installs the GeoLite2 database """
 
-        result = helpers.install_geoip_db()
+        update = True if update == 'true' else False
+
+        result = helpers.install_geoip_db(update=update)
 
         if result:
-            return {'result': 'success', 'message': 'GeoLite2 database installed successful.'}
+            return {'result': 'success', 'message': 'GeoLite2 database installed successful.', 'updated': result}
         else:
-            return {'result': 'error', 'message': 'GeoLite2 database install failed.'}
+            return {'result': 'error', 'message': 'GeoLite2 database install failed.', 'updated': 0}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

@@ -584,7 +584,16 @@ def is_valid_ip(address):
         return False
 
 
-def install_geoip_db():
+def update_geoip_db():
+    if plexpy.CONFIG.GEOIP_DB_INSTALLED > 1:
+        logger.info(u"Tautulli Helpers :: Checking for GeoLite2 database updates.")
+        now = int(time.time())
+        if now - plexpy.CONFIG.GEOIP_DB_INSTALLED >= 2592000:  # 30 days
+            return install_geoip_db(update=True)
+        logger.info(u"Tautulli Helpers :: GeoLite2 database already updated within the last 30 days.")
+
+
+def install_geoip_db(update=False):
     if not plexpy.CONFIG.MAXMIND_LICENSE_KEY:
         logger.error(u"Tautulli Helpers :: Failed to download GeoLite2 database file from MaxMind: Missing MaxMindLicense Key")
         return False
@@ -655,25 +664,33 @@ def install_geoip_db():
     except Exception as e:
         logger.warn(u"Tautulli Helpers :: Failed to remove temporary GeoLite2 gzip file: %s" % e)
 
-    logger.debug(u"Tautulli Helpers :: GeoLite2 database installed successfully.")
     plexpy.CONFIG.__setattr__('GEOIP_DB', geolite2_db_path)
     plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', int(time.time()))
     plexpy.CONFIG.write()
 
-    return True
+    logger.debug(u"Tautulli Helpers :: GeoLite2 database installed successfully.")
+
+    if not update:
+        plexpy.schedule_job(update_geoip_db, 'Update GeoLite2 database', hours=12, minutes=0, seconds=0)
+
+    return plexpy.CONFIG.GEOIP_DB_INSTALLED
 
 
 def uninstall_geoip_db():
     logger.debug(u"Tautulli Helpers :: Uninstalling the GeoLite2 database...")
     try:
         os.remove(plexpy.CONFIG.GEOIP_DB)
-        plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', 0)
-        plexpy.CONFIG.write()
     except Exception as e:
         logger.error(u"Tautulli Helpers :: Failed to uninstall the GeoLite2 database: %s" % e)
         return False
 
+    plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', 0)
+    plexpy.CONFIG.write()
+
     logger.debug(u"Tautulli Helpers :: GeoLite2 database uninstalled successfully.")
+
+    plexpy.schedule_job(update_geoip_db, 'Update GeoLite2 database', hours=0, minutes=0, seconds=0)
+
     return True
 
 
