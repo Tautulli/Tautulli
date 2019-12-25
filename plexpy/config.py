@@ -928,7 +928,6 @@ class Config(object):
             self.CONFIG_VERSION = 13
 
         if self.CONFIG_VERSION == 13:
-            self.GEOIP_DB_INSTALLED = int(bool(self.GEOIP_DB))
             if not self.GEOIP_DB:
                 self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
 

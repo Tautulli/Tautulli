@@ -585,7 +585,7 @@ def is_valid_ip(address):
 
 
 def update_geoip_db():
-    if plexpy.CONFIG.GEOIP_DB_INSTALLED > 1:
+    if plexpy.CONFIG.GEOIP_DB_INSTALLED:
         logger.info(u"Tautulli Helpers :: Checking for GeoLite2 database updates.")
         now = int(time.time())
         if now - plexpy.CONFIG.GEOIP_DB_INSTALLED >= plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS * 24 * 60 * 60:
