@@ -2859,7 +2859,7 @@ $(document).ready(function() {
         gotoSetting('3rd_party_apis', 'geoip_db')
     }
 
-    if ("${config['geoip_db_installed']}" > "0") {
+    if ("${config['geoip_db_installed']}" > "1") {
         $("#geoip_db_updated").text(moment("${config['geoip_db_installed']}", "X").fromNow());
     }
 
