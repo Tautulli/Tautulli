@@ -1264,7 +1264,7 @@ class DISCORD(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
@@ -1639,7 +1639,7 @@ class FACEBOOK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'facebook_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
@@ -1962,7 +1962,7 @@ class HIPCHAT(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'hipchat_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.<br>'
                                          'Note: This will change the notification type to HTML and emoticons will no longer work.',
@@ -2184,7 +2184,7 @@ class JOIN(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'join_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
@@ -3348,7 +3348,7 @@ class SLACK(Notifier):
                           'value': self.config['incl_card'],
                           'name': 'slack_incl_card',
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'
@@ -3593,7 +3593,7 @@ class TWITTER(Notifier):
                           'value': self.config['incl_poster'],
                           'name': 'twitter_incl_poster',
                           'description': 'Include a poster with the notifications.<br>'
-                                         'Note: <a data-tab-destination="notifications" data-dismiss="modal" '
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
                                          'must be enabled under the notifications settings tab.',
                           'input_type': 'checkbox'

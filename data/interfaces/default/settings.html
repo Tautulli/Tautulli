@@ -56,6 +56,7 @@
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
+                <li role="presentation"><a href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
@@ -1063,12 +1064,60 @@
                             <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
                         </div>
 
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
+
                         <div class="padded-header">
-                            <h3>3rd Party APIs</h3>
+                            <h3>Notification Agents</h3>
                         </div>
 
+                        <p class="help-block">
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
+                        </p>
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
+
+                        <div class="padded-header">
+                            <h3>Newsletter Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block settings-warning" id="newsletter_upload_warning">
+                            Warning: The <a data-tab-destination="3rd_party_apis" data-target="notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
+                        </p>
+                        <br/>
+                        <div id="plexpy-newsletters-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-3rd_party_apis">
+
+                        <div class="padded-header">
+                            <h3>Image Hosting</h3>
+                        </div>
+
+                        <p class="help-block">Image hosting is used to provide posters and artwork for some notification agents and newsletters.</p>
+
                         <div class="form-group">
-                            <label for="notify_upload_posters">Image Hosting</label>
+                            <label for="notify_upload_posters">Image Host</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="${'input-group' if config['notify_upload_posters'] in (1, 3) else ''}">
@@ -1108,7 +1157,7 @@
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
-                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="web_interface" data-target="http_base_url">Web Interface</a>.</p>
                             </div>
                         </div>
                         <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
@@ -1151,6 +1200,13 @@
                                 </p>
                             </div>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Metadata Lookups</h3>
+                        </div>
+
+                        <p class="help-block">Metadata lookups are used to provide additional metadata for notifications when available.</p>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="themoviedb_lookup" id="themoviedb_lookup" value="1" ${config['themoviedb_lookup']}> Lookup TheMovieDB Links
@@ -1169,6 +1225,12 @@
                             </label>
                             <p class="help-block">Enable to lookup links to MusicBrainz for music when available.</p>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Geolocation Database</h3>
+                        </div>
+
+                        <p class="help-block">TThe GeoLite2 database is used to geolocate IP addresses.</p>
 
                         <div class="form-group">
                             <label for="maxmind_license_key">MaxMind License Key</label>
@@ -1195,51 +1257,11 @@
                                 </div>
                             </div>
                             <p class="help-block">
-                                The GeoLite2 database is used to geolocate IP addresses. Database last updated <strong><span id="geoip_db_updated">never</span></strong>.
+                                GeoLite2 Database last updated <strong><span id="geoip_db_updated">never</span></strong>.
                             </p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
-
-                        <div class="padded-header">
-                            <h3>Notification Agents</h3>
-                        </div>
-
-                        <p class="help-block">
-                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
-                        </p>
-                        <p class="help-block">
-                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
-                        </p>
-                        <br />
-                        <div id="plexpy-notifiers-table">
-                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
-                            <br>
-                        </div>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
-
-                        <div class="padded-header">
-                            <h3>Newsletter Agents</h3>
-                        </div>
-
-                        <p class="help-block">
-                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
-                        </p>
-                        <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Warning: The <a data-tab-destination="notifications" data-target="notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
-                        </p>
-                        <br/>
-                        <div id="plexpy-newsletters-table">
-                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
-                            <br>
-                        </div>
 
                     </div>
 
