@@ -1139,8 +1139,8 @@
                         </div>
                         <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
-                                <p class="help-block" id="imgur_upload_message">
-                                    You can register a new Imgur application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br>
+                                <p class="help-block">
+                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
                                     Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
                                 </p>
                             </div>
@@ -1162,8 +1162,8 @@
                         </div>
                         <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
                             <div class="form-group">
-                                <p class="help-block" id="imgur_upload_message">
-                                    You can sign up for Cloudinary <a href="${anon_url('https://cloudinary.com')}" target="_blank">here</a>.<br>
+                                <p class="help-block">
+                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
                                 </p>
                             </div>
                             <div class="form-group">
@@ -1230,8 +1230,10 @@
                             <h3>Geolocation Database</h3>
                         </div>
 
-                        <p class="help-block">TThe GeoLite2 database is used to geolocate IP addresses.</p>
-
+                        <p class="help-block">The GeoLite2 database is used to geolocate IP addresses.</p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up MaxMind.<br>
+                        </p>
                         <div class="form-group">
                             <label for="maxmind_license_key">MaxMind License Key</label>
                             <div class="row">
@@ -1240,7 +1242,7 @@
                                 </div>
                             </div>
                             <p class="help-block">
-                                Enter and save your MaxMind License Key to install the GeoLite2 database. You can register for a license key  <a href="${anon_url('https://www.maxmind.com/en/geolite2/signup')}" target="_blank">here</a>.
+                                Enter and save your MaxMind License Key to install the GeoLite2 database.
                             </p>
                         </div>
                         <div class="form-group">
