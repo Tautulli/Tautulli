@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.41 (2019-12-30)
+
+* Other:
+  * Fix: Failing to extract the GeoLite2 database on Windows.
+
+
 ## v2.1.40 (2019-12-30)
 
 * UI:
