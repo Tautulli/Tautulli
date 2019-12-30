@@ -649,7 +649,7 @@ def install_geoip_db(update=False):
             for member in tar.getmembers():
                 if geolite2_db in member.name:
                     member.name = os.path.basename(member.name)
-                    tar.extract(member, os.path.dirname(geolite2_db_path))
+                    tar.extractall(path=os.path.dirname(geolite2_db_path), members=[member])
                     mmdb = True
                     break
         if not mmdb:
