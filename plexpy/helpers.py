@@ -644,14 +644,16 @@ def install_geoip_db(update=False):
     # Extract the GeoLite2 database file
     logger.debug(u"Tautulli Helpers :: Extracting GeoLite2 database...")
     try:
+        mmdb = None
         with tarfile.open(temp_gz, 'r:gz') as tar:
-            for tarinfo in tar:
-                if tarinfo.isdir():
-                    member = tar.getmember(os.path.join(tarinfo.name, geolite2_db))
+            for member in tar.getmembers():
+                if geolite2_db in member.name:
                     mmdb = tar.extractfile(member)
                     with open(geolite2_db_path, 'wb') as db:
                         db.write(mmdb.read())
                     break
+        if not mmdb:
+            raise Exception("{} not found in gzip file.".format(geolite2_db))
     except Exception as e:
         logger.error(u"Tautulli Helpers :: Failed to extract the GeoLite2 database: %s" % e)
         return False
