@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.1.40 (2019-12-30)
+
+* UI:
+  * Change: Moved 3rd Party API settings to new tab in the settings.
+* Graphs:
+  * Change: Improve calculating month ranges for Play Totals graphs.
+* Other:
+  * Fix: Failing to verify a Plex Media Server using a hostname.
+  * Change: A license key is now required to install the MaxMind GeoLite2 database for IP geolocation. Please follow the guide in the wiki to reinstall the GeoLite2 database.
+  * Change: The GeoLite2 database will now automatically update periodically if installed.
+
+
 ## v2.1.39 (2019-12-08)
 
 * UI:
