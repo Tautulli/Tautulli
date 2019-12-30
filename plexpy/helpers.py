@@ -648,9 +648,9 @@ def install_geoip_db(update=False):
         with tarfile.open(temp_gz, 'r:gz') as tar:
             for member in tar.getmembers():
                 if geolite2_db in member.name:
-                    mmdb = tar.extractfile(member)
-                    with open(geolite2_db_path, 'wb') as db:
-                        db.write(mmdb.read())
+                    member.name = os.path.basename(member.name)
+                    tar.extract(member, os.path.dirname(geolite2_db_path))
+                    mmdb = True
                     break
         if not mmdb:
             raise Exception("{} not found in gzip file.".format(geolite2_db))
