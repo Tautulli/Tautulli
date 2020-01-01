@@ -14,6 +14,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+import certifi
 import cloudinary
 from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
@@ -21,7 +22,6 @@ from cloudinary.utils import cloudinary_url
 import datetime
 from functools import wraps
 import geoip2.database, geoip2.errors
-import gzip
 import hashlib
 import imghdr
 from itertools import izip_longest
@@ -34,12 +34,13 @@ from operator import itemgetter
 import os
 import re
 import shlex
+import shutil
 import socket
 import sys
 import tarfile
 import time
 import unicodedata
-import urllib, urllib2
+import urllib3
 from xml.dom import minidom
 import xmltodict
 
@@ -614,9 +615,11 @@ def install_geoip_db(update=False):
     # Retrieve the GeoLite2 gzip file
     logger.debug(u"Tautulli Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
     try:
-        maxmind = urllib.URLopener()
-        maxmind.retrieve(geolite2_db_url, temp_gz)
-        maxmind.retrieve(geolite2_md5_url, temp_md5)
+        maxmind = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+        with maxmind.request('GET', geolite2_db_url, preload_content=False) as r_db, open(temp_gz, 'wb') as f_db:
+            shutil.copyfileobj(r_db, f_db)
+        with maxmind.request('GET', geolite2_md5_url, preload_content=False) as r_md5, open(temp_md5, 'wb') as f_md5:
+            shutil.copyfileobj(r_md5, f_md5)
     except Exception as e:
         logger.error(u"Tautulli Helpers :: Failed to download GeoLite2 gzip file from MaxMind: %s" % e)
         return False
