@@ -1979,12 +1979,10 @@ $(document).ready(function() {
     }
 
     function preSaveChecks(_callback) {
-        if (serverChanged) {
-            verifyServer();
-        }
         verifyPMSWebURL();
-
-        if (_callback) {
+        if (serverChanged) {
+            verifyServer(_callback);
+        } else if (typeof _callback === "function") {
             _callback();
         }
     }
@@ -2010,12 +2008,13 @@ $(document).ready(function() {
         settingsChanged = true;
     });
 
-    function saveSettings() {
+    function saveSettings(_callback) {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
-            return false;
+            doAjaxCall('configUpdate', $(this), 'tabs', true, true, _callback);
+            return true;
         } else {
-            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true);
+            return false;
         }
     }
 
@@ -2029,7 +2028,7 @@ $(document).ready(function() {
     }
 
     $('.save-button').click(function() {
-        preSaveChecks(function () { saveSettings() });
+        preSaveChecks(function () { saveSettings(postSaveChecks) });
     });
 
     initConfigCheckbox('#api_enabled');
@@ -2338,6 +2337,7 @@ $(document).ready(function() {
 
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+            showMsg('Verifying Plex server...', true, true, 10000, false);
             $.ajax({
                 url: 'get_server_id',
                 data: {
@@ -2375,10 +2375,11 @@ $(document).ready(function() {
                         } else {
                             $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
                             $("#pms_ip_group").removeClass("has-error");
+                            showMsg('<i class="fa fa-check"></i> Server verified.', false, true, 5000);
                             serverChanged = false;
                         }
 
-                        if (_callback) {
+                        if (typeof _callback === "function") {
                             _callback();
                         }
                     } else {
