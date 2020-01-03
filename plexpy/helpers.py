@@ -609,6 +609,10 @@ def install_geoip_db(update=False):
     geolite2_db = maxmind_db + '.mmdb'
     geolite2_db_path = plexpy.CONFIG.GEOIP_DB or os.path.join(plexpy.DATA_DIR, geolite2_db)
 
+    # Check path ends with .mmdb
+    if os.path.splitext(geolite2_db_path)[1] != os.path.splitext(geolite2_db)[1]:
+        geolite2_db_path = os.path.join(geolite2_db_path, geolite2_db)
+
     temp_gz = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_gz)
     temp_md5 = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_md5)
 

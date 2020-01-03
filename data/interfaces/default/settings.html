@@ -1242,7 +1242,7 @@
                                 </div>
                             </div>
                             <p class="help-block">
-                                Enter and save your MaxMind License Key to install the GeoLite2 database.
+                                Enter your MaxMind License Key to install the GeoLite2 database.
                             </p>
                         </div>
                         <div class="form-group">
@@ -1250,13 +1250,14 @@
                             <div class="row">
                                 <div class="col-md-9">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting}>
+                                        <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting} data-parsley-trigger="change" data-parsley-pattern=".+\.mmdb$" data-parsley-errors-container="#geoip_db_error"  data-parsley-error-message="Must end with '.mmdb'">
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="install_geoip_db" disabled>${'Update' if config["geoip_db_installed"] else 'Install'}</button>
+                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
                                             <button class="btn btn-form" type="button" id="uninstall_geoip_db">Uninstall</button>
                                         </span>
                                     </div>
                                 </div>
+                                <div id="geoip_db_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">
                                 GeoLite2 Database last updated <strong><span id="geoip_db_updated">never</span></strong>.
@@ -1999,7 +2000,6 @@ $(document).ready(function() {
         getNewslettersTable();
         getMobileDevicesTable();
         loadUpdateDistros();
-        enableGeoLiteInstallButton();
         settingsChanged = false;
     }
 
@@ -2863,20 +2863,22 @@ $(document).ready(function() {
         gotoSetting('3rd_party_apis', 'geoip_db')
     }
 
-    function enableGeoLiteInstallButton() {
-        $('#install_geoip_db').prop('disabled', !(Boolean($("#maxmind_license_key").val())));
-    }
-    enableGeoLiteInstallButton();
-
     if ("${config['geoip_db_installed']}" > "0") {
         $("#geoip_db_updated").text(moment("${config['geoip_db_installed']}", "X").fromNow());
     }
 
     $("#install_geoip_db").click(function () {
+        if ($.trim($("#maxmind_license_key").val()) === "") {
+            $("#maxmind_license_key").focus();
+            showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key cannot be blank.', false, true, 5000, true);
+            return false;
+        } else if (!(saveSettings())){
+            return false;
+        }
         var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
             'The database is used to lookup IP address geolocation info.<br />' +
             'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-            'and requires <strong>100MB</strong> of free space to install in your Tautulli directory.<br />';
+            'and requires <strong>100MB</strong> of free space to install.<br />';
         var url = 'install_geoip_db';
         if ($(this).text() === 'Update') {
             url += '?update=true';
