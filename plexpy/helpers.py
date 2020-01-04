@@ -591,7 +591,8 @@ def update_geoip_db():
         now = int(time.time())
         if now - plexpy.CONFIG.GEOIP_DB_INSTALLED >= plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS * 24 * 60 * 60:
             return install_geoip_db(update=True)
-        logger.info(u"Tautulli Helpers :: GeoLite2 database already updated within the last 30 days.")
+        logger.info(u"Tautulli Helpers :: GeoLite2 database already updated within the last %s days."
+                    % plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS)
 
 
 def install_geoip_db(update=False):
