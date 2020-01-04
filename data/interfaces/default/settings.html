@@ -1253,7 +1253,7 @@
                                         <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting} data-parsley-trigger="change" data-parsley-pattern=".+\.mmdb$" data-parsley-errors-container="#geoip_db_error"  data-parsley-error-message="Must end with '.mmdb'">
                                         <span class="input-group-btn">
                                             <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
-                                            <button class="btn btn-form" type="button" id="uninstall_geoip_db">Uninstall</button>
+                                            <button class="btn btn-form" type="button" id="uninstall_geoip_db" ${'disabled' if not config['geoip_db_installed'] else ''}>Uninstall</button>
                                         </span>
                                     </div>
                                 </div>
@@ -2008,9 +2008,9 @@ $(document).ready(function() {
         settingsChanged = true;
     });
 
-    function saveSettings(_callback) {
+    function saveSettings(showMsg, _callback) {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, true, _callback);
+            doAjaxCall('configUpdate', $(this), 'tabs', true, showMsg, _callback);
             return true;
         } else {
             showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true);
@@ -2028,7 +2028,7 @@ $(document).ready(function() {
     }
 
     $('.save-button').click(function() {
-        preSaveChecks(function () { saveSettings(postSaveChecks) });
+        preSaveChecks(function () { saveSettings(true, postSaveChecks) });
     });
 
     initConfigCheckbox('#api_enabled');
@@ -2870,7 +2870,7 @@ $(document).ready(function() {
     $("#install_geoip_db").click(function () {
         if ($.trim($("#maxmind_license_key").val()) === "") {
             $("#maxmind_license_key").focus();
-            showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key cannot be blank.', false, true, 5000, true);
+            showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key is required.', false, true, 5000, true);
             return false;
         } else if (!(saveSettings())){
             return false;
@@ -2886,6 +2886,7 @@ $(document).ready(function() {
         confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', function (result) {
             if (result.result === "success") {
                 $('#install_geoip_db').text('Update');
+                $('#uninstall_geoip_db').prop('disabled', false);
                 $('#geoip_db_updated').text(moment(result.updated, "X").fromNow());
             }
             getSchedulerTable();
@@ -2899,6 +2900,7 @@ $(document).ready(function() {
         confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', function (result) {
             if (result.result === "success") {
                 $('#install_geoip_db').text('Install');
+                $('#uninstall_geoip_db').prop('disabled', true);
                 $('#geoip_db_updated').text('never');
             }
             getSchedulerTable();
