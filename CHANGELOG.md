@@ -5,7 +5,7 @@
 * Other:
   * Fix: SSL certificate error when installing GeoLite2 database.
   * Change: Verify MaxMind license key and GeoLite2 database path before installing.
-  * Change: Disable Geolite2 database uninstall button when it is not installed.
+  * Change: Disable GeoLite2 database uninstall button when it is not installed.
 
 
 ## v2.1.41 (2019-12-30)
