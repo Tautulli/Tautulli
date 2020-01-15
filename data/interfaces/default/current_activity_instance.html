@@ -226,17 +226,24 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Video</div>
                                 <div class="sub-value" id="video_decision-${sk}">
-                                    % if data['media_type'] in ('movie', 'episode', 'clip'):
+                                    % if data['media_type'] in ('movie', 'episode', 'clip') and data['stream_video_decision']:
+                                        <%
+                                            if data['video_dynamic_range'] == 'HDR':
+                                                video_dynamic_range = ' ' + data['video_dynamic_range']
+                                                stream_video_dynamic_range = ' ' + data['stream_video_dynamic_range']
+                                            else:
+                                                video_dynamic_range = stream_video_dynamic_range = ''
+                                        %>
                                         % if data['stream_video_decision'] == 'transcode':
                                         <%
                                             hw_d = ' (HW)' if data['transcode_hw_decoding'] else ''
                                             hw_e = ' (HW)' if data['transcode_hw_encoding'] else ''
                                         %>
-                                        Transcode (${data['video_codec'].upper()}${hw_d} ${data['video_full_resolution']} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${data['stream_video_full_resolution']})
+                                        Transcode (${data['video_codec'].upper()}${hw_d} ${data['video_full_resolution']}${video_dynamic_range} <i class="fa fa-long-arrow-right"></i> ${data['stream_video_codec'].upper()}${hw_e} ${data['stream_video_full_resolution']}${stream_video_dynamic_range})
                                         % elif data['stream_video_decision'] == 'copy':
-                                        Direct Stream (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']})
+                                        Direct Stream (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']}${stream_video_dynamic_range})
                                         % else:
-                                        Direct Play (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']})
+                                        Direct Play (${data['stream_video_codec'].upper()} ${data['stream_video_full_resolution']}${stream_video_dynamic_range})
                                         % endif
                                     % elif data['media_type'] == 'photo':
                                     Direct Play (${data['width']}x${data['height']})
@@ -248,12 +255,14 @@ DOCUMENTATION :: END
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Audio</div>
                                 <div class="sub-value" id="audio_decision-${sk}">
-                                    % if data['stream_audio_decision'] == 'transcode':
-                                    Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
-                                    % elif data['stream_audio_decision'] == 'copy':
-                                    Direct Stream (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
-                                    % else:
-                                    Direct Play (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                    % if data['stream_audio_decision']:
+                                        % if data['stream_audio_decision'] == 'transcode':
+                                        Transcode (${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        % elif data['stream_audio_decision'] == 'copy':
+                                        Direct Stream (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        % else:
+                                        Direct Play (${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        % endif
                                     % endif
                                 </div>
                             </li>
