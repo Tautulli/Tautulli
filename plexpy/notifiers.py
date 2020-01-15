@@ -3636,7 +3636,12 @@ class WEBHOOK(Notifier):
         if webhook_headers:
             headers.update(webhook_headers)
 
-        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, json=webhook_body)
+        if headers['Content-Type'] == 'application/json':
+            data = {'json': webhook_body}
+        else:
+            data = {'data': webhook_body}
+
+        return self.make_request(self.config['hook'], method=self.config['method'], headers=headers, **data)
 
     def _return_config_options(self):
         config_option = [{'label': 'Webhook URL',
