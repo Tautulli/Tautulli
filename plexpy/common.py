@@ -54,7 +54,9 @@ PLATFORM_NAME_OVERRIDES = {
     'Mystery 3': 'Playstation 3',
     'Mystery 4': 'Playstation 4',
     'Mystery 5': 'Xbox 360',
-    'WebMAF': 'Playstation 4'
+    'WebMAF': 'Playstation 4',
+    'windows': 'Windows',
+    'osx': 'macOS'
 }
 
 PMS_PLATFORM_NAME_OVERRIDES = {
