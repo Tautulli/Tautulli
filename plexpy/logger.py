@@ -148,6 +148,22 @@ class PublicIPFilter(RegexFilter):
         return text
 
 
+class EmailFilter(RegexFilter):
+    """
+    Log filter for email addresses
+    """
+    def __init__(self):
+        super(EmailFilter, self).__init__()
+
+        self.regex = re.compile(r'([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@'
+                                r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)',
+                                re.IGNORECASE)
+
+    def replace(self, text, email):
+        email_parts = email.partition('@')
+        return text.replace(email, email_parts[0][:2] + 8 * '*' + email_parts[1] + 8 * '*')
+
+
 class PlexTokenFilter(RegexFilter):
     """
     Log filter for X-Plex-Token
@@ -299,6 +315,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         for handler in logger.handlers + logger_api.handlers + logger_plex_websocket.handlers:
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
+            handler.addFilter(EmailFilter())
             handler.addFilter(PlexTokenFilter())
 
     # Install exception hooks
