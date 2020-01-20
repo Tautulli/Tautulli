@@ -3439,10 +3439,7 @@ class TELEGRAM(Notifier):
                 poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
                 files = {'photo': (poster_filename, poster_content, 'image/png')}
 
-                if len(text) > 1024:
-                    data['disable_notification'] = True
-                else:
-                    data['caption'] = text
+                data['caption'] = text.decode('utf-8')[:1021] + (text.decode('utf-8')[1021:] and '...')
 
                 r = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
                                       data=data, files=files)
