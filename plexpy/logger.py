@@ -80,7 +80,7 @@ class BlacklistFilter(logging.Filter):
     Log filter for blacklisted tokens and passwords
     """
     def __init__(self):
-        pass
+        super(BlacklistFilter, self).__init__()
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
@@ -98,30 +98,29 @@ class BlacklistFilter(logging.Filter):
         return True
 
 
-class PublicIPFilter(logging.Filter):
+class RegexFilter(logging.Filter):
     """
-    Log filter for public IP addresses
+    Base class for regex log filter
     """
     def __init__(self):
-        pass
+        super(RegexFilter, self).__init__()
+
+        self.regex = re.compile(r'')
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
             return True
 
         try:
-            # Currently only checking for ipv4 addresses
-            ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', record.msg)
-            for ip in ipv4:
-                if helpers.is_public_ip(ip):
-                    record.msg = record.msg.replace(ip, ip.partition('.')[0] + '.***.***.***')
+            matches = self.regex.findall(record.msg)
+            for match in matches:
+                record.msg = self.replace(record.msg, match)
 
             args = []
             for arg in record.args:
-                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', arg) if isinstance(arg, basestring) else []
-                for ip in ipv4:
-                    if helpers.is_public_ip(ip):
-                        arg = arg.replace(ip, ip.partition('.')[0] + '.***.***.***')
+                matches = self.regex.findall(arg) if isinstance(arg, basestring) else []
+                for match in matches:
+                    arg = self.replace(arg, match)
                 args.append(arg)
             record.args = tuple(args)
         except:
@@ -129,31 +128,37 @@ class PublicIPFilter(logging.Filter):
 
         return True
 
+    def replace(self, text, match):
+        return text
 
-class PlexTokenFilter(logging.Filter):
+
+class PublicIPFilter(RegexFilter):
+    """
+    Log filter for public IP addresses
+    """
+    def __init__(self):
+        super(PublicIPFilter, self).__init__()
+
+        # Currently only checking for ipv4 addresses
+        self.regex = re.compile(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})')
+
+    def replace(self, text, ip):
+        if helpers.is_public_ip(ip):
+            return text.replace(ip, ip.partition('.')[0] + '.***.***.***')
+        return text
+
+
+class PlexTokenFilter(RegexFilter):
     """
     Log filter for X-Plex-Token
     """
     def __init__(self):
-        pass
+        super(PlexTokenFilter, self).__init__()
 
-    def filter(self, record):
-        try:
-            tokens = re.findall(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)', record.msg)
-            for token in tokens:
-                record.msg = record.msg.replace(token, 8 * '*' + token[-2:])
+        self.regex = re.compile(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)')
 
-            args = []
-            for arg in record.args:
-                tokens = re.findall(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)', arg) if isinstance(arg, basestring) else []
-                for token in tokens:
-                    arg = arg.replace(token, 8 * '*' + token[-2:])
-                args.append(arg)
-            record.args = tuple(args)
-        except:
-            pass
-
-        return True
+    def replace(self, text, token):
+        return text.replace(token, 8 * '*' + token[-2:])
 
 
 @contextlib.contextmanager
