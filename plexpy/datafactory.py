@@ -888,11 +888,12 @@ class DataFactory(object):
             query = 'SELECT bitrate, video_full_resolution, ' \
                     'optimized_version, optimized_version_profile, optimized_version_title, ' \
                     'synced_version, synced_version_profile, ' \
-                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, ' \
+                    'video_dynamic_range, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
                     'stream_bitrate, stream_video_full_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
-                    'stream_video_framerate, ' \
+                    'stream_video_framerate, stream_video_dynamic_range, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'transcode_hw_decoding, transcode_hw_encoding, ' \
@@ -909,11 +910,12 @@ class DataFactory(object):
             query = 'SELECT bitrate, video_full_resolution, ' \
                     'optimized_version, optimized_version_profile, optimized_version_title, ' \
                     'synced_version, synced_version_profile, ' \
-                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, aspect_ratio, ' \
+                    'container, video_codec, video_bitrate, video_width, video_height, video_framerate, ' \
+                    'video_dynamic_range, aspect_ratio, ' \
                     'audio_codec, audio_bitrate, audio_channels, subtitle_codec, ' \
                     'stream_bitrate, stream_video_full_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
-                    'stream_video_framerate, ' \
+                    'stream_video_framerate, stream_video_dynamic_range, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
                     'transcode_hw_decoding, transcode_hw_encoding, ' \
@@ -960,6 +962,7 @@ class DataFactory(object):
                              'video_width': item['video_width'],
                              'video_height': item['video_height'],
                              'video_framerate': item['video_framerate'],
+                             'video_dynamic_range': item['video_dynamic_range'],
                              'aspect_ratio': item['aspect_ratio'],
                              'audio_codec': item['audio_codec'],
                              'audio_bitrate': item['audio_bitrate'],
@@ -976,6 +979,7 @@ class DataFactory(object):
                              'stream_video_width': item['stream_video_width'],
                              'stream_video_height': item['stream_video_height'],
                              'stream_video_framerate': item['stream_video_framerate'],
+                             'stream_video_dynamic_range': item['stream_video_dynamic_range'],
                              'stream_audio_decision': item['stream_audio_decision'],
                              'stream_audio_codec': item['stream_audio_codec'],
                              'stream_audio_bitrate': item['stream_audio_bitrate'],

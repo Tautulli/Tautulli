@@ -437,6 +437,8 @@
 
                         var video_decision = '';
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.stream_video_decision) {
+                            var v_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.video_dynamic_range : '';
+                            var sv_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.stream_video_dynamic_range : '';
                             var v_res= '';
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
@@ -462,11 +464,11 @@
                             if (s.stream_video_decision === 'transcode') {
                                 var hw_d = (s.transcode_hw_decoding === 1) ? ' (HW)' : '';
                                 var hw_e = (s.transcode_hw_encoding === 1) ? ' (HW)' : '';
-                                video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
+                                video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + v_bd + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + sv_bd + ')';
                             } else if (s.stream_video_decision === 'copy') {
-                                video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
+                                video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + sv_bd + ')';
                             } else {
-                                video_decision = 'Direct Play (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
+                                video_decision = 'Direct Play (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + sv_bd + ')';
                             }
                         } else if (s.media_type === 'photo') {
                             video_decision = 'Direct Play (' + s.width + 'x' + s.height + ')';

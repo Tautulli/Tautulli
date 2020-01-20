@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.1.42 (2020-01-04)
+
+* Other:
+  * Fix: SSL certificate error when installing GeoLite2 database.
+  * Change: Verify MaxMind license key and GeoLite2 database path before installing.
+  * Change: Disable GeoLite2 database uninstall button when it is not installed.
+
+
+## v2.1.41 (2019-12-30)
+
+* Other:
+  * Fix: Failing to extract the GeoLite2 database on Windows.
+
+
+## v2.1.40 (2019-12-30)
+
+* UI:
+  * Change: Moved 3rd Party API settings to new tab in the settings.
+* Graphs:
+  * Change: Improve calculating month ranges for Play Totals graphs.
+* Other:
+  * Fix: Failing to verify a Plex Media Server using a hostname.
+  * Change: A license key is now required to install the MaxMind GeoLite2 database for IP geolocation. Please follow the guide in the wiki to reinstall the GeoLite2 database.
+  * Change: The GeoLite2 database will now automatically update periodically if installed.
+
+
 ## v2.1.39 (2019-12-08)
 
 * UI:

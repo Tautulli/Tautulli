@@ -61,7 +61,9 @@ PLATFORM_NAME_OVERRIDES = {
     'Mystery 3': 'Playstation 3',
     'Mystery 4': 'Playstation 4',
     'Mystery 5': 'Xbox 360',
-    'WebMAF': 'Playstation 4'
+    'WebMAF': 'Playstation 4',
+    'windows': 'Windows',
+    'osx': 'macOS'
 }
 
 PMS_PLATFORM_NAME_OVERRIDES = {
@@ -204,7 +206,8 @@ SCHEDULER_LIST = [
     'Refresh libraries list',
     'Refresh Plex server URLs',
     'Backup Tautulli database',
-    'Backup Tautulli config'
+    'Backup Tautulli config',
+    'Update GeoLite2 database'
 ]
 
 DATE_TIME_FORMATS = [
@@ -367,6 +370,12 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Stream Video Codec Level', 'type': 'int', 'value': 'stream_video_codec_level', 'description': 'The video codec level of the stream.'},
              {'name': 'Stream Video Bitrate', 'type': 'int', 'value': 'stream_video_bitrate', 'description': 'The video bitrate (in kbps) of the stream.'},
              {'name': 'Stream Video Bit Depth', 'type': 'int', 'value': 'stream_video_bit_depth', 'description': 'The video bit depth of the stream.'},
+             {'name': 'Stream Video Chroma Subsampling', 'type': 'str', 'value': 'stream_video_chroma_subsampling', 'description': 'The video chroma subsampling of the stream.'},
+             {'name': 'Stream Video Color Primaries', 'type': 'srt', 'value': 'stream_video_color_primaries', 'description': 'The video color primaries of the stream.'},
+             {'name': 'Stream Video Color Range', 'type': 'srt', 'value': 'stream_video_color_range', 'description': 'The video color range of the stream.'},
+             {'name': 'Stream Video Color Space', 'type': 'str', 'value': 'stream_video_color_space', 'description': 'The video color space of the stream.'},
+             {'name': 'Stream Video Color Transfer Function', 'type': 'str', 'value': 'stream_video_color_trc', 'description': 'The video transfer function of the stream.'},
+             {'name': 'Stream Video Dynamic Range', 'type': 'str', 'value': 'stream_video_dynamic_range', 'description': 'The video dynamic range of the stream.', 'example': 'HDR or SDR'},
              {'name': 'Stream Video Framerate', 'type': 'str', 'value': 'stream_video_framerate', 'description': 'The video framerate of the stream.'},
              {'name': 'Stream Video Full Resolution', 'type': 'str', 'value': 'stream_video_full_resolution', 'description': 'The video resolution of the stream with scan type.'},
              {'name': 'Stream Video Ref Frames', 'type': 'int', 'value': 'stream_video_ref_frames', 'description': 'The video reference frames of the stream.'},
@@ -474,6 +483,12 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Video Codec Level', 'type': 'int', 'value': 'video_codec_level', 'description': 'The video codec level of the original media.'},
              {'name': 'Video Bitrate', 'type': 'int', 'value': 'video_bitrate', 'description': 'The video bitrate of the original media.'},
              {'name': 'Video Bit Depth', 'type': 'int', 'value': 'video_bit_depth', 'description': 'The video bit depth of the original media.'},
+             {'name': 'Video Chroma Subsampling', 'type': 'str', 'value': 'video_chroma_subsampling', 'description': 'The video chroma subsampling of the original media.'},
+             {'name': 'Video Color Primaries', 'type': 'srt', 'value': 'video_color_primaries', 'description': 'The video color primaries of the original media.'},
+             {'name': 'Video Color Range', 'type': 'srt', 'value': 'video_color_range', 'description': 'The video color range of the original media.'},
+             {'name': 'Video Color Space', 'type': 'str', 'value': 'video_color_space', 'description': 'The video color space of the original media.'},
+             {'name': 'Video Color Transfer Function', 'type': 'str', 'value': 'video_color_trc', 'description': 'The video transfer function of the original media.'},
+             {'name': 'Video Dynamic Range', 'type': 'str', 'value': 'video_dynamic_range', 'description': 'The video dynamic range of the original media.', 'example': 'HDR or SDR'},
              {'name': 'Video Framerate', 'type': 'str', 'value': 'video_framerate', 'description': 'The video framerate of the original media.'},
              {'name': 'Video Full Resolution', 'type': 'str', 'value': 'video_full_resolution', 'description': 'The video resolution of the original media with scan type.'},
              {'name': 'Video Ref Frames', 'type': 'int', 'value': 'video_ref_frames', 'description': 'The video reference frames of the original media.'},
