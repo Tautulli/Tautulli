@@ -1538,7 +1538,7 @@ class PmsConnect(object):
 
         # Get the user details
         user_info = session.getElementsByTagName('User')[0]
-        user_details = users.Users().get_details(user_id=helpers.get_xml_attr(user_info, 'id'))
+        user_details = users.Users().get_details(user=helpers.get_xml_attr(user_info, 'title'))
 
         # Get the player details
         player_info = session.getElementsByTagName('Player')[0]
