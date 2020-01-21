@@ -71,7 +71,7 @@ SYS_LANGUAGE = None
 SYS_ENCODING = None
 
 QUIET = False
-VERBOSE = True
+VERBOSE = False
 DAEMON = False
 CREATEPID = False
 PIDFILE = None
@@ -128,6 +128,7 @@ def initialize(config_file):
 
         global CONFIG
         global CONFIG_FILE
+        global VERBOSE
         global _INITIALIZED
         global CURRENT_VERSION
         global LATEST_VERSION
@@ -156,6 +157,8 @@ def initialize(config_file):
             CONFIG.LOG_DIR, os.path.join(DATA_DIR, 'logs'), 'logs')
         if not log_writable and not QUIET:
             sys.stderr.write("Unable to create the log directory. Logging to screen only.\n")
+
+        VERBOSE = VERBOSE or bool(CONFIG.VERBOSE_LOGS)
 
         # Start the logger, disable console if needed
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,

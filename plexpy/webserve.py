@@ -2678,8 +2678,11 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def toggleVerbose(self, **kwargs):
         plexpy.VERBOSE = not plexpy.VERBOSE
-        logger.initLogger(console=not plexpy.QUIET,
-                          log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
+
+        plexpy.CONFIG.__setattr__('VERBOSE_LOGS', plexpy.VERBOSE)
+        plexpy.CONFIG.write()
+
+        logger.initLogger(console=not plexpy.QUIET, log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info("Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug("If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
