@@ -3416,9 +3416,9 @@ class TELEGRAM(Notifier):
         data = {'chat_id': self.config['chat_id']}
 
         if self.config['incl_subject']:
-            text = subject.encode('utf-8') + '\r\n' + body.encode('utf-8')
+            text = subject + '\r\n' + body
         else:
-            text = body.encode('utf-8')
+            text = body
 
         if self.config['html_support']:
             data['parse_mode'] = 'HTML'
@@ -3442,7 +3442,7 @@ class TELEGRAM(Notifier):
                 if len(text) > 1024:
                     data['disable_notification'] = True
                 else:
-                    data['caption'] = text
+                    data['caption'] = text.encode('utf-8')
 
                 r = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
                                       data=data, files=files)
@@ -3450,7 +3450,7 @@ class TELEGRAM(Notifier):
                 if not data.pop('disable_notification', None):
                     return r
 
-        data['text'] = text
+        data['text'] = (text[:4093] + (text[4093:] and '...')).encode('utf-8')
 
         if self.config['disable_web_preview']:
             data['disable_web_page_preview'] = True
