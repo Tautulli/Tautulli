@@ -603,6 +603,7 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_LABELS': (int, 'General', 1),
     'UPDATE_LIBRARIES_DB_NOTIFY': (int, 'General', 1),
     'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
+    'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),

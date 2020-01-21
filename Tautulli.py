@@ -106,8 +106,8 @@ def main():
         plexpy.QUIET = True
 
     # Do an intial setup of the logger.
-    logger.initLogger(console=not plexpy.QUIET, log_dir=False,
-                      verbose=plexpy.VERBOSE)
+    # Require verbose for pre-initilization to see critical errors
+    logger.initLogger(console=not plexpy.QUIET, log_dir=False, verbose=True)
 
     try:
         plexpy.SYS_TIMEZONE = tzlocal.get_localzone()
