@@ -2868,11 +2868,13 @@ $(document).ready(function() {
     }
 
     $("#install_geoip_db").click(function () {
-        if ($.trim($("#maxmind_license_key").val()) === "") {
-            $("#maxmind_license_key").focus();
+        var maxmind_license_key = $("#maxmind_license_key");
+        maxmind_license_key.val($.trim(maxmind_license_key.val()));
+        if (maxmind_license_key.val() === "") {
+            maxmind_license_key.focus();
             showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key is required.', false, true, 5000, true);
             return false;
-        } else if (!(saveSettings())){
+        } else if (!(saveSettings())) {
             return false;
         }
         var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
