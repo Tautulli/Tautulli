@@ -115,7 +115,7 @@ history_table_options = {
             "data": "platform",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(capitalizeFirstLetter(cellData));
+                    $(td).html(cellData);
                 }
             },
             "width": "10%",
