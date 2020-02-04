@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.1.43 (2020-02-03)
+
+* Monitoring:
+  * New: Added HDR indicator on activity card.
+  * New: Added dynamic range to history steam info modal.
+* Notifications:
+  * Fix: Webhook notification body sent as incorrect data type when Content-Type header is overridden.
+  * Fix: Telegram notification character limit incorrect for unicode characters.
+  * New: Added color and dynamic range notification parameters.
+* Newsletters:
+  * Fix: Episodes and Albums plural spelling on recently added newsletter section headers.
+* UI:
+  * Fix: Windows and macOS platform capitalization.
+  * Fix: Season number 0 not shown for episodes on history tables.
+* Other:
+  * Change: Mask email addresses in logs.
+  * Change: Update deprecated GitHub access token URL parameter to Authorization header.  
+
+
 ## v2.1.42 (2020-01-04)
 
 * Other:
