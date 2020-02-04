@@ -158,13 +158,17 @@ def check_update(auto_update=False, notify=False):
 def check_github(auto_update=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
 
+    if plexpy.CONFIG.GIT_TOKEN:
+        headers = {'Authorization': 'token {}'.format(plexpy.CONFIG.GIT_TOKEN)}
+    else:
+        headers = {}
+
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
     url = 'https://api.github.com/repos/%s/%s/commits/%s' % (plexpy.CONFIG.GIT_USER,
                                                              plexpy.CONFIG.GIT_REPO,
                                                              plexpy.CONFIG.GIT_BRANCH)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
-    version = request.request_json(url, timeout=20, validator=lambda x: type(x) == dict)
+    version = request.request_json(url, headers=headers, timeout=20, validator=lambda x: type(x) == dict)
 
     if version is None:
         logger.warn('Could not get the latest version from GitHub. Are you running a local development version?')
@@ -187,8 +191,8 @@ def check_github(auto_update=False, notify=False):
                                                                   plexpy.CONFIG.GIT_REPO,
                                                                   plexpy.LATEST_VERSION,
                                                                   plexpy.CURRENT_VERSION)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
-    commits = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+    commits = request.request_json(url, headers=headers, timeout=20, whitelist_status_code=404,
+                                   validator=lambda x: type(x) == dict)
 
     if commits is None:
         logger.warn('Could not get commits behind from GitHub.')
