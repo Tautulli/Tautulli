@@ -1569,6 +1569,15 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT '
         )
+
+    result = c_db.execute('SELECT * FROM session_history_media_info '
+                          'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"').fetchone()
+    if result:
+        c_db.execute(
+            'UPDATE session_history_media_info SET stream_video_dynamic_range = "SDR" '
+            'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"'
+        )
+
     # Upgrade users table from earlier versions
     try:
         c_db.execute('SELECT do_notify FROM users')

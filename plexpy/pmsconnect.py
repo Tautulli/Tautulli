@@ -1995,7 +1995,8 @@ class PmsConnect(object):
             else:
                 stream_details['video_dynamic_range'] = 'SDR'
 
-            if video_details['stream_video_decision'] != 'transcode' \
+            if stream_details['video_dynamic_range'] == 'HDR' \
+                    and video_details['stream_video_decision'] != 'transcode' \
                     or helpers.cast_to_int(video_details['stream_video_bit_depth']) > 8 \
                     and video_details['stream_video_color_space'] == 'bt2020nc':
                 stream_details['stream_video_dynamic_range'] = 'HDR'
