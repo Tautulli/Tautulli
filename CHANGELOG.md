@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.1.44 (2020-02-05)
+
+* Monitoring:
+  * Fix: SDR source video being identified as HDR stream video.
+* Notifications:
+  * Fix: Unable to select condition operator for video color parameters.
+* UI:
+  * Fix: Capitalization for platforms on history tables.
+
+
 ## v2.1.43 (2020-02-03)
 
 * Monitoring:
