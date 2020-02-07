@@ -3,6 +3,7 @@ FROM python:2.7.17-slim
 LABEL maintainer="TheMeanCanEHdian"
 
 ARG VERSION
+ARG BRANCH
 
 ENV TAUTULLI_DOCKER=True
 ENV TZ=UTC
@@ -16,10 +17,10 @@ apt-get install -q -y --no-install-recommends \
 rm -rf /var/lib/apt/lists/* && \
 pip install --no-cache-dir --upgrade pip && \
 pip install --no-cache-dir --upgrade \
-  plexapi \
   pycryptodomex \
   pyopenssl && \
-echo ${VERSION} > /app/version.txt
+echo ${VERSION} > /app/version.txt && \
+echo ${BRANCH} > /app/branch.txt
 
 COPY . /app
 

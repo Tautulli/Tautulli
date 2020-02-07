@@ -934,3 +934,9 @@ class Config(object):
                 self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
 
             self.CONFIG_VERSION = 14
+
+        if self.CONFIG_VERSION == 14:
+            if plexpy.DOCKER:
+                self.PLEXPY_AUTO_UPDATE = 0
+
+            self.CONFIG_VERSION == 15

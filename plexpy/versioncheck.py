@@ -115,20 +115,24 @@ def getVersion():
 
     else:
 
-        plexpy.INSTALL_TYPE = 'source'
+        plexpy.INSTALL_TYPE = 'docker' if plexpy.DOCKER else 'source'
 
         version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
+        branch_file = os.path.join(plexpy.PROG_DIR, 'branch.txt')
 
-        if not os.path.isfile(version_file):
-            return None, 'origin', common.BRANCH
-
-        with open(version_file, 'r') as f:
-            current_version = f.read().strip(' \n\r')
-
-        if current_version:
-            return current_version, 'origin', common.BRANCH
+        if os.path.isfile(version_file):
+            with open(version_file, 'r') as f:
+                current_version = f.read().strip(' \n\r')
         else:
-            return None, 'origin', common.BRANCH
+            current_version = None
+
+        if os.path.isfile(branch_file):
+            with open(branch_file, 'r') as f:
+                current_branch = f.read().strip(' \n\r')
+        else:
+            current_branch = common.BRANCH
+
+        return current_version, 'origin', current_branch
 
 
 def check_update(auto_update=False, notify=False):
@@ -232,7 +236,7 @@ def check_github(auto_update=False, notify=False):
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
-        if auto_update:
+        if auto_update and not plexpy.DOCKER:
             logger.info('Running automatic update.')
             plexpy.shutdown(restart=True, update=True)
 
@@ -261,6 +265,9 @@ def update():
             elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
                 logger.info('Output: ' + str(output))
+
+    elif plexpy.INSTALL_TYPE == 'docker':
+        return
 
     else:
         tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH)

@@ -689,7 +689,7 @@ class WebInterface(object):
             # Alias 'title' to 'sort_title'
             if kwargs.get('order_column') == 'title':
                 kwargs['order_column'] = 'sort_title'
-                
+
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("added_at", True, False),
                           ("sort_title", True, True),
@@ -3341,7 +3341,7 @@ class WebInterface(object):
                        'type': param['type'],
                        'value': param['value']
                        }
-                      for category in common.NOTIFICATION_PARAMETERS 
+                      for category in common.NOTIFICATION_PARAMETERS
                       for param in category['parameters']]
 
         return parameters
@@ -3821,46 +3821,51 @@ class WebInterface(object):
         versioncheck.check_update()
 
         if plexpy.UPDATE_AVAILABLE is None:
-            return {'result': 'error',
-                    'update': None,
-                    'message': 'You are running an unknown version of Tautulli.'
-                    }
+            update = {'result': 'error',
+                      'update': None,
+                      'message': 'You are running an unknown version of Tautulli.'
+                      }
 
         elif plexpy.UPDATE_AVAILABLE == 'release':
-            return {'result': 'success',
-                    'update': True,
-                    'release': True,
-                    'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
-                    'current_release': plexpy.common.RELEASE,
-                    'latest_release': plexpy.LATEST_RELEASE,
-                    'release_url': helpers.anon_url(
-                        'https://github.com/%s/%s/releases/tag/%s'
-                        % (plexpy.CONFIG.GIT_USER,
-                           plexpy.CONFIG.GIT_REPO,
-                           plexpy.LATEST_RELEASE))
-                    }
+            update = {'result': 'success',
+                      'update': True,
+                      'release': True,
+                      'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                      'current_release': plexpy.common.RELEASE,
+                      'latest_release': plexpy.LATEST_RELEASE,
+                      'release_url': helpers.anon_url(
+                          'https://github.com/%s/%s/releases/tag/%s'
+                          % (plexpy.CONFIG.GIT_USER,
+                             plexpy.CONFIG.GIT_REPO,
+                             plexpy.LATEST_RELEASE))
+                      }
 
         elif plexpy.UPDATE_AVAILABLE == 'commit':
-            return {'result': 'success',
-                    'update': True,
-                    'release': False,
-                    'message': 'A newer version of Tautulli is available.',
-                    'current_version': plexpy.CURRENT_VERSION,
-                    'latest_version': plexpy.LATEST_VERSION,
-                    'commits_behind': plexpy.COMMITS_BEHIND,
-                    'compare_url': helpers.anon_url(
-                        'https://github.com/%s/%s/compare/%s...%s'
-                        % (plexpy.CONFIG.GIT_USER,
-                           plexpy.CONFIG.GIT_REPO,
-                           plexpy.CURRENT_VERSION,
-                           plexpy.LATEST_VERSION))
+            update = {'result': 'success',
+                      'update': True,
+                      'release': False,
+                      'message': 'A newer version of Tautulli is available.',
+                      'current_version': plexpy.CURRENT_VERSION,
+                      'latest_version': plexpy.LATEST_VERSION,
+                      'commits_behind': plexpy.COMMITS_BEHIND,
+                      'compare_url': helpers.anon_url(
+                          'https://github.com/%s/%s/compare/%s...%s'
+                          % (plexpy.CONFIG.GIT_USER,
+                             plexpy.CONFIG.GIT_REPO,
+                             plexpy.CURRENT_VERSION,
+                             plexpy.LATEST_VERSION))
                     }
 
         else:
-            return {'result': 'success',
-                    'update': False,
-                    'message': 'Tautulli is up to date.'
-                    }
+            update = {'result': 'success',
+                      'update': False,
+                      'message': 'Tautulli is up to date.'
+                      }
+
+        if plexpy.DOCKER:
+            update['docker'] = plexpy.DOCKER
+
+        return update
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3890,6 +3895,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
+        if plexpy.DOCKER:
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+
         # Show changelog after updating
         plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 1)
         plexpy.CONFIG.write()
@@ -3901,7 +3909,7 @@ class WebInterface(object):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
             logger.error(u"Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
-        
+
         # Set the new git remote and branch
         plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
         plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)
