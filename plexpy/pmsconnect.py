@@ -776,7 +776,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'season':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            show_details = self.get_metadata_details(parent_rating_key)
+            show_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -790,22 +790,22 @@ class PmsConnect(object):
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
-                        'studio': show_details['studio'],
-                        'content_rating': show_details['content_rating'],
-                        'summary': show_details['summary'],
+                        'studio': show_details.get('studio', ''),
+                        'content_rating': show_details.get('content_rating', ''),
+                        'summary': show_details.get('summary', ''),
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'rating_image': helpers.get_xml_attr(metadata_main, 'ratingImage'),
                         'audience_rating': helpers.get_xml_attr(metadata_main, 'audienceRating'),
                         'audience_rating_image': helpers.get_xml_attr(metadata_main, 'audienceRatingImage'),
                         'user_rating': helpers.get_xml_attr(metadata_main, 'userRating'),
-                        'duration': show_details['duration'],
+                        'duration': show_details.get('duration', ''),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': show_details['banner'],
+                        'banner': show_details.get('banner', ''),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
@@ -813,12 +813,12 @@ class PmsConnect(object):
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
                         'parent_guid': helpers.get_xml_attr(metadata_main, 'parentGuid'),
                         'grandparent_guid': helpers.get_xml_attr(metadata_main, 'grandparentGuid'),
-                        'directors': show_details['directors'],
-                        'writers': show_details['writers'],
-                        'actors': show_details['actors'],
-                        'genres': show_details['genres'],
-                        'labels': show_details['labels'],
-                        'collections': show_details['collections'],
+                        'directors': show_details.get('directors', []),
+                        'writers': show_details.get('writers', []),
+                        'actors': show_details.get('actors', []),
+                        'genres': show_details.get('genres', []),
+                        'labels': show_details.get('labels', []),
+                        'collections': show_details.get('collections', []),
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
@@ -826,7 +826,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'episode':
             grandparent_rating_key = helpers.get_xml_attr(metadata_main, 'grandparentRatingKey')
-            show_details = self.get_metadata_details(grandparent_rating_key)
+            show_details = self.get_metadata_details(grandparent_rating_key) if grandparent_rating_key else {}
 
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
@@ -838,7 +838,7 @@ class PmsConnect(object):
                     parent_rating_key = parent_thumb.split('/')[3]
 
                 # Try getting the parent_rating_key from the grandparent's children
-                if not parent_rating_key:
+                if not parent_rating_key and grandparent_rating_key:
                     children_list = self.get_item_children(grandparent_rating_key)
                     parent_rating_key = next((c['rating_key'] for c in children_list['children_list']
                                               if c['media_index'] == parent_media_index), '')
@@ -856,7 +856,7 @@ class PmsConnect(object):
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': parent_media_index,
-                        'studio': show_details['studio'],
+                        'studio': show_details.get('studio', ''),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
@@ -871,7 +871,7 @@ class PmsConnect(object):
                         'parent_thumb': parent_thumb,
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': show_details['banner'],
+                        'banner': show_details.get('banner', ''),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
@@ -881,10 +881,10 @@ class PmsConnect(object):
                         'grandparent_guid': helpers.get_xml_attr(metadata_main, 'grandparentGuid'),
                         'directors': directors,
                         'writers': writers,
-                        'actors': show_details['actors'],
-                        'genres': show_details['genres'],
-                        'labels': show_details['labels'],
-                        'collections': show_details['collections'],
+                        'actors': show_details.get('actors', []),
+                        'genres': show_details.get('genres', []),
+                        'labels': show_details.get('labels', []),
+                        'collections': show_details.get('collections', []),
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
@@ -939,7 +939,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'album':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            artist_details = self.get_metadata_details(parent_rating_key)
+            artist_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -955,7 +955,7 @@ class PmsConnect(object):
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
-                        'summary': helpers.get_xml_attr(metadata_main, 'summary') or artist_details['summary'],
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary') or artist_details.get('summary', ''),
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'rating_image': helpers.get_xml_attr(metadata_main, 'ratingImage'),
@@ -968,7 +968,7 @@ class PmsConnect(object):
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': artist_details['banner'],
+                        'banner': artist_details.get('banner', ''),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
@@ -989,7 +989,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'track':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            album_details = self.get_metadata_details(parent_rating_key)
+            album_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
             track_artist = helpers.get_xml_attr(metadata_main, 'originalTitle') or \
                            helpers.get_xml_attr(metadata_main, 'grandparentTitle')
             metadata = {'media_type': metadata_type,
@@ -1015,12 +1015,12 @@ class PmsConnect(object):
                         'audience_rating_image': helpers.get_xml_attr(metadata_main, 'audienceRatingImage'),
                         'user_rating': helpers.get_xml_attr(metadata_main, 'userRating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
-                        'year': album_details['year'],
+                        'year': album_details.get('year', ''),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': album_details['banner'],
+                        'banner': album_details.get('banner', ''),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
@@ -1031,9 +1031,9 @@ class PmsConnect(object):
                         'directors': directors,
                         'writers': writers,
                         'actors': actors,
-                        'genres': album_details['genres'],
-                        'labels': album_details['labels'],
-                        'collections': album_details['collections'],
+                        'genres': album_details.get('genres', []),
+                        'labels': album_details.get('labels', []),
+                        'collections': album_details.get('collections', []),
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
                                                         track_artist),
                         'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
@@ -1088,7 +1088,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'photo':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            photo_album_details = self.get_metadata_details(parent_rating_key)
+            photo_album_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -1128,9 +1128,9 @@ class PmsConnect(object):
                         'directors': directors,
                         'writers': writers,
                         'actors': actors,
-                        'genres': photo_album_details.get('genres', ''),
-                        'labels': photo_album_details.get('labels', ''),
-                        'collections': photo_album_details.get('collections', ''),
+                        'genres': photo_album_details.get('genres', []),
+                        'labels': photo_album_details.get('labels', []),
+                        'collections': photo_album_details.get('collections', []),
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.get_xml_attr(metadata_main, 'leafCount')
@@ -1817,7 +1817,7 @@ class PmsConnect(object):
         source_media_details = source_media_part_details = \
             source_video_details = source_audio_details = source_subtitle_details = {}
 
-        if stream_details['live'] or not helpers.get_xml_attr(session, 'ratingKey').isdigit():
+        if not helpers.get_xml_attr(session, 'ratingKey').isdigit():
             channel_stream = 1
 
             audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
