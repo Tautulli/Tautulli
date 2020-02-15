@@ -536,8 +536,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     ap = activity_processor.ActivityProcessor()
     sessions = ap.get_sessions()
-    stream_count = len(sessions)
     user_sessions = ap.get_sessions(user_id=session.get('user_id'))
+
+    # Filter out the session_key from the database sessions for playback stopped events
+    # to prevent race condition between the database and notifications
+    if notify_action == 'on_stop':
+        sessions = [s for s in sessions if str(s['session_key']) != notify_params['session_key']]
+        user_sessions = [s for s in user_sessions if str(s['session_key']) != notify_params['session_key']]
+
+    stream_count = len(sessions)
     user_stream_count = len(user_sessions)
 
     # Generate a combined transcode decision value
