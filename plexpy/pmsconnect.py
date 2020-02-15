@@ -641,6 +641,8 @@ class PmsConnect(object):
             if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
                 metadata_type = 'photo_album'
 
+            live = int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
 
@@ -1323,24 +1325,31 @@ class PmsConnect(object):
 
                 audio_channels = helpers.get_xml_attr(media, 'audioChannels')
 
-                medias.append({'id': helpers.get_xml_attr(media, 'id'),
-                               'container': helpers.get_xml_attr(media, 'container'),
-                               'bitrate': helpers.get_xml_attr(media, 'bitrate'),
-                               'height': helpers.get_xml_attr(media, 'height'),
-                               'width': helpers.get_xml_attr(media, 'width'),
-                               'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
-                               'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                               'video_resolution': video_resolution,
-                               'video_full_resolution': video_full_resolution,
-                               'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
-                               'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
-                               'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
-                               'audio_channels': audio_channels,
-                               'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
-                               'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
-                               'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
-                               'parts': parts
-                               })
+                media_info = {'id': helpers.get_xml_attr(media, 'id'),
+                              'container': helpers.get_xml_attr(media, 'container'),
+                              'bitrate': helpers.get_xml_attr(media, 'bitrate'),
+                              'height': helpers.get_xml_attr(media, 'height'),
+                              'width': helpers.get_xml_attr(media, 'width'),
+                              'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
+                              'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
+                              'video_resolution': video_resolution,
+                              'video_full_resolution': video_full_resolution,
+                              'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
+                              'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
+                              'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
+                              'audio_channels': audio_channels,
+                              'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
+                              'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
+                              'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
+                              'parts': parts
+                              }
+
+                if live:
+                    media_info['channel_call_sign'] = helpers.get_xml_attr(media, 'channelCallSign') or 'WBTV HD'
+                    media_info['channel_identifier'] = helpers.get_xml_attr(media, 'channelIdentifier') or '3.1'
+                    media_info['channel_thumb'] = helpers.get_xml_attr(media, 'channelThumb') or 'http://cps-static.rovicorp.com/2/Open/2400x2400_1578/Source/77752/cbs_2400_color_dark_light.png'
+
+                medias.append(media_info)
 
             metadata['media_info'] = medias
 

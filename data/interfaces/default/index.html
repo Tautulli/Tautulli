@@ -543,10 +543,12 @@
                         // Update the progress bars, percent - 3 because of 3px padding-right
                         $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
-                        var progress_bar = $('#progress-bar-' + key);
-                        progress_bar.data('state', s.state);
-                        if (progress_bar.data('last_view_offset') !== s.view_offset) {
-                            progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        if (s.live !== 1) {
+                            var progress_bar = $('#progress-bar-' + key);
+                            progress_bar.data('state', s.state);
+                            if (progress_bar.data('last_view_offset') !== s.view_offset) {
+                                progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                            }
                         }
 
                         // Add temporary class so we know which instances are still active
@@ -593,6 +595,17 @@
 
                 $('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller').scrollbar();
                 $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#activity-instance-' + session_key + ' [data-toggle=popover]').popover({
+                    html: true,
+                    container: 'body',
+                    trigger: 'hover',
+                    placement: 'right',
+                    delay: 50,
+                    template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+                    content: function () {
+                        return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px; padding: 3px;" />';
+                    }
+                });
                 $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
                 lockScroll('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller');
 
