@@ -96,10 +96,13 @@ DOCUMENTATION :: END
                 <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
                 % if data['live'] == 1:
-                    % if data['grandparent_thumb'].startswith('http'):
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${data['grandparent_thumb']});"></div>
-                    % elif data['grandparent_thumb']:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                    <%
+                        live_thumb = data['grandparent_thumb'] or data['thumb']
+                    %>
+                    % if live_thumb.startswith('http'):
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${live_thumb});"></div>
+                    % elif live_thumb:
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${live_thumb}&width=300&height=450&fallback=poster&refresh=true);"></div>
                     % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster-live.png);"></div>
                     % endif
