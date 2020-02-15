@@ -1342,8 +1342,6 @@ class PmsConnect(object):
                                'parts': parts
                                })
 
-                video_full_resolution = helpers.get_xml_attr(media, 'videoResolution').lower()
-
             metadata['media_info'] = medias
 
         if metadata:
@@ -1819,7 +1817,7 @@ class PmsConnect(object):
         source_media_details = source_media_part_details = \
             source_video_details = source_audio_details = source_subtitle_details = {}
 
-        if not helpers.get_xml_attr(session, 'ratingKey').isdigit():
+        if stream_details['live'] or not helpers.get_xml_attr(session, 'ratingKey').isdigit():
             channel_stream = 1
 
             audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
@@ -1865,13 +1863,19 @@ class PmsConnect(object):
                                 'full_title': helpers.get_xml_attr(session, 'title'),
                                 'container': helpers.get_xml_attr(stream_media_info, 'container') \
                                              or helpers.get_xml_attr(stream_media_parts_info, 'container'),
+                                'bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                                 'height': helpers.get_xml_attr(stream_media_info, 'height'),
                                 'width': helpers.get_xml_attr(stream_media_info, 'width'),
+                                'aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
                                 'video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                                 'video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution').lower(),
+                                'video_full_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution').lower(),
+                                'video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
+                                'video_profile': helpers.get_xml_attr(stream_media_info, 'videoProfile'),
                                 'audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                                 'audio_channels': audio_channels,
                                 'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
+                                'audio_profile': helpers.get_xml_attr(stream_media_info, 'audioProfile'),
                                 'channel_icon': helpers.get_xml_attr(session, 'sourceIcon'),
                                 'channel_title': helpers.get_xml_attr(session, 'sourceTitle'),
                                 'extra_type': helpers.get_xml_attr(session, 'extraType'),
@@ -1973,15 +1977,15 @@ class PmsConnect(object):
 
         # Override * in audio codecs
         if stream_details['stream_audio_codec'] == '*':
-            stream_details['stream_audio_codec'] = source_audio_details['audio_codec']
+            stream_details['stream_audio_codec'] = source_audio_details.get('audio_codec', '')
         if transcode_details['transcode_audio_codec'] == '*':
-            transcode_details['transcode_audio_codec'] = source_audio_details['audio_codec']
+            transcode_details['transcode_audio_codec'] = source_audio_details.get('audio_codec', '')
 
         # Override * in video codecs
         if stream_details['stream_video_codec'] == '*':
-            stream_details['stream_video_codec'] = source_video_details['video_codec']
+            stream_details['stream_video_codec'] = source_video_details.get('video_codec', '')
         if transcode_details['transcode_video_codec'] == '*':
-            transcode_details['transcode_video_codec'] = source_video_details['video_codec']
+            transcode_details['transcode_video_codec'] = source_video_details.get('video_codec', '')
 
         if media_type in ('movie', 'episode', 'clip'):
             # Set the full resolution by combining stream_video_resolution and stream_video_scan_type
@@ -1989,8 +1993,8 @@ class PmsConnect(object):
                 stream_details['stream_video_resolution'],
                 stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
 
-            if helpers.cast_to_int(source_video_details['video_bit_depth']) > 8 \
-                    and source_video_details['video_color_space'] == 'bt2020nc':
+            if helpers.cast_to_int(source_video_details.get('video_bit_depth')) > 8 \
+                    and source_video_details.get('video_color_space') == 'bt2020nc':
                 stream_details['video_dynamic_range'] = 'HDR'
             else:
                 stream_details['video_dynamic_range'] = 'SDR'
@@ -2032,7 +2036,7 @@ class PmsConnect(object):
             if stream_details['optimized_version']:
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 optimized_version_profile = '{} Mbps {}'.format(round(source_bitrate / 1000.0, 1),
-                                                                source_media_details['video_full_resolution'])
+                                                                source_media_details.get('video_full_resolution'))
             else:
                 optimized_version_profile = ''
 
