@@ -1345,9 +1345,9 @@ class PmsConnect(object):
                               }
 
                 if live:
-                    media_info['channel_call_sign'] = helpers.get_xml_attr(media, 'channelCallSign') or 'WBTV HD'
-                    media_info['channel_identifier'] = helpers.get_xml_attr(media, 'channelIdentifier') or '3.1'
-                    media_info['channel_thumb'] = helpers.get_xml_attr(media, 'channelThumb') or 'http://cps-static.rovicorp.com/2/Open/2400x2400_1578/Source/77752/cbs_2400_color_dark_light.png'
+                    media_info['channel_call_sign'] = helpers.get_xml_attr(media, 'channelCallSign')
+                    media_info['channel_identifier'] = helpers.get_xml_attr(media, 'channelIdentifier')
+                    media_info['channel_thumb'] = helpers.get_xml_attr(media, 'channelThumb')
 
                 medias.append(media_info)
 
