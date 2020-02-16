@@ -94,6 +94,7 @@ class DataFactory(object):
             'session_history_metadata.thumb',
             'session_history_metadata.parent_thumb',
             'session_history_metadata.grandparent_thumb',
+            'session_history_metadata.live',
             'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
              (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
              THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
@@ -142,6 +143,7 @@ class DataFactory(object):
                 'thumb',
                 'parent_thumb',
                 'grandparent_thumb',
+                'live',
                 'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
                  (CASE WHEN (duration IS NULL OR duration = "") \
                  THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
@@ -206,6 +208,9 @@ class DataFactory(object):
             else:
                 thumb = item['thumb']
 
+            if item['live']:
+                item['percent_complete'] = 100
+
             if item['percent_complete'] >= watched_percent[item['media_type']]:
                 watched_status = 1
             elif item['percent_complete'] >= watched_percent[item['media_type']]/2:
@@ -230,6 +235,7 @@ class DataFactory(object):
                    'product': item['product'],
                    'player': item['player'],
                    'ip_address': item['ip_address'],
+                   'live': item['live'],
                    'media_type': item['media_type'],
                    'rating_key': item['rating_key'],
                    'parent_rating_key': item['parent_rating_key'],
@@ -1016,7 +1022,9 @@ class DataFactory(object):
                     'session_history_media_info.container, session_history_media_info.bitrate, ' \
                     'session_history_media_info.video_codec, session_history_media_info.video_resolution, ' \
                     'session_history_media_info.video_framerate, session_history_media_info.audio_codec, ' \
-                    'session_history_media_info.audio_channels ' \
+                    'session_history_media_info.audio_channels, session_history_metadata.live, ' \
+                    'session_history_metadata.channel_call_sign, session_history_metadata.channel_identifier, ' \
+                    'session_history_metadata.channel_thumb ' \
                     'FROM session_history_metadata ' \
                     'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
                     'JOIN session_history_media_info ON session_history_metadata.id = session_history_media_info.id ' \

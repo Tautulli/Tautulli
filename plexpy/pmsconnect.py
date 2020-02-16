@@ -571,7 +571,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None, media_info=True):
+    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None, skip_cache_time=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
 
@@ -597,7 +597,7 @@ class PmsConnect(object):
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
                 # Return cached metadata if less than METADATA_CACHE_SECONDS ago
-                if int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
+                if skip_cache_time or int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
         if rating_key:
@@ -640,8 +640,6 @@ class PmsConnect(object):
             metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
                 metadata_type = 'photo_album'
-
-            live = int(helpers.get_xml_attr(metadata_main, 'live') == '1')
 
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
@@ -1344,7 +1342,10 @@ class PmsConnect(object):
                               'parts': parts
                               }
 
+                live = int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+
                 if live:
+                    media_info['live'] = live
                     media_info['channel_call_sign'] = helpers.get_xml_attr(media, 'channelCallSign')
                     media_info['channel_identifier'] = helpers.get_xml_attr(media, 'channelIdentifier')
                     media_info['channel_thumb'] = helpers.get_xml_attr(media, 'channelThumb')

@@ -235,7 +235,12 @@ class ActivityProcessor(object):
                 if not is_import:
                     logger.debug(u"Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     pms_connect = pmsconnect.PmsConnect()
-                    metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    if session['live']:
+                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
+                                                                    cache_key=session['session_key'],
+                                                                    skip_cache_time=True)
+                    else:
+                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
                     if not metadata:
                         return False
                     else:
@@ -453,7 +458,11 @@ class ActivityProcessor(object):
                           'actors': actors,
                           'genres': genres,
                           'studio': metadata['studio'],
-                          'labels': labels
+                          'labels': labels,
+                          'live': session['live'],
+                          'channel_call_sign': metadata['channel_call_sign'],
+                          'channel_identifier': metadata['channel_identifier'],
+                          'channel_thumb': metadata['channel_thumb']
                           }
 
                 # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
