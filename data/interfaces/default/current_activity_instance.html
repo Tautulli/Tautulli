@@ -62,7 +62,6 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from urllib import quote
     from plexpy import helpers
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
@@ -81,14 +80,11 @@ DOCUMENTATION :: END
     <div class="dashboard-activity-container">
         <%
             if data['live'] == 1:
-                background_url = 'images/art-live.png'
+                background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
             elif data['channel_stream'] == 0:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
             else:
-                if (data['art'] and data['art'].startswith('http')) or (data['thumb'] and data['thumb'].startswith('http')):
-                    background_url = data['art']
-                else:
-                    background_url = 'pms_image_proxy?img=' + quote(data['art'] or data['thumb']) + '&width=500&height=280&fallback=art&refresh=true&clip=true'
+                background_url = 'pms_image_proxy?img=' + (data['art'] or data['thumb']) + '&width=500&height=280&fallback=art&refresh=true&clip=true'
         %>
         <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(${background_url});">
             <div class="dashboard-activity-poster-container hidden-xs">
@@ -96,16 +92,7 @@ DOCUMENTATION :: END
                 <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
                 % if data['live'] == 1:
-                    <%
-                        live_thumb = data['grandparent_thumb'] or data['thumb']
-                    %>
-                    % if live_thumb.startswith('http'):
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${live_thumb});"></div>
-                    % elif live_thumb:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${live_thumb}&width=300&height=450&fallback=poster&refresh=true);"></div>
-                    % else:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster-live.png);"></div>
-                    % endif
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
                 % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
@@ -129,13 +116,8 @@ DOCUMENTATION :: END
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster.png);"></div>
                     % endif
                 % else:
-                    % if data['channel_icon'].startswith('http'):
-                    <div id="poster-${sk}" class="dashboard-activity-poster-blur" style="background-image: url(${data['channel_icon']});"></div>
-                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${data['channel_icon']});"></div>
-                    % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                     <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&width=300&height=300&fallback=cover&refresh=true);"></div>
-                    % endif
                 % endif
             </div>
             <div class="dashboard-activity-info-icon">

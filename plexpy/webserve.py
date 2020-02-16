@@ -4038,7 +4038,7 @@ class WebInterface(object):
                 background (str):       282828
                 blur (str):             3
                 img_format (str):       png
-                fallback (str):         "poster", "cover", "art"
+                fallback (str):         "poster", "cover", "art", "poster-live", "poster-art"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
@@ -4058,9 +4058,12 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        img_split = img.split('/')
-        img = '/'.join(img_split[:5])
-        rating_key = rating_key or img_split[3]
+        web_img = img.startswith('http')
+
+        if not web_img:
+            img_split = img.split('/')
+            img = '/'.join(img_split[:5])
+            rating_key = rating_key or img_split[3]
 
         img_hash = notification_handler.set_hash_image_info(
             img=img, rating_key=rating_key, width=width, height=height,
@@ -4111,15 +4114,8 @@ class WebInterface(object):
 
             except Exception as e:
                 logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
-                fbi = None
-                if fallback == 'poster':
-                    fbi = common.DEFAULT_POSTER_THUMB
-                elif fallback == 'cover':
-                    fbi = common.DEFAULT_COVER_THUMB
-                elif fallback == 'art':
-                    fbi = common.DEFAULT_ART
-
-                if fbi:
+                if fallback in common.DEFAULT_IMAGES:
+                    fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
 
@@ -4137,14 +4133,8 @@ class WebInterface(object):
 
             img_hash = args[0].split('.')[0]
 
-            if img_hash in ('poster', 'cover', 'art'):
-                if img_hash == 'poster':
-                    fbi = common.DEFAULT_POSTER_THUMB
-                elif img_hash == 'cover':
-                    fbi = common.DEFAULT_COVER_THUMB
-                elif img_hash == 'art':
-                    fbi = common.DEFAULT_ART
-
+            if img_hash in common.DEFAULT_IMAGES:
+                fbi = common.DEFAULT_IMAGES[img_hash]
                 fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                 return serve_file(path=fp, content_type='image/png')
 

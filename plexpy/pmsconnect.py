@@ -2694,10 +2694,14 @@ class PmsConnect(object):
         height = height or 1500
 
         if img:
-            if refresh:
+            web_img = img.startswith('http')
+
+            if refresh and not web_img:
                 img = '{}/{}'.format(img.rstrip('/'), int(time.time()))
 
-            if clip:
+            if web_img:
+                params = {'url': '%s' % img}
+            elif clip:
                 params = {'url': '%s&%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
             else:
                 params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}

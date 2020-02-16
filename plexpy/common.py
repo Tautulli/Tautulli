@@ -34,10 +34,20 @@ DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
+DEFAULT_LIVE_TV_POSTER_THUMB = "interfaces/default/images/poster-live.png"
+DEFAULT_LIVE_TV_ART = "interfaces/default/images/art-live.png"
 
 ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
 ONLINE_ART = "https://tautulli.com/images/art.png"
+
+DEFAULT_IMAGES = {
+    'poster': DEFAULT_POSTER_THUMB,
+    'cover': DEFAULT_COVER_THUMB,
+    'art': DEFAULT_ART,
+    'poster-live': DEFAULT_LIVE_TV_POSTER_THUMB,
+    'poster-art': DEFAULT_LIVE_TV_ART
+}
 
 MEDIA_TYPE_HEADERS = {
     'movie': 'Movies',
