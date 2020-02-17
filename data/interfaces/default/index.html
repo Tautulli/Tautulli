@@ -563,6 +563,7 @@
                             $(instance).removeClass('updated-temp');
                         } else {
                             $(instance).find('[data-toggle=tooltip]').tooltip('destroy');
+                            $(instance).find('[data-toggle=popover]').popover('destroy');
                             $(instance).remove();
                         }
                     });
@@ -603,9 +604,9 @@
                     trigger: 'hover',
                     placement: 'right',
                     delay: 50,
-                    template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+                    template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
                     content: function () {
-                        return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px; padding: 3px;" />';
+                        return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
                     }
                 });
                 $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
