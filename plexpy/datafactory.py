@@ -147,8 +147,8 @@ class DataFactory(object):
                 'parent_thumb',
                 'grandparent_thumb',
                 'live',
-                'originally_available_at',
                 'added_at',
+                'originally_available_at',
                 'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
                  (CASE WHEN (duration IS NULL OR duration = "") \
                  THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
