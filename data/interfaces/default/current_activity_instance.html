@@ -466,8 +466,9 @@ DOCUMENTATION :: END
                     % if data['media_index']:
                     <a href="${href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
                     &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
-                    % endif
+                    % else:
                     <span title="Live TV" class="sub-heading">Live TV</span>
+                    % endif
                     % else:
                     <span title="Live TV" class="sub-heading">Live TV</span>
                     % endif
