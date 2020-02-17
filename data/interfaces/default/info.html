@@ -287,6 +287,8 @@ DOCUMENTATION :: END
                                 Aired <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'episode' and data['originally_available_at']:
                                 Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
+                                % elif data['media_type'] == 'episode' and data['live']:
+                                Aired <strong> <span id="airdate">${data['added_at']}</span></strong>
                                 % elif data['media_type'] == 'album' or data['media_type'] == 'track':
                                 Released <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'collection':
