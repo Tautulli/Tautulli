@@ -72,12 +72,8 @@ DOCUMENTATION :: END
 <div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
     <div class="dashboard-stats-container">
         % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-        % if row0['art']:
         <% fallback = 'art-live' if row0['live'] else 'art' %>
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&rating_key=${row0['rating_key']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=${fallback});">
-        % else:
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);">
-        % endif
         % elif stat_id == 'top_platforms':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
@@ -102,11 +98,7 @@ DOCUMENTATION :: END
                             href += '&source=history'
                 %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
-                    % if row0['thumb']:
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback}" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&rating_key=${row0['rating_key']}&width=300&height=${height}&fallback=${fallback});"></div>
-                    % else:
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback}" style="background-image: url(images/${fallback}.png);"></div>
-                    % endif
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&rating_key=${row0['rating_key']}&width=300&height=${height}&fallback=${fallback});"></div>
                 </a>
             </div>
             % elif stat_id == 'top_users':
