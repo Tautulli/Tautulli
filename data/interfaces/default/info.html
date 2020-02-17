@@ -474,12 +474,14 @@ DOCUMENTATION :: END
                                 </span>
                             </div>
                             % endif
+                            % if not data['live']:
                             <div class="btn-group">
                                 <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
                                         data-id="${data['rating_key']}">
                                     <i class="fa fa-bell"></i> Recently Added Notification
                                 </button>
                             </div>
+                            % endif
                             % endif
                             <div class="btn-group">
                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
