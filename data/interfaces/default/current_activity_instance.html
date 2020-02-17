@@ -330,7 +330,9 @@ DOCUMENTATION :: END
                                     % if data['media_type'] != 'photo' and data['bandwidth'] != 'Unknown':
                                     <%
                                         bw = helpers.cast_to_int(data['bandwidth'])
-                                        if bw > 1000:
+                                        if bw > 1000000:
+                                            bw = str(round(bw / 1000000.0, 1)) + ' Gbps'
+                                        elif bw > 1000:
                                             bw = str(round(bw / 1000.0, 1)) + ' Mbps'
                                         else:
                                             bw = str(bw) + ' kbps'
