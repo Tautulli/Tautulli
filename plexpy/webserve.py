@@ -3934,7 +3934,7 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
+            return serve_template(templatename="info.html", metadata=metadata, title="Info", config=config, source=source)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)

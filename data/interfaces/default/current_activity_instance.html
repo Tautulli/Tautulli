@@ -79,7 +79,7 @@ DOCUMENTATION :: END
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
     <div class="dashboard-activity-container">
         <%
-            if data['live'] == 1:
+            if data['live']:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
             elif data['channel_stream'] == 0:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
@@ -91,8 +91,18 @@ DOCUMENTATION :: END
                 % if data['media_type'] == 'track':
                 <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
                 % endif
-                % if data['live'] == 1:
+                % if data['live']:
+                    % if data['media_type'] == 'movie':
+                    <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                    </a>
+                    % elif data['media_type'] == 'episode':
+                    <a id="poster-url-${sk}" href="${href}" title="${data['grandparent_title']}">
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                    </a>
+                    % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                    % endif
                 % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
@@ -337,7 +347,7 @@ DOCUMENTATION :: END
                 </div>
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
-                    % if data['live'] == 1:
+                    % if data['live']:
                     <br />Live
                     % elif data['view_offset']:
                     ETA:
@@ -367,7 +377,7 @@ DOCUMENTATION :: END
         </div>
         <div class="dashboard-activity-progress">
             <div class="dashboard-activity-progress-bar">
-                % if data['live'] == 1:
+                % if data['live']:
                 <div id="progress-bar-${sk}" class="progress-bar" style="width: 100%" data-state="live" data-toggle="tooltip" title="Stream Progress Live">Live</div>
                 % else:
                 <div id="buffer-bar-${sk}" class="buffer-bar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress ${data['transcode_progress']}%">${data['transcode_progress']}%</div>
@@ -391,12 +401,12 @@ DOCUMENTATION :: END
                 % endif
             </div>
             <div class="dashboard-activity-metadata-title">
-                % if data['live'] == 1:
+                % if data['live']:
                     % if data['media_type'] == 'movie':
-                    <span title="${data['title']}">${data['title']}</span>
+                    <a href="${href}" title="${data['title']}">${data['title']}</a>
                     % elif data['media_type'] == 'episode':
-                    <span title="${data['grandparent_title']}">${data['grandparent_title']}</span>
-                    - <span title="${data['title']}">${data['title']}</span>
+                    <a href="${href}" title="${data['grandparent_title']}">${data['grandparent_title']}</a>
+                    - <a href="${href}" title="${data['title']}">${data['title']}</a>
                     % else:
                     <span title="${data['title']}">${data['title']}</span>
                     % endif
@@ -453,8 +463,8 @@ DOCUMENTATION :: END
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
-                    <span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
-                    &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>
+                    <a href="${href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
+                    &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % else:
                     <span title="Live TV" class="sub-heading">Live TV</span>
                     % endif

@@ -36,6 +36,7 @@ DOCUMENTATION :: END
 </%doc>
 
 <%!
+    from collections import defaultdict
     import re
 
     from plexpy import notifiers
@@ -68,8 +69,11 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="body()">
-% if data:
-<% media_info = data['media_info'][0] if data['media_info'] else {} %>
+% if metadata:
+<%
+    data = defaultdict(lambda: None, **metadata)
+    media_info = defaultdict(lambda: None, **(data['media_info'][0] if data['media_info'] else {}))
+%>
 <div class="container-fluid">
     <div class="row">
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
@@ -81,7 +85,23 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
-                        % if data['media_type'] in ('movie', 'collection'):
+                        % if media_info['live']:
+                        <li>Live TV</li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
+                            % if data['media_type'] == 'movie':
+                            <li class="active metadata-xml">${data['title']}</li>
+                            % elif data['media_type'] == 'episode':
+                            <li class="hidden-xs hidden-sm">${data['grandparent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
+                            % if data['media_index']:
+                            <li>Season ${data['parent_media_index']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
+                            <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
+                            % else:
+                            <li class="active metadata-xml">${data['title']}</li>
+                            % endif
+                            % endif
+                        % elif data['media_type'] in ('movie', 'collection'):
                         <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
@@ -134,6 +154,13 @@ DOCUMENTATION :: END
                         % else:
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
+                        % if media_info['live']:
+                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster-live);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                        % else:
                             % if data['media_type'] == 'episode':
                             <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);">
                                 <div class="summary-poster-face-overlay">
@@ -162,10 +189,21 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % endif
+                        % endif
                         </a>
                     </div>
                     <div class="summary-content-title">
-                        % if data['media_type'] in ('movie', 'show', 'artist', 'collection'):
+                        % if media_info['live']:
+                            % if data['media_type'] == 'movie':
+                            <h1>&nbsp;</h1><h1>${data['title']}</h1>
+                            % elif data['media_type'] == 'eipsode':
+                            <h1>${data['grandparent_title']}</h1>
+                            <h2>${data['title']}</h2>
+                            % if data['media_index']:
+                            <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
+                            % endif
+                            % endif
+                        % elif data['media_type'] in ('movie', 'show', 'artist', 'collection'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
@@ -187,7 +225,7 @@ DOCUMENTATION :: END
             </div>
             <div class="summary-content-wrapper">
                 <div class="col-md-9">
-                    % if data['media_type'] == 'movie':
+                    % if data['media_type'] == 'movie' or media_info['live']:
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 305px;">
                     % elif data['media_type'] in ('show', 'season', 'collection'):
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
@@ -245,12 +283,14 @@ DOCUMENTATION :: END
                                 Year <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'show':
                                 Aired <strong> ${data['year']}</strong>
-                                % elif data['media_type'] == 'episode':
+                                % elif data['media_type'] == 'episode' and data['originally_available_at']:
                                 Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
                                 % elif data['media_type'] == 'album' or data['media_type'] == 'track':
                                 Released <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'collection':
                                 Year <strong> ${data['min_year']} - ${data['max_year']}</strong>
+                                % elif data['year']:
+                                Year <strong> ${data['year']}</strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -261,6 +301,11 @@ DOCUMENTATION :: END
                             <div class="summary-content-details-tag">
                                 % if data['content_rating']:
                                 Rated <strong> ${data['content_rating']} </strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-details-tag">
+                                % if media_info['channel_identifier']:
+                                Channel <strong> ${data['channel_call_sign']} ${data['channel_identifier']} </strong>
                                 % endif
                             </div>
                         </div>
@@ -474,6 +519,10 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="modalIncludes()">
+% if metadata:
+<%
+    data = defaultdict(None, **metadata)
+%>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
 <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
@@ -549,6 +598,7 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+% endif
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -558,7 +608,10 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
 
-% if data:
+% if metadata:
+<%
+    data = defaultdict(None, **metadata)
+%>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 % if data['media_type'] in ('show', 'artist'):
 <script>
