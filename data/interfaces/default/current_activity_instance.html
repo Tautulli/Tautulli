@@ -352,7 +352,7 @@ DOCUMENTATION :: END
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
                     % if data['live']:
-                    <br />${data['channel_call_sign']} ${data['channel_identifier']}
+                    <br /><span class="thumb-tooltip" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_call_sign']} ${data['channel_identifier']}</span>
                     % elif data['view_offset']:
                     ETA:
                     <span id="stream-eta-${sk}">
