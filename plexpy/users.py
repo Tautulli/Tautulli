@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import httpagentparser
 import time
 
@@ -116,6 +117,7 @@ class Users(object):
                    'session_history_metadata.year',
                    'session_history_metadata.media_index',
                    'session_history_metadata.parent_media_index',
+                   'session_history_metadata.live',
                    'session_history_media_info.transcode_decision',
                    'users.do_notify as do_notify',
                    'users.keep_history as keep_history',
@@ -179,6 +181,7 @@ class Users(object):
                    'year': item['year'],
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
+                   'live': item['live'],
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history']),
@@ -225,6 +228,7 @@ class Users(object):
                    'session_history_metadata.year',
                    'session_history_metadata.media_index',
                    'session_history_metadata.parent_media_index',
+                   'session_history_metadata.live',
                    'session_history_media_info.transcode_decision',
                    'session_history.user',
                    'session_history.user_id as custom_user_id',
@@ -279,6 +283,7 @@ class Users(object):
                    'year': item['year'],
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
+                   'live': item['live'],
                    'transcode_decision': item['transcode_decision'],
                    'friendly_name': item['friendly_name'],
                    'user_id': item['custom_user_id']
@@ -538,7 +543,7 @@ class Users(object):
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, original_title, ' \
                         'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
+                        'year, originally_available_at, added_at, live, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE user_id = ? ' \
@@ -553,30 +558,38 @@ class Users(object):
             result = []
 
         for row in result:
-                if row['media_type'] == 'episode' and row['parent_thumb']:
-                    thumb = row['parent_thumb']
-                elif row['media_type'] == 'episode':
-                    thumb = row['grandparent_thumb']
-                else:
-                    thumb = row['thumb']
+            if row['media_type'] == 'episode' and row['parent_thumb']:
+                thumb = row['parent_thumb']
+            elif row['media_type'] == 'episode':
+                thumb = row['grandparent_thumb']
+            else:
+                thumb = row['thumb']
 
-                recent_output = {'row_id': row['id'],
-                                 'media_type': row['media_type'],
-                                 'rating_key': row['rating_key'],
-                                 'parent_rating_key': row['parent_rating_key'],
-                                 'grandparent_rating_key': row['grandparent_rating_key'],
-                                 'title': row['title'],
-                                 'parent_title': row['parent_title'],
-                                 'grandparent_title': row['grandparent_title'],
-                                 'original_title': row['original_title'],
-                                 'thumb': thumb,
-                                 'media_index': row['media_index'],
-                                 'parent_media_index': row['parent_media_index'],
-                                 'year': row['year'],
-                                 'time': row['started'],
-                                 'user': row['user']
-                                 }
-                recently_watched.append(recent_output)
+            if row['live']:
+                # Fake Live TV air date using added_at timestamp
+                originally_available_at = row['originally_available_at'] or arrow.get(row['added_at']).format('YYYY-MM-DD')
+            else:
+                originally_available_at = row['originally_available_at']
+
+            recent_output = {'row_id': row['id'],
+                             'media_type': row['media_type'],
+                             'rating_key': row['rating_key'],
+                             'parent_rating_key': row['parent_rating_key'],
+                             'grandparent_rating_key': row['grandparent_rating_key'],
+                             'title': row['title'],
+                             'parent_title': row['parent_title'],
+                             'grandparent_title': row['grandparent_title'],
+                             'original_title': row['original_title'],
+                             'thumb': thumb,
+                             'media_index': row['media_index'],
+                             'parent_media_index': row['parent_media_index'],
+                             'year': row['year'],
+                             'originally_available_at': originally_available_at,
+                             'live': row['live'],
+                             'time': row['started'],
+                             'user': row['user']
+                             }
+            recently_watched.append(recent_output)
 
         return recently_watched
 

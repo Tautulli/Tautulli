@@ -56,6 +56,24 @@ DOCUMENTATION :: END
                 </a>
                 <div class="dashboard-recent-media-metacontainer">
                     % if item['media_type'] == 'episode':
+                    % if item['live']:
+                    <h3>
+                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                    </h3>
+                    <h3 class="text-muted" title="${item['title']}">
+                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                    </h3>
+                    % if item['media_index']:
+                    <h3 class="text-muted">
+                        <a href="info?source=history&rating_key=${item['rating_key']}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                         &middot; <a href="info?source=history&rating_key=${item['rating_key']}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                    </h3>
+                    % else:
+                    <h3 class="text-muted">
+                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['originally_available_at']}">${item['originally_available_at']}</a>
+                    </h3>
+                    % endif
+                    % else:
                     <h3>
                         <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
@@ -66,6 +84,7 @@ DOCUMENTATION :: END
                         <a href="info?rating_key=${item['parent_rating_key']}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
                          &middot; <a href="info?source=history&rating_key=${item['rating_key']}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                     </h3>
+                    % endif
                     % elif item['media_type'] == 'movie':
                     <h3 title="${item['title']}">
                         <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
