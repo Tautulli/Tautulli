@@ -294,7 +294,7 @@ class DataFactory(object):
                 top_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -331,6 +331,7 @@ class DataFactory(object):
                            'friendly_name': '',
                            'platform': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     top_movies.append(row)
@@ -344,7 +345,7 @@ class DataFactory(object):
                 popular_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -380,6 +381,7 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     popular_movies.append(row)
@@ -392,7 +394,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -428,6 +430,7 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     top_tv.append(row)
@@ -441,7 +444,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -477,6 +480,7 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     popular_tv.append(row)
@@ -490,7 +494,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
                             't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -526,6 +530,7 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     top_music.append(row)
@@ -540,7 +545,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
                             't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -576,6 +581,7 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
+                           'live': item['live'],
                            'row_id': item['id']
                            }
                     popular_music.append(row)
@@ -692,7 +698,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.grandparent_thumb, ' \
                             't.user, t.user_id, t.custom_avatar_url as user_thumb, t.player, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, ' \
+                            't.art, t.media_type, t.content_rating, t.labels, t.live, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(t.started) AS last_watch, ' \
@@ -738,6 +744,7 @@ class DataFactory(object):
                            'content_rating': item['content_rating'],
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'last_watch': item['last_watch'],
+                           'live': item['live'],
                            'player': item['player']
                            }
                     last_watched.append(row)
