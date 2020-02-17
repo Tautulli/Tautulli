@@ -425,9 +425,9 @@ DOCUMENTATION :: END
             </div>
         </div>
         <div class="dashboard-activity-metadata-subtitle-container">
-            % if data['live'] == 1 and data['media_type'] == 'clip':
-            <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Plex Live TV">
-                <i class="fa fa-fw fa-television"></i>&nbsp;
+            % if data['live']:
+            <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Live TV">
+                <i class="fa fa-fw broadcast-tower"></i>&nbsp;
             </div>
             % elif data['channel_stream'] == 0:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="${data['media_type'].capitalize()}">
@@ -456,7 +456,7 @@ DOCUMENTATION :: END
                     <span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
                     &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>
                     % else:
-                    <span title="Plex Live TV" class="sub-heading">Plex Live TV</span>
+                    <span title="Live TV" class="sub-heading">Live TV</span>
                     % endif
                     % if data['channel_identifier']:
                     <span class="thumb-tooltip" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">
