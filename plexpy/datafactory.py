@@ -21,6 +21,7 @@ import common
 import database
 import datatables
 import helpers
+import libraries
 import logger
 import pmsconnect
 import session
@@ -1007,7 +1008,6 @@ class DataFactory(object):
                     'session_history_metadata.grandparent_rating_key, session_history_metadata.title, ' \
                     'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
                     'session_history_metadata.original_title, session_history_metadata.full_title, ' \
-                    'library_sections.section_name, ' \
                     'session_history_metadata.media_index, session_history_metadata.parent_media_index, ' \
                     'session_history_metadata.section_id, session_history_metadata.thumb, ' \
                     'session_history_metadata.parent_thumb, session_history_metadata.grandparent_thumb, ' \
@@ -1026,7 +1026,6 @@ class DataFactory(object):
                     'session_history_metadata.channel_call_sign, session_history_metadata.channel_identifier, ' \
                     'session_history_metadata.channel_thumb ' \
                     'FROM session_history_metadata ' \
-                    'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
                     'JOIN session_history_media_info ON session_history_metadata.id = session_history_media_info.id ' \
                     'WHERE session_history_metadata.rating_key = ? ' \
                     'ORDER BY session_history_metadata.id DESC ' \
@@ -1038,6 +1037,13 @@ class DataFactory(object):
         metadata_list = []
 
         for item in result:
+            if item['section_id']:
+                library_data = libraries.Libraries()
+                library_details = library_data.get_details(section_id=item['section_id'])
+                section_name = library_details['section_name']
+            else:
+                section_name = ''
+
             directors = item['directors'].split(';') if item['directors'] else []
             writers = item['writers'].split(';') if item['writers'] else []
             actors = item['actors'].split(';') if item['actors'] else []
@@ -1050,7 +1056,8 @@ class DataFactory(object):
                            'video_resolution': item['video_resolution'],
                            'video_framerate': item['video_framerate'],
                            'audio_codec': item['audio_codec'],
-                           'audio_channels': item['audio_channels']
+                           'audio_channels': item['audio_channels'],
+                           'live': item['live']
                            }]
 
             metadata = {'media_type': item['media_type'],
@@ -1084,7 +1091,7 @@ class DataFactory(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
-                        'library_name': item['section_name'],
+                        'library_name': section_name,
                         'section_id': item['section_id'],
                         'media_info': media_info
                         }
