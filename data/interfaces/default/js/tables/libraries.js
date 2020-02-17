@@ -154,6 +154,7 @@ libraries_list_table_options = {
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Movie';
                         if (!isNaN(parseInt(rowData['parent_media_index'])) && !isNaN(parseInt(rowData['media_index']))) { parent_info = ' (S' + rowData['parent_media_index'] + ' &middot; E' + rowData['media_index'] + ')'; }
+                        else if (rowData['live'] && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&rating_key=' + rowData['rating_key'] + '&width=300&height=450&fallback=' + fallback + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');

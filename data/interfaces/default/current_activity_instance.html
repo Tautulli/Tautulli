@@ -471,7 +471,7 @@ DOCUMENTATION :: END
                     <a href="${href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
                     &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % else:
-                    <span title="Live TV" class="sub-heading">Live TV</span>
+                    <a href="${href}" title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</a>
                     % endif
                     % else:
                     <span title="Live TV" class="sub-heading">Live TV</span>

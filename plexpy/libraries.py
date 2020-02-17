@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-import arrow
 import json
 import os
 
@@ -286,6 +285,9 @@ class Libraries(object):
                    'session_history_metadata.parent_media_index',
                    'session_history_metadata.content_rating',
                    'session_history_metadata.labels',
+                   'session_history_metadata.live',
+                   'session_history_metadata.added_at',
+                   'session_history_metadata.originally_available_at',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
                    'library_sections.keep_history'
@@ -327,6 +329,10 @@ class Libraries(object):
             else:
                 library_thumb = common.DEFAULT_COVER_THUMB
 
+            # Fake Live TV air date using added_at timestamp
+            if item['live'] and not item['originally_available_at']:
+                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
+
             row = {'section_id': item['section_id'],
                    'section_name': item['section_name'],
                    'section_type': item['section_type'],
@@ -349,6 +355,8 @@ class Libraries(object):
                    'parent_media_index': item['parent_media_index'],
                    'content_rating': item['content_rating'],
                    'labels': item['labels'].split(';') if item['labels'] else (),
+                   'live': item['live'],
+                   'originally_available_at': item['originally_available_at'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'do_notify_created': helpers.checked(item['do_notify_created']),
                    'keep_history': helpers.checked(item['keep_history'])
@@ -905,12 +913,9 @@ class Libraries(object):
                 else:
                     thumb = row['thumb']
 
-                if row['live']:
-                    # Fake Live TV air date using added_at timestamp
-                    originally_available_at = row['originally_available_at'] or arrow.get(row['added_at']).format(
-                        'YYYY-MM-DD')
-                else:
-                    originally_available_at = row['originally_available_at']
+                # Fake Live TV air date using added_at timestamp
+                if row['live'] and not row['originally_available_at']:
+                    row['originally_available_at'] = helpers.timestamp_to_iso_date(row['added_at'])
 
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
@@ -925,7 +930,7 @@ class Libraries(object):
                                  'media_index': row['media_index'],
                                  'parent_media_index': row['parent_media_index'],
                                  'year': row['year'],
-                                 'originally_available_at': originally_available_at,
+                                 'originally_available_at': row['originally_available_at'],
                                  'live': row['live'],
                                  'time': row['started'],
                                  'user': row['user'],

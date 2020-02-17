@@ -221,6 +221,10 @@ def utc_now_iso():
     return utcnow.isoformat()
 
 
+def timestamp_to_iso_date(timestamp):
+    return datetime.datetime.fromtimestamp(cast_to_int(timestamp)).strftime("%Y-%m-%d")
+
+
 def human_duration(s, sig='dhms'):
 
     hd = ''

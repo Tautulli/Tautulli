@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-import arrow
 import json
 from itertools import groupby
 
@@ -97,6 +96,8 @@ class DataFactory(object):
             'session_history_metadata.parent_thumb',
             'session_history_metadata.grandparent_thumb',
             'session_history_metadata.live',
+            'session_history_metadata.added_at',
+            'session_history_metadata.originally_available_at',
             'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
              (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
              THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
@@ -146,6 +147,8 @@ class DataFactory(object):
                 'parent_thumb',
                 'grandparent_thumb',
                 'live',
+                'originally_available_at',
+                'added_at',
                 'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
                  (CASE WHEN (duration IS NULL OR duration = "") \
                  THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
@@ -220,6 +223,10 @@ class DataFactory(object):
             else:
                 watched_status = 0
 
+            # Fake Live TV air date using added_at timestamp
+            if item['live'] and not item['originally_available_at']:
+                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
+
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
@@ -251,6 +258,7 @@ class DataFactory(object):
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
                    'thumb': thumb,
+                   'originally_available_at': item['originally_available_at'],
                    'transcode_decision': item['transcode_decision'],
                    'percent_complete': int(round(item['percent_complete'])),
                    'watched_status': watched_status,
@@ -1052,11 +1060,9 @@ class DataFactory(object):
             else:
                 section_name = ''
 
-            if item['live']:
-                # Fake Live TV air date using added_at timestamp
-                originally_available_at = item['originally_available_at'] or arrow.get(item['added_at']).format('YYYY-MM-DD')
-            else:
-                originally_available_at = item['originally_available_at']
+            # Fake Live TV air date using added_at timestamp
+            if item['live'] and not item['originally_available_at']:
+                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
 
             directors = item['directors'].split(';') if item['directors'] else []
             writers = item['writers'].split(';') if item['writers'] else []
@@ -1098,7 +1104,7 @@ class DataFactory(object):
                         'parent_thumb': item['parent_thumb'],
                         'grandparent_thumb': item['grandparent_thumb'],
                         'art': item['art'],
-                        'originally_available_at': originally_available_at,
+                        'originally_available_at': item['originally_available_at'],
                         'added_at': item['added_at'],
                         'updated_at': item['updated_at'],
                         'last_viewed_at': item['last_viewed_at'],

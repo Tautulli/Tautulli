@@ -585,6 +585,7 @@ def dbcheck():
         'media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'originally_available_at TEXT, added_at INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
         'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
         'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, '
@@ -1234,6 +1235,18 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN channel_thumb TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT originally_available_at FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN originally_available_at TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN added_at INTEGER'
         )
 
     # Upgrade session_history table from earlier versions

@@ -61,6 +61,8 @@ class ActivityProcessor(object):
                       'platform': session.get('platform', ''),
                       'parent_rating_key': session.get('parent_rating_key', ''),
                       'grandparent_rating_key': session.get('grandparent_rating_key', ''),
+                      'originally_available_at': session.get('originally_available_at', ''),
+                      'added_at': session.get('added_at', ''),
                       'view_offset': session.get('view_offset', ''),
                       'duration': session.get('duration', ''),
                       'video_decision': session.get('video_decision', ''),
