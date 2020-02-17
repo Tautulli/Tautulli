@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import json
 from itertools import groupby
 
@@ -1044,6 +1045,12 @@ class DataFactory(object):
             else:
                 section_name = ''
 
+            if item['live']:
+                # Fake Live TV air date using added_at timestamp
+                originally_available_at = item['originally_available_at'] or arrow.get(item['added_at']).format('YYYY-MM-DD')
+            else:
+                originally_available_at = item['originally_available_at']
+
             directors = item['directors'].split(';') if item['directors'] else []
             writers = item['writers'].split(';') if item['writers'] else []
             actors = item['actors'].split(';') if item['actors'] else []
@@ -1084,7 +1091,7 @@ class DataFactory(object):
                         'parent_thumb': item['parent_thumb'],
                         'grandparent_thumb': item['grandparent_thumb'],
                         'art': item['art'],
-                        'originally_available_at': item['originally_available_at'],
+                        'originally_available_at': originally_available_at,
                         'added_at': item['added_at'],
                         'updated_at': item['updated_at'],
                         'last_viewed_at': item['last_viewed_at'],
