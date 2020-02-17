@@ -125,6 +125,9 @@ class ActivityProcessor(object):
                       'relayed': session.get('relayed', 0),
                       'rating_key_websocket': session.get('rating_key_websocket', ''),
                       'raw_stream_info': json.dumps(session),
+                      'channel_call_sign': session.get('channel_call_sign', ''),
+                      'channel_identifier': session.get('channel_identifier', ''),
+                      'channel_thumb': session.get('channel_thumb', ''),
                       'stopped': int(time.time())
                       }
 
