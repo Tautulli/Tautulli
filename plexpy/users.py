@@ -595,7 +595,7 @@ class Users(object):
                              'media_index': row['media_index'],
                              'parent_media_index': row['parent_media_index'],
                              'year': row['year'],
-                             'originally_available_at': item['originally_available_at'],
+                             'originally_available_at': row['originally_available_at'],
                              'live': row['live'],
                              'time': row['started'],
                              'user': row['user']
