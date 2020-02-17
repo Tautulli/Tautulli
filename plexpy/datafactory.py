@@ -394,7 +394,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
+                            't.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -418,7 +418,7 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'users_watched': '',
-                           'rating_key': item['grandparent_rating_key'],
+                           'rating_key': item['rating_key'] if item['live'] else item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': item['grandparent_thumb'],
@@ -444,7 +444,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
+                            't.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -467,7 +467,7 @@ class DataFactory(object):
                 for item in result:
                     row = {'title': item['grandparent_title'],
                            'users_watched': item['users_watched'],
-                           'rating_key': item['grandparent_rating_key'],
+                           'rating_key': item['rating_key'] if item['live'] else item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': item['grandparent_thumb'],
