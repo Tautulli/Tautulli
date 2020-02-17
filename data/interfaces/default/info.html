@@ -76,7 +76,7 @@ DOCUMENTATION :: END
 %>
 <div class="container-fluid">
     <div class="row">
-        <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
+        <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&rating_key=${data['rating_key']}&width=1920&height=1080)"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
@@ -155,14 +155,14 @@ DOCUMENTATION :: END
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
                         % if media_info['live']:
-                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&width=300&height=450&fallback=poster-live);">
+                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster-live);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
                             </div>
                         % else:
                             % if data['media_type'] == 'episode':
-                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);">
+                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=500&height=280&fallback=art);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -171,7 +171,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                            <div class="summary-poster-face-track" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);">
+                            <div class="summary-poster-face-track" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=500&height=500&fallback=cover);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -180,7 +180,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % else:
-                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);">
+                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>

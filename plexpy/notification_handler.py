@@ -1251,9 +1251,12 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)
 
-    img_split = img.split('/')
-    img = '/'.join(img_split[:5])
-    rating_key = rating_key or img_split[3]
+    if img.startswith('/library/metadata'):
+        img_split = img.split('/')
+        img = '/'.join(img_split[:5])
+        img_rating_key = img_split[3]
+        if rating_key != img_rating_key:
+            rating_key = img_rating_key
 
     service = helpers.get_img_service()
 
@@ -1352,9 +1355,12 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)
 
-    img_split = img.split('/')
-    img = '/'.join(img_split[:5])
-    rating_key = rating_key or img_split[3]
+    if img.startswith('/library/metadata'):
+        img_split = img.split('/')
+        img = '/'.join(img_split[:5])
+        img_rating_key = img_split[3]
+        if rating_key != img_rating_key:
+            rating_key = img_rating_key
 
     img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
         plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)

@@ -40,7 +40,7 @@ DOCUMENTATION :: END
                 <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['grandparent_title']}">
                 % endif
                     <div class="dashboard-recent-media-poster">
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=450&fallback=poster);">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>
@@ -115,7 +115,7 @@ DOCUMENTATION :: END
                 % if item['rating_key']:
                 <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['parent_title']}">
                     <div class="dashboard-recent-media-cover">
-                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=300&fallback=cover);">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>

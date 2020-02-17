@@ -48,9 +48,9 @@ DOCUMENTATION :: END
                         <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
                             <div class="item-children-poster">
                                 % if media_type in ('artist', 'album'):
-                                <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
+                                <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=300&fallback=cover);"></div>
                                 % else:
-                                <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=450&fallback=poster);"></div>
                                 % endif
                                 % if _session['user_group'] == 'admin':
                                 <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>

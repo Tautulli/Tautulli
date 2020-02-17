@@ -384,7 +384,7 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
-                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
+                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&rating_key=' + s.rating_key + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
                                     .attr('title', s.original_title || s.grandparent_title)
@@ -392,8 +392,8 @@
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
-                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
-                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
+                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&rating_key=' + s.parent_rating_key + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&rating_key=' + s.parent_rating_key + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
                                 $('#poster-url-' + key)
                                     .attr('href', 'info?rating_key=' + s.parent_rating_key)
                                     .attr('title', s.parent_title);

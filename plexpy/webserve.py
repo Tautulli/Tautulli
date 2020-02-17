@@ -4062,12 +4062,12 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        web_img = img.startswith('http')
-
-        if not web_img:
+        if img.startswith('/library/metadata'):
             img_split = img.split('/')
             img = '/'.join(img_split[:5])
-            rating_key = rating_key or img_split[3]
+            img_rating_key = img_split[3]
+            if rating_key != img_rating_key:
+                rating_key = img_rating_key
 
         img_hash = notification_handler.set_hash_image_info(
             img=img, rating_key=rating_key, width=width, height=height,
