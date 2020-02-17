@@ -151,7 +151,7 @@ DOCUMENTATION :: END
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View on Plex Web">
-                        % elif not data['live']:
+                        % elif not media_info['live']:
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
                         % if media_info['live']:
@@ -190,7 +190,7 @@ DOCUMENTATION :: END
                             % endif
                             % endif
                         % endif
-                        % if not data['live']:
+                        % if not media_info['live']:
                         </a>
                         % endif
                     </div>
@@ -287,7 +287,7 @@ DOCUMENTATION :: END
                                 Aired <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'episode' and data['originally_available_at']:
                                 Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
-                                % elif data['media_type'] == 'episode' and data['live']:
+                                % elif data['media_type'] == 'episode' and media_info['live']:
                                 Aired <strong> <span id="airdate">${data['added_at']}</span></strong>
                                 % elif data['media_type'] == 'album' or data['media_type'] == 'track':
                                 Released <strong> ${data['year']}</strong>
@@ -309,7 +309,7 @@ DOCUMENTATION :: END
                             </div>
                             <div class="summary-content-details-tag">
                                 % if media_info['channel_identifier']:
-                                Channel <strong> ${data['channel_call_sign']} ${data['channel_identifier']} </strong>
+                                Channel <strong> ${media_info['channel_call_sign']} ${media_info['channel_identifier']} </strong>
                                 % endif
                             </div>
                         </div>
@@ -478,7 +478,7 @@ DOCUMENTATION :: END
                                 </span>
                             </div>
                             % endif
-                            % if not data['live']:
+                            % if not media_info['live']:
                             <div class="btn-group">
                                 <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
                                         data-id="${data['rating_key']}">
