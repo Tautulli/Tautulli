@@ -4047,6 +4047,10 @@ class WebInterface(object):
             ```
         """
         if not img and not rating_key:
+            if fallback in common.DEFAULT_IMAGES:
+                fbi = common.DEFAULT_IMAGES[fallback]
+                fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                return serve_file(path=fp, content_type='image/png')
             logger.warn('No image input received.')
             return
 

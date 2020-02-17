@@ -80,8 +80,7 @@ DOCUMENTATION :: END
     <div class="dashboard-activity-container">
         <%
             if data['live']:
-                art = ('img=' + data['art']) if data['art'] else ('rating_key=' + data['rating_key'])
-                background_url = 'pms_image_proxy?' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
+                background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
             elif data['channel_stream'] == 0:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
             else:
