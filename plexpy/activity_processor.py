@@ -460,9 +460,9 @@ class ActivityProcessor(object):
                           'studio': metadata['studio'],
                           'labels': labels,
                           'live': session['live'],
-                          'channel_call_sign': metadata['channel_call_sign'],
-                          'channel_identifier': metadata['channel_identifier'],
-                          'channel_thumb': metadata['channel_thumb']
+                          'channel_call_sign': media_info.get('channel_call_sign', ''),
+                          'channel_identifier': media_info.get('channel_identifier', ''),
+                          'channel_thumb': media_info.get('channel_thumb', '')
                           }
 
                 # logger.debug(u"Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
