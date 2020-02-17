@@ -80,7 +80,8 @@ DOCUMENTATION :: END
     <div class="dashboard-activity-container">
         <%
             if data['live']:
-                background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
+                art = ('img=' + data['art']) if data['art'] else ('rating_key=' + data['rating_key'])
+                background_url = 'pms_image_proxy?' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
             elif data['channel_stream'] == 0:
                 background_url = 'pms_image_proxy?img=' + data['art'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
             else:
@@ -348,7 +349,7 @@ DOCUMENTATION :: END
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
                     % if data['live']:
-                    <br />Live
+                    <br />${data['channel_call_sign']} ${data['channel_identifier']}
                     % elif data['view_offset']:
                     ETA:
                     <span id="stream-eta-${sk}">
@@ -437,7 +438,7 @@ DOCUMENTATION :: END
         <div class="dashboard-activity-metadata-subtitle-container">
             % if data['live']:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Live TV">
-                <i class="fa fa-fw broadcast-tower"></i>&nbsp;
+                <i class="fa fa-fw fa-broadcast-tower"></i>&nbsp;
             </div>
             % elif data['channel_stream'] == 0:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="${data['media_type'].capitalize()}">
@@ -463,15 +464,13 @@ DOCUMENTATION :: END
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
+                    % if data['media_index']:
                     <a href="${href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
                     &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
+                    % endif
+                    <span title="Live TV" class="sub-heading">Live TV</span>
                     % else:
                     <span title="Live TV" class="sub-heading">Live TV</span>
-                    % endif
-                    % if data['channel_identifier']:
-                    <span class="thumb-tooltip" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">
-                        <span title="${data['channel_call_sign']} ${data['channel_identifier']}" class="sub-heading">(${data['channel_call_sign']} ${data['channel_identifier']})</span>
-                    </span>
                     % endif
                 % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':

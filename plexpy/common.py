@@ -46,7 +46,7 @@ DEFAULT_IMAGES = {
     'cover': DEFAULT_COVER_THUMB,
     'art': DEFAULT_ART,
     'poster-live': DEFAULT_LIVE_TV_POSTER_THUMB,
-    'poster-art': DEFAULT_LIVE_TV_ART
+    'art-live': DEFAULT_LIVE_TV_ART
 }
 
 MEDIA_TYPE_HEADERS = {
