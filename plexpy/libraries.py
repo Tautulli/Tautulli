@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import json
 import os
 
@@ -883,7 +884,7 @@ class Libraries(object):
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, original_title, ' \
                         'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user, content_rating, labels, section_id ' \
+                        'year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE section_id = ? ' \
@@ -904,6 +905,13 @@ class Libraries(object):
                 else:
                     thumb = row['thumb']
 
+                if row['live']:
+                    # Fake Live TV air date using added_at timestamp
+                    originally_available_at = row['originally_available_at'] or arrow.get(row['added_at']).format(
+                        'YYYY-MM-DD')
+                else:
+                    originally_available_at = row['originally_available_at']
+
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
                                  'rating_key': row['rating_key'],
@@ -917,6 +925,8 @@ class Libraries(object):
                                  'media_index': row['media_index'],
                                  'parent_media_index': row['parent_media_index'],
                                  'year': row['year'],
+                                 'originally_available_at': originally_available_at,
+                                 'live': row['live'],
                                  'time': row['started'],
                                  'user': row['user'],
                                  'section_id': row['section_id'],
