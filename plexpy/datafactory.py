@@ -1057,7 +1057,10 @@ class DataFactory(object):
                            'video_framerate': item['video_framerate'],
                            'audio_codec': item['audio_codec'],
                            'audio_channels': item['audio_channels'],
-                           'live': item['live']
+                           'live': item['live'],
+                           'channel_call_sign': item['channel_call_sign'],
+                           'channel_identifier': item['channel_identifier'],
+                           'channel_thumb': item['channel_thumb']
                            }]
 
             metadata = {'media_type': item['media_type'],
