@@ -607,9 +607,10 @@ class PmsConnect(object):
             metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
         elif plex_guid:
             rating_key = plex_guid.rsplit('/', 1)[-1]
-            plextv_metadata = PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            plextv_metadata.url = 'https://metadata.provider.plex.tv'
+            logger.debug("https://metadata.provider.plex.tv rating_key: {}".format(rating_key))
+            plextv_metadata = PmsConnect(url='https://metadata.provider.plex.tv', token=plexpy.CONFIG.PMS_TOKEN)
             metadata_xml = plextv_metadata.get_metadata(rating_key, output_format='xml')
+            logger.debug("Returned XML: {}".format(metadata_xml))
         else:
             return metadata
 
@@ -1266,9 +1267,12 @@ class PmsConnect(object):
         else:
             return metadata
 
+        logger.debug("Metadata: {}".format(metadata))
         # Get additional metadata from metadata.provider.plex.tv
         if not plex_guid and metadata['live']:
+            logger.debug("Live TV guid: {}".format(metadata['guid']))
             plextv_metadata = self.get_metadata_details(plex_guid=metadata['guid'])
+            logger.debug("metadata.provider.plex.tv metadata: {}".format(plextv_metadata))
             keys_to_update = ['summary', 'rating', 'thumb', 'grandparent_thumb', 'duration',
                               'guid', 'grandparent_guid', 'genres']
             for key in keys_to_update:
