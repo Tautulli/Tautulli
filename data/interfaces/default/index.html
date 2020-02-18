@@ -507,9 +507,7 @@
                         if (s.media_type !== 'photo' && s.quality_profile !== 'Unknown') {
                             var br = parseInt(s.stream_bitrate) || '';
                             if (br) {
-                                if (br > 1000000) {
-                                    br = ' (' + (br / 1000000).toFixed(1) + ' Gbps)';
-                                } else if (br > 1000) {
+                                if (br > 1000) {
                                     br = ' (' + (br / 1000).toFixed(1) + ' Mbps)';
                                 } else {
                                     br = ' (' + br + ' kbps)';
@@ -526,7 +524,9 @@
 
                         if (s.media_type !== 'photo' && s.bandwidth !== 'Unknown') {
                             var bw = parseInt(s.bandwidth) || 0;
-                            if (bw > 1000) {
+                            if (bw > 1000000) {
+                                bw = (bw / 1000000).toFixed(1) + ' Gbps';
+                            } else if (bw > 1000) {
                                 bw = (bw / 1000).toFixed(1) + ' Mbps';
                             } else {
                                 bw = bw + ' kbps'
