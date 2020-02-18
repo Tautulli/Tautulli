@@ -329,10 +329,6 @@ class Libraries(object):
             else:
                 library_thumb = common.DEFAULT_COVER_THUMB
 
-            # Fake Live TV air date using added_at timestamp
-            if item['live'] and not item['originally_available_at']:
-                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
-
             row = {'section_id': item['section_id'],
                    'section_name': item['section_name'],
                    'section_type': item['section_type'],
@@ -912,10 +908,6 @@ class Libraries(object):
                     thumb = row['grandparent_thumb']
                 else:
                     thumb = row['thumb']
-
-                # Fake Live TV air date using added_at timestamp
-                if row['live'] and not row['originally_available_at']:
-                    row['originally_available_at'] = helpers.timestamp_to_iso_date(row['added_at'])
 
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],

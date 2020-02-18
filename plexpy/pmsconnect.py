@@ -571,7 +571,8 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', cache_key=None, skip_cache_time=False, media_info=True):
+    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='',
+                             cache_key=None, skip_cache_time=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
 
@@ -604,6 +605,11 @@ class PmsConnect(object):
             metadata_xml = self.get_metadata(str(rating_key), output_format='xml')
         elif sync_id:
             metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
+        elif plex_guid:
+            rating_key = plex_guid.rsplit('/', 1)[-1]
+            plextv_metadata = PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
+            plextv_metadata.url = 'https://metadata.provider.plex.tv'
+            metadata_xml = plextv_metadata.get_metadata(rating_key, output_format='xml')
         else:
             return metadata
 
@@ -778,7 +784,13 @@ class PmsConnect(object):
 
         elif metadata_type == 'season':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            show_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
+            parent_guid = helpers.get_xml_attr(metadata_main, 'parentGuid')
+            show_details = {}
+            if plex_guid and parent_guid:
+                show_details = self.get_metadata_details(plex_guid=parent_guid)
+            elif not plex_guid and parent_rating_key:
+                show_details = self.get_metadata_details(parent_rating_key)
+
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -829,13 +841,18 @@ class PmsConnect(object):
 
         elif metadata_type == 'episode':
             grandparent_rating_key = helpers.get_xml_attr(metadata_main, 'grandparentRatingKey')
-            show_details = self.get_metadata_details(grandparent_rating_key) if grandparent_rating_key else {}
+            grandparent_guid = helpers.get_xml_attr(metadata_main, 'grandparentGuid')
+            show_details = {}
+            if plex_guid and grandparent_guid:
+                show_details = self.get_metadata_details(plex_guid=grandparent_guid)
+            elif not plex_guid and grandparent_rating_key:
+                show_details = self.get_metadata_details(grandparent_rating_key)
 
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
             parent_thumb = helpers.get_xml_attr(metadata_main, 'parentThumb')
 
-            if not parent_rating_key:
+            if not plex_guid and not parent_rating_key:
                 # Try getting the parent_rating_key from the parent_thumb
                 if parent_thumb.startswith('/library/metadata/'):
                     parent_rating_key = parent_thumb.split('/')[3]
@@ -1249,9 +1266,14 @@ class PmsConnect(object):
         else:
             return metadata
 
-        # Fake Live TV air date using added_at timestamp
-        if metadata['live'] and not metadata['originally_available_at']:
-            metadata['originally_available_at'] = helpers.timestamp_to_iso_date(metadata['added_at'])
+        # Get additional metadata from metadata.provider.plex.tv
+        if not plex_guid and metadata['live']:
+            plextv_metadata = self.get_metadata_details(plex_guid=metadata['guid'])
+            keys_to_update = ['summary', 'rating', 'thumb', 'grandparent_thumb', 'duration',
+                              'guid', 'grandparent_guid', 'genres']
+            for key in keys_to_update:
+                metadata[key] = plextv_metadata[key]
+            metadata['originally_available_at'] = helpers.iso_to_YMD(plextv_metadata['originally_available_at'])
 
         if metadata and media_info:
             medias = []
@@ -1972,10 +1994,6 @@ class PmsConnect(object):
             if subtitle_id:
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
-
-            # Fake Live TV air date using added_at timestamp
-            if stream_details['live'] and not metadata_details['originally_available_at']:
-                metadata_details['originally_available_at'] = helpers.timestamp_to_iso_date(metadata_details['added_at'])
 
         # Overrides for live sessions
         if stream_details['live'] and transcode_session:

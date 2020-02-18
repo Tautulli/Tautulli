@@ -223,10 +223,6 @@ class DataFactory(object):
             else:
                 watched_status = 0
 
-            # Fake Live TV air date using added_at timestamp
-            if item['live'] and not item['originally_available_at']:
-                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
-
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
@@ -1059,10 +1055,6 @@ class DataFactory(object):
                 section_name = library_details['section_name']
             else:
                 section_name = ''
-
-            # Fake Live TV air date using added_at timestamp
-            if item['live'] and not item['originally_available_at']:
-                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
 
             directors = item['directors'].split(';') if item['directors'] else []
             writers = item['writers'].split(';') if item['writers'] else []

@@ -161,10 +161,6 @@ class Users(object):
             else:
                 user_thumb = common.DEFAULT_USER_THUMB
 
-            # Fake Live TV air date using added_at timestamp
-            if item['live'] and not item['originally_available_at']:
-                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
-
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
@@ -273,10 +269,6 @@ class Users(object):
                 thumb = item["grandparent_thumb"]
             else:
                 thumb = item["thumb"]
-
-            # Fake Live TV air date using added_at timestamp
-            if item['live'] and not item['originally_available_at']:
-                item['originally_available_at'] = helpers.timestamp_to_iso_date(item['added_at'])
 
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
@@ -577,10 +569,6 @@ class Users(object):
                 thumb = row['grandparent_thumb']
             else:
                 thumb = row['thumb']
-
-            # Fake Live TV air date using added_at timestamp
-            if row['live'] and not row['originally_available_at']:
-                row['originally_available_at'] = helpers.timestamp_to_iso_date(row['added_at'])
 
             recent_output = {'row_id': row['id'],
                              'media_type': row['media_type'],

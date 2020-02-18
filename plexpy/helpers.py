@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import base64
 import certifi
 import cloudinary
@@ -221,8 +222,20 @@ def utc_now_iso():
     return utcnow.isoformat()
 
 
-def timestamp_to_iso_date(timestamp):
-    return datetime.datetime.fromtimestamp(cast_to_int(timestamp)).strftime("%Y-%m-%d")
+def timestamp_to_YMD(timestamp):
+    return timestamp_to_datetime(timestamp).strftime("%Y-%m-%d")
+
+
+def timestamp_to_datetime(timestamp):
+    return datetime.datetime.fromtimestamp(cast_to_int(str(timestamp)))
+
+
+def iso_to_YMD(iso):
+    return iso_to_datetime(iso).strftime("%Y-%m-%d")
+
+
+def iso_to_datetime(iso):
+    return arrow.get(iso).datetime
 
 
 def human_duration(s, sig='dhms'):
