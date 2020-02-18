@@ -1077,7 +1077,6 @@ class DataFactory(object):
                            'video_framerate': item['video_framerate'],
                            'audio_codec': item['audio_codec'],
                            'audio_channels': item['audio_channels'],
-                           'live': item['live'],
                            'channel_call_sign': item['channel_call_sign'],
                            'channel_identifier': item['channel_identifier'],
                            'channel_thumb': item['channel_thumb']
@@ -1116,6 +1115,7 @@ class DataFactory(object):
                         'labels': labels,
                         'library_name': section_name,
                         'section_id': item['section_id'],
+                        'live': item['live'],
                         'media_info': media_info
                         }
             metadata_list.append(metadata)

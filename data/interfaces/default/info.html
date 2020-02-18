@@ -85,7 +85,7 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
-                        % if media_info['live']:
+                        % if data['live']:
                         <li>Live TV</li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % if data['media_type'] == 'movie':
@@ -151,10 +151,10 @@ DOCUMENTATION :: END
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View on Plex Web">
-                        % elif not media_info['live']:
+                        % elif not data['live']:
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
-                        % if media_info['live']:
+                        % if data['live']:
                             <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster-live);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
@@ -190,12 +190,12 @@ DOCUMENTATION :: END
                             % endif
                             % endif
                         % endif
-                        % if not media_info['live']:
+                        % if not data['live']:
                         </a>
                         % endif
                     </div>
                     <div class="summary-content-title">
-                        % if media_info['live']:
+                        % if data['live']:
                             % if data['media_type'] == 'movie':
                             <h1>&nbsp;</h1><h1>${data['title']}</h1>
                             % elif data['media_type'] == 'episode':
@@ -227,7 +227,7 @@ DOCUMENTATION :: END
             </div>
             <div class="summary-content-wrapper">
                 <div class="col-md-9">
-                    % if data['media_type'] == 'movie' or media_info['live']:
+                    % if data['media_type'] == 'movie' or data['live']:
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 305px;">
                     % elif data['media_type'] in ('show', 'season', 'collection'):
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
@@ -476,7 +476,7 @@ DOCUMENTATION :: END
                                 </span>
                             </div>
                             % endif
-                            % if not media_info['live']:
+                            % if not data['live']:
                             <div class="btn-group">
                                 <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
                                         data-id="${data['rating_key']}">
