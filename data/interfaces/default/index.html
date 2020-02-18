@@ -337,10 +337,10 @@
                     var bandwidth_header = ((total_bw > 1000000) ? ((total_bw / 1000000).toFixed(1) + ' Gbps') : ((total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps')));
                     var lan_wan_bandwidth_header = '';
                     if (lan_bw) {
-                        lan_wan_bandwidth_header += 'LAN: ' + ((lan_bw > 1000000) ? ((lan_bw / 1000000).toFixed(1) + ' Gbps') : ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps'))); + ', ';
+                        lan_wan_bandwidth_header += 'LAN: ' + ((lan_bw > 1000000) ? ((lan_bw / 1000000).toFixed(1) + ' Gbps') : ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps'))) + ', ';
                     }
                     if (wan_bw) {
-                        lan_wan_bandwidth_header += 'WAN: ' + ((wan_bw > 1000000) ? ((wan_bw / 1000000).toFixed(1) + ' Gbps') : ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps'))); + ', ';
+                        lan_wan_bandwidth_header += 'WAN: ' + ((wan_bw > 1000000) ? ((wan_bw / 1000000).toFixed(1) + ' Gbps') : ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps'))) + ', ';
                     }
                     if (lan_wan_bandwidth_header) {
                         bandwidth_header += ' (' + lan_wan_bandwidth_header.replace(/, $/, '') + ')';
