@@ -1683,31 +1683,40 @@ class WebInterface(object):
         elif user:
             custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
-            rating_key = kwargs.get('rating_key', "")
+            rating_key = kwargs.get('rating_key', '')
             custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
-            rating_key = kwargs.get('parent_rating_key', "")
+            rating_key = kwargs.get('parent_rating_key', '')
             custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
-            rating_key = kwargs.get('grandparent_rating_key', "")
+            rating_key = kwargs.get('grandparent_rating_key', '')
             custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
-            start_date = kwargs.get('start_date', "")
+            start_date = kwargs.get('start_date', '')
             custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
-            reference_id = kwargs.get('reference_id', "")
+            reference_id = kwargs.get('reference_id', '')
             custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
-            section_id = kwargs.get('section_id', "")
+            section_id = kwargs.get('section_id', '')
             custom_where.append(['session_history_metadata.section_id', section_id])
         if 'media_type' in kwargs:
-            media_type = kwargs.get('media_type', "")
+            media_type = kwargs.get('media_type', '')
             if media_type != 'all':
                 custom_where.append(['session_history.media_type', media_type])
         if 'transcode_decision' in kwargs:
-            transcode_decision = kwargs.get('transcode_decision', "")
+            transcode_decision = kwargs.get('transcode_decision', '')
             if transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
+        if 'live' in kwargs:
+            live = kwargs.get('live', '0')
+            custom_where.append(['session_history_metadata.live', live])
+        if 'full_title' in kwargs:
+            full_title = kwargs.get('full_title', '')
+            custom_where.append(['session_history_metadata.full_title', full_title])
+        if 'year' in kwargs:
+            year = kwargs.get('year', '')
+            custom_where.append(['session_history_metadata.year', year])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)

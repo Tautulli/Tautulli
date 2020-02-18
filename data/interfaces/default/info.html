@@ -617,7 +617,25 @@ DOCUMENTATION :: END
     data = defaultdict(None, **metadata)
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
-% if data['media_type'] in ('show', 'artist'):
+% if data['live']:
+<script>
+    function get_history() {
+        history_table_options.ajax = {
+            url: 'get_history',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    live: "${data['live']}",
+                    full_title: "${data['full_title']}",
+                    year: "${data['year']}",
+                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                };
+            }
+        }
+    }
+</script>
+% elif data['media_type'] in ('show', 'artist'):
 <script>
     function get_history() {
         history_table_options.ajax = {

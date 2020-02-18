@@ -1093,6 +1093,7 @@ class DataFactory(object):
                         'media_index': item['media_index'],
                         'studio': item['studio'],
                         'title': item['title'],
+                        'full_title': item['full_title'],
                         'content_rating': item['content_rating'],
                         'summary': item['summary'],
                         'tagline': item['tagline'],
