@@ -3913,7 +3913,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, source=None, query=None, **kwargs):
+    def info(self, rating_key=None, source=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -3951,7 +3951,7 @@ class WebInterface(object):
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
             else:
-                return self.update_metadata(rating_key, query)
+                return self.update_metadata(rating_key)
 
     @cherrypy.expose
     @requireAuth()
