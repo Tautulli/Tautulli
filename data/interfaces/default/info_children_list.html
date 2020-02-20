@@ -28,7 +28,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import pms_image_proxy
+    from plexpy.helpers import pms_image_proxy, info_page
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
@@ -41,7 +41,7 @@ DOCUMENTATION :: END
         <li>
         % endif
             % if data['children_type'] == 'movie':
-            <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
+            <a href="${info_page(child['rating_key'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -51,12 +51,12 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper poster-item">
                 <h3>
-                     <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                     <a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
                 <h3 class="text-muted">${child['year']}</h3>
             </div>
             % elif data['children_type'] == 'show':
-            <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
+            <a href="${info_page(child['rating_key'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -66,11 +66,11 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper poster-item">
                 <h3>
-                     <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                     <a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
             % elif data['children_type'] == 'season':
-            <a href="info?rating_key=${child['rating_key']}" title="Season ${child['media_index']}">
+            <a href="${info_page(child['rating_key'])}" title="Season ${child['media_index']}">
                 <div class="item-children-poster">
                     % if child['thumb']:
                     <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});">
@@ -89,7 +89,7 @@ DOCUMENTATION :: END
                 </div>
             </a>
             % elif data['children_type'] == 'episode':
-            <a href="info?rating_key=${child['rating_key']}" title="Episode ${child['media_index']}">
+            <a href="${info_page(child['rating_key'])}" title="Episode ${child['media_index']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face episode-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 500, 280, fallback='art')});">
                         <div class="item-children-card-overlay">
@@ -105,11 +105,11 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper episode-item">
                 <h3>
-                     <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                     <a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
             % elif data['children_type'] == 'album':
-            <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
+            <a href="${info_page(child['rating_key'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -119,14 +119,14 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper cover-item">
                 <h3>
-                    <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                    <a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
             % elif data['children_type'] == 'track':
                 % if loop.index % 2 == 0:
                 <div class="item-children-list-item-even">
                     <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
-                    <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                    <span class="item-children-list-item-title"><a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                     % if child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
                     % endif
@@ -138,7 +138,7 @@ DOCUMENTATION :: END
                 % else:
                 <div class="item-children-list-item-odd">
                     <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
-                    <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                    <span class="item-children-list-item-title"><a href="${info_page(child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                     % if child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
                     % endif

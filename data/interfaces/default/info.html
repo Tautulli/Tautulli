@@ -41,7 +41,7 @@ DOCUMENTATION :: END
 
     from plexpy import notifiers
     from plexpy.common import MEDIA_TYPE_HEADERS, MEDIA_FLAGS_AUDIO, MEDIA_FLAGS_VIDEO
-    from plexpy.helpers import pms_image_proxy
+    from plexpy.helpers import pms_image_proxy, info_page
 
     # Get audio codec file
     def af(codec):
@@ -113,15 +113,15 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'season':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="info?rating_key=${data['parent_rating_key']}">Season ${data['parent_media_index']}</a></li>
+                        <li><a href="${info_page(data['parent_rating_key'])}">Season ${data['parent_media_index']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
@@ -131,15 +131,15 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'album':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'track':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
                         % endif
@@ -209,18 +209,18 @@ DOCUMENTATION :: END
                         % elif data['media_type'] in ('movie', 'show', 'artist', 'collection'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
-                        <h1>&nbsp;</h1><h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
+                        <h1>&nbsp;</h1><h1><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h3 class="hidden-xs">S${data['media_index']}</h3>
                         % elif data['media_type'] == 'episode':
-                        <h1><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
+                        <h1><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
                         % elif data['media_type'] == 'album':
-                        <h1><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
+                        <h1><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="info?rating_key=${data['grandparent_rating_key']}">${data['original_title'] or data['grandparent_title']}</a></h1>
-                        <h2><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a> - ${data['title']}</h2>
+                        <h1><a href="${info_page(data['grandparent_rating_key'])}">${data['original_title'] or data['grandparent_title']}</a></h1>
+                        <h2><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % endif
                     </div>
@@ -627,9 +627,7 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    live: "${data['live']}",
-                    full_title: "${data['full_title']}",
-                    year: "${data['year']}",
+                    guid: "${data['guid']}",
                     user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
                 };
             }

@@ -62,7 +62,7 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from plexpy.helpers import cast_to_int, pms_image_proxy
+    from plexpy.helpers import cast_to_int, pms_image_proxy, info_page
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
@@ -70,9 +70,9 @@ DOCUMENTATION :: END
     data = defaultdict(lambda: 'Unknown', **session)
     sk = data['session_key']
 
-    href = 'info?rating_key={}'.format(data['rating_key']) if data['rating_key'] else '#'
-    parent_href = 'info?rating_key={}'.format(data['parent_rating_key']) if data['parent_rating_key'] else '#'
-    grandparent_href = 'info?rating_key={}'.format(data['grandparent_rating_key']) if data['grandparent_rating_key'] else '#'
+    href = info_page(data['rating_key'])
+    parent_href = info_page(data['parent_rating_key'])
+    grandparent_href = info_page(data['grandparent_rating_key'])
     user_href = 'user?user_id={}'.format(data['user_id']) if data['user_id'] else '#'
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
