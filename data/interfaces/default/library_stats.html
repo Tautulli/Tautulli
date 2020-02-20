@@ -51,7 +51,7 @@ DOCUMENTATION :: END
                             <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
-                                    <a href="library?section_id=${section['section_id']}" title="${section['section_name']}">
+                                    <a href="${page('library', section['section_id'])}" title="${section['section_name']}">
                                         ${section['section_name']}
                                     </a>
                                 </div>

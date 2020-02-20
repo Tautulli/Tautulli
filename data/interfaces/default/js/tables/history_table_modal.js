@@ -63,9 +63,9 @@ history_table_modal_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['user_id']) {
-                        $(td).html('<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>');
                     } else {
-                        $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('user', null, rowData['user']) + '">' + cellData + '</a>');
                     }
                 } else {
                     $(td).html(cellData);
@@ -125,7 +125,7 @@ history_table_modal_options = {
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + parent_info + '</span>';
                         $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
                 }
             },

@@ -81,9 +81,9 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['user_id']) {
-                        $(td).html('<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>');
                     } else {
-                        $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('user', null, rowData['user']) + '">' + cellData + '</a>');
                     }
                 } else {
                     $(td).html(cellData);
@@ -186,7 +186,7 @@ history_table_options = {
                     } else if (rowData['media_type'] === 'clip') {
                         $(td).html(cellData);
                     } else {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
                 }
             },

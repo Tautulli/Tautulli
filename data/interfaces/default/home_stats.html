@@ -93,16 +93,17 @@ DOCUMENTATION :: END
 
                     href = '#'
                     if row0['rating_key']:
-                        href = 'info?rating_key={}'.format(row0['rating_key'])
                         if row0['live']:
-                            href += '&source=history'
+                            href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'])
+                        else:
+                            href = page('info', row0['rating_key'])
                 %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
                     <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['rating_key'], 300, height, fallback=fallback)});"></div>
                 </a>
             </div>
             % elif stat_id == 'top_users':
-            <% user_href = 'user?user_id={}'.format(row0['user_id']) if row0['user_id'] else '#' %>
+            <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['friendly_name']}" class="hidden-xs">
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
             </a>
@@ -130,7 +131,8 @@ DOCUMENTATION :: END
                     <div class="dashboard-stats-info scoller-content">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
-                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}"
+                                data-rating_key="${row.get('rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
@@ -140,15 +142,16 @@ DOCUMENTATION :: END
                                     <%
                                         href = '#'
                                         if row['rating_key']:
-                                            href = 'info?rating_key={}'.format(row['rating_key'])
-                                            if row0['live']:
-                                                href += '&source=history'
+                                            if row['live']:
+                                                href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'])
+                                            else:
+                                                href = page('info', row['rating_key'])
                                     %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
                                     </a>
                                     % elif stat_id == 'top_users':
-                                    <% user_href = 'user?user_id={}'.format(row['user_id']) if row['user_id'] else '#' %>
+                                    <% user_href = page('user', row['user_id']) if row['user_id'] else '#' %>
                                     <a href="${user_href}" title="${row['friendly_name']}">
                                         ${row['friendly_name']}
                                     </a>
@@ -190,6 +193,7 @@ DOCUMENTATION :: END
         var user_id = $(elem).data('user_id');
         var user_thumb = $(elem).data('user_thumb');
         var rating_key = $(elem).data('rating_key');
+        var guid = $(elem).data('guid');
         var live = $(elem).data('live');
         var [height, fallback_poster, fallback_art] = [450, 'poster', 'art'];
         if ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) {
@@ -204,7 +208,7 @@ DOCUMENTATION :: END
         } else if (stat_id === 'top_users') {
             $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (user_thumb || 'images/gravatar-default.png') + ')');
             if (user_id) {
-                href = 'user?user_id=' + user_id;
+                href = page('user', user_id);
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('friendly_name'));
         } else if (stat_id === 'top_platforms') {
@@ -216,9 +220,10 @@ DOCUMENTATION :: END
             }).addClass('platform-' + $(elem).data('platform') + '-rgba');
         } else {
             if (rating_key) {
-                href = 'info?rating_key=' + rating_key;
                 if (live) {
-                    href += '&source=history';
+                    href = page('info', rating_key, guid, true, live);
+                } else {
+                    href = page('info', rating_key);
                 }
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));

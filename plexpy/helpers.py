@@ -1263,7 +1263,9 @@ def mask_config_passwords(config):
 def page(endpoint, *args, **kwargs):
     endpoints = {
         'pms_image_proxy': pms_image_proxy,
-        'info': info_page
+        'info': info_page,
+        'library': library_page,
+        'user': user_page
     }
 
     params = {}
@@ -1315,5 +1317,25 @@ def info_page(rating_key=None, guid=None, history=None, live=None):
 
     if history:
         params['source'] = 'history'
+
+    return params
+
+
+def library_page(section_id=None):
+    params = {}
+
+    if section_id is not None:
+        params['section_id'] = section_id
+
+    return params
+
+
+def user_page(user_id=None, user=None):
+    params = {}
+
+    if user_id is not None:
+        params['user_id'] = user_id
+    if user is not None:
+        params['user'] = user
 
     return params

@@ -73,7 +73,7 @@ DOCUMENTATION :: END
     href = page('info', data['rating_key'])
     parent_href = page('info', data['parent_rating_key'])
     grandparent_href = page('info', data['grandparent_rating_key'])
-    user_href = 'user?user_id={}'.format(data['user_id']) if data['user_id'] else '#'
+    user_href = page('user', data['user_id']) if data['user_id'] else '#'
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
      data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">

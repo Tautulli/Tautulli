@@ -721,7 +721,9 @@ function encodeData(data) {
 function page(endpoint, ...args) {
     let endpoints = {
         'pms_image_proxy': pms_image_proxy,
-        'info': info_page
+        'info': info_page,
+        'library': library_page,
+        'user': user_page
     };
 
     var params = {};
@@ -761,6 +763,23 @@ function info_page(rating_key, guid, history, live) {
     }
 
     if (history != null) { params.source = 'history'; }
+
+    return params;
+}
+
+function library_page(section_id) {
+    var params = {};
+
+    if (section_id != null) { params.section_id = section_id; }
+
+    return params;
+}
+
+function user_page(user_id, user) {
+    var params = {};
+
+    if (user_id != null) { params.user_id = user_id; }
+    if (user != null) { params.user = user; }
 
     return params;
 }

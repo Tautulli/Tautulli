@@ -60,9 +60,9 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(../../images/gravatar-default-80x80.png);"></div></a>');
+                    $(td).html('<a href="' + page('user', rowData['user_id']) + '"><div class="users-poster-face" style="background-image: url(../../images/gravatar-default-80x80.png);"></div></a>');
                 } else {
-                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');"></div></a>');
+                    $(td).html('<a href="' + page('user', rowData['user_id']) + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');"></div></a>');
                 }
             },
             "orderable": false,
@@ -76,7 +76,7 @@ users_list_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '">' +
-                        '<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>' +
+                        '<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>' +
                         '<input type="text" class="hidden" value="' + cellData + '">' +
                         '</div>');
                 } else {
@@ -184,7 +184,7 @@ users_list_table_options = {
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + parent_info + '</span>';
                         $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type']) {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
                 } else {
                     $(td).html('n/a');
