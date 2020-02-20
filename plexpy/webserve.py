@@ -1720,8 +1720,8 @@ class WebInterface(object):
             year = kwargs.get('year', '')
             custom_where.append(['session_history_metadata.year', year])
         if 'guid' in kwargs:
-            guid = kwargs.get('guid', '').split('?')[0] + '%'  # SQLite LIKE wildcard
-            custom_where.append(['session_history_metadata.guid', guid])
+            guid = kwargs.get('guid', '').split('?')[0]
+            custom_where.append(['session_history_metadata.guid', 'LIKE ' + guid + '%'])  # SQLite LIKE wildcard
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
