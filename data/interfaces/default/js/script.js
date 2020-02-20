@@ -717,3 +717,21 @@ function encodeData(data) {
         return [key, data[key]].map(encodeURIComponent).join("=");
     }).join("&");
 }
+
+function pms_image_proxy(img, rating_key, width, height, opacity, background, blur, fallback, refresh, clip, img_format) {
+    var img_info = {};
+
+    if (img != null) { img_info.img = img; }
+    if (rating_key != null) { img_info.rating_key = rating_key; }
+    if (width != null) { img_info.width = width; }
+    if (height != null) { img_info.height = height; }
+    if (opacity != null) { img_info.opacity = opacity; }
+    if (background != null) { img_info.background = background; }
+    if (blur != null) { img_info.blur = blur; }
+    if (fallback != null) { img_info.fallback = fallback; }
+    if (refresh != null) { img_info.refresh = true; }
+    if (clip != null) { img_info.clip = true; }
+    if (img_format != null) { img_format.img_format = img_format; }
+
+    return 'pms_image_proxy?' + $.param(img_info);
+}

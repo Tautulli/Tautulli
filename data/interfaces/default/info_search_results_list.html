@@ -53,6 +53,9 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
+<%
+    from plexpy.helpers import pms_image_proxy
+%>
 % if data['results_count'] > 0:
 % if 'collection' in data['results_list'] and data['results_list']['collection']:
 <div class="item-children-wrapper">
@@ -64,7 +67,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=450&fallback=poster);"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -89,7 +92,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=450&fallback=poster);"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -114,7 +117,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=450&fallback=poster);"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -139,7 +142,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=450&fallback=poster);"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -164,7 +167,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=500&height=250&fallback=art);"></div>
+                    <div class="item-children-poster-face episode-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 500, 280, fallback='art')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -190,7 +193,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=300&fallback=cover);"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -214,7 +217,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['thumb']}&rating_key=${child['rating_key']}&width=300&height=300&fallback=cover);"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -239,7 +242,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&rating_key=${child['parent_rating_key']}&width=300&height=300&fallback=cover);">
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')});">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
                                 Track ${child['media_index']}

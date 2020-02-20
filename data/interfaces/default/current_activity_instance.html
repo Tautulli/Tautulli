@@ -62,7 +62,7 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from plexpy import helpers
+    from plexpy.helpers import cast_to_int, pms_image_proxy
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
@@ -80,56 +80,56 @@ DOCUMENTATION :: END
     <div class="dashboard-activity-container">
         <%
             if data['live']:
-                background_url = 'pms_image_proxy?img=' + data['art'] + '&rating_key=' + data['rating_key'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art-live&refresh=true'
+                background_url = pms_image_proxy(data['art'], data['rating_key'], 500, 280, 40, '282828', 3, fallback='art-live', refresh=True)
             elif data['channel_stream'] == 0:
-                background_url = 'pms_image_proxy?img=' + data['art'] + '&rating_key=' + data['rating_key'] + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true'
+                background_url = pms_image_proxy(data['art'], data['rating_key'], 500, 280, 40, '282828', 3, fallback='art', refresh=True)
             else:
-                background_url = 'pms_image_proxy?img=' + (data['art'] or data['thumb']) + '&rating_key=' + data['rating_key'] + '&width=500&height=280&fallback=art&refresh=true&clip=true'
+                background_url = pms_image_proxy(data['art'] or data['thumb'], data['rating_key'], 500, 280, 40, '282828', 3, fallback='art', refresh=True, clip=True)
         %>
         <div id="background-${sk}" class="dashboard-activity-background" style="background-image: url(${background_url});">
             <div class="dashboard-activity-poster-container hidden-xs">
                 % if data['media_type'] == 'track':
-                <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&rating_key=${data['parent_rating_key']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
+                <div id="poster-${sk}-bg" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['parent_thumb'], data['parent_rating_key'], 300, 300, 60, '282828', 3, fallback='cover', refresh=True)});"></div>
                 % endif
                 % if data['live']:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 300, 450, fallback='poster-live', refresh=True)});"></div>
                     </a>
                     % elif data['media_type'] == 'episode':
                     <a id="poster-url-${sk}" href="${href}" title="${data['grandparent_title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['grandparent_thumb'], data['rating_key'], 300, 450, fallback='poster-live', refresh=True)});"></div>
                     </a>
                     % else:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb'] or data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster-live&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live', refresh=True)});"></div>
                     % endif
                 % elif data['channel_stream'] == 0:
                     % if data['media_type'] == 'movie':
                     <a id="poster-url-${sk}" href="${href}" title="${data['title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                     </a>
                     % elif data['media_type'] == 'episode':
                     <a id="poster-url-${sk}" href="${grandparent_href}" title="${data['grandparent_title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&rating_key=${data['grandparent_rating_key']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['grandparent_thumb'], data['grandparent_rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                     </a>
                     % elif data['media_type'] == 'track':
                     <a id="poster-url-${sk}" href="${parent_href}" title="${data['parent_title']}">
-                        <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&rating_key=${data['parent_rating_key']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${pms_image_proxy(data['parent_thumb'], data['parent_rating_key'], 300, 300, fallback='cover', refresh=True)});"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
                         % if data['extra_type']:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['art'].replace('/art', '/thumb') or data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['art'].replace('/art', '/thumb') or data['thumb'], data['rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                         % elif data['parent_thumb']:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&rating_key=${data['parent_rating_key']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['parent_thumb'], data['parent_rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                         % else:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['thumb']}&rating_key=${data['rating_key']}&width=300&height=450&fallback=poster&refresh=true);"></div>
+                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                         % endif
                     % else:
                     <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(images/poster.png);"></div>
                     % endif
                 % else:
-                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&rating_key=${data['rating_key']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover&refresh=true);"></div>
-                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(pms_image_proxy?img=${data['channel_icon']}&rating_key=${data['rating_key']}&width=300&height=300&fallback=cover&refresh=true);"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${pms_image_proxy(data['channel_icon'], data['rating_key'], 300, 300, 60, '282828', 3, fallback='cover', refresh=True)});"></div>
+                    <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${pms_image_proxy(data['channel_icon'], data['rating_key'], 300, 300, fallback='cover', refresh=True)});"></div>
                 % endif
             </div>
             <div class="dashboard-activity-info-icon">
@@ -163,7 +163,7 @@ DOCUMENTATION :: END
                                 <div class="sub-value platform-right" id="stream_quality-${sk}">
                                     % if data['media_type'] != 'photo' and data['quality_profile'] != 'Unknown':
                                     <%
-                                        br = helpers.cast_to_int(data['stream_bitrate']) or ''
+                                        br = cast_to_int(data['stream_bitrate']) or ''
                                         if br:
                                             if br > 1000:
                                                 br = '(' + str(round(br / 1000.0, 1)) + ' Mbps)'
@@ -329,7 +329,7 @@ DOCUMENTATION :: END
                                 <div class="sub-value time-right">
                                     % if data['media_type'] != 'photo' and data['bandwidth'] != 'Unknown':
                                     <%
-                                        bw = helpers.cast_to_int(data['bandwidth'])
+                                        bw = cast_to_int(data['bandwidth'])
                                         if bw > 1000000:
                                             bw = str(round(bw / 1000000.0, 1)) + ' Gbps'
                                         elif bw > 1000:

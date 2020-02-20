@@ -41,6 +41,7 @@ import sys
 import tarfile
 import time
 import unicodedata
+import urllib
 import urllib3
 from xml.dom import minidom
 import xmltodict
@@ -1257,3 +1258,34 @@ def mask_config_passwords(config):
                 config[cfg] = '    '
 
     return config
+
+
+def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
+                    opacity=None, background=None, blur=None, img_format=None,
+                    fallback=None, refresh=None, clip=None):
+    img_info = {}
+
+    if img is not None:
+        img_info['img'] = img
+    if rating_key is not None:
+        img_info['rating_key'] = rating_key
+    if width is not None:
+        img_info['width'] = width
+    if height is not None:
+        img_info['height'] = height
+    if opacity is not None:
+        img_info['opacity'] = opacity
+    if background is not None:
+        img_info['background'] = background
+    if blur is not None:
+        img_info['blur'] = blur
+    if img_format is not None:
+        img_info['img_format'] = img_format
+    if fallback is not None:
+        img_info['fallback'] = fallback
+    if refresh is not None:
+        img_info['refresh'] = 'true'
+    if clip is not None:
+        img_info['clip'] = 'true'
+
+    return 'pms_image_proxy?' + urllib.urlencode(img_info)

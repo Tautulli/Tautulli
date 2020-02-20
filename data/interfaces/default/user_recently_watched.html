@@ -27,6 +27,9 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data:
+<%
+    from plexpy.helpers import pms_image_proxy
+%>
 <div class="dashboard-recent-media-row">
     <div id="recently-watched-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
@@ -40,7 +43,7 @@ DOCUMENTATION :: END
                 <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['grandparent_title']}">
                 % endif
                     <div class="dashboard-recent-media-poster">
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=450&fallback=poster);">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>
@@ -115,7 +118,7 @@ DOCUMENTATION :: END
                 % if item['rating_key']:
                 <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['parent_title']}">
                     <div class="dashboard-recent-media-cover">
-                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=300&fallback=cover);">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 300, fallback='cover')});">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>

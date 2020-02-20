@@ -31,6 +31,9 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
+<%
+    from plexpy.helpers import pms_image_proxy
+%>
 % if data:
 <div class="dashboard-recent-media-row">
     <div id="recently-added-row-scroller" style="left: 0;">
@@ -41,7 +44,7 @@ DOCUMENTATION :: END
                     % if item['media_type'] == 'movie':
                     <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">
                         <div class="dashboard-recent-media-poster">
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                         <script>
@@ -65,7 +68,7 @@ DOCUMENTATION :: END
                     % elif item['media_type'] == 'show':
                     <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">
                         <div class="dashboard-recent-media-poster">
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                         <script>
@@ -92,9 +95,9 @@ DOCUMENTATION :: END
                     <a href="info?rating_key=${item['rating_key']}" title="${item['parent_title']}">
                         <div class="dashboard-recent-media-poster">
                             % if item['thumb']:
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                             % else:
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['parent_thumb']}&rating_key=${item['parent_rating_key']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['parent_thumb'], item['parent_rating_key'], 300, 450, fallback='poster')});">
                             % endif
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
@@ -121,7 +124,7 @@ DOCUMENTATION :: END
                     % elif item['media_type'] == 'episode':
                     <a href="info?rating_key=${item['rating_key']}" title="${item['title']}">
                         <div class="dashboard-recent-media-poster">
-                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['grandparent_thumb']}&rating_key=${item['grandparent_rating_key']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['grandparent_thumb'], item['grandparent_rating_key'], 300, 450, fallback='poster')});">
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                         <script>
@@ -151,7 +154,7 @@ DOCUMENTATION :: END
 				    % elif item['media_type'] == 'album':
                     <a href="info?rating_key=${item['rating_key']}" title="${item['parent_title']}">
                         <div class="dashboard-recent-media-cover">
-                            <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&rating_key=${item['rating_key']}&width=300&height=300&fallback=cover);">
+                            <div class="dashboard-recent-media-cover-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 300, fallback='cover')});">
                                 <div class="dashboard-recent-media-overlay">
                                     <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                         <script>
