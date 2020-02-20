@@ -119,6 +119,7 @@ class Users(object):
                    'session_history_metadata.live',
                    'session_history_metadata.added_at',
                    'session_history_metadata.originally_available_at',
+                   'session_history_metadata.guid',
                    'session_history_media_info.transcode_decision',
                    'users.do_notify as do_notify',
                    'users.keep_history as keep_history',
@@ -184,6 +185,7 @@ class Users(object):
                    'parent_media_index': item['parent_media_index'],
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
+                   'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history']),
@@ -233,6 +235,7 @@ class Users(object):
                    'session_history_metadata.live',
                    'session_history_metadata.added_at',
                    'session_history_metadata.originally_available_at',
+                   'session_history_metadata.guid',
                    'session_history_media_info.transcode_decision',
                    'session_history.user',
                    'session_history.user_id as custom_user_id',
@@ -289,6 +292,7 @@ class Users(object):
                    'parent_media_index': item['parent_media_index'],
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
+                   'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
                    'friendly_name': item['friendly_name'],
                    'user_id': item['custom_user_id']
@@ -544,7 +548,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, ' \
+                query = 'SELECT session_history.id, session_history.media_type, guid, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, original_title, ' \
                         'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
@@ -585,6 +589,7 @@ class Users(object):
                              'year': row['year'],
                              'originally_available_at': row['originally_available_at'],
                              'live': row['live'],
+                             'guid': row['guid'],
                              'time': row['started'],
                              'user': row['user']
                              }

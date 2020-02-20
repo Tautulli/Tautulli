@@ -288,6 +288,7 @@ class Libraries(object):
                    'session_history_metadata.live',
                    'session_history_metadata.added_at',
                    'session_history_metadata.originally_available_at',
+                   'session_history_metadata.guid',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
                    'library_sections.keep_history'
@@ -353,6 +354,7 @@ class Libraries(object):
                    'labels': item['labels'].split(';') if item['labels'] else (),
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
+                   'guid': item['guid'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'do_notify_created': helpers.checked(item['do_notify_created']),
                    'keep_history': helpers.checked(item['keep_history'])
@@ -704,7 +706,7 @@ class Libraries(object):
                           'deleted_section': 0
                           }
 
-        if not section_id or helpers.cast_to_int(section_id) <= 0:
+        if not section_id:
             return default_return
 
         def get_library_details(section_id=section_id):
@@ -884,7 +886,7 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, ' \
+                query = 'SELECT session_history.id, session_history.media_type, guid, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, original_title, ' \
                         'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
@@ -924,6 +926,7 @@ class Libraries(object):
                                  'year': row['year'],
                                  'originally_available_at': row['originally_available_at'],
                                  'live': row['live'],
+                                 'guid': row['guid'],
                                  'time': row['started'],
                                  'user': row['user'],
                                  'section_id': row['section_id'],

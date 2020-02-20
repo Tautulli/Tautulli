@@ -1719,6 +1719,9 @@ class WebInterface(object):
         if 'year' in kwargs:
             year = kwargs.get('year', '')
             custom_where.append(['session_history_metadata.year', year])
+        if 'guid' in kwargs:
+            guid = kwargs.get('guid', '').split('?')[0] + '%'  # SQLite LIKE wildcard
+            custom_where.append(['session_history_metadata.guid', guid])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
@@ -3913,7 +3916,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, source=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -3926,7 +3929,7 @@ class WebInterface(object):
 
         if source == 'history':
             data_factory = datafactory.DataFactory()
-            metadata = data_factory.get_metadata_details(rating_key=rating_key)
+            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
             if metadata:
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
