@@ -762,7 +762,7 @@ function info_page(rating_key, guid, history, live) {
         params.rating_key = rating_key;
     }
 
-    if (history != null) { params.source = 'history'; }
+    if (history) { params.source = 'history'; }
 
     return params;
 }
