@@ -308,7 +308,7 @@ DOCUMENTATION :: END
                             </div>
                             <div class="summary-content-details-tag">
                                 % if media_info['channel_identifier']:
-                                Channel <strong> ${media_info['channel_call_sign']} ${media_info['channel_identifier']} </strong>
+                                Channel <strong> <span id="channel-icon" class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_call_sign']} ${media_info['channel_identifier']}</span> </strong>
                                 % endif
                             </div>
                         </div>
@@ -798,6 +798,17 @@ DOCUMENTATION :: END
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
+    $('#channel-icon[data-toggle=popover]').popover({
+        html: true,
+        container: 'body',
+        trigger: 'hover',
+        placement: 'right',
+        delay: 50,
+        template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+        content: function () {
+            return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
+        }
+    });
 </script>
 % if data.get('poster_url'):
 <script>
