@@ -1268,11 +1268,12 @@ class PmsConnect(object):
         # Get additional metadata from metadata.provider.plex.tv
         if not plex_guid and metadata['live']:
             plextv_metadata = self.get_metadata_details(plex_guid=metadata['guid'])
-            keys_to_update = ['summary', 'rating', 'thumb', 'grandparent_thumb', 'duration',
-                              'guid', 'grandparent_guid', 'genres']
-            for key in keys_to_update:
-                metadata[key] = plextv_metadata[key]
-            metadata['originally_available_at'] = helpers.iso_to_YMD(plextv_metadata['originally_available_at'])
+            if plextv_metadata:
+                keys_to_update = ['summary', 'rating', 'thumb', 'grandparent_thumb', 'duration',
+                                  'guid', 'grandparent_guid', 'genres']
+                for key in keys_to_update:
+                    metadata[key] = plextv_metadata[key]
+                metadata['originally_available_at'] = helpers.iso_to_YMD(plextv_metadata['originally_available_at'])
 
         if metadata and media_info:
             medias = []
