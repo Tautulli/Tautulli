@@ -732,7 +732,7 @@ function page(endpoint, ...args) {
         params = endpoints[endpoint](...args);
     }
 
-    return endpoint + '?' + $.param(params);
+    return endpoint + '?' + $.param(params).replace(/'/g, '%27');
 }
 
 function pms_image_proxy(img, rating_key, width, height, opacity, background, blur, fallback, refresh, clip, img_format) {
