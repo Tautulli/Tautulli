@@ -735,3 +735,21 @@ function pms_image_proxy(img, rating_key, width, height, opacity, background, bl
 
     return 'pms_image_proxy?' + $.param(img_info);
 }
+
+function info_page(rating_key, guid, history, live) {
+    var info = {};
+
+    if (live && history) {
+        info.guid = guid;
+    } else {
+        info.rating_key = rating_key;
+    }
+
+    if (history != null) { info.source = 'history'; }
+
+    if (info.rating_key || info.guid) {
+        return 'info?' + $.param(info);
+    } else {
+        return '#';
+    }
+}

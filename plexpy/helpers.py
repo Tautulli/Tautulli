@@ -1289,3 +1289,20 @@ def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
         img_info['clip'] = 'true'
 
     return 'pms_image_proxy?' + urllib.urlencode(img_info)
+
+
+def info_page(rating_key=None, guid=None, history=None, live=None):
+    info = {}
+
+    if live and history:
+        info['guid'] = guid
+    else:
+        info['rating_key'] = rating_key
+
+    if history:
+        info['source'] = 'history'
+
+    if info.get('rating_key') or info.get('guid'):
+        return 'info?' + urllib.urlencode(info)
+    else:
+        return '#'
