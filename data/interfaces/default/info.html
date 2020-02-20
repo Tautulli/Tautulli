@@ -41,7 +41,7 @@ DOCUMENTATION :: END
 
     from plexpy import notifiers
     from plexpy.common import MEDIA_TYPE_HEADERS, MEDIA_FLAGS_AUDIO, MEDIA_FLAGS_VIDEO
-    from plexpy.helpers import pms_image_proxy, info_page
+    from plexpy.helpers import page
 
     # Get audio codec file
     def af(codec):
@@ -77,7 +77,7 @@ DOCUMENTATION :: END
 %>
 <div class="container-fluid">
     <div class="row">
-        <div class="art-face" style="background-image:url(${pms_image_proxy(data['art'], data['rating_key'], 1920, 1080)})"></div>
+        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080)})"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
@@ -113,15 +113,15 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'season':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${info_page(data['parent_rating_key'])}">Season ${data['parent_media_index']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'])}">Season ${data['parent_media_index']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
@@ -131,15 +131,15 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'album':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'track':
                         <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
                         % endif
@@ -156,14 +156,14 @@ DOCUMENTATION :: END
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
                         % if data['live']:
-                            <div class="summary-poster-face" style="background-image: url(${pms_image_proxy(data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live')});">
+                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
                             </div>
                         % else:
                             % if data['media_type'] == 'episode':
-                            <div class="summary-poster-face-episode" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 500, 280, fallback='art')});">
+                            <div class="summary-poster-face-episode" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 280, fallback='art')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -172,7 +172,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                            <div class="summary-poster-face-track" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 500, 500, fallback='cover')});">
+                            <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 500, fallback='cover')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -181,7 +181,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % else:
-                            <div class="summary-poster-face" style="background-image: url(${pms_image_proxy(data['thumb'], data['rating_key'], 300, 450, fallback='poster')});">
+                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 450, fallback='poster')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -209,18 +209,18 @@ DOCUMENTATION :: END
                         % elif data['media_type'] in ('movie', 'show', 'artist', 'collection'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
-                        <h1>&nbsp;</h1><h1><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></h1>
+                        <h1>&nbsp;</h1><h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h3 class="hidden-xs">S${data['media_index']}</h3>
                         % elif data['media_type'] == 'episode':
-                        <h1><a href="${info_page(data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
+                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
                         % elif data['media_type'] == 'album':
-                        <h1><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a></h1>
+                        <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="${info_page(data['grandparent_rating_key'])}">${data['original_title'] or data['grandparent_title']}</a></h1>
-                        <h2><a href="${info_page(data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
+                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['original_title'] or data['grandparent_title']}</a></h1>
+                        <h2><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % endif
                     </div>

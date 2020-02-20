@@ -718,38 +718,49 @@ function encodeData(data) {
     }).join("&");
 }
 
+function page(endpoint, ...args) {
+    let endpoints = {
+        'pms_image_proxy': pms_image_proxy,
+        'info': info_page
+    };
+
+    var params = {};
+
+    if (endpoint in endpoints) {
+        params = endpoints[endpoint](...args);
+    }
+
+    return endpoint + '?' + $.param(params);
+}
+
 function pms_image_proxy(img, rating_key, width, height, opacity, background, blur, fallback, refresh, clip, img_format) {
-    var img_info = {};
+    var params = {};
 
-    if (img != null) { img_info.img = img; }
-    if (rating_key != null) { img_info.rating_key = rating_key; }
-    if (width != null) { img_info.width = width; }
-    if (height != null) { img_info.height = height; }
-    if (opacity != null) { img_info.opacity = opacity; }
-    if (background != null) { img_info.background = background; }
-    if (blur != null) { img_info.blur = blur; }
-    if (fallback != null) { img_info.fallback = fallback; }
-    if (refresh != null) { img_info.refresh = true; }
-    if (clip != null) { img_info.clip = true; }
-    if (img_format != null) { img_format.img_format = img_format; }
+    if (img != null) { params.img = img; }
+    if (rating_key != null) { params.rating_key = rating_key; }
+    if (width != null) { params.width = width; }
+    if (height != null) { params.height = height; }
+    if (opacity != null) { params.opacity = opacity; }
+    if (background != null) { params.background = background; }
+    if (blur != null) { params.blur = blur; }
+    if (fallback != null) { params.fallback = fallback; }
+    if (refresh != null) { params.refresh = true; }
+    if (clip != null) { params.clip = true; }
+    if (img_format != null) { params.img_format = img_format; }
 
-    return 'pms_image_proxy?' + $.param(img_info);
+    return params;
 }
 
 function info_page(rating_key, guid, history, live) {
-    var info = {};
+    var params = {};
 
     if (live && history) {
-        info.guid = guid;
+        params.guid = guid;
     } else {
-        info.rating_key = rating_key;
+        params.rating_key = rating_key;
     }
 
-    if (history != null) { info.source = 'history'; }
+    if (history != null) { params.source = 'history'; }
 
-    if (info.rating_key || info.guid) {
-        return 'info?' + $.param(info);
-    } else {
-        return '#';
-    }
+    return params;
 }

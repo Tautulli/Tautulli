@@ -32,7 +32,7 @@ DOCUMENTATION :: END
 
 % if data:
 <%
-    from plexpy.helpers import pms_image_proxy, info_page
+    from plexpy.helpers import page
 %>
 <div class="dashboard-recent-media-row">
     <div id="recently-added-row-scroller" style="left: 0;">
@@ -41,19 +41,19 @@ DOCUMENTATION :: END
             <li>
                 % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
                 % if item['media_type'] == 'movie':
-                <a href="${info_page(item['rating_key'])}" title="${item['title']}">
+                <a href="${page('info', item['rating_key'])}" title="${item['title']}">
                 % elif item['media_type'] == 'episode':
-                <a href="${info_page(item['rating_key'])}" title="${item['grandparent_title']}">
+                <a href="${page('info', item['rating_key'])}" title="${item['grandparent_title']}">
                 % endif
                     <div class="dashboard-recent-media-poster">
                         % if item['media_type'] == 'episode':
                         % if item['parent_thumb']:
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['parent_thumb'], item['parent_rating_key'], 300, 450, fallback='poster')});">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${page('pms_image_proxy', item['parent_thumb'], item['parent_rating_key'], 300, 450, fallback='poster')});">
                         % else:
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['grandparent_thumb'], item['grandparent_rating_key'], 300, 450, fallback='poster')});">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${page('pms_image_proxy', item['grandparent_thumb'], item['grandparent_rating_key'], 300, 450, fallback='poster')});">
                         % endif
                         % elif item['media_type'] == 'movie':
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${page('pms_image_proxy', item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                             % endif
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
@@ -71,27 +71,27 @@ DOCUMENTATION :: END
                 <div class="dashboard-recent-media-metacontainer">
                     % if item['media_type'] == 'episode':
                     <h3>
-                        <a href="${info_page(item['grandparent_rating_key'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                        <a href="${page('info', item['grandparent_rating_key'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
                     <h3 class="text-muted">
-                        <a href="${info_page(item['rating_key'])}" title="${item['title']}">${item['title']}</a>
+                        <a href="${page('info', item['rating_key'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
-                        <a href="${info_page(item['parent_rating_key'])}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
-                         &middot; <a href="${info_page(item['rating_key'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                        <a href="${page('info', item['parent_rating_key'])}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                         &middot; <a href="${page('info', item['rating_key'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                     </h3>
                     % elif item['media_type'] == 'movie':
                     <h3>
-                        <a href="${info_page(item['rating_key'])}" title="${item['title']}">${item['title']}</a>
+                        <a href="${page('info', item['rating_key'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">${item['year']}</h3>
                     <h3 class="text-muted">&nbsp;</h3>
                     % endif
                 </div>
                 % elif item['media_type'] == 'album':
-                <a href="${info_page(item['rating_key'])}" title="${item['title']}">
+                <a href="${page('info', item['rating_key'])}" title="${item['title']}">
                     <div class="dashboard-recent-media-cover">
-                        <div class="dashboard-recent-media-cover-face" style="background-image: url(${pms_image_proxy(item['thumb'], item['rating_key'], 300, 300, fallback='cover')});">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(${page('pms_image_proxy', item['thumb'], item['rating_key'], 300, 300, fallback='cover')});">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
                                     <script>
@@ -103,10 +103,10 @@ DOCUMENTATION :: END
                     </div>
                     <div class="dashboard-recent-media-metacontainer">
                         <h3>
-                            <a href="${info_page(item['parent_rating_key'])}" title="${item['parent_title']}">${item['parent_title']}</a>
+                            <a href="${page('info', item['parent_rating_key'])}" title="${item['parent_title']}">${item['parent_title']}</a>
                         </h3>
                         <h3 class="text-muted">
-                            <a class="text-muted" href="${info_page(item['rating_key'])}" title="${item['title']}">${item['title']}</a>
+                            <a class="text-muted" href="${page('info', item['rating_key'])}" title="${item['title']}">${item['title']}</a>
                         </h3>
                         <h3 class="text-muted">&nbsp;</h3>
                     </div>

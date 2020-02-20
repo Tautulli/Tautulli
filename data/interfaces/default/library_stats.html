@@ -25,7 +25,7 @@ DOCUMENTATION :: END
 
 % if data:
 <%
-    from plexpy.helpers import pms_image_proxy
+    from plexpy.helpers import page
 
     types = ('movie', 'show', 'artist', 'photo')
     headers = {'movie': ('Movie Libraries', ('Movies', '', '')),
@@ -37,7 +37,7 @@ DOCUMENTATION :: END
 % if section_type in data:
 <div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
     <div class="dashboard-stats-container">
-        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${pms_image_proxy('/:/resources/' + section_type + '-fanart.jpg', None, 500, 280, 40, '282828', 3, fallback='art')});">
+        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', '/:/resources/' + section_type + '-fanart.jpg', None, 500, 280, 40, '282828', 3, fallback='art')});">
             <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
             <div class="dashboard-stats-info-container">
                 <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">

@@ -54,7 +54,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import pms_image_proxy, info_page
+    from plexpy.helpers import page
 %>
 % if data['results_count'] > 0:
 % if 'collection' in data['results_list'] and data['results_list']['collection']:
@@ -65,9 +65,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['collection']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -90,9 +90,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['movie']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -115,9 +115,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['show']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -140,9 +140,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['season']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -165,9 +165,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['episode']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 500, 280, fallback='art')});"></div>
+                    <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -191,9 +191,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['artist']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -215,9 +215,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['album']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -240,9 +240,9 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['track']:
         <li>
-            <a href="${info_page(child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${pms_image_proxy(child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')});">
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')});">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
                                 Track ${child['media_index']}

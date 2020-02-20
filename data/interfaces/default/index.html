@@ -384,7 +384,7 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
-                                $('#background-' + key).css('background-image', 'url(' + pms_image_proxy(s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true) + ')');
+                                $('#background-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true) + ')');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
                                     .attr('title', s.original_title || s.grandparent_title)
@@ -392,8 +392,8 @@
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
-                                $('#poster-' + key).css('background-image', 'url(' + pms_image_proxy(s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true) + ')');
-                                $('#poster-' + key + '-bg').css('background-image', 'url(' + pms_image_proxy(s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true) + ')');
+                                $('#poster-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true) + ')');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true) + ')');
                                 $('#poster-url-' + key)
                                     .attr('href', 'info?rating_key=' + s.parent_rating_key)
                                     .attr('title', s.parent_title);

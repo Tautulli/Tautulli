@@ -1260,49 +1260,60 @@ def mask_config_passwords(config):
     return config
 
 
+def page(endpoint, *args, **kwargs):
+    endpoints = {
+        'pms_image_proxy': pms_image_proxy,
+        'info': info_page
+    }
+
+    params = {}
+
+    if endpoint in endpoints:
+        params = endpoints[endpoint](*args, **kwargs)
+
+    return endpoint + '?' + urllib.urlencode(params)
+
+
 def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
                     opacity=None, background=None, blur=None, img_format=None,
                     fallback=None, refresh=None, clip=None):
-    img_info = {}
+    params = {}
 
     if img is not None:
-        img_info['img'] = img
+        params['img'] = img
     if rating_key is not None:
-        img_info['rating_key'] = rating_key
+        params['rating_key'] = rating_key
     if width is not None:
-        img_info['width'] = width
+        params['width'] = width
     if height is not None:
-        img_info['height'] = height
+        params['height'] = height
     if opacity is not None:
-        img_info['opacity'] = opacity
+        params['opacity'] = opacity
     if background is not None:
-        img_info['background'] = background
+        params['background'] = background
     if blur is not None:
-        img_info['blur'] = blur
+        params['blur'] = blur
     if img_format is not None:
-        img_info['img_format'] = img_format
+        params['img_format'] = img_format
     if fallback is not None:
-        img_info['fallback'] = fallback
+        params['fallback'] = fallback
     if refresh is not None:
-        img_info['refresh'] = 'true'
+        params['refresh'] = 'true'
     if clip is not None:
-        img_info['clip'] = 'true'
+        params['clip'] = 'true'
 
-    return 'pms_image_proxy?' + urllib.urlencode(img_info)
+    return params
 
 
 def info_page(rating_key=None, guid=None, history=None, live=None):
-    info = {}
+    params = {}
 
     if live and history:
-        info['guid'] = guid
+        params['guid'] = guid
     else:
-        info['rating_key'] = rating_key
+        params['rating_key'] = rating_key
 
     if history:
-        info['source'] = 'history'
+        params['source'] = 'history'
 
-    if info.get('rating_key') or info.get('guid'):
-        return 'info?' + urllib.urlencode(info)
-    else:
-        return '#'
+    return params

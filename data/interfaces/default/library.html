@@ -36,12 +36,12 @@ DOCUMENTATION :: END
 <%def name="body()">
 % if data:
 <%
-    from plexpy.helpers import pms_image_proxy
+    from plexpy.helpers import page
 %>
 <div class="container-fluid">
     <div class="row">
         % if data['library_art']:
-        <div class="art-face" style="background-image:url(${pms_image_proxy(data['library_art'], None, 1920, 1080)})"></div>
+        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['library_art'], None, 1920, 1080)})"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
