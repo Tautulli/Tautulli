@@ -76,7 +76,8 @@ DOCUMENTATION :: END
     user_href = page('user', data['user_id']) if data['user_id'] else '#'
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
-     data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}">
+    data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}"
+    data-guid="${data['guid']}">
     <div class="dashboard-activity-container">
         <%
             if data['live']:

@@ -356,8 +356,10 @@
                         var instance = $('#activity-instance-' + key);
 
                         // Create a new instance if it doesn't exist or recreate the entire instance
-                        // if the rating key changed (for movies or episodes) with the same session key
-                        if (!(instance.length) || (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString())) {
+                        // if the rating key changed (for movies or episodes) of guid changed (for live tv) with the same session key
+                        if (!(instance.length) ||
+                                (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString()) ||
+                                (s.live === 1 && s.guid !== instance.data('guid'))) {
                             create_instances.push(key);
                             getActivityInstance(key);
                             return;
