@@ -293,38 +293,57 @@ class ActivityProcessor(object):
                 #              % session['session_key'])
                 self.db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
 
-                # Check if we should group the session, select the last two rows from the user
-                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history ' \
-                        'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
-
-                args = [session['user_id'], session['rating_key']]
-
-                result = self.db.select(query=query, args=args)
-
-                new_session = prev_session = None
-                prev_progress_percent = media_watched_percent = 0
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
+                new_session = prev_session = None
+                prev_progress_percent = media_watched_percent = 0
 
-                if len(result) > 1:
-                    new_session = {'id': result[0]['id'],
-                                   'rating_key': result[0]['rating_key'],
-                                   'view_offset': result[0]['view_offset'],
-                                   'user_id': result[0]['user_id'],
-                                   'reference_id': result[0]['reference_id']}
+                if session['live']:
+                    # Check if we should group the session, select the last guid from the user
+                    query = 'SELECT session_history.id, session_history_metadata.guid, session_history.reference_id ' \
+                            'FROM session_history ' \
+                            'JOIN session_history_metadata ON session_history.id == session_history_metadata.id ' \
+                            'WHERE session_history.user_id = ? ORDER BY id DESC LIMIT 1 '
 
-                    prev_session = {'id': result[1]['id'],
-                                    'rating_key': result[1]['rating_key'],
-                                    'view_offset': result[1]['view_offset'],
-                                    'user_id': result[1]['user_id'],
-                                    'reference_id': result[1]['reference_id']}
+                    args = [session['user_id']]
 
-                    watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
-                                       'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
-                                       'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
-                                       }
-                    prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
-                    media_watched_percent = watched_percent.get(session['media_type'], 0)
+                    result = self.db.select(query=query, args=args)
+
+                    if len(result) > 0:
+                        new_session = {'id': last_id,
+                                       'guid': metadata['guid'],
+                                       'reference_id': last_id}
+
+                        prev_session = {'id': result[0]['id'],
+                                        'guid': result[0]['guid'],
+                                        'reference_id': result[0]['reference_id']}
+
+                else:
+                    # Check if we should group the session, select the last two rows from the user
+                    query = 'SELECT id, rating_key, view_offset, reference_id FROM session_history ' \
+                            'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
+
+                    args = [session['user_id'], session['rating_key']]
+
+                    result = self.db.select(query=query, args=args)
+
+                    if len(result) > 1:
+                        new_session = {'id': result[0]['id'],
+                                       'rating_key': result[0]['rating_key'],
+                                       'view_offset': result[0]['view_offset'],
+                                       'reference_id': result[0]['reference_id']}
+
+                        prev_session = {'id': result[1]['id'],
+                                        'rating_key': result[1]['rating_key'],
+                                        'view_offset': result[1]['view_offset'],
+                                        'reference_id': result[1]['reference_id']}
+
+                        watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                                           'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                                           'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+                                           }
+                        prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
+                        media_watched_percent = watched_percent.get(session['media_type'], 0)
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
 
@@ -335,7 +354,8 @@ class ActivityProcessor(object):
                 if prev_session is None and new_session is None:
                     args = [last_id, last_id]
                 elif prev_progress_percent < media_watched_percent and \
-                        prev_session['view_offset'] <= new_session['view_offset']:
+                        prev_session['view_offset'] <= new_session['view_offset'] or \
+                        session['live'] and prev_session['guid'] == new_session['guid']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
                     args = [new_session['id'], new_session['id']]
