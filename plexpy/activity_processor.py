@@ -303,7 +303,7 @@ class ActivityProcessor(object):
                     query = 'SELECT session_history.id, session_history_metadata.guid, session_history.reference_id ' \
                             'FROM session_history ' \
                             'JOIN session_history_metadata ON session_history.id == session_history_metadata.id ' \
-                            'WHERE session_history.user_id = ? ORDER BY id DESC LIMIT 1 '
+                            'WHERE session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 '
 
                     args = [session['user_id']]
 
