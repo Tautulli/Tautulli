@@ -572,7 +572,7 @@ class PmsConnect(object):
         return output
 
     def get_metadata_details(self, rating_key='', sync_id='', plex_guid='',
-                             cache_key=None, skip_cache_time=False, media_info=True):
+                             cache_key=None, return_cache=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
 
@@ -597,8 +597,12 @@ class PmsConnect(object):
 
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
-                # Return cached metadata if less than METADATA_CACHE_SECONDS ago
-                if skip_cache_time or int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
+                if metadata['live']:
+                    cache_seconds = plexpy.CONFIG.METADATA_LIVE_CACHE_SECONDS
+                else:
+                    cache_seconds = plexpy.CONFIG.METADATA_CACHE_SECONDS
+                # Return cached metadata if less than cache_seconds ago
+                if return_cache or int(time.time()) - _cache_time <= cache_seconds:
                     return metadata
 
         if rating_key:

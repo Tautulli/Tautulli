@@ -294,6 +294,7 @@ _CONFIG_DEFINITIONS = {
     'LOGGING_LIVE_TV': (int, 'Monitoring', 1),
     'MAXMIND_LICENSE_KEY': (str, 'General', ''),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
+    'METADATA_LIVE_CACHE_SECONDS': (int, 'Advanced', 60),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_START': (int, 'Monitoring', 1),

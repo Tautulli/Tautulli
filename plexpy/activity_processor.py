@@ -247,7 +247,7 @@ class ActivityProcessor(object):
                     if session['live']:
                         metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
                                                                     cache_key=session['session_key'],
-                                                                    skip_cache_time=True)
+                                                                    return_cache=True)
                     else:
                         metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
                     if not metadata:

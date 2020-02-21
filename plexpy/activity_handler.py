@@ -58,6 +58,16 @@ class ActivityHandler(object):
 
         return None
 
+    def get_metadata(self, skip_cache=False):
+        cache_key = None if skip_cache else self.get_session_key()
+        pms_connect = pmsconnect.PmsConnect()
+        metadata = pms_connect.get_metadata_details(rating_key=self.get_rating_key(), cache_key=cache_key)
+
+        if metadata:
+            return metadata
+
+        return None
+
     def get_live_session(self):
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
@@ -269,11 +279,19 @@ class ActivityHandler(object):
                 last_transcode_key = db_session['transcode_key'].split('/')[-1]
                 last_paused = db_session['last_paused']
                 last_rating_key_websocket = db_session['rating_key_websocket']
+                last_guid = db_session['guid']
+
+                this_guid = last_guid
+                if db_session['live']:
+                    metadata = self.get_metadata()
+                    if metadata:
+                        this_guid = metadata['guid']
 
                 # Make sure the same item is being played
-                if this_rating_key == last_rating_key \
-                        or this_rating_key == last_rating_key_websocket \
-                        or this_live_uuid == last_live_uuid:
+                if (this_rating_key == last_rating_key
+                        or this_rating_key == last_rating_key_websocket
+                        or this_live_uuid == last_live_uuid) \
+                        and this_guid == last_guid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table
