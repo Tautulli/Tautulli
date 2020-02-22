@@ -88,7 +88,7 @@ DOCUMENTATION :: END
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
                         % if data['live']:
-                        <li>Live TV</li>
+                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % if data['media_type'] == 'movie':
                             <li class="active metadata-xml">${data['title']}</li>
