@@ -307,9 +307,9 @@ DOCUMENTATION :: END
                                 Rated <strong> ${data['content_rating']} </strong>
                                 % endif
                             </div>
-                            <div class="summary-content-details-tag">
+                            <div class="summary-content-details-tag" id="channel-icon">
                                 % if media_info['channel_identifier']:
-                                Channel <strong> <span id="channel-icon" class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_call_sign']} ${media_info['channel_identifier']}</span> </strong>
+                                Channel <strong> <span class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_call_sign']} ${media_info['channel_identifier']}</span> </strong>
                                 % endif
                             </div>
                         </div>
@@ -464,7 +464,7 @@ DOCUMENTATION :: END
                             </div>
                             % endif
                             % if data.get('poster_url'):
-                            <div class="btn-group">
+                            <div class="btn-group" id="hosted-poster">
                                 % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
                                 <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
                                 % else:
@@ -799,12 +799,12 @@ DOCUMENTATION :: END
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
-    $('#channel-icon[data-toggle=popover]').popover({
+    $('#channel-icon').popover({
+        selector: '[data-toggle=popover]',
         html: true,
         container: 'body',
         trigger: 'hover',
         placement: 'right',
-        delay: 50,
         template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
         content: function () {
             return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
@@ -813,7 +813,8 @@ DOCUMENTATION :: END
 </script>
 % if data.get('poster_url'):
 <script>
-    $('.hosted-poster-tooltip').popover({
+    $('#hosted-poster').popover({
+        selector: '[data-toggle=popover]',
         html: true,
         container: 'body',
         trigger: 'hover',
