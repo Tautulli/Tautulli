@@ -36,6 +36,7 @@ DOCUMENTATION :: END
 <%def name="body()">
 % if data:
 <%
+    from plexpy.common import LIVE_TV_SECTION_ID
     from plexpy.helpers import page
 %>
 <div class="container-fluid">
@@ -78,7 +79,9 @@ DOCUMENTATION :: END
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
                                     <li><a id="history-tab-btn" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     % if _session['user_group'] == 'admin':
+                                    % if data['section_id'] != LIVE_TV_SECTION_ID:
                                     <li><a id="media-info-tab-btn" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    % endif
                                     % endif
                                 </ul>
                             </div>
@@ -146,6 +149,7 @@ DOCUMENTATION :: END
                                 </div>
                             </div>
                         </div>
+                        % if data['section_id'] != LIVE_TV_SECTION_ID:
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-12">
@@ -171,6 +175,7 @@ DOCUMENTATION :: END
                                 </div>
                             </div>
                         </div>
+                        % endif
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-history">
                         <div class="container-fluid">
@@ -351,6 +356,7 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
+<% from plexpy.common import LIVE_TV_SECTION_ID %>
 <script>
     % if str(data['section_id']).isdigit():
     var section_id = ${data['section_id']};
@@ -529,7 +535,9 @@ DOCUMENTATION :: END
     }
 
     recentlyWatched();
+    % if data['section_id'] != LIVE_TV_SECTION_ID:
     recentlyAdded();
+    % endif
 
     function highlightWatchedScrollerButton() {
         var scroller = $("#recently-watched-row-scroller");

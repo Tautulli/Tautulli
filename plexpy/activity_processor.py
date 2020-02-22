@@ -149,6 +149,10 @@ class ActivityProcessor(object):
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
 
+                # Add Live TV library if it hasn't been added
+                if values['live']:
+                    libraries.add_live_tv_library()
+
                 return True
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):

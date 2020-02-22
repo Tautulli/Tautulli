@@ -42,6 +42,9 @@ ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
 ONLINE_ART = "https://tautulli.com/images/art.png"
 
+LIVE_TV_SECTION_ID = 999999  # Fake section_id for Live TV library
+LIVE_TV_SECTION_NAME = "Live TV"  # Fake section_name for Live TV library
+
 DEFAULT_IMAGES = {
     'poster': DEFAULT_POSTER_THUMB,
     'cover': DEFAULT_COVER_THUMB,

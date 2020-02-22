@@ -1267,6 +1267,9 @@ class PmsConnect(object):
 
         # Get additional metadata from metadata.provider.plex.tv
         if not plex_guid and metadata['live']:
+            metadata['section_id'] = common.LIVE_TV_SECTION_ID
+            metadata['library_name'] = common.LIVE_TV_SECTION_NAME
+
             plextv_metadata = self.get_metadata_details(plex_guid=metadata['guid'])
             if plextv_metadata:
                 keys_to_update = ['summary', 'rating', 'thumb', 'grandparent_thumb', 'duration',

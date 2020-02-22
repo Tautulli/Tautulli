@@ -88,6 +88,29 @@ def refresh_libraries():
         return False
 
 
+def add_live_tv_library():
+    if not plexpy.CONFIG.ADD_LIVE_TV_LIBRARY:
+        return
+
+    logger.info(u"Tautulli Libraries :: Adding Live TV library to the database.")
+
+    monitor_db = database.MonitorDatabase()
+
+    section_keys = {'server_id': plexpy.CONFIG.PMS_IDENTIFIER,
+                    'section_id': common.LIVE_TV_SECTION_ID}
+    section_values = {'server_id': plexpy.CONFIG.PMS_IDENTIFIER,
+                      'section_id': common.LIVE_TV_SECTION_ID,
+                      'section_name': common.LIVE_TV_SECTION_NAME,
+                      'section_type': 'live'
+                      }
+
+    result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+
+    if result == 'insert':
+        plexpy.CONFIG.__setattr__('ADD_LIVE_TV_LIBRARY', 0)
+        plexpy.CONFIG.write()
+
+
 def update_section_ids():
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 
