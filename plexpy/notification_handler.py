@@ -696,12 +696,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_title = ''
 
     img_service = helpers.get_img_service(include_self=True)
+    fallback = 'poster-live' if notify_params['live'] else 'poster'
     if img_service not in (None, 'self-hosted'):
-        img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
+        img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback=fallback)
         poster_info = {'poster_title': img_info['img_title'], 'poster_url': img_info['img_url']}
         notify_params.update(poster_info)
     elif img_service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-        img_hash = set_hash_image_info(img=poster_thumb, fallback='poster')
+        img_hash = set_hash_image_info(img=poster_thumb, fallback=fallback)
         poster_info = {'poster_title': poster_title,
                        'poster_url': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/' + img_hash}
         notify_params.update(poster_info)
