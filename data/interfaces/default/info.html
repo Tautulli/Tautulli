@@ -77,7 +77,8 @@ DOCUMENTATION :: END
 %>
 <div class="container-fluid">
     <div class="row">
-        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080)})"></div>
+        <% fallback = 'art-live-full' if data['live'] else None %>
+        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, fallback=fallback)})"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif

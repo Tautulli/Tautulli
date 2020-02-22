@@ -1249,7 +1249,7 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
         return img_info
 
     if rating_key and not img:
-        if fallback in ('art', 'art-live'):
+        if fallback and fallback.startswith('art'):
             img = '/library/metadata/{}/art'.format(rating_key)
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)
@@ -1269,7 +1269,7 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
     elif service == 'cloudinary':
         if fallback == 'cover':
             w, h = 1000, 1000
-        elif fallback in ('art', 'art-live'):
+        elif fallback and fallback.startswith('art'):
             w, h = 1920, 1080
         else:
             w, h = 1000, 1500
@@ -1353,7 +1353,7 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
         return fallback
 
     if rating_key and not img:
-        if fallback in ('art', 'art-live'):
+        if fallback and fallback.startswith('art'):
             img = '/library/metadata/{}/art'.format(rating_key)
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)

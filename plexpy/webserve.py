@@ -4072,7 +4072,7 @@ class WebInterface(object):
         return_hash = (kwargs.get('return_hash') == 'true')
 
         if rating_key and not img:
-            if fallback in ('art', 'art-live'):
+            if fallback and fallback.startswith('art'):
                 img = '/library/metadata/{}/art'.format(rating_key)
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)

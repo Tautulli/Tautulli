@@ -36,6 +36,7 @@ DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
 DEFAULT_LIVE_TV_POSTER_THUMB = "interfaces/default/images/poster-live.png"
 DEFAULT_LIVE_TV_ART = "interfaces/default/images/art-live.png"
+DEFAULT_LIVE_TV_ART_FULL = "interfaces/default/images/art-live-full.png"
 
 ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
@@ -46,7 +47,8 @@ DEFAULT_IMAGES = {
     'cover': DEFAULT_COVER_THUMB,
     'art': DEFAULT_ART,
     'poster-live': DEFAULT_LIVE_TV_POSTER_THUMB,
-    'art-live': DEFAULT_LIVE_TV_ART
+    'art-live': DEFAULT_LIVE_TV_ART,
+    'art-live-full': DEFAULT_LIVE_TV_ART_FULL
 }
 
 MEDIA_TYPE_HEADERS = {
