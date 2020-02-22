@@ -68,9 +68,9 @@ class ActivityHandler(object):
 
         return None
 
-    def get_live_session(self):
+    def get_live_session(self, skip_cache=False):
         pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity()
+        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
 
         if session_list:
             for session in session_list['sessions']:
@@ -104,7 +104,7 @@ class ActivityHandler(object):
 
     def on_start(self):
         if self.is_valid_session():
-            session = self.get_live_session()
+            session = self.get_live_session(skip_cache=True)
 
             if not session:
                 return
@@ -282,8 +282,9 @@ class ActivityHandler(object):
                 last_guid = db_session['guid']
 
                 this_guid = last_guid
-                if db_session['live']:
-                    metadata = self.get_metadata()
+                # Check guid for live TV metadata every 60 seconds
+                if db_session['live'] and int(time.time()) - db_session['stopped'] > 60:
+                    metadata = self.get_metadata(skip_cache=True)
                     if metadata:
                         this_guid = metadata['guid']
 

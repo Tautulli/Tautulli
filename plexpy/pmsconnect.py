@@ -597,12 +597,8 @@ class PmsConnect(object):
 
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
-                if metadata['live']:
-                    cache_seconds = plexpy.CONFIG.METADATA_LIVE_CACHE_SECONDS
-                else:
-                    cache_seconds = plexpy.CONFIG.METADATA_CACHE_SECONDS
                 # Return cached metadata if less than cache_seconds ago
-                if return_cache or int(time.time()) - _cache_time <= cache_seconds:
+                if return_cache or int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
         if rating_key:
@@ -1510,7 +1506,7 @@ class PmsConnect(object):
 
         return metadata_list
 
-    def get_current_activity(self):
+    def get_current_activity(self, skip_cache=False):
         """
         Return processed and validated session list.
 
@@ -1537,17 +1533,17 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_)
+                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_)
+                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_)
+                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
                     session_list.append(session_output)
 
         session_list = sorted(session_list, key=lambda k: k['session_key'])
@@ -1558,7 +1554,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_session_each(self, session=None):
+    def get_session_each(self, session=None, skip_cache=False):
         """
         Return selected data from current sessions.
         This function processes and validates session data
@@ -1935,10 +1931,12 @@ class PmsConnect(object):
             media_id = helpers.get_xml_attr(stream_media_info, 'id')
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
+            cache_key = None if skip_cache else session_key
+
             if sync_id:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id, cache_key=session_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id, cache_key=cache_key)
             else:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, cache_key=session_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key, cache_key=cache_key)
 
             # Get the media info, fallback to first item if match id is not found
             source_medias = metadata_details.pop('media_info', [])
