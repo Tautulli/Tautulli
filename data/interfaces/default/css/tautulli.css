@@ -523,7 +523,7 @@ fieldset[disabled] .btn-bright.active {
     color: #eee;
 }
 .modal-body i {
-    color: #F9AA03;
+    color: #E5A00D;
 }
 .modal-body i.fa {
     color: #fff;
@@ -534,7 +534,7 @@ fieldset[disabled] .btn-bright.active {
 }
 .modal-body strong,
 .modal-body strong i.fa {
-    color: #F9AA03;
+    color: #E5A00D;
 }
 .modal-footer {
     padding: 15px 20px;
@@ -673,7 +673,7 @@ textarea.form-control:focus {
     color: #fff;
 }
 .form-control-feedback {
-    color: #F9AA03;
+    color: #E5A00D;
     margin: 5px 40px 5px 0;
 }
 .form-control[disabled],
@@ -4064,7 +4064,7 @@ a:hover .overlay-refresh-image:hover {
     table-layout: fixed;
 }
 .stream-info .heading {
-    color: #F9AA03;
+    color: #E5A00D;
     text-transform: uppercase;
     font-size: 15px;
     font-weight: bold !important;
