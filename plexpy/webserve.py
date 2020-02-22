@@ -2797,7 +2797,6 @@ class WebInterface(object):
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
-            "logging_live_tv": checked(plexpy.CONFIG.LOGGING_LIVE_TV),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
             "notify_upload_posters": plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS,
             "notify_recently_added_upgrade": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE),
@@ -2867,7 +2866,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_url_manual", "week_start_monday", "logging_live_tv",
+            "pms_url_manual", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",

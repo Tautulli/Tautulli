@@ -292,7 +292,6 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
-    'LOGGING_LIVE_TV': (int, 'Monitoring', 1),
     'MAXMIND_LICENSE_KEY': (str, 'General', ''),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),

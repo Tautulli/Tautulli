@@ -232,10 +232,7 @@ class ActivityProcessor(object):
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(real_play_time), import_ignore_interval))
 
-            if not is_import and session['live'] and not plexpy.CONFIG.LOGGING_LIVE_TV:
-                logging_enabled = False
-                logger.debug(u"Tautulli ActivityProcessor :: History logging for Live TV is disabled.")
-            elif not is_import and not user_details['keep_history']:
+            if not is_import and not user_details['keep_history']:
                 logging_enabled = False
                 logger.debug(u"Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
             elif not is_import and not library_details['keep_history']:
