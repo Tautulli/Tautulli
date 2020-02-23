@@ -6,7 +6,7 @@
             <h4 class="modal-title" id="myModalLabel">
                 <strong><span id="modal_header_ip_address">
                     % if data.get('media_type'):
-                    <% h = {'episode': 'TV Show', 'track': 'Music'} %>
+                    <% h = {'episode': 'TV Show', 'track': 'Music', 'live': 'Live TV'} %>
                     <i class="fa fa-history"></i> ${h.get(data['media_type'], data['media_type'].title())} History for <span id="date-header">${data['start_date']}</span>
                     % elif data.get('transcode_decision'):
                     <% h = {'copy': 'Direct Stream'} %>
