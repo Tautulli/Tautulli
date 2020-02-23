@@ -4014,6 +4014,9 @@ a:hover .overlay-refresh-image:hover {
 .library-video {
     background-image: url(../images/libraries/video.svg);
 }
+.library-live {
+    background-image: url(../images/libraries/live.svg);
+}
 .stats-most_concurrent {
     background-image: url(../images/icons/most-concurrent-streams.svg);
 }
