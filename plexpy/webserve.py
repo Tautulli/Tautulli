@@ -1704,8 +1704,9 @@ class WebInterface(object):
             media_type = kwargs.get('media_type', '')
             if media_type not in ('all', 'live'):
                 custom_where.append(['session_history.media_type', media_type])
+                kwargs['live'] = '0'
             if media_type == 'live':
-                kwargs['live'] = "1"
+                kwargs['live'] = '1'
         if 'transcode_decision' in kwargs:
             transcode_decision = kwargs.get('transcode_decision', '')
             if transcode_decision:
