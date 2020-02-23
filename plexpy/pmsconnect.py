@@ -1379,13 +1379,11 @@ class PmsConnect(object):
                               'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                               'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
                               'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
+                              'channel_call_sign': helpers.get_xml_attr(media, 'channelCallSign'),
+                              'channel_identifier': helpers.get_xml_attr(media, 'channelIdentifier'),
+                              'channel_thumb': helpers.get_xml_attr(media, 'channelThumb'),
                               'parts': parts
                               }
-
-                if metadata['live']:
-                    media_info['channel_call_sign'] = helpers.get_xml_attr(media, 'channelCallSign')
-                    media_info['channel_identifier'] = helpers.get_xml_attr(media, 'channelIdentifier')
-                    media_info['channel_thumb'] = helpers.get_xml_attr(media, 'channelThumb')
 
                 medias.append(media_info)
 
