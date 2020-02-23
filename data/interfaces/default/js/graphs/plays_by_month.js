@@ -23,7 +23,7 @@ var hc_plays_by_month_options = {
     credits: {
         enabled: false
     },
-    colors: ['#E5A00D', '#FFFFFF', '#F06464'],
+    colors: ['#E5A00D', '#FFFFFF', '#F06464', '#19A0D7'],
     xAxis: {
             labels: {
                 style: {
