@@ -1261,7 +1261,7 @@ def mask_config_passwords(config):
 
 
 def bool_true(value):
-    if value is True:
+    if value is True or value == 1:
         return True
     elif isinstance(value, basestring) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
         return True
