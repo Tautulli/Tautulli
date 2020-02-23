@@ -1704,22 +1704,13 @@ class WebInterface(object):
             media_type = kwargs.get('media_type', '')
             if media_type not in ('all', 'live'):
                 custom_where.append(['session_history.media_type', media_type])
-                kwargs['live'] = '0'
-            if media_type == 'live':
-                kwargs['live'] = '1'
+                custom_where.append(['session_history_metadata.live', '0'])
+            elif media_type == 'live':
+                custom_where.append(['session_history_metadata.live', '1'])
         if 'transcode_decision' in kwargs:
             transcode_decision = kwargs.get('transcode_decision', '')
             if transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
-        if 'live' in kwargs:
-            live = kwargs.get('live', '0')
-            custom_where.append(['session_history_metadata.live', live])
-        if 'full_title' in kwargs:
-            full_title = kwargs.get('full_title', '')
-            custom_where.append(['session_history_metadata.full_title', full_title])
-        if 'year' in kwargs:
-            year = kwargs.get('year', '')
-            custom_where.append(['session_history_metadata.year', year])
         if 'guid' in kwargs:
             guid = kwargs.get('guid', '').split('?')[0]
             custom_where.append(['session_history_metadata.guid', 'LIKE ' + guid + '%'])  # SQLite LIKE wildcard
