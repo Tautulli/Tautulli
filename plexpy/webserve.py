@@ -277,7 +277,7 @@ class WebInterface(object):
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
-        if plextv == 'true':
+        if helpers.bool_true(plextv):
             base_url = 'https://plex.tv'
         else:
             if plexpy.CONFIG.PMS_URL_OVERRIDE:
@@ -701,7 +701,7 @@ class WebInterface(object):
                           ("play_count", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
 
-        if refresh == 'true':
+        if helpers.bool_true(refresh):
             refresh = True
         else:
             refresh = False
@@ -3080,7 +3080,7 @@ class WebInterface(object):
     def install_geoip_db(self, update=False, **kwargs):
         """ Downloads and installs the GeoLite2 database """
 
-        update = True if update == 'true' else False
+        update = helpers.bool_true(update)
 
         result = helpers.install_geoip_db(update=update)
 
@@ -3486,7 +3486,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def verify_mobile_device(self, device_token='', cancel=False, **kwargs):
-        if cancel == 'true':
+        if helpers.bool_true(cancel):
             mobile_app.TEMP_DEVICE_TOKEN = None
             return {'result': 'error', 'message': 'Device registration cancelled.'}
 
@@ -3651,7 +3651,7 @@ class WebInterface(object):
         if not username and not password:
             return None
 
-        force = True if force == 'true' else False
+        force = helpers.bool_true(force)
 
         plex_tv = plextv.PlexTV(username=username, password=password)
         token = plex_tv.get_plexpy_pms_token(force=force)
@@ -3714,7 +3714,7 @@ class WebInterface(object):
         result = {'identifier': identifier}
 
         if identifier:
-            if get_url == 'true':
+            if helpers.bool_true(get_url):
                 server = self.get_server_resources(pms_ip=hostname,
                                                    pms_port=port,
                                                    pms_ssl=ssl,
@@ -3724,7 +3724,7 @@ class WebInterface(object):
                 result['url'] = server['pms_url']
                 result['ws'] = None
 
-                if test_websocket == 'true':
+                if helpers.bool_true(test_websocket):
                     # Quick test websocket connection
                     ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
                     header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
@@ -3778,7 +3778,7 @@ class WebInterface(object):
         logger.info(u"New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)
 
-        if device == 'true':
+        if helpers.bool_true(device):
             mobile_app.TEMP_DEVICE_TOKEN = apikey
 
         return apikey
@@ -3898,15 +3898,15 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_changelog(self, latest_only=False, since_prev_release=False, update_shown=False, **kwargs):
-        latest_only = (latest_only == 'true')
-        since_prev_release = (since_prev_release == 'true')
+        latest_only = helpers.bool_true(latest_only)
+        since_prev_release = helpers.bool_true(since_prev_release)
 
         if since_prev_release and plexpy.PREV_RELEASE == common.RELEASE:
             latest_only = True
             since_prev_release = False
 
         # Set update changelog shown status
-        if update_shown == 'true':
+        if helpers.bool_true(update_shown):
             plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
             plexpy.CONFIG.write()
 
@@ -4053,7 +4053,7 @@ class WebInterface(object):
                 background (str):       282828
                 blur (str):             3
                 img_format (str):       png
-                fallback (str):         "poster", "cover", "art", "poster-live", "poster-art"
+                fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
@@ -4069,7 +4069,7 @@ class WebInterface(object):
             logger.warn('No image input received.')
             return
 
-        return_hash = (kwargs.get('return_hash') == 'true')
+        return_hash = helpers.bool_true(kwargs.get('return_hash'))
 
         if rating_key and not img:
             if fallback and fallback.startswith('art'):
@@ -4099,7 +4099,7 @@ class WebInterface(object):
         if not os.path.exists(c_dir):
             os.mkdir(c_dir)
 
-        clip = True if clip == 'true' else False
+        clip = helpers.bool_true(clip)
 
         try:
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
@@ -4302,7 +4302,7 @@ class WebInterface(object):
             ```
         """
 
-        delete_all = (delete_all == 'true')
+        delete_all = helpers.bool_true(delete_all)
 
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_img_info(rating_key=rating_key, service=service, delete_all=delete_all)
@@ -4415,7 +4415,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
-        update = True if update == 'True' else False
+        update = helpers.bool_true(update)
 
         data_factory = datafactory.DataFactory()
         query = data_factory.get_search_query(rating_key=rating_key)
@@ -5882,8 +5882,8 @@ class WebInterface(object):
                                                                subject=newsletter['subject'],
                                                                body=newsletter['body'],
                                                                message=newsletter['message'])
-                preview = (preview == 'true')
-                raw = (raw == 'true')
+                preview = helpers.bool_true(preview)
+                raw = helpers.bool_true(raw)
 
                 if raw:
                     cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'

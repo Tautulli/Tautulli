@@ -116,7 +116,7 @@ class API2:
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
 
-        if 'app' in kwargs and kwargs.pop('app') == 'true':
+        if 'app' in kwargs and helpers.bool_true(kwargs.pop('app')):
             self._api_app = True
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('get_apikey', 'docs', 'docs_md'):

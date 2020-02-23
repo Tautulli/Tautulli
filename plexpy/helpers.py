@@ -1260,6 +1260,14 @@ def mask_config_passwords(config):
     return config
 
 
+def bool_true(value):
+    if value is True:
+        return True
+    elif isinstance(value, basestring) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
+        return True
+    return False
+
+
 def page(endpoint, *args, **kwargs):
     endpoints = {
         'pms_image_proxy': pms_image_proxy,
