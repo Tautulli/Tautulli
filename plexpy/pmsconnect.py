@@ -605,7 +605,7 @@ class PmsConnect(object):
             metadata_xml = self.get_metadata(str(rating_key), output_format='xml')
         elif sync_id:
             metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
-        elif plex_guid:
+        elif plex_guid.starswith(('plex://movie', 'plex://episode')):
             rating_key = plex_guid.rsplit('/', 1)[-1]
             plextv_metadata = PmsConnect(url='https://metadata.provider.plex.tv', token=plexpy.CONFIG.PMS_TOKEN)
             metadata_xml = plextv_metadata.get_metadata(rating_key, output_format='xml')
