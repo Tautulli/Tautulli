@@ -382,15 +382,18 @@ class WebInterface(object):
                           "do_notify": "Checked",
                           "do_notify_created": "Checked",
                           "duration": 1578037,
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1128,
                           "keep_history": "Checked",
                           "labels": [],
                           "last_accessed": 1462693216,
                           "last_played": "Game of Thrones - The Red Woman",
                           "library_art": "/:/resources/show-fanart.jpg",
-                          "library_thumb": "",
+                          "library_thumb": "/:/resources/show.png",
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_count": 240,
                           "parent_media_index": 6,
                           "parent_title": "",
@@ -666,6 +669,7 @@ class WebInterface(object):
                           "rating_key": "1219",
                           "section_id": 2,
                           "section_type": "show",
+                          "sort_title": "Game of Thrones",
                           "thumb": "/library/metadata/1219/thumb/1436265995",
                           "title": "Game of Thrones",
                           "video_codec": "",
@@ -1044,13 +1048,16 @@ class WebInterface(object):
                           "do_notify": "Checked",
                           "duration": 2998290,
                           "friendly_name": "Jon Snow",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "keep_history": "Checked",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 6,
                           "parent_title": "",
                           "platform": "Chrome",
@@ -1256,12 +1263,15 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"friendly_name": "Jon Snow",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 6,
                           "parent_title": "",
                           "platform": "Chrome",
@@ -1596,8 +1606,9 @@ class WebInterface(object):
                 grandparent_rating_key (int):   351
                 start_date (str):               "YYYY-MM-DD"
                 section_id (int):               2
-                media_type (str):               "movie", "episode", "track"
+                media_type (str):               "movie", "episode", "track", "live"
                 transcode_decision (str):       "direct play", "copy", "transcode",
+                guid (str):                     Plex guid for an item, e.g. "com.plexapp.agents.thetvdb://121361/6/1"
                 order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
                                                 "full_title", "started", "paused_counter", "stopped", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1622,10 +1633,13 @@ class WebInterface(object):
                           "original_title": "",
                           "group_count": 1,
                           "group_ids": "1124",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1124,
                           "ip_address": "xxx.xxx.xxx.xxx",
+                          "live": 0,
                           "media_index": 17,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 7,
                           "parent_rating_key": 544,
                           "parent_title": "",
@@ -1774,6 +1788,7 @@ class WebInterface(object):
                      "stream_video_bitrate": 527,
                      "stream_video_codec": "h264",
                      "stream_video_decision": "transcode",
+                     "stream_video_dynamic_range": "SDR",
                      "stream_video_framerate": "24p",
                      "stream_video_height": 306,
                      "stream_video_resolution": "SD",
@@ -1788,6 +1803,7 @@ class WebInterface(object):
                      "video_bitrate": 2500,
                      "video_codec": "h264",
                      "video_decision": "transcode",
+                     "video_dynamic_range": "SDR",
                      "video_framerate": "24p",
                      "video_height": 816,
                      "video_resolution": "1080",
@@ -1883,7 +1899,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -1922,7 +1939,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -1961,7 +1979,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2000,7 +2019,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2039,7 +2059,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2078,7 +2099,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -4041,7 +4063,7 @@ class WebInterface(object):
                 width (str):            300
                 height (str):           450
                 opacity (str):          25
-                background (str):       282828
+                background (str):       Hex color, e.g. 282828
                 blur (str):             3
                 img_format (str):       png
                 fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full"
@@ -4579,6 +4601,7 @@ class WebInterface(object):
                      "labels": [],
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
+                     "live": 0,
                      "media_index": "1",
                      "media_info": [
                          {
@@ -4588,6 +4611,9 @@ class WebInterface(object):
                              "audio_codec": "ac3",
                              "audio_profile": "",
                              "bitrate": "10617",
+                             "channel_call_sign": "",
+                             "channel_identifier": "",
+                             "channel_thumb": "",
                              "container": "mkv",
                              "height": "1078",
                              "id": "257925",
@@ -4606,6 +4632,10 @@ class WebInterface(object):
                                              "video_bitrate": "10233",
                                              "video_codec": "h264",
                                              "video_codec_level": "41",
+                                             "video_color_primaries": "",
+                                             "video_color_range": "tv",
+                                             "video_color_space": "bt709",
+                                             "video_color_trc": "",
                                              "video_frame_rate": "23.976",
                                              "video_height": "1078",
                                              "video_language": "",
@@ -4665,7 +4695,7 @@ class WebInterface(object):
                      "rating_image": "rottentomatoes://image.rating.ripe",
                      "rating_key": "153037",
                      "section_id": "2",
-                     "sort_title": "Game of Thrones",
+                     "sort_title": "Red Woman",
                      "studio": "HBO",
                      "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
                      "tagline": "",
@@ -4708,22 +4738,59 @@ class WebInterface(object):
             Returns:
                 json:
                     {"recently_added":
-                        [{"added_at": "1461572396",
+                        [{"actors": [
+                             "Kit Harington",
+                             "Emilia Clarke",
+                             "Isaac Hempstead-Wright",
+                             "Maisie Williams",
+                             "Liam Cunningham",
+                          ],
+                          "added_at": "1461572396",
+                          "art": "/library/metadata/1219/art/1462175063",
+                          "audience_rating": "8",
+                          "audience_rating_image": "rottentomatoes://image.rating.upright",
+                          "banner": "/library/metadata/1219/banner/1462175063",
+                          "directors": [
+                             "Jeremy Podeswa"
+                          ],
+                          "duration": "2998290",
+                          "full_title": "Game of Thrones - The Red Woman",
+                          "genres": [
+                             "Adventure",
+                             "Drama",
+                             "Fantasy"
+                          ],
                           "grandparent_rating_key": "1219",
                           "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                           "grandparent_title": "Game of Thrones",
-                          "library_name": "",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
+                          "labels": [],
+                          "last_viewed_at": "1462165717",
+                          "library_name": "TV Shows",
                           "media_index": "1",
                           "media_type": "episode",
                           "original_title": "",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": "6",
                           "parent_rating_key": "153036",
                           "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                           "parent_title": "",
+                          "rating": "7.8",
+                          "rating_image": "rottentomatoes://image.rating.ripe",
                           "rating_key": "153037",
                           "section_id": "2",
+                          "sort_title": "Red Woman",
+                          "studio": "HBO",
+                          "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
+                          "tagline": "",
                           "thumb": "/library/metadata/153037/thumb/1462175060",
                           "title": "The Red Woman",
+                          "user_rating": "9.0",
+                          "updated_at": "1462175060",
+                          "writers": [
+                             "David Benioff",
+                             "D. B. Weiss"
+                          ],
                           "year": "2016"
                           },
                          {...},
@@ -4946,7 +5013,11 @@ class WebInterface(object):
                              "banner": "/library/metadata/1219/banner/1503306930",
                              "bif_thumb": "/library/parts/274169/indexes/sd/1000",
                              "bitrate": "10617",
+                             "channel_call_sign": "",
+                             "channel_identifier": "",
                              "channel_stream": 0,
+                             "channel_thumb": "",
+                             "children_count": "",
                              "collections": [],
                              "container": "mkv",
                              "content_rating": "TV-MA",
@@ -4978,13 +5049,15 @@ class WebInterface(object):
                              "ip_address": "10.10.10.1",
                              "ip_address_public": "64.123.23.111",
                              "is_admin": 1,
-                             "is_allow_sync": null,
+                             "is_allow_sync": 1,
                              "is_home_user": 1,
                              "is_restricted": 0,
                              "keep_history": 1,
                              "labels": [],
                              "last_viewed_at": "1462165717",
                              "library_name": "TV Shows",
+                             "live": 0,
+                             "live_uuid": "",
                              "local": "1",
                              "location": "lan",
                              "machine_id": "lmd93nkn12k29j2lnm",
@@ -4993,8 +5066,8 @@ class WebInterface(object):
                              "optimized_version": 0,
                              "optimized_version_profile": "",
                              "optimized_version_title": "",
-                             "originally_available_at": "2016-04-24",
                              "original_title": "",
+                             "originally_available_at": "2016-04-24",
                              "parent_guid": "com.plexapp.agents.thetvdb://121361/6?lang=en",
                              "parent_media_index": "6",
                              "parent_rating_key": "153036",
@@ -5014,6 +5087,7 @@ class WebInterface(object):
                              "rating_key": "153037",
                              "relay": 0,
                              "section_id": "2",
+                             "secure": 1,
                              "session_id": "helf15l3rxgw01xxe0jf3l3d",
                              "session_key": "27",
                              "shared_libraries": [
@@ -5052,15 +5126,21 @@ class WebInterface(object):
                              "stream_subtitle_location": "",
                              "stream_video_bit_depth": "8",
                              "stream_video_bitrate": "10233",
+                             "stream_video_chroma_subsampling": "4:2:0",
                              "stream_video_codec": "h264",
                              "stream_video_codec_level": "41",
+                             "stream_video_color_primaries": "",
+                             "stream_video_color_range": "tv",
+                             "stream_video_color_space": "bt709",
+                             "stream_video_color_trc": "",
                              "stream_video_decision": "direct play",
+                             "stream_video_dynamic_range": "SDR",
                              "stream_video_framerate": "24p",
+                             "stream_video_full_resolution": "1080p",
                              "stream_video_height": "1078",
                              "stream_video_language": "",
                              "stream_video_language_code": "",
                              "stream_video_ref_frames": "4",
-                             "stream_video_full_resolution": "1080p",
                              "stream_video_resolution": "1080",
                              "stream_video_scan_type": "progressive",
                              "stream_video_width": "1920",
@@ -5110,9 +5190,15 @@ class WebInterface(object):
                              "username": "LordCommanderSnow",
                              "video_bit_depth": "8",
                              "video_bitrate": "10233",
+                             "video_chroma_subsampling": "4:2:0",
                              "video_codec": "h264",
                              "video_codec_level": "41",
+                             "video_color_primaries": "",
+                             "video_color_range": "tv",
+                             "video_color_space": "bt709",
+                             "video_color_trc": ",
                              "video_decision": "direct play",
+                             "video_dynamic_range": "SDR",
                              "video_frame_rate": "23.976",
                              "video_framerate": "24p",
                              "video_full_resolution": "1080p",
@@ -5366,8 +5452,10 @@ class WebInterface(object):
                         [{"content_rating": "TV-MA",
                           "friendly_name": "",
                           "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "labels": [],
                           "last_play": 1462380698,
+                          "live": 0,
                           "media_type": "episode",
                           "platform": "",
                           "platform_type": "",
