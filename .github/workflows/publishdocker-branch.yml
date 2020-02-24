@@ -12,7 +12,7 @@ jobs:
       env:
         VERSION: ${{ github.sha }}
       with:
-        name: wreave/tautulli
+        name: tautulli/tautulli
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         dockerfile: Dockerfile
