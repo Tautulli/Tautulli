@@ -1282,7 +1282,7 @@ class PmsConnect(object):
             medias = []
             media_items = metadata_main.getElementsByTagName('Media')
             for media in media_items:
-                video_full_resolution_scan_type = None
+                video_full_resolution_scan_type = ''
 
                 parts = []
                 part_items = media.getElementsByTagName('Part')
@@ -1293,8 +1293,7 @@ class PmsConnect(object):
                     for stream in stream_items:
                         if helpers.get_xml_attr(stream, 'streamType') == '1':
                             video_scan_type = helpers.get_xml_attr(stream, 'scanType')
-                            if video_full_resolution_scan_type is None:
-                                video_full_resolution_scan_type = video_scan_type
+                            video_full_resolution_scan_type = (video_full_resolution_scan_type or video_scan_type)
 
                             streams.append({'id': helpers.get_xml_attr(stream, 'id'),
                                             'type': helpers.get_xml_attr(stream, 'streamType'),
@@ -1354,12 +1353,10 @@ class PmsConnect(object):
                                   'selected': int(helpers.get_xml_attr(part, 'selected') == '1')
                                   })
 
-                video_resolution = helpers.get_xml_attr(media, 'videoResolution').lower()
-                video_full_resolution = ''
-                if video_full_resolution_scan_type is not None:
-                    video_full_resolution = common.VIDEO_RESOLUTION_OVERRIDES.get(
-                        video_resolution, video_resolution + (video_full_resolution_scan_type[:1] or 'p')
-                    )
+                video_resolution = helpers.get_xml_attr(media, 'videoResolution').lower().rstrip('ip')
+                video_full_resolution = common.VIDEO_RESOLUTION_OVERRIDES.get(
+                    video_resolution, video_resolution + (video_full_resolution_scan_type[:1] or 'p')
+                )
 
                 audio_channels = helpers.get_xml_attr(media, 'audioChannels')
 
@@ -1831,7 +1828,7 @@ class PmsConnect(object):
         if helpers.cast_to_int(stream_video_width) >= 3840:
             stream_video_resolution = '4k'
         else:
-            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p').lower()
+            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').lower().rstrip('ip')
 
         stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 

@@ -1050,6 +1050,7 @@ class DataFactory(object):
                     'session_history_metadata.labels, ' \
                     'session_history_media_info.container, session_history_media_info.bitrate, ' \
                     'session_history_media_info.video_codec, session_history_media_info.video_resolution, ' \
+                    'session_history_media_info.video_full_resolution, ' \
                     'session_history_media_info.video_framerate, session_history_media_info.audio_codec, ' \
                     'session_history_media_info.audio_channels, session_history_metadata.live, ' \
                     'session_history_metadata.channel_call_sign, session_history_metadata.channel_identifier, ' \
@@ -1077,6 +1078,7 @@ class DataFactory(object):
                            'bitrate': item['bitrate'],
                            'video_codec': item['video_codec'],
                            'video_resolution': item['video_resolution'],
+                           'video_full_resolution': item['video_full_resolution'],
                            'video_framerate': item['video_framerate'],
                            'audio_codec': item['audio_codec'],
                            'audio_channels': item['audio_channels'],

@@ -50,12 +50,20 @@ DOCUMENTATION :: END
                 return file_type
         return codec
 
-    # Get audio codec file
+    # Get video codec file
     def vf(codec):
         for pattern, file_type in MEDIA_FLAGS_VIDEO.iteritems():
             if re.match(pattern, codec):
                 return file_type
         return codec
+
+    # Get video resolution file
+    def vr(resolution):
+        print(resolution)
+        if resolution in ('1080i', '576i', '480i'):
+            return resolution
+        else:
+            return resolution.lower().rstrip('ip')
 
     def br(text):
         return text.replace('\n', '<br /><br />')
@@ -248,7 +256,7 @@ DOCUMENTATION :: END
                             <img class="summary-content-media-flag" title="${media_info['video_codec']}" src="${http_root}images/media_flags/video_codec/${media_info['video_codec'] | vf}.png" />
                             % endif
                             % if data['media_type'] != 'track' and media_info['video_resolution']:
-                            <img class="summary-content-media-flag" title="${media_info['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${media_info['video_resolution']}.png" />
+                            <img class="summary-content-media-flag" title="${media_info['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${media_info['video_full_resolution'] | vr}.png" />
                             % endif
                             % if media_info['audio_codec']:
                             <img class="summary-content-media-flag" title="${media_info['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${media_info['audio_codec'] | af}.png" />
