@@ -23,3 +23,11 @@ jobs:
           dockerfile: Dockerfile
           buildargs: VERSION, BRANCH
           tags: ${{ env.RELEASE_VERSION }}
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          job: ${{ github.workflow }}
+          nofail: true

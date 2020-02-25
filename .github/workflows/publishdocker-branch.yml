@@ -18,3 +18,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: Dockerfile
           buildargs: VERSION, BRANCH
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          job: ${{ github.workflow }}
+          nofail: true
