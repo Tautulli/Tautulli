@@ -2531,6 +2531,7 @@ $(document).ready(function() {
             for (var i in libraries_list) {
                 var title = libraries_list[i].section_name;
                 var key = libraries_list[i].section_id;
+                if (key === 999999) { continue; }  // Don't show Live TV library
                 $('#sortable_home_library_cards').append(
                     '<li class="card card-sortable">' + 
                         '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
