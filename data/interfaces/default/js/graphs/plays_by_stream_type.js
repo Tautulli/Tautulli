@@ -40,7 +40,6 @@ var hc_plays_by_stream_type_options = {
             }
         }
     },
-    colors: ['#E5A00D', '#FFFFFF', '#F06464'],
     xAxis: {
             type: 'datetime',
             labels: {

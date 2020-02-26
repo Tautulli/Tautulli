@@ -111,6 +111,14 @@ def add_live_tv_library():
         plexpy.CONFIG.write()
 
 
+def has_library_type(section_type):
+    monitor_db = database.MonitorDatabase()
+    query = 'SELECT * FROM library_sections WHERE section_type = ? AND deleted_section = 0'
+    args = [section_type]
+    result = monitor_db.select_single(query=query, args=args)
+    return bool(result)
+
+
 def update_section_ids():
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 

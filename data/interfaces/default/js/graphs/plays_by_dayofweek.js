@@ -23,7 +23,6 @@ var hc_plays_by_dayofweek_options = {
     credits: {
         enabled: false
     },
-    colors: ['#E5A00D', '#FFFFFF', '#F06464', '#19A0D7'],
     xAxis: {
             categories: [{}],
             labels: {

@@ -305,6 +305,23 @@
 
         setLocalStorage(chart_key, JSON.stringify(chart_visibility));
     }
+
+    function getGraphColors(data_series) {
+        var colors = {
+            'TV': '#E5A00D',
+            'Movies': '#FFFFFF',
+            'Music': '#F06464',
+            'Live TV': '#19A0D7',
+            'Direct Play': '#E5A00D',
+            'Direct Stream': '#FFFFFF',
+            'Transcode': '#F06464'
+        };
+        var series_colors = [];
+        $.each(data_series, function(index, series) {
+            series_colors.push(colors[series.name]);
+        });
+        return series_colors;
+    }
 </script>
 <script src="${http_root}js/graphs/plays_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_dayofweek.js${cache_param}"></script>
@@ -391,6 +408,7 @@
                     hc_plays_by_day_options.yAxis.min = 0;
                     hc_plays_by_day_options.xAxis.categories = dateArray;
                     hc_plays_by_day_options.series = getGraphVisibility(hc_plays_by_day_options.chart.renderTo, data.series);
+                    hc_plays_by_day_options.colors = getGraphColors(data.series);
                     var hc_plays_by_day = new Highcharts.Chart(hc_plays_by_day_options);
                 }
             });
@@ -404,6 +422,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
                     hc_plays_by_dayofweek_options.series = getGraphVisibility(hc_plays_by_dayofweek_options.chart.renderTo, data.series);
+                    hc_plays_by_dayofweek_options.colors = getGraphColors(data.series);
                     var hc_plays_by_dayofweek = new Highcharts.Chart(hc_plays_by_dayofweek_options);
                 }
             });
@@ -417,6 +436,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_hourofday_options.xAxis.categories = data.categories;
                     hc_plays_by_hourofday_options.series = getGraphVisibility(hc_plays_by_hourofday_options.chart.renderTo, data.series);
+                    hc_plays_by_hourofday_options.colors = getGraphColors(data.series);
                     var hc_plays_by_hourofday = new Highcharts.Chart(hc_plays_by_hourofday_options);
                 }
             });
@@ -430,6 +450,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_platform_options.xAxis.categories = data.categories;
                     hc_plays_by_platform_options.series = getGraphVisibility(hc_plays_by_platform_options.chart.renderTo, data.series);
+                    hc_plays_by_platform_options.colors = getGraphColors(data.series);
                     var hc_plays_by_platform = new Highcharts.Chart(hc_plays_by_platform_options);
                 }
             });
@@ -443,6 +464,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_user_options.xAxis.categories = data.categories;
                     hc_plays_by_user_options.series = getGraphVisibility(hc_plays_by_user_options.chart.renderTo, data.series);
+                    hc_plays_by_user_options.colors = getGraphColors(data.series);
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
                 }
             });
@@ -479,6 +501,7 @@
                     hc_plays_by_stream_type_options.yAxis.min = 0;
                     hc_plays_by_stream_type_options.xAxis.categories = dateArray;
                     hc_plays_by_stream_type_options.series = getGraphVisibility(hc_plays_by_stream_type_options.chart.renderTo, data.series);
+                    hc_plays_by_stream_type_options.colors = getGraphColors(data.series);
                     var hc_plays_by_stream_type = new Highcharts.Chart(hc_plays_by_stream_type_options);
                 }
             });
@@ -492,6 +515,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_source_resolution_options.xAxis.categories = data.categories;
                     hc_plays_by_source_resolution_options.series = getGraphVisibility(hc_plays_by_source_resolution_options.chart.renderTo, data.series);
+                    hc_plays_by_source_resolution_options.colors = getGraphColors(data.series);
                     var hc_plays_by_source_resolution = new Highcharts.Chart(hc_plays_by_source_resolution_options);
                 }
             });
@@ -505,6 +529,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_stream_resolution_options.xAxis.categories = data.categories;
                     hc_plays_by_stream_resolution_options.series = getGraphVisibility(hc_plays_by_stream_resolution_options.chart.renderTo, data.series);
+                    hc_plays_by_stream_resolution_options.colors = getGraphColors(data.series);
                     var hc_plays_by_stream_resolution = new Highcharts.Chart(hc_plays_by_stream_resolution_options);
                 }
             });
@@ -518,6 +543,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_platform_by_stream_type_options.xAxis.categories = data.categories;
                     hc_plays_by_platform_by_stream_type_options.series = getGraphVisibility(hc_plays_by_platform_by_stream_type_options.chart.renderTo, data.series);
+                    hc_plays_by_platform_by_stream_type_options.colors = getGraphColors(data.series);
                     var hc_plays_by_platform_by_stream_type = new Highcharts.Chart(hc_plays_by_platform_by_stream_type_options);
                 }
             });
@@ -531,6 +557,7 @@
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_plays_by_user_by_stream_type_options.xAxis.categories = data.categories;
                     hc_plays_by_user_by_stream_type_options.series = getGraphVisibility(hc_plays_by_user_by_stream_type_options.chart.renderTo, data.series);
+                    hc_plays_by_user_by_stream_type_options.colors = getGraphColors(data.series);
                     var hc_plays_by_user_by_stream_type = new Highcharts.Chart(hc_plays_by_user_by_stream_type_options);
                 }
             });
@@ -554,6 +581,7 @@
                     hc_plays_by_month_options.yAxis.min = 0;
                     hc_plays_by_month_options.xAxis.categories = data.categories;
                     hc_plays_by_month_options.series = getGraphVisibility(hc_plays_by_month_options.chart.renderTo, data.series);
+                    hc_plays_by_month_options.colors = getGraphColors(data.series);
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }
             });

@@ -18,6 +18,7 @@ import datetime
 import plexpy
 import common
 import database
+import libraries
 import logger
 import session
 
@@ -127,8 +128,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
@@ -248,8 +259,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
@@ -351,8 +372,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None):
@@ -462,8 +493,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
@@ -548,8 +589,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
@@ -647,8 +698,18 @@ class Graphs(object):
         series_4_output = {'name': 'Live TV',
                            'data': series_4}
 
+        series_output = []
+        if libraries.has_library_type('show'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('movie'):
+            series_output.append(series_2_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_3_output)
+        if libraries.has_library_type('live'):
+            series_output.append(series_4_output)
+
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
+                  'series': series_output}
         return output
 
     def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None):

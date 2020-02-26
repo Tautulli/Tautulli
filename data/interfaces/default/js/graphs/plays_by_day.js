@@ -40,7 +40,6 @@ var hc_plays_by_day_options = {
             }
         }
     },
-    colors: ['#E5A00D', '#FFFFFF', '#F06464', '#19A0D7'],
     xAxis: {
             type: 'datetime',
             labels: {
