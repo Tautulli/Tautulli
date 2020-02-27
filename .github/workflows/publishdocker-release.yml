@@ -10,9 +10,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@master
       - name: Get Branch
-        run: echo ::set-env name=BRANCH::${GITHUB_REF#refs/heads/}
-      - name: Get Release Version
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-env name=BRANCH::${GITHUB_REF/refs\/tags\//}
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         env:
@@ -23,7 +21,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: Dockerfile
           buildargs: VERSION, BRANCH
-          tags: ${{ env.RELEASE_VERSION }}
+          tags: ${{ env.BRANCH }}
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
         if: always()
