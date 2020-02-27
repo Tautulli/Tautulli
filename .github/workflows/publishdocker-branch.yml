@@ -1,5 +1,7 @@
 name: Publish Docker Branch
-on: [push]
+on:
+  push:
+    branches: [master, beta, nightly]
 jobs:
   build:
     runs-on: ubuntu-latest
