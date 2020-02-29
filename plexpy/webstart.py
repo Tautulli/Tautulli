@@ -19,6 +19,7 @@ from urllib import urlencode
 
 import plexpy
 import cherrypy
+import portend
 import logger
 import webauth
 from plexpy.helpers import create_https_certificates
@@ -217,7 +218,7 @@ def initialize(options):
     try:
         logger.info(u"Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
-        cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
+        portend.free(str(options['http_host']), options['http_port'], timeout=5)
         if not plexpy.DEV:
             cherrypy.server.start()
         else:
