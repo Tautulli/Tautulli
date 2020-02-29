@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+certifi==2019.11.28
+httpagentparser==1.7.8
+>>>>>>> updating to latest master
 futures==3.0.3
 APScheduler==3.5.0
 arrow==0.10.0
@@ -74,4 +79,8 @@ PyNMA==1.0
 Mako==1.0.1
 websocket_client==0.32.0
 PyJWT==1.4.0
+<<<<<<< HEAD
 >>>>>>> removing all libs and updating requirements.txt - chaning cherrypy call to portend call
+=======
+pytz=2019.3
+>>>>>>> updating to latest master
