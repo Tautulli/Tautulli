@@ -1,4 +1,4 @@
-certifi==2019.9.11
+certifi==2019.11.28
 httpagentparser==1.7.8
 futures==3.0.3
 tzlocal==1.5.1
@@ -26,3 +26,4 @@ PyNMA==1.0
 Mako==1.0.1
 websocket_client==0.32.0
 PyJWT==1.4.0
+pytz=2019.3
