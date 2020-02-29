@@ -57,7 +57,7 @@ import sys
 import tarfile
 import time
 import unicodedata
-import urllib
+from urllib.parse import urlencode
 import urllib3
 from xml.dom import minidom
 import xmltodict
@@ -1297,7 +1297,7 @@ def page(endpoint, *args, **kwargs):
     if endpoint in endpoints:
         params = endpoints[endpoint](*args, **kwargs)
 
-    return endpoint + '?' + urllib.urlencode(params)
+    return endpoint + '?' + urlencode(params)
 
 
 def pms_image_proxy(img=None, rating_key=None, width=None, height=None,

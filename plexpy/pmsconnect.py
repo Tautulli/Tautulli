@@ -26,7 +26,7 @@ from builtins import object
 import json
 import os
 import time
-import urllib.request, urllib.parse, urllib.error
+from urllib.parse import quote, quote_plus, urlencode
 
 import plexpy
 from plexpy import activity_processor
@@ -111,7 +111,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, urllib.parse.quote_plus(reason))
+        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, quote_plus(reason))
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -362,7 +362,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/hubs/search?query=' + urllib.parse.quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
+        uri = '/hubs/search?query=' + quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -2747,9 +2747,9 @@ class PmsConnect(object):
             if web_img:
                 params = {'url': '%s' % img}
             elif clip:
-                params = {'url': '%s&%s' % (img, urllib.parse.urlencode({'X-Plex-Token': self.token}))}
+                params = {'url': '%s&%s' % (img, urlencode({'X-Plex-Token': self.token}))}
             else:
-                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.parse.urlencode({'X-Plex-Token': self.token}))}
+                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urlencode({'X-Plex-Token': self.token}))}
 
             params['width'] = width
             params['height'] = height
@@ -2762,7 +2762,7 @@ class PmsConnect(object):
             if blur:
                 params['blur'] = blur
 
-            uri = '/photo/:/transcode?%s' % urllib.parse.urlencode(params)
+            uri = '/photo/:/transcode?%s' % urlencode(params)
             result = self.request_handler.make_request(uri=uri,
                                                        request_type='GET',
                                                        return_type=True)
