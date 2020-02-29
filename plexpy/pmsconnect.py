@@ -572,7 +572,7 @@ class PmsConnect(object):
         return output
 
     def get_metadata_details(self, rating_key='', sync_id='', plex_guid='',
-                             cache_key=None, return_cache=False, media_info=True):
+                             skip_cache=False, cache_key=None, return_cache=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
 
@@ -582,7 +582,7 @@ class PmsConnect(object):
         """
         metadata = {}
 
-        if cache_key:
+        if not skip_cache and cache_key:
             in_file_folder = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata')
             in_file_path = os.path.join(in_file_folder, 'metadata-sessionKey-%s.json' % cache_key)
 
@@ -1929,12 +1929,12 @@ class PmsConnect(object):
             media_id = helpers.get_xml_attr(stream_media_info, 'id')
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
-            cache_key = None if skip_cache else session_key
-
             if sync_id:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id, cache_key=cache_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id,
+                                                             skip_cache=skip_cache, cache_key=session_key)
             else:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, cache_key=cache_key)
+                metadata_details = self.get_metadata_details(rating_key=rating_key,
+                                                             skip_cache=skip_cache, cache_key=session_key)
 
             # Get the media info, fallback to first item if match id is not found
             source_medias = metadata_details.pop('media_info', [])
