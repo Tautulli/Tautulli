@@ -694,7 +694,7 @@
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['show'])}</span> <span class="count-units">show${'s' if len(recently_added['show']) > 1 else ''}</span>&nbsp;/&nbsp;
                                 <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
-                                <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total > 1 else ''}</span>
+                                <span class="count">${total_episodes}</span> <span class="count-units">episode${'s' if total_episodes > 1 else ''}</span>
                             </div>
                         </td>
                     </tr>
@@ -847,7 +847,7 @@
                             <div class="sub-header-count">
                                 <span class="count">${len(recently_added['artist'])}</span> <span class="count-units">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
                                 <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
-                                <span class="count">${total_albums}</span> <span class="count-units">album${'s' if total > 1 else ''}</span>
+                                <span class="count">${total_albums}</span> <span class="count-units">album${'s' if total_albums > 1 else ''}</span>
                             </div>
                         </td>
                     </tr>

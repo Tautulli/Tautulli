@@ -175,6 +175,8 @@ _CONFIG_DEFINITIONS = {
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
     'GEOIP_DB': (str, 'General', ''),
+    'GEOIP_DB_INSTALLED': (int, 'General', 0),
+    'GEOIP_DB_UPDATE_DAYS': (int, 'General', 30),
     'GET_FILE_SIZES': (int, 'General', 0),
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
@@ -289,6 +291,7 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
+    'MAXMIND_LICENSE_KEY': (str, 'General', ''),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
@@ -600,6 +603,7 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_LABELS': (int, 'General', 1),
     'UPDATE_LIBRARIES_DB_NOTIFY': (int, 'General', 1),
     'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
+    'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
@@ -923,3 +927,9 @@ class Config(object):
             self.BUFFER_THRESHOLD = max(self.BUFFER_THRESHOLD, 10)
 
             self.CONFIG_VERSION = 13
+
+        if self.CONFIG_VERSION == 13:
+            if not self.GEOIP_DB:
+                self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
+
+            self.CONFIG_VERSION = 14

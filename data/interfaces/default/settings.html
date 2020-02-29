@@ -56,6 +56,7 @@
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
+                <li role="presentation"><a href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
@@ -284,7 +285,7 @@
                                 </div>
                                 <div id="home_refresh_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the interval (in seconds) to refresh the current activity on the homepage. Minimum 2.</p>
+                            <p class="help-block">Set the interval (in seconds) to refresh the current activity on the homepage. Minimum 2, default 10.</p>
                         </div>
 
                         <div class="padded-header">
@@ -1008,7 +1009,7 @@
                                 <p class="help-block" id="self_host_newsletter_message">
                                     Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
                                 </p>
-                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="web_interface" data-target="http_base_url">Web Interface</a>.</p>
                             </div>
                             <div class="form-group">
                                 <label for="newsletter_auth">Newsletter Authentication</label>
@@ -1022,7 +1023,7 @@
                                     </div>
                                 </div>
                                 <p class="help-block">Select the authentication method to use for self-hosted newsletters.</p>
-                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="tabs-web_interface" data-target="#allow_guest_access">Web Interface</a>.</p>
+                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="web_interface" data-target="allow_guest_access">Web Interface</a>.</p>
                             </div>
                             <div class="form-group" id="newsletter_password_option">
                                 <label for="newsletter_password">Newsletter Password</label>
@@ -1063,12 +1064,60 @@
                             <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
                         </div>
 
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
+
                         <div class="padded-header">
-                            <h3>3rd Party APIs</h3>
+                            <h3>Notification Agents</h3>
                         </div>
 
+                        <p class="help-block">
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
+                        </p>
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
+
+                        <div class="padded-header">
+                            <h3>Newsletter Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block settings-warning" id="newsletter_upload_warning">
+                            Warning: The <a data-tab-destination="3rd_party_apis" data-target="notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
+                        </p>
+                        <br/>
+                        <div id="plexpy-newsletters-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-3rd_party_apis">
+
+                        <div class="padded-header">
+                            <h3>Image Hosting</h3>
+                        </div>
+
+                        <p class="help-block">Image hosting is used to provide posters and artwork for some notification agents and newsletters.</p>
+
                         <div class="form-group">
-                            <label for="notify_upload_posters">Image Hosting</label>
+                            <label for="notify_upload_posters">Image Host</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="${'input-group' if config['notify_upload_posters'] in (1, 3) else ''}">
@@ -1090,8 +1139,8 @@
                         </div>
                         <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
-                                <p class="help-block" id="imgur_upload_message">
-                                    You can register a new Imgur application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br>
+                                <p class="help-block">
+                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
                                     Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
                                 </p>
                             </div>
@@ -1108,13 +1157,13 @@
                         <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
-                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="web_interface" data-target="http_base_url">Web Interface</a>.</p>
                             </div>
                         </div>
                         <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
                             <div class="form-group">
-                                <p class="help-block" id="imgur_upload_message">
-                                    You can sign up for Cloudinary <a href="${anon_url('https://cloudinary.com')}" target="_blank">here</a>.<br>
+                                <p class="help-block">
+                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
                                 </p>
                             </div>
                             <div class="form-group">
@@ -1151,6 +1200,13 @@
                                 </p>
                             </div>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Metadata Lookups</h3>
+                        </div>
+
+                        <p class="help-block">Metadata lookups are used to provide additional links for notifications when available.</p>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="themoviedb_lookup" id="themoviedb_lookup" value="1" ${config['themoviedb_lookup']}> Lookup TheMovieDB Links
@@ -1170,47 +1226,55 @@
                             <p class="help-block">Enable to lookup links to MusicBrainz for music when available.</p>
                         </div>
 
+                        <div class="padded-header">
+                            <h3>Geolocation Database</h3>
+                        </div>
+
+                        <p class="help-block">The GeoLite2 database is used to geolocate IP addresses.</p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up MaxMind.<br>
+                        </p>
+                        <div class="form-group">
+                            <label for="maxmind_license_key">MaxMind License Key</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="maxmind_license_key" name="maxmind_license_key" value="${config['maxmind_license_key']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">
+                                Enter your MaxMind License Key to install the GeoLite2 database.
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="geoip_db">GeoLite2 Database File</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting} data-parsley-trigger="change" data-parsley-pattern=".+\.mmdb$" data-parsley-errors-container="#geoip_db_error"  data-parsley-error-message="Must end with '.mmdb'">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
+                                            <button class="btn btn-form" type="button" id="uninstall_geoip_db" ${'disabled' if not config['geoip_db_installed'] else ''}>Uninstall</button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="geoip_db_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Leave blank to install in the default location. GeoLite2 database last updated <strong><span id="geoip_db_updated">never</span></strong>.
+                            </p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="geoip_db_update_days">GeoLite2 Database Update Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="geoip_db_update_days" name="geoip_db_update_days" value="${config['geoip_db_update_days']}" size="5" data-parsley-range="[7, 30]" data-parsley-trigger="change" data-parsley-errors-container="#geoip_db_update_days_error" required>
+                                </div>
+                                <div id="geoip_db_update_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in days) Tautulli will automatically update the GeoLite2 database. Minimum 7, maximum 30, default 30.</p>
+                        </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
-
-                        <div class="padded-header">
-                            <h3>Notification Agents</h3>
-                        </div>
-
-                        <p class="help-block">
-                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
-                        </p>
-                        <p class="help-block">
-                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
-                        </p>
-                        <br />
-                        <div id="plexpy-notifiers-table">
-                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
-                            <br>
-                        </div>
-
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
-
-                        <div class="padded-header">
-                            <h3>Newsletter Agents</h3>
-                        </div>
-
-                        <p class="help-block">
-                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
-                        </p>
-                        <p class="help-block settings-warning" id="newsletter_upload_warning">
-                            Warning: The <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
-                        </p>
-                        <br/>
-                        <div id="plexpy-newsletters-table">
-                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
-                            <br>
-                        </div>
 
                     </div>
 
@@ -1316,7 +1380,7 @@
                         <div class="form-group">
                             <label>Registered Devices</label>
                             <p class="help-block">Register a new device using a QR code, or configure an existing device by clicking the settings icon on the right.</p>
-                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface" data-target="#api_enabled">Web Interface</a> to use the app.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">Warning: The API must be enabled under <a data-tab-destination="web_interface" data-target="api_enabled">Web Interface</a> to use the app.</p>
                             <div class="row">
                                 <div id="plexpy-mobile-devices-table" class="col-md-12">
                                     <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
@@ -1796,11 +1860,6 @@ Rating: {rating}/10   --> Rating: /10
             async: true,
             complete: function(xhr, status) {
                 $("#plexpy-configuration-table").html(xhr.responseText);
-                if ("${kwargs.get('install_geoip')}" == 'true') {
-                    $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
-                } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
-                    $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
-                }
             }
         });
     }
@@ -1921,12 +1980,10 @@ $(document).ready(function() {
     }
 
     function preSaveChecks(_callback) {
-        if (serverChanged) {
-            verifyServer();
-        }
         verifyPMSWebURL();
-
-        if (_callback) {
+        if (serverChanged) {
+            verifyServer(_callback);
+        } else if (typeof _callback === "function") {
             _callback();
         }
     }
@@ -1951,12 +2008,13 @@ $(document).ready(function() {
         settingsChanged = true;
     });
 
-    function saveSettings() {
+    function saveSettings(showMsg, _callback) {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
-            return false;
+            doAjaxCall('configUpdate', $(this), 'tabs', true, showMsg, _callback);
+            return true;
         } else {
-            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true);
+            return false;
         }
     }
 
@@ -1970,7 +2028,7 @@ $(document).ready(function() {
     }
 
     $('.save-button').click(function() {
-        preSaveChecks(function () { saveSettings() });
+        preSaveChecks(function () { saveSettings(true, postSaveChecks) });
     });
 
     initConfigCheckbox('#api_enabled');
@@ -2279,6 +2337,7 @@ $(document).ready(function() {
 
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+            showMsg('Verifying Plex server...', true, true, 10000, false);
             $.ajax({
                 url: 'get_server_id',
                 data: {
@@ -2316,10 +2375,11 @@ $(document).ready(function() {
                         } else {
                             $("#pms_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
                             $("#pms_ip_group").removeClass("has-error");
+                            showMsg('<i class="fa fa-check"></i> Server verified.', false, true, 5000);
                             serverChanged = false;
                         }
 
-                        if (_callback) {
+                        if (typeof _callback === "function") {
                             _callback();
                         }
                     } else {
@@ -2773,24 +2833,80 @@ $(document).ready(function() {
 
     $('#allow_guest_access').click(function () {
         newsletterPasswordEnabled();
-    })
+    });
+
+    function gotoSetting(tab, setting){
+        $("a[href=#tabs-" + tab + "]").click();
+        if (setting) {
+            _setting = '#' + setting;
+            if ($(_setting).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
+                $('#menu_link_show_advanced_settings').click()
+            }
+            var body_container = $('.body-container');
+            var scroll_pos = setting ? body_container.scrollTop() + $(_setting).offset().top - 100 : 0;
+            body_container.animate({scrollTop: scroll_pos});
+            $(_setting).closest('.form-group, .checkbox').delay(500).fadeOut().fadeIn('slow').fadeOut().fadeIn('slow');
+        }
+    }
 
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');
-        $("a[href=#" + tab + "]").click();
-        var scroll_destination = $(this).data('target');
-        if (scroll_destination) {
-            if ($(scroll_destination).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
-                $('#menu_link_show_advanced_settings').click()
-            }
-            var body_container = $('.body-container')
-            var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
-            body_container.animate({scrollTop: scroll_pos});
-        }
+        var setting = $(this).data('target');
+        gotoSetting(tab, setting)
     });
 
     $('#resources-xml').on('tripleclick', function () {
         openPlexXML('/api/resources', true, {includeHttps: 1});
+    });
+
+    if ("${kwargs.get('install_geoip')}" === 'true') {
+        gotoSetting('3rd_party_apis', 'geoip_db')
+    }
+
+    if ("${config['geoip_db_installed']}" > "0") {
+        $("#geoip_db_updated").text(moment("${config['geoip_db_installed']}", "X").fromNow());
+    }
+
+    $("#install_geoip_db").click(function () {
+        var maxmind_license_key = $("#maxmind_license_key");
+        maxmind_license_key.val($.trim(maxmind_license_key.val()));
+        if (maxmind_license_key.val() === "") {
+            maxmind_license_key.focus();
+            showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key is required.', false, true, 5000, true);
+            return false;
+        } else if (!(saveSettings())) {
+            return false;
+        }
+        var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
+            'The database is used to lookup IP address geolocation info.<br />' +
+            'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
+            'and requires <strong>100MB</strong> of free space to install.<br />';
+        var url = 'install_geoip_db';
+        if ($(this).text() === 'Update') {
+            url += '?update=true';
+        }
+        confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', function (result) {
+            if (result.result === "success") {
+                $('#install_geoip_db').text('Update');
+                $('#uninstall_geoip_db').prop('disabled', false);
+                $('#geoip_db_updated').text(moment(result.updated, "X").fromNow());
+            }
+            getSchedulerTable();
+        });
+    });
+
+    $("#uninstall_geoip_db").click(function () {
+        var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
+            'You will not be able to lookup IP address geolocation info.';
+        var url = 'uninstall_geoip_db';
+        confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', function (result) {
+            if (result.result === "success") {
+                $('#install_geoip_db').text('Install');
+                $('#uninstall_geoip_db').prop('disabled', true);
+                $('#geoip_db_updated').text('never');
+            }
+            getSchedulerTable();
+        });
     });
 });
 </script>

@@ -694,7 +694,7 @@
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['show'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">show${'s' if len(recently_added['show']) > 1 else ''}</span>&nbsp;/&nbsp;
                                 <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
-                                <span class="count" style="color: #E5A00D;">${total_episodes}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">episode${'s' if total > 1 else ''}</span>
+                                <span class="count" style="color: #E5A00D;">${total_episodes}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">episode${'s' if total_episodes > 1 else ''}</span>
                             </div>
                         </td>
                     </tr>
@@ -847,7 +847,7 @@
                             <div class="sub-header-count" style="margin-left: auto;margin-right: auto;font-size: 30px;text-align: center;">
                                 <span class="count" style="color: #E5A00D;">${len(recently_added['artist'])}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">artist${'s' if len(recently_added['artist']) > 1 else ''}</span> /
                                 <% total_albums = sum(artist['album_count'] for artist in recently_added['artist']) %>
-                                <span class="count" style="color: #E5A00D;">${total_albums}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">album${'s' if total > 1 else ''}</span>
+                                <span class="count" style="color: #E5A00D;">${total_albums}</span> <span class="count-units" style="color: #aaaaaa;font-size: 20px;text-transform: uppercase;">album${'s' if total_albums > 1 else ''}</span>
                             </div>
                         </td>
                     </tr>

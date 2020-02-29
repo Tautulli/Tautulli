@@ -53,6 +53,7 @@ import pmsconnect
 import users
 import versioncheck
 import web_socket
+import webstart
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -2666,8 +2667,11 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def toggleVerbose(self, **kwargs):
         plexpy.VERBOSE = not plexpy.VERBOSE
-        logger.initLogger(console=not plexpy.QUIET,
-                          log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
+
+        plexpy.CONFIG.__setattr__('VERBOSE_LOGS', plexpy.VERBOSE)
+        plexpy.CONFIG.write()
+
+        logger.initLogger(console=not plexpy.QUIET, log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug(u"If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
@@ -2818,7 +2822,11 @@ class WebInterface(object):
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
-            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
+            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY,
+            "geoip_db": plexpy.CONFIG.GEOIP_DB,
+            "geoip_db_installed": plexpy.CONFIG.GEOIP_DB_INSTALLED,
+            "geoip_db_update_days": plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2828,6 +2836,18 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def configUpdate(self, **kwargs):
         # Handle the variable config options. Note - keys with False values aren't getting passed
+
+        # Check if we should refresh our data
+        first_run = False
+        server_changed = False
+        reschedule = False
+        https_changed = False
+        refresh_libraries = False
+        refresh_users = False
+
+        # First run from the setup wizard
+        if kwargs.pop('first_run', None):
+            first_run = True
 
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
@@ -2863,13 +2883,13 @@ class WebInterface(object):
                 kwargs['http_hashed_password'] = 1
 
                 # Flag to refresh JWT uuid to log out clients
-                kwargs['jwt_update_secret'] = True
+                kwargs['jwt_update_secret'] = True and not first_run
 
             elif not kwargs.get('http_hash_password'):
                 kwargs['http_hashed_password'] = 0
 
                 # Flag to refresh JWT uuid to log out clients
-                kwargs['jwt_update_secret'] = True
+                kwargs['jwt_update_secret'] = True and not first_run
 
         else:
             kwargs['http_hashed_password'] = 0
@@ -2879,18 +2899,6 @@ class WebInterface(object):
             kwargs[plain_config] = kwargs[use_config]
             del kwargs[use_config]
 
-        # Check if we should refresh our data
-        first_run = False
-        server_changed = False
-        reschedule = False
-        https_changed = False
-        refresh_libraries = False
-        refresh_users = False
-
-        # First run from the setup wizard
-        if kwargs.pop('first_run', None):
-            first_run = True
-            
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
@@ -2965,8 +2973,9 @@ class WebInterface(object):
 
         # If first run, start websocket
         if first_run:
+            webstart.restart()
             activity_pinger.connect_server(log=True, startup=True)
-        
+
         # Reconfigure scheduler if intervals changed
         if reschedule:
             plexpy.initialize_scheduler()
@@ -3053,15 +3062,17 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def install_geoip_db(self, **kwargs):
+    def install_geoip_db(self, update=False, **kwargs):
         """ Downloads and installs the GeoLite2 database """
 
-        result = helpers.install_geoip_db()
+        update = True if update == 'true' else False
+
+        result = helpers.install_geoip_db(update=update)
 
         if result:
-            return {'result': 'success', 'message': 'GeoLite2 database installed successful.'}
+            return {'result': 'success', 'message': 'GeoLite2 database installed successful.', 'updated': result}
         else:
-            return {'result': 'error', 'message': 'GeoLite2 database install failed.'}
+            return {'result': 'error', 'message': 'GeoLite2 database install failed.', 'updated': 0}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

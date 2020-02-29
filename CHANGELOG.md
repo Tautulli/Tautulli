@@ -1,10 +1,86 @@
 # Changelog
 
+## v2.1.44 (2020-02-05)
+
+* Monitoring:
+  * Fix: SDR source video being identified as HDR stream video.
+* Notifications:
+  * Fix: Unable to select condition operator for video color parameters.
+* UI:
+  * Fix: Capitalization for platforms on history tables.
+
+
+## v2.1.43 (2020-02-03)
+
+* Monitoring:
+  * New: Added HDR indicator on activity card.
+  * New: Added dynamic range to history steam info modal.
+* Notifications:
+  * Fix: Webhook notification body sent as incorrect data type when Content-Type header is overridden.
+  * Fix: Telegram notification character limit incorrect for unicode characters.
+  * New: Added color and dynamic range notification parameters.
+* Newsletters:
+  * Fix: Episodes and Albums plural spelling on recently added newsletter section headers.
+* UI:
+  * Fix: Windows and macOS platform capitalization.
+  * Fix: Season number 0 not shown for episodes on history tables.
+* Other:
+  * Change: Mask email addresses in logs.
+  * Change: Update deprecated GitHub access token URL parameter to Authorization header.  
+
+
+## v2.1.42 (2020-01-04)
+
+* Other:
+  * Fix: SSL certificate error when installing GeoLite2 database.
+  * Change: Verify MaxMind license key and GeoLite2 database path before installing.
+  * Change: Disable GeoLite2 database uninstall button when it is not installed.
+
+
+## v2.1.41 (2019-12-30)
+
+* Other:
+  * Fix: Failing to extract the GeoLite2 database on Windows.
+
+
+## v2.1.40 (2019-12-30)
+
+* UI:
+  * Change: Moved 3rd Party API settings to new tab in the settings.
+* Graphs:
+  * Change: Improve calculating month ranges for Play Totals graphs.
+* Other:
+  * Fix: Failing to verify a Plex Media Server using a hostname.
+  * Change: A license key is now required to install the MaxMind GeoLite2 database for IP geolocation. Please follow the guide in the wiki to reinstall the GeoLite2 database.
+  * Change: The GeoLite2 database will now automatically update periodically if installed.
+
+
+## v2.1.39 (2019-12-08)
+
+* UI:
+  * New: Added creating admin username and password to setup wizard.
+* API:
+  * Change: Remove default notification subject and body for notify API command.
+* Other:
+  * Change: Check for database corruption when making backup.
+
+
+## v2.1.38 (2019-11-17)
+
+* Notifications:
+  * New: Added custom JSON headers to the webhook notification agent.
+* UI:
+  * Fix: Homepage recently watched card not showing grouped history.
+* Other:
+  * New: Added GitHub sponsor donation option.
+  * Change: Improve resolving hostnames.
+
+
 ## v2.1.37 (2019-10-11)
 
 * Notifications:
   * Fix: Last.fm URLs linking to artist page instead of the album page.
-  * New: Added option for MusicBrainz lookup for music notifications. Option must be enabled under 3rd Part APIs in the settings.
+  * New: Added option for MusicBrainz lookup for music notifications. Option must be enabled under 3rd Party APIs in the settings.
   * New: Added MusicBrainz ID and MusicBrainz URL notification parameters.
   * Change: Automatically truncate Discord description summary to 2048 characters.
 

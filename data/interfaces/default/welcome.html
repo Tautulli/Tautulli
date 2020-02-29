@@ -21,28 +21,21 @@
     <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
 
     <!-- Favicons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.0">
-    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.5">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.5">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.5">
 
     <!-- ICONS -->
-    <!-- Android >M39 icon -->
-    <link rel="icon" type="image/png" sizes="192x192" href="${http_root}images/favicon/android-chrome-192x192.png?v=2.0.0">
-    <link rel="manifest" href="${http_root}json/Android-manifest.json?v=2.0.0">
-    <meta name="theme-color" content="#1f1f1f">
+    <!-- Android -->
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5">
+    <meta name="theme-color" content="#282a2d">
     <!-- Apple -->
-    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.0">
-    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.0" color="#1f1f1f">
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.5">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.5" color="#282a2d">
     <meta name="apple-mobile-web-app-title" content="Tautulli">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="viewport" content="initial-scale=1">
-    <meta name="format-detection" content="telephone=no">
-    <!-- IE10 icon -->
+    <!-- Microsoft -->
     <meta name="application-name" content="Tautulli">
-    <meta name="msapplication-TileColor" content="#1f1f1f">
-    <meta name="msapplication-TileImage" content="${http_root}images/favicon/mstile-144x144.png?v=2.0.0">
-    <meta name="msapplication-config" content="${http_root}xml/IEconfig.xml?v=2.0.0" />
+    <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.0.5">
 </head>
 
 <body>
@@ -67,8 +60,38 @@
                         </p>
                     </div>
                 </div>
+
                 <div class="wizard-card" data-cardname="card2">
-                    <h3>Plex Authentication</h3>
+                    <h3>Authentication</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Please setup an admin username and password for Tautulli.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_username">HTTP Username</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="" size="30">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="http_password">HTTP Password</label>
+                        <div class="row">
+                            <div class="col-xs-8">
+                                <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="" size="30" autocomplete="new-password">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" class="form-control" name="http_hash_password" id="http_hash_password" value="1">
+                    <input type="hidden" class="form-control" name="http_plex_admin" id="http_plex_admin" value="1">
+                    <input type="hidden" id="authentication_valid" data-validate="validateAuthentication" value="">
+                    <span style="display: none;" id="authentication-status"></span>
+                </div>
+
+                <div class="wizard-card" data-cardname="card3">
+                    <h3>Plex Account</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
                             Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
@@ -78,7 +101,8 @@
                     <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
-                <div class="wizard-card" data-cardname="card3">
+
+                <div class="wizard-card" data-cardname="card4">
                     <h3>Plex Media Server</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -137,7 +161,7 @@
                     <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                 </div>
 
-                <div class="wizard-card" data-cardname="card4">
+                <div class="wizard-card" data-cardname="card5">
                     <h3>Activity Logging</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -162,7 +186,7 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card4">
+                <div class="wizard-card" data-cardname="card6">
                     <h3>Notifications</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -175,7 +199,7 @@
                     </div>
                 </div>
 
-                <div class="wizard-card" data-cardname="card5">
+                <div class="wizard-card" data-cardname="card7">
                     <h3>Database Import</h3>
                     <div class="wizard-input-section">
                         <p class="help-block">
@@ -227,11 +251,29 @@
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
+    function validateAuthentication(el) {
+        var http_username = $("#http_username").val();
+        var http_password = $("#http_password").val();
+        var valid_authentication = el.val();
+        var retValue = {};
+
+        if (http_username === "" || http_password === "") {
+            retValue.status = false;
+            retValue.msg = "Please enter a username and password.";
+            $("#authentication-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a username and password.');
+            $('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
     function validatePMSip(el) {
         var valid_pms_ip = el.val();
         var retValue = {};
 
-        if (valid_pms_ip == "") {
+        if (valid_pms_ip === "") {
             retValue.status = false;
             retValue.msg = "Please verify your server.";
             $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
@@ -247,7 +289,7 @@
         var valid_pms_token = el.val();
         var retValue = {};
 
-        if (valid_pms_token == "") {
+        if (valid_pms_token === "") {
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
@@ -284,7 +326,7 @@ $(document).ready(function() {
     $.fn.wizard.logging = false;
     var options = {
         keyboard : false,
-        contentHeight : 400,
+        contentHeight : 450,
         contentWidth : 700,
         backdrop: 'static',
         buttons: {submitText: 'Finish'},

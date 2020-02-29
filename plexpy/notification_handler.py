@@ -17,6 +17,7 @@
 import arrow
 import bleach
 from collections import Counter, defaultdict
+from functools import partial
 import hashlib
 from itertools import groupby
 import json
@@ -89,6 +90,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
     if notifiers_enabled and not manual_trigger:
+        logger.debug(u"Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s'." % notify_action)
+
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
                                        stream_data=stream_data,
@@ -97,6 +100,9 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         conditions = True
 
     if notifiers_enabled and (manual_trigger or conditions):
+        if manual_trigger:
+            logger.debug(u"Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s' (manual trigger)." % notify_action)
+
         if stream_data or timeline_data:
             # Build the notification parameters
             parameters = build_media_notify_params(notify_action=notify_action,
@@ -137,6 +143,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
     # Activity notifications
     if stream_data:
+        logger.debug(u"Tautulli NotificationHandler :: Checking global notification conditions.")
 
         # Check if notifications enabled for user and library
         # user_data = users.Users()
@@ -162,36 +169,37 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
                 user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
 
             if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                return len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                evaluated = len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
             else:
-                return len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
         elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
-            return stream_data['machine_id'] not in user_devices
+            evaluated = stream_data['machine_id'] not in user_devices
 
         elif stream_data['media_type'] in ('movie', 'episode', 'clip'):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
             
             if notify_action == 'on_stop':
-                return (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
+                evaluated = (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
                     (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT) or 
                     (stream_data['media_type'] == 'episode' and progress_percent < plexpy.CONFIG.TV_WATCHED_PERCENT))
             
             elif notify_action == 'on_resume':
-                return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
+                evaluated = plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
 
             # All other activity notify actions
             else:
-                return True
+                evaluated = True
 
         elif stream_data['media_type'] == 'track':
-            return True
+            evaluated = True
 
         else:
-            return False
+            evaluated = False
 
+        logger.debug(u"Tautulli NotificationHandler :: Global notification conditions evaluated to '{}'.".format(evaluated))
     # Recently Added notifications
     elif timeline_data:
 
@@ -203,11 +211,13 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         #     # logger.debug(u"Tautulli NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
         #     return False
 
-        return True
+        evaluated = True
 
     # Server notifications
     else:
-        return True
+        evaluated = True
+
+    return evaluated
 
 
 def notify_custom_conditions(notifier_id=None, parameters=None):
@@ -820,6 +830,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'stream_video_codec_level': notify_params['stream_video_codec_level'],
         'stream_video_bitrate': notify_params['stream_video_bitrate'],
         'stream_video_bit_depth': notify_params['stream_video_bit_depth'],
+        'stream_video_chroma_subsampling': notify_params['stream_video_chroma_subsampling'],
+        'stream_video_color_primaries': notify_params['stream_video_color_primaries'],
+        'stream_video_color_range': notify_params['stream_video_color_range'],
+        'stream_video_color_space': notify_params['stream_video_color_space'],
+        'stream_video_color_trc': notify_params['stream_video_color_trc'],
+        'stream_video_dynamic_range': notify_params['stream_video_dynamic_range'],
         'stream_video_framerate': notify_params['stream_video_framerate'],
         'stream_video_full_resolution': notify_params['stream_video_full_resolution'],
         'stream_video_ref_frames': notify_params['stream_video_ref_frames'],
@@ -930,6 +946,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'video_codec_level': notify_params['video_codec_level'],
         'video_bitrate': notify_params['video_bitrate'],
         'video_bit_depth': notify_params['video_bit_depth'],
+        'video_chroma_subsampling': notify_params['video_chroma_subsampling'],
+        'video_color_primaries': notify_params['video_color_primaries'],
+        'video_color_range': notify_params['video_color_range'],
+        'video_color_space': notify_params['video_color_space'],
+        'video_color_trc': notify_params['video_color_trc'],
+        'video_dynamic_range': notify_params['video_dynamic_range'],
         'video_framerate': notify_params['video_framerate'],
         'video_full_resolution': notify_params['video_full_resolution'],
         'video_ref_frames': notify_params['video_ref_frames'],
@@ -1086,11 +1108,11 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     if test:
         return subject, body
 
-    custom_formatter = CustomFormatter()
+    str_formatter = partial(str_format, parameters=parameters)
 
     if agent_id == 15:
         try:
-            script_args = [custom_formatter.format(arg, **parameters) for arg in helpers.split_args(subject)]
+            script_args = [str_formatter(arg) for arg in helpers.split_args(subject)]
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
@@ -1098,41 +1120,53 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.error(u"Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
 
-    try:
-        subject = custom_formatter.format(unicode(subject), **parameters)
-    except LookupError as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
-    except Exception as e:
-        logger.error(u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
+    elif agent_id == 25:
+        if subject:
+            try:
+                subject = json.loads(subject)
+            except ValueError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json header data: %s. Using fallback." % e)
+                subject = ''
+        if subject:
+            try:
+                subject = json.dumps(helpers.traverse_map(subject, str_formatter))
+            except LookupError as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook header data. Using fallback." % e)
+                subject = ''
+            except Exception as e:
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook header data: %s. Using fallback." % e)
+                subject = ''
 
-    if agent_id == 25:
         if body:
             try:
                 body = json.loads(body)
             except ValueError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json data: %s. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook json body data: %s. Using fallback." % e)
                 body = ''
-
         if body:
-            def str_format(s):
-                if isinstance(s, basestring):
-                    return custom_formatter.format(unicode(s), **parameters)
-                return s
-
             try:
-                body = json.dumps(helpers.traverse_map(body, str_format))
+                body = json.dumps(helpers.traverse_map(body, str_formatter))
             except LookupError as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook data. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in webhook body data. Using fallback." % e)
                 body = ''
             except Exception as e:
-                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook data: %s. Using fallback." % e)
+                logger.error(u"Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e)
                 body = ''
 
     else:
         try:
-            body = custom_formatter.format(unicode(body), **parameters)
+            subject = str_formatter(subject)
+        except LookupError as e:
+            logger.error(
+                u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
+        except Exception as e:
+            logger.error(
+                u"Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+            subject = unicode(default_subject).format(**parameters)
+
+        try:
+            body = str_formatter(body)
         except LookupError as e:
             logger.error(u"Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
             body = unicode(default_body).format(**parameters)
@@ -1570,6 +1604,13 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
             logger.warning(u"Tautulli NotificationHandler :: No match found on MusicBrainz.")
 
     return musicbrainz_info
+
+
+def str_format(s, parameters):
+    custom_formatter = CustomFormatter()
+    if isinstance(s, basestring):
+        return custom_formatter.format(unicode(s), **parameters)
+    return s
 
 
 class CustomFormatter(Formatter):

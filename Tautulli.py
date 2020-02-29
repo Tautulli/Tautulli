@@ -106,8 +106,8 @@ def main():
         plexpy.QUIET = True
 
     # Do an intial setup of the logger.
-    logger.initLogger(console=not plexpy.QUIET, log_dir=False,
-                      verbose=plexpy.VERBOSE)
+    # Require verbose for pre-initilization to see critical errors
+    logger.initLogger(console=not plexpy.QUIET, log_dir=False, verbose=True)
 
     try:
         plexpy.SYS_TIMEZONE = tzlocal.get_localzone()
@@ -234,30 +234,18 @@ def main():
             plexpy.CONFIG.ENABLE_HTTPS = False
 
     # Try to start the server. Will exit here is address is already in use.
-    web_config = {
-        'http_port': plexpy.HTTP_PORT,
-        'http_host': plexpy.CONFIG.HTTP_HOST,
-        'http_root': plexpy.CONFIG.HTTP_ROOT,
-        'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
-        'http_proxy': plexpy.CONFIG.HTTP_PROXY,
-        'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
-        'https_cert': plexpy.CONFIG.HTTPS_CERT,
-        'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
-        'https_key': plexpy.CONFIG.HTTPS_KEY,
-        'http_username': plexpy.CONFIG.HTTP_USERNAME,
-        'http_password': plexpy.CONFIG.HTTP_PASSWORD,
-        'http_basic_auth': plexpy.CONFIG.HTTP_BASIC_AUTH
-    }
-    webstart.initialize(web_config)
+    webstart.start()
+
+    # Windows system tray icon
+    if os.name == 'nt' and plexpy.CONFIG.WIN_SYS_TRAY:
+        plexpy.win_system_tray()
+
+    logger.info("Tautulli is ready!")
 
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
                               plexpy.HTTP_ROOT)
-
-    # Windows system tray icon
-    if os.name == 'nt' and plexpy.CONFIG.WIN_SYS_TRAY:
-        plexpy.win_system_tray()
 
     # Wait endlessy for a signal to happen
     while True:
