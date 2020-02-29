@@ -3533,7 +3533,7 @@ class WEBHOOK(Notifier):
     """
     NAME = 'Webhook'
     _DEFAULT_CONFIG = {'hook': '',
-                       'method': ''
+                       'method': 'POST'
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -3579,8 +3579,7 @@ class WEBHOOK(Notifier):
                           'name': 'webhook_method',
                           'description': 'The Webhook HTTP request method.',
                           'input_type': 'select',
-                          'select_options': {'': '',
-                                             'GET': 'GET',
+                          'select_options': {'GET': 'GET',
                                              'POST': 'POST',
                                              'PUT': 'PUT',
                                              'DELETE': 'DELETE'}

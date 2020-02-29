@@ -288,7 +288,7 @@ class WebInterface(object):
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
-        if plextv == 'true':
+        if helpers.bool_true(plextv):
             base_url = 'https://plex.tv'
         else:
             if plexpy.CONFIG.PMS_URL_OVERRIDE:
@@ -393,15 +393,18 @@ class WebInterface(object):
                           "do_notify": "Checked",
                           "do_notify_created": "Checked",
                           "duration": 1578037,
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1128,
                           "keep_history": "Checked",
                           "labels": [],
                           "last_accessed": 1462693216,
                           "last_played": "Game of Thrones - The Red Woman",
                           "library_art": "/:/resources/show-fanart.jpg",
-                          "library_thumb": "",
+                          "library_thumb": "/:/resources/show.png",
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_count": 240,
                           "parent_media_index": 6,
                           "parent_title": "",
@@ -677,6 +680,7 @@ class WebInterface(object):
                           "rating_key": "1219",
                           "section_id": 2,
                           "section_type": "show",
+                          "sort_title": "Game of Thrones",
                           "thumb": "/library/metadata/1219/thumb/1436265995",
                           "title": "Game of Thrones",
                           "video_codec": "",
@@ -712,7 +716,7 @@ class WebInterface(object):
                           ("play_count", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
 
-        if refresh == 'true':
+        if helpers.bool_true(refresh):
             refresh = True
         else:
             refresh = False
@@ -1055,13 +1059,16 @@ class WebInterface(object):
                           "do_notify": "Checked",
                           "duration": 2998290,
                           "friendly_name": "Jon Snow",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "keep_history": "Checked",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 6,
                           "parent_title": "",
                           "platform": "Chrome",
@@ -1267,12 +1274,15 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"friendly_name": "Jon Snow",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
+                          "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 6,
                           "parent_title": "",
                           "platform": "Chrome",
@@ -1607,8 +1617,9 @@ class WebInterface(object):
                 grandparent_rating_key (int):   351
                 start_date (str):               "YYYY-MM-DD"
                 section_id (int):               2
-                media_type (str):               "movie", "episode", "track"
+                media_type (str):               "movie", "episode", "track", "live"
                 transcode_decision (str):       "direct play", "copy", "transcode",
+                guid (str):                     Plex guid for an item, e.g. "com.plexapp.agents.thetvdb://121361/6/1"
                 order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
                                                 "full_title", "started", "paused_counter", "stopped", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1633,10 +1644,13 @@ class WebInterface(object):
                           "original_title": "",
                           "group_count": 1,
                           "group_ids": "1124",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "id": 1124,
                           "ip_address": "xxx.xxx.xxx.xxx",
+                          "live": 0,
                           "media_index": 17,
                           "media_type": "episode",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": 7,
                           "parent_rating_key": 544,
                           "parent_title": "",
@@ -1694,31 +1708,37 @@ class WebInterface(object):
         elif user:
             custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
-            rating_key = kwargs.get('rating_key', "")
+            rating_key = kwargs.get('rating_key', '')
             custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
-            rating_key = kwargs.get('parent_rating_key', "")
+            rating_key = kwargs.get('parent_rating_key', '')
             custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
-            rating_key = kwargs.get('grandparent_rating_key', "")
+            rating_key = kwargs.get('grandparent_rating_key', '')
             custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
-            start_date = kwargs.get('start_date', "")
+            start_date = kwargs.get('start_date', '')
             custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
-            reference_id = kwargs.get('reference_id', "")
+            reference_id = kwargs.get('reference_id', '')
             custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
-            section_id = kwargs.get('section_id', "")
+            section_id = kwargs.get('section_id', '')
             custom_where.append(['session_history_metadata.section_id', section_id])
         if 'media_type' in kwargs:
-            media_type = kwargs.get('media_type', "")
-            if media_type != 'all':
+            media_type = kwargs.get('media_type', '')
+            if media_type not in ('all', 'live'):
                 custom_where.append(['session_history.media_type', media_type])
+                custom_where.append(['session_history_metadata.live', '0'])
+            elif media_type == 'live':
+                custom_where.append(['session_history_metadata.live', '1'])
         if 'transcode_decision' in kwargs:
-            transcode_decision = kwargs.get('transcode_decision', "")
+            transcode_decision = kwargs.get('transcode_decision', '')
             if transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
+        if 'guid' in kwargs:
+            guid = kwargs.get('guid', '').split('?')[0]
+            custom_where.append(['session_history_metadata.guid', 'LIKE ' + guid + '%'])  # SQLite LIKE wildcard
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
@@ -1779,6 +1799,7 @@ class WebInterface(object):
                      "stream_video_bitrate": 527,
                      "stream_video_codec": "h264",
                      "stream_video_decision": "transcode",
+                     "stream_video_dynamic_range": "SDR",
                      "stream_video_framerate": "24p",
                      "stream_video_height": 306,
                      "stream_video_resolution": "SD",
@@ -1793,6 +1814,7 @@ class WebInterface(object):
                      "video_bitrate": 2500,
                      "video_codec": "h264",
                      "video_decision": "transcode",
+                     "video_dynamic_range": "SDR",
                      "video_framerate": "24p",
                      "video_height": 816,
                      "video_resolution": "1080",
@@ -1888,7 +1910,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -1927,7 +1950,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -1966,7 +1990,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2005,7 +2030,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2044,7 +2070,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -2083,7 +2110,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Movies", "data": [...]}
                          {"name": "TV", "data": [...]},
-                         {"name": "Music", "data": [...]}
+                         {"name": "Music", "data": [...]},
+                         {"name": "Live TV", "data": [...]}
                          ]
                      }
             ```
@@ -3076,7 +3104,7 @@ class WebInterface(object):
     def install_geoip_db(self, update=False, **kwargs):
         """ Downloads and installs the GeoLite2 database """
 
-        update = True if update == 'true' else False
+        update = helpers.bool_true(update)
 
         result = helpers.install_geoip_db(update=update)
 
@@ -3482,7 +3510,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def verify_mobile_device(self, device_token='', cancel=False, **kwargs):
-        if cancel == 'true':
+        if helpers.bool_true(cancel):
             mobile_app.TEMP_DEVICE_TOKEN = None
             return {'result': 'error', 'message': 'Device registration cancelled.'}
 
@@ -3647,7 +3675,7 @@ class WebInterface(object):
         if not username and not password:
             return None
 
-        force = True if force == 'true' else False
+        force = helpers.bool_true(force)
 
         plex_tv = plextv.PlexTV(username=username, password=password)
         token = plex_tv.get_plexpy_pms_token(force=force)
@@ -3710,7 +3738,7 @@ class WebInterface(object):
         result = {'identifier': identifier}
 
         if identifier:
-            if get_url == 'true':
+            if helpers.bool_true(get_url):
                 server = self.get_server_resources(pms_ip=hostname,
                                                    pms_port=port,
                                                    pms_ssl=ssl,
@@ -3720,7 +3748,7 @@ class WebInterface(object):
                 result['url'] = server['pms_url']
                 result['ws'] = None
 
-                if test_websocket == 'true':
+                if helpers.bool_true(test_websocket):
                     # Quick test websocket connection
                     ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
                     header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
@@ -3774,7 +3802,7 @@ class WebInterface(object):
         logger.info("New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)
 
-        if device == 'true':
+        if helpers.bool_true(device):
             mobile_app.TEMP_DEVICE_TOKEN = apikey
 
         return apikey
@@ -3804,46 +3832,51 @@ class WebInterface(object):
         versioncheck.check_update()
 
         if plexpy.UPDATE_AVAILABLE is None:
-            return {'result': 'error',
-                    'update': None,
-                    'message': 'You are running an unknown version of Tautulli.'
-                    }
+            update = {'result': 'error',
+                      'update': None,
+                      'message': 'You are running an unknown version of Tautulli.'
+                      }
 
         elif plexpy.UPDATE_AVAILABLE == 'release':
-            return {'result': 'success',
-                    'update': True,
-                    'release': True,
-                    'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
-                    'current_release': plexpy.common.RELEASE,
-                    'latest_release': plexpy.LATEST_RELEASE,
-                    'release_url': helpers.anon_url(
-                        'https://github.com/%s/%s/releases/tag/%s'
-                        % (plexpy.CONFIG.GIT_USER,
-                           plexpy.CONFIG.GIT_REPO,
-                           plexpy.LATEST_RELEASE))
-                    }
+            update = {'result': 'success',
+                      'update': True,
+                      'release': True,
+                      'message': 'A new release (%s) of Tautulli is available.' % plexpy.LATEST_RELEASE,
+                      'current_release': plexpy.common.RELEASE,
+                      'latest_release': plexpy.LATEST_RELEASE,
+                      'release_url': helpers.anon_url(
+                          'https://github.com/%s/%s/releases/tag/%s'
+                          % (plexpy.CONFIG.GIT_USER,
+                             plexpy.CONFIG.GIT_REPO,
+                             plexpy.LATEST_RELEASE))
+                      }
 
         elif plexpy.UPDATE_AVAILABLE == 'commit':
-            return {'result': 'success',
-                    'update': True,
-                    'release': False,
-                    'message': 'A newer version of Tautulli is available.',
-                    'current_version': plexpy.CURRENT_VERSION,
-                    'latest_version': plexpy.LATEST_VERSION,
-                    'commits_behind': plexpy.COMMITS_BEHIND,
-                    'compare_url': helpers.anon_url(
-                        'https://github.com/%s/%s/compare/%s...%s'
-                        % (plexpy.CONFIG.GIT_USER,
-                           plexpy.CONFIG.GIT_REPO,
-                           plexpy.CURRENT_VERSION,
-                           plexpy.LATEST_VERSION))
+            update = {'result': 'success',
+                      'update': True,
+                      'release': False,
+                      'message': 'A newer version of Tautulli is available.',
+                      'current_version': plexpy.CURRENT_VERSION,
+                      'latest_version': plexpy.LATEST_VERSION,
+                      'commits_behind': plexpy.COMMITS_BEHIND,
+                      'compare_url': helpers.anon_url(
+                          'https://github.com/%s/%s/compare/%s...%s'
+                          % (plexpy.CONFIG.GIT_USER,
+                             plexpy.CONFIG.GIT_REPO,
+                             plexpy.CURRENT_VERSION,
+                             plexpy.LATEST_VERSION))
                     }
 
         else:
-            return {'result': 'success',
-                    'update': False,
-                    'message': 'Tautulli is up to date.'
-                    }
+            update = {'result': 'success',
+                      'update': False,
+                      'message': 'Tautulli is up to date.'
+                      }
+
+        if plexpy.DOCKER:
+            update['docker'] = plexpy.DOCKER
+
+        return update
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3873,6 +3906,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
+        if plexpy.DOCKER:
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+
         # Show changelog after updating
         plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 1)
         plexpy.CONFIG.write()
@@ -3892,17 +3928,29 @@ class WebInterface(object):
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def reset_git_install(self, **kwargs):
+        result = versioncheck.reset()
+
+        if result:
+            return {'result': 'success', 'message': 'Tautulli installation reset.'}
+        else:
+            return {'result': 'error', 'message': 'Reset installation failed.'}
+
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_changelog(self, latest_only=False, since_prev_release=False, update_shown=False, **kwargs):
-        latest_only = (latest_only == 'true')
-        since_prev_release = (since_prev_release == 'true')
+        latest_only = helpers.bool_true(latest_only)
+        since_prev_release = helpers.bool_true(since_prev_release)
 
         if since_prev_release and plexpy.PREV_RELEASE == common.RELEASE:
             latest_only = True
             since_prev_release = False
 
         # Set update changelog shown status
-        if update_shown == 'true':
+        if helpers.bool_true(update_shown):
             plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
             plexpy.CONFIG.write()
 
@@ -3912,7 +3960,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, source=None, query=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -3925,7 +3973,7 @@ class WebInterface(object):
 
         if source == 'history':
             data_factory = datafactory.DataFactory()
-            metadata = data_factory.get_metadata_details(rating_key=rating_key)
+            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
             if metadata:
                 poster_info = data_factory.get_poster_info(metadata=metadata)
                 metadata.update(poster_info)
@@ -3945,12 +3993,12 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
+            return serve_template(templatename="info.html", metadata=metadata, title="Info", config=config, source=source)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
             else:
-                return self.update_metadata(rating_key, query)
+                return self.update_metadata(rating_key)
 
     @cherrypy.expose
     @requireAuth()
@@ -4046,10 +4094,10 @@ class WebInterface(object):
                 width (str):            300
                 height (str):           450
                 opacity (str):          25
-                background (str):       282828
+                background (str):       Hex color, e.g. 282828
                 blur (str):             3
                 img_format (str):       png
-                fallback (str):         "poster", "cover", "art"
+                fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
@@ -4058,20 +4106,27 @@ class WebInterface(object):
             ```
         """
         if not img and not rating_key:
+            if fallback in common.DEFAULT_IMAGES:
+                fbi = common.DEFAULT_IMAGES[fallback]
+                fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                return serve_file(path=fp, content_type='image/png')
             logger.warn('No image input received.')
             return
 
-        return_hash = (kwargs.get('return_hash') == 'true')
+        return_hash = helpers.bool_true(kwargs.get('return_hash'))
 
         if rating_key and not img:
-            if fallback == 'art':
+            if fallback and fallback.startswith('art'):
                 img = '/library/metadata/{}/art'.format(rating_key)
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        img_split = img.split('/')
-        img = '/'.join(img_split[:5])
-        rating_key = rating_key or img_split[3]
+        if img.startswith('/library/metadata'):
+            img_split = img.split('/')
+            img = '/'.join(img_split[:5])
+            img_rating_key = img_split[3]
+            if rating_key != img_rating_key:
+                rating_key = img_rating_key
 
         img_hash = notification_handler.set_hash_image_info(
             img=img, rating_key=rating_key, width=width, height=height,
@@ -4088,7 +4143,7 @@ class WebInterface(object):
         if not os.path.exists(c_dir):
             os.mkdir(c_dir)
 
-        clip = True if clip == 'true' else False
+        clip = helpers.bool_true(clip)
 
         try:
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
@@ -4121,16 +4176,9 @@ class WebInterface(object):
                     raise Exception('PMS image request failed')
 
             except Exception as e:
-                logger.warn('Failed to get image %s, falling back to %s.' % (img, fallback))
-                fbi = None
-                if fallback == 'poster':
-                    fbi = common.DEFAULT_POSTER_THUMB
-                elif fallback == 'cover':
-                    fbi = common.DEFAULT_COVER_THUMB
-                elif fallback == 'art':
-                    fbi = common.DEFAULT_ART
-
-                if fbi:
+                logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
+                if fallback in common.DEFAULT_IMAGES:
+                    fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
 
@@ -4148,14 +4196,8 @@ class WebInterface(object):
 
             img_hash = args[0].split('.')[0]
 
-            if img_hash in ('poster', 'cover', 'art'):
-                if img_hash == 'poster':
-                    fbi = common.DEFAULT_POSTER_THUMB
-                elif img_hash == 'cover':
-                    fbi = common.DEFAULT_COVER_THUMB
-                elif img_hash == 'art':
-                    fbi = common.DEFAULT_ART
-
+            if img_hash in common.DEFAULT_IMAGES:
+                fbi = common.DEFAULT_IMAGES[img_hash]
                 fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                 return serve_file(path=fp, content_type='image/png')
 
@@ -4304,7 +4346,7 @@ class WebInterface(object):
             ```
         """
 
-        delete_all = (delete_all == 'true')
+        delete_all = helpers.bool_true(delete_all)
 
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_img_info(rating_key=rating_key, service=service, delete_all=delete_all)
@@ -4417,7 +4459,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
-        update = True if update == 'True' else False
+        update = helpers.bool_true(update)
 
         data_factory = datafactory.DataFactory()
         query = data_factory.get_search_query(rating_key=rating_key)
@@ -4590,6 +4632,7 @@ class WebInterface(object):
                      "labels": [],
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
+                     "live": 0,
                      "media_index": "1",
                      "media_info": [
                          {
@@ -4599,6 +4642,9 @@ class WebInterface(object):
                              "audio_codec": "ac3",
                              "audio_profile": "",
                              "bitrate": "10617",
+                             "channel_call_sign": "",
+                             "channel_identifier": "",
+                             "channel_thumb": "",
                              "container": "mkv",
                              "height": "1078",
                              "id": "257925",
@@ -4617,6 +4663,10 @@ class WebInterface(object):
                                              "video_bitrate": "10233",
                                              "video_codec": "h264",
                                              "video_codec_level": "41",
+                                             "video_color_primaries": "",
+                                             "video_color_range": "tv",
+                                             "video_color_space": "bt709",
+                                             "video_color_trc": "",
                                              "video_frame_rate": "23.976",
                                              "video_height": "1078",
                                              "video_language": "",
@@ -4676,7 +4726,7 @@ class WebInterface(object):
                      "rating_image": "rottentomatoes://image.rating.ripe",
                      "rating_key": "153037",
                      "section_id": "2",
-                     "sort_title": "Game of Thrones",
+                     "sort_title": "Red Woman",
                      "studio": "HBO",
                      "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
                      "tagline": "",
@@ -4719,22 +4769,59 @@ class WebInterface(object):
             Returns:
                 json:
                     {"recently_added":
-                        [{"added_at": "1461572396",
+                        [{"actors": [
+                             "Kit Harington",
+                             "Emilia Clarke",
+                             "Isaac Hempstead-Wright",
+                             "Maisie Williams",
+                             "Liam Cunningham",
+                          ],
+                          "added_at": "1461572396",
+                          "art": "/library/metadata/1219/art/1462175063",
+                          "audience_rating": "8",
+                          "audience_rating_image": "rottentomatoes://image.rating.upright",
+                          "banner": "/library/metadata/1219/banner/1462175063",
+                          "directors": [
+                             "Jeremy Podeswa"
+                          ],
+                          "duration": "2998290",
+                          "full_title": "Game of Thrones - The Red Woman",
+                          "genres": [
+                             "Adventure",
+                             "Drama",
+                             "Fantasy"
+                          ],
                           "grandparent_rating_key": "1219",
                           "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                           "grandparent_title": "Game of Thrones",
-                          "library_name": "",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
+                          "labels": [],
+                          "last_viewed_at": "1462165717",
+                          "library_name": "TV Shows",
                           "media_index": "1",
                           "media_type": "episode",
                           "original_title": "",
+                          "originally_available_at": "2016-04-24",
                           "parent_media_index": "6",
                           "parent_rating_key": "153036",
                           "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                           "parent_title": "",
+                          "rating": "7.8",
+                          "rating_image": "rottentomatoes://image.rating.ripe",
                           "rating_key": "153037",
                           "section_id": "2",
+                          "sort_title": "Red Woman",
+                          "studio": "HBO",
+                          "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
+                          "tagline": "",
                           "thumb": "/library/metadata/153037/thumb/1462175060",
                           "title": "The Red Woman",
+                          "user_rating": "9.0",
+                          "updated_at": "1462175060",
+                          "writers": [
+                             "David Benioff",
+                             "D. B. Weiss"
+                          ],
                           "year": "2016"
                           },
                          {...},
@@ -4957,7 +5044,11 @@ class WebInterface(object):
                              "banner": "/library/metadata/1219/banner/1503306930",
                              "bif_thumb": "/library/parts/274169/indexes/sd/1000",
                              "bitrate": "10617",
+                             "channel_call_sign": "",
+                             "channel_identifier": "",
                              "channel_stream": 0,
+                             "channel_thumb": "",
+                             "children_count": "",
                              "collections": [],
                              "container": "mkv",
                              "content_rating": "TV-MA",
@@ -4989,13 +5080,15 @@ class WebInterface(object):
                              "ip_address": "10.10.10.1",
                              "ip_address_public": "64.123.23.111",
                              "is_admin": 1,
-                             "is_allow_sync": null,
+                             "is_allow_sync": 1,
                              "is_home_user": 1,
                              "is_restricted": 0,
                              "keep_history": 1,
                              "labels": [],
                              "last_viewed_at": "1462165717",
                              "library_name": "TV Shows",
+                             "live": 0,
+                             "live_uuid": "",
                              "local": "1",
                              "location": "lan",
                              "machine_id": "lmd93nkn12k29j2lnm",
@@ -5004,8 +5097,8 @@ class WebInterface(object):
                              "optimized_version": 0,
                              "optimized_version_profile": "",
                              "optimized_version_title": "",
-                             "originally_available_at": "2016-04-24",
                              "original_title": "",
+                             "originally_available_at": "2016-04-24",
                              "parent_guid": "com.plexapp.agents.thetvdb://121361/6?lang=en",
                              "parent_media_index": "6",
                              "parent_rating_key": "153036",
@@ -5025,6 +5118,7 @@ class WebInterface(object):
                              "rating_key": "153037",
                              "relay": 0,
                              "section_id": "2",
+                             "secure": 1,
                              "session_id": "helf15l3rxgw01xxe0jf3l3d",
                              "session_key": "27",
                              "shared_libraries": [
@@ -5063,15 +5157,21 @@ class WebInterface(object):
                              "stream_subtitle_location": "",
                              "stream_video_bit_depth": "8",
                              "stream_video_bitrate": "10233",
+                             "stream_video_chroma_subsampling": "4:2:0",
                              "stream_video_codec": "h264",
                              "stream_video_codec_level": "41",
+                             "stream_video_color_primaries": "",
+                             "stream_video_color_range": "tv",
+                             "stream_video_color_space": "bt709",
+                             "stream_video_color_trc": "",
                              "stream_video_decision": "direct play",
+                             "stream_video_dynamic_range": "SDR",
                              "stream_video_framerate": "24p",
+                             "stream_video_full_resolution": "1080p",
                              "stream_video_height": "1078",
                              "stream_video_language": "",
                              "stream_video_language_code": "",
                              "stream_video_ref_frames": "4",
-                             "stream_video_full_resolution": "1080p",
                              "stream_video_resolution": "1080",
                              "stream_video_scan_type": "progressive",
                              "stream_video_width": "1920",
@@ -5121,9 +5221,15 @@ class WebInterface(object):
                              "username": "LordCommanderSnow",
                              "video_bit_depth": "8",
                              "video_bitrate": "10233",
+                             "video_chroma_subsampling": "4:2:0",
                              "video_codec": "h264",
                              "video_codec_level": "41",
+                             "video_color_primaries": "",
+                             "video_color_range": "tv",
+                             "video_color_space": "bt709",
+                             "video_color_trc": ",
                              "video_decision": "direct play",
+                             "video_dynamic_range": "SDR",
                              "video_frame_rate": "23.976",
                              "video_framerate": "24p",
                              "video_full_resolution": "1080p",
@@ -5377,8 +5483,10 @@ class WebInterface(object):
                         [{"content_rating": "TV-MA",
                           "friendly_name": "",
                           "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                          "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "labels": [],
                           "last_play": 1462380698,
+                          "live": 0,
                           "media_type": "episode",
                           "platform": "",
                           "platform_type": "",
@@ -5884,8 +5992,8 @@ class WebInterface(object):
                                                                subject=newsletter['subject'],
                                                                body=newsletter['body'],
                                                                message=newsletter['message'])
-                preview = (preview == 'true')
-                raw = (raw == 'true')
+                preview = helpers.bool_true(preview)
+                raw = helpers.bool_true(raw)
 
                 if raw:
                     cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'

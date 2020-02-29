@@ -34,7 +34,7 @@ import time
 import tzlocal
 
 import plexpy
-from plexpy import config, database, logger, webstart
+from plexpy import config, database, helpers, logger, webstart
 
 
 # Register signals, such as CTRL + C
@@ -115,7 +115,7 @@ def main():
 
     plexpy.SYS_UTC_OFFSET = datetime.datetime.now(plexpy.SYS_TIMEZONE).strftime('%z')
 
-    if os.getenv('TAUTULLI_DOCKER', False) == 'True':
+    if helpers.bool_true(os.getenv('TAUTULLI_DOCKER', False)):
         plexpy.DOCKER = True
 
     if args.dev:

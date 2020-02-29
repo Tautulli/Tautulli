@@ -63,9 +63,19 @@ class ActivityHandler(object):
 
         return None
 
-    def get_live_session(self):
+    def get_metadata(self, skip_cache=False):
+        cache_key = None if skip_cache else self.get_session_key()
         pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity()
+        metadata = pms_connect.get_metadata_details(rating_key=self.get_rating_key(), cache_key=cache_key)
+
+        if metadata:
+            return metadata
+
+        return None
+
+    def get_live_session(self, skip_cache=False):
+        pms_connect = pmsconnect.PmsConnect()
+        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
 
         if session_list:
             for session in session_list['sessions']:
@@ -99,7 +109,7 @@ class ActivityHandler(object):
 
     def on_start(self):
         if self.is_valid_session():
-            session = self.get_live_session()
+            session = self.get_live_session(skip_cache=True)
 
             if not session:
                 return
@@ -112,9 +122,9 @@ class ActivityHandler(object):
                 if not session:
                     return
 
-            logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)."
+            logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                          % (str(session['session_key']), str(session['user_id']), session['username'],
-                            str(session['rating_key']), session['full_title']))
+                            str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
 
             plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
 
@@ -274,11 +284,20 @@ class ActivityHandler(object):
                 last_transcode_key = db_session['transcode_key'].split('/')[-1]
                 last_paused = db_session['last_paused']
                 last_rating_key_websocket = db_session['rating_key_websocket']
+                last_guid = db_session['guid']
+
+                this_guid = last_guid
+                # Check guid for live TV metadata every 60 seconds
+                if db_session['live'] and int(time.time()) - db_session['stopped'] > 60:
+                    metadata = self.get_metadata(skip_cache=True)
+                    if metadata:
+                        this_guid = metadata['guid']
 
                 # Make sure the same item is being played
-                if this_rating_key == last_rating_key \
-                        or this_rating_key == last_rating_key_websocket \
-                        or this_live_uuid == last_live_uuid:
+                if (this_rating_key == last_rating_key
+                        or this_rating_key == last_rating_key_websocket
+                        or this_live_uuid == last_live_uuid) \
+                        and this_guid == last_guid:
                     # Update the session state and viewOffset
                     if this_state == 'playing':
                         # Update the session in our temp session table

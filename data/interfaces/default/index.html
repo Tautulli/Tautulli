@@ -334,13 +334,13 @@
                     streams_header = streams_header.replace(/, $/, '') + ')';
                     $('#currentActivityHeader-streams').text(streams_header);
 
-                    var bandwidth_header = ((total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps'));
+                    var bandwidth_header = ((total_bw > 1000000) ? ((total_bw / 1000000).toFixed(1) + ' Gbps') : ((total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps')));
                     var lan_wan_bandwidth_header = '';
                     if (lan_bw) {
-                        lan_wan_bandwidth_header += 'LAN: ' + ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps')) + ', ';
+                        lan_wan_bandwidth_header += 'LAN: ' + ((lan_bw > 1000000) ? ((lan_bw / 1000000).toFixed(1) + ' Gbps') : ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps'))) + ', ';
                     }
                     if (wan_bw) {
-                        lan_wan_bandwidth_header += 'WAN: ' + ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps')) + ', ';
+                        lan_wan_bandwidth_header += 'WAN: ' + ((wan_bw > 1000000) ? ((wan_bw / 1000000).toFixed(1) + ' Gbps') : ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps'))) + ', ';
                     }
                     if (lan_wan_bandwidth_header) {
                         bandwidth_header += ' (' + lan_wan_bandwidth_header.replace(/, $/, '') + ')';
@@ -356,8 +356,10 @@
                         var instance = $('#activity-instance-' + key);
 
                         // Create a new instance if it doesn't exist or recreate the entire instance
-                        // if the rating key changed (for movies or episodes) with the same session key
-                        if (!(instance.length) || (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString())) {
+                        // if the rating key changed (for movies or episodes) of guid changed (for live tv) with the same session key
+                        if (!(instance.length) ||
+                                (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString()) ||
+                                (s.live === 1 && s.guid !== instance.data('guid'))) {
                             create_instances.push(key);
                             getActivityInstance(key);
                             return;
@@ -384,32 +386,32 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
-                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
+                                $('#background-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true) + ')');
                                 $('#metadata-grandparent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('href', page('info', s.grandparent_rating_key))
                                     .attr('title', s.original_title || s.grandparent_title)
                                     .text(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
-                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
-                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
+                                $('#poster-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true) + ')');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true) + ')');
                                 $('#poster-url-' + key)
-                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('href', page('info', s.parent_rating_key))
                                     .attr('title', s.parent_title);
                                 $('#metadata-parent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.parent_rating_key)
+                                    .attr('href', page('info', s.parent_rating_key))
                                     .attr('title', s.parent_title)
                                     .text(s.parent_title);
                             }
                             // Update cover if track changed
                             if (s.rating_key !== instance.data('rating_key').toString()) {
                                 $('#metadata-grandparent_title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.grandparent_rating_key)
+                                    .attr('href', page('info', s.grandparent_rating_key))
                                     .attr('title', s.original_title || s.grandparent_title)
                                     .text(s.original_title || s.grandparent_title);
                                 $('#metadata-title-' + key)
-                                    .attr('href', 'info?rating_key=' + s.rating_key)
+                                    .attr('href', page('info', s.rating_key))
                                     .attr('title', s.title)
                                     .text(s.title);
                             }
@@ -524,7 +526,9 @@
 
                         if (s.media_type !== 'photo' && s.bandwidth !== 'Unknown') {
                             var bw = parseInt(s.bandwidth) || 0;
-                            if (bw > 1000) {
+                            if (bw > 1000000) {
+                                bw = (bw / 1000000).toFixed(1) + ' Gbps';
+                            } else if (bw > 1000) {
                                 bw = (bw / 1000).toFixed(1) + ' Mbps';
                             } else {
                                 bw = bw + ' kbps'
@@ -543,10 +547,12 @@
                         // Update the progress bars, percent - 3 because of 3px padding-right
                         $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
-                        var progress_bar = $('#progress-bar-' + key);
-                        progress_bar.data('state', s.state);
-                        if (progress_bar.data('last_view_offset') !== s.view_offset) {
-                            progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        if (s.live !== 1) {
+                            var progress_bar = $('#progress-bar-' + key);
+                            progress_bar.data('state', s.state);
+                            if (progress_bar.data('last_view_offset') !== s.view_offset) {
+                                progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                            }
                         }
 
                         // Add temporary class so we know which instances are still active
@@ -559,6 +565,7 @@
                             $(instance).removeClass('updated-temp');
                         } else {
                             $(instance).find('[data-toggle=tooltip]').tooltip('destroy');
+                            $(instance).find('[data-toggle=popover]').popover('destroy');
                             $(instance).remove();
                         }
                     });
@@ -593,6 +600,17 @@
 
                 $('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller').scrollbar();
                 $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#activity-instance-' + session_key + ' [data-toggle=popover]').popover({
+                    html: true,
+                    container: 'body',
+                    trigger: 'hover',
+                    placement: 'right',
+                    delay: 50,
+                    template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+                    content: function () {
+                        return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
+                    }
+                });
                 $('#terminate-button-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
                 lockScroll('#activity-instance-' + session_key + ' .dashboard-activity-info-scroller');
 

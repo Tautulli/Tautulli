@@ -27,6 +27,9 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data:
+<%
+    from plexpy.helpers import page
+%>
 <div class="dashboard-recent-media-row">
     <div id="recently-watched-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
@@ -35,12 +38,12 @@ DOCUMENTATION :: END
                 % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
                 % if item['rating_key']:
                 % if item['media_type'] == 'movie':
-                <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">
+                <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">
                 % elif item['media_type'] == 'episode':
-                <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['grandparent_title']}">
+                <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['grandparent_title']}">
                 % endif
                     <div class="dashboard-recent-media-poster">
-                        <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(${page('pms_image_proxy', item['thumb'], item['rating_key'], 300, 450, fallback='poster')});">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>
@@ -56,19 +59,38 @@ DOCUMENTATION :: END
                 </a>
                 <div class="dashboard-recent-media-metacontainer">
                     % if item['media_type'] == 'episode':
+                    % if item['live']:
                     <h3>
-                        <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
                     </h3>
                     <h3 class="text-muted" title="${item['title']}">
-                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">${item['title']}</a>
+                    </h3>
+                    % if item['media_index']:
+                    <h3 class="text-muted">
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                         &middot; <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                    </h3>
+                    % else:
+                    <h3 class="text-muted">
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['originally_available_at']}">${item['originally_available_at']}</a>
+                    </h3>
+                    % endif
+                    % else:
+                    <h3>
+                        <a href="${page('info', item['grandparent_rating_key'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                    </h3>
+                    <h3 class="text-muted" title="${item['title']}">
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
-                        <a href="info?rating_key=${item['parent_rating_key']}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
-                         &middot; <a href="info?source=history&rating_key=${item['rating_key']}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                        <a href="${page('info', item['parent_rating_key'])}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                         &middot; <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                     </h3>
+                    % endif
                     % elif item['media_type'] == 'movie':
                     <h3 title="${item['title']}">
-                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">${item['year']}</h3>
                     <h3 class="text-muted">&nbsp;</h3>
@@ -94,9 +116,9 @@ DOCUMENTATION :: END
                 % endif
                 % elif item['media_type'] == 'track':
                 % if item['rating_key']:
-                <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['parent_title']}">
+                <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['parent_title']}">
                     <div class="dashboard-recent-media-cover">
-                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(${page('pms_image_proxy', item['thumb'], item['rating_key'], 300, 300, fallback='cover')});">
                             <div class="dashboard-recent-media-overlay">
                                 <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
                                     <script>
@@ -109,13 +131,13 @@ DOCUMENTATION :: END
                 </a>
                 <div class="dashboard-recent-media-metacontainer">
                     <h3 title="${item['original_title'] or item['grandparent_title']}">
-                        <a href="info?rating_key=${item['grandparent_rating_key']}" title="${item['original_title'] or item['grandparent_title']}">${item['original_title'] or item['grandparent_title']}</a>
+                        <a href="${page('info', item['grandparent_rating_key'])}" title="${item['original_title'] or item['grandparent_title']}">${item['original_title'] or item['grandparent_title']}</a>
                     </h3>
                     <h3 class="text-muted" title="${item['title']}">
-                        <a href="info?source=history&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
-                        <a href="info?rating_key=${item['parent_rating_key']}" title="${item['parent_title']}">${item['parent_title']}</a>
+                        <a href="${page('info', item['parent_rating_key'])}" title="${item['parent_title']}">${item['parent_title']}</a>
                     </h3>
                 </div>
                 % else:

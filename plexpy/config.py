@@ -73,6 +73,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
+    'ADD_LIVE_TV_LIBRARY': (int, 'Advanced', 1),
     'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
@@ -944,3 +945,9 @@ class Config(object):
                 self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
 
             self.CONFIG_VERSION = 14
+
+        if self.CONFIG_VERSION == 14:
+            if plexpy.DOCKER:
+                self.PLEXPY_AUTO_UPDATE = 0
+
+            self.CONFIG_VERSION == 15

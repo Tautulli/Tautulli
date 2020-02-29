@@ -124,20 +124,24 @@ def getVersion():
 
     else:
 
-        plexpy.INSTALL_TYPE = 'source'
+        plexpy.INSTALL_TYPE = 'docker' if plexpy.DOCKER else 'source'
 
         version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
+        branch_file = os.path.join(plexpy.PROG_DIR, 'branch.txt')
 
-        if not os.path.isfile(version_file):
-            return None, 'origin', common.BRANCH
-
-        with open(version_file, 'r') as f:
-            current_version = f.read().strip(' \n\r')
-
-        if current_version:
-            return current_version, 'origin', common.BRANCH
+        if os.path.isfile(version_file):
+            with open(version_file, 'r') as f:
+                current_version = f.read().strip(' \n\r')
         else:
-            return None, 'origin', common.BRANCH
+            current_version = None
+
+        if os.path.isfile(branch_file):
+            with open(branch_file, 'r') as f:
+                current_branch = f.read().strip(' \n\r')
+        else:
+            current_branch = common.BRANCH
+
+        return current_version, 'origin', current_branch
 
 
 def check_update(auto_update=False, notify=False):
@@ -167,13 +171,17 @@ def check_update(auto_update=False, notify=False):
 def check_github(auto_update=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
 
+    if plexpy.CONFIG.GIT_TOKEN:
+        headers = {'Authorization': 'token {}'.format(plexpy.CONFIG.GIT_TOKEN)}
+    else:
+        headers = {}
+
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
     url = 'https://api.github.com/repos/%s/%s/commits/%s' % (plexpy.CONFIG.GIT_USER,
                                                              plexpy.CONFIG.GIT_REPO,
                                                              plexpy.CONFIG.GIT_BRANCH)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
-    version = request.request_json(url, timeout=20, validator=lambda x: type(x) == dict)
+    version = request.request_json(url, headers=headers, timeout=20, validator=lambda x: type(x) == dict)
 
     if version is None:
         logger.warn('Could not get the latest version from GitHub. Are you running a local development version?')
@@ -196,8 +204,8 @@ def check_github(auto_update=False, notify=False):
                                                                   plexpy.CONFIG.GIT_REPO,
                                                                   plexpy.LATEST_VERSION,
                                                                   plexpy.CURRENT_VERSION)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
-    commits = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+    commits = request.request_json(url, headers=headers, timeout=20, whitelist_status_code=404,
+                                   validator=lambda x: type(x) == dict)
 
     if commits is None:
         logger.warn('Could not get commits behind from GitHub.')
@@ -237,7 +245,7 @@ def check_github(auto_update=False, notify=False):
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
-        if auto_update:
+        if auto_update and not plexpy.DOCKER:
             logger.info('Running automatic update.')
             plexpy.shutdown(restart=True, update=True)
 
@@ -252,23 +260,26 @@ def update():
         logger.info('Windows .exe updating not supported yet.')
 
     elif plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('pull ' + plexpy.CONFIG.GIT_REMOTE + ' ' + plexpy.CONFIG.GIT_BRANCH)
+        output, err = runGit('pull {} {} --ff-only'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                           plexpy.CONFIG.GIT_BRANCH))
 
         if not output:
             logger.error('Unable to download latest version')
             return
 
         for line in output.split('\n'):
-
-            if 'Already up-to-date.' in line:
+            if 'Already up-to-date.' in line or 'Already up to date.' in line:
                 logger.info('No update available, not updating')
-                logger.info('Output: ' + str(output))
             elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
-                logger.info('Output: ' + str(output))
+
+    elif plexpy.INSTALL_TYPE == 'docker':
+        return
 
     else:
-        tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH)
+        tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER,
+                                                                        plexpy.CONFIG.GIT_REPO,
+                                                                        plexpy.CONFIG.GIT_BRANCH)
         update_dir = os.path.join(plexpy.PROG_DIR, 'update')
         version_path = os.path.join(plexpy.PROG_DIR, 'version.txt')
 
@@ -326,6 +337,34 @@ def update():
             return
 
 
+def reset():
+    if plexpy.INSTALL_TYPE == 'git':
+        logger.info('Attempting to reset git install to "%s/%s"' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('remote set-url {} https://github.com/{}/{}.git'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                                     plexpy.CONFIG.GIT_USER,
+                                                                                     plexpy.CONFIG.GIT_REPO))
+        output, err = runGit('fetch {}'.format(plexpy.CONFIG.GIT_REMOTE))
+        output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('branch -u {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                      plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('reset --hard {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                         plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                 plexpy.CONFIG.GIT_BRANCH))
+
+        if not output:
+            logger.error('Unable to reset Tautulli installation.')
+            return False
+
+        for line in output.split('\n'):
+            if 'Already up-to-date.' in line or 'Already up to date.' in line:
+                logger.info('Tautulli installation reset successfully.')
+                return True
+            elif line.endswith(('Aborting', 'Aborting.')):
+                logger.error('Unable to reset Tautulli installation: ' + line)
+                return False
+
+
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
         output, err = runGit('fetch %s' % plexpy.CONFIG.GIT_REMOTE)
@@ -338,9 +377,10 @@ def checkout_git_branch():
         for line in output.split('\n'):
             if line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to checkout from git: ' + line)
-                logger.info('Output: ' + str(output))
+                return
 
-        output, err = runGit('pull %s %s' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                 plexpy.CONFIG.GIT_BRANCH))
 
 
 def read_changelog(latest_only=False, since_prev_release=False):

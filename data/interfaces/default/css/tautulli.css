@@ -523,7 +523,7 @@ fieldset[disabled] .btn-bright.active {
     color: #eee;
 }
 .modal-body i {
-    color: #F9AA03;
+    color: #E5A00D;
 }
 .modal-body i.fa {
     color: #fff;
@@ -534,7 +534,7 @@ fieldset[disabled] .btn-bright.active {
 }
 .modal-body strong,
 .modal-body strong i.fa {
-    color: #F9AA03;
+    color: #E5A00D;
 }
 .modal-footer {
     padding: 15px 20px;
@@ -673,7 +673,7 @@ textarea.form-control:focus {
     color: #fff;
 }
 .form-control-feedback {
-    color: #F9AA03;
+    color: #E5A00D;
     margin: 5px 40px 5px 0;
 }
 .form-control[disabled],
@@ -2177,7 +2177,7 @@ li.advanced-setting {
     font-size: 24px;
     color: #fff;
     padding-top: 27px;
-    padding-left: 110px;
+    padding-left: 105px;
 }
 .user-info-nav {
     margin-top: 15px;
@@ -3134,6 +3134,37 @@ div.dataTables_info {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
+.channel-thumbnail-popover {
+    z-index: 2000;
+    padding: 0;
+    border: 0;
+}
+.channel-thumbnail-popover.popover.left {
+    margin-left: -15px;
+}
+.channel-thumbnail-popover.popover.right {
+    margin-left: 15px;
+}
+.channel-thumbnail-popover .popover-content {
+    color: #000;
+    padding: 0;
+}
+.channel-thumbnail {
+    background-color: #868b8b;
+    background-position: center;
+    background-size: cover;
+    background-origin: content-box;
+    background-repeat: no-repeat;
+    height: 50px;
+    width: 50px;
+    padding: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.channel-thumbnail-popover .arrow:after {
+    border-right-color: #868b8b !important;
+}
 .edit-user-toggles,
 .edit-library-toggles {
     padding-right: 10px;
@@ -3983,6 +4014,9 @@ a:hover .overlay-refresh-image:hover {
 .library-video {
     background-image: url(../images/libraries/video.svg);
 }
+.library-live {
+    background-image: url(../images/libraries/live.svg);
+}
 .stats-most_concurrent {
     background-image: url(../images/icons/most-concurrent-streams.svg);
 }
@@ -4033,7 +4067,7 @@ a:hover .overlay-refresh-image:hover {
     table-layout: fixed;
 }
 .stream-info .heading {
-    color: #F9AA03;
+    color: #E5A00D;
     text-transform: uppercase;
     font-size: 15px;
     font-weight: bold !important;

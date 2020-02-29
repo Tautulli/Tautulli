@@ -23,7 +23,6 @@ var hc_plays_by_platform_by_stream_type_options = {
     credits: {
         enabled: false
     },
-    colors: ['#F9AA03', '#FFFFFF', '#FF4747'],
     xAxis: {
             categories: [{}],
             labels: {

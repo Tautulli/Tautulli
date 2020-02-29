@@ -217,7 +217,7 @@
                         <div id="git_update_options">
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
+                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']} ${docker_setting}> Update Automatically ${docker_msg | n}
                                 </label>
                                 <p class="help-block">Update Tautulli automatically if an update is available.</p>
                             </div>
@@ -264,6 +264,19 @@
                                 </div>
                             </div>
                             <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label>Repair Git Install</label>
+                            <p class="help-block">
+                                Attempt to fix updating by resetting your Tautulli installation to the latest "${config['git_remote']}/${config['git_branch']}" branch.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="reset_git_install">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         % endif
 
@@ -2154,6 +2167,13 @@ $(document).ready(function() {
         }
     });
 
+    $("#reset_git_install").click(function () {
+        var msg = 'Are you sure you want to reset your Tautulli installtion?';
+        var url = 'reset_git_install';
+        confirmAjaxCall(url, msg);
+    });
+
+
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
         $.get('generate_api_key',
@@ -2531,6 +2551,7 @@ $(document).ready(function() {
             for (var i in libraries_list) {
                 var title = libraries_list[i].section_name;
                 var key = libraries_list[i].section_id;
+                if (key === 999999) { continue; }  // Don't show Live TV library
                 $('#sortable_home_library_cards').append(
                     '<li class="card card-sortable">' + 
                         '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
@@ -2868,11 +2889,13 @@ $(document).ready(function() {
     }
 
     $("#install_geoip_db").click(function () {
-        if ($.trim($("#maxmind_license_key").val()) === "") {
-            $("#maxmind_license_key").focus();
+        var maxmind_license_key = $("#maxmind_license_key");
+        maxmind_license_key.val($.trim(maxmind_license_key.val()));
+        if (maxmind_license_key.val() === "") {
+            maxmind_license_key.focus();
             showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key is required.', false, true, 5000, true);
             return false;
-        } else if (!(saveSettings())){
+        } else if (!(saveSettings())) {
             return false;
         }
         var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +

@@ -41,10 +41,25 @@ DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
 DEFAULT_ART = "interfaces/default/images/art.png"
+DEFAULT_LIVE_TV_POSTER_THUMB = "interfaces/default/images/poster-live.png"
+DEFAULT_LIVE_TV_ART = "interfaces/default/images/art-live.png"
+DEFAULT_LIVE_TV_ART_FULL = "interfaces/default/images/art-live-full.png"
 
 ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"
 ONLINE_ART = "https://tautulli.com/images/art.png"
+
+LIVE_TV_SECTION_ID = 999999  # Fake section_id for Live TV library
+LIVE_TV_SECTION_NAME = "Live TV"  # Fake section_name for Live TV library
+
+DEFAULT_IMAGES = {
+    'poster': DEFAULT_POSTER_THUMB,
+    'cover': DEFAULT_COVER_THUMB,
+    'art': DEFAULT_ART,
+    'poster-live': DEFAULT_LIVE_TV_POSTER_THUMB,
+    'art-live': DEFAULT_LIVE_TV_ART,
+    'art-live-full': DEFAULT_LIVE_TV_ART_FULL
+}
 
 MEDIA_TYPE_HEADERS = {
     'movie': 'Movies',
@@ -358,6 +373,9 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Optimized Version Profile', 'type': 'str', 'value': 'optimized_version_profile', 'description': 'The optimized version profile of the stream.'},
              {'name': 'Synced Version', 'type': 'int', 'value': 'synced_version', 'description': 'If the stream is an synced version.', 'example': '0 or 1'},
              {'name': 'Live', 'type': 'int', 'value': 'live', 'description': 'If the stream is live TV.', 'example': '0 or 1'},
+             {'name': 'Channel Call Sign', 'type': 'str', 'value': 'channel_call_sign', 'description': 'The Live TV channel call sign.'},
+             {'name': 'Channel Identifier', 'type': 'str', 'value': 'channel_identifier', 'description': 'The Live TV channel number.'},
+             {'name': 'Channel Thumb', 'type': 'str', 'value': 'channel_thumb', 'description': 'The URL for the Live TV channel logo.'},
              {'name': 'Secure', 'type': 'int', 'value': 'secure', 'description': 'If the stream is using a secure connection.', 'example': '0 or 1'},
              {'name': 'Relayed', 'type': 'int', 'value': 'relayed', 'description': 'If the stream is using Plex Relay.', 'example': '0 or 1'},
              {'name': 'Stream Local', 'type': 'int', 'value': 'stream_local', 'description': 'If the stream is local.', 'example': '0 or 1'},
@@ -371,8 +389,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Stream Video Bitrate', 'type': 'int', 'value': 'stream_video_bitrate', 'description': 'The video bitrate (in kbps) of the stream.'},
              {'name': 'Stream Video Bit Depth', 'type': 'int', 'value': 'stream_video_bit_depth', 'description': 'The video bit depth of the stream.'},
              {'name': 'Stream Video Chroma Subsampling', 'type': 'str', 'value': 'stream_video_chroma_subsampling', 'description': 'The video chroma subsampling of the stream.'},
-             {'name': 'Stream Video Color Primaries', 'type': 'srt', 'value': 'stream_video_color_primaries', 'description': 'The video color primaries of the stream.'},
-             {'name': 'Stream Video Color Range', 'type': 'srt', 'value': 'stream_video_color_range', 'description': 'The video color range of the stream.'},
+             {'name': 'Stream Video Color Primaries', 'type': 'str', 'value': 'stream_video_color_primaries', 'description': 'The video color primaries of the stream.'},
+             {'name': 'Stream Video Color Range', 'type': 'str', 'value': 'stream_video_color_range', 'description': 'The video color range of the stream.'},
              {'name': 'Stream Video Color Space', 'type': 'str', 'value': 'stream_video_color_space', 'description': 'The video color space of the stream.'},
              {'name': 'Stream Video Color Transfer Function', 'type': 'str', 'value': 'stream_video_color_trc', 'description': 'The video transfer function of the stream.'},
              {'name': 'Stream Video Dynamic Range', 'type': 'str', 'value': 'stream_video_dynamic_range', 'description': 'The video dynamic range of the stream.', 'example': 'HDR or SDR'},
@@ -484,8 +502,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Video Bitrate', 'type': 'int', 'value': 'video_bitrate', 'description': 'The video bitrate of the original media.'},
              {'name': 'Video Bit Depth', 'type': 'int', 'value': 'video_bit_depth', 'description': 'The video bit depth of the original media.'},
              {'name': 'Video Chroma Subsampling', 'type': 'str', 'value': 'video_chroma_subsampling', 'description': 'The video chroma subsampling of the original media.'},
-             {'name': 'Video Color Primaries', 'type': 'srt', 'value': 'video_color_primaries', 'description': 'The video color primaries of the original media.'},
-             {'name': 'Video Color Range', 'type': 'srt', 'value': 'video_color_range', 'description': 'The video color range of the original media.'},
+             {'name': 'Video Color Primaries', 'type': 'str', 'value': 'video_color_primaries', 'description': 'The video color primaries of the original media.'},
+             {'name': 'Video Color Range', 'type': 'str', 'value': 'video_color_range', 'description': 'The video color range of the original media.'},
              {'name': 'Video Color Space', 'type': 'str', 'value': 'video_color_space', 'description': 'The video color space of the original media.'},
              {'name': 'Video Color Transfer Function', 'type': 'str', 'value': 'video_color_trc', 'description': 'The video transfer function of the original media.'},
              {'name': 'Video Dynamic Range', 'type': 'str', 'value': 'video_dynamic_range', 'description': 'The video dynamic range of the original media.', 'example': 'HDR or SDR'},

@@ -590,6 +590,7 @@ def dbcheck():
         'media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'originally_available_at TEXT, added_at INTEGER, guid TEXT, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
         'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
         'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, '
@@ -609,7 +610,8 @@ def dbcheck():
         'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
         'synced_version INTEGER, synced_version_profile TEXT, '
-        'live INTEGER, live_uuid TEXT, secure INTEGER, relayed INTEGER, '
+        'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
+        'secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
         'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
     )
@@ -657,7 +659,7 @@ def dbcheck():
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
         'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
-        'labels TEXT)'
+        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -1225,6 +1227,42 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN stream_video_dynamic_range TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT channel_identifier FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN channel_call_sign TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN channel_identifier TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN channel_thumb TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT originally_available_at FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN originally_available_at TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN added_at INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT guid FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN guid TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1330,6 +1368,24 @@ def dbcheck():
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN original_title TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT live FROM session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN live INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN channel_call_sign TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN channel_identifier TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN channel_thumb TEXT'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1574,6 +1630,15 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT '
         )
+
+    result = c_db.execute('SELECT * FROM session_history_media_info '
+                          'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"').fetchone()
+    if result:
+        c_db.execute(
+            'UPDATE session_history_media_info SET stream_video_dynamic_range = "SDR" '
+            'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"'
+        )
+
     # Upgrade users table from earlier versions
     try:
         c_db.execute('SELECT do_notify FROM users')

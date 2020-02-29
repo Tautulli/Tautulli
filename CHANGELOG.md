@@ -1,5 +1,61 @@
 # Changelog
 
+## v2.2.0-beta (2020-02-27)
+
+* Important Note!
+  * All Live TV changes requires Plex Media Server 1.18.7 or higher. 
+* Monitoring:
+  * New: Added Live TV metadata and posters to the activity cards.
+  * Change: Show bandwidth in Gbps when greater than 1000 Mbps.
+* History:
+  * New: Added history logging for Live TV sessions.
+  * New: Added a fake "Live TV" library to collect Live TV history.
+    * Note: This library will show up the first time that Live TV is played.
+  * New: Added the ability to filter history by Live TV.
+* Graphs:
+  * New: Added Live TV series to the "Plays by Period" and "Play Totals" graphs.
+  * Change: Media type series on the graphs are only shown if the corresponding library type is present.
+* Notifications:
+  * Fix: Race condition causing stream count to be incorrect for playback stop notifications.
+  * New: Added Live TV channel notification parameters.
+* API:
+  * New: Added ability to filter history using a "live" media type and by guid for the get_history API command.
+* Other:
+  * Change: Add crossorigin use-credentials attribute to manifest tags. (Thanks @pkoenig10)
+  * Change: Disable automatic updates for Docker containers. Updates are now handled by updating the Docker container.
+    * Note: If you are using an old Docker container created before v2.2.0, then you may need to completely remove and recreate the container to update for the first time.
+    * Note: Use the ":latest" Docker tag for the newest stable release, or the ":beta" or ":nightly" tags to access the beta or nightly branches.
+
+
+## v2.1.44 (2020-02-05)
+
+* Monitoring:
+  * Fix: SDR source video being identified as HDR stream video.
+* Notifications:
+  * Fix: Unable to select condition operator for video color parameters.
+* UI:
+  * Fix: Capitalization for platforms on history tables.
+
+
+## v2.1.43 (2020-02-03)
+
+* Monitoring:
+  * New: Added HDR indicator on activity card.
+  * New: Added dynamic range to history steam info modal.
+* Notifications:
+  * Fix: Webhook notification body sent as incorrect data type when Content-Type header is overridden.
+  * Fix: Telegram notification character limit incorrect for unicode characters.
+  * New: Added color and dynamic range notification parameters.
+* Newsletters:
+  * Fix: Episodes and Albums plural spelling on recently added newsletter section headers.
+* UI:
+  * Fix: Windows and macOS platform capitalization.
+  * Fix: Season number 0 not shown for episodes on history tables.
+* Other:
+  * Change: Mask email addresses in logs.
+  * Change: Update deprecated GitHub access token URL parameter to Authorization header.  
+
+
 ## v2.1.42 (2020-01-04)
 
 * Other:

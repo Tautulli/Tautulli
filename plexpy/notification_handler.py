@@ -547,8 +547,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     ap = activity_processor.ActivityProcessor()
     sessions = ap.get_sessions()
-    stream_count = len(sessions)
     user_sessions = ap.get_sessions(user_id=session.get('user_id'))
+
+    # Filter out the session_key from the database sessions for playback stopped events
+    # to prevent race condition between the database and notifications
+    if notify_action == 'on_stop':
+        sessions = [s for s in sessions if str(s['session_key']) != notify_params['session_key']]
+        user_sessions = [s for s in user_sessions if str(s['session_key']) != notify_params['session_key']]
+
+    stream_count = len(sessions)
     user_stream_count = len(user_sessions)
 
     # Generate a combined transcode decision value
@@ -700,12 +707,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_title = ''
 
     img_service = helpers.get_img_service(include_self=True)
+    fallback = 'poster-live' if notify_params['live'] else 'poster'
     if img_service not in (None, 'self-hosted'):
-        img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback='poster')
+        img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback=fallback)
         poster_info = {'poster_title': img_info['img_title'], 'poster_url': img_info['img_url']}
         notify_params.update(poster_info)
     elif img_service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-        img_hash = set_hash_image_info(img=poster_thumb, fallback='poster')
+        img_hash = set_hash_image_info(img=poster_thumb, fallback=fallback)
         poster_info = {'poster_title': poster_title,
                        'poster_url': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/' + img_hash}
         notify_params.update(poster_info)
@@ -829,6 +837,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
+        'channel_call_sign': notify_params['channel_call_sign'],
+        'channel_identifier': notify_params['channel_identifier'],
+        'channel_thumb': notify_params['channel_thumb'],
         'secure': 'unknown' if notify_params['secure'] is None else notify_params['secure'],
         'relayed': notify_params['relayed'],
         'stream_local': notify_params['local'],
@@ -1248,14 +1259,17 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
         return img_info
 
     if rating_key and not img:
-        if fallback == 'art':
+        if fallback and fallback.startswith('art'):
             img = '/library/metadata/{}/art'.format(rating_key)
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)
 
-    img_split = img.split('/')
-    img = '/'.join(img_split[:5])
-    rating_key = rating_key or img_split[3]
+    if img.startswith('/library/metadata'):
+        img_split = img.split('/')
+        img = '/'.join(img_split[:5])
+        img_rating_key = img_split[3]
+        if rating_key != img_rating_key:
+            rating_key = img_rating_key
 
     service = helpers.get_img_service()
 
@@ -1265,7 +1279,7 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
     elif service == 'cloudinary':
         if fallback == 'cover':
             w, h = 1000, 1000
-        elif fallback == 'art':
+        elif fallback and fallback.startswith('art'):
             w, h = 1920, 1080
         else:
             w, h = 1000, 1500
@@ -1349,14 +1363,17 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
         return fallback
 
     if rating_key and not img:
-        if fallback == 'art':
+        if fallback and fallback.startswith('art'):
             img = '/library/metadata/{}/art'.format(rating_key)
         else:
             img = '/library/metadata/{}/thumb'.format(rating_key)
 
-    img_split = img.split('/')
-    img = '/'.join(img_split[:5])
-    rating_key = rating_key or img_split[3]
+    if img.startswith('/library/metadata'):
+        img_split = img.split('/')
+        img = '/'.join(img_split[:5])
+        img_rating_key = img_split[3]
+        if rating_key != img_rating_key:
+            rating_key = img_rating_key
 
     img_string = '{}.{}.{}.{}.{}.{}.{}.{}'.format(
         plexpy.CONFIG.PMS_UUID, img, rating_key, width, height, opacity, background, blur, fallback)

@@ -53,11 +53,11 @@ DOCUMENTATION :: END
 </%doc>
 
 <%!
-    from plexpy import helpers
+    from plexpy.helpers import cast_to_int, page
 
     # Human readable duration
     def hd(seconds):
-        m, s = divmod(helpers.cast_to_int(seconds), 60)
+        m, s = divmod(cast_to_int(seconds), 60)
         h, m = divmod(m, 60)
         return str(h).zfill(1) + ':' + str(m).zfill(2)
 %>
@@ -72,11 +72,8 @@ DOCUMENTATION :: END
 <div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
     <div class="dashboard-stats-container">
         % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-        % if row0['art']:
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?img=${row0['art']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
-        % else:
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);">
-        % endif
+        <% fallback = 'art-live' if row0['live'] else 'art' %>
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
         % elif stat_id == 'top_platforms':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
@@ -85,20 +82,28 @@ DOCUMENTATION :: END
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
             <div class="dashboard-stats-poster-container hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover);"></div>
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['rating_key'], 300, 300, 60, '282828', 3, fallback='cover')});"></div>
                 % endif
-                <% height, type = ('300', 'cover') if stat_id in ('top_music', 'popular_music') else ('450', 'poster') %>
-                <% href = 'info?rating_key={}'.format(row0['rating_key']) if row0['rating_key'] else '#' %>
+                <%
+                    height, fallback = ('450', 'poster')
+                    if stat_id in ('top_music', 'popular_music'):
+                        height, fallback = ('300', 'cover')
+                    elif row0['live']:
+                        height, fallback = ('450', 'poster-live')
+
+                    href = '#'
+                    if row0['rating_key']:
+                        if row0['live']:
+                            href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'])
+                        else:
+                            href = page('info', row0['rating_key'])
+                %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
-                    % if row0['thumb']:
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(pms_image_proxy?img=${row0['thumb']}&width=300&height=${height}&fallback=${type});"></div>
-                    % else:
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(images/${type}.png);"></div>
-                    % endif
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['rating_key'], 300, height, fallback=fallback)});"></div>
                 </a>
             </div>
             % elif stat_id == 'top_users':
-            <% user_href = 'user?user_id={}'.format(row0['user_id']) if row0['user_id'] else '#' %>
+            <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['friendly_name']}" class="hidden-xs">
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
             </a>
@@ -126,19 +131,27 @@ DOCUMENTATION :: END
                     <div class="dashboard-stats-info scoller-content">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for row in top_stat['rows']:
-                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}"
+                                data-rating_key="${row.get('rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
                                 data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
-                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
+                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
-                                    <% href = 'info?rating_key={}'.format(row['rating_key']) if row['rating_key'] else '#' %>
+                                    <%
+                                        href = '#'
+                                        if row['rating_key']:
+                                            if row['live']:
+                                                href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'])
+                                            else:
+                                                href = page('info', row['rating_key'])
+                                    %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
                                     </a>
                                     % elif stat_id == 'top_users':
-                                    <% user_href = 'user?user_id={}'.format(row['user_id']) if row['user_id'] else '#' %>
+                                    <% user_href = page('user', row['user_id']) if row['user_id'] else '#' %>
                                     <a href="${user_href}" title="${row['friendly_name']}">
                                         ${row['friendly_name']}
                                     </a>
@@ -171,7 +184,7 @@ DOCUMENTATION :: END
 % endif
 % endfor
 <script>
-    $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar()
+    $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar();
 
     function changeImages(elem) {
         var stat_id = $(elem).data('stat_id');
@@ -180,20 +193,25 @@ DOCUMENTATION :: END
         var user_id = $(elem).data('user_id');
         var user_thumb = $(elem).data('user_thumb');
         var rating_key = $(elem).data('rating_key');
-        var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) ? [300, 'cover'] : [450, 'poster'];
-        var href;
+        var guid = $(elem).data('guid');
+        var live = $(elem).data('live');
+        var [height, fallback_poster, fallback_art] = [450, 'poster', 'art'];
+        if ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) {
+            [height, fallback_poster, fallback_art] = [300, 'cover', 'art'];
+        } else if (live) {
+            [height, fallback_poster, fallback_art] = [450, 'poster-live', 'art-live'];
+        }
+        var href = '#';
 
-        if (stat_id == 'most_concurrent') {
+        if (stat_id === 'most_concurrent') {
             return
-        } else if (stat_id == 'top_users') {
+        } else if (stat_id === 'top_users') {
             $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (user_thumb || 'images/gravatar-default.png') + ')');
             if (user_id) {
-                href = 'user?user_id=' + user_id;
-            } else {
-                href = '#';
+                href = page('user', user_id);
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('friendly_name'));
-        } else if (stat_id == 'top_platforms') {
+        } else if (stat_id === 'top_platforms') {
             $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
                 return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
             }).addClass('platform-' + $(elem).data('platform'));
@@ -202,42 +220,35 @@ DOCUMENTATION :: END
             }).addClass('platform-' + $(elem).data('platform') + '-rgba');
         } else {
             if (rating_key) {
-                href = 'info?rating_key=' + rating_key;
-            } else {
-                href = '#';
+                if (live) {
+                    href = page('info', rating_key, guid, true, live);
+                } else {
+                    href = page('info', rating_key);
+                }
             }
             $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
-            if (art) {
-                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art)');
-            } else {
-                $('#stats-background-' + stat_id).css('background-image', 'url(images/art.png)');
-            }
-            if (thumb) {
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?img=' + thumb + '&width=300&height=' + height + '&opacity=60&background=282828&blur=3&fallback=' + fallback + ')');
-            } else {
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(images/' + fallback + '.png)');
-            }
+            $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
+            $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, rating_key, 300, height, null, null, null, fallback_poster) + ')');
+            $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, rating_key, 300, height, 60, '282828', 3, fallback_poster) + ')');
         }
     }
 
     $('.dashboard-stats-info-item').mouseenter(function () {
-        changeImages(this)
-        if ($(this).data('stat_id') == 'last_watched') {
+        changeImages(this);
+        if ($(this).data('stat_id') === 'last_watched') {
             var friendly_name = $(this).data('friendly_name');
             var last_watch = moment($(this).data('last_watch'), 'X').format(date_format);
             $('#last-watched-header-info').html(friendly_name);
-        } else if ($(this).data('stat_id') == 'most_concurrent') {
+        } else if ($(this).data('stat_id') === 'most_concurrent') {
             var started = moment($(this).data('started'), 'X').format(date_format + ' ' + time_format);
             $('#most-concurrent-header-info').html(started);
         }
     });
     $('.dashboard-stats-instance').mouseleave(function () {
-        changeImages($(this).find('.dashboard-stats-info-item').first())
-        if ($(this).data('stat_id') == 'last_watched') {
+        changeImages($(this).find('.dashboard-stats-info-item').first());
+        if ($(this).data('stat_id') === 'last_watched') {
             $('#last-watched-header-info').text($(this).find('.dashboard-stats-info-item').first().data('friendly_name'));
-        } else if ($(this).data('stat_id') == 'most_concurrent') {
+        } else if ($(this).data('stat_id') === 'most_concurrent') {
             $('#most-concurrent-header-info').text('streams');
         }
     });

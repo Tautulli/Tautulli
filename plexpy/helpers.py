@@ -26,6 +26,7 @@ from builtins import str
 from past.builtins import basestring
 from past.utils import old_div
 
+import arrow
 import base64
 import certifi
 import cloudinary
@@ -56,6 +57,7 @@ import sys
 import tarfile
 import time
 import unicodedata
+import urllib
 import urllib3
 from xml.dom import minidom
 import xmltodict
@@ -235,6 +237,22 @@ def utc_now_iso():
     utcnow = datetime.datetime.utcnow()
 
     return utcnow.isoformat()
+
+
+def timestamp_to_YMD(timestamp):
+    return timestamp_to_datetime(timestamp).strftime("%Y-%m-%d")
+
+
+def timestamp_to_datetime(timestamp):
+    return datetime.datetime.fromtimestamp(cast_to_int(str(timestamp)))
+
+
+def iso_to_YMD(iso):
+    return iso_to_datetime(iso).strftime("%Y-%m-%d")
+
+
+def iso_to_datetime(iso):
+    return arrow.get(iso).datetime
 
 
 def human_duration(s, sig='dhms'):
@@ -1256,3 +1274,92 @@ def mask_config_passwords(config):
                 config[cfg] = '    '
 
     return config
+
+
+def bool_true(value):
+    if value is True or value == 1:
+        return True
+    elif isinstance(value, basestring) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
+        return True
+    return False
+
+
+def page(endpoint, *args, **kwargs):
+    endpoints = {
+        'pms_image_proxy': pms_image_proxy,
+        'info': info_page,
+        'library': library_page,
+        'user': user_page
+    }
+
+    params = {}
+
+    if endpoint in endpoints:
+        params = endpoints[endpoint](*args, **kwargs)
+
+    return endpoint + '?' + urllib.urlencode(params)
+
+
+def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
+                    opacity=None, background=None, blur=None, img_format=None,
+                    fallback=None, refresh=None, clip=None):
+    params = {}
+
+    if img is not None:
+        params['img'] = img
+    if rating_key is not None:
+        params['rating_key'] = rating_key
+    if width is not None:
+        params['width'] = width
+    if height is not None:
+        params['height'] = height
+    if opacity is not None:
+        params['opacity'] = opacity
+    if background is not None:
+        params['background'] = background
+    if blur is not None:
+        params['blur'] = blur
+    if img_format is not None:
+        params['img_format'] = img_format
+    if fallback is not None:
+        params['fallback'] = fallback
+    if refresh is not None:
+        params['refresh'] = 'true'
+    if clip is not None:
+        params['clip'] = 'true'
+
+    return params
+
+
+def info_page(rating_key=None, guid=None, history=None, live=None):
+    params = {}
+
+    if live and history:
+        params['guid'] = guid
+    else:
+        params['rating_key'] = rating_key
+
+    if history:
+        params['source'] = 'history'
+
+    return params
+
+
+def library_page(section_id=None):
+    params = {}
+
+    if section_id is not None:
+        params['section_id'] = section_id
+
+    return params
+
+
+def user_page(user_id=None, user=None):
+    params = {}
+
+    if user_id is not None:
+        params['user_id'] = user_id
+    if user is not None:
+        params['user'] = user
+
+    return params

@@ -28,7 +28,7 @@
 
     <!-- ICONS -->
     <!-- Android -->
-    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5">
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5" crossorigin="use-credentials">
     <meta name="theme-color" content="#282a2d">
     <!-- Apple -->
     <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.5">
@@ -43,23 +43,23 @@
 <div class="container">
     <div id="ajaxMsg" class="ajaxMsg"></div>
     % if _session['user_group'] == 'admin':
-    % if plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE is None:
+    % if plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE is not False:
     <div id="updatebar" style="display: none;">
+        % if plexpy.UPDATE_AVAILABLE is None:
         You are running an unknown version of Tautulli.<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
-    </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE == 'release':
-    <div id="updatebar" style="display: none;">
+        % elif plexpy.UPDATE_AVAILABLE == 'release':
         A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
         new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
-    </div>
-    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE == 'commit':
-    <div id="updatebar" style="display: none;">
+        % elif plexpy.UPDATE_AVAILABLE == 'commit':
         A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> of Tautulli is available!<br />
         You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
+        % endif
+        % if plexpy.DOCKER:
+        Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>
+        % else:
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
+        % endif
     </div>
     % else:
     <div id="updatebar" style="display: none;"></div>
@@ -318,21 +318,23 @@ ${next.modalIncludes()}
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = '';
-                if (result.update === null) {
-                    msg = 'You are running an unknown version of Tautulli.<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
-                    $('#updatebar').html(msg).fadeIn();
-                } else if (result.update === true && result.release === true) {
-                    msg = 'A <a href="' + result.release_url + '" target="_blank">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
-                    $('#updatebar').html(msg).fadeIn();
-                } else if (result.update === true && result.release === false) {
-                    msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
-                        'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />' +
-                        '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
-                    $('#updatebar').html(msg).fadeIn();
-                } else if (result.update === false) {
+                if (result.update === false) {
                     showMsg('<i class="fa fa-check"></i> ' + result.message, false, true, 2000);
+                } else {
+                    if (result.update === null) {
+                        msg = 'You are running an unknown version of Tautulli.<br />';
+                    } else if (result.update === true && result.release === true) {
+                        msg = 'A <a href="' + result.release_url + '" target="_blank">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />';
+                    } else if (result.update === true && result.release === false) {
+                        msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
+                            'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />';
+                    }
+                    if (result.docker) {
+                        msg += 'Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>';
+                    } else {
+                        msg += '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                    }
+                    $('#updatebar').html(msg).fadeIn();
                 }
 
                 if (_callback) {
