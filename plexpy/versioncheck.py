@@ -251,7 +251,8 @@ def update():
         logger.info('Windows .exe updating not supported yet.')
 
     elif plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('pull ' + plexpy.CONFIG.GIT_REMOTE + ' ' + plexpy.CONFIG.GIT_BRANCH)
+        output, err = runGit('pull {} {} --ff-only'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                           plexpy.CONFIG.GIT_BRANCH))
 
         if not output:
             logger.error('Unable to download latest version')
@@ -270,7 +271,9 @@ def update():
         return
 
     else:
-        tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH)
+        tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER,
+                                                                        plexpy.CONFIG.GIT_REPO,
+                                                                        plexpy.CONFIG.GIT_BRANCH)
         update_dir = os.path.join(plexpy.PROG_DIR, 'update')
         version_path = os.path.join(plexpy.PROG_DIR, 'version.txt')
 
