@@ -3917,6 +3917,18 @@ class WebInterface(object):
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def reset_git_install(self, **kwargs):
+        result = versioncheck.reset()
+
+        if result:
+            return {'result': 'success', 'message': 'Tautulli installation reset.'}
+        else:
+            return {'result': 'error', 'message': 'Reset installation failed.'}
+
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_changelog(self, latest_only=False, since_prev_release=False, update_shown=False, **kwargs):
         latest_only = helpers.bool_true(latest_only)

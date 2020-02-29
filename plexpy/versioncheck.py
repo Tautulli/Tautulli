@@ -259,13 +259,10 @@ def update():
             return
 
         for line in output.split('\n'):
-
-            if 'Already up-to-date.' in line:
+            if 'Already up-to-date.' in line or 'Already up to date.' in line:
                 logger.info('No update available, not updating')
-                logger.info('Output: ' + str(output))
             elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
-                logger.info('Output: ' + str(output))
 
     elif plexpy.INSTALL_TYPE == 'docker':
         return
@@ -331,6 +328,34 @@ def update():
             return
 
 
+def reset():
+    if plexpy.INSTALL_TYPE == 'git':
+        logger.info('Attempting to reset git install to "%s/%s"' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('remote set-url {} https://github.com/{}/{}.git'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                                     plexpy.CONFIG.GIT_USER,
+                                                                                     plexpy.CONFIG.GIT_REPO))
+        output, err = runGit('fetch {}'.format(plexpy.CONFIG.GIT_REMOTE))
+        output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('branch -u {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                      plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('reset --hard {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                         plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                 plexpy.CONFIG.GIT_BRANCH))
+
+        if not output:
+            logger.error('Unable to reset Tautulli installation.')
+            return False
+
+        for line in output.split('\n'):
+            if 'Already up-to-date.' in line or 'Already up to date.' in line:
+                logger.info('Tautulli installation reset successfully.')
+                return True
+            elif line.endswith(('Aborting', 'Aborting.')):
+                logger.error('Unable to reset Tautulli installation: ' + line)
+                return False
+
+
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
         output, err = runGit('fetch %s' % plexpy.CONFIG.GIT_REMOTE)
@@ -343,9 +368,10 @@ def checkout_git_branch():
         for line in output.split('\n'):
             if line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to checkout from git: ' + line)
-                logger.info('Output: ' + str(output))
+                return
 
-        output, err = runGit('pull %s %s' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                 plexpy.CONFIG.GIT_BRANCH))
 
 
 def read_changelog(latest_only=False, since_prev_release=False):

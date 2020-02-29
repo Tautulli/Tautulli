@@ -265,6 +265,19 @@
                             </div>
                             <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label>Repair Git Install</label>
+                            <p class="help-block">
+                                Attempt to fix updating by resetting your Tautulli installation to the latest "${config['git_remote']}/${config['git_branch']}" branch.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="reset_git_install">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         % endif
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -2153,6 +2166,13 @@ $(document).ready(function() {
             });
         }
     });
+
+    $("#reset_git_install").click(function () {
+        var msg = 'Are you sure you want to reset your Tautulli installtion?';
+        var url = 'reset_git_install';
+        confirmAjaxCall(url, msg);
+    });
+
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
