@@ -117,9 +117,9 @@ class ActivityHandler(object):
                 if not session:
                     return
 
-            logger.debug(u"Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)."
+            logger.debug(u"Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                          % (str(session['session_key']), str(session['user_id']), session['username'],
-                            str(session['rating_key']), session['full_title']))
+                            str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
 
             plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
 
