@@ -973,7 +973,7 @@ a .users-poster-face:hover {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 140px;
+    max-width: 125px;
 }
 .dashboard-activity-info-time {
     position: absolute;
@@ -3102,6 +3102,7 @@ div.dataTables_info {
     border-left-color: #fff;
 }
 .tooltip-inner {
+    max-width: 250px;
     color: #000;
     background: #fff;
     border: 0;
