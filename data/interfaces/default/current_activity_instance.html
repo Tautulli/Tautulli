@@ -305,7 +305,11 @@ DOCUMENTATION :: END
                                     % endif
                                     <span id="location-${sk}">${data['location'].upper()}</span>:
                                     % if data['ip_address'] != 'N/A':
-                                    <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
+                                        % if len(data['ip_address']) > 20:
+                                        <span class="ip-container"><span class="ip-address" data-toggle="tooltip" title="${data['ip_address']}">${data['ip_address']}</span></span>
+                                        % else:
+                                        <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
+                                        % endif
                                         % if data['relayed']:
                                         <span data-toggle="tooltip" title="Plex Relay"><i class="fa fa-exclamation-circle"></i></span>
                                         % else:
