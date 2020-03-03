@@ -43,7 +43,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:    
             if y_axis == 'plays':
@@ -157,7 +157,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -288,7 +288,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -401,7 +401,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -522,7 +522,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -618,7 +618,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -727,7 +727,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -833,7 +833,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -919,7 +919,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -1029,7 +1029,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
@@ -1119,7 +1119,7 @@ class Graphs(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        group_by = 'reference_id' if grouping else 'id'
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
             if y_axis == 'plays':
