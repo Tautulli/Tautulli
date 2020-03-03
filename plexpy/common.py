@@ -531,6 +531,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Rating Key', 'type': 'int', 'value': 'rating_key', 'description': 'The unique identifier for the movie, episode, or track.'},
              {'name': 'Parent Rating Key', 'type': 'int', 'value': 'parent_rating_key', 'description': 'The unique identifier for the season or album.'},
              {'name': 'Grandparent Rating Key', 'type': 'int', 'value': 'grandparent_rating_key', 'description': 'The unique identifier for the TV show or artist.'},
+             {'name': 'Art', 'type': 'str', 'value': 'art', 'description': 'The Plex background art for the media.'},
              {'name': 'Thumb', 'type': 'str', 'value': 'thumb', 'description': 'The Plex thumbnail for the movie or episode.'},
              {'name': 'Parent Thumb', 'type': 'str', 'value': 'parent_thumb', 'description': 'The Plex thumbnail for the season or album.'},
              {'name': 'Grandparent Thumb', 'type': 'str', 'value': 'grandparent_thumb', 'description': 'The Plex thumbnail for the TV show or artist.'},

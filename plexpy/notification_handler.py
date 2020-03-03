@@ -995,6 +995,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'rating_key': notify_params['rating_key'],
         'parent_rating_key': notify_params['parent_rating_key'],
         'grandparent_rating_key': notify_params['grandparent_rating_key'],
+        'art': notify_params['art'],
         'thumb': notify_params['thumb'],
         'parent_thumb': notify_params['parent_thumb'],
         'grandparent_thumb': notify_params['grandparent_thumb'],
