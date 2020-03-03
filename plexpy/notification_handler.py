@@ -690,6 +690,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_key = notify_params['parent_rating_key']
         poster_title = '%s - %s' % (notify_params['grandparent_title'],
                                     notify_params['parent_title'])
+    elif notify_params['media_type'] == 'clip':
+        if notify_params['extra_type']:
+            poster_thumb = notify_params['art'].replace('/art', '/thumb') or notify_params['thumb']
+        else:
+            poster_thumb = notify_params['parent_thumb'] or notify_params['thumb']
+        poster_key = notify_params['rating_key']
+        poster_title = notify_params['title']
     else:
         poster_thumb = ''
         poster_key = ''
