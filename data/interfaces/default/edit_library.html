@@ -40,13 +40,22 @@ DOCUMENTATION :: END
         <div class="modal-body" id="modal-text">
             <fieldset>
                 <div class="form-group">
-                    <label for="profile_url">Library Picture URL</label>
+                    <label for="profile_url">Library Thumbnail URL</label>
                     <div class="row">
                         <div class="col-md-8">
                             <input type="text" class="form-control" id="custom_thumb_url" name="custom_thumb_url" value="${data['library_thumb']}">
                         </div>
                     </div>
-                    <p class="help-block">Change the library's picture in Tautulli. To reset to default, leave this field empty and save.</p>
+                    <p class="help-block">Change the library's thumbnail in Tautulli. To reset to default, leave this field empty and save.</p>
+                </div>
+                <div class="form-group">
+                    <label for="profile_url">Library Background Art URL</label>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="custom_art_url" name="custom_art_url" value="${data['library_art']}">
+                        </div>
+                    </div>
+                    <p class="help-block">Change the library's background art in Tautulli. To reset to default, leave this field empty and save.</p>
                 </div>
                 <div class="checkbox">
                     <label>
@@ -80,6 +89,7 @@ DOCUMENTATION :: END
     // Save library options
     $("#save_library").on('click', function () {
         var custom_thumb = $("#custom_thumb_url").val();
+        var custom_art = $("#custom_art_url").val();
         var keep_history = 0;
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
@@ -90,6 +100,7 @@ DOCUMENTATION :: END
             data: {
                 section_id: '${data["section_id"]}',
                 custom_thumb: custom_thumb,
+                custom_art: custom_art,
                 keep_history: keep_history
             },
             cache: false,

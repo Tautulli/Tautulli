@@ -526,6 +526,7 @@ class WebInterface(object):
 
             Optional parameters:
                 custom_thumb (str):         The URL for the custom library thumbnail
+                custom_art (str):           The URL for the custom library background art
                 keep_history (int):         0 or 1
 
             Returns:
@@ -533,6 +534,7 @@ class WebInterface(object):
             ```
         """
         custom_thumb = kwargs.get('custom_thumb', '')
+        custom_art = kwargs.get('custom_art', '')
         do_notify = kwargs.get('do_notify', 0)
         do_notify_created = kwargs.get('do_notify_created', 0)
         keep_history = kwargs.get('keep_history', 0)
@@ -542,6 +544,7 @@ class WebInterface(object):
                 library_data = libraries.Libraries()
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
+                                        custom_art=custom_art,
                                         do_notify=do_notify,
                                         do_notify_created=do_notify_created,
                                         keep_history=keep_history)

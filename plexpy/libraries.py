@@ -708,12 +708,14 @@ class Libraries(object):
 
         return True
     
-    def set_config(self, section_id=None, custom_thumb='', do_notify=1, keep_history=1, do_notify_created=1):
+    def set_config(self, section_id=None, custom_thumb='', custom_art='',
+                   do_notify=1, keep_history=1, do_notify_created=1):
         if section_id:
             monitor_db = database.MonitorDatabase()
 
             key_dict = {'section_id': section_id}
             value_dict = {'custom_thumb_url': custom_thumb,
+                          'custom_art_url': custom_art,
                           'do_notify': do_notify,
                           'do_notify_created': do_notify_created,
                           'keep_history': keep_history}
@@ -746,7 +748,8 @@ class Libraries(object):
             try:
                 if str(section_id).isdigit():
                     query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
-                            'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art, ' \
+                            'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art AS library_art, ' \
+                            'custom_art_url AS custom_art, ' \
                             'do_notify, do_notify_created, keep_history, deleted_section ' \
                             'FROM library_sections ' \
                             'WHERE section_id = ? '
@@ -767,11 +770,16 @@ class Libraries(object):
                     else:
                         library_thumb = common.DEFAULT_COVER_THUMB
 
+                    if item['custom_art'] and item['custom_art'] != item['library_art']:
+                        library_art = item['custom_art']
+                    else:
+                        library_art = item['library_art']
+
                     library_details = {'section_id': item['section_id'],
                                        'section_name': item['section_name'],
                                        'section_type': item['section_type'],
                                        'library_thumb': library_thumb,
-                                       'library_art': item['art'],
+                                       'library_art': library_art,
                                        'count': item['count'],
                                        'parent_count': item['parent_count'],
                                        'child_count': item['child_count'],

@@ -327,6 +327,7 @@ Required parameters:
 
 Optional parameters:
     custom_thumb (str):         The URL for the custom library thumbnail
+    custom_art (str):           The URL for the custom library background art
     keep_history (int):         0 or 1
 
 Returns:

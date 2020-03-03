@@ -862,7 +862,8 @@ class DataFactory(object):
 
         try:
             query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                    'custom_thumb_url AS custom_thumb, art, count, parent_count, child_count ' \
+                    'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art, ' \
+                    'count, parent_count, child_count ' \
                     'FROM library_sections ' \
                     'WHERE section_id IN (%s) ' \
                     'ORDER BY section_type, count DESC, parent_count DESC, child_count DESC ' % ','.join(library_cards)
@@ -879,11 +880,16 @@ class DataFactory(object):
             else:
                 library_thumb = common.DEFAULT_COVER_THUMB
 
+            if item['custom_art'] and item['custom_art'] != item['library_art']:
+                library_art = item['custom_art']
+            else:
+                library_art = item['library_art']
+
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
                        'thumb': library_thumb,
-                       'art': item['art'],
+                       'art': library_art,
                        'count': item['count'],
                        'child_count': item['parent_count'],
                        'grandchild_count': item['child_count']
