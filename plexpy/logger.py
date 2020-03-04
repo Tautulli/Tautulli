@@ -143,8 +143,9 @@ class PublicIPFilter(RegexFilter):
         self.regex = re.compile(r'[0-9]+(?:[.-][0-9]+){3}(?!\d*-[a-z0-9]{6})')
 
     def replace(self, text, ip):
-        if helpers.is_public_ip(ip):
-            return text.replace(ip, ip.partition('.')[0] + '.***.***.***')
+        if helpers.is_public_ip(ip.replace('-', '.')):
+            partition = '-' if '-' in ip else '.'
+            return text.replace(ip, ip.partition(partition)[0] + (partition + '***') * 3)
         return text
 
 
