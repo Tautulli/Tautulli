@@ -140,7 +140,7 @@ class PublicIPFilter(RegexFilter):
         super(PublicIPFilter, self).__init__()
 
         # Currently only checking for ipv4 addresses
-        self.regex = re.compile(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})')
+        self.regex = re.compile(r'[0-9]+(?:[.-][0-9]+){3}(?!\d*-[a-z0-9]{6})')
 
     def replace(self, text, ip):
         if helpers.is_public_ip(ip):
