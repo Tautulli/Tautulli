@@ -338,10 +338,7 @@ def reset():
         output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
         output, err = runGit('branch -u {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                       plexpy.CONFIG.GIT_BRANCH))
-        output, err = runGit('reset --hard {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
-                                                         plexpy.CONFIG.GIT_BRANCH))
-        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
-                                                 plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('reset --hard '.format(common.RELEASE))
 
         if not output:
             logger.error('Unable to reset Tautulli installation.')
