@@ -3922,7 +3922,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def reset_git_install(self, **kwargs):
-        return self.do_state_change('reset', 'Resetting Git Install', 120)
+
+        return self.do_state_change('reset', 'Resetting to {}'.format(common.RELEASE), 120)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

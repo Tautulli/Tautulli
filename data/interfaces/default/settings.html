@@ -268,7 +268,7 @@
                         <div class="form-group advanced-setting">
                             <label>Repair Git Install</label>
                             <p class="help-block">
-                                Attempt to fix updating by resetting your Tautulli installation to the latest "${config['git_remote']}/${config['git_branch']}" branch.<br />
+                                Attempt to fix updating by resetting your Tautulli installation back to <strong>${common.RELEASE}</strong>.<br />
                                 Note: This will not affect any saved history data or settings.
                             </p>
                             <div class="row">
@@ -2169,7 +2169,8 @@ $(document).ready(function() {
     });
 
     $("#reset_git_install").click(function () {
-        var msg = 'Are you sure you want to reset your Tautulli installtion?<br /><br />Tautulli will restart.';
+        var msg = 'Are you sure you want to reset your Tautulli installtion back to <strong>${common.RELEASE}</strong>?' +
+                '<br /><br />Tautulli will restart.';
         $('#confirm-message').html(msg);
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
