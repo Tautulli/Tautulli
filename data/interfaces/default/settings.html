@@ -2169,7 +2169,7 @@ $(document).ready(function() {
     });
 
     $("#reset_git_install").click(function () {
-        var msg = 'Are you sure you want to reset your Tautulli installtion?';
+        var msg = 'Are you sure you want to reset your Tautulli installtion?<br /><br />Tautulli will restart.';
         $('#confirm-message').html(msg);
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
