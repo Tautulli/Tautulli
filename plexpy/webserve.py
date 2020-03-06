@@ -3920,16 +3920,9 @@ class WebInterface(object):
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def reset_git_install(self, **kwargs):
-        result = versioncheck.reset()
-
-        if result:
-            return {'result': 'success', 'message': 'Tautulli installation reset.'}
-        else:
-            return {'result': 'error', 'message': 'Reset installation failed.'}
-
+        return self.do_state_change('reset', 'Resetting Git Install', 120)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

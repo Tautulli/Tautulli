@@ -2170,10 +2170,13 @@ $(document).ready(function() {
 
     $("#reset_git_install").click(function () {
         var msg = 'Are you sure you want to reset your Tautulli installtion?';
-        var url = 'reset_git_install';
-        confirmAjaxCall(url, msg);
+        $('#confirm-message').html(msg);
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            settingsChanged = false;
+            window.location.href = 'reset_git_install';
+        });
     });
-
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {

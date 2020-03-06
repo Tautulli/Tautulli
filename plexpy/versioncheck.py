@@ -328,7 +328,7 @@ def update():
             return
 
 
-def reset():
+def reset_git_install():
     if plexpy.INSTALL_TYPE == 'git':
         logger.info('Attempting to reset git install to "%s/%s"' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
         output, err = runGit('remote set-url {} https://github.com/{}/{}.git'.format(plexpy.CONFIG.GIT_REMOTE,

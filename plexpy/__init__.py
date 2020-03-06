@@ -2077,7 +2077,7 @@ def upgrade():
         libraries.update_libraries_db_notify()
 
 
-def shutdown(restart=False, update=False, checkout=False):
+def shutdown(restart=False, update=False, checkout=False, reset=False):
     webstart.stop()
 
     # Shutdown the websocket connection
@@ -2111,6 +2111,13 @@ def shutdown(restart=False, update=False, checkout=False):
             versioncheck.checkout_git_branch()
         except Exception as e:
             logger.warn(u"Tautulli failed to switch git branch: %s. Restarting." % e)
+
+    if reset:
+        logger.info(u"Tautulli is resetting the git install...")
+        try:
+            versioncheck.reset_git_install()
+        except Exception as e:
+            logger.warn(u"Tautulli failed to reset git install: %s. Restarting." % e)
 
     if CREATEPID:
         logger.info(u"Removing pidfile %s", PIDFILE)
