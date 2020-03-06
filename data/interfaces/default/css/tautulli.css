@@ -3153,7 +3153,7 @@ div.dataTables_info {
 .channel-thumbnail {
     background-color: #868b8b;
     background-position: center;
-    background-size: cover;
+    background-size: contain;
     background-origin: content-box;
     background-repeat: no-repeat;
     height: 50px;
