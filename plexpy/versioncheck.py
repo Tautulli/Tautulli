@@ -330,7 +330,10 @@ def update():
 
 def reset_git_install():
     if plexpy.INSTALL_TYPE == 'git':
-        logger.info('Attempting to reset git install to "%s/%s"' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        logger.info('Attempting to reset git install to "{}/{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                           plexpy.CONFIG.GIT_BRANCH,
+                                                                           common.RELEASE))
+
         output, err = runGit('remote set-url {} https://github.com/{}/{}.git'.format(plexpy.CONFIG.GIT_REMOTE,
                                                                                      plexpy.CONFIG.GIT_USER,
                                                                                      plexpy.CONFIG.GIT_REPO))
@@ -355,8 +358,11 @@ def reset_git_install():
 
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('fetch %s' % plexpy.CONFIG.GIT_REMOTE)
-        output, err = runGit('checkout %s' % plexpy.CONFIG.GIT_BRANCH)
+        logger.info('Attempting to checkout git branch "{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                       plexpy.CONFIG.GIT_BRANCH))
+
+        output, err = runGit('fetch {}'.format(plexpy.CONFIG.GIT_REMOTE))
+        output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
 
         if not output:
             logger.error('Unable to change git branch.')
