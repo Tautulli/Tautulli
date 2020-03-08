@@ -1,10 +1,11 @@
 # Changelog
 
-## v2.2.0-beta (2020-02-27)
+## v2.2.0 (2020-03-08)
 
 * Important Note!
   * All Live TV changes requires Plex Media Server 1.18.7 or higher. 
 * Monitoring:
+  * Fix: Improved IPv6 display on the activity cards. (Thanks @felixbuenemann)
   * New: Added Live TV metadata and posters to the activity cards.
   * Change: Show bandwidth in Gbps when greater than 1000 Mbps.
 * History:
@@ -18,8 +19,17 @@
 * Notifications:
   * Fix: Race condition causing stream count to be incorrect for playback stop notifications.
   * New: Added Live TV channel notification parameters.
+  * New: Added Plex background art notification parameter.
+    * Note: This is the Plex API endpoint to retrieve the background art, not the actual image.
+  * New: Added poster images for clip notifications.
+  * Change: Default Webhook notification method to POST.
+* UI:
+  * Fix: Windows platform showing up twice on the Most Active Platforms statistics card.
+  * New: Added option to change the background art for library sections when editing a library.
+  * New: Added button to reset Tautulli git installation in settings to fix failed git updates.
 * API:
   * New: Added ability to filter history using a "live" media type and by guid for the get_history API command.
+  * New: Added cutsom_art parameter to the edit_library API command.
 * Other:
   * Change: Add crossorigin use-credentials attribute to manifest tags. (Thanks @pkoenig10)
   * Change: Disable automatic updates for Docker containers. Updates are now handled by updating the Docker container.
