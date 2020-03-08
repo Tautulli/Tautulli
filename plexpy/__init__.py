@@ -1321,6 +1321,18 @@ def dbcheck():
             'ALTER TABLE session_history ADD COLUMN relayed INTEGER'
         )
 
+    # Upgrade session_history table from earlier versions
+    try:
+        result = c_db.execute('SELECT platform FROM session_history '
+                              'WHERE platform = "windows"').fetchall()
+        if len(result) > 0:
+            logger.debug(u"Altering database. Capitalizing Windows platform values in session_history table.")
+            c_db.execute(
+                'UPDATE session_history SET platform = "Windows" WHERE platform = "windows" '
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to capitalize Windows platform values in session_history table.")
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title FROM session_history_metadata')
