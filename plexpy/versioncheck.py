@@ -392,6 +392,9 @@ def read_changelog(latest_only=False, since_prev_release=False):
         header_pattern = re.compile(r'(^#+)\s(.+)')
         list_pattern = re.compile(r'(^[ \t]*\*\s)(.+)')
 
+        beta_release = False
+        prev_release = str(plexpy.PREV_RELEASE)
+
         with open(changelog_file, "r") as logfile:
             for line in logfile:
                 line_header_match = re.search(header_pattern, line)
@@ -409,8 +412,16 @@ def read_changelog(latest_only=False, since_prev_release=False):
                     elif latest_only:
                         latest_version_found = True
                     # Add a space to the end of the release to match tags
-                    elif since_prev_release and str(plexpy.PREV_RELEASE) + ' ' in header_text:
-                        break
+                    elif since_prev_release:
+                        if prev_release.endswith('-beta') and not beta_release:
+                            if prev_release + ' ' in header_text:
+                                break
+                            elif prev_release.replace('-beta', '') + ' ' in header_text:
+                                beta_release = True
+                        elif prev_release.endswith('-beta') and beta_release:
+                            break
+                        elif prev_release + ' ' in header_text:
+                            break
 
                     output[-1] += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
 
