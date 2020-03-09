@@ -155,6 +155,8 @@ class DataTables(object):
                 elif str(w[1]).startswith('LIKE '):
                     c_where += w[0] + ' LIKE ? AND '
                     args.append(w[1][5:])
+                elif re.compile("\d{4}-\d{2}-\d{2}").search(str(w[1])):
+                    c_where += w[0] + " > '" + w[1] + "'"
                 else:
                     c_where += w[0] + ' = ? AND '
                     args.append(w[1])
