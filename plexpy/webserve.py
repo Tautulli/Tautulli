@@ -3956,29 +3956,29 @@ class WebInterface(object):
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
         }
 
-        if source == 'history':
-            data_factory = datafactory.DataFactory()
-            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
-            if metadata:
-                poster_info = data_factory.get_poster_info(metadata=metadata)
-                metadata.update(poster_info)
-                lookup_info = data_factory.get_lookup_info(metadata=metadata)
-                metadata.update(lookup_info)
-        else:
+        # Try to get metadata from the Plex server first
+        if rating_key:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
-            if metadata:
-                data_factory = datafactory.DataFactory()
-                poster_info = data_factory.get_poster_info(metadata=metadata)
-                metadata.update(poster_info)
-                lookup_info = data_factory.get_lookup_info(metadata=metadata)
-                metadata.update(lookup_info)
+
+        # If the item is not found on the Plex server, get the metadata from history
+        if not metadata and source == 'history':
+            data_factory = datafactory.DataFactory()
+            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
+
+        if metadata:
+            data_factory = datafactory.DataFactory()
+            poster_info = data_factory.get_poster_info(metadata=metadata)
+            metadata.update(poster_info)
+            lookup_info = data_factory.get_lookup_info(metadata=metadata)
+            metadata.update(lookup_info)
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            return serve_template(templatename="info.html", metadata=metadata, title="Info", config=config, source=source)
+            return serve_template(templatename="info.html", metadata=metadata, title="Info",
+                                  config=config, source=source)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
