@@ -554,6 +554,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
+    transcode_decision_count = Counter(s['transcode_decision'] for s in sessions)
+    user_transcode_decision_count = Counter(s['transcode_decision'] for s in user_sessions)
 
     if notify_action != 'on_play':
         stream_duration = int((time.time() -
@@ -808,7 +810,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
+        'direct_plays': transcode_decision_count['direct play'],
+        'direct_streams': transcode_decision_count['copy'],
+        'transcodes': transcode_decision_count['transcode'],
         'user_streams': user_stream_count,
+        'user_direct_plays': user_transcode_decision_count['direct play'],
+        'user_direct_streams': user_transcode_decision_count['copy'],
+        'user_transcodes': user_transcode_decision_count['transcode'],
         'user': notify_params['friendly_name'],
         'username': notify_params['user'],
         'user_email': notify_params['email'],
