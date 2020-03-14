@@ -1209,8 +1209,8 @@ def strip_tag(data, agent_id=None):
                      'font': ['color']}
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
-    elif agent_id in (10, 14, 20):
-        # Don't remove tags for Email, Slack, and Discord
+    elif agent_id in (10, 14, 20, 25):
+        # Don't remove tags for Email, Slack, Webhook, and Discord
         pass
 
     elif agent_id == 13:
