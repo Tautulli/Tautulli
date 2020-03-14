@@ -39,30 +39,43 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled breadcrumb">
                             % if query['media_type'] == 'movie':
                             <li>Movies</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">${query['title']}</li>
                             % elif query['media_type'] == 'show':
                             <li>TV Shows</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">${query['grandparent_title']}</li>
                             % elif query['media_type'] == 'season':
                             <li class="hidden-xs hidden-sm">TV Shows</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="hidden-xs hidden-sm">${query['grandparent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">Season ${query['parent_media_index']}</li>
                             % elif query['media_type'] == 'episode':
                             <li class="hidden-xs hidden-sm">TV Shows</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="hidden-xs hidden-sm">${query['grandparent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li>Season ${query['parent_media_index']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">Episode ${query['media_index']} - ${query['title']}</li>
                             % elif query['media_type'] == 'artist':
-                            <li><Music</li>
+                            <li>Music</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">${query['grandparent_title']}</li>
                             % elif query['media_type'] == 'album':
                             <li class="hidden-xs hidden-sm">Music</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li>${query['grandparent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">${query['parent_title']}</li>
                             % elif query['media_type'] == 'track':
                             <li class="hidden-xs hidden-sm">Music</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="hidden-xs hidden-sm">${query['grandparent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li>${query['parent_title']}</li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">Track ${query['media_index']} - ${query['title']}</li>
                             % endif
                         </ul>
