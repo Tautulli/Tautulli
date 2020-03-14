@@ -4345,7 +4345,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_lookup_info(self, rating_key='', title='', **kwargs):
+    def delete_lookup_info(self, rating_key='', service='', delete_all=False, **kwargs):
         """ Delete the 3rd party API lookup info.
 
             ```
@@ -4363,7 +4363,7 @@ class WebInterface(object):
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_lookup_info(rating_key=rating_key, title=title)
+        result = data_factory.delete_lookup_info(rating_key=rating_key, service=service, delete_all=delete_all)
 
         if result:
             return {'result': 'success', 'message': 'Deleted lookup info.'}

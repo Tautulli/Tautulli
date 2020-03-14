@@ -860,10 +860,10 @@ DOCUMENTATION :: END
 % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
 <script>
     $('#delete-lookup-info').on('click', function () {
-        var msg = 'Are you sure you want to delete the 3rd party API lookup for <strong>' + $(this).data('title') + '</strong>?<br><br>' +
-                  'The info will be looked up again the next time a notification is sent.';
+        var msg = 'Are you sure you want to delete all the metadata lookup info for <strong>' + $(this).data('title') + '</strong>?' +
+                  '<br /><br />Tautulli will lookup the metadata info again the next time a notification is sent.';
         var url = 'delete_lookup_info';
-        var data = { rating_key: $(this).data('id'), title: $(this).data('title') };
+        var data = { rating_key: $(this).data('id') };
         var callback = function () {
             $('#delete-lookup-info').closest('.btn-group').remove();
         };
