@@ -4350,10 +4350,13 @@ class WebInterface(object):
 
             ```
             Required parameters:
+                None
+
+            Optional parameters:
                 rating_key (int):       1234
                                         (Note: Must be the movie, show, artist, album, or track rating key)
-            Optional parameters:
-                None
+                service (str):          'themoviedb' or 'tvmaze' or 'musicbrainz'
+                delete_all (bool):      'true' to delete all images form the service
 
             Returns:
                 json:
