@@ -1209,10 +1209,6 @@ def strip_tag(data, agent_id=None):
                      'font': ['color']}
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
-    elif agent_id in (10, 14, 20):
-        # Don't remove tags for Email, Slack, and Discord
-        pass
-
     elif agent_id == 13:
         # Allow tags b, i, code, pre, a[href] for Telegram
         whitelist = {'b': [],
@@ -1221,6 +1217,10 @@ def strip_tag(data, agent_id=None):
                      'pre': [],
                      'a': ['href']}
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+
+    elif agent_id in (10, 14, 20, 25):
+        # Don't remove tags for Email, Slack, Discord, and Webhook
+        pass
 
     else:
         whitelist = {}
