@@ -51,7 +51,7 @@ sync_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['user_id']) {
-                        $(td).html('<a href="' + page('user', rowData['user_id']) + '>' + cellData + '</a>');
+                        $(td).html('<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>');
                     } else {
                         $(td).html('<a href="' + page('user', null, rowData['user']) + '">' + cellData + '</a>');
                     }
