@@ -76,7 +76,7 @@ def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256
     cert.sign(issuerKey, digest)
     return cert
 
-def createSelfSignedCertificate((issuerName, issuerKey), serial, (notBefore, notAfter), altNames, digest="sha256"):
+def createSelfSignedCertificate(issuerName, issuerKey, serial, notBefore, notAfter, altNames, digest="sha256"):
     """
     Generate a certificate given a certificate request.
     Arguments: issuerName - The name of the issuer

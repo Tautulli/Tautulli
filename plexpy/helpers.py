@@ -467,7 +467,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     # Create the self-signed Tautulli certificate
     logger.debug("Generating self-signed SSL certificate.")
     pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate(("Tautulli", pkey), serial, (0, 60 * 60 * 24 * 365 * 10), altNames) # ten years
+    cert = createSelfSignedCertificate("Tautulli", pkey, serial, 0, 60 * 60 * 24 * 365 * 10, altNames) # ten years
 
     # Save the key and certificate to disk
     try:
