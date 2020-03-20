@@ -1,4 +1,4 @@
-FROM python:2.7.17-slim
+FROM python:3.8.2-slim
 
 LABEL maintainer="TheMeanCanEHdian"
 
@@ -18,7 +18,8 @@ rm -rf /var/lib/apt/lists/* && \
 pip install --no-cache-dir --upgrade pip && \
 pip install --no-cache-dir --upgrade \
   pycryptodomex \
-  pyopenssl && \
+  pyopenssl \
+  future && \
 echo ${VERSION} > /app/version.txt && \
 echo ${BRANCH} > /app/branch.txt
 
