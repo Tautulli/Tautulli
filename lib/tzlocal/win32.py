@@ -3,10 +3,13 @@ try:
 except ImportError:
     import winreg
 
-from tzlocal.windows_tz import win_tz
 import pytz
 
+from tzlocal.windows_tz import win_tz
+from tzlocal import utils
+
 _cache_tz = None
+
 
 def valuestodict(key):
     """Convert a registry key's values to a dictionary."""
@@ -16,6 +19,7 @@ def valuestodict(key):
         data = winreg.EnumValue(key, i)
         dict[data[0]] = data[1]
     return dict
+
 
 def get_localzone_name():
     # Windows is special. It has unique time zone names (in several
@@ -81,15 +85,20 @@ def get_localzone_name():
 
     return timezone
 
+
 def get_localzone():
     """Returns the zoneinfo-based tzinfo object that matches the Windows-configured timezone."""
     global _cache_tz
     if _cache_tz is None:
         _cache_tz = pytz.timezone(get_localzone_name())
+
+    utils.assert_tz_offset(_cache_tz)
     return _cache_tz
+
 
 def reload_localzone():
     """Reload the cached localzone. You need to call this if the timezone has changed."""
     global _cache_tz
     _cache_tz = pytz.timezone(get_localzone_name())
+    utils.assert_tz_offset(_cache_tz)
     return _cache_tz

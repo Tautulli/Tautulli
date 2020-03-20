@@ -1,6 +1,47 @@
 Changes
 =======
 
+2.0.0 (2019-07-23)
+------------------
+
+- No differences since 2.0.0b3
+
+Major differences since 1.5.1
+.............................
+
+- When no time zone configuration can be find, tzlocal now return UTC.
+  This is a major difference from 1.x, where an exception would be raised.
+  This change is because Docker images often have no configuration at all,
+  and the unix utilities will then default to UTC, so we follow that.
+
+- If tzlocal on Unix finds a timezone name in a /etc config file, then 
+  tzlocal now verifies that the timezone it fouds has the same offset as
+  the local computer is configured with. If it doesn't, something is
+  configured incorrectly. (Victor Torres, regebro)
+
+- Get timezone via Termux `getprop` wrapper on Android. It's not officially
+  supported because we can't test it, but at least we make an effort.
+  (Jean Jordaan)
+
+Minor differences and bug fixes
+...............................
+
+- Skip comment lines when parsing /etc/timezone. (Edward Betts)
+
+- Don't load timezone from current directory. (Gabriel Corona)
+
+- Now verifies that the config files actually contain something before
+  reading them. (Zackary Welch, regebro)
+
+- Got rid of a BytesWarning (Mickaël Schoentgen)
+
+- Now handles if config file paths exists, but are directories.
+
+- Moved tests out from distributions
+
+- Support wheels
+
+
 1.5.1 (2017-12-01)
 ------------------
 
@@ -38,9 +79,6 @@ Changes
 ------------------
 
 - Ensure closing of subprocess on OS X (ayalash)
-DOING: Implementing feedback on the unsubscribe button
-DOING: Investigating remaining issues with DOCX export
-BLOCKERS: None
 
 - Removed unused imports (jwilk)
 
