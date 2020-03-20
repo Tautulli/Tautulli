@@ -35,10 +35,17 @@ DOCUMENTATION :: END
 %>
 % for section_type in types:
 % if section_type in data:
+<%
+    row0 = data[section_type][0]
+%>
 <div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
     <div class="dashboard-stats-container">
-        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', '/:/resources/' + section_type + '-fanart.jpg', None, 500, 280, 40, '282828', 3, fallback='art')});">
+        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], None, 500, 280, 40, '282828', 3, fallback='art')});">
+            % if row0['thumb'].startswith('http'):
+            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
+            % else:
             <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
+            % endif
             <div class="dashboard-stats-info-container">
                 <div id="library-stats-title-${section_type}" class="dashboard-stats-info-title">
                     <h4>${headers[section_type][0]}</h4>
@@ -48,7 +55,8 @@ DOCUMENTATION :: END
                     <div class="dashboard-stats-info scoller-content">
                         <ul class="list-unstyled dashboard-stats-info-list">
                             % for section in data[section_type]:
-                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}">
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${section_type}"
+                                data-art="${section.get('art')}" data-thumb="${section.get('thumb')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     <a href="${page('library', section['section_id'])}" title="${section['section_name']}">

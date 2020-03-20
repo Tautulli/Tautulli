@@ -173,10 +173,13 @@ Delete the 3rd party API lookup info.
 
 ```
 Required parameters:
+    None
+
+Optional parameters:
     rating_key (int):       1234
                             (Note: Must be the movie, show, artist, album, or track rating key)
-Optional parameters:
-    None
+    service (str):          'themoviedb' or 'tvmaze' or 'musicbrainz'
+    delete_all (bool):      'true' to delete all images form the service
 
 Returns:
     json:
@@ -327,6 +330,7 @@ Required parameters:
 
 Optional parameters:
     custom_thumb (str):         The URL for the custom library thumbnail
+    custom_art (str):           The URL for the custom library background art
     keep_history (int):         0 or 1
 
 Returns:

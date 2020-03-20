@@ -872,7 +872,8 @@ class DataFactory(object):
 
         try:
             query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                    'custom_thumb_url AS custom_thumb, art, count, parent_count, child_count ' \
+                    'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art, ' \
+                    'count, parent_count, child_count ' \
                     'FROM library_sections ' \
                     'WHERE section_id IN (%s) ' \
                     'ORDER BY section_type, count DESC, parent_count DESC, child_count DESC ' % ','.join(library_cards)
@@ -889,11 +890,16 @@ class DataFactory(object):
             else:
                 library_thumb = common.DEFAULT_COVER_THUMB
 
+            if item['custom_art'] and item['custom_art'] != item['library_art']:
+                library_art = item['custom_art']
+            else:
+                library_art = item['library_art']
+
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
                        'thumb': library_thumb,
-                       'art': item['art'],
+                       'art': library_art,
                        'count': item['count'],
                        'child_count': item['parent_count'],
                        'grandchild_count': item['child_count']
@@ -1410,16 +1416,29 @@ class DataFactory(object):
 
         return lookup_info
 
-    def delete_lookup_info(self, rating_key='', title=''):
+    def delete_lookup_info(self, rating_key='', service='', delete_all=False):
+        if not rating_key and not delete_all:
+            logger.error(u"Tautulli DataFactory :: Unable to delete lookup info: rating_key not provided.")
+            return False
+
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            logger.info("Tautulli DataFactory :: Deleting lookup info for '%s' (rating_key %s) from the database."
+            logger.info("Tautulli DataFactory :: Deleting lookup info for rating_key %s from the database."
                         % (title, rating_key))
-            result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
             result_themoviedb = monitor_db.action('DELETE FROM themoviedb_lookup WHERE rating_key = ?', [rating_key])
+            result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
             result_musicbrainz = monitor_db.action('DELETE FROM musicbrainz_lookup WHERE rating_key = ?', [rating_key])
-            return True if (result_tvmaze or result_themoviedb or result_musicbrainz) else False
+            return bool(result_themoviedb or result_tvmaze or result_musicbrainz)
+        elif service and delete_all:
+            if service.lower() in ('themoviedb', 'tvmaze', 'musicbrainz'):
+                logger.info(u"Tautulli DataFactory :: Deleting all lookup info for '%s' from the database."
+                            % service)
+                result = monitor_db.action('DELETE FROM %s_lookup' % service.lower())
+                return bool(result)
+            else:
+                logger.error(u"Tautulli DataFactory :: Unable to delete lookup info: invalid service '%s' provided."
+                             % service)
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

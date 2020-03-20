@@ -61,8 +61,8 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
-                            % if data['library_thumb'][:4] == 'http':
-                            <div class="library-info-poster-face" style="background-image: url(${data['library_thumb']});"></div>
+                            % if data['library_thumb'].startswith('http'):
+                            <div class="library-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['library_thumb'], None, 80, 80)});"></div>
                             % else:
                             <div class="library-info-poster-face svg-icon library-${data['section_type']}"></div>
                             % endif

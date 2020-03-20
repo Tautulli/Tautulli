@@ -677,7 +677,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, '
-        'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
+        'thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, '
+        'count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
@@ -1325,6 +1326,18 @@ def dbcheck():
             'ALTER TABLE session_history ADD COLUMN relayed INTEGER'
         )
 
+    # Upgrade session_history table from earlier versions
+    try:
+        result = c_db.execute('SELECT platform FROM session_history '
+                              'WHERE platform = "windows"').fetchall()
+        if len(result) > 0:
+            logger.debug(u"Altering database. Capitalizing Windows platform values in session_history table.")
+            c_db.execute(
+                'UPDATE session_history SET platform = "Windows" WHERE platform = "windows" '
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to capitalize Windows platform values in session_history table.")
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title FROM session_history_metadata')
@@ -1886,6 +1899,15 @@ def dbcheck():
             'ALTER TABLE library_sections ADD COLUMN agent TEXT'
         )
 
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute('SELECT custom_art_url FROM library_sections')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table library_sections.")
+        c_db.execute(
+            'ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT'
+        )
+
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
@@ -2072,7 +2094,7 @@ def upgrade():
         libraries.update_libraries_db_notify()
 
 
-def shutdown(restart=False, update=False, checkout=False):
+def shutdown(restart=False, update=False, checkout=False, reset=False):
     webstart.stop()
 
     # Shutdown the websocket connection
@@ -2106,6 +2128,13 @@ def shutdown(restart=False, update=False, checkout=False):
             versioncheck.checkout_git_branch()
         except Exception as e:
             logger.warn("Tautulli failed to switch git branch: %s. Restarting." % e)
+
+    if reset:
+        logger.info(u"Tautulli is resetting the git install...")
+        try:
+            versioncheck.reset_git_install()
+        except Exception as e:
+            logger.warn(u"Tautulli failed to reset git install: %s. Restarting." % e)
 
     if CREATEPID:
         logger.info("Removing pidfile %s", PIDFILE)

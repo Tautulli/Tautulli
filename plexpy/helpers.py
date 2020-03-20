@@ -1042,7 +1042,7 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
 
 def humanFileSize(bytes, si=False):
     if str(bytes).isdigit():
-        bytes = int(bytes)
+        bytes = cast_to_float(bytes)
     else:
         return bytes
 

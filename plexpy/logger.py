@@ -148,11 +148,12 @@ class PublicIPFilter(RegexFilter):
         super(PublicIPFilter, self).__init__()
 
         # Currently only checking for ipv4 addresses
-        self.regex = re.compile(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})')
+        self.regex = re.compile(r'[0-9]+(?:[.-][0-9]+){3}(?!\d*-[a-z0-9]{6})')
 
     def replace(self, text, ip):
-        if is_public_ip(ip):
-            return text.replace(ip, ip.partition('.')[0] + '.***.***.***')
+        if is_public_ip(ip.replace('-', '.')):
+            partition = '-' if '-' in ip else '.'
+            return text.replace(ip, ip.partition(partition)[0] + (partition + '***') * 3)
         return text
 
 

@@ -268,7 +268,8 @@
                         <div class="form-group advanced-setting">
                             <label>Repair Git Install</label>
                             <p class="help-block">
-                                Attempt to fix updating by resetting your Tautulli installation to the latest "${config['git_remote']}/${config['git_branch']}" branch.
+                                Attempt to fix updating by resetting your Tautulli installation back to <strong>${common.RELEASE}</strong>.<br />
+                                Note: This will not affect any saved history or settings.
                             </p>
                             <div class="row">
                                 <div class="col-md-4">
@@ -1238,6 +1239,19 @@
                             </label>
                             <p class="help-block">Enable to lookup links to MusicBrainz for music when available.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="maxmind_license_key">Delete Lookup Info</label>
+                            <p class="help-block">Delete all cached metadata lookup info in Tautulli.</p>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form delete_all_lookups" type="button" data-service="themoviedb">TheMovieDB</button>
+                                        <button class="btn btn-form delete_all_lookups" type="button" data-service="tvmaze">TVmaze</button>
+                                        <button class="btn btn-form delete_all_lookups" type="button" data-service="musicbrainz">MusicBrainz</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Geolocation Database</h3>
@@ -2168,11 +2182,15 @@ $(document).ready(function() {
     });
 
     $("#reset_git_install").click(function () {
-        var msg = 'Are you sure you want to reset your Tautulli installtion?';
-        var url = 'reset_git_install';
-        confirmAjaxCall(url, msg);
+        var msg = 'Are you sure you want to reset your Tautulli installtion back to <strong>${common.RELEASE}</strong>?' +
+                '<br /><br />Tautulli will restart.';
+        $('#confirm-message').html(msg);
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            settingsChanged = false;
+            window.location.href = 'reset_git_install';
+        });
     });
-
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
@@ -2801,9 +2819,20 @@ $(document).ready(function() {
         var name = image_hosting_option.text();
 
         var msg = 'Are you sure you want to delete all uploaded images on <strong>' + name + '</strong>?' +
-            '<br />All previous links to the images will no longer work. This cannot be undone!';
+            '<br /><br />All previous links to the images will no longer work. This cannot be undone!';
         var url = 'delete_hosted_images';
         var data = { service: name, delete_all: true };
+        confirmAjaxCall(url, msg, data, false);
+    });
+
+    $('body').on('click', '.delete_all_lookups', function () {
+        var service = $(this).data('service');
+        var name = $(this).text();
+
+        var msg = 'Are you sure you want to delete all the metadata lookup info from <strong>' + name + '</strong>?' +
+            '<br /><br />Tautulli will lookup the metadata info again the next time a notification is sent.';
+        var url = 'delete_lookup_info';
+        var data = { service: service, delete_all: true };
         confirmAjaxCall(url, msg, data, false);
     });
 

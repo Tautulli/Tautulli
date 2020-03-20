@@ -565,6 +565,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
+    transcode_decision_count = Counter(s['transcode_decision'] for s in sessions)
+    user_transcode_decision_count = Counter(s['transcode_decision'] for s in user_sessions)
 
     if notify_action != 'on_play':
         stream_duration = int(old_div((time.time() -
@@ -701,6 +703,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_key = notify_params['parent_rating_key']
         poster_title = '%s - %s' % (notify_params['grandparent_title'],
                                     notify_params['parent_title'])
+    elif notify_params['media_type'] == 'clip':
+        if notify_params['extra_type']:
+            poster_thumb = notify_params['art'].replace('/art', '/thumb') or notify_params['thumb']
+        else:
+            poster_thumb = notify_params['parent_thumb'] or notify_params['thumb']
+        poster_key = notify_params['rating_key']
+        poster_title = notify_params['title']
     else:
         poster_thumb = ''
         poster_key = ''
@@ -812,7 +821,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
+        'direct_plays': transcode_decision_count['direct play'],
+        'direct_streams': transcode_decision_count['copy'],
+        'transcodes': transcode_decision_count['transcode'],
         'user_streams': user_stream_count,
+        'user_direct_plays': user_transcode_decision_count['direct play'],
+        'user_direct_streams': user_transcode_decision_count['copy'],
+        'user_transcodes': user_transcode_decision_count['transcode'],
         'user': notify_params['friendly_name'],
         'username': notify_params['user'],
         'user_email': notify_params['email'],
@@ -1006,6 +1021,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'rating_key': notify_params['rating_key'],
         'parent_rating_key': notify_params['parent_rating_key'],
         'grandparent_rating_key': notify_params['grandparent_rating_key'],
+        'art': notify_params['art'],
         'thumb': notify_params['thumb'],
         'parent_thumb': notify_params['parent_thumb'],
         'grandparent_thumb': notify_params['grandparent_thumb'],
@@ -1210,10 +1226,6 @@ def strip_tag(data, agent_id=None):
                      'font': ['color']}
         data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
 
-    elif agent_id in (10, 14, 20):
-        # Don't remove tags for Email, Slack, and Discord
-        pass
-
     elif agent_id == 13:
         # Allow tags b, i, code, pre, a[href] for Telegram
         whitelist = {'b': [],
@@ -1222,6 +1234,10 @@ def strip_tag(data, agent_id=None):
                      'pre': [],
                      'a': ['href']}
         data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
+
+    elif agent_id in (10, 14, 20, 25):
+        # Don't remove tags for Email, Slack, Discord, and Webhook
+        pass
 
     else:
         whitelist = {}

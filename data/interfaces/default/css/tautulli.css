@@ -1921,6 +1921,16 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     margin-left: 2px;
     color: #999;
 }
+.critic-rating {
+    display: inline-block;
+    font-size: 14px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-top: 2px;
+    height: 20px;
+    line-height: 20px;
+    float: right;
+}
 .children-list,
 .search-results-list {
     position: relative;
@@ -3153,7 +3163,7 @@ div.dataTables_info {
 .channel-thumbnail {
     background-color: #868b8b;
     background-position: center;
-    background-size: cover;
+    background-size: contain;
     background-origin: content-box;
     background-repeat: no-repeat;
     height: 50px;
@@ -4021,7 +4031,33 @@ a:hover .overlay-refresh-image:hover {
 .stats-most_concurrent {
     background-image: url(../images/icons/most-concurrent-streams.svg);
 }
-
+.rating-image {
+    width: 51px;
+    height: 20px;
+    margin-left: 10px;
+    display: inline-block;
+    background-origin: content-box !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: left !important;
+    text-align: right;
+}
+.rating-imdb {
+    width: 62px !important;
+    background-image: url(../images/rating/imdb.svg);
+}
+.rating-rottentomatos-ripe {
+    background-image: url(../images/rating/tomato-ripe.svg);
+}
+.rating-rottentomatos-rotten {
+    background-image: url(../images/rating/tomato-rotten.svg);
+}
+.rating-rottentomatos-upright {
+    background-image: url(../images/rating/popcorn-upright.svg);
+}
+.rating-rottentomatos-spilled {
+    background-image: url(../images/rating/popcorn-spilled.svg);
+}
 .transparent {
     background-color: transparent !important;
 }

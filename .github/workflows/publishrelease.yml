@@ -1,8 +1,8 @@
-name: Create Pre-Release
+name: Create Release
 on:
   push:
     tags:
-      - 'v*-beta'
+      - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,4 +26,4 @@ jobs:
             
             ##${{ env.CHANGELOG }}
           draft: false
-          prerelease: true
+          prerelease: ${{ endsWith(env.RELEASE_VERSION, '-beta') }}

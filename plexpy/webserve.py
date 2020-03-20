@@ -537,6 +537,7 @@ class WebInterface(object):
 
             Optional parameters:
                 custom_thumb (str):         The URL for the custom library thumbnail
+                custom_art (str):           The URL for the custom library background art
                 keep_history (int):         0 or 1
 
             Returns:
@@ -544,6 +545,7 @@ class WebInterface(object):
             ```
         """
         custom_thumb = kwargs.get('custom_thumb', '')
+        custom_art = kwargs.get('custom_art', '')
         do_notify = kwargs.get('do_notify', 0)
         do_notify_created = kwargs.get('do_notify_created', 0)
         keep_history = kwargs.get('keep_history', 0)
@@ -553,6 +555,7 @@ class WebInterface(object):
                 library_data = libraries.Libraries()
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
+                                        custom_art=custom_art,
                                         do_notify=do_notify,
                                         do_notify_created=do_notify_created,
                                         keep_history=keep_history)
@@ -3928,16 +3931,9 @@ class WebInterface(object):
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def reset_git_install(self, **kwargs):
-        result = versioncheck.reset()
-
-        if result:
-            return {'result': 'success', 'message': 'Tautulli installation reset.'}
-        else:
-            return {'result': 'error', 'message': 'Reset installation failed.'}
-
+        return self.do_state_change('reset', 'Resetting to {}'.format(common.RELEASE), 120)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3971,29 +3967,29 @@ class WebInterface(object):
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
         }
 
-        if source == 'history':
-            data_factory = datafactory.DataFactory()
-            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
-            if metadata:
-                poster_info = data_factory.get_poster_info(metadata=metadata)
-                metadata.update(poster_info)
-                lookup_info = data_factory.get_lookup_info(metadata=metadata)
-                metadata.update(lookup_info)
-        else:
+        # Try to get metadata from the Plex server first
+        if rating_key:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
-            if metadata:
-                data_factory = datafactory.DataFactory()
-                poster_info = data_factory.get_poster_info(metadata=metadata)
-                metadata.update(poster_info)
-                lookup_info = data_factory.get_lookup_info(metadata=metadata)
-                metadata.update(lookup_info)
+
+        # If the item is not found on the Plex server, get the metadata from history
+        if not metadata and source == 'history':
+            data_factory = datafactory.DataFactory()
+            metadata = data_factory.get_metadata_details(rating_key=rating_key, guid=guid)
+
+        if metadata:
+            data_factory = datafactory.DataFactory()
+            poster_info = data_factory.get_poster_info(metadata=metadata)
+            metadata.update(poster_info)
+            lookup_info = data_factory.get_lookup_info(metadata=metadata)
+            metadata.update(lookup_info)
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            return serve_template(templatename="info.html", metadata=metadata, title="Info", config=config, source=source)
+            return serve_template(templatename="info.html", metadata=metadata, title="Info",
+                                  config=config, source=source)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
@@ -4360,15 +4356,18 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_lookup_info(self, rating_key='', title='', **kwargs):
+    def delete_lookup_info(self, rating_key='', service='', delete_all=False, **kwargs):
         """ Delete the 3rd party API lookup info.
 
             ```
             Required parameters:
+                None
+
+            Optional parameters:
                 rating_key (int):       1234
                                         (Note: Must be the movie, show, artist, album, or track rating key)
-            Optional parameters:
-                None
+                service (str):          'themoviedb' or 'tvmaze' or 'musicbrainz'
+                delete_all (bool):      'true' to delete all images form the service
 
             Returns:
                 json:
@@ -4378,7 +4377,7 @@ class WebInterface(object):
         """
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.delete_lookup_info(rating_key=rating_key, title=title)
+        result = data_factory.delete_lookup_info(rating_key=rating_key, service=service, delete_all=delete_all)
 
         if result:
             return {'result': 'success', 'message': 'Deleted lookup info.'}

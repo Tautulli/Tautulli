@@ -258,33 +258,31 @@ $.cachedScript = function (url) {
 function isPrivateIP(ip_address) {
     var defer = $.Deferred();
 
-    $.cachedScript('js/ipaddr.min.js').done(function () {
-        if (ipaddr.isValid(ip_address)) {
-            var addr = ipaddr.process(ip_address);
+    if (ipaddr.isValid(ip_address)) {
+        var addr = ipaddr.process(ip_address);
 
-            var rangeList = [];
-            if (addr.kind() === 'ipv4') {
-                rangeList = [
-                    ipaddr.parseCIDR('127.0.0.0/8'),
-                    ipaddr.parseCIDR('10.0.0.0/8'),
-                    ipaddr.parseCIDR('172.16.0.0/12'),
-                    ipaddr.parseCIDR('192.168.0.0/16')
-                ];
-            } else {
-                rangeList = [
-                    ipaddr.parseCIDR('fd00::/8')
-                ];
-            }
-
-            if (ipaddr.subnetMatch(addr, rangeList, -1) >= 0) {
-                defer.resolve();
-            } else {
-                defer.reject();
-            }
+        var rangeList = [];
+        if (addr.kind() === 'ipv4') {
+            rangeList = [
+                ipaddr.parseCIDR('127.0.0.0/8'),
+                ipaddr.parseCIDR('10.0.0.0/8'),
+                ipaddr.parseCIDR('172.16.0.0/12'),
+                ipaddr.parseCIDR('192.168.0.0/16')
+            ];
         } else {
-            defer.resolve('n/a');
+            rangeList = [
+                ipaddr.parseCIDR('fd00::/8')
+            ];
         }
-    });
+
+        if (ipaddr.subnetMatch(addr, rangeList, -1) >= 0) {
+            defer.resolve();
+        } else {
+            defer.reject();
+        }
+    } else {
+        defer.resolve('n/a');
+    }
 
     return defer.promise();
 }

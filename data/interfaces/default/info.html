@@ -41,7 +41,7 @@ DOCUMENTATION :: END
 
     from plexpy import notifiers
     from plexpy.common import MEDIA_TYPE_HEADERS, MEDIA_FLAGS_AUDIO, MEDIA_FLAGS_VIDEO
-    from plexpy.helpers import page
+    from plexpy.helpers import page, get_percent
 
     # Get audio codec file
     def af(codec):
@@ -269,15 +269,27 @@ DOCUMENTATION :: END
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
                             % if data['rating']:
-                            <div class="star-rating hidden-xs hidden-sm" title="${data['rating']}">
-                                % for i in range(0,5):
-                                % if round(float(data['rating']) / 2) > i:
-                                <i class="star-icon fa fa-star"></i>
-                                % else:
-                                <i class="star-icon-o fa fa-star-o"></i>
-                                % endif
-                                % endfor
+                            % if data['rating_image']:
+                            % if data['rating_image'].startswith('imdb://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
+                                <span class="rating-image rating-imdb"><strong>${data['rating']}</strong></span>
                             </div>
+                            % endif
+                            % if data['audience_rating_image'].startswith('rottentomatoes://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${data['audience_rating']}">
+                                <span class="rating-image rating-rottentomatos-${data['audience_rating_image'].rsplit('.')[-1]}"><strong>${get_percent(data['audience_rating'], 10)}%</strong></span>
+                            </div>
+                            % endif
+                            % if data['rating_image'].startswith('rottentomatoes://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
+                                <span class="rating-image rating-rottentomatos-${data['rating_image'].rsplit('.')[-1]}"><strong>${get_percent(data['rating'], 10)}%</strong></span>
+                            </div>
+                            % endif
+                            % else:
+                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
+                                <i class="star-icon fa fa-star"></i> <strong>${get_percent(data['rating'], 10)}%</strong>
+                            </div>
+                            % endif
                             % endif
                             <div class="summary-content-details-tag">
                                 % if data['directors']:
@@ -848,10 +860,10 @@ DOCUMENTATION :: END
 % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
 <script>
     $('#delete-lookup-info').on('click', function () {
-        var msg = 'Are you sure you want to delete the 3rd party API lookup for <strong>' + $(this).data('title') + '</strong>?<br><br>' +
-                  'The info will be looked up again the next time a notification is sent.';
+        var msg = 'Are you sure you want to delete all the metadata lookup info for <strong>' + $(this).data('title') + '</strong>?' +
+                  '<br /><br />Tautulli will lookup the metadata info again the next time a notification is sent.';
         var url = 'delete_lookup_info';
-        var data = { rating_key: $(this).data('id'), title: $(this).data('title') };
+        var data = { rating_key: $(this).data('id') };
         var callback = function () {
             $('#delete-lookup-info').closest('.btn-group').remove();
         };

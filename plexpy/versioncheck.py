@@ -337,9 +337,12 @@ def update():
             return
 
 
-def reset():
+def reset_git_install():
     if plexpy.INSTALL_TYPE == 'git':
-        logger.info('Attempting to reset git install to "%s/%s"' % (plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH))
+        logger.info('Attempting to reset git install to "{}/{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                           plexpy.CONFIG.GIT_BRANCH,
+                                                                           common.RELEASE))
+
         output, err = runGit('remote set-url {} https://github.com/{}/{}.git'.format(plexpy.CONFIG.GIT_REMOTE,
                                                                                      plexpy.CONFIG.GIT_USER,
                                                                                      plexpy.CONFIG.GIT_REPO))
@@ -347,10 +350,7 @@ def reset():
         output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
         output, err = runGit('branch -u {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                       plexpy.CONFIG.GIT_BRANCH))
-        output, err = runGit('reset --hard {}/{}'.format(plexpy.CONFIG.GIT_REMOTE,
-                                                         plexpy.CONFIG.GIT_BRANCH))
-        output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
-                                                 plexpy.CONFIG.GIT_BRANCH))
+        output, err = runGit('reset --hard {}'.format(common.RELEASE))
 
         if not output:
             logger.error('Unable to reset Tautulli installation.')
@@ -367,8 +367,11 @@ def reset():
 
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('fetch %s' % plexpy.CONFIG.GIT_REMOTE)
-        output, err = runGit('checkout %s' % plexpy.CONFIG.GIT_BRANCH)
+        logger.info('Attempting to checkout git branch "{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                                       plexpy.CONFIG.GIT_BRANCH))
+
+        output, err = runGit('fetch {}'.format(plexpy.CONFIG.GIT_REMOTE))
+        output, err = runGit('checkout {}'.format(plexpy.CONFIG.GIT_BRANCH))
 
         if not output:
             logger.error('Unable to change git branch.')
@@ -398,6 +401,9 @@ def read_changelog(latest_only=False, since_prev_release=False):
         header_pattern = re.compile(r'(^#+)\s(.+)')
         list_pattern = re.compile(r'(^[ \t]*\*\s)(.+)')
 
+        beta_release = False
+        prev_release = str(plexpy.PREV_RELEASE)
+
         with open(changelog_file, "r") as logfile:
             for line in logfile:
                 line_header_match = re.search(header_pattern, line)
@@ -415,8 +421,16 @@ def read_changelog(latest_only=False, since_prev_release=False):
                     elif latest_only:
                         latest_version_found = True
                     # Add a space to the end of the release to match tags
-                    elif since_prev_release and str(plexpy.PREV_RELEASE) + ' ' in header_text:
-                        break
+                    elif since_prev_release:
+                        if prev_release.endswith('-beta') and not beta_release:
+                            if prev_release + ' ' in header_text:
+                                break
+                            elif prev_release.replace('-beta', '') + ' ' in header_text:
+                                beta_release = True
+                        elif prev_release.endswith('-beta') and beta_release:
+                            break
+                        elif prev_release + ' ' in header_text:
+                            break
 
                     output[-1] += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
 
