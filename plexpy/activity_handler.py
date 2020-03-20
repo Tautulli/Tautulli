@@ -241,13 +241,13 @@ class ActivityHandler(object):
             # Update the session state and viewOffset
             self.update_db_session()
 
-            time_since_last_trigger = None
+            time_since_last_trigger = 0
             if buffer_last_triggered:
                 logger.debug("Tautulli ActivityHandler :: Session %s buffer last triggered at %s." %
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
-            if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger is None or \
+            if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger == 0 or \
                     time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT:
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
 
