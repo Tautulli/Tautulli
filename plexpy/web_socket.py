@@ -266,7 +266,7 @@ def process(opcode, data):
             activity = activity_handler.ActivityHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error("Tautulli WebSocket :: Failed to process session data: %s." % e)
+            logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
 
     if type == 'timeline':
         time_line = info.get('TimelineEntry', info.get('_children', {}))
@@ -279,6 +279,6 @@ def process(opcode, data):
             activity = activity_handler.TimelineHandler(timeline=time_line[0])
             activity.process()
         except Exception as e:
-            logger.error("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
+            logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
 
     return True
