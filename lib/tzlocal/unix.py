@@ -138,7 +138,7 @@ def _get_localzone(_root='/'):
     if os.path.exists(tzpath) and os.path.islink(tzpath):
         tzpath = os.path.realpath(tzpath)
         start = tzpath.find("/")+1
-        while start is not 0:
+        while start != 0:
             tzpath = tzpath[start:]
             try:
                 return pytz.timezone(tzpath)

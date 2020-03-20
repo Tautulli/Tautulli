@@ -1,6 +1,15 @@
 Changes
 =======
 
+2.1b1 (2020-02-08)
+------------------
+
+- The is_dst flag is wrong for Europe/Dublin on some Unix releases.
+  I changed to another way of determining if DST is in effect or not.
+
+- Added support for Python 3.7 and 3.8. Dropped 3.5 although it still works.
+
+
 2.0.0 (2019-07-23)
 ------------------
 
@@ -14,7 +23,7 @@ Major differences since 1.5.1
   This change is because Docker images often have no configuration at all,
   and the unix utilities will then default to UTC, so we follow that.
 
-- If tzlocal on Unix finds a timezone name in a /etc config file, then 
+- If tzlocal on Unix finds a timezone name in a /etc config file, then
   tzlocal now verifies that the timezone it fouds has the same offset as
   the local computer is configured with. If it doesn't, something is
   configured incorrectly. (Victor Torres, regebro)

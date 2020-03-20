@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import time
 import datetime
+import calendar
 
 
 def get_system_offset():
@@ -11,8 +13,14 @@ def get_system_offset():
 
     To keep compatibility with Windows, we're always importing time module here.
     """
-    import time
-    if time.daylight and time.localtime().tm_isdst > 0:
+
+    localtime = calendar.timegm(time.localtime())
+    gmtime = calendar.timegm(time.gmtime())
+    offset = gmtime - localtime
+    # We could get the localtime and gmtime on either side of a second switch
+    # so we check that the difference is less than one minute, because nobody
+    # has that small DST differences.
+    if abs(offset - time.altzone) < 60:
         return -time.altzone
     else:
         return -time.timezone
