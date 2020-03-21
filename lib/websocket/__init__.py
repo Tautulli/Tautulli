@@ -19,7 +19,11 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
     Boston, MA  02110-1335  USA
 
 """
-from ._core import *
+from ._abnf import *
 from ._app import WebSocketApp
+from ._core import *
+from ._exceptions import *
+from ._logging import *
+from ._socket import *
 
-__version__ = "0.32.0"
+__version__ = "0.57.0"

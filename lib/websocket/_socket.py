@@ -19,13 +19,16 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
     Boston, MA 02110-1335  USA
 
 """
-
+import errno
+import select
 import socket
+
 import six
+import sys
 
 from ._exceptions import *
-from ._utils import *
 from ._ssl_compat import *
+from ._utils import *
 
 DEFAULT_SOCKET_OPTION = [(socket.SOL_TCP, socket.TCP_NODELAY, 1)]
 if hasattr(socket, "SO_KEEPALIVE"):
@@ -42,7 +45,9 @@ _default_timeout = None
 __all__ = ["DEFAULT_SOCKET_OPTION", "sock_opt", "setdefaulttimeout", "getdefaulttimeout",
            "recv", "recv_line", "send"]
 
+
 class sock_opt(object):
+
     def __init__(self, sockopt, sslopt):
         if sockopt is None:
             sockopt = []
@@ -51,6 +56,7 @@ class sock_opt(object):
         self.sockopt = sockopt
         self.sslopt = sslopt
         self.timeout = None
+
 
 def setdefaulttimeout(timeout):
     """
@@ -73,22 +79,42 @@ def recv(sock, bufsize):
     if not sock:
         raise WebSocketConnectionClosedException("socket is already closed.")
 
+    def _recv():
+        try:
+            return sock.recv(bufsize)
+        except SSLWantReadError:
+            pass
+        except socket.error as exc:
+            error_code = extract_error_code(exc)
+            if error_code is None:
+                raise
+            if error_code != errno.EAGAIN or error_code != errno.EWOULDBLOCK:
+                raise
+
+        r, w, e = select.select((sock, ), (), (), sock.gettimeout())
+        if r:
+            return sock.recv(bufsize)
+
     try:
-        bytes = sock.recv(bufsize)
+        if sock.gettimeout() == 0:
+            bytes_ = sock.recv(bufsize)
+        else:
+            bytes_ = _recv()
     except socket.timeout as e:
         message = extract_err_message(e)
         raise WebSocketTimeoutException(message)
     except SSLError as e:
         message = extract_err_message(e)
-        if message == "The read operation timed out":
+        if isinstance(message, str) and 'timed out' in message:
             raise WebSocketTimeoutException(message)
         else:
             raise
 
-    if not bytes:
-        raise WebSocketConnectionClosedException("Connection is already closed.")
+    if not bytes_:
+        raise WebSocketConnectionClosedException(
+            "Connection is already closed.")
 
-    return bytes
+    return bytes_
 
 
 def recv_line(sock):
@@ -108,14 +134,33 @@ def send(sock, data):
     if not sock:
         raise WebSocketConnectionClosedException("socket is already closed.")
 
+    def _send():
+        try:
+            return sock.send(data)
+        except SSLWantWriteError:
+            pass
+        except socket.error as exc:
+            error_code = extract_error_code(exc)
+            if error_code is None:
+                raise
+            if error_code != errno.EAGAIN or error_code != errno.EWOULDBLOCK:
+                raise
+
+        r, w, e = select.select((), (sock, ), (), sock.gettimeout())
+        if w:
+            return sock.send(data)
+
     try:
-        return sock.send(data)
+        if sock.gettimeout() == 0:
+            return sock.send(data)
+        else:
+            return _send()
     except socket.timeout as e:
         message = extract_err_message(e)
         raise WebSocketTimeoutException(message)
     except Exception as e:
         message = extract_err_message(e)
-        if message and "timed out" in message:
+        if isinstance(message, str) and "timed out" in message:
             raise WebSocketTimeoutException(message)
         else:
             raise
