@@ -80,8 +80,6 @@ AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
              'plex': 3,
-             'nma': 4,
-             'pushalot': 5,
              'pushbullet': 6,
              'pushover': 7,
              'osx': 8,
@@ -358,10 +356,6 @@ def get_agent_class(agent_id=None, config=None):
             return XBMC(config=config)
         elif agent_id == 3:
             return PLEX(config=config)
-        elif agent_id == 4:
-            return NMA(config=config)
-        elif agent_id == 5:
-            return PUSHALOT(config=config)
         elif agent_id == 6:
             return PUSHBULLET(config=config)
         elif agent_id == 7:
