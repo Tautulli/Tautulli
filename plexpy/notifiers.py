@@ -1174,7 +1174,7 @@ class DISCORD(Notifier):
             poster_url = pretty_metadata.get_poster_url()
             provider_name = pretty_metadata.get_provider_name(provider)
             provider_link = pretty_metadata.get_provider_link(provider)
-            title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
+            title = pretty_metadata.get_title('\xc2\xb7')
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
