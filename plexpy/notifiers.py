@@ -584,7 +584,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in list(kwargs.keys()) if k.startswith(config_prefix)}
 
-    for cfg, val in list(notifier_config.items()):
+    for cfg, val in notifier_config.items():
         # Check for a password config keys and a blank password from the HTML form
         if 'password' in cfg and val == '    ':
             # Get the previous password so we don't overwrite it with a blank value
@@ -788,7 +788,7 @@ class Notifier(object):
             return default
 
         new_config = {}
-        for k, v in list(default.items()):
+        for k, v in default.items():
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             elif isinstance(v, list):
@@ -1399,9 +1399,9 @@ class EMAIL(Notifier):
         user_emails_cc.update(emails)
         user_emails_bcc.update(emails)
 
-        user_emails_to = [{'value': k, 'text': v} for k, v in list(user_emails_to.items())]
-        user_emails_cc = [{'value': k, 'text': v} for k, v in list(user_emails_cc.items())]
-        user_emails_bcc = [{'value': k, 'text': v} for k, v in list(user_emails_bcc.items())]
+        user_emails_to = [{'value': k, 'text': v} for k, v in user_emails_to.items()]
+        user_emails_cc = [{'value': k, 'text': v} for k, v in user_emails_cc.items()]
+        user_emails_bcc = [{'value': k, 'text': v} for k, v in user_emails_bcc.items()]
 
         return user_emails_to, user_emails_cc, user_emails_bcc
 
@@ -3869,7 +3869,7 @@ def upgrade_config_to_db():
 
             # Update the new config with the old config values
             notifier_config = {}
-            for conf, val in list(notifier_default_config.items()):
+            for conf, val in notifier_default_config.items():
                 c_key = agent_config_key + '_' + config_key_overrides.get(agent, {}).get(conf, conf)
                 notifier_config[agent + '_' + conf] = agent_config.get(c_key, val)
 
@@ -3886,11 +3886,11 @@ def upgrade_config_to_db():
 
                 # Reverse the dict to {script: [actions]}
                 script_actions = {}
-                for k, v in list(action_scripts.items()):
+                for k, v in action_scripts.items():
                     if v: script_actions.setdefault(v, set()).add(k)
 
                 # Add a new script notifier for each script if the action was enabled
-                for script, actions in list(script_actions.items()):
+                for script, actions in script_actions.items():
                     if any(agent_actions[a] for a in actions):
                         temp_config = notifier_config
                         temp_config.update({a: 0 for a in list(agent_actions.keys())})

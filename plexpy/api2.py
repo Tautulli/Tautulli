@@ -231,7 +231,7 @@ class API2(object):
 
         if search:
             logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
-            tt = [d for d in templog for k, v in list(d.items()) if search.lower() in v.lower()]
+            tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
 
             if len(tt):
                 templog = tt
@@ -239,7 +239,7 @@ class API2(object):
         if regex:
             tt = []
             for l in templog:
-                stringdict = ' '.join('{}{}'.format(k, v) for k, v in list(l.items()))
+                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
                 if reg.search(stringdict):
                     tt.append(l)
 
@@ -275,10 +275,10 @@ class API2(object):
         config = {}
 
         # Truthify the dict
-        for k, v in list(conf.items()):
+        for k, v in conf.items():
             if isinstance(v, dict):
                 d = {}
-                for kk, vv in list(v.items()):
+                for kk, vv in v.items():
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:

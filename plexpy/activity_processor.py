@@ -546,7 +546,7 @@ class ActivityProcessor(object):
             if state:
                 values['state'] = state
 
-            for k, v in list(kwargs.items()):
+            for k, v in kwargs.items():
                 values[k] = v
 
             keys = {'session_key': session_key}

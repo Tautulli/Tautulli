@@ -699,8 +699,8 @@ class Config(object):
         """ Add tokens and passwords to blacklisted words in logger """
         blacklist = set()
 
-        for key, subkeys in list(self._config.items()):
-            for subkey, value in list(subkeys.items()):
+        for key, subkeys in self._config.items():
+            for subkey, value in subkeys.items():
                 if isinstance(value, basestring) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.add(value.strip())
@@ -743,10 +743,10 @@ class Config(object):
 
         # first copy over everything from the old config, even if it is not
         # correctly defined to keep from losing data
-        for key, subkeys in list(self._config.items()):
+        for key, subkeys in self._config.items():
             if key not in new_config:
                 new_config[key] = {}
-            for subkey, value in list(subkeys.items()):
+            for subkey, value in subkeys.items():
                 new_config[key][subkey] = value
 
         # next make sure that everything we expect to have defined is so
@@ -794,7 +794,7 @@ class Config(object):
         """
         Given a big bunch of key value pairs, apply them to the ini.
         """
-        for name, value in list(kwargs.items()):
+        for name, value in kwargs.items():
             key, definition_type, section, ini_key, default = self._define(name)
             self._config[section][ini_key] = definition_type(value)
 

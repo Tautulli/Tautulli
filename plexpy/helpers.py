@@ -354,7 +354,7 @@ def replace_all(text, dic, normalize=False):
     if not text:
         return ''
 
-    for i, j in list(dic.items()):
+    for i, j in dic.items():
         if normalize:
             try:
                 if sys.platform == 'darwin':
@@ -583,7 +583,7 @@ def sanitize(obj):
     elif isinstance(obj, list):
         return [sanitize(o) for o in obj]
     elif isinstance(obj, dict):
-        return {k: sanitize(v) for k, v in list(obj.items())}
+        return {k: sanitize(v) for k, v in obj.items()}
     elif isinstance(obj, tuple):
         return tuple(sanitize(list(obj)))
     else:
@@ -1242,7 +1242,7 @@ def traverse_map(obj, func):
 
     elif isinstance(obj, dict):
         new_obj = {}
-        for k, v in list(obj.items()):
+        for k, v in obj.items():
             new_obj[traverse_map(k, func)] = traverse_map(v, func)
 
     else:
@@ -1267,7 +1267,7 @@ def mask_config_passwords(config):
                 cfg['value'] = '    '
 
     elif isinstance(config, dict):
-        for cfg, val in list(config.items()):
+        for cfg, val in config.items():
             # Check for a password config keys and if the password is not blank
             if 'password' in cfg and val != '':
                 # Set the password to blank so it is not exposed in the HTML form
