@@ -1750,6 +1750,23 @@ class CustomFormatter(Formatter):
                 # this is some markup, find the object and do
                 #  the formatting
 
+                # handle arg indexing when empty field_names are given.
+                if field_name == '':
+                    if auto_arg_index is False:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    field_name = str(auto_arg_index)
+                    auto_arg_index += 1
+                elif field_name.isdigit():
+                    if auto_arg_index:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    # disable auto arg incrementing, if it gets
+                    # used later on, then an exception will be raised
+                    auto_arg_index = False
+
                 # given the field_name, find the object it references
                 #  and the argument it came from
                 obj, arg_used = self.get_field(field_name, args, kwargs)
@@ -1759,8 +1776,10 @@ class CustomFormatter(Formatter):
                 obj = self.convert_field(obj, conversion)
 
                 # expand the format spec, if needed
-                format_spec = self._vformat(format_spec, args, kwargs,
-                                            used_args, recursion_depth - 1)
+                format_spec, auto_arg_index = self._vformat(
+                    format_spec, args, kwargs,
+                    used_args, recursion_depth-1,
+                    auto_arg_index=auto_arg_index)
 
                 # format the object and append to the result
                 formatted_field = self.format_field(obj, format_spec)
@@ -1772,4 +1791,4 @@ class CustomFormatter(Formatter):
                         result.append(suffix)
                 # result.append(self.format_field(obj, format_spec))
 
-        return ''.join(result)
+        return ''.join(result), auto_arg_index
