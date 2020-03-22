@@ -1155,7 +1155,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
+            logger.exception("Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
 
     elif agent_id == 25:
@@ -1172,7 +1172,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
                 logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in webhook header data. Using fallback." % e)
                 subject = ''
             except Exception as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse custom webhook header data: %s. Using fallback." % e)
+                logger.exception("Tautulli NotificationHandler :: Unable to parse custom webhook header data: %s. Using fallback." % e)
                 subject = ''
 
         if body:
@@ -1188,7 +1188,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
                 logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in webhook body data. Using fallback." % e)
                 body = ''
             except Exception as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e)
+                logger.exception("Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e)
                 body = ''
 
     else:
@@ -1198,7 +1198,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
             subject = str(default_subject).format(**parameters)
         except Exception as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+            logger.exception("Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
             subject = str(default_subject).format(**parameters)
 
         try:
@@ -1207,7 +1207,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
             body = str(default_body).format(**parameters)
         except Exception as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
+            logger.exception("Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
             body = str(default_body).format(**parameters)
 
     return subject, body, script_args
