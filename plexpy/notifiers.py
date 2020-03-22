@@ -40,7 +40,6 @@ import threading
 import time
 from urllib.parse import urlencode
 from urllib.parse import urlparse
-import uuid
 
 try:
     from Cryptodome.Protocol.KDF import PBKDF2
