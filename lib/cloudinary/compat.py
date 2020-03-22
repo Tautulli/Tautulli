@@ -1,5 +1,7 @@
 # Copyright Cloudinary
 import six.moves.urllib.parse
+from six import PY3, string_types, StringIO, BytesIO
+
 urlencode = six.moves.urllib.parse.urlencode
 unquote = six.moves.urllib.parse.unquote
 urlparse = six.moves.urllib.parse.urlparse
@@ -7,7 +9,6 @@ parse_qs = six.moves.urllib.parse.parse_qs
 parse_qsl = six.moves.urllib.parse.parse_qsl
 quote_plus = six.moves.urllib.parse.quote_plus
 httplib = six.moves.http_client
-from six import PY3, string_types, StringIO, BytesIO
 urllib2 = six.moves.urllib.request
 NotConnected = six.moves.http_client.NotConnected
 

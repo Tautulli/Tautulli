@@ -3,15 +3,19 @@ import base64
 import copy
 import hashlib
 import json
+import os
 import random
 import re
 import string
 import struct
 import time
+import urllib
 import zlib
 from collections import OrderedDict
 from datetime import datetime, date
 from fractions import Fraction
+from numbers import Number
+from urllib3 import ProxyManager, PoolManager
 
 import six.moves.urllib.parse
 from six import iteritems
@@ -33,11 +37,100 @@ DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {"width": "auto", "crop": "limit"}
 RANGE_VALUE_RE = r'^(?P<value>(\d+\.)?\d+)(?P<modifier>[%pP])?$'
 RANGE_RE = r'^(\d+\.)?\d+[%pP]?\.\.(\d+\.)?\d+[%pP]?$'
 FLOAT_RE = r'^(\d+)\.(\d+)?$'
+REMOTE_URL_RE = r'ftp:|https?:|s3:|gs:|data:([\w-]+\/[\w-]+)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$'
 __LAYER_KEYWORD_PARAMS = [("font_weight", "normal"),
                           ("font_style", "normal"),
                           ("text_decoration", "none"),
                           ("text_align", None),
                           ("stroke", "none")]
+
+# a list of keys used by the cloudinary_url function
+__URL_KEYS = [
+    'api_secret',
+    'auth_token',
+    'cdn_subdomain',
+    'cloud_name',
+    'cname',
+    'format',
+    'private_cdn',
+    'resource_type',
+    'secure',
+    'secure_cdn_subdomain',
+    'secure_distribution',
+    'shorten',
+    'sign_url',
+    'ssl_detected',
+    'type',
+    'url_suffix',
+    'use_root_path',
+    'version'
+]
+
+__SIMPLE_UPLOAD_PARAMS = [
+    "public_id",
+    "callback",
+    "format",
+    "type",
+    "backup",
+    "faces",
+    "image_metadata",
+    "exif",
+    "colors",
+    "use_filename",
+    "unique_filename",
+    "discard_original_filename",
+    "invalidate",
+    "notification_url",
+    "eager_notification_url",
+    "eager_async",
+    "proxy",
+    "folder",
+    "overwrite",
+    "moderation",
+    "raw_convert",
+    "quality_override",
+    "quality_analysis",
+    "ocr",
+    "categorization",
+    "detection",
+    "similarity_search",
+    "background_removal",
+    "upload_preset",
+    "phash",
+    "return_delete_token",
+    "auto_tagging",
+    "async",
+    "cinemagraph_analysis",
+]
+
+__SERIALIZED_UPLOAD_PARAMS = [
+    "timestamp",
+    "transformation",
+    "headers",
+    "eager",
+    "tags",
+    "allowed_formats",
+    "face_coordinates",
+    "custom_coordinates",
+    "context",
+    "auto_tagging",
+    "responsive_breakpoints",
+    "access_control",
+    "metadata",
+]
+
+upload_params = __SIMPLE_UPLOAD_PARAMS + __SERIALIZED_UPLOAD_PARAMS
+
+
+def compute_hex_hash(s):
+    """
+    Compute hash and convert the result to HEX string
+
+    :param s: string to process
+
+    :return: HEX string
+    """
+    return hashlib.sha1(to_bytes(s)).hexdigest()
 
 
 def build_array(arg):
@@ -133,6 +226,22 @@ def json_encode(value):
     return json.dumps(value, default=__json_serializer, separators=(',', ':'))
 
 
+def patch_fetch_format(options):
+    """
+    When upload type is fetch, remove the format options.
+    In addition, set the fetch_format options to the format value unless it was already set.
+    Mutates the options parameter!
+
+    :param options: URL and transformation options
+    """
+    if options.get("type", "upload") != "fetch":
+        return
+
+    resource_format = options.pop("format", None)
+    if "fetch_format" not in options:
+        options["fetch_format"] = resource_format
+
+
 def generate_transformation_string(**options):
     responsive_width = options.pop("responsive_width", cloudinary.config().responsive_width)
     size = options.pop("size", None)
@@ -165,6 +274,7 @@ def generate_transformation_string(**options):
                 return generate_transformation_string(**bs)[0]
             else:
                 return generate_transformation_string(transformation=bs)[0]
+
         base_transformations = list(map(recurse, base_transformations))
         named_transformation = None
     else:
@@ -186,11 +296,11 @@ def generate_transformation_string(**options):
     flags = ".".join(build_array(options.pop("flags", None)))
     dpr = options.pop("dpr", cloudinary.config().dpr)
     duration = norm_range_value(options.pop("duration", None))
-    start_offset = norm_range_value(options.pop("start_offset", None))
+    start_offset = norm_auto_range_value(options.pop("start_offset", None))
     end_offset = norm_range_value(options.pop("end_offset", None))
     offset = split_range(options.pop("offset", None))
     if offset:
-        start_offset = norm_range_value(offset[0])
+        start_offset = norm_auto_range_value(offset[0])
         end_offset = norm_range_value(offset[1])
 
     video_codec = process_video_codec_param(options.pop("video_codec", None))
@@ -202,6 +312,9 @@ def generate_transformation_string(**options):
     overlay = process_layer(options.pop("overlay", None), "overlay")
     underlay = process_layer(options.pop("underlay", None), "underlay")
     if_value = process_conditional(options.pop("if", None))
+    custom_function = process_custom_function(options.pop("custom_function", None))
+    custom_pre_function = process_custom_pre_function(options.pop("custom_pre_function", None))
+    fps = process_fps(options.pop("fps", None))
 
     params = {
         "a": normalize_expression(angle),
@@ -215,19 +328,22 @@ def generate_transformation_string(**options):
         "e": normalize_expression(effect),
         "eo": normalize_expression(end_offset),
         "fl": flags,
+        "fn": custom_function or custom_pre_function,
+        "fps": fps,
         "h": normalize_expression(height),
+        "ki": process_ki(options.pop("keyframe_interval", None)),
         "l": overlay,
-        "o": normalize_expression(options.pop('opacity',None)),
-        "q": normalize_expression(options.pop('quality',None)),
-        "r": normalize_expression(options.pop('radius',None)),
+        "o": normalize_expression(options.pop('opacity', None)),
+        "q": normalize_expression(options.pop('quality', None)),
+        "r": process_radius(options.pop('radius', None)),
         "so": normalize_expression(start_offset),
         "t": named_transformation,
         "u": underlay,
         "w": normalize_expression(width),
-        "x": normalize_expression(options.pop('x',None)),
-        "y": normalize_expression(options.pop('y',None)),
+        "x": normalize_expression(options.pop('x', None)),
+        "y": normalize_expression(options.pop('y', None)),
         "vc": video_codec,
-        "z": normalize_expression(options.pop('zoom',None))
+        "z": normalize_expression(options.pop('zoom', None))
     }
     simple_params = {
         "ac": "audio_codec",
@@ -239,7 +355,6 @@ def generate_transformation_string(**options):
         "dn": "density",
         "f": "fetch_format",
         "g": "gravity",
-        "ki": "keyframe_interval",
         "p": "prefix",
         "pg": "page",
         "sp": "streaming_profile",
@@ -249,9 +364,9 @@ def generate_transformation_string(**options):
     for param, option in simple_params.items():
         params[param] = options.pop(option, None)
 
-    variables = options.pop('variables',{})
+    variables = options.pop('variables', {})
     var_params = []
-    for key,value in options.items():
+    for key, value in options.items():
         if re.match(r'^\$', key):
             var_params.append(u"{0}_{1}".format(key, normalize_expression(str(value))))
 
@@ -261,7 +376,6 @@ def generate_transformation_string(**options):
         for var in variables:
             var_params.append(u"{0}_{1}".format(var[0], normalize_expression(str(var[1]))))
 
-
     variables = ','.join(var_params)
 
     sorted_params = sorted([param + "_" + str(value) for param, value in params.items() if (value or value == 0)])
@@ -270,10 +384,14 @@ def generate_transformation_string(**options):
 
     if if_value is not None:
         sorted_params.insert(0, "if_" + str(if_value))
+
+    if "raw_transformation" in options and (options["raw_transformation"] or options["raw_transformation"] == 0):
+        sorted_params.append(options.pop("raw_transformation"))
+
     transformation = ",".join(sorted_params)
-    if "raw_transformation" in options:
-        transformation = transformation + "," + options.pop("raw_transformation")
+
     transformations = base_transformations + [transformation]
+
     if responsive_width:
         responsive_width_transformation = cloudinary.config().responsive_width_transformation \
                                           or DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION
@@ -285,6 +403,31 @@ def generate_transformation_string(**options):
     if dpr == "auto":
         options["hidpi"] = True
     return url, options
+
+
+def chain_transformations(options, transformations):
+    """
+    Helper function, allows chaining transformations to the end of transformations list
+
+    The result of this function is an updated options parameter
+
+    :param options:         Original options
+    :param transformations: Transformations to chain at the end
+
+    :return: Resulting options
+    """
+
+    transformations = copy.deepcopy(transformations)
+
+    transformations = build_array(transformations)
+    # preserve url options
+    url_options = dict((o, options[o]) for o in __URL_KEYS if o in options)
+
+    transformations.insert(0, options)
+
+    url_options["transformation"] = transformations
+
+    return url_options
 
 
 def is_fraction(width):
@@ -302,16 +445,24 @@ def split_range(range):
 
 
 def norm_range_value(value):
-    if value is None: return None
+    if value is None:
+        return None
 
     match = re.match(RANGE_VALUE_RE, str(value))
 
-    if match is None: return None
+    if match is None:
+        return None
 
     modifier = ''
     if match.group('modifier') is not None:
-      modifier = 'p'
+        modifier = 'p'
     return match.group('value') + modifier
+
+
+def norm_auto_range_value(value):
+    if value == "auto":
+        return value
+    return norm_range_value(value)
 
 
 def process_video_codec_param(param):
@@ -325,15 +476,29 @@ def process_video_codec_param(param):
     return out_param
 
 
+def process_radius(param):
+    if param is None:
+        return
+
+    if isinstance(param, (list, tuple)):
+        if not 1 <= len(param) <= 4:
+            raise ValueError("Invalid radius param")
+        return ':'.join(normalize_expression(t) for t in param)
+
+    return str(param)
+
+
 def cleanup_params(params):
     return dict([(k, __safe_value(v)) for (k, v) in params.items() if v is not None and not v == ""])
 
 
 def sign_request(params, options):
     api_key = options.get("api_key", cloudinary.config().api_key)
-    if not api_key: raise ValueError("Must supply api_key")
+    if not api_key:
+        raise ValueError("Must supply api_key")
     api_secret = options.get("api_secret", cloudinary.config().api_secret)
-    if not api_secret: raise ValueError("Must supply api_secret")
+    if not api_secret:
+        raise ValueError("Must supply api_secret")
 
     params = cleanup_params(params)
     params["signature"] = api_sign_request(params, api_secret)
@@ -345,7 +510,7 @@ def sign_request(params, options):
 def api_sign_request(params_to_sign, api_secret):
     params = [(k + "=" + (",".join(v) if isinstance(v, list) else str(v))) for k, v in params_to_sign.items() if v]
     to_sign = "&".join(sorted(params))
-    return hashlib.sha1(to_bytes(to_sign + api_secret)).hexdigest()
+    return compute_hex_hash(to_sign + api_secret)
 
 
 def breakpoint_settings_mapper(breakpoint_settings):
@@ -370,11 +535,13 @@ def finalize_source(source, format, url_suffix):
         source_to_sign = source
     else:
         source = unquote(source)
-        if not PY3: source = source.encode('utf8')
+        if not PY3:
+            source = source.encode('utf8')
         source = smart_escape(source)
         source_to_sign = source
         if url_suffix is not None:
-            if re.search(r'[\./]', url_suffix): raise ValueError("url_suffix should not include . or /")
+            if re.search(r'[\./]', url_suffix):
+                raise ValueError("url_suffix should not include . or /")
             source = source + "/" + url_suffix
         if format is not None:
             source = source + "." + format
@@ -396,7 +563,8 @@ def finalize_resource_type(resource_type, type, url_suffix, use_root_path, short
             raise ValueError("URL Suffix only supported for image/upload and raw/upload")
 
     if use_root_path:
-        if (resource_type == "image" and upload_type == "upload") or (resource_type == "images" and upload_type is None):
+        if (resource_type == "image" and upload_type == "upload") or (
+                resource_type == "images" and upload_type is None):
             resource_type = None
             upload_type = None
         else:
@@ -409,28 +577,33 @@ def finalize_resource_type(resource_type, type, url_suffix, use_root_path, short
     return resource_type, upload_type
 
 
-def unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure,
-                                 secure_distribution):
+def unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain,
+                                 secure_cdn_subdomain, cname, secure, secure_distribution):
     """cdn_subdomain and secure_cdn_subdomain
     1) Customers in shared distribution (e.g. res.cloudinary.com)
-      if cdn_domain is true uses res-[1-5].cloudinary.com for both http and https. Setting secure_cdn_subdomain to false disables this for https.
+      if cdn_domain is true uses res-[1-5].cloudinary.com for both http and https.
+      Setting secure_cdn_subdomain to false disables this for https.
     2) Customers with private cdn
       if cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for http
-      if secure_cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for https (please contact support if you require this)
+      if secure_cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for https
+      (please contact support if you require this)
     3) Customers with cname
-      if cdn_domain is true uses a[1-5].cname for http. For https, uses the same naming scheme as 1 for shared distribution and as 2 for private distribution."""
+      if cdn_domain is true uses a[1-5].cname for http. For https, uses the same naming scheme
+      as 1 for shared distribution and as 2 for private distribution."""
     shared_domain = not private_cdn
     shard = __crc(source)
     if secure:
         if secure_distribution is None or secure_distribution == cloudinary.OLD_AKAMAI_SHARED_CDN:
-            secure_distribution = cloud_name + "-res.cloudinary.com" if private_cdn else cloudinary.SHARED_CDN
+            secure_distribution = cloud_name + "-res.cloudinary.com" \
+                if private_cdn else cloudinary.SHARED_CDN
 
         shared_domain = shared_domain or secure_distribution == cloudinary.SHARED_CDN
         if secure_cdn_subdomain is None and shared_domain:
             secure_cdn_subdomain = cdn_subdomain
 
         if secure_cdn_subdomain:
-            secure_distribution = re.sub('res.cloudinary.com', "res-" + shard + ".cloudinary.com", secure_distribution)
+            secure_distribution = re.sub('res.cloudinary.com', "res-" + shard + ".cloudinary.com",
+                                         secure_distribution)
 
         prefix = "https://" + secure_distribution
     elif cname:
@@ -438,10 +611,12 @@ def unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain,
         prefix = "http://" + subdomain + cname
     else:
         subdomain = cloud_name + "-res" if private_cdn else "res"
-        if cdn_subdomain: subdomain = subdomain + "-" + shard
+        if cdn_subdomain:
+            subdomain = subdomain + "-" + shard
         prefix = "http://" + subdomain + ".cloudinary.com"
 
-    if shared_domain: prefix += "/" + cloud_name
+    if shared_domain:
+        prefix += "/" + cloud_name
 
     return prefix
 
@@ -460,16 +635,23 @@ def merge(*dict_args):
 def cloudinary_url(source, **options):
     original_source = source
 
+    patch_fetch_format(options)
     type = options.pop("type", "upload")
-    if type == 'fetch':
-        options["fetch_format"] = options.get("fetch_format", options.pop("format", None))
+
     transformation, options = generate_transformation_string(**options)
 
     resource_type = options.pop("resource_type", "image")
+
+    force_version = options.pop("force_version", cloudinary.config().force_version)
+    if force_version is None:
+        force_version = True
+
     version = options.pop("version", None)
+
     format = options.pop("format", None)
     cdn_subdomain = options.pop("cdn_subdomain", cloudinary.config().cdn_subdomain)
-    secure_cdn_subdomain = options.pop("secure_cdn_subdomain", cloudinary.config().secure_cdn_subdomain)
+    secure_cdn_subdomain = options.pop("secure_cdn_subdomain",
+                                       cloudinary.config().secure_cdn_subdomain)
     cname = options.pop("cname", cloudinary.config().cname)
     shorten = options.pop("shorten", cloudinary.config().shorten)
 
@@ -478,7 +660,8 @@ def cloudinary_url(source, **options):
         raise ValueError("Must supply cloud_name in tag or in configuration")
     secure = options.pop("secure", cloudinary.config().secure)
     private_cdn = options.pop("private_cdn", cloudinary.config().private_cdn)
-    secure_distribution = options.pop("secure_distribution", cloudinary.config().secure_distribution)
+    secure_distribution = options.pop("secure_distribution",
+                                      cloudinary.config().secure_distribution)
     sign_url = options.pop("sign_url", cloudinary.config().sign_url)
     api_secret = options.pop("api_secret", cloudinary.config().api_secret)
     url_suffix = options.pop("url_suffix", None)
@@ -490,15 +673,19 @@ def cloudinary_url(source, **options):
     if (not source) or type == "upload" and re.match(r'^https?:', source):
         return original_source, options
 
-    resource_type, type = finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
+    resource_type, type = finalize_resource_type(
+        resource_type, type, url_suffix, use_root_path, shorten)
     source, source_to_sign = finalize_source(source, format, url_suffix)
 
-    if source_to_sign.find("/") >= 0 \
+    if not version and force_version \
+            and source_to_sign.find("/") >= 0 \
             and not re.match(r'^https?:/', source_to_sign) \
-            and not re.match(r'^v[0-9]+', source_to_sign) \
-            and not version:
+            and not re.match(r'^v[0-9]+', source_to_sign):
         version = "1"
-    if version: version = "v" + str(version)
+    if version:
+        version = "v" + str(version)
+    else:
+        version = None
 
     transformation = re.sub(r'([^:])/+', r'\1/', transformation)
 
@@ -506,35 +693,84 @@ def cloudinary_url(source, **options):
     if sign_url and not auth_token:
         to_sign = "/".join(__compact([transformation, source_to_sign]))
         signature = "s--" + to_string(
-            base64.urlsafe_b64encode(hashlib.sha1(to_bytes(to_sign + api_secret)).digest())[0:8]) + "--"
+            base64.urlsafe_b64encode(
+                hashlib.sha1(to_bytes(to_sign + api_secret)).digest())[0:8]) + "--"
 
-    prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname,
-                                          secure, secure_distribution)
-    source = "/".join(__compact([prefix, resource_type, type, signature, transformation, version, source]))
+    prefix = unsigned_download_url_prefix(
+        source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain,
+        cname, secure, secure_distribution)
+    source = "/".join(__compact(
+        [prefix, resource_type, type, signature, transformation, version, source]))
     if sign_url and auth_token:
         path = urlparse(source).path
-        token = cloudinary.auth_token.generate( **merge(auth_token, {"url": path}))
+        token = cloudinary.auth_token.generate(**merge(auth_token, {"url": path}))
         source = "%s?%s" % (source, token)
     return source, options
 
 
 def cloudinary_api_url(action='upload', **options):
-    cloudinary_prefix = options.get("upload_prefix", cloudinary.config().upload_prefix) or "https://api.cloudinary.com"
+    cloudinary_prefix = options.get("upload_prefix", cloudinary.config().upload_prefix)\
+                        or "https://api.cloudinary.com"
     cloud_name = options.get("cloud_name", cloudinary.config().cloud_name)
-    if not cloud_name: raise ValueError("Must supply cloud_name")
+    if not cloud_name:
+        raise ValueError("Must supply cloud_name")
     resource_type = options.get("resource_type", "image")
-    return "/".join([cloudinary_prefix, "v1_1", cloud_name, resource_type, action])
+
+    return encode_unicode_url("/".join([cloudinary_prefix, "v1_1", cloud_name, resource_type, action]))
 
 
-# Based on ruby's CGI::unescape. In addition does not escape / :
-def smart_escape(source,unsafe = r"([^a-zA-Z0-9_.\-\/:]+)"):
+def cloudinary_scaled_url(source, width, transformation, options):
+    """
+    Generates a cloudinary url scaled to specified width.
+
+    :param source:          The resource
+    :param width:           Width in pixels of the srcset item
+    :param transformation:  Custom transformation that overrides transformations provided in options
+    :param options:         A dict with additional options
+
+    :return: Resulting URL of the item
+    """
+
+    # preserve options from being destructed
+    options = copy.deepcopy(options)
+
+    if transformation:
+        if isinstance(transformation, string_types):
+            transformation = {"raw_transformation": transformation}
+
+        # Remove all transformation related options
+        options = dict((o, options[o]) for o in __URL_KEYS if o in options)
+        options.update(transformation)
+
+    scale_transformation = {"crop": "scale", "width": width}
+
+    url_options = options
+    patch_fetch_format(url_options)
+    url_options = chain_transformations(url_options, scale_transformation)
+
+    return cloudinary_url(source, **url_options)[0]
+
+
+def smart_escape(source, unsafe=r"([^a-zA-Z0-9_.\-\/:]+)"):
+    """
+    Based on ruby's CGI::unescape. In addition does not escape / :
+
+    :param source: Source string to escape
+    :param unsafe: Unsafe characters
+
+    :return: Escaped string
+    """
     def pack(m):
-        return to_bytes('%' + "%".join(["%02X" % x for x in struct.unpack('B' * len(m.group(1)), m.group(1))]).upper())
+        return to_bytes('%' + "%".join(
+            ["%02X" % x for x in struct.unpack('B' * len(m.group(1)), m.group(1))]
+        ).upper())
+
     return to_string(re.sub(to_bytes(unsafe), pack, to_bytes(source)))
 
 
 def random_public_id():
-    return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(16))
+    return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits)
+                   for _ in range(16))
 
 
 def signed_preloaded_image(result):
@@ -584,7 +820,8 @@ def download_archive_url(**options):
     params = options.copy()
     params.update(mode="download")
     cloudinary_params = sign_request(archive_params(**params), options)
-    return cloudinary_api_url("generate_archive", **options) + "?" + urlencode(bracketize_seq(cloudinary_params), True)
+    return cloudinary_api_url("generate_archive", **options) + "?" + \
+        urlencode(bracketize_seq(cloudinary_params), True)
 
 
 def download_zip_url(**options):
@@ -592,9 +829,11 @@ def download_zip_url(**options):
     new_options.update(target_format="zip")
     return download_archive_url(**new_options)
 
+
 def generate_auth_token(**options):
     token_options = merge(cloudinary.config().auth_token, options)
     return auth_token.generate(**token_options)
+
 
 def archive_params(**options):
     if options.get("timestamp") is None:
@@ -613,6 +852,8 @@ def archive_params(**options):
         "phash": options.get("phash"),
         "prefixes": options.get("prefixes") and build_array(options.get("prefixes")),
         "public_ids": options.get("public_ids") and build_array(options.get("public_ids")),
+        "fully_qualified_public_ids": options.get("fully_qualified_public_ids") and build_array(
+            options.get("fully_qualified_public_ids")),
         "skip_transformation_name": options.get("skip_transformation_name"),
         "tags": options.get("tags") and build_array(options.get("tags")),
         "target_format": options.get("target_format"),
@@ -629,15 +870,32 @@ def archive_params(**options):
 def build_eager(transformations):
     if transformations is None:
         return None
-    eager = []
-    for tr in build_array(transformations):
-        if isinstance(tr, string_types):
-            single_eager = tr
-        else:
-            ext = tr.get("format")
-            single_eager = "/".join([x for x in [generate_transformation_string(**tr)[0], ext] if x])
-        eager.append(single_eager)
-    return "|".join(eager)
+
+    return "|".join([build_single_eager(et) for et in build_array(transformations)])
+
+
+def build_single_eager(options):
+    """
+    Builds a single eager transformation which consists of transformation and (optionally) format joined by "/"
+
+    :param options: Options containing transformation parameters and (optionally) a "format" key
+        format can be a string value (jpg, gif, etc) or can be set to "" (empty string).
+        The latter leads to transformation ending with "/", which means "No extension, use original format"
+        If format is not provided or set to None, only transformation is used (without the trailing "/")
+
+    :return: Resulting eager transformation string
+    """
+    if isinstance(options, string_types):
+        return options
+
+    trans_str = generate_transformation_string(**options)[0]
+
+    if not trans_str:
+        return ""
+
+    file_format = options.get("format")
+
+    return trans_str + ("/" + file_format if file_format is not None else "")
 
 
 def build_custom_headers(headers):
@@ -653,49 +911,30 @@ def build_custom_headers(headers):
 
 
 def build_upload_params(**options):
-    params = {"timestamp": now(),
-              "transformation": generate_transformation_string(**options)[0],
-              "public_id": options.get("public_id"),
-              "callback": options.get("callback"),
-              "format": options.get("format"),
-              "type": options.get("type"),
-              "backup": options.get("backup"),
-              "faces": options.get("faces"),
-              "image_metadata": options.get("image_metadata"),
-              "exif": options.get("exif"),
-              "colors": options.get("colors"),
-              "headers": build_custom_headers(options.get("headers")),
-              "eager": build_eager(options.get("eager")),
-              "use_filename": options.get("use_filename"),
-              "unique_filename": options.get("unique_filename"),
-              "discard_original_filename": options.get("discard_original_filename"),
-              "invalidate": options.get("invalidate"),
-              "notification_url": options.get("notification_url"),
-              "eager_notification_url": options.get("eager_notification_url"),
-              "eager_async": options.get("eager_async"),
-              "proxy": options.get("proxy"),
-              "folder": options.get("folder"),
-              "overwrite": options.get("overwrite"),
-              "tags": options.get("tags") and ",".join(build_array(options["tags"])),
-              "allowed_formats": options.get("allowed_formats") and ",".join(build_array(options["allowed_formats"])),
-              "face_coordinates": encode_double_array(options.get("face_coordinates")),
-              "custom_coordinates": encode_double_array(options.get("custom_coordinates")),
-              "context": encode_context(options.get("context")),
-              "moderation": options.get("moderation"),
-              "raw_convert": options.get("raw_convert"),
-              "quality_override": options.get("quality_override"),
-              "ocr": options.get("ocr"),
-              "categorization": options.get("categorization"),
-              "detection": options.get("detection"),
-              "similarity_search": options.get("similarity_search"),
-              "background_removal": options.get("background_removal"),
-              "upload_preset": options.get("upload_preset"),
-              "phash": options.get("phash"),
-              "return_delete_token": options.get("return_delete_token"),
-              "auto_tagging": options.get("auto_tagging") and str(options.get("auto_tagging")),
-              "responsive_breakpoints": generate_responsive_breakpoints_string(options.get("responsive_breakpoints")),
-              "async": options.get("async"),
-              "access_control": options.get("access_control") and json_encode(build_list_of_dicts(options.get("access_control")))}
+    params = {param_name: options.get(param_name) for param_name in __SIMPLE_UPLOAD_PARAMS}
+
+    serialized_params = {
+        "timestamp": now(),
+        "metadata": encode_context(options.get("metadata")),
+        "transformation": generate_transformation_string(**options)[0],
+        "headers": build_custom_headers(options.get("headers")),
+        "eager": build_eager(options.get("eager")),
+        "tags": options.get("tags") and ",".join(build_array(options["tags"])),
+        "allowed_formats": options.get("allowed_formats") and ",".join(build_array(options["allowed_formats"])),
+        "face_coordinates": encode_double_array(options.get("face_coordinates")),
+        "custom_coordinates": encode_double_array(options.get("custom_coordinates")),
+        "context": encode_context(options.get("context")),
+        "auto_tagging": options.get("auto_tagging") and str(options.get("auto_tagging")),
+        "responsive_breakpoints": generate_responsive_breakpoints_string(options.get("responsive_breakpoints")),
+        "access_control": options.get("access_control") and json_encode(
+            build_list_of_dicts(options.get("access_control")))
+    }
+
+    # make sure that we are in-sync with __SERIALIZED_UPLOAD_PARAMS which are in use by other methods
+    serialized_params = {param_name: serialized_params[param_name] for param_name in __SERIALIZED_UPLOAD_PARAMS}
+
+    params.update(serialized_params)
+
     return params
 
 
@@ -715,6 +954,14 @@ def __process_text_options(layer, layer_parameter):
     line_spacing = layer.get("line_spacing")
     if line_spacing is not None:
         keywords.append("line_spacing_" + str(line_spacing))
+
+    font_antialiasing = layer.get("font_antialiasing")
+    if font_antialiasing is not None:
+        keywords.append("antialias_" + str(font_antialiasing))
+
+    font_hinting = layer.get("font_hinting")
+    if font_hinting is not None:
+        keywords.append("hinting_" + str(font_hinting))
 
     if font_size is None and font_family is None and len(keywords) == 0:
         return None
@@ -778,12 +1025,12 @@ def process_layer(layer, layer_parameter):
 
         if text is not None:
             var_pattern = VAR_NAME_RE
-            match = re.findall(var_pattern,text)
+            match = re.findall(var_pattern, text)
 
-            parts= filter(lambda p: p is not None, re.split(var_pattern,text))
+            parts = filter(lambda p: p is not None, re.split(var_pattern, text))
             encoded_text = []
             for part in parts:
-                if re.match(var_pattern,part):
+                if re.match(var_pattern, part):
                     encoded_text.append(part)
                 else:
                     encoded_text.append(smart_escape(smart_escape(part, r"([,/])")))
@@ -801,6 +1048,7 @@ def process_layer(layer, layer_parameter):
 
     return ':'.join(components)
 
+
 IF_OPERATORS = {
     "=": 'eq',
     "!=": 'ne',
@@ -813,7 +1061,8 @@ IF_OPERATORS = {
     "*": 'mul',
     "/": 'div',
     "+": 'add',
-    "-": 'sub'
+    "-": 'sub',
+    "^": 'pow'
 }
 
 PREDEFINED_VARS = {
@@ -828,17 +1077,69 @@ PREDEFINED_VARS = {
     "page_x": "px",
     "page_y": "py",
     "tags": "tags",
-    "width": "w"
+    "width": "w",
+    "duration": "du",
+    "initial_duration": "idu",
 }
 
-replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*)(?=[ _])|" + '|'.join(PREDEFINED_VARS.keys())+ ")"
+replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*|\^)(?=[ _])|(?<!\$)(" + '|'.join(PREDEFINED_VARS.keys()) + "))"
 
 
 def translate_if(match):
     name = match.group(0)
     return IF_OPERATORS.get(name,
                             PREDEFINED_VARS.get(name,
-                                              name))
+                                                name))
+
+
+def process_custom_function(custom_function):
+    if not isinstance(custom_function, dict):
+        return custom_function
+
+    function_type = custom_function.get("function_type")
+    source = custom_function.get("source")
+    if function_type == "remote":
+        source = base64url_encode(source)
+
+    return ":".join([function_type, source])
+
+
+def process_custom_pre_function(custom_function):
+    value = process_custom_function(custom_function)
+    return "pre:{0}".format(value) if value else None
+
+
+def process_fps(fps):
+    """
+    Serializes fps transformation parameter
+
+    :param fps: A single number, a list of mixed type, a string, including open-ended and closed range values
+                Examples: '24-29.97', 24, 24.973, '-24', [24, 29.97]
+
+    :return: string
+    """
+    if not isinstance(fps, (list, tuple)):
+        return fps
+
+    return "-".join(normalize_expression(f) for f in fps)
+
+
+def process_ki(ki):
+    """
+    Serializes keyframe_interval parameter
+    :param ki: Keyframe interval. Should be either a string or a positive real number.
+    :return: string
+    """
+    if ki is None:
+        return None
+    if isinstance(ki, string_types):
+        return ki
+    if not isinstance(ki, Number):
+        raise ValueError("Keyframe interval should be a number or a string")
+    if ki <= 0:
+        raise ValueError("Keyframe interval should be greater than zero")
+    return str(float(ki))
+
 
 def process_conditional(conditional):
     if conditional is None:
@@ -846,8 +1147,9 @@ def process_conditional(conditional):
     result = normalize_expression(conditional)
     return result
 
+
 def normalize_expression(expression):
-    if re.match(r'^!.+!$',str(expression)): # quoted string
+    if re.match(r'^!.+!$', str(expression)):  # quoted string
         return expression
     elif expression:
         result = str(expression)
@@ -856,6 +1158,7 @@ def normalize_expression(expression):
         return result
     else:
         return expression
+
 
 def __join_pair(key, value):
     if value is None or value == "":
@@ -898,11 +1201,36 @@ def base64_encode_url(url):
 
     try:
         url = unquote(url)
-    except:
+    except Exception:
         pass
     url = smart_escape(url)
     b64 = base64.b64encode(url.encode('utf-8'))
     return b64.decode('ascii')
+
+
+def base64url_encode(data):
+    """
+    Url safe version of urlsafe_b64encode with stripped `=` sign at the end.
+
+    :param data: input data
+
+    :return: Base64 URL safe encoded string
+    """
+    return to_string(base64.urlsafe_b64encode(to_bytes(data)))
+
+
+def encode_unicode_url(url_str):
+    """
+    Quote and encode possible unicode url string (applicable for python2)
+
+    :param url_str: Url string to encode
+
+    :return: Encoded string
+    """
+    if six.PY2:
+        url_str = urllib.quote(url_str.encode('utf-8'), ":/?#[]@!$&'()*+,;=")
+
+    return url_str
 
 
 def __json_serializer(obj):
@@ -910,3 +1238,97 @@ def __json_serializer(obj):
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     raise TypeError("Object of type %s is not JSON serializable" % type(obj))
+
+
+def is_remote_url(file):
+    """Basic URL scheme check to define if it's remote URL"""
+    return isinstance(file, string_types) and re.match(REMOTE_URL_RE, file)
+
+
+def file_io_size(file_io):
+    """
+    Helper function for getting file-like object size(suitable for both files and streams)
+
+    :param file_io: io.IOBase
+
+    :return: size
+    """
+    initial_position = file_io.tell()
+    file_io.seek(0, os.SEEK_END)
+    size = file_io.tell()
+    file_io.seek(initial_position, os.SEEK_SET)
+
+    return size
+
+
+def check_property_enabled(f):
+    """
+    Used as a class method decorator to check whether class is enabled(self.enabled is True)
+
+    :param f: function to call
+
+    :return: None if not enabled, otherwise calls function f
+    """
+    def wrapper(*args, **kwargs):
+        if not args[0].enabled:
+            return None
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+def verify_api_response_signature(public_id, version, signature):
+    """
+    Verifies the authenticity of an API response signature
+
+    :param public_id: The public id of the asset as returned in the API response
+    :param version: The version of the asset as returned in the API response
+    :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
+
+    :return: Boolean result of the validation
+    """
+    if not cloudinary.config().api_secret:
+        raise Exception('Api secret key is empty')
+
+    parameters_to_sign = {'public_id': public_id,
+                          'version': version}
+
+    return signature == api_sign_request(parameters_to_sign, cloudinary.config().api_secret)
+
+
+def verify_notification_signature(body, timestamp, signature, valid_for=7200):
+    """
+    Verifies the authenticity of a notification signature
+
+    :param body: Json of the request's body
+    :param timestamp: Unix timestamp. Can be retrieved from the X-Cld-Timestamp header
+    :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
+    :param valid_for: The desired time in seconds for considering the request valid
+
+    :return: Boolean result of the validation
+    """
+    if not cloudinary.config().api_secret:
+        raise Exception('Api secret key is empty')
+
+    if timestamp < time.time() - valid_for:
+        return False
+
+    if not isinstance(body, str):
+        raise ValueError('Body should be type of string')
+
+    return signature == compute_hex_hash('{}{}{}'.format(body, timestamp, cloudinary.config().api_secret))
+
+
+def get_http_connector(conf, options):
+    """
+    Used to create http connector, depends on api_proxy configuration parameter
+
+    :param conf: configuration object
+    :param options: additional options
+
+    :return: ProxyManager if api_proxy is set, otherwise PoolManager object
+    """
+    if conf.api_proxy:
+        return ProxyManager(conf.api_proxy, **options)
+    else:
+        return PoolManager(**options)

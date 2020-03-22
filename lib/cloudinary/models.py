@@ -1,10 +1,10 @@
 import re
 
-
 from cloudinary import CloudinaryResource, forms, uploader
-
 from django.core.files.uploadedfile import UploadedFile
 from django.db import models
+from cloudinary.uploader import upload_options
+from cloudinary.utils import upload_params
 
 # Add introspection rules for South, if it's installed.
 try:
@@ -13,15 +13,23 @@ try:
 except ImportError:
     pass
 
-CLOUDINARY_FIELD_DB_RE = r'(?:(?P<resource_type>image|raw|video)/(?P<type>upload|private|authenticated)/)?(?:v(?P<version>\d+)/)?(?P<public_id>.*?)(\.(?P<format>[^.]+))?$'
+CLOUDINARY_FIELD_DB_RE = r'(?:(?P<resource_type>image|raw|video)/' \
+                         r'(?P<type>upload|private|authenticated)/)?' \
+                         r'(?:v(?P<version>\d+)/)?' \
+                         r'(?P<public_id>.*?)' \
+                         r'(\.(?P<format>[^.]+))?$'
 
 
-# Taken from six - https://pythonhosted.org/six/
 def with_metaclass(meta, *bases):
-    """Create a base class with a metaclass."""
-    # This requires a bit of explanation: the basic idea is to make a dummy
-    # metaclass for one level of class instantiation that replaces itself with
-    # the actual metaclass.
+    """
+    Create a base class with a metaclass.
+
+    This requires a bit of explanation: the basic idea is to make a dummy
+    metaclass for one level of class instantiation that replaces itself with
+    the actual metaclass.
+
+    Taken from six - https://pythonhosted.org/six/
+    """
     class metaclass(meta):
         def __new__(cls, name, this_bases, d):
             return meta(name, bases, d)
@@ -32,23 +40,32 @@ class CloudinaryField(models.Field):
     description = "A resource stored in Cloudinary"
 
     def __init__(self, *args, **kwargs):
-        options = {'max_length': 255}
         self.default_form_class = kwargs.pop("default_form_class", forms.CloudinaryFileField)
-        options.update(kwargs)
-        self.type = options.pop("type", "upload")
-        self.resource_type = options.pop("resource_type", "image")
-        self.width_field = options.pop("width_field", None)
-        self.height_field = options.pop("height_field", None)
-        super(CloudinaryField, self).__init__(*args, **options)
+        self.type = kwargs.pop("type", "upload")
+        self.resource_type = kwargs.pop("resource_type", "image")
+        self.width_field = kwargs.pop("width_field", None)
+        self.height_field = kwargs.pop("height_field", None)
+        # Collect all options related to Cloudinary upload
+        self.options = {key: kwargs.pop(key) for key in set(kwargs.keys()) if key in upload_params + upload_options}
+
+        field_options = kwargs
+        field_options['max_length'] = 255
+        super(CloudinaryField, self).__init__(*args, **field_options)
 
     def get_internal_type(self):
         return 'CharField'
 
     def value_to_string(self, obj):
-        # We need to support both legacy `_get_val_from_obj` and new `value_from_object` models.Field methods.
-        # It would be better to wrap it with try -> except AttributeError -> fallback to legacy.
-        # Unfortunately, we can catch AttributeError exception from `value_from_object` function itself.
-        # Parsing exception string is an overkill here, that's why we check for attribute existence
+        """
+        We need to support both legacy `_get_val_from_obj` and new `value_from_object` models.Field methods.
+        It would be better to wrap it with try -> except AttributeError -> fallback to legacy.
+        Unfortunately, we can catch AttributeError exception from `value_from_object` function itself.
+        Parsing exception string is an overkill here, that's why we check for attribute existence
+
+        :param obj: Value to serialize
+
+        :return: Serialized value
+        """
 
         if hasattr(self, 'value_from_object'):
             value = self.value_from_object(obj)
@@ -69,38 +86,33 @@ class CloudinaryField(models.Field):
             format=m.group('format')
         )
 
-    def from_db_value(self, value, expression, connection, context):
-        if value is None:
-            return value
-        return self.parse_cloudinary_resource(value)
+    def from_db_value(self, value, expression, connection, *args, **kwargs):
+        # TODO: when dropping support for versions prior to 2.0, you may return
+        #   the signature to from_db_value(value, expression, connection)
+        if value is not None:
+            return self.parse_cloudinary_resource(value)
 
     def to_python(self, value):
         if isinstance(value, CloudinaryResource):
             return value
         elif isinstance(value, UploadedFile):
             return value
-        elif value is None:
+        elif value is None or value is False:
             return value
         else:
             return self.parse_cloudinary_resource(value)
-
-    def upload_options_with_filename(self, model_instance, filename):
-        return self.upload_options(model_instance)
-
-    def upload_options(self, model_instance):
-        return {}
 
     def pre_save(self, model_instance, add):
         value = super(CloudinaryField, self).pre_save(model_instance, add)
         if isinstance(value, UploadedFile):
             options = {"type": self.type, "resource_type": self.resource_type}
-            options.update(self.upload_options_with_filename(model_instance, value.name))
+            options.update(self.options)
             instance_value = uploader.upload_resource(value, **options)
             setattr(model_instance, self.attname, instance_value)
             if self.width_field:
-                setattr(model_instance, self.width_field, instance_value.metadata['width'])
+                setattr(model_instance, self.width_field, instance_value.metadata.get('width'))
             if self.height_field:
-                setattr(model_instance, self.height_field, instance_value.metadata['height'])
+                setattr(model_instance, self.height_field, instance_value.metadata.get('height'))
             return self.get_prep_value(instance_value)
         else:
             return value

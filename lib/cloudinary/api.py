@@ -4,27 +4,23 @@ import email.utils
 import json
 import socket
 
-import cloudinary
-from six import string_types
-
 import urllib3
-import certifi
-
-from cloudinary import utils
+from six import string_types
 from urllib3.exceptions import HTTPError
 
+import cloudinary
+from cloudinary import utils
+from cloudinary.exceptions import (
+    BadRequest,
+    AuthorizationRequired,
+    NotAllowed,
+    NotFound,
+    AlreadyExists,
+    RateLimited,
+    GeneralError
+)
+
 logger = cloudinary.logger
-
-# intentionally one-liners
-class Error(Exception): pass
-class NotFound(Error): pass
-class NotAllowed(Error): pass
-class AlreadyExists(Error): pass
-class RateLimited(Error): pass
-class BadRequest(Error): pass
-class GeneralError(Error): pass
-class AuthorizationRequired(Error): pass
-
 
 EXCEPTION_CODES = {
     400: BadRequest,
@@ -45,10 +41,8 @@ class Response(dict):
         self.rate_limit_reset_at = email.utils.parsedate(response.headers["x-featureratelimit-reset"])
         self.rate_limit_remaining = int(response.headers["x-featureratelimit-remaining"])
 
-_http = urllib3.PoolManager(
-        cert_reqs='CERT_REQUIRED',
-        ca_certs=certifi.where()
-        )
+
+_http = utils.get_http_connector(cloudinary.config(), cloudinary.CERT_KWARGS)
 
 
 def ping(**options):
@@ -67,23 +61,26 @@ def resources(**options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", None)
     uri = ["resources", resource_type]
-    if upload_type: uri.append(upload_type)
-    params = only(options,
-                  "next_cursor", "max_results", "prefix", "tags", "context", "moderations", "direction", "start_at")
+    if upload_type:
+        uri.append(upload_type)
+    params = only(options, "next_cursor", "max_results", "prefix", "tags",
+                  "context", "moderations", "direction", "start_at")
     return call_api("get", uri, params, **options)
 
 
 def resources_by_tag(tag, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "tags", tag]
-    params = only(options, "next_cursor", "max_results", "tags", "context", "moderations", "direction")
+    params = only(options, "next_cursor", "max_results", "tags",
+                  "context", "moderations", "direction")
     return call_api("get", uri, params, **options)
 
 
 def resources_by_moderation(kind, status, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "moderations", kind, status]
-    params = only(options, "next_cursor", "max_results", "tags", "context", "moderations", "direction")
+    params = only(options, "next_cursor", "max_results", "tags",
+                  "context", "moderations", "direction")
     return call_api("get", uri, params, **options)
 
 
@@ -99,7 +96,8 @@ def resource(public_id, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
     uri = ["resources", resource_type, upload_type, public_id]
-    params = only(options, "exif", "faces", "colors", "image_metadata", "pages", "phash", "coordinates", "max_results")
+    params = only(options, "exif", "faces", "colors", "image_metadata", "cinemagraph_analysis",
+                  "pages", "phash", "coordinates", "max_results", "quality_analysis", "derived_next_cursor")
     return call_api("get", uri, params, **options)
 
 
@@ -114,9 +112,11 @@ def update(public_id, **options):
     if "tags" in options:
         params["tags"] = ",".join(utils.build_array(options["tags"]))
     if "face_coordinates" in options:
-        params["face_coordinates"] = utils.encode_double_array(options.get("face_coordinates"))
+        params["face_coordinates"] = utils.encode_double_array(
+            options.get("face_coordinates"))
     if "custom_coordinates" in options:
-        params["custom_coordinates"] = utils.encode_double_array(options.get("custom_coordinates"))
+        params["custom_coordinates"] = utils.encode_double_array(
+            options.get("custom_coordinates"))
     if "context" in options:
         params["context"] = utils.encode_context(options.get("context"))
     if "auto_tagging" in options:
@@ -167,8 +167,7 @@ def delete_derived_resources(derived_resource_ids, **options):
 def delete_derived_by_transformation(public_ids, transformations,
                                      resource_type='image', type='upload', invalidate=None,
                                      **options):
-    """
-    Delete derived resources of public ids, identified by transformations
+    """Delete derived resources of public ids, identified by transformations
 
     :param public_ids: the base resources
     :type public_ids: list of str
@@ -202,33 +201,49 @@ def tags(**options):
 
 def transformations(**options):
     uri = ["transformations"]
-    return call_api("get", uri, only(options, "next_cursor", "max_results"), **options)
+    params = only(options, "named", "next_cursor", "max_results")
+
+    return call_api("get", uri, params, **options)
 
 
 def transformation(transformation, **options):
-    uri = ["transformations", transformation_string(transformation)]
-    return call_api("get", uri, only(options, "next_cursor", "max_results"), **options)
+    uri = ["transformations"]
+
+    params = only(options, "next_cursor", "max_results")
+    params["transformation"] = utils.build_single_eager(transformation)
+
+    return call_api("get", uri, params, **options)
 
 
 def delete_transformation(transformation, **options):
-    uri = ["transformations", transformation_string(transformation)]
-    return call_api("delete", uri, {}, **options)
+    uri = ["transformations"]
+
+    params = {"transformation": utils.build_single_eager(transformation)}
+
+    return call_api("delete", uri, params, **options)
 
 
-# updates - currently only supported update is the "allowed_for_strict" boolean flag and unsafe_update
+# updates - currently only supported update is the "allowed_for_strict"
+# boolean flag and unsafe_update
 def update_transformation(transformation, **options):
-    uri = ["transformations", transformation_string(transformation)]
+    uri = ["transformations"]
+
     updates = only(options, "allowed_for_strict")
+
     if "unsafe_update" in options:
         updates["unsafe_update"] = transformation_string(options.get("unsafe_update"))
-    if not updates: raise Exception("No updates given")
+
+    updates["transformation"] = utils.build_single_eager(transformation)
 
     return call_api("put", uri, updates, **options)
 
 
 def create_transformation(name, definition, **options):
-    uri = ["transformations", name]
-    return call_api("post", uri, {"transformation": transformation_string(definition)}, **options)
+    uri = ["transformations"]
+
+    params = {"name": name, "transformation": utils.build_single_eager(definition)}
+
+    return call_api("post", uri, params, **options)
 
 
 def publish_by_ids(public_ids, **options):
@@ -271,7 +286,7 @@ def update_upload_preset(name, **options):
     uri = ["upload_presets", name]
     params = utils.build_upload_params(**options)
     params = utils.cleanup_params(params)
-    params.update(only(options, "unsigned", "disallow_public_id"))
+    params.update(only(options, "unsigned", "disallow_public_id", "live"))
     return call_api("put", uri, params, **options)
 
 
@@ -279,16 +294,33 @@ def create_upload_preset(**options):
     uri = ["upload_presets"]
     params = utils.build_upload_params(**options)
     params = utils.cleanup_params(params)
-    params.update(only(options, "unsigned", "disallow_public_id", "name"))
+    params.update(only(options, "unsigned", "disallow_public_id", "name", "live"))
     return call_api("post", uri, params, **options)
 
 
+def create_folder(path, **options):
+    return call_api("post", ["folders", path], {}, **options)
+
+
 def root_folders(**options):
-    return call_api("get", ["folders"], {}, **options)
+    return call_api("get", ["folders"], only(options, "next_cursor", "max_results"), **options)
 
 
 def subfolders(of_folder_path, **options):
-    return call_api("get", ["folders", of_folder_path], {}, **options)
+    return call_api("get", ["folders", of_folder_path], only(options, "next_cursor", "max_results"), **options)
+
+
+def delete_folder(path, **options):
+    """Deletes folder
+
+    Deleted folder must be empty, but can have descendant empty sub folders
+
+    :param path: The folder to delete
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    return call_api("delete", ["folders", path], {}, **options)
 
 
 def restore(public_ids, **options):
@@ -361,29 +393,48 @@ def update_streaming_profile(name, **options):
 def call_json_api(method, uri, jsonBody, **options):
     logger.debug(jsonBody)
     data = json.dumps(jsonBody).encode('utf-8')
-    return _call_api(method, uri, body=data, headers={'Content-Type': 'application/json'}, **options)
+    return _call_api(method, uri, body=data,
+                     headers={'Content-Type': 'application/json'}, **options)
 
 
 def call_api(method, uri, params, **options):
     return _call_api(method, uri, params=params, **options)
 
 
+def call_metadata_api(method, uri, params, **options):
+    """Private function that assists with performing an API call to the
+    metadata_fields part of the Admin API
+
+    :param method: The HTTP method. Valid methods: get, post, put, delete
+    :param uri: REST endpoint of the API (without 'metadata_fields')
+    :param params: Query/body parameters passed to the method
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    uri = ["metadata_fields"] + (uri or [])
+    return call_json_api(method, uri, params, **options)
+
+
 def _call_api(method, uri, params=None, body=None, headers=None, **options):
     prefix = options.pop("upload_prefix",
                          cloudinary.config().upload_prefix) or "https://api.cloudinary.com"
     cloud_name = options.pop("cloud_name", cloudinary.config().cloud_name)
-    if not cloud_name: raise Exception("Must supply cloud_name")
+    if not cloud_name:
+        raise Exception("Must supply cloud_name")
     api_key = options.pop("api_key", cloudinary.config().api_key)
-    if not api_key: raise Exception("Must supply api_key")
+    if not api_key:
+        raise Exception("Must supply api_key")
     api_secret = options.pop("api_secret", cloudinary.config().api_secret)
-    if not cloud_name: raise Exception("Must supply api_secret")
+    if not cloud_name:
+        raise Exception("Must supply api_secret")
     api_url = "/".join([prefix, "v1_1", cloud_name] + uri)
 
     processed_params = None
     if isinstance(params, dict):
         processed_params = {}
         for key, value in params.items():
-            if isinstance(value, list):
+            if isinstance(value, list) or isinstance(value, tuple):
                 value_list = {"{}[{}]".format(key, i): i_value for i, i_value in enumerate(value)}
                 processed_params.update(value_list)
             elif value:
@@ -437,12 +488,166 @@ def transformation_string(transformation):
 def __prepare_streaming_profile_params(**options):
     params = only(options, "display_name")
     if "representations" in options:
-        representations = [{"transformation": transformation_string(trans)} for trans in options["representations"]]
+        representations = [{"transformation": transformation_string(trans)}
+                           for trans in options["representations"]]
         params["representations"] = json.dumps(representations)
     return params
+
 
 def __delete_resource_params(options, **params):
     p = dict(transformations=utils.build_eager(options.get('transformations')),
              **only(options, "keep_original", "next_cursor", "invalidate"))
     p.update(params)
     return p
+
+
+def list_metadata_fields(**options):
+    """Returns a list of all metadata field definitions
+
+    See: `Get metadata fields API reference <https://cloudinary.com/documentation/admin_api#get_metadata_fields>`_
+
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    return call_metadata_api("get", [], {}, **options)
+
+
+def metadata_field_by_field_id(field_external_id, **options):
+    """Gets a metadata field by external id
+
+    See: `Get metadata field by external ID API reference
+    <https://cloudinary.com/documentation/admin_api#get_a_metadata_field_by_external_id>`_
+
+    :param field_external_id: The ID of the metadata field to retrieve
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    uri = [field_external_id]
+    return call_metadata_api("get", uri, {}, **options)
+
+
+def add_metadata_field(field, **options):
+    """Creates a new metadata field definition
+
+    See: `Create metadata field API reference <https://cloudinary.com/documentation/admin_api#create_a_metadata_field>`_
+
+    :param field: The field to add
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    params = only(field, "type", "external_id", "label", "mandatory",
+                  "default_value", "validation", "datasource")
+    return call_metadata_api("post", [], params, **options)
+
+
+def update_metadata_field(field_external_id, field, **options):
+    """Updates a metadata field by external id
+
+    Updates a metadata field definition (partially, no need to pass the entire
+    object) passed as JSON data.
+
+    See `Generic structure of a metadata field
+    <https://cloudinary.com/documentation/admin_api#generic_structure_of_a_metadata_field>`_ for details.
+
+    :param field_external_id: The id of the metadata field to update
+    :param field: The field definition
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    uri = [field_external_id]
+    params = only(field, "label", "mandatory", "default_value", "validation")
+    return call_metadata_api("put", uri, params, **options)
+
+
+def delete_metadata_field(field_external_id, **options):
+    """Deletes a metadata field definition.
+    The field should no longer be considered a valid candidate for all other endpoints
+
+    See: `Delete metadata field API reference
+    <https://cloudinary.com/documentation/admin_api#delete_a_metadata_field_by_external_id>`_
+
+    :param field_external_id: The external id of the field to delete
+    :param options: Additional options
+
+    :return: An array with a "message" key. "ok" value indicates a successful deletion.
+    :rtype: Response
+    """
+    uri = [field_external_id]
+    return call_metadata_api("delete", uri, {}, **options)
+
+
+def delete_datasource_entries(field_external_id, entries_external_id, **options):
+    """Deletes entries in a metadata field datasource
+
+    Deletes (blocks) the datasource entries for a specified metadata field
+    definition. Sets the state of the entries to inactive. This is a soft delete,
+    the entries still exist under the hood and can be activated again with the
+    restore datasource entries method.
+
+    See: `Delete entries in a metadata field datasource API reference
+    <https://cloudinary.com/documentation/admin_api#delete_entries_in_a_metadata_field_datasource>`_
+
+    :param field_external_id: The id of the field to update
+    :param  entries_external_id: The ids of all the entries to delete from the
+                                 datasource
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    uri = [field_external_id, "datasource"]
+    params = {"external_ids": entries_external_id}
+    return call_metadata_api("delete", uri, params, **options)
+
+
+def update_metadata_field_datasource(field_external_id, entries_external_id, **options):
+    """Updates a metadata field datasource
+
+    Updates the datasource of a supported field type (currently only enum and set),
+    passed as JSON data. The update is partial: datasource entries with an
+    existing external_id will be updated and entries with new external_id's (or
+    without external_id's) will be appended.
+
+    See: `Update a metadata field datasource API reference
+    <https://cloudinary.com/documentation/admin_api#update_a_metadata_field_datasource>`_
+
+    :param field_external_id: The external id of the field to update
+    :param entries_external_id:
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    values = []
+    for item in entries_external_id:
+        external = only(item, "external_id", "value")
+        if external:
+            values.append(external)
+
+    uri = [field_external_id, "datasource"]
+    params = {"values": values}
+    return call_metadata_api("put", uri, params, **options)
+
+
+def restore_metadata_field_datasource(field_external_id, entries_external_ids, **options):
+    """Restores entries in a metadata field datasource
+
+    Restores (unblocks) any previously deleted datasource entries for a specified
+    metadata field definition.
+    Sets the state of the entries to active.
+
+    See: `Restore entries in a metadata field datasource API reference
+    <https://cloudinary.com/documentation/admin_api#restore_entries_in_a_metadata_field_datasource>`_
+
+    :param field_external_id: The ID of the metadata field
+    :param entries_external_ids: An array of IDs of datasource entries to restore
+                                 (unblock)
+    :param options: Additional options
+
+    :rtype: Response
+    """
+    uri = [field_external_id, 'datasource_restore']
+    params = {"external_ids": entries_external_ids}
+    return call_metadata_api("post", uri, params, **options)

@@ -27,14 +27,17 @@ Example usage:
 ...                       {'Content-Length': str(len(s))})
 """
 
-import sys, socket
-from cloudinary.compat import httplib, urllib2, NotConnected
+import socket
+import sys
+
+from cloudinary.compat import NotConnected, httplib, urllib2
 
 __all__ = ['StreamingHTTPConnection', 'StreamingHTTPRedirectHandler',
-        'StreamingHTTPHandler', 'register_openers']
+           'StreamingHTTPHandler', 'register_openers']
 
 if hasattr(httplib, 'HTTPS'):
     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
+
 
 class _StreamingHTTPMixin:
     """Mixin class for HTTP and HTTPS connections that implements a streaming
@@ -62,7 +65,7 @@ class _StreamingHTTPMixin:
             print("send:", repr(value))
         try:
             blocksize = 8192
-            if hasattr(value, 'read') :
+            if hasattr(value, 'read'):
                 if hasattr(value, 'seek'):
                     value.seek(0)
                 if self.debuglevel > 0:
@@ -86,9 +89,11 @@ class _StreamingHTTPMixin:
                 self.close()
             raise
 
+
 class StreamingHTTPConnection(_StreamingHTTPMixin, httplib.HTTPConnection):
     """Subclass of `httplib.HTTPConnection` that overrides the `send()` method
     to support iterable body objects"""
+
 
 class StreamingHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
     """Subclass of `urllib2.HTTPRedirectHandler` that overrides the
@@ -114,7 +119,7 @@ class StreamingHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
         """
         m = req.get_method()
         if (code in (301, 302, 303, 307) and m in ("GET", "HEAD")
-            or code in (301, 302, 303) and m == "POST"):
+                or code in (301, 302, 303) and m == "POST"):
             # Strictly (according to RFC 2616), 301 or 302 in response
             # to a POST MUST NOT cause a redirection without confirmation
             # from the user (of urllib2, in this case).  In practice,
@@ -125,13 +130,15 @@ class StreamingHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
             newheaders = dict((k, v) for k, v in req.headers.items()
                               if k.lower() not in (
                                   "content-length", "content-type")
-                             )
-            return urllib2.Request(newurl,
-                           headers=newheaders,
-                           origin_req_host=req.get_origin_req_host(),
-                           unverifiable=True)
+                              )
+            return urllib2.Request(
+                newurl,
+                headers=newheaders,
+                origin_req_host=req.get_origin_req_host(),
+                unverifiable=True)
         else:
             raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
+
 
 class StreamingHTTPHandler(urllib2.HTTPHandler):
     """Subclass of `urllib2.HTTPHandler` that uses
@@ -156,9 +163,9 @@ class StreamingHTTPHandler(urllib2.HTTPHandler):
                             "No Content-Length specified for iterable body")
         return urllib2.HTTPHandler.do_request_(self, req)
 
+
 if hasattr(httplib, 'HTTPS'):
-    class StreamingHTTPSConnection(_StreamingHTTPMixin,
-            httplib.HTTPSConnection):
+    class StreamingHTTPSConnection(_StreamingHTTPMixin, httplib.HTTPSConnection):
         """Subclass of `httplib.HTTSConnection` that overrides the `send()`
         method to support iterable body objects"""
 
@@ -179,7 +186,7 @@ if hasattr(httplib, 'HTTPS'):
                 if hasattr(data, 'read') or hasattr(data, 'next'):
                     if not req.has_header('Content-length'):
                         raise ValueError(
-                                "No Content-Length specified for iterable body")
+                            "No Content-Length specified for iterable body")
             return urllib2.HTTPSHandler.do_request_(self, req)
 
 
@@ -188,7 +195,8 @@ def get_handlers():
     if hasattr(httplib, "HTTPS"):
         handlers.append(StreamingHTTPSHandler)
     return handlers
-    
+
+
 def register_openers():
     """Register the streaming http handlers in the global urllib2 default
     opener object.

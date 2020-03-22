@@ -1,6 +1,7 @@
 import json
 from copy import deepcopy
-from . import api
+
+from cloudinary.api import call_json_api
 
 
 class Search:
@@ -46,8 +47,8 @@ class Search:
     def execute(self, **options):
         """Execute the search and return results."""
         options["content_type"] = 'application/json'
-        uri = ['resources','search']
-        return api.call_json_api('post', uri, self.as_dict(), **options)
+        uri = ['resources', 'search']
+        return call_json_api('post', uri, self.as_dict(), **options)
 
     def _add(self, name, value):
         if name not in self.query:
