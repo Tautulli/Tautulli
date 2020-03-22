@@ -2365,7 +2365,7 @@ class PmsConnect(object):
                                       }
                     children_results_list[media_type].append(children_output)
 
-            output = {'results_count': sum(len(s) for s in children_results_list.items()),
+            output = {'results_count': sum(len(v) for k, v in children_results_list.items()),
                       'results_list': children_results_list,
                       }
 
