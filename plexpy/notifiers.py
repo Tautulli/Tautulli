@@ -93,7 +93,6 @@ AGENT_IDS = {'growl': 0,
              'facebook': 16,
              'browser': 17,
              'join': 18,
-             'hipchat': 19,
              'discord': 20,
              'androidapp': 21,
              'groupme': 22,
@@ -137,10 +136,6 @@ def available_notification_agents():
               {'label': 'Growl',
                'name': 'growl',
                'id': AGENT_IDS['growl']
-               },
-              {'label': 'Hipchat',
-               'name': 'hipchat',
-               'id': AGENT_IDS['hipchat']
                },
               {'label': 'IFTTT',
                'name': 'ifttt',
@@ -382,8 +377,6 @@ def get_agent_class(agent_id=None, config=None):
             return BROWSER(config=config)
         elif agent_id == 18:
             return JOIN(config=config)
-        elif agent_id == 19:
-            return HIPCHAT(config=config)
         elif agent_id == 20:
             return DISCORD(config=config)
         elif agent_id == 21:
@@ -1824,179 +1817,6 @@ class GROWL(Notifier):
                           'name': 'growl_password',
                           'description': 'Your Growl password.',
                           'input_type': 'password'
-                          }
-                         ]
-
-        return config_option
-
-
-class HIPCHAT(Notifier):
-    """
-    Hipchat notifications
-    """
-    NAME = 'Hipchat'
-    _DEFAULT_CONFIG = {'hook': '',
-                       'color': '',
-                       'emoticon': '',
-                       'incl_subject': 1,
-                       'incl_card': 0,
-                       'incl_description': 1,
-                       'incl_pmslink': 0,
-                       'movie_provider': '',
-                       'tv_provider': '',
-                       'music_provider': ''
-                       }
-
-    def agent_notify(self, subject='', body='', action='', **kwargs):
-        data = {'notify': 'false'}
-
-        text = body
-
-        if self.config['incl_subject']:
-            data['from'] = subject
-
-        if self.config['color']:
-            data['color'] = self.config['color']
-
-        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
-            # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['parameters'])
-
-            if pretty_metadata.media_type == 'movie':
-                provider = self.config['movie_provider']
-            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
-                provider = self.config['tv_provider']
-            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
-                provider = self.config['music_provider']
-            else:
-                provider = None
-
-            poster_url = pretty_metadata.get_poster_url()
-            provider_name = pretty_metadata.get_provider_name(provider)
-            provider_link = pretty_metadata.get_provider_link(provider)
-            title = pretty_metadata.get_title()
-            description = pretty_metadata.get_description()
-            plex_url = pretty_metadata.get_plex_url()
-
-            attachment = {'title': title,
-                          'format': 'medium',
-                          'style': 'application',
-                          'id': uuid.uuid4().hex,
-                          'activity': {'html': text,
-                                       'icon': {'url': poster_url}},
-                          'thumbnail': {'url': poster_url}
-                          }
-
-            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
-                attachment['description'] = {'format': 'text',
-                                             'value': description}
-
-            attributes = []
-            if provider_link:
-                attachment['url'] = provider_link
-                attributes.append({'label': 'View Details',
-                                   'value': {'label': provider_name,
-                                             'url': provider_link}})
-            if self.config['incl_pmslink']:
-                attributes.append({'label': 'View Details',
-                                   'value': {'label': 'Plex Web',
-                                             'url': plex_url}})
-            if attributes:
-                attachment['attributes'] = attributes
-
-            data['message'] = text
-            data['card'] = attachment
-
-        else:
-            if self.config['emoticon']:
-                text = self.config['emoticon'] + ' ' + text
-            data['message'] = text
-            data['message_format'] = 'text'
-
-        headers = {'Content-type': 'application/json'}
-
-        return self.make_request(self.config['hook'], headers=headers, json=data)
-
-    def _return_config_options(self):
-        config_option = [{'label': 'Hipchat Custom Integrations URL',
-                          'value': self.config['hook'],
-                          'name': 'hipchat_hook',
-                          'description': 'Your Hipchat BYO integration URL. You can get a key from'
-                                         ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Hipchat Color',
-                          'value': self.config['color'],
-                          'name': 'hipchat_color',
-                          'description': 'Background color for the message.',
-                          'input_type': 'select',
-                          'select_options': {'': '',
-                                             'gray': 'gray',
-                                             'green': 'green',
-                                             'purple': 'purple',
-                                             'random': 'random',
-                                             'red': 'red',
-                                             'yellow': 'yellow'
-                                             }
-                          },
-                         {'label': 'Hipchat Emoticon',
-                          'value': self.config['emoticon'],
-                          'name': 'hipchat_emoticon',
-                          'description': 'Include an emoticon tag at the beginning of text notifications (e.g. (taco)). Leave blank for none.'
-                                         ' Use a stock emoticon or create a custom emoticon'
-                                         ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Include Subject Line',
-                          'value': self.config['incl_subject'],
-                          'name': 'hipchat_incl_subject',
-                          'description': 'Includes the subject with the notifications.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Rich Metadata Info',
-                          'value': self.config['incl_card'],
-                          'name': 'hipchat_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
-                                         'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.<br>'
-                                         'Note: This will change the notification type to HTML and emoticons will no longer work.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Plot Summaries',
-                          'value': self.config['incl_description'],
-                          'name': 'hipchat_incl_description',
-                          'description': 'Include a plot summary for movies and TV shows on the info card.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Link to Plex Web',
-                          'value': self.config['incl_pmslink'],
-                          'name': 'hipchat_incl_pmslink',
-                          'description': 'Include a second link to the media in Plex Web on the info card.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Movie Link Source',
-                          'value': self.config['movie_provider'],
-                          'name': 'hipchat_movie_provider',
-                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
-                          'input_type': 'select',
-                          'select_options': PrettyMetadata().get_movie_providers()
-                          },
-                         {'label': 'TV Show Link Source',
-                          'value': self.config['tv_provider'],
-                          'name': 'hipchat_tv_provider',
-                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
-                          'input_type': 'select',
-                          'select_options': PrettyMetadata().get_tv_providers()
-                          },
-                         {'label': 'Music Link Source',
-                          'value': self.config['music_provider'],
-                          'name': 'hipchat_music_provider',
-                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
-                          'input_type': 'select',
-                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
