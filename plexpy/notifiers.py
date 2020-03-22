@@ -875,11 +875,11 @@ class ANDROIDAPP(Notifier):
                           'body': body,
                           'action': action,
                           'priority': self.config['priority'],
-                          'session_key': pretty_metadata.parameters.get('session_key',''),
-                          'session_id': pretty_metadata.parameters.get('session_id',''),
-                          'user_id': pretty_metadata.parameters.get('user_id',''),
-                          'rating_key': pretty_metadata.parameters.get('rating_key',''),
-                          'poster_thumb': pretty_metadata.parameters.get('poster_thumb','')}
+                          'session_key': pretty_metadata.parameters.get('session_key', ''),
+                          'session_id': pretty_metadata.parameters.get('session_id', ''),
+                          'user_id': pretty_metadata.parameters.get('user_id', ''),
+                          'rating_key': pretty_metadata.parameters.get('rating_key', ''),
+                          'poster_thumb': pretty_metadata.parameters.get('poster_thumb', '')}
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
@@ -897,7 +897,7 @@ class ANDROIDAPP(Notifier):
             # Encrypt using AES GCM
             nonce = get_random_bytes(16)
             cipher = AES.new(key, AES.MODE_GCM, nonce)
-            encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
+            encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data).encode('utf-8'))
             encrypted_data += gcm_tag
 
             #logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
