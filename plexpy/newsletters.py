@@ -525,9 +525,9 @@ class Newsletter(object):
 
         try:
             with open(newsletter_file_fp, 'wb') as n_file:
-                for line in self.newsletter.encode('utf-8').splitlines():
+                for line in self.newsletter.splitlines():
                     if '<!-- IGNORE SAVE -->' not in line:
-                        n_file.write(line + '\r\n')
+                        n_file.write((line + '\r\n').encode('utf-8'))
                         #n_file.write(line.strip())
 
             logger.info("Tautulli Newsletters :: %s newsletter saved to '%s'" % (self.NAME, newsletter_file))
