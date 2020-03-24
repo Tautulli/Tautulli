@@ -15,8 +15,8 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import str
-from builtins import object
+from future.builtins import str
+from future.builtins import object
 
 from collections import defaultdict
 import json

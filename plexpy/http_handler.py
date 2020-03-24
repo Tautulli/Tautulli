@@ -17,15 +17,12 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from past.builtins import basestring
-from builtins import object
-from builtins import str
+from future.builtins import object
+from future.builtins import str
 
 from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
-from urllib.parse import urljoin
+from future.moves.urllib.parse import urljoin
 
 import certifi
 import urllib3
@@ -47,7 +44,7 @@ class HTTPHandler(object):
     def __init__(self, urls, headers=None, token=None, timeout=10, ssl_verify=True, silent=False):
         self._silent = silent
 
-        if isinstance(urls, basestring):
+        if isinstance(urls, str):
             self.urls = urls.split() or urls.split(',')
         else:
             self.urls = urls

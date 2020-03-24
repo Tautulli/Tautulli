@@ -15,8 +15,8 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from past.builtins import basestring
-from builtins import object
+from future.builtins import object
+from future.builtins import str
 
 import arrow
 import os
@@ -37,7 +37,7 @@ def bool_int(value):
     """
     Casts a config value into a 0 or 1
     """
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         if value.lower() in ('', '0', 'false', 'f', 'no', 'n', 'off'):
             value = 0
     return int(bool(value))
@@ -704,7 +704,7 @@ class Config(object):
 
         for key, subkeys in self._config.items():
             for subkey, value in subkeys.items():
-                if isinstance(value, basestring) and len(value.strip()) > 5 and \
+                if isinstance(value, str) and len(value.strip()) > 5 and \
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.add(value.strip())
 

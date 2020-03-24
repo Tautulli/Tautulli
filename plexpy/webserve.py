@@ -17,19 +17,16 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import str
-from past.builtins import basestring
-from builtins import object
+from future.builtins import next
+from future.builtins import object
+from future.builtins import str
 
 from io import open
 import json
 import os
 import shutil
 import threading
-import urllib.request, urllib.parse, urllib.error
+from future.moves.urllib.parse import urlencode
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
@@ -330,7 +327,7 @@ class WebInterface(object):
         if '{machine_id}' in endpoint:
             endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
 
-        return base_url + endpoint + '?' + urllib.parse.urlencode(kwargs)
+        return base_url + endpoint + '?' + urlencode(kwargs)
 
     @cherrypy.expose
     @requireAuth()
@@ -5714,7 +5711,7 @@ class WebInterface(object):
             ```
         """
         geo_info = helpers.geoip_lookup(ip_address)
-        if isinstance(geo_info, basestring):
+        if isinstance(geo_info, str):
             return {'error': geo_info}
         return geo_info
 

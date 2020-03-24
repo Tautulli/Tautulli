@@ -22,13 +22,11 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
+from future.builtins import str
+from future.builtins import object
 
 from datetime import datetime, timedelta
-from urllib.parse import quote, unquote
+from future.moves.urllib.parse import quote, unquote
 
 import cherrypy
 from hashing_passwords import check_hash

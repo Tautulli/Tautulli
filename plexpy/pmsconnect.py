@@ -17,16 +17,14 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import str
-from builtins import object
+from future.builtins import next
+from future.builtins import str
+from future.builtins import object
 
 import json
 import os
 import time
-from urllib.parse import quote, quote_plus, urlencode
+from future.moves.urllib.parse import quote, quote_plus, urlencode
 
 import plexpy
 if plexpy.PYTHON_VERSION < 3:

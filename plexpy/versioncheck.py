@@ -18,8 +18,8 @@
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import next
-from builtins import str
+from future.builtins import next
+from future.builtins import str
 from past.utils import old_div
 
 import os

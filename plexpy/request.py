@@ -17,7 +17,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import str
+from future.builtins import str
 
 from bs4 import BeautifulSoup
 from xml.dom import minidom

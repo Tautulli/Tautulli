@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import object
+from future.builtins import object
 
 import re
 

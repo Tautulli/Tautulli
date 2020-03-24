@@ -20,10 +20,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from past.builtins import cmp
 from future import standard_library
-standard_library.install_aliases()
-from builtins import zip
-from builtins import str
-from past.builtins import basestring
+
+from future.builtins import zip
+from future.builtins import str
 from past.utils import old_div
 
 import arrow
@@ -39,7 +38,7 @@ import geoip2.database
 import geoip2.errors
 import hashlib
 import imghdr
-from itertools import zip_longest
+from future.moves.itertools import zip_longest
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
@@ -57,7 +56,7 @@ import sys
 import tarfile
 import time
 import unicodedata
-from urllib.parse import urlencode
+from future.moves.urllib.parse import urlencode
 import urllib3
 from xml.dom import minidom
 import xmltodict
@@ -583,7 +582,7 @@ def sanitize_out(*dargs, **dkwargs):
 
 
 def sanitize(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         return str(obj).replace('<', '&lt;').replace('>', '&gt;')
     elif isinstance(obj, list):
         return [sanitize(o) for o in obj]
@@ -1259,7 +1258,7 @@ def traverse_map(obj, func):
 def split_args(args=None):
     if isinstance(args, list):
         return args
-    elif isinstance(args, basestring):
+    elif isinstance(args, str):
         return [arg.decode(plexpy.SYS_ENCODING, 'ignore')
                 for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
     return []
@@ -1284,7 +1283,7 @@ def mask_config_passwords(config):
 def bool_true(value):
     if value is True or value == 1:
         return True
-    elif isinstance(value, basestring) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
+    elif isinstance(value, str) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
         return True
     return False
 

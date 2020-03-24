@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from builtins import str
+from future.builtins import str
 
 import os
 import sys

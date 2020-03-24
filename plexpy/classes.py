@@ -22,10 +22,8 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
 
-from urllib.request import FancyURLopener
+from future.moves.urllib.request import FancyURLopener
 
 import plexpy
 if plexpy.PYTHON_VERSION < 3:

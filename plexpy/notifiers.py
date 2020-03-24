@@ -17,11 +17,9 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import next
-from builtins import str
-from builtins import object
+from future.builtins import next
+from future.builtins import str
+from future.builtins import object
 
 import base64
 import bleach
@@ -38,8 +36,8 @@ import subprocess
 import sys
 import threading
 import time
-from urllib.parse import urlencode
-from urllib.parse import urlparse
+from future.moves.urllib.parse import urlencode
+from future.moves.urllib.parse import urlparse
 
 try:
     from Cryptodome.Protocol.KDF import PBKDF2
