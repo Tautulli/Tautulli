@@ -21,6 +21,7 @@ from future import standard_library
 standard_library.install_aliases()
 from past.builtins import basestring
 from builtins import object
+from builtins import str
 
 from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
@@ -88,7 +89,7 @@ class HTTPHandler(object):
         Output: list
         """
 
-        self.uri = uri
+        self.uri = str(uri)
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
         self.return_type = return_type
@@ -100,7 +101,7 @@ class HTTPHandler(object):
             return None
 
         if uri:
-            request_urls = [urljoin(url, self.uri) for url in self.urls]
+            request_urls = [urljoin(str(url), self.uri) for url in self.urls]
 
             if no_token:
                 self.headers.pop('X-Plex-Token', None)
@@ -128,7 +129,7 @@ class HTTPHandler(object):
                 chunk = 0
 
         if self.ssl_verify:
-            session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+            session = urllib3.PoolManager(cert_reqs=2, ca_certs=certifi.where())  # ssl.CERT_REQUIRED = 2
         else:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             session = urllib3.PoolManager()
