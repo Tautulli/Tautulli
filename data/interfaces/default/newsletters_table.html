@@ -9,7 +9,7 @@ Version:            0.1
 DOCUMENTATION :: END
 </%doc>
 
-<% from plexpy.newsletter_handler import NEWSLETTER_SCHED %>
+<% from plexpy import newsletter_handler %>
 <ul class="stacked-configs list-unstyled">
     % for newsletter in sorted(newsletters_list, key=lambda k: (k['agent_label'], k['friendly_name'], k['id'])):
     <li class="newsletter-agent pointer" data-id="${newsletter['id']}">
@@ -22,8 +22,8 @@ DOCUMENTATION :: END
             % endif
             <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
             <span class="toggle-right friendly_name" id="newsletter-next_run-${newsletter['id']}">
-                % if NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])):
-                <% job = NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])) %>
+                % if newsletter_handler.NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])):
+                <% job = newsletter_handler.NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])) %>
                 <script>
                     $("#newsletter-next_run-${newsletter['id']}").text(moment("${job.next_run_time}", "YYYY-MM-DD HH:mm:ssZ").fromNow())
                 </script>
