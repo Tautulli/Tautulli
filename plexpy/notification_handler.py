@@ -1788,10 +1788,14 @@ class CustomFormatter(Formatter):
                 obj = self.convert_field(obj, conversion)
 
                 # expand the format spec, if needed
-                format_spec, auto_arg_index = self._vformat(
-                    format_spec, args, kwargs,
-                    used_args, recursion_depth-1,
-                    auto_arg_index=auto_arg_index)
+                if plexpy.PYTHON_VERSION < 3:
+                    format_spec = self._vformat(format_spec, args, kwargs,
+                                                used_args, recursion_depth - 1)
+                else:
+                    format_spec, auto_arg_index = self._vformat(
+                        format_spec, args, kwargs,
+                        used_args, recursion_depth-1,
+                        auto_arg_index=auto_arg_index)
 
                 # format the object and append to the result
                 formatted_field = self.format_field(obj, format_spec)
@@ -1803,4 +1807,7 @@ class CustomFormatter(Formatter):
                         result.append(suffix)
                 # result.append(self.format_field(obj, format_spec))
 
-        return ''.join(result), auto_arg_index
+        if plexpy.PYTHON_VERSION < 3:
+            return ''.join(result)
+        else:
+            return ''.join(result), auto_arg_index
