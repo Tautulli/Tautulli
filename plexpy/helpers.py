@@ -63,9 +63,14 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-from plexpy import logger
-from plexpy import request
-from plexpy.api2 import API2
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+    import request
+    from api2 import API2
+else:
+    from plexpy import logger
+    from plexpy import request
+    from plexpy.api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):

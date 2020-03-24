@@ -22,7 +22,11 @@ import distro
 import platform
 from collections import OrderedDict
 
-from plexpy import version
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    import version
+else:
+    from plexpy import version
 
 
 # Identify Our Application

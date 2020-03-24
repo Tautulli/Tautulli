@@ -21,8 +21,13 @@ from builtins import str
 
 import cherrypy
 
-from plexpy import common
-from plexpy import users
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import users
+else:
+    from plexpy import common
+    from plexpy import users
 
 
 def get_session_info():

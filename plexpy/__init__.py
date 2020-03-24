@@ -40,24 +40,46 @@ from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
 import pytz
 
-from plexpy import activity_handler
-from plexpy import activity_pinger
-from plexpy import common
-from plexpy import database
-from plexpy import datafactory
-from plexpy import libraries
-from plexpy import logger
-from plexpy import mobile_app
-from plexpy import newsletters
-from plexpy import newsletter_handler
-from plexpy import notification_handler
-from plexpy import notifiers
-from plexpy import plextv
-from plexpy import users
-from plexpy import versioncheck
-from plexpy import web_socket
-from plexpy import webstart
-from plexpy import config
+PYTHON_VERSION = sys.version_info[0]
+
+if PYTHON_VERSION < 3:
+    import activity_handler
+    import activity_pinger
+    import common
+    import database
+    import datafactory
+    import libraries
+    import logger
+    import mobile_app
+    import newsletters
+    import newsletter_handler
+    import notification_handler
+    import notifiers
+    import plextv
+    import users
+    import versioncheck
+    import web_socket
+    import webstart
+    import config
+else:
+    from plexpy import activity_handler
+    from plexpy import activity_pinger
+    from plexpy import common
+    from plexpy import database
+    from plexpy import datafactory
+    from plexpy import libraries
+    from plexpy import logger
+    from plexpy import mobile_app
+    from plexpy import newsletters
+    from plexpy import newsletter_handler
+    from plexpy import notification_handler
+    from plexpy import notifiers
+    from plexpy import plextv
+    from plexpy import users
+    from plexpy import versioncheck
+    from plexpy import web_socket
+    from plexpy import webstart
+    from plexpy import config
 
 
 PROG_DIR = None

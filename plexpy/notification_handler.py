@@ -45,16 +45,28 @@ import time
 import musicbrainzngs
 
 import plexpy
-from plexpy import activity_processor
-from plexpy import common
-from plexpy import database
-from plexpy import datafactory
-from plexpy import logger
-from plexpy import helpers
-from plexpy import notifiers
-from plexpy import pmsconnect
-from plexpy import request
-from plexpy.newsletter_handler import notify as notify_newsletter
+if plexpy.PYTHON_VERSION < 3:
+    import activity_processor
+    import common
+    import database
+    import datafactory
+    import logger
+    import helpers
+    import notifiers
+    import pmsconnect
+    import request
+    from newsletter_handler import notify as notify_newsletter
+else:
+    from plexpy import activity_processor
+    from plexpy import common
+    from plexpy import database
+    from plexpy import datafactory
+    from plexpy import logger
+    from plexpy import helpers
+    from plexpy import notifiers
+    from plexpy import pmsconnect
+    from plexpy import request
+    from plexpy.newsletter_handler import notify as notify_newsletter
 
 
 def process_queue():

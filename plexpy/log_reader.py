@@ -17,13 +17,17 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import str
+from io import open
 
 import os
 
 import plexpy
-from plexpy import helpers
-from plexpy import logger
+if plexpy.PYTHON_VERSION < 3:
+    import helpers
+    import logger
+else:
+    from plexpy import helpers
+    from plexpy import logger
 
 
 def get_log_tail(window=20, parsed=True, log_type="server"):

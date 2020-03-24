@@ -19,9 +19,15 @@ from builtins import object
 
 import re
 
-from plexpy import database
-from plexpy import helpers
-from plexpy import logger
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    import database
+    import helpers
+    import logger
+else:
+    from plexpy import database
+    from plexpy import helpers
+    from plexpy import logger
 
 
 class DataTables(object):

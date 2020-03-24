@@ -27,7 +27,10 @@ import time
 from configobj import ConfigObj
 
 import plexpy
-from plexpy import logger
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+else:
+    from plexpy import logger
 
 
 def bool_int(value):

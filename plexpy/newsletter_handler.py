@@ -25,9 +25,14 @@ from apscheduler.triggers.cron import CronTrigger
 import email.utils
 
 import plexpy
-from plexpy import database
-from plexpy import logger
-from plexpy import newsletters
+if plexpy.PYTHON_VERSION < 3:
+    import database
+    import logger
+    import newsletters
+else:
+    from plexpy import database
+    from plexpy import logger
+    from plexpy import newsletters
 
 
 NEWSLETTER_SCHED = None

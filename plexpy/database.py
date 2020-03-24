@@ -25,7 +25,10 @@ import threading
 import time
 
 import plexpy
-from plexpy import logger
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+else:
+    from plexpy import logger
 
 
 FILENAME = "tautulli.db"

@@ -24,11 +24,18 @@ from builtins import object
 import datetime
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import logger
-from plexpy import libraries
-from plexpy import session
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import database
+    import logger
+    import libraries
+    import session
+else:
+    from plexpy import common
+    from plexpy import database
+    from plexpy import logger
+    from plexpy import libraries
+    from plexpy import session
 
 
 class Graphs(object):

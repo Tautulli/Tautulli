@@ -23,7 +23,11 @@ import queue
 import time
 import threading
 
-from plexpy import logger
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+else:
+    from plexpy import logger
 
 
 class TimedLock(object):

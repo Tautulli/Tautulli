@@ -25,13 +25,22 @@ import base64
 import json
 
 import plexpy
-from plexpy import common
-from plexpy import helpers
-from plexpy import http_handler
-from plexpy import logger
-from plexpy import users
-from plexpy import pmsconnect
-from plexpy import session
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import helpers
+    import http_handler
+    import logger
+    import users
+    import pmsconnect
+    import session
+else:
+    from plexpy import common
+    from plexpy import helpers
+    from plexpy import http_handler
+    from plexpy import logger
+    from plexpy import users
+    from plexpy import pmsconnect
+    from plexpy import session
 
 
 def get_server_resources(return_presence=False, return_server=False, **kwargs):

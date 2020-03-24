@@ -30,8 +30,12 @@ import certifi
 import urllib3
 
 import plexpy
-from plexpy import helpers
-from plexpy import logger
+if plexpy.PYTHON_VERSION < 3:
+    import helpers
+    import logger
+else:
+    from plexpy import helpers
+    from plexpy import logger
 
 
 class HTTPHandler(object):

@@ -29,9 +29,14 @@ import subprocess
 import tarfile
 
 import plexpy
-from plexpy import common
-from plexpy import logger
-from plexpy import request
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import logger
+    import request
+else:
+    from plexpy import common
+    from plexpy import logger
+    from plexpy import request
 
 
 def runGit(args):

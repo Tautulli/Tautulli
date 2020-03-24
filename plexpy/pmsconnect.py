@@ -29,14 +29,24 @@ import time
 from urllib.parse import quote, quote_plus, urlencode
 
 import plexpy
-from plexpy import activity_processor
-from plexpy import common
-from plexpy import helpers
-from plexpy import http_handler
-from plexpy import logger
-from plexpy import plextv
-from plexpy import session
-from plexpy import users
+if plexpy.PYTHON_VERSION < 3:
+    import activity_processor
+    import common
+    import helpers
+    import http_handler
+    import logger
+    import plextv
+    import session
+    import users
+else:
+    from plexpy import activity_processor
+    from plexpy import common
+    from plexpy import helpers
+    from plexpy import http_handler
+    from plexpy import logger
+    from plexpy import plextv
+    from plexpy import session
+    from plexpy import users
 
 
 def get_server_friendly_name():

@@ -21,8 +21,13 @@ from builtins import str
 
 import time
 
-from plexpy import database
-from plexpy import logger
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    import database
+    import logger
+else:
+    from plexpy import database
+    from plexpy import logger
 
 
 TEMP_DEVICE_TOKEN = None

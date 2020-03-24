@@ -35,10 +35,16 @@ from hashing_passwords import check_hash
 import jwt
 
 import plexpy
-from plexpy import logger
-from plexpy.database import MonitorDatabase
-from plexpy.users import Users, refresh_users
-from plexpy.plextv import PlexTV
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+    from database import MonitorDatabase
+    from users import Users, refresh_users
+    from plextv import PlexTV
+else:
+    from plexpy import logger
+    from plexpy.database import MonitorDatabase
+    from plexpy.users import Users, refresh_users
+    from plexpy.plextv import PlexTV
 
 
 JWT_ALGORITHM = 'HS256'

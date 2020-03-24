@@ -34,17 +34,30 @@ import cherrypy
 import xmltodict
 
 import plexpy
-from plexpy import config
-from plexpy import database
-from plexpy import helpers
-from plexpy import libraries
-from plexpy import logger
-from plexpy import mobile_app
-from plexpy import notification_handler
-from plexpy import notifiers
-from plexpy import newsletter_handler
-from plexpy import newsletters
-from plexpy import users
+if plexpy.PYTHON_VERSION < 3:
+    import config
+    import database
+    import helpers
+    import libraries
+    import logger
+    import mobile_app
+    import notification_handler
+    import notifiers
+    import newsletter_handler
+    import newsletters
+    import users
+else:
+    from plexpy import config
+    from plexpy import database
+    from plexpy import helpers
+    from plexpy import libraries
+    from plexpy import logger
+    from plexpy import mobile_app
+    from plexpy import notification_handler
+    from plexpy import notifiers
+    from plexpy import newsletter_handler
+    from plexpy import newsletters
+    from plexpy import users
 
 
 class API2(object):

@@ -62,14 +62,24 @@ import facebook
 import twitter
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import helpers
-from plexpy import logger
-from plexpy import mobile_app
-from plexpy import pmsconnect
-from plexpy import request
-from plexpy import users
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import database
+    import helpers
+    import logger
+    import mobile_app
+    import pmsconnect
+    import request
+    import users
+else:
+    from plexpy import common
+    from plexpy import database
+    from plexpy import helpers
+    from plexpy import logger
+    from plexpy import mobile_app
+    from plexpy import pmsconnect
+    from plexpy import request
+    from plexpy import users
 
 
 BROWSER_NOTIFIERS = {}

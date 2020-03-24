@@ -25,14 +25,24 @@ import json
 import os
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import datatables
-from plexpy import helpers
-from plexpy import logger
-from plexpy import plextv
-from plexpy import pmsconnect
-from plexpy import session
+if plexpy.PYTHON_VERSION < 3:
+    import common
+    import database
+    import datatables
+    import helpers
+    import logger
+    import plextv
+    import pmsconnect
+    import session
+else:
+    from plexpy import common
+    from plexpy import database
+    from plexpy import datatables
+    from plexpy import helpers
+    from plexpy import logger
+    from plexpy import plextv
+    from plexpy import pmsconnect
+    from plexpy import session
 
 
 def refresh_libraries():

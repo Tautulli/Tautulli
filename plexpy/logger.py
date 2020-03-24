@@ -34,8 +34,12 @@ import threading
 import traceback
 
 import plexpy
-from plexpy.helpers import is_public_ip
-from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+if plexpy.PYTHON_VERSION < 3:
+    from helpers import is_public_ip
+    from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+else:
+    from plexpy.helpers import is_public_ip
+    from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
 # These settings are for file logging only

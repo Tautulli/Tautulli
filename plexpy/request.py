@@ -27,8 +27,12 @@ import collections
 import requests
 
 import plexpy
-from plexpy import lock
-from plexpy import logger
+if plexpy.PYTHON_VERSION < 3:
+    import lock
+    import logger
+else:
+    from plexpy import lock
+    from plexpy import logger
 
 
 # Dictionary with last request times, for rate limiting.

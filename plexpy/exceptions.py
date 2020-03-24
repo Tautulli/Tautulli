@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 #  This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
@@ -13,6 +12,8 @@ from __future__ import unicode_literals
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import unicode_literals
 
 
 class PlexPyException(Exception):

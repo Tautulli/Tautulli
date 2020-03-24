@@ -29,10 +29,16 @@ from urllib.parse import urlencode
 import cherrypy
 
 import plexpy
-from plexpy import logger
-from plexpy import webauth
-from plexpy.helpers import create_https_certificates
-from plexpy.webserve import WebInterface
+if plexpy.PYTHON_VERSION < 3:
+    import logger
+    import webauth
+    from helpers import create_https_certificates
+    from webserve import WebInterface
+else:
+    from plexpy import logger
+    from plexpy import webauth
+    from plexpy.helpers import create_https_certificates
+    from plexpy.webserve import WebInterface
 
 
 def start():

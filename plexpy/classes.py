@@ -25,12 +25,16 @@ from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 
-import urllib.request, urllib.parse, urllib.error
+from urllib.request import FancyURLopener
 
-from plexpy.common import USER_AGENT
+import plexpy
+if plexpy.PYTHON_VERSION < 3:
+    from common import USER_AGENT
+else:
+    from plexpy.common import USER_AGENT
 
 
-class PlexPyURLopener(urllib.request.FancyURLopener):
+class PlexPyURLopener(FancyURLopener):
     version = USER_AGENT
 
 
@@ -51,7 +55,7 @@ class AuthURLOpener(PlexPyURLopener):
         self.numTries = 0
 
         # call the base class
-        urllib.request.FancyURLopener.__init__(self)
+        FancyURLopener.__init__(self)
 
     def prompt_user_passwd(self, host, realm):
         """
