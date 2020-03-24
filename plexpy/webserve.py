@@ -24,6 +24,7 @@ from builtins import str
 from past.builtins import basestring
 from builtins import object
 
+from io import open
 import json
 import os
 import shutil
