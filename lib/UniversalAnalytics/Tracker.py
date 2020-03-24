@@ -1,7 +1,7 @@
-from urllib.request import urlopen, build_opener, install_opener
-from urllib.request import Request, HTTPSHandler
-from urllib.error import URLError, HTTPError
-from urllib.parse import urlencode
+from future.moves.urllib.request import urlopen, build_opener, install_opener
+from future.moves.urllib.request import Request, HTTPSHandler
+from future.moves.urllib.error import URLError, HTTPError
+from future.moves.urllib.parse import urlencode
 
 import random
 import datetime
