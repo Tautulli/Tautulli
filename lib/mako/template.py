@@ -1,5 +1,5 @@
 # mako/template.py
-# Copyright 2006-2019 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2020 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -520,17 +520,17 @@ class ModuleTemplate(Template):
 
     """A Template which is constructed given an existing Python module.
 
-        e.g.::
+       e.g.::
 
-        t = Template("this is a template")
-        f = file("mymodule.py", "w")
-        f.write(t.code)
-        f.close()
+            t = Template("this is a template")
+            f = file("mymodule.py", "w")
+            f.write(t.code)
+            f.close()
 
-        import mymodule
+            import mymodule
 
-        t = ModuleTemplate(mymodule)
-        print t.render()
+            t = ModuleTemplate(mymodule)
+            print(t.render())
 
     """
 
