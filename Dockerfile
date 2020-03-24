@@ -18,8 +18,7 @@ rm -rf /var/lib/apt/lists/* && \
 pip install --no-cache-dir --upgrade pip && \
 pip install --no-cache-dir --upgrade \
   pycryptodomex \
-  pyopenssl \
-  future && \
+  pyopenssl && \
 echo ${VERSION} > /app/version.txt && \
 echo ${BRANCH} > /app/branch.txt
 
