@@ -10,7 +10,8 @@ XML or HTML to reflect a new encoding; that's the tree builder's job.
 __license__ = "MIT"
 
 import codecs
-from html.entities import codepoint2name
+from future.moves.html.entities import codepoint2name
+from future.builtins import chr
 import re
 import logging
 import string

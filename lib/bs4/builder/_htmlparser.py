@@ -8,7 +8,7 @@ __all__ = [
     'HTMLParserTreeBuilder',
     ]
 
-from html.parser import HTMLParser
+from future.moves.html.parser import HTMLParser
 
 try:
     from html.parser import HTMLParseError
