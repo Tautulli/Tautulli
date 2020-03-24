@@ -38,31 +38,28 @@ def integrity_check():
     return result
 
 
-def drop_session_db():
-    monitor_db = MonitorDatabase()
-    monitor_db.action('DROP TABLE sessions')
+def clear_table(table=None):
+    if table:
+        monitor_db = MonitorDatabase()
 
-
-def clear_history_tables():
-    logger.debug("Tautulli Database :: Deleting all session_history records... No turning back now bub.")
-    monitor_db = MonitorDatabase()
-    monitor_db.action('DELETE FROM session_history')
-    monitor_db.action('DELETE FROM session_history_media_info')
-    monitor_db.action('DELETE FROM session_history_metadata')
-    monitor_db.action('VACUUM')
+        logger.debug("Tautulli Database :: Clearing database table '%s'." % table)
+        try:
+            monitor_db.action('DELETE FROM %s' % table)
+            monitor_db.action('VACUUM')
+            return True
+        except Exception as e:
+            logger.error("Tautulli Database :: Failed to clear database table '%s': %s." % (table, e))
+            return False
 
 
 def delete_sessions():
-    logger.debug("Tautulli Database :: Clearing temporary sessions from database.")
-    monitor_db = MonitorDatabase()
+    logger.info("Tautulli Database :: Clearing temporary sessions from database.")
+    return clear_table('sessions')
 
-    try:
-        monitor_db.action('DELETE FROM sessions')
-        monitor_db.action('VACUUM')
-        return True
-    except Exception as e:
-        logger.warn("Tautulli Database :: Unable to clear temporary sessions from database: %s." % e)
-        return False
+
+def delete_recently_added():
+    logger.info("Tautulli Database :: Clearing recently added items from database.")
+    return clear_table('recently_added')
 
 
 def db_filename(filename=FILENAME):

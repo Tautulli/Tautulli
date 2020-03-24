@@ -278,6 +278,10 @@ Returns:
 ```
 
 
+### delete_recently_added
+Flush out all of the recently added items in the database.
+
+
 ### delete_temp_sessions
 Flush out all of the temporary sessions in the database.
 
