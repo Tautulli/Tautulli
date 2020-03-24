@@ -23,8 +23,10 @@ from future.builtins import str
 
 from io import open
 import json
+import linecache
 import os
 import shutil
+import sys
 import threading
 from future.moves.urllib.parse import urlencode
 
@@ -34,7 +36,8 @@ from cherrypy._cperror import NotFound
 
 from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
-from mako import exceptions
+import mako.template
+import mako.exceptions
 
 import websocket
 
@@ -103,7 +106,8 @@ def serve_template(templatename, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
-    _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
+    _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'],
+                               error_handler=mako_error_handler)
 
     http_root = plexpy.HTTP_ROOT
     server_name = plexpy.CONFIG.PMS_NAME
@@ -115,8 +119,41 @@ def serve_template(templatename, **kwargs):
         template = _hplookup.get_template(templatename)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
                                _session=_session, **kwargs)
-    except:
-        return exceptions.html_error_template().render()
+    except Exception as e:
+        logger.exception("WebUI :: Mako template render error: %s" % e)
+        return mako.exceptions.html_error_template().render()
+
+
+def mako_error_handler(context, error):
+    """Decorate tracebacks when Mako errors happen.
+    Evil hack: walk the traceback frames, find compiled Mako templates,
+    stuff their (transformed) source into linecache.cache.
+    """
+    rich_tb = mako.exceptions.RichTraceback(error)
+    rich_iter = iter(rich_tb.traceback)
+    tb = sys.exc_info()[-1]
+    source = {}
+    annotated = set()
+    while tb is not None:
+        cur_rich = next(rich_iter)
+        f = tb.tb_frame
+        co = f.f_code
+        filename = co.co_filename
+        lineno = tb.tb_lineno
+        if filename.startswith('memory:'):
+            lines = source.get(filename)
+            if lines is None:
+                info = mako.template._get_module_info(filename)
+                lines = source[filename] = info.module_source.splitlines(True)
+                linecache.cache[filename] = (None, None, lines, filename)
+            if (filename, lineno) not in annotated:
+                annotated.add((filename, lineno))
+                extra = '    # {} line {} in {}:\n    # {}'.format(*cur_rich)
+                lines[lineno - 1] += extra
+        tb = tb.tb_next
+    # Don't return False -- that will lose the actual Mako frame.  Instead
+    # re-raise.
+    raise
 
 
 class WebInterface(object):
