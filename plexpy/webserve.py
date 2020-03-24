@@ -341,6 +341,20 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Flush sessions failed.'}
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_recently_added(self, **kwargs):
+        """ Flush out all of the recently added items in the database."""
+
+        result = database.delete_recently_added()
+
+        if result:
+            return {'result': 'success', 'message': 'Recently added flushed.'}
+        else:
+            return {'result': 'error', 'message': 'Flush recently added failed.'}
+
 
     ##### Libraries #####
 

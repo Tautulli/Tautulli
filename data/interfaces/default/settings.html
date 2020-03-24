@@ -998,6 +998,20 @@
                             </div>
                             <p class="help-block">Set the delay (in seconds) to wait for consecutive recently added items to group together and to allow metadata to be processed before sending the notification. Minimum 60 seconds.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label>Flush Recently Added</label>
+                            <p class="help-block">
+                                Attempt to fix recently added notifications by flushing out all of the recently added items in the database.<br />
+                                Warning: This will reset all recently added notifications. For emergency use only when recently added notifications are stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_recently_added">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <!--<div class="checkbox">
                             <label>
                                 <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span class="settings-warning">[Not working]</span>
@@ -2156,8 +2170,14 @@ $(document).ready(function() {
     });
 
     $("#delete_temp_sessions").click(function () {
-        var msg = 'Are you sure you want to flush the temporary sessions?<br /><strong>This will reset all currently active sessions.</strong>';
+        var msg = 'Are you sure you want to flush the temporary sessions?<br /><br /><strong>This will reset all currently active sessions.</strong>';
         var url = 'delete_temp_sessions';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#delete_recently_added").click(function () {
+        var msg = 'Are you sure you want to flush the recently added items?<br /><br /><strong>This will reset all recently added notifications.</strong>';
+        var url = 'delete_recently_added';
         confirmAjaxCall(url, msg);
     });
 
