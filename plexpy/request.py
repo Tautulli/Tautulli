@@ -22,7 +22,6 @@ from future.builtins import str
 from bs4 import BeautifulSoup
 from xml.dom import minidom
 
-import feedparser
 import collections
 import requests
 
@@ -274,17 +273,6 @@ def request_content(url, **kwargs):
 
     if response is not None:
         return response.content
-
-
-def request_feed(url, **kwargs):
-    """
-    Wrapper for `request_response', which will return a feed object.
-    """
-
-    response = request_response(url, **kwargs)
-
-    if response is not None:
-        return feedparser.parse(response.content)
 
 
 def server_message(response, return_msg=False):
