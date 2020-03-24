@@ -60,6 +60,12 @@ def schedule_newsletters(newsletter_id=None):
 
 
 def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=False, args=None, cron=None):
+    # apscheduler day_of_week uses 0-6 = mon-sun
+    if cron:
+        cron = cron.split(' ')
+        cron[4] = str((int(cron[4]) - 1) % 7) if cron[4].isdigit() else cron[4]
+        cron = ' '.join(cron)
+
     if NEWSLETTER_SCHED.get_job(newsletter_job_id):
         if remove_job:
             NEWSLETTER_SCHED.remove_job(newsletter_job_id)
