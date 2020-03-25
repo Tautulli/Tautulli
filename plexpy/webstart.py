@@ -15,12 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import object
-
 import os
 import sys
-from future.moves.urllib.parse import urlencode
 
 import cherrypy
 
@@ -29,12 +25,12 @@ if plexpy.PYTHON_VERSION < 3:
     import logger
     import webauth
     from helpers import create_https_certificates
-    from webserve import WebInterface
+    from webserve import WebInterface, BaseRedirect
 else:
     from plexpy import logger
     from plexpy import webauth
     from plexpy.helpers import create_https_certificates
-    from plexpy.webserve import WebInterface
+    from plexpy.webserve import WebInterface, BaseRedirect
 
 
 def start():
@@ -133,7 +129,7 @@ def initialize(options):
         basic_auth_enabled = False
 
     if options['http_root'].strip('/'):
-        plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
+        plexpy.HTTP_ROOT = options['http_root'] = '/' + str(options['http_root'].strip('/')) + '/'
     else:
         plexpy.HTTP_ROOT = options['http_root'] = '/'
 
@@ -270,18 +266,6 @@ def initialize(options):
         sys.exit(1)
 
     cherrypy.server.wait()
-
-
-class BaseRedirect(object):
-    @cherrypy.expose
-    def index(self):
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
-
-    @cherrypy.expose
-    def status(self, *args, **kwargs):
-        path = '/' + '/'.join(args) if args else ''
-        query = '?' + urlencode(kwargs) if kwargs else ''
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + 'status' + path + query)
 
 
 def proxy():

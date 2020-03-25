@@ -155,6 +155,18 @@ def mako_error_handler(context, error):
     raise
 
 
+class BaseRedirect(object):
+    @cherrypy.expose
+    def index(self):
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
+    @cherrypy.expose
+    def status(self, *args, **kwargs):
+        path = '/' + '/'.join(args) if args else ''
+        query = '?' + urlencode(kwargs) if kwargs else ''
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + 'status' + path + query)
+
+
 class WebInterface(object):
 
     auth = AuthController()
