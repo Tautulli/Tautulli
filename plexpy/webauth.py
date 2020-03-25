@@ -20,8 +20,6 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
-from __future__ import unicode_literals
-from future.builtins import str
 from future.builtins import object
 
 from datetime import datetime, timedelta
@@ -151,7 +149,7 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
 
 
 def check_jwt_token():
-    jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+    jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
     jwt_token = cherrypy.request.cookie.get(jwt_cookie)
 
     if jwt_token:
@@ -297,7 +295,7 @@ class AuthController(object):
         if payload:
             self.on_logout(payload['user'], payload['user_group'])
 
-        jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+        jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
         cherrypy.response.cookie[jwt_cookie] = 'expire'
         cherrypy.response.cookie[jwt_cookie]['expires'] = 0
         cherrypy.response.cookie[jwt_cookie]['path'] = '/'
@@ -343,7 +341,7 @@ class AuthController(object):
                           success=True,
                           oauth=bool(token))
 
-            jwt_cookie = JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID
+            jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
             cherrypy.response.cookie[jwt_cookie] = jwt_token
             cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
             cherrypy.response.cookie[jwt_cookie]['path'] = '/'
