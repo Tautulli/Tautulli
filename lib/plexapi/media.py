@@ -25,9 +25,12 @@ class Media(PlexObject):
             id (int): Plex ID of this media item (ex: 46184).
             has64bitOffsets (bool): True if video has 64 bit offsets (?).
             optimizedForStreaming (bool): True if video is optimized for streaming.
+            target (str): Media version target name.
+            title (str): Media version title.
             videoCodec (str): Video codec used within the video (ex: ac3).
             videoFrameRate (str): Video frame rate (ex: 24p).
             videoResolution (str): Video resolution (ex: sd).
+            videoProfile (str): Video profile (ex: high).
             width (int): Width of the video in pixels (ex: 608).
             parts (list<:class:`~plexapi.media.MediaPart`>): List of MediaParts in this video.
     """
@@ -46,8 +49,11 @@ class Media(PlexObject):
         self.id = cast(int, data.attrib.get('id'))
         self.has64bitOffsets = cast(bool, data.attrib.get('has64bitOffsets'))
         self.optimizedForStreaming = cast(bool, data.attrib.get('optimizedForStreaming'))
+        self.target = data.attrib.get('target')
+        self.title = data.attrib.get('title')
         self.videoCodec = data.attrib.get('videoCodec')
         self.videoFrameRate = data.attrib.get('videoFrameRate')
+        self.videoProfile = data.attrib.get('videoProfile')
         self.videoResolution = data.attrib.get('videoResolution')
         self.width = cast(int, data.attrib.get('width'))
         self.parts = self.findItems(data, MediaPart)
@@ -79,6 +85,8 @@ class MediaPart(PlexObject):
             key (str): Key used to access this media part (ex: /library/parts/46618/1389985872/file.avi).
             size (int): Size of this file in bytes (ex: 733884416).
             streams (list<:class:`~plexapi.media.MediaPartStream`>): List of streams in this media part.
+            exists (bool): Determine if file exists
+            accessible (bool): Determine if file is accessible
     """
     TAG = 'Part'
 
@@ -92,7 +100,14 @@ class MediaPart(PlexObject):
         self.indexes = data.attrib.get('indexes')
         self.key = data.attrib.get('key')
         self.size = cast(int, data.attrib.get('size'))
+        self.decision = data.attrib.get('decision')
+        self.optimizedForStreaming = cast(bool, data.attrib.get('optimizedForStreaming'))
+        self.syncItemId = cast(int, data.attrib.get('syncItemId'))
+        self.syncState = data.attrib.get('syncState')
+        self.videoProfile = data.attrib.get('videoProfile')
         self.streams = self._buildStreams(data)
+        self.exists = cast(bool, data.attrib.get('exists'))
+        self.accessible = cast(bool, data.attrib.get('accessible'))
 
     def _buildStreams(self, data):
         streams = []
@@ -113,6 +128,35 @@ class MediaPart(PlexObject):
     def subtitleStreams(self):
         """ Returns a list of :class:`~plexapi.media.SubtitleStream` objects in this MediaPart. """
         return [stream for stream in self.streams if stream.streamType == SubtitleStream.STREAMTYPE]
+
+    def setDefaultAudioStream(self, stream):
+        """ Set the default :class:`~plexapi.media.AudioStream` for this MediaPart.
+
+            Parameters:
+                stream (:class:`~plexapi.media.AudioStream`): AudioStream to set as default
+        """
+        if isinstance(stream, AudioStream):
+            key = "/library/parts/%d?audioStreamID=%d&allParts=1" % (self.id, stream.id)
+        else:
+            key = "/library/parts/%d?audioStreamID=%d&allParts=1" % (self.id, stream)
+        self._server.query(key, method=self._server._session.put)
+
+    def setDefaultSubtitleStream(self, stream):
+        """ Set the default :class:`~plexapi.media.SubtitleStream` for this MediaPart.
+            
+            Parameters:
+                stream (:class:`~plexapi.media.SubtitleStream`): SubtitleStream to set as default.
+        """
+        if isinstance(stream, SubtitleStream):
+            key = "/library/parts/%d?subtitleStreamID=%d&allParts=1" % (self.id, stream.id)
+        else:
+            key = "/library/parts/%d?subtitleStreamID=%d&allParts=1" % (self.id, stream)
+        self._server.query(key, method=self._server._session.put)
+
+    def resetDefaultSubtitleStream(self):
+        """ Set default subtitle of this MediaPart to 'none'. """
+        key = "/library/parts/%d?subtitleStreamID=0&allParts=1" % (self.id)
+        self._server.query(key, method=self._server._session.put)
 
 
 class MediaPartStream(PlexObject):
@@ -245,6 +289,7 @@ class SubtitleStream(MediaPartStream):
         Attributes:
             TAG (str): 'Stream'
             STREAMTYPE (int): 3
+            forced (bool): True if this is a forced subtitle
             format (str): Subtitle format (ex: srt).
             key (str): Key of this subtitle stream (ex: /library/streams/212284).
             title (str): Title of this subtitle stream.
@@ -255,6 +300,7 @@ class SubtitleStream(MediaPartStream):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         super(SubtitleStream, self)._loadData(data)
+        self.forced = cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
         self.key = data.attrib.get('key')
         self.title = data.attrib.get('title')
@@ -419,6 +465,23 @@ class Mood(MediaTag):
     """
     TAG = 'Mood'
     FILTER = 'mood'
+
+
+@utils.registerPlexObject
+class Poster(PlexObject):
+    """ Represents a Poster.
+
+        Attributes:
+            TAG (str): 'Photo'
+    """
+    TAG = 'Photo'
+
+    def _loadData(self, data):
+        self._data = data
+        self.key = data.attrib.get('key')
+        self.ratingKey = data.attrib.get('ratingKey')
+        self.selected = data.attrib.get('selected')
+        self.thumb = data.attrib.get('thumb')
 
 
 @utils.registerPlexObject

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 from requests.status_codes import _codes as codes
-from plexapi import BASE_HEADERS, CONFIG, TIMEOUT
+from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_CONTAINER_SIZE
 from plexapi import log, logfilter, utils
 from plexapi.alert import AlertListener
 from plexapi.base import PlexObject
@@ -93,6 +93,7 @@ class PlexServer(PlexObject):
 
     def __init__(self, baseurl=None, token=None, session=None, timeout=None):
         self._baseurl = baseurl or CONFIG.get('auth.server_baseurl', 'http://localhost:32400')
+        self._baseurl = self._baseurl.rstrip('/')
         self._token = logfilter.add_secret(token or CONFIG.get('auth.server_token'))
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         self._session = session or requests.Session()
@@ -182,6 +183,18 @@ class PlexServer(PlexObject):
         data = self.query(Account.key)
         return Account(self, data)
 
+    def createToken(self, type='delegation', scope='all'):
+        """Create a temp access token for the server."""
+        q = self.query('/security/token?type=%s&scope=%s' % (type, scope))
+        return q.attrib.get('token')
+
+    def systemAccounts(self):
+        """ Returns the :class:`~plexapi.server.SystemAccounts` objects this server contains. """
+        accounts = []
+        for elem in self.query('/accounts'):
+            accounts.append(SystemAccount(self, data=elem))
+        return accounts
+
     def myPlexAccount(self):
         """ Returns a :class:`~plexapi.myplex.MyPlexAccount` object using the same
             token to access this server. If you are not the owner of this PlexServer
@@ -232,7 +245,7 @@ class PlexServer(PlexObject):
                 name (str): Name of the client to return.
 
             Raises:
-                :class:`~plexapi.exceptions.NotFound`: Unknown client name
+                :class:`plexapi.exceptions.NotFound`: Unknown client name
         """
         for client in self.clients():
             if client and client.title == name:
@@ -240,14 +253,14 @@ class PlexServer(PlexObject):
 
         raise NotFound('Unknown client name: %s' % name)
 
-    def createPlaylist(self, title, items):
+    def createPlaylist(self, title, items=None, section=None, limit=None, smart=None, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playlist.Playlist`.
 
             Parameters:
                 title (str): Title of the playlist to be created.
                 items (list<Media>): List of media items to include in the playlist.
         """
-        return Playlist.create(self, title, items)
+        return Playlist.create(self, title, items=items, limit=limit, section=section, smart=smart, **kwargs)
 
     def createPlayQueue(self, item, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playqueue.PlayQueue`.
@@ -290,12 +303,14 @@ class PlexServer(PlexObject):
         part = '/updater/check?download=%s' % (1 if download else 0)
         if force:
             self.query(part, method=self._session.put)
-        return self.fetchItem('/updater/status')
+        releases = self.fetchItems('/updater/status')
+        if len(releases):
+            return releases[0]
 
     def isLatest(self):
         """ Check if the installed version of PMS is the latest. """
         release = self.check_for_update(force=True)
-        return bool(release.version == self.version)
+        return release is None
 
     def installUpdate(self):
         """ Install the newest version of Plex Media Server. """
@@ -307,9 +322,29 @@ class PlexServer(PlexObject):
             # figure out what method this is..
             return self.query(part, method=self._session.put)
 
-    def history(self):
-        """ Returns a list of media items from watched history. """
-        return self.fetchItems('/status/sessions/history/all')
+    def history(self, maxresults=9999999, mindate=None):
+        """ Returns a list of media items from watched history. If there are many results, they will
+            be fetched from the server in batches of X_PLEX_CONTAINER_SIZE amounts. If you're only
+            looking for the first <num> results, it would be wise to set the maxresults option to that
+            amount so this functions doesn't iterate over all results on the server.
+
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from. This really helps speed
+                    up the result listing. For example: datetime.now() - timedelta(days=7)
+        """
+        results, subresults = [], '_init'
+        args = {'sort': 'viewedAt:desc'}
+        if mindate:
+            args['viewedAt>'] = int(mindate.timestamp())
+        args['X-Plex-Container-Start'] = 0
+        args['X-Plex-Container-Size'] = min(X_PLEX_CONTAINER_SIZE, maxresults)
+        while subresults and maxresults > len(results):
+            key = '/status/sessions/history/all%s' % utils.joinArgs(args)
+            subresults = self.fetchItems(key)
+            results += subresults[:maxresults - len(results)]
+            args['X-Plex-Container-Start'] += args['X-Plex-Container-Size']
+        return results
 
     def playlists(self):
         """ Returns a list of all :class:`~plexapi.playlist.Playlist` objects saved on the server. """
@@ -324,7 +359,7 @@ class PlexServer(PlexObject):
                 title (str): Title of the playlist to return.
 
             Raises:
-                :class:`~plexapi.exceptions.NotFound`: Invalid playlist title
+                :class:`plexapi.exceptions.NotFound`: Invalid playlist title
         """
         return self.fetchItem('/playlists', title=title)
 
@@ -391,7 +426,7 @@ class PlexServer(PlexObject):
                 callback (func): Callback function to call on recieved messages.
 
             raises:
-                :class:`~plexapi.exception.Unsupported`: Websocket-client not installed.
+                :class:`plexapi.exception.Unsupported`: Websocket-client not installed.
         """
         notifier = AlertListener(self, callback)
         notifier.start()
@@ -421,6 +456,21 @@ class PlexServer(PlexObject):
             delim = '&' if '?' in key else '?'
             return '%s%s%sX-Plex-Token=%s' % (self._baseurl, key, delim, self._token)
         return '%s%s' % (self._baseurl, key)
+
+    def refreshSynclist(self):
+        """ Force PMS to download new SyncList from Plex.tv. """
+        return self.query('/sync/refreshSynclists', self._session.put)
+
+    def refreshContent(self):
+        """ Force PMS to refresh content for known SyncLists. """
+        return self.query('/sync/refreshContent', self._session.put)
+
+    def refreshSync(self):
+        """ Calls :func:`~plexapi.server.PlexServer.refreshSynclist` and
+            :func:`~plexapi.server.PlexServer.refreshContent`, just like the Plex Web UI does when you click 'refresh'.
+        """
+        self.refreshSynclist()
+        self.refreshContent()
 
 
 class Account(PlexObject):
@@ -469,3 +519,14 @@ class Account(PlexObject):
         self.subscriptionFeatures = utils.toList(data.attrib.get('subscriptionFeatures'))
         self.subscriptionActive = cast(bool, data.attrib.get('subscriptionActive'))
         self.subscriptionState = data.attrib.get('subscriptionState')
+
+
+class SystemAccount(PlexObject):
+    """ Minimal api to list system accounts. """
+    key = '/accounts'
+
+    def _loadData(self, data):
+        self._data = data
+        self.accountID = cast(int, data.attrib.get('id'))
+        self.accountKey = data.attrib.get('key')
+        self.name = data.attrib.get('name')

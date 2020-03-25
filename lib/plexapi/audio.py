@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject
+from plexapi.compat import quote_plus
 
 
 class Audio(PlexPartialObject):
@@ -23,6 +24,9 @@ class Audio(PlexPartialObject):
             updatedAt (datatime): Datetime this item was updated.
             viewCount (int): Count of times this item was accessed.
     """
+
+    METADATA_TYPE = 'track'
+
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         self._data = data
@@ -56,6 +60,46 @@ class Audio(PlexPartialObject):
     def url(self, part):
         """ Returns the full URL for this audio item. Typically used for getting a specific track. """
         return self._server.url(part, includeToken=True) if part else None
+
+    def _defaultSyncTitle(self):
+        """ Returns str, default title for a new syncItem. """
+        return self.title
+
+    def sync(self, bitrate, client=None, clientId=None, limit=None, title=None):
+        """ Add current audio (artist, album or track) as sync item for specified device.
+            See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
+
+            Parameters:
+                bitrate (int): maximum bitrate for synchronized music, better use one of MUSIC_BITRATE_* values from the
+                               module :mod:`plexapi.sync`.
+                client (:class:`plexapi.myplex.MyPlexDevice`): sync destination, see
+                                                               :func:`plexapi.myplex.MyPlexAccount.sync`.
+                clientId (str): sync destination, see :func:`plexapi.myplex.MyPlexAccount.sync`.
+                limit (int): maximum count of items to sync, unlimited if `None`.
+                title (str): descriptive title for the new :class:`plexapi.sync.SyncItem`, if empty the value would be
+                             generated from metadata of current media.
+
+            Returns:
+                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+        """
+
+        from plexapi.sync import SyncItem, Policy, MediaSettings
+
+        myplex = self._server.myPlexAccount()
+        sync_item = SyncItem(self._server, None)
+        sync_item.title = title if title else self._defaultSyncTitle()
+        sync_item.rootTitle = self.title
+        sync_item.contentType = self.listType
+        sync_item.metadataType = self.METADATA_TYPE
+        sync_item.machineIdentifier = self._server.machineIdentifier
+
+        section = self._server.library.sectionByID(self.librarySectionID)
+
+        sync_item.location = 'library://%s/item/%s' % (section.uuid, quote_plus(self.key))
+        sync_item.policy = Policy.create(limit)
+        sync_item.mediaSettings = MediaSettings.createMusic(bitrate)
+
+        return myplex.sync(sync_item, client=client, clientId=clientId)
 
 
 @utils.registerPlexObject
@@ -124,12 +168,12 @@ class Artist(Audio):
         """ Alias of :func:`~plexapi.audio.Artist.track`. """
         return self.track(title)
 
-    def download(self, savepath=None, keep_orginal_name=False, **kwargs):
+    def download(self, savepath=None, keep_original_name=False, **kwargs):
         """ Downloads all tracks for this artist to the specified location.
 
             Parameters:
                 savepath (str): Title of the track to return.
-                keep_orginal_name (bool): Set True to keep the original filename as stored in
+                keep_original_name (bool): Set True to keep the original filename as stored in
                     the Plex server. False will create a new filename with the format
                     "<Atrist> - <Album> <Track>".
                 kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL()` will
@@ -140,7 +184,7 @@ class Artist(Audio):
         filepaths = []
         for album in self.albums():
             for track in album.tracks():
-                filepaths += track.download(savepath, keep_orginal_name, **kwargs)
+                filepaths += track.download(savepath, keep_original_name, **kwargs)
         return filepaths
 
 
@@ -207,12 +251,12 @@ class Album(Audio):
         """ Return :func:`~plexapi.audio.Artist` of this album. """
         return self.fetchItem(self.parentKey)
 
-    def download(self, savepath=None, keep_orginal_name=False, **kwargs):
+    def download(self, savepath=None, keep_original_name=False, **kwargs):
         """ Downloads all tracks for this artist to the specified location.
 
             Parameters:
                 savepath (str): Title of the track to return.
-                keep_orginal_name (bool): Set True to keep the original filename as stored in
+                keep_original_name (bool): Set True to keep the original filename as stored in
                     the Plex server. False will create a new filename with the format
                     "<Atrist> - <Album> <Track>".
                 kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL()` will
@@ -222,8 +266,12 @@ class Album(Audio):
         """
         filepaths = []
         for track in self.tracks():
-            filepaths += track.download(savepath, keep_orginal_name, **kwargs)
+            filepaths += track.download(savepath, keep_original_name, **kwargs)
         return filepaths
+
+    def _defaultSyncTitle(self):
+        """ Returns str, default title for a new syncItem. """
+        return '%s - %s' % (self.parentTitle, self.title)
 
 
 @utils.registerPlexObject
@@ -302,3 +350,7 @@ class Track(Audio, Playable):
     def artist(self):
         """ Return this track's :class:`~plexapi.audio.Artist`. """
         return self.fetchItem(self.grandparentKey)
+
+    def _defaultSyncTitle(self):
+        """ Returns str, default title for a new syncItem. """
+        return '%s - %s - %s' % (self.grandparentTitle, self.parentTitle, self.title)

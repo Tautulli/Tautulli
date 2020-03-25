@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from plexapi import utils
 from plexapi.base import PlexPartialObject, Playable
-from plexapi.exceptions import BadRequest
+from plexapi.exceptions import BadRequest, Unsupported
+from plexapi.library import LibrarySection
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import cast, toDatetime
+from plexapi.compat import quote_plus
 
 
 @utils.registerPlexObject
@@ -32,10 +34,34 @@ class Playlist(PlexPartialObject, Playable):
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
         self.updatedAt = toDatetime(data.attrib.get('updatedAt'))
+        self.allowSync = cast(bool, data.attrib.get('allowSync'))
         self._items = None  # cache for self.items
 
     def __len__(self):  # pragma: no cover
         return len(self.items())
+
+    @property
+    def metadataType(self):
+        if self.isVideo:
+            return 'movie'
+        elif self.isAudio:
+            return 'track'
+        elif self.isPhoto:
+            return 'photo'
+        else:
+            raise Unsupported('Unexpected playlist type')
+
+    @property
+    def isVideo(self):
+        return self.playlistType == 'video'
+
+    @property
+    def isAudio(self):
+        return self.playlistType == 'audio'
+
+    @property
+    def isPhoto(self):
+        return self.playlistType == 'photo'
 
     def __contains__(self, other):  # pragma: no cover
         return any(i.key == other.key for i in self.items())
@@ -102,9 +128,9 @@ class Playlist(PlexPartialObject, Playable):
         return PlayQueue.create(self._server, self, *args, **kwargs)
 
     @classmethod
-    def create(cls, server, title, items):
+    def _create(cls, server, title, items):
         """ Create a playlist. """
-        if not isinstance(items, (list, tuple)):
+        if items and not isinstance(items, (list, tuple)):
             items = [items]
         ratingKeys = []
         for item in items:
@@ -122,6 +148,61 @@ class Playlist(PlexPartialObject, Playable):
         data = server.query(key, method=server._session.post)[0]
         return cls(server, data, initpath=key)
 
+    @classmethod
+    def create(cls, server, title, items=None, section=None, limit=None, smart=False, **kwargs):
+        """Create a playlist.
+
+        Parameters:
+            server (:class:`~plexapi.server.PlexServer`): Server your connected to.
+            title (str): Title of the playlist.
+            items (Iterable): Iterable of objects that should be in the playlist.
+            section (:class:`~plexapi.library.LibrarySection`, str):
+            limit (int): default None.
+            smart (bool): default False.
+
+            **kwargs (dict): is passed to the filters. For a example see the search method.
+
+        Returns:
+            :class:`plexapi.playlist.Playlist`: an instance of created Playlist.
+        """
+        if smart:
+            return cls._createSmart(server, title, section, limit, **kwargs)
+
+        else:
+            return cls._create(server, title, items)
+
+    @classmethod
+    def _createSmart(cls, server, title, section, limit=None, **kwargs):
+        """ Create a Smart playlist. """
+
+        if not isinstance(section, LibrarySection):
+            section = server.library.section(section)
+
+        sectionType = utils.searchType(section.type)
+        sectionId = section.key
+        uuid = section.uuid
+        uri = 'library://%s/directory//library/sections/%s/all?type=%s' % (uuid,
+                                                                           sectionId,
+                                                                           sectionType)
+        if limit:
+            uri = uri + '&limit=%s' % str(limit)
+
+        for category, value in kwargs.items():
+            sectionChoices = section.listChoices(category)
+            for choice in sectionChoices:
+                if str(choice.title).lower() == str(value).lower():
+                    uri = uri + '&%s=%s' % (category.lower(), str(choice.key))
+
+        uri = uri + '&sourceType=%s' % sectionType
+        key = '/playlists%s' % utils.joinArgs({
+            'uri': uri,
+            'type': section.CONTENT_TYPE,
+            'title': title,
+            'smart': 1,
+        })
+        data = server.query(key, method=server._session.post)[0]
+        return cls(server, data, initpath=key)
+
     def copyToUser(self, user):
         """ Copy playlist to another user account. """
         from plexapi.server import PlexServer
@@ -132,3 +213,58 @@ class Playlist(PlexPartialObject, Playable):
         # Login to your server using your friends credentials.
         user_server = PlexServer(self._server._baseurl, token)
         return self.create(user_server, self.title, self.items())
+
+    def sync(self, videoQuality=None, photoResolution=None, audioBitrate=None, client=None, clientId=None, limit=None,
+             unwatched=False, title=None):
+        """ Add current playlist as sync item for specified device.
+            See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
+
+            Parameters:
+                videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in
+                                    :mod:`plexapi.sync` module. Used only when playlist contains video.
+                photoResolution (str): maximum allowed resolution for synchronized photos, see PHOTO_QUALITY_* values in
+                                       the module :mod:`plexapi.sync`. Used only when playlist contains photos.
+                audioBitrate (int): maximum bitrate for synchronized music, better use one of MUSIC_BITRATE_* values
+                                    from the module :mod:`plexapi.sync`. Used only when playlist contains audio.
+                client (:class:`plexapi.myplex.MyPlexDevice`): sync destination, see
+                                                               :func:`plexapi.myplex.MyPlexAccount.sync`.
+                clientId (str): sync destination, see :func:`plexapi.myplex.MyPlexAccount.sync`.
+                limit (int): maximum count of items to sync, unlimited if `None`.
+                unwatched (bool): if `True` watched videos wouldn't be synced.
+                title (str): descriptive title for the new :class:`plexapi.sync.SyncItem`, if empty the value would be
+                             generated from metadata of current photo.
+
+            Raises:
+                :class:`plexapi.exceptions.BadRequest`: when playlist is not allowed to sync.
+                :class:`plexapi.exceptions.Unsupported`: when playlist content is unsupported.
+
+            Returns:
+                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+        """
+
+        if not self.allowSync:
+            raise BadRequest('The playlist is not allowed to sync')
+
+        from plexapi.sync import SyncItem, Policy, MediaSettings
+
+        myplex = self._server.myPlexAccount()
+        sync_item = SyncItem(self._server, None)
+        sync_item.title = title if title else self.title
+        sync_item.rootTitle = self.title
+        sync_item.contentType = self.playlistType
+        sync_item.metadataType = self.metadataType
+        sync_item.machineIdentifier = self._server.machineIdentifier
+
+        sync_item.location = 'playlist:///%s' % quote_plus(self.guid)
+        sync_item.policy = Policy.create(limit, unwatched)
+
+        if self.isVideo:
+            sync_item.mediaSettings = MediaSettings.createVideo(videoQuality)
+        elif self.isAudio:
+            sync_item.mediaSettings = MediaSettings.createMusic(audioBitrate)
+        elif self.isPhoto:
+            sync_item.mediaSettings = MediaSettings.createPhoto(photoResolution)
+        else:
+            raise Unsupported('Unsupported playlist content')
+
+        return myplex.sync(sync_item, client=client, clientId=clientId)

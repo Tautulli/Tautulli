@@ -99,13 +99,14 @@ class Setting(PlexObject):
             group (str): Group name this setting is categorized as.
             enumValues (list,dict): List or dictionary of valis values for this setting.
     """
-    _bool_cast = lambda x: True if x == 'true' else False
+    _bool_cast = lambda x: True if x == 'true' or x == '1' else False
     _bool_str = lambda x: str(x).lower()
+    _str = lambda x: str(x).encode('utf-8')
     TYPES = {
         'bool': {'type': bool, 'cast': _bool_cast, 'tostr': _bool_str},
-        'double': {'type': float, 'cast': float, 'tostr': string_type},
-        'int': {'type': int, 'cast': int, 'tostr': string_type},
-        'text': {'type': string_type, 'cast': string_type, 'tostr': string_type},
+        'double': {'type': float, 'cast': float, 'tostr': _str},
+        'int': {'type': int, 'cast': int, 'tostr': _str},
+        'text': {'type': string_type, 'cast': _str, 'tostr': _str},
     }
 
     def _loadData(self, data):

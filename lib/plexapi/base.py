@@ -6,6 +6,7 @@ from plexapi.compat import quote_plus, urlencode
 from plexapi.exceptions import BadRequest, NotFound, UnknownType, Unsupported
 from plexapi.utils import tag_helper
 
+DONT_RELOAD_FOR_KEYS = ['key', 'session']
 OPERATORS = {
     'exact': lambda v, q: v == q,
     'iexact': lambda v, q: v.lower() == q.lower(),
@@ -145,7 +146,12 @@ class PlexObject(object):
             on how this is used.
         """
         data = self._server.query(ekey)
-        return self.findItems(data, cls, ekey, **kwargs)
+        items = self.findItems(data, cls, ekey, **kwargs)
+        librarySectionID = data.attrib.get('librarySectionID')
+        if librarySectionID:
+            for item in items:
+                item.librarySectionID = librarySectionID
+        return items
 
     def findItems(self, data, cls=None, initpath=None, **kwargs):
         """ Load the specified data to find and build all items with the specified tag
@@ -273,7 +279,8 @@ class PlexPartialObject(PlexObject):
         # Dragons inside.. :-/
         value = super(PlexPartialObject, self).__getattribute__(attr)
         # Check a few cases where we dont want to reload
-        if attr == 'key' or attr.startswith('_'): return value
+        if attr in DONT_RELOAD_FOR_KEYS: return value
+        if attr.startswith('_'): return value
         if value not in (None, []): return value
         if self.isFullObject(): return value
         # Log the reload.
@@ -447,6 +454,7 @@ class Playable(object):
         self.transcodeSessions = self.findItems(data, etag='TranscodeSession')      # session
         self.session = self.findItems(data, etag='Session')                         # session
         self.viewedAt = utils.toDatetime(data.attrib.get('viewedAt'))               # history
+        self.accountID = utils.cast(int, data.attrib.get('accountID'))              # history
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
 
     def isFullObject(self):
@@ -466,7 +474,7 @@ class Playable(object):
                     offset, copyts, protocol, mediaIndex, platform.
 
             Raises:
-                Unsupported: When the item doesn't support fetching a stream URL.
+                :class:`plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
         """
         if self.TYPE not in ('movie', 'episode', 'track'):
             raise Unsupported('Fetching stream URL for %s is unsupported.' % self.TYPE)
@@ -514,13 +522,13 @@ class Playable(object):
         """
         client.playMedia(self)
 
-    def download(self, savepath=None, keep_orginal_name=False, **kwargs):
+    def download(self, savepath=None, keep_original_name=False, **kwargs):
         """ Downloads this items media to the specified location. Returns a list of
             filepaths that have been saved to disk.
 
             Parameters:
                 savepath (str): Title of the track to return.
-                keep_orginal_name (bool): Set True to keep the original filename as stored in
+                keep_original_name (bool): Set True to keep the original filename as stored in
                     the Plex server. False will create a new filename with the format
                     "<Artist> - <Album> <Track>".
                 kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL()` will
@@ -532,7 +540,7 @@ class Playable(object):
         locations = [i for i in self.iterParts() if i]
         for location in locations:
             filename = location.file
-            if keep_orginal_name is False:
+            if keep_original_name is False:
                 filename = '%s.%s' % (self._prettyfilename(), location.container)
             # So this seems to be a alot slower but allows transcode.
             if kwargs:
@@ -563,6 +571,24 @@ class Playable(object):
         """
         key = '/:/progress?key=%s&identifier=com.plexapp.plugins.library&time=%d&state=%s' % (self.ratingKey,
                                                                                               time, state)
+        self._server.query(key)
+        self.reload()
+        
+    def updateTimeline(self, time, state='stopped', duration=None):
+        """ Set the timeline progress for this video.
+
+            Parameters:
+                time (int): milliseconds watched
+                state (string): state of the video, default 'stopped'
+                duration (int): duration of the item
+        """
+        durationStr = '&duration='
+        if duration is not None:
+            durationStr = durationStr + str(duration)
+        else:
+            durationStr = durationStr + str(self.duration)
+        key = '/:/timeline?ratingKey=%s&key=%s&identifier=com.plexapp.plugins.library&time=%d&state=%s%s'
+        key %= (self.ratingKey, self.key, time, state, durationStr)
         self._server.query(key)
         self.reload()
 

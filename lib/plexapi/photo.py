@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from plexapi import media, utils
 from plexapi.base import PlexPartialObject
-from plexapi.exceptions import NotFound
+from plexapi.exceptions import NotFound, BadRequest
+from plexapi.compat import quote_plus
 
 
 @utils.registerPlexObject
@@ -96,6 +97,7 @@ class Photo(PlexPartialObject):
     """
     TAG = 'Photo'
     TYPE = 'photo'
+    METADATA_TYPE = 'photo'
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
@@ -122,4 +124,45 @@ class Photo(PlexPartialObject):
 
     def section(self):
         """ Returns the :class:`~plexapi.library.LibrarySection` this item belongs to. """
-        return self._server.library.sectionByID(self.photoalbum().librarySectionID)
+        if hasattr(self, 'librarySectionID'):
+            return self._server.library.sectionByID(self.librarySectionID)
+        elif self.parentKey:
+            return self._server.library.sectionByID(self.photoalbum().librarySectionID)
+        else:
+            raise BadRequest('Unable to get section for photo, can`t find librarySectionID')
+
+    def sync(self, resolution, client=None, clientId=None, limit=None, title=None):
+        """ Add current photo as sync item for specified device.
+            See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
+
+            Parameters:
+                resolution (str): maximum allowed resolution for synchronized photos, see PHOTO_QUALITY_* values in the
+                                  module :mod:`plexapi.sync`.
+                client (:class:`plexapi.myplex.MyPlexDevice`): sync destination, see
+                                                               :func:`plexapi.myplex.MyPlexAccount.sync`.
+                clientId (str): sync destination, see :func:`plexapi.myplex.MyPlexAccount.sync`.
+                limit (int): maximum count of items to sync, unlimited if `None`.
+                title (str): descriptive title for the new :class:`plexapi.sync.SyncItem`, if empty the value would be
+                             generated from metadata of current photo.
+
+            Returns:
+                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+        """
+
+        from plexapi.sync import SyncItem, Policy, MediaSettings
+
+        myplex = self._server.myPlexAccount()
+        sync_item = SyncItem(self._server, None)
+        sync_item.title = title if title else self.title
+        sync_item.rootTitle = self.title
+        sync_item.contentType = self.listType
+        sync_item.metadataType = self.METADATA_TYPE
+        sync_item.machineIdentifier = self._server.machineIdentifier
+
+        section = self.section()
+
+        sync_item.location = 'library://%s/item/%s' % (section.uuid, quote_plus(self.key))
+        sync_item.policy = Policy.create(limit)
+        sync_item.mediaSettings = MediaSettings.createPhoto(resolution)
+
+        return myplex.sync(sync_item, client=client, clientId=clientId)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 import requests
 
 from requests.status_codes import _codes as codes
@@ -70,6 +70,7 @@ class PlexClient(PlexObject):
         self._session = session or server_session or requests.Session()
         self._proxyThroughServer = False
         self._commandId = 0
+        self._last_call = 0
         if not any([data, initpath, baseurl, token]):
             self._baseurl = CONFIG.get('auth.client_baseurl', 'http://localhost:32433')
             self._token = logfilter.add_secret(CONFIG.get('auth.client_token'))
@@ -139,7 +140,7 @@ class PlexClient(PlexObject):
                 value (bool): Enable or disable proxying (optional, default True).
 
             Raises:
-                :class:`~plexapi.exceptions.Unsupported`: Cannot use client proxy with unknown server.
+                :class:`plexapi.exceptions.Unsupported`: Cannot use client proxy with unknown server.
         """
         if server:
             self._server = server
@@ -177,22 +178,39 @@ class PlexClient(PlexObject):
                 **params (dict): Additional GET parameters to include with the command.
 
             Raises:
-                :class:`~plexapi.exceptions.Unsupported`: When we detect the client
-                    doesn't support this capability.
+                :class:`plexapi.exceptions.Unsupported`: When we detect the client doesn't support this capability.
         """
         command = command.strip('/')
         controller = command.split('/')[0]
+        headers = {'X-Plex-Target-Client-Identifier': self.machineIdentifier}
         if controller not in self.protocolCapabilities:
             log.debug('Client %s doesnt support %s controller.'
                       'What your trying might not work' % (self.title, controller))
 
+        proxy = self._proxyThroughServer if proxy is None else proxy
+        query = self._server.query if proxy else self.query
+
+        # Workaround for ptp. See https://github.com/pkkid/python-plexapi/issues/244
+        t = time.time()
+        if t - self._last_call >= 80 and self.product in ('ptp', 'Plex Media Player'):
+            url = '/player/timeline/poll?wait=0&commandID=%s' % self._nextCommandId()
+            query(url, headers=headers)
+            self._last_call = t
+
         params['commandID'] = self._nextCommandId()
         key = '/player/%s%s' % (command, utils.joinArgs(params))
-        headers = {'X-Plex-Target-Client-Identifier': self.machineIdentifier}
-        proxy = self._proxyThroughServer if proxy is None else proxy
-        if proxy:
-            return self._server.query(key, headers=headers)
-        return self.query(key, headers=headers)
+
+        try:
+            return query(key, headers=headers)
+        except ElementTree.ParseError:
+            # Workaround for players which don't return valid XML on successful commands
+            #   - Plexamp: `b'OK'`
+            if self.product in (
+                'Plexamp',
+                'Plex for Android (TV)',
+            ):
+                return
+            raise
 
     def url(self, key, includeToken=False):
         """ Build a URL string with proper token argument. Token will be appended to the URL
@@ -272,7 +290,7 @@ class PlexClient(PlexObject):
                 **params (dict): Additional GET parameters to include with the command.
 
             Raises:
-                :class:`~plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
+                :class:`plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
         """
         if not self._server:
             raise Unsupported('A server must be specified before using this command.')
@@ -440,15 +458,16 @@ class PlexClient(PlexObject):
                     also: https://github.com/plexinc/plex-media-player/wiki/Remote-control-API#modified-commands
 
             Raises:
-                :class:`~plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
+                :class:`plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
         """
         if not self._server:
             raise Unsupported('A server must be specified before using this command.')
         server_url = media._server._baseurl.split(':')
+        server_port = server_url[-1].strip('/')
 
         if self.product != 'OpenPHT':
             try:
-                self.sendCommand('timeline/subscribe', port=server_url[1].strip('/'), protocol='http')
+                self.sendCommand('timeline/subscribe', port=server_port, protocol='http')
             except:  # noqa: E722
                 # some clients dont need or like this and raises http 400.
                 # We want to include the exception in the log,
@@ -459,7 +478,7 @@ class PlexClient(PlexObject):
         self.sendCommand('playback/playMedia', **dict({
             'machineIdentifier': self._server.machineIdentifier,
             'address': server_url[1].strip('/'),
-            'port': server_url[-1],
+            'port': server_port,
             'offset': offset,
             'key': media.key,
             'token': media._server._token,

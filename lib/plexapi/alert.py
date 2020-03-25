@@ -12,6 +12,18 @@ class AlertListener(threading.Thread):
         alerts you must call .start() on the object once it's created. When calling
         `PlexServer.startAlertListener()`, the thread will be started for you.
 
+        Known `state`-values for timeline entries, with identifier=`com.plexapp.plugins.library`:
+
+            :0: The item was created
+            :1: Reporting progress on item processing
+            :2: Matching the item
+            :3: Downloading the metadata
+            :4: Processing downloaded metadata
+            :5: The item processed
+            :9: The item deleted
+
+        When metadata agent is not set for the library processing ends with state=1.
+
         Parameters:
             server (:class:`~plexapi.server.PlexServer`): PlexServer this listener is connected to.
             callback (func): Callback function to call on recieved messages. The callback function

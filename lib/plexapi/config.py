@@ -60,4 +60,5 @@ def reset_base_headers():
         'X-Plex-Device': plexapi.X_PLEX_DEVICE,
         'X-Plex-Device-Name': plexapi.X_PLEX_DEVICE_NAME,
         'X-Plex-Client-Identifier': plexapi.X_PLEX_IDENTIFIER,
+        'X-Plex-Sync-Version': '2',
     }
