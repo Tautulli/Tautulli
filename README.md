@@ -29,7 +29,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Installation & Support
 
-[![Python](https://img.shields.io/badge/python-v2.7.17-blue?style=flat-square)](https://python.org/downloads/release/python-2717/)
+[![Python](https://img.shields.io/badge/python-2.7.17,%203.6,%203.7,%203.8-blue?style=flat-square)](https://python.org/downloads)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
 [![Docker Stars](https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
 
