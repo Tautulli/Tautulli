@@ -15,7 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 from __future__ import unicode_literals
 from future.builtins import str
 from future.builtins import range

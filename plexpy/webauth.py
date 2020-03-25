@@ -20,7 +20,6 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
-from __future__ import absolute_import
 from __future__ import unicode_literals
 from future.builtins import str
 from future.builtins import object

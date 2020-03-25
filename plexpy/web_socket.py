@@ -17,7 +17,6 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-from __future__ import absolute_import
 from __future__ import unicode_literals
 from future.builtins import str
 
