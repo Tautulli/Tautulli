@@ -97,10 +97,7 @@ def set_mobile_device_config(mobile_device_id=None, **kwargs):
         return False
 
     keys = {'id': mobile_device_id}
-    values = {}
-
-    if kwargs.get('friendly_name'):
-        values['friendly_name'] = kwargs['friendly_name']
+    values = {'friendly_name': kwargs.get('friendly_name', '')}
 
     db = database.MonitorDatabase()
     try:
