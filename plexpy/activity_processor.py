@@ -217,10 +217,7 @@ class ActivityProcessor(object):
                              (session['session_key'], session['rating_key'], session['media_type']))
                 return session['id']
 
-            if str(session['paused_counter']).isdigit():
-                real_play_time = stopped - session['started'] - int(session['paused_counter'])
-            else:
-                real_play_time = stopped - session['started']
+            real_play_time = stopped - helpers.cast_to_int(session['started']) - helpers.cast_to_int(session['paused_counter'])
 
             if not is_import and plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
@@ -231,7 +228,7 @@ class ActivityProcessor(object):
                                  (session['session_key'], session['rating_key'], str(real_play_time),
                                   plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             if not is_import and session['media_type'] == 'track':
-                if real_play_time < 15 and session['duration'] >= 30:
+                if real_play_time < 15 and helpers.cast_to_int(session['duration']) >= 30:
                     logging_enabled = False
                     logger.debug("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
                                  "looks like it was skipped so we're not logging it" %
