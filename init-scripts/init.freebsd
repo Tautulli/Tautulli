@@ -60,7 +60,7 @@ verify_tautulli_pid() {
 
 # Try to stop Tautulli cleanly by sending SIGTERM
 tautulli_stop() {
-    echo "Stopping $name"
+    echo "Stopping $name."
     verify_tautulli_pid
     if [ -n "${pid}" ]; then
       kill ${pid}
