@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.2.1 (2020-03-28)
+
+* Notifications:
+  * Fix: File size notification parameter incorrectly truncated to an integer.
+  * Fix: Notification grouping by season/album not enabled by default.
+  * New: Added transcode decision counts to notification parameters.
+  * Change: Tags (<>) are no longer stripped from from Webhook notification text.
+* Newsletter:
+  * New: Added favicon to newsletter template when viewing as a web page.
+* UI:
+  * Fix: Username missing from the Synced Items table.
+  * Fix: Windows system tray icon not enabled by default.
+  * Fix: Saving a mobile device with a blank friendly name caused an error.
+  * New: Added IMDb and Rotten Tomato Ratings to info pages.
+  * New: Added button in settings to delete all 3rd party metadata lookup info in the database.
+  * New: Added button in settings to flush recently added items in the database.
+* API:
+  * New: Added delete_recenly_added API command to flush recently added items.
+  * Change: Updated delete_lookup_info API command parameters to allow deleteing all 3rd party metadata lookup info.
+
+
 ## v2.2.0 (2020-03-08)
 
 * Important Note!
