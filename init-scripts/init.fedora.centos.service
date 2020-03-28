@@ -21,8 +21,8 @@ datadir=/opt/Tautulli
 configfile=/opt/Tautulli/config.ini
 pidfile=/var/run/tautulli.pid
 nice=
-# The following line must point to your Python 2.7 install
-python27=/usr/src/Python-2.7.11/python
+# The following line must point to your Python installation
+python=/usr/bin/python
 ##
 
 options=" --daemon --config $configfile --pidfile $pidfile --datadir $datadir --nolaunch --quiet"
@@ -30,7 +30,7 @@ options=" --daemon --config $configfile --pidfile $pidfile --datadir $datadir --
 start() {
         # Start daemon.
         echo -n $"Starting $prog: "
-        daemon --pidfile=$pidfile $nice $python27 $homedir/Tautulli.py $options
+        daemon --pidfile=$pidfile $nice $python $homedir/Tautulli.py $options
         RETVAL=$?
         echo
         [ $RETVAL -eq 0 ] && touch $lockfile
@@ -39,7 +39,7 @@ start() {
 
 stop() {
         echo -n $"Shutting down $prog: "
-        killproc -p $pidfile $python27
+        killproc -p $pidfile $python
         RETVAL=$?
         echo
         [ $RETVAL -eq 0 ] && rm -f $lockfile
