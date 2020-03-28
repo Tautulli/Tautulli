@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -18,4 +18,4 @@
 from __future__ import unicode_literals
 
 PLEXPY_BRANCH = "python3"
-PLEXPY_RELEASE_VERSION = "v2.2.0"
+PLEXPY_RELEASE_VERSION = "v2.2.1"
