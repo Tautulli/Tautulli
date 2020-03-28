@@ -466,7 +466,7 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
 
         script_args = json.dumps(script_args) if script_args else None
 
-        keys = {'timestamp': int(time.time()),
+        keys = {'timestamp': helpers.timestamp(),
                 'session_key': session.get('session_key', None),
                 'rating_key': session.get('rating_key', None),
                 'user_id': session.get('user_id', None),
@@ -826,7 +826,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'week_number': now_iso[1],  # Keep for backwards compatibility
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
-        'unixtime': int(time.time()),
+        'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
@@ -1078,7 +1078,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'week_number': now_iso[1],  # Keep for backwards compatibility
         'datestamp': now.format(date_format),
         'timestamp': now.format(time_format),
-        'unixtime': int(time.time()),
+        'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],

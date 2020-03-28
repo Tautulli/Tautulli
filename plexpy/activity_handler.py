@@ -112,7 +112,7 @@ class ActivityHandler(object):
         ap.set_session_state(session_key=self.get_session_key(),
                              state=self.timeline['state'],
                              view_offset=self.timeline['viewOffset'],
-                             stopped=int(time.time()))
+                             stopped=helpers.timestamp())
 
     def on_start(self):
         if self.is_valid_session():
@@ -188,7 +188,7 @@ class ActivityHandler(object):
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
-            ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=int(time.time()))
+            ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=helpers.timestamp())
 
             # Update the session state and viewOffset
             self.update_db_session()
@@ -252,7 +252,7 @@ class ActivityHandler(object):
             if buffer_last_triggered:
                 logger.debug("Tautulli ActivityHandler :: Session %s buffer last triggered at %s." %
                              (self.get_session_key(), buffer_last_triggered))
-                time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
+                time_since_last_trigger = helpers.timestamp() - int(buffer_last_triggered)
 
             if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger == 0 or \
                     time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT:
@@ -295,7 +295,7 @@ class ActivityHandler(object):
 
                 this_guid = last_guid
                 # Check guid for live TV metadata every 60 seconds
-                if db_session['live'] and int(time.time()) - db_session['stopped'] > 60:
+                if db_session['live'] and helpers.timestamp() - db_session['stopped'] > 60:
                     metadata = self.get_metadata(skip_cache=True)
                     if metadata:
                         this_guid = metadata['guid']
@@ -309,7 +309,7 @@ class ActivityHandler(object):
                     if this_state == 'playing':
                         # Update the session in our temp session table
                         # if the last set temporary stopped time exceeds 60 seconds
-                        if int(time.time()) - db_session['stopped'] > 60:
+                        if helpers.timestamp() - db_session['stopped'] > 60:
                             self.update_db_session()
 
                     # Start our state checks
@@ -598,7 +598,7 @@ def on_created(rating_key, **kwargs):
 
     if metadata:
         notify = True
-        # now = int(time.time())
+        # now = helpers.timestamp()
         #
         # if helpers.cast_to_int(metadata['added_at']) < now - 86400:  # Updated more than 24 hours ago
         #     logger.debug("Tautulli TimelineHandler :: Library item %s added more than 24 hours ago. Not notifying."

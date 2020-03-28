@@ -825,7 +825,7 @@ class Users(object):
         if user_id is None or str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
-            keys = {'timestamp': int(time.time()),
+            keys = {'timestamp': helpers.timestamp(),
                     'user_id': user_id}
 
             values = {'user': user,

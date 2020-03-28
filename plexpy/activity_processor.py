@@ -143,7 +143,7 @@ class ActivityProcessor(object):
                       'channel_call_sign': session.get('channel_call_sign', ''),
                       'channel_identifier': session.get('channel_identifier', ''),
                       'channel_thumb': session.get('channel_thumb', ''),
-                      'stopped': int(time.time())
+                      'stopped': helpers.timestamp()
                       }
 
             keys = {'session_key': session.get('session_key', ''),
@@ -157,7 +157,7 @@ class ActivityProcessor(object):
                     plexpy.NOTIFY_QUEUE.put({'stream_data': values.copy(), 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.
-                started = int(time.time())
+                started = helpers.timestamp()
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
 
@@ -200,11 +200,11 @@ class ActivityProcessor(object):
                 if str(session['stopped']).isdigit():
                     stopped = int(session['stopped'])
                 else:
-                    stopped = int(time.time())
+                    stopped = helpers.timestamp()
             elif session['stopped']:
                 stopped = int(session['stopped'])
             else:
-                stopped = int(time.time())
+                stopped = helpers.timestamp()
                 self.set_session_state(session_key=session['session_key'],
                                        state='stopped',
                                        stopped=stopped)
@@ -575,7 +575,7 @@ class ActivityProcessor(object):
             paused_counter = None
             for session in result:
                 if session['last_paused']:
-                    paused_offset = int(time.time()) - int(session['last_paused'])
+                    paused_offset = helpers.timestamp() - int(session['last_paused'])
                     if session['paused_counter']:
                         paused_counter = int(session['paused_counter']) + int(paused_offset)
                     else:
@@ -624,7 +624,7 @@ class ActivityProcessor(object):
             return None
 
     def set_temp_stopped(self):
-        stopped_time = int(time.time())
+        stopped_time = helpers.timestamp()
         self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
 
     def increment_write_attempts(self, session_key=None):

@@ -2553,7 +2553,7 @@ class PUSHOVER(Notifier):
                 'sound': self.config['sound'],
                 'html': self.config['html_support'],
                 'priority': self.config['priority'],
-                'timestamp': int(time.time())}
+                'timestamp': helpers.timestamp()}
 
         if self.config['incl_subject']:
             data['title'] = subject

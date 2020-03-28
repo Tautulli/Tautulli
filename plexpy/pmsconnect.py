@@ -615,7 +615,7 @@ class PmsConnect(object):
             if metadata:
                 _cache_time = metadata.pop('_cache_time', 0)
                 # Return cached metadata if less than cache_seconds ago
-                if return_cache or int(time.time()) - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
+                if return_cache or helpers.timestamp() - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
         if rating_key:
@@ -1405,7 +1405,7 @@ class PmsConnect(object):
 
         if metadata:
             if cache_key:
-                metadata['_cache_time'] = int(time.time())
+                metadata['_cache_time'] = helpers.timestamp()
 
                 out_file_folder = os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata')
                 out_file_path = os.path.join(out_file_folder, 'metadata-sessionKey-%s.json' % cache_key)
@@ -2749,7 +2749,7 @@ class PmsConnect(object):
             web_img = img.startswith('http')
 
             if refresh and not web_img:
-                img = '{}/{}'.format(img.rstrip('/'), int(time.time()))
+                img = '{}/{}'.format(img.rstrip('/'), helpers.timestamp())
 
             if web_img:
                 params = {'url': '%s' % img}

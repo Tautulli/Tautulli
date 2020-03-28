@@ -129,7 +129,7 @@ def check_active_sessions(ws_request=False):
 
                                     else:
                                         # Subsequent buffer notifications after wait time
-                                        if int(time.time()) > buffer_values[0]['buffer_last_triggered'] + \
+                                        if helpers.timestamp() > buffer_values[0]['buffer_last_triggered'] + \
                                                 plexpy.CONFIG.BUFFER_WAIT:
                                             logger.info("Tautulli Monitor :: User '%s' has triggered multiple buffer warnings."
                                                     % stream['user'])
@@ -165,7 +165,7 @@ def check_active_sessions(ws_request=False):
 
                         if not stream['stopped']:
                             # Set the stream stop time
-                            stream['stopped'] = int(time.time())
+                            stream['stopped'] = helpers.timestamp()
                             monitor_db.action('UPDATE sessions SET stopped = ?, state = ? '
                                               'WHERE session_key = ? AND rating_key = ?',
                                               [stream['stopped'], 'stopped', stream['session_key'], stream['rating_key']])
@@ -221,7 +221,7 @@ def check_recently_added():
     with monitor_lock:
         # add delay to allow for metadata processing
         delay = plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY
-        time_threshold = int(time.time()) - delay
+        time_threshold = helpers.timestamp() - delay
         time_interval = plexpy.CONFIG.MONITORING_INTERVAL
 
         pms_connect = pmsconnect.PmsConnect()

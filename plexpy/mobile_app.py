@@ -23,9 +23,11 @@ import time
 import plexpy
 if plexpy.PYTHON_VERSION < 3:
     import database
+    import helpers
     import logger
 else:
     from plexpy import database
+    from plexpy import helpers
     from plexpy import logger
 
 
@@ -131,7 +133,7 @@ def delete_mobile_device(mobile_device_id=None):
 def set_last_seen(device_token=None):
     db = database.MonitorDatabase()
 
-    last_seen = int(time.time())
+    last_seen = helpers.timestamp()
 
     try:
         result = db.action('UPDATE mobile_devices SET last_seen = ? WHERE device_token = ?',

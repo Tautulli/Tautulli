@@ -26,10 +26,12 @@ import email.utils
 import plexpy
 if plexpy.PYTHON_VERSION < 3:
     import database
+    import helpers
     import logger
     import newsletters
 else:
     from plexpy import database
+    from plexpy import helpers
     from plexpy import logger
     from plexpy import newsletters
 
@@ -144,7 +146,7 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
     if newsletter and notify_action:
         db = database.MonitorDatabase()
 
-        keys = {'timestamp': int(time.time()),
+        keys = {'timestamp': helpers.timestamp(),
                 'uuid': newsletter_uuid}
 
         values = {'newsletter_id': newsletter['id'],

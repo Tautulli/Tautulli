@@ -223,6 +223,10 @@ def convert_seconds_to_minutes(s):
     return 0
 
 
+def timestamp():
+    return int(time.time())
+
+
 def today():
     today = datetime.date.today()
     yyyymmdd = datetime.date.isoformat(today)
@@ -462,7 +466,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     from OpenSSL import crypto
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
-    serial = int(time.time())
+    serial = timestamp()
     domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
     ips = ['IP:' + d.strip() for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
     altNames = ','.join(domains + ips)
@@ -625,7 +629,7 @@ def is_valid_ip(address):
 def update_geoip_db():
     if plexpy.CONFIG.GEOIP_DB_INSTALLED:
         logger.info(u"Tautulli Helpers :: Checking for GeoLite2 database updates.")
-        now = int(time.time())
+        now = timestamp()
         if now - plexpy.CONFIG.GEOIP_DB_INSTALLED >= plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS * 24 * 60 * 60:
             return install_geoip_db(update=True)
         logger.info(u"Tautulli Helpers :: GeoLite2 database already updated within the last %s days."
@@ -712,7 +716,7 @@ def install_geoip_db(update=False):
         logger.warn("Tautulli Helpers :: Failed to remove temporary GeoLite2 gzip file: %s" % e)
 
     plexpy.CONFIG.__setattr__('GEOIP_DB', geolite2_db_path)
-    plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', int(time.time()))
+    plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', timestamp())
     plexpy.CONFIG.write()
 
     logger.debug(u"Tautulli Helpers :: GeoLite2 database installed successfully.")
@@ -960,7 +964,7 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
     img_options = {'format': img_format,
                    'fetch_format': 'auto',
                    'quality': 'auto',
-                   'version': int(time.time()),
+                   'version': timestamp(),
                    'secure': True}
 
     if width != 1000:
