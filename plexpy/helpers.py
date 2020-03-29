@@ -1047,7 +1047,7 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     return json.dumps(json_data)
 
 
-def humanFileSize(bytes, si=False):
+def humanFileSize(bytes, si=True):
     if str(bytes).isdigit():
         bytes = cast_to_float(bytes)
     else:

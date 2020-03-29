@@ -461,7 +461,7 @@ $('*').on('click', '.refresh_pms_image', function (e) {
 });
 
 // Taken from http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable#answer-14919494
-function humanFileSize(bytes, si) {
+function humanFileSize(bytes, si = true) {
     var thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
         return bytes + ' B';
