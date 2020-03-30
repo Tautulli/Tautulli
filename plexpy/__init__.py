@@ -414,6 +414,8 @@ def win_system_tray():
         versioncheck.check_update()
 
     def tray_update(sysTrayIcon):
+        global SIGNAL
+        global WIN_SYS_TRAY_ICON
         if UPDATE_AVAILABLE:
             SIGNAL = 'update'
         else:
@@ -421,9 +423,11 @@ def win_system_tray():
             WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
 
     def tray_restart(sysTrayIcon):
+        global SIGNAL
         SIGNAL = 'restart'
 
     def tray_quit(sysTrayIcon):
+        global SIGNAL
         SIGNAL = 'shutdown'
 
     if UPDATE_AVAILABLE:
@@ -441,6 +445,7 @@ def win_system_tray():
 
     logger.info("Launching system tray icon.")
 
+    global WIN_SYS_TRAY_ICON
     try:
         WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
         WIN_SYS_TRAY_ICON.start()
