@@ -635,9 +635,9 @@ General optional parameters:
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:
                 if self._api_debug:
-                    out = json.dumps(out, indent=4, sort_keys=True, ensure_ascii=False).encode('utf-8')
+                    out = json.dumps(out, indent=4, sort_keys=True, ensure_ascii=False)
                 else:
-                    out = json.dumps(out, ensure_ascii=False).encode('utf-8')
+                    out = json.dumps(out, ensure_ascii=False)
                 if self._api_callback is not None:
                     cherrypy.response.headers['Content-Type'] = 'application/javascript'
                     # wrap with JSONP call if requested
@@ -650,7 +650,7 @@ General optional parameters:
                 out['result'] = 'error'
 
         elif self._api_out_type == 'xml':
-            cherrypy.response.headers['Content-Type'] = 'application/xml'
+            cherrypy.response.headers['Content-Type'] = 'application/xml;charset=UTF-8'
             try:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
@@ -671,7 +671,7 @@ General optional parameters:
                                 </response>
                           ''' % e
 
-        return out
+        return out.encode('utf-8')
 
     def _api_run(self, *args, **kwargs):
         """ handles the stuff from the handler """
