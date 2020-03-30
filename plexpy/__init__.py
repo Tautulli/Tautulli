@@ -45,6 +45,7 @@ if PYTHON_VERSION < 3:
     import common
     import database
     import datafactory
+    import helpers
     import libraries
     import logger
     import mobile_app
@@ -64,6 +65,7 @@ else:
     from plexpy import common
     from plexpy import database
     from plexpy import datafactory
+    from plexpy import helpers
     from plexpy import libraries
     from plexpy import logger
     from plexpy import mobile_app
