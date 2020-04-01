@@ -202,7 +202,7 @@ class MonitorDatabase(object):
         trans_type = 'update'
         changes_before = self.connection.total_changes
 
-        gen_params = lambda my_dict: [x + " = ?" for x in list(my_dict.keys())]
+        gen_params = lambda my_dict: [x + " = ?" for x in my_dict]
 
         update_query = "UPDATE " + table_name + " SET " + ", ".join(gen_params(value_dict)) + \
                        " WHERE " + " AND ".join(gen_params(key_dict))

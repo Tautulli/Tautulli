@@ -1233,7 +1233,7 @@ def strip_tag(data, agent_id=None):
                      'u': [],
                      'a': ['href'],
                      'font': ['color']}
-        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id == 13:
         # Allow tags b, i, code, pre, a[href] for Telegram
@@ -1242,7 +1242,7 @@ def strip_tag(data, agent_id=None):
                      'code': [],
                      'pre': [],
                      'a': ['href']}
-        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id in (10, 14, 20, 25):
         # Don't remove tags for Email, Slack, Discord, and Webhook
@@ -1250,7 +1250,7 @@ def strip_tag(data, agent_id=None):
 
     else:
         whitelist = {}
-        data = bleach.clean(data, tags=list(whitelist.keys()), attributes=whitelist, strip=True)
+        data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     # Resubstitute temporary tokens for < and > in parameter prefix and suffix
     return data.replace('%temp_lt_token%', '<').replace('%temp_gt_token%', '>')

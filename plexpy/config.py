@@ -692,7 +692,7 @@ class Config(object):
         """ Initialize the config with values from a file """
         self._config_file = config_file
         self._config = ConfigObj(self._config_file, encoding='utf-8')
-        for key in list(_CONFIG_DEFINITIONS.keys()):
+        for key in _CONFIG_DEFINITIONS:
             self.check_setting(key)
         self._upgrade()
         self._blacklist()
@@ -752,7 +752,7 @@ class Config(object):
                 new_config[key][subkey] = value
 
         # next make sure that everything we expect to have defined is so
-        for key in list(_CONFIG_DEFINITIONS.keys()):
+        for key in _CONFIG_DEFINITIONS:
             key, definition_type, section, ini_key, default = self._define(key)
             self.check_setting(key)
             if section not in new_config:

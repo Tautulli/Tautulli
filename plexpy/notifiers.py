@@ -2787,7 +2787,7 @@ class SCRIPTS(Notifier):
         for root, dirs, files in os.walk(scriptdir):
             for f in files:
                 name, ext = os.path.splitext(f)
-                if ext in list(self.script_exts.keys()):
+                if ext in self.script_exts:
                     rfp = os.path.join(os.path.relpath(root, scriptdir), f)
                     fp = os.path.join(root, f)
                     scripts[fp] = rfp
@@ -2931,7 +2931,7 @@ class SCRIPTS(Notifier):
     def _return_config_options(self):
         config_option = [{'label': 'Supported File Types',
                           'description': '<span class="inline-pre">' + \
-                              ', '.join(list(self.script_exts.keys())) + '</span>',
+                              ', '.join(self.script_exts) + '</span>',
                           'input_type': 'help'
                           },
                          {'label': 'Script Folder',
@@ -3719,8 +3719,8 @@ def upgrade_config_to_db():
                 for script, actions in script_actions.items():
                     if any(agent_actions[a] for a in actions):
                         temp_config = notifier_config
-                        temp_config.update({a: 0 for a in list(agent_actions.keys())})
-                        temp_config.update({a + '_subject': '' for a in list(agent_actions.keys())})
+                        temp_config.update({a: 0 for a in agent_actions})
+                        temp_config.update({a + '_subject': '' for a in agent_actions})
                         for a in actions:
                             if agent_actions[a]:
                                 temp_config[a] = agent_actions[a]

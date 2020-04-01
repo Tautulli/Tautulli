@@ -99,7 +99,7 @@ class DataTables(object):
         filtered = self.ssp_db.select(query, args=args)
 
         # Remove NULL rows
-        filtered = [row for row in filtered if not all(v is None for v in list(row.values()))]
+        filtered = [row for row in filtered if not all(v is None for v in row.values())]
 
         # Build grand totals
         totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']

@@ -2356,7 +2356,7 @@ class PmsConnect(object):
                 hub_identifier = helpers.get_xml_attr(h, 'hubIdentifier')
 
                 if size == '0' or not hub_identifier.startswith('collection.related') or \
-                        media_type not in list(children_results_list.keys()):
+                        media_type not in children_results_list:
                     continue
 
                 result_data = []
@@ -2811,7 +2811,7 @@ class PmsConnect(object):
 
             for h in hubs:
                 if helpers.get_xml_attr(h, 'size') == '0' or \
-                    helpers.get_xml_attr(h, 'type') not in list(search_results_list.keys()):
+                    helpers.get_xml_attr(h, 'type') not in search_results_list:
                     continue
 
                 if h.getElementsByTagName('Video'):
@@ -2843,7 +2843,7 @@ class PmsConnect(object):
                         metadata = self.get_metadata_details(rating_key=rating_key)
                         search_results_list[metadata['media_type']].append(metadata)
 
-        output = {'results_count': sum(len(s) for s in list(search_results_list.values())),
+        output = {'results_count': sum(len(s) for s in search_results_list.values()),
                   'results_list': search_results_list
                   }
 

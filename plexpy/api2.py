@@ -61,7 +61,7 @@ else:
 
 class API2(object):
     def __init__(self, **kwargs):
-        self._api_valid_methods = list(self._api_docs().keys())
+        self._api_valid_methods = self._api_docs().keys()
         self._api_authenticated = False
         self._api_out_type = 'json'  # default
         self._api_msg = None
