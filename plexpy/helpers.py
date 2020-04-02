@@ -18,7 +18,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 from past.builtins import cmp
-from future import standard_library
 
 from future.builtins import zip
 from future.builtins import str
@@ -1262,8 +1261,12 @@ def split_args(args=None):
     if isinstance(args, list):
         return args
     elif isinstance(args, str):
-        return [arg.decode(plexpy.SYS_ENCODING, 'ignore')
-                for arg in shlex.split(args.encode(plexpy.SYS_ENCODING, 'ignore'))]
+        if plexpy.PYTHON_VERSION < 3:
+            args = args.encode('utf-8')
+        args = shlex.split(args)
+        if plexpy.PYTHON_VERSION < 3:
+            args = [a.decode('utf-8') for a in args]
+        return args
     return []
 
 

@@ -2796,8 +2796,7 @@ class SCRIPTS(Notifier):
 
     def run_script(self, script, user_id):
         # Common environment variables
-        env = os.environ.copy()
-        env.update({
+        custom_env = {
             'PLEX_URL': plexpy.CONFIG.PMS_URL,
             'PLEX_TOKEN': plexpy.CONFIG.PMS_TOKEN,
             'PLEX_USER_TOKEN': '',
@@ -2805,15 +2804,21 @@ class SCRIPTS(Notifier):
             'TAUTULLI_PUBLIC_URL': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT,
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
             'TAUTULLI_ENCODING': plexpy.SYS_ENCODING
-            })
+            }
 
         if user_id:
             user_tokens = users.Users().get_tokens(user_id=user_id)
             if user_tokens and user_tokens['server_token']:
-                env['PLEX_USER_TOKEN'] = str(user_tokens['server_token'])
+                custom_env['PLEX_USER_TOKEN'] = str(user_tokens['server_token'])
 
         if self.pythonpath:
-            env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
+            custom_env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
+
+        if plexpy.PYTHON_VERSION < 3:
+            custom_env = {k.encode('utf-8'): v.encode('utf-8') for k, v in custom_env.items()}
+
+        env = os.environ.copy()
+        env.update(custom_env)
 
         try:
             process = subprocess.Popen(script,
@@ -2843,11 +2848,11 @@ class SCRIPTS(Notifier):
             return False
 
         if error:
-            err = '\n  '.join([l for l in error.splitlines()])
+            err = '\n  '.join(error.decode('utf-8').splitlines())
             logger.error("Tautulli Notifiers :: Script error: \n  %s" % err)
 
         if output:
-            out = '\n  '.join([l for l in output.splitlines()])
+            out = '\n  '.join(output.decode('utf-8').splitlines())
             logger.debug("Tautulli Notifiers :: Script returned: \n  %s" % out)
 
         if not self.script_killed:
@@ -2890,23 +2895,10 @@ class SCRIPTS(Notifier):
         name, ext = os.path.splitext(script)
         prefix = self.script_exts.get(ext, '')
 
-        if os.name == 'nt':
-            script = script.encode(plexpy.SYS_ENCODING, 'ignore')
-
         if prefix:
             script = prefix.split() + [script]
         else:
             script = [script]
-
-        # For manual notifications
-        # if script_args and isinstance(script_args, basestring):
-        #     # attemps for format it for the user
-        #     script_args = [arg for arg in shlex.split(script_args.encode(plexpy.SYS_ENCODING, 'ignore'))]
-
-        # Windows handles unicode very badly.
-        # https://bugs.python.org/issue19264
-        if script_args:  # and os.name == 'nt':
-            script_args = [arg.encode(plexpy.SYS_ENCODING, 'ignore') for arg in script_args]
 
         # Allow overrides for PYTHONPATH
         if prefix and script_args:
@@ -2921,6 +2913,9 @@ class SCRIPTS(Notifier):
                 del script_args[0]
 
         script.extend(script_args)
+
+        if plexpy.PYTHON_VERSION < 3:
+            script = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script]
 
         logger.debug("Tautulli Notifiers :: Full script is: %s" % script)
         logger.debug("Tautulli Notifiers :: Executing script in a new thread.")
