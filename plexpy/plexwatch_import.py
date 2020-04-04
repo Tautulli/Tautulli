@@ -22,7 +22,7 @@ import sqlite3
 from xml.dom import minidom
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_pinger
     import activity_processor
     import database

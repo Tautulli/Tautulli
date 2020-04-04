@@ -27,7 +27,7 @@ import certifi
 import urllib3
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import helpers
     import logger
 else:

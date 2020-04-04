@@ -42,7 +42,7 @@ import time
 import musicbrainzngs
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_processor
     import common
     import database
@@ -1785,7 +1785,7 @@ class CustomFormatter(Formatter):
                 obj = self.convert_field(obj, conversion)
 
                 # expand the format spec, if needed
-                if plexpy.PYTHON_VERSION < 3:
+                if plexpy.PYTHON2:
                     format_spec = self._vformat(format_spec, args, kwargs,
                                                 used_args, recursion_depth - 1)
                 else:
@@ -1804,7 +1804,7 @@ class CustomFormatter(Formatter):
                         result.append(suffix)
                 # result.append(self.format_field(obj, format_spec))
 
-        if plexpy.PYTHON_VERSION < 3:
+        if plexpy.PYTHON2:
             return ''.join(result)
         else:
             return ''.join(result), auto_arg_index

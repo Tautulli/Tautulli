@@ -33,7 +33,7 @@ import threading
 import traceback
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     from helpers import is_public_ip
     from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 else:

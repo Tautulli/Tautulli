@@ -41,7 +41,7 @@ import mako.exceptions
 import websocket
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_pinger
     import common
     import config

@@ -26,7 +26,7 @@ import json
 from itertools import groupby
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import common
     import database
     import datatables

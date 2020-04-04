@@ -24,7 +24,7 @@ import threading
 import time
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import logger
 else:
     from plexpy import logger

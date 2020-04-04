@@ -25,7 +25,7 @@ import collections
 import requests
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import lock
     import logger
 else:

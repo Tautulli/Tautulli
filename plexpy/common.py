@@ -22,7 +22,7 @@ import platform
 from collections import OrderedDict
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import version
 else:
     from plexpy import version

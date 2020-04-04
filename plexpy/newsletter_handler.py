@@ -24,7 +24,7 @@ from apscheduler.triggers.cron import CronTrigger
 import email.utils
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import database
     import helpers
     import logger

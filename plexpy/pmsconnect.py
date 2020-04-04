@@ -26,7 +26,7 @@ import time
 from future.moves.urllib.parse import quote, quote_plus, urlencode
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_processor
     import common
     import helpers

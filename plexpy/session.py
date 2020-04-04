@@ -21,7 +21,7 @@ from future.builtins import str
 import cherrypy
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import common
     import users
 else:

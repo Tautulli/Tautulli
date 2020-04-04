@@ -21,7 +21,7 @@ from io import open
 import os
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import helpers
     import logger
 else:

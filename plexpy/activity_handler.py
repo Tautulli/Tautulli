@@ -25,7 +25,7 @@ from apscheduler.triggers.date import DateTrigger
 import pytz
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_processor
     import datafactory
     import helpers

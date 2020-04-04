@@ -23,7 +23,7 @@ from future.builtins import object
 import datetime
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import common
     import database
     import logger

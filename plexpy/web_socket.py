@@ -27,7 +27,7 @@ import time
 import websocket
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_handler
     import activity_pinger
     import activity_processor

@@ -24,7 +24,7 @@ import base64
 import json
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import common
     import helpers
     import http_handler

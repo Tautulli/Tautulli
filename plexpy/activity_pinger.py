@@ -20,7 +20,7 @@ import threading
 import time
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import activity_handler
     import activity_processor
     import database

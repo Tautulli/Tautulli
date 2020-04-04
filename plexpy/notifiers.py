@@ -59,7 +59,7 @@ import facebook
 import twitter
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import common
     import database
     import helpers
@@ -2814,7 +2814,7 @@ class SCRIPTS(Notifier):
         if self.pythonpath:
             custom_env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
 
-        if plexpy.PYTHON_VERSION < 3:
+        if plexpy.PYTHON2:
             custom_env = {k.encode('utf-8'): v.encode('utf-8') for k, v in custom_env.items()}
 
         env = os.environ.copy()
@@ -2914,7 +2914,7 @@ class SCRIPTS(Notifier):
 
         script.extend(script_args)
 
-        if plexpy.PYTHON_VERSION < 3:
+        if plexpy.PYTHON2:
             script = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script]
 
         logger.debug("Tautulli Notifiers :: Full script is: %s" % script)

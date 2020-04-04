@@ -21,7 +21,7 @@ import sys
 import cherrypy
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import logger
     import webauth
     from helpers import create_https_certificates

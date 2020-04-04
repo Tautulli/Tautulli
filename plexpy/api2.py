@@ -33,7 +33,7 @@ import cherrypy
 import xmltodict
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import config
     import database
     import helpers

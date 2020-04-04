@@ -30,7 +30,7 @@ from hashing_passwords import check_hash
 import jwt
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import logger
     from database import MonitorDatabase
     from users import Users, refresh_users

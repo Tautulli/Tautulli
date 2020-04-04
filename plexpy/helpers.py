@@ -60,7 +60,7 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-if plexpy.PYTHON_VERSION < 3:
+if plexpy.PYTHON2:
     import logger
     import request
     from api2 import API2
@@ -1265,10 +1265,10 @@ def split_args(args=None):
     if isinstance(args, list):
         return args
     elif isinstance(args, str):
-        if plexpy.PYTHON_VERSION < 3:
+        if plexpy.PYTHON2:
             args = args.encode('utf-8')
         args = shlex.split(args)
-        if plexpy.PYTHON_VERSION < 3:
+        if plexpy.PYTHON2:
             args = [a.decode('utf-8') for a in args]
         return args
     return []
