@@ -251,7 +251,7 @@ def update():
         logger.info('Windows .exe updating not supported yet.')
 
     elif plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('pull {} {} --ff-only'.format(plexpy.CONFIG.GIT_REMOTE,
+        output, err = runGit('pull --ff-only {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                            plexpy.CONFIG.GIT_BRANCH))
 
         if not output:
