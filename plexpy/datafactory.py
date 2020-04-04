@@ -1415,7 +1415,7 @@ class DataFactory(object):
 
         if rating_key:
             logger.info(u"Tautulli DataFactory :: Deleting lookup info for rating_key %s from the database."
-                        % (title, rating_key))
+                        % rating_key)
             result_themoviedb = monitor_db.action('DELETE FROM themoviedb_lookup WHERE rating_key = ?', [rating_key])
             result_tvmaze = monitor_db.action('DELETE FROM tvmaze_lookup WHERE rating_key = ?', [rating_key])
             result_musicbrainz = monitor_db.action('DELETE FROM musicbrainz_lookup WHERE rating_key = ?', [rating_key])
