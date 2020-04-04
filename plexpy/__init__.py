@@ -34,6 +34,8 @@ from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
 import pytz
 
+PYTHON_VERSION = sys.version_info[:3]
+
 import activity_handler
 import activity_pinger
 import common
