@@ -336,7 +336,6 @@ class DataFactory(object):
                            'user': '',
                            'friendly_name': '',
                            'platform': '',
-                           'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
                            'row_id': item['id']
