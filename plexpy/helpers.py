@@ -440,7 +440,11 @@ def create_https_certificates(ssl_cert, ssl_key):
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
-    from OpenSSL import crypto
+    try:
+        from OpenSSL import crypto
+    except ImportError:
+        logger.error("Unable to generate self-signed certificates: Missing OpenSSL module.")
+        return False
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
     serial = int(time.time())
