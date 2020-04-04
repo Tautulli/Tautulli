@@ -301,7 +301,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
                                 email_config=newsletter_config['email_config'],
                                 subject=subject,
                                 body=body,
-                                messsage=message)
+                                message=message)
         return agent.send()
     else:
         logger.debug("Tautulli Newsletters :: Notification requested but no newsletter_id received.")
