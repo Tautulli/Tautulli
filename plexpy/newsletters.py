@@ -386,6 +386,10 @@ class Newsletter(object):
         if self.start_date is None:
             if self.config['time_frame_units'] == 'days':
                 self.start_date = self.end_date.shift(days=-self.config['time_frame']+1).floor('day')
+            elif self.config['time_frame_units'] == 'months':
+                self.start_date = self.end_date.shift(months=-self.config['time_frame']).floor('day')
+            elif self.config['time_frame_units'] == 'years':
+                self.start_date = self.end_date.shift(years=-self.config['time_frame']).floor('day')
             else:
                 self.start_date = self.end_date.shift(hours=-self.config['time_frame']).floor('hour')
 

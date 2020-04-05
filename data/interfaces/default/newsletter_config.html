@@ -61,8 +61,10 @@
                                                     <span class="input-group-addon form-control btn-dark inactive">Last</span>
                                                     <input type="number" class="form-control" id="newsletter_config_time_frame" name="newsletter_config_time_frame" value="${newsletter['config']['time_frame']}">
                                                     <select class="form-control" id="newsletter_config_time_frame_units" name="newsletter_config_time_frame_units">
-                                                        <option value="days" ${'selected' if newsletter['config']['time_frame_units'] == 'days' else ''}>days</option>
                                                         <option value="hours" ${'selected' if newsletter['config']['time_frame_units'] == 'hours' else ''}>hours</option>
+                                                        <option value="days" ${'selected' if newsletter['config']['time_frame_units'] == 'days' else ''}>days</option>
+                                                        <option value="months" ${'selected' if newsletter['config']['time_frame_units'] == 'months' else ''}>months</option>
+                                                        <option value="years" ${'selected' if newsletter['config']['time_frame_units'] == 'years' else ''}>years</option>
                                                     </select>
                                                 </div>
                                             </div>
