@@ -28,12 +28,13 @@ Mako==1.0.1
 maxminddb==1.2.1
 musicbrainzngs==0.7
 oauthlib==1.1.1
-osxnotify==1.0
+#osxnotify==1.0
 paho-mqtt==1.1
-PlexAPI==2.2.1
+PlexAPI==3.0.6
 profilehooks==1.4
 PyNMA==1.0
 pytz==2019.3
+urllib3==1.22
 requests==2.18.4
 requests-oauthlib==0.6.1
 six==1.11.0
