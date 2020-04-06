@@ -22,7 +22,7 @@ from base64 import b64encode, b64decode
 from itertools import izip
 
 # From https://github.com/mitsuhiko/python-pbkdf2
-from pbkdf2 import PBKDF2 as pbkdf2_bin
+from pbkdf2 import pbkdf2_bin
 
 
 # Parameters to PBKDF2. Only affect new passwords.
