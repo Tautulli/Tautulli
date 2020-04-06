@@ -1,5 +1,7 @@
 certifi==2019.11.28
 httpagentparser==1.7.8
+pyOpenSSL==17.0.0
+cryptography==2.0.3
 futures==3.0.3
 tzlocal==1.5.1
 python-twitter==3.4.1
@@ -26,6 +28,4 @@ Mako==1.0.1
 websocket_client==0.32.0
 PyJWT==1.4.0
 pytz==2019.3
-pyOpenSSL==17.0.0
 idna==2.6
-cryptography==1.9
