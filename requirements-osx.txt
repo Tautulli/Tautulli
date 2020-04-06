@@ -28,6 +28,7 @@ Mako==1.0.1
 maxminddb==1.2.1
 musicbrainzngs==0.7
 oauthlib==1.1.1
+osxnotify==1.0
 paho-mqtt==1.1
 PlexAPI==3.0.6
 profilehooks==1.4
