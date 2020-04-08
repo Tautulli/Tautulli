@@ -441,6 +441,8 @@ class WebInterface(object):
                           ("duration", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "section_name")
 
+        grouping = helpers.bool_true(grouping, return_none=True)
+
         library_data = libraries.Libraries()
         library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
 
@@ -841,7 +843,7 @@ class WebInterface(object):
                      ]
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         if section_id:
             library_data = libraries.Libraries()
@@ -884,7 +886,7 @@ class WebInterface(object):
                      ]
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         if section_id:
             library_data = libraries.Libraries()
@@ -1107,6 +1109,8 @@ class WebInterface(object):
                           ("plays", True, False),
                           ("duration", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "friendly_name")
+
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         user_data = users.Users()
         user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
@@ -1458,7 +1462,7 @@ class WebInterface(object):
                      ]
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         if user_id:
             user_data = users.Users()
@@ -1501,7 +1505,7 @@ class WebInterface(object):
                      ]
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         if user_id:
             user_data = users.Users()
@@ -1703,10 +1707,7 @@ class WebInterface(object):
                           ("watched_status", False, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "date")
 
-        if grouping and str(grouping).isdigit():
-            grouping = int(grouping)
-        elif grouping == 'false':
-            grouping = 0
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         custom_where = []
         if user_id:
@@ -1922,10 +1923,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis, grouping=grouping)
+        result = graph.get_total_plays_per_day(time_range=time_range,
+                                               y_axis=y_axis,
+                                               user_id=user_id,
+                                               grouping=grouping)
 
         if result:
             return result
@@ -1962,10 +1966,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_dayofweek(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_dayofweek(time_range=time_range,
+                                                     y_axis=y_axis,
+                                                     user_id=user_id,
+                                                     grouping=grouping)
 
         if result:
             return result
@@ -2002,10 +2009,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_hourofday(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_hourofday(time_range=time_range,
+                                                     y_axis=y_axis,
+                                                     user_id=user_id,
+                                                     grouping=grouping)
 
         if result:
             return result
@@ -2042,10 +2052,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_month(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_month(time_range=time_range,
+                                                 y_axis=y_axis,
+                                                 user_id=user_id,
+                                                 grouping=grouping)
 
         if result:
             return result
@@ -2056,7 +2069,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by top 10 platforms.
 
             ```
@@ -2082,10 +2095,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range,
+                                                           y_axis=y_axis,
+                                                           user_id=user_id,
+                                                           grouping=grouping)
 
         if result:
             return result
@@ -2096,7 +2112,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by top 10 users.
 
             ```
@@ -2122,10 +2138,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_top_10_users(time_range=time_range,
+                                                       y_axis=y_axis,
+                                                       user_id=user_id,
+                                                       grouping=grouping)
 
         if result:
             return result
@@ -2136,7 +2155,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by stream type by date.
 
             ```
@@ -2161,10 +2180,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_stream_type(time_range=time_range,
+                                                       y_axis=y_axis,
+                                                       user_id=user_id,
+                                                       grouping=grouping)
 
         if result:
             return result
@@ -2175,7 +2197,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by source resolution.
 
             ```
@@ -2200,10 +2222,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_source_resolution(time_range=time_range,
+                                                            y_axis=y_axis,
+                                                            user_id=user_id,
+                                                            grouping=grouping)
 
         if result:
             return result
@@ -2214,7 +2239,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by stream resolution.
 
             ```
@@ -2239,10 +2264,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_by_stream_resolution(time_range=time_range,
+                                                            y_axis=y_axis,
+                                                            user_id=user_id,
+                                                            grouping=grouping)
 
         if result:
             return result
@@ -2253,7 +2281,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by stream type by top 10 users.
 
             ```
@@ -2278,10 +2306,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_stream_type_by_top_10_users(time_range=time_range,
+                                                       y_axis=y_axis,
+                                                       user_id=user_id,
+                                                       grouping=grouping)
 
         if result:
             return result
@@ -2292,7 +2323,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', grouping=None, user_id=None, **kwargs):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by stream type by top 10 platforms.
 
             ```
@@ -2317,10 +2348,13 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = int(grouping) if str(grouping).isdigit() else grouping
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
-        result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
+        result = graph.get_stream_type_by_top_10_platforms(time_range=time_range,
+                                                           y_axis=y_axis,
+                                                           user_id=user_id,
+                                                           grouping=grouping)
 
         if result:
             return result
@@ -5457,7 +5491,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_home_stats(self, grouping=0, time_range=30, stats_type='plays', stats_count=10, **kwargs):
+    def get_home_stats(self, time_range=30, stats_type='plays', stats_count=10, grouping=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -5538,6 +5572,8 @@ class WebInterface(object):
             stats_type = 'plays'
         elif stats_type in (1, '1'):
             stats_type = 'duration'
+
+        grouping = helpers.bool_true(grouping, return_none=True)
 
         data_factory = datafactory.DataFactory()
         result = data_factory.get_home_stats(grouping=grouping,
