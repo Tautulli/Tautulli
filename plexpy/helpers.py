@@ -1034,7 +1034,8 @@ def humanFileSize(bytes, si=True):
     else:
         return bytes
 
-    thresh = 1000 if si else 1024
+    #thresh = 1000 if si else 1024
+    thresh = 1024  # Always divide by 2^10 but display SI units
     if bytes < thresh:
         return str(bytes) + ' B'
 
