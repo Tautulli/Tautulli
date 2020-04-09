@@ -1173,7 +1173,7 @@ class DISCORD(Notifier):
             poster_url = pretty_metadata.get_poster_url()
             provider_name = pretty_metadata.get_provider_name(provider)
             provider_link = pretty_metadata.get_provider_link(provider)
-            title = pretty_metadata.get_title('\xc2\xb7')
+            title = pretty_metadata.get_title('\u00B7')
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
@@ -3008,7 +3008,7 @@ class SLACK(Notifier):
             poster_url = pretty_metadata.get_poster_url()
             provider_name = pretty_metadata.get_provider_name(provider)
             provider_link = pretty_metadata.get_provider_link(provider)
-            title = pretty_metadata.get_title()
+            title = pretty_metadata.get_title('\u00B7')
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
