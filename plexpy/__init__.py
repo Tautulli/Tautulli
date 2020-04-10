@@ -675,7 +675,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, '
-        'count INTEGER, parent_count INTEGER, child_count INTEGER, '
+        'count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
@@ -1912,6 +1912,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table library_sections.")
         c_db.execute(
             'ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT'
+        )
+
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute('SELECT is_active FROM library_sections')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table library_sections.")
+        c_db.execute(
+            'ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1'
         )
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)

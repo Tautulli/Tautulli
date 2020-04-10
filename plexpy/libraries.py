@@ -43,7 +43,12 @@ def refresh_libraries():
         library_keys = []
         new_keys = []
 
+        # Keep track of section_id to update is_active status
+        section_ids = [common.LIVE_TV_SECTION_ID]  # Live TV library always considered active
+
         for section in library_sections:
+            section_ids.append(helpers.cast_to_int(section['section_id']))
+
             section_keys = {'server_id': server_id,
                             'section_id': section['section_id']}
             section_values = {'server_id': server_id,
@@ -64,6 +69,10 @@ def refresh_libraries():
 
             if result == 'insert':
                 new_keys.append(section['section_id'])
+
+        query = 'UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR ' \
+                'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
+        monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
 
         if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
             plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
