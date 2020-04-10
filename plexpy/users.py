@@ -673,11 +673,10 @@ class Users(object):
             # Get the user_ids corresponding to the row_ids
             result = monitor_db.select('SELECT user_id FROM users '
                                        'WHERE id IN ({})'.format(','.join(['?'] * len(row_ids))), row_ids)
-            user_ids = [user['user_id'] for user in result]
 
             success = []
-            for user_id in user_ids:
-                success.append(self.delete(user_id=user_id, purge_only=purge_only))
+            for user in result:
+                success.append(self.delete(user_id=user['user_id'], purge_only=purge_only))
             return all(success)
 
         elif str(user_id).isdigit():
