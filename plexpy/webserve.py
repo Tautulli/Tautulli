@@ -812,7 +812,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, grouping=None, time_queries=None, **kwargs):
         """ Get a library's watch time statistics.
 
             ```
@@ -821,6 +821,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                time_queries (str):     "1, 7, 30, 0"
 
             Returns:
                 json:
@@ -847,7 +848,8 @@ class WebInterface(object):
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping,
+                                                       time_queries=time_queries)
             if result:
                 return result
             else:
@@ -1431,7 +1433,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_watch_time_stats(self, user_id=None, grouping=None, **kwargs):
+    def get_user_watch_time_stats(self, user_id=None, grouping=None, time_queries=None, **kwargs):
         """ Get a user's watch time statistics.
 
             ```
@@ -1440,6 +1442,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                time_queries (str):     "1, 7, 30, 0"
 
             Returns:
                 json:
@@ -1466,7 +1469,7 @@ class WebInterface(object):
 
         if user_id:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping)
+            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping, time_queries=time_queries)
             if result:
                 return result
             else:
