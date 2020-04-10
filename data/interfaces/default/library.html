@@ -62,9 +62,21 @@ DOCUMENTATION :: END
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
                             % if data['library_thumb'].startswith('http'):
-                            <div class="library-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['library_thumb'], None, 80, 80)});"></div>
+                            <div class="library-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['library_thumb'], None, 80, 80)});">
+                                % if not data['is_active']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server">
+                                    <i class="fa fa-lg fa-exclamation-triangle"></i>
+                                </span>
+                                % endif
+                            </div>
                             % else:
-                            <div class="library-info-poster-face svg-icon library-${data['section_type']}"></div>
+                            <div class="library-info-poster-face svg-icon library-${data['section_type']}">
+                                % if not data['is_active']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server">
+                                    <i class="fa fa-lg fa-exclamation-triangle"></i>
+                                </span>
+                                % endif
+                            </div>
                             % endif
                             <div class="user-info-username">
                                 <span class="set-username">${data['section_name']}</span>
@@ -410,6 +422,8 @@ DOCUMENTATION :: END
     $("#refresh-history-list").click(function () {
         history_table.draw();
     });
+
+    $(".inactive-library-tooltip").tooltip();
 
     % if _session['user_group'] == 'admin':
     function loadMediaInfoTable() {

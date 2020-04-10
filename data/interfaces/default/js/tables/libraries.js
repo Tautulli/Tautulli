@@ -41,14 +41,16 @@ libraries_list_table_options = {
             "targets": [1],
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
+                var inactive = '';
+                if (!rowData['is_active']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 if (cellData !== null && cellData !== '') {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');">' + inactive + '</div></a>');
                     } else {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face svg-icon library-' + rowData['section_type'] + '"></div></a>');
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face svg-icon library-' + rowData['section_type'] + '">' + inactive + '</div></a>');
                     }
                 } else {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);"></div></a>');
+                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);">' + inactive + '</div></a>');
                 }
             },
             "orderable": false,

@@ -331,7 +331,8 @@ class Libraries(object):
                    'session_history_metadata.guid',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
-                   'library_sections.keep_history'
+                   'library_sections.keep_history',
+                   'library_sections.is_active'
                    ]
         try:
             query = data_tables.ssp_query(table_name='library_sections',
@@ -397,7 +398,8 @@ class Libraries(object):
                    'guid': item['guid'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'do_notify_created': helpers.checked(item['do_notify_created']),
-                   'keep_history': helpers.checked(item['keep_history'])
+                   'keep_history': helpers.checked(item['keep_history']),
+                   'is_active': item['is_active']
                    }
 
             rows.append(row)
@@ -742,6 +744,7 @@ class Libraries(object):
                           'count': 0,
                           'parent_count': 0,
                           'child_count': 0,
+                          'is_active': 1,
                           'do_notify': 0,
                           'do_notify_created': 0,
                           'keep_history': 1,
@@ -758,7 +761,7 @@ class Libraries(object):
                 if str(section_id).isdigit():
                     query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
                             'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art AS library_art, ' \
-                            'custom_art_url AS custom_art, ' \
+                            'custom_art_url AS custom_art, is_active, ' \
                             'do_notify, do_notify_created, keep_history, deleted_section ' \
                             'FROM library_sections ' \
                             'WHERE section_id = ? '
@@ -792,6 +795,7 @@ class Libraries(object):
                                        'count': item['count'],
                                        'parent_count': item['parent_count'],
                                        'child_count': item['child_count'],
+                                       'is_active': item['is_active'],
                                        'do_notify': item['do_notify'],
                                        'do_notify_created': item['do_notify_created'],
                                        'keep_history': item['keep_history'],
