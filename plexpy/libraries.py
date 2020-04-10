@@ -1040,7 +1040,8 @@ class Libraries(object):
                                            purge_only=purge_only))
             return all(success)
 
-        elif server_id and str(section_id).isdigit():
+        elif str(section_id).isdigit():
+            server_id = server_id or plexpy.CONFIG.PMS_IDENTIFIER
             database.delete_library_history(server_id=server_id, section_id=section_id)
             if purge_only:
                 return True

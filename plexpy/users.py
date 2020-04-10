@@ -676,7 +676,8 @@ class Users(object):
 
             success = []
             for user in result:
-                success.append(self.delete(user_id=user['user_id'], purge_only=purge_only))
+                success.append(self.delete(user_id=user['user_id'],
+                                           purge_only=purge_only))
             return all(success)
 
         elif str(user_id).isdigit():
