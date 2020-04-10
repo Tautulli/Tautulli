@@ -34,7 +34,11 @@ def refresh_users():
     if result:
         monitor_db = database.MonitorDatabase()
 
+        # Keep track of user_id to update is_active status
+        user_ids = [0]  # Local user always considered active
+
         for item in result:
+            user_ids.append(helpers.cast_to_int(item['user_id']))
 
             if item.get('shared_libraries'):
                 item['shared_libraries'] = ';'.join(item['shared_libraries'])
@@ -57,6 +61,9 @@ def refresh_users():
                     item['custom_avatar_url'] = item['thumb']
 
             monitor_db.upsert('users', item, keys_dict)
+
+        query = 'UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})'.format(', '.join(['?'] * len(user_ids)))
+        monitor_db.action(query=query, args=user_ids)
 
         logger.info(u"Tautulli Users :: Users list refreshed.")
         return True
