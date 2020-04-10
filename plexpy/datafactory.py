@@ -1561,24 +1561,6 @@ class DataFactory(object):
 
         return key_list
 
-    def delete_session_history_rows(self, row_ids=None):
-        if row_ids and row_ids is not None:
-            row_ids = map(helpers.cast_to_int, row_ids.split(','))
-
-        if row_ids:
-            monitor_db = database.MonitorDatabase()
-
-            logger.info(u"Tautulli DataFactory :: Deleting history row ids %s from the session history database." % row_ids)
-
-            where = 'WHERE id IN ({})'.format(', '.join(['?'] * len(row_ids)))
-            for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
-                query = 'DELETE FROM {table} {where}'.format(table=table, where=where)
-                monitor_db.action(query=query, args=row_ids)
-
-            return 'Deleted history.'
-        else:
-            return 'Unable to delete rows. Input rows not valid.'
-
     def update_metadata(self, old_key_list='', new_key_list='', media_type=''):
         pms_connect = pmsconnect.PmsConnect()
         monitor_db = database.MonitorDatabase()

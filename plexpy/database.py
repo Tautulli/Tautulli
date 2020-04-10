@@ -21,6 +21,7 @@ import threading
 import time
 
 import plexpy
+import helpers
 import logger
 
 FILENAME = "tautulli.db"
@@ -55,6 +56,24 @@ def delete_sessions():
 def delete_recently_added():
     logger.info(u"Tautulli Database :: Clearing recently added items from database.")
     return clear_table('recently_added')
+
+
+def delete_session_history_rows(row_ids=None):
+    if row_ids:
+        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+            delete_rows_from_table(table=table, row_ids=row_ids)
+        return True
+    return False
+
+
+def delete_rows_from_table(table, row_ids):
+    if row_ids and isinstance(row_ids, basestring):
+        row_ids = map(helpers.cast_to_int, row_ids.split(','))
+
+    logger.info(u"Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
+    query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
+    monitor_db = MonitorDatabase()
+    monitor_db.action(query, row_ids)
 
 
 def db_filename(filename=FILENAME):

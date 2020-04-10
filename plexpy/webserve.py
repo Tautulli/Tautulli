@@ -1871,12 +1871,14 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
 
         if row_ids:
-            delete_row = data_factory.delete_session_history_rows(row_ids=row_ids)
+            success = database.delete_session_history_rows(row_ids=row_ids)
 
-            if delete_row:
-                return {'message': delete_row}
+            if success:
+                return {'result': 'success', 'message': 'Deleted history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete history.'}
         else:
-            return {'message': 'No row ids received.'}
+            return {'result': 'error', 'message': 'No row ids received.'}
 
 
     ##### Graphs #####
