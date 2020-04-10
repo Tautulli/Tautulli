@@ -45,12 +45,12 @@ libraries_list_table_options = {
                 if (!rowData['is_active']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 if (cellData !== null && cellData !== '') {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');">' + inactive + '</div></a>');
+                        $(td).html('<a href="' + page('library', rowData['section_id']) + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');">' + inactive + '</div></a>');
                     } else {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face svg-icon library-' + rowData['section_type'] + '">' + inactive + '</div></a>');
+                        $(td).html('<a href="' + page('library', rowData['section_id']) + '"><div class="libraries-poster-face svg-icon library-' + rowData['section_type'] + '">' + inactive + '</div></a>');
                     }
                 } else {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);">' + inactive + '</div></a>');
+                    $(td).html('<a href="' + page('library', rowData['section_id']) + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);">' + inactive + '</div></a>');
                 }
             },
             "orderable": false,
@@ -64,7 +64,7 @@ libraries_list_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html('<div data-id="' + rowData['row_id'] + '">' +
-                        '<a href="library?section_id=' + rowData['section_id'] + '">' + cellData + '</a>' +
+                        '<a href="' + page('library', rowData['section_id']) + '">' + cellData + '</a>' +
                         '</div>');
                 } else {
                     $(td).html('n/a');
