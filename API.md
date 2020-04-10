@@ -88,7 +88,8 @@ Required parameters:
     section_id (str):       The id of the Plex library section
 
 Optional parameters:
-    None
+    server_id (str):        The Plex server identifier of the library section
+    row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:
     None
@@ -103,7 +104,7 @@ Required parameters:
     user_id (str):          The id of the Plex user
 
 Optional parameters:
-    None
+    row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:
     None
@@ -112,6 +113,21 @@ Returns:
 
 ### delete_cache
 Delete and recreate the cache directory.
+
+
+### delete_history
+Delete history rows from Tautulli.
+
+```
+Required parameters:
+    row_ids (str):          Comma separated row ids to delete, e.g. "65,110,2,3645"
+
+Optional parameters:
+    None
+
+Returns:
+    None
+```
 
 
 ### delete_hosted_images
@@ -146,7 +162,8 @@ Required parameters:
     section_id (str):       The id of the Plex library section
 
 Optional parameters:
-    None
+    server_id (str):        The Plex server identifier of the library section
+    row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:
     None
@@ -294,7 +311,7 @@ Required parameters:
     user_id (str):          The id of the Plex user
 
 Optional parameters:
-    None
+    row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:
     None
@@ -726,7 +743,6 @@ Returns:
               "group_count": 1,
               "group_ids": "1124",
               "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-              "id": 1124,
               "ip_address": "xxx.xxx.xxx.xxx",
               "live": 0,
               "media_index": 17,
@@ -742,6 +758,7 @@ Returns:
               "player": "Castle-PC",
               "rating_key": 4348,
               "reference_id": 1123,
+              "row_id": 1124,
               "session_key": null,
               "started": 1462688107,
               "state": null,
@@ -895,7 +912,7 @@ Returns:
               "do_notify_created": "Checked",
               "duration": 1578037,
               "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-              "id": 1128,
+              "histroy_row_id": 1128,
               "is_active": 1,
               "keep_history": "Checked",
               "labels": [],
@@ -912,9 +929,11 @@ Returns:
               "parent_title": "",
               "plays": 772,
               "rating_key": 153037,
+              "row_id": 1,
               "section_id": 2,
               "section_name": "TV Shows",
               "section_type": "Show",
+              "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
               "thumb": "/library/metadata/153036/thumb/1462175062",
               "year": 2016
               },
@@ -947,9 +966,11 @@ Returns:
          "library_art": "/:/resources/movie-fanart.jpg",
          "library_thumb": "/:/resources/movie.png",
          "parent_count": null,
+         "row_id": 1,
          "section_id": 1,
          "section_name": "Movies",
-         "section_type": "movie"
+         "section_type": "movie",
+         "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
          }
 ```
 
@@ -1065,11 +1086,11 @@ Get a library's watch time statistics.
 
 ```
 Required parameters:
-    section_id (str):               The id of the Plex library section
+    section_id (str):       The id of the Plex library section
 
 Optional parameters:
     grouping (int):         0 or 1
-    query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
+    query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
 Returns:
     json:
@@ -2232,6 +2253,7 @@ Returns:
          "is_home_user": 1,
          "is_restricted": 0,
          "keep_history": 1,
+         "row_id": 1,
          "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
          "user_id": 133788,
          "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
@@ -2384,7 +2406,7 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
-    query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
+    query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
 Returns:
     json:
@@ -2434,6 +2456,7 @@ Returns:
           "is_home_user": 1,
           "is_restricted": 0,
           "keep_history": 1,
+          "row_id": 1,
           "server_token": "PU9cMuQZxJKFBtGqHk68",
           "shared_libraries": "1;2;3",
           "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
@@ -2473,7 +2496,7 @@ Returns:
               "duration": 2998290,
               "friendly_name": "Jon Snow",
               "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-              "id": 1121,
+              "history_row_id": 1121,
               "ip_address": "xxx.xxx.xxx.xxx",
               "is_active": 1,
               "keep_history": "Checked",
@@ -2489,6 +2512,7 @@ Returns:
               "player": "Plex Web (Chrome)",
               "plays": 487,
               "rating_key": 153037,
+              "row_id": 1,
               "thumb": "/library/metadata/153036/thumb/1462175062",
               "transcode_decision": "transcode",
               "user_id": 133788,
