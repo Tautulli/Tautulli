@@ -116,14 +116,14 @@
                     });
 
                     if (libraries_to_delete.length > 0) {
-                        $('#libraries-to-delete').prepend('<p>Are you REALLY sure you want to delete the following libraries:</p>')
+                        $('#libraries-to-delete').prepend('<p>Are you REALLY sure you want to delete the following libraries:</p>');
                         for (var i = 0; i < libraries_to_delete.length; i++) {
                             $('#libraries-to-delete').append('<li>' + $('div[data-id=' + libraries_to_delete[i] + ']').text() + '</li>');
                         }
                     }
 
                     if (libraries_to_purge.length > 0) {
-                        $('#libraries-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following libraries:</p>')
+                        $('#libraries-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following libraries:</p>');
                         for (var i = 0; i < libraries_to_purge.length; i++) {
                             $('#libraries-to-purge').append('<li>' + $('div[data-id=' + libraries_to_purge[i] + ']').text() + '</li>');
                         }
@@ -131,31 +131,27 @@
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        libraries_to_delete.forEach(function(row, idx) {
-                            $.ajax({
-                                url: 'delete_library',
-                                type: 'POST',
-                                data: { section_id: row },
-                                cache: false,
-                                async: true,
-                                success: function (data) {
-                                    var msg = "Library deleted";
-                                    showMsg(msg, false, true, 2000);
-                                }
-                            });
+                        $.ajax({
+                            url: 'delete_library',
+                            type: 'POST',
+                            data: { row_ids: libraries_to_delete.join(',') },
+                            cache: false,
+                            async: true,
+                            success: function (data) {
+                                var msg = "Library deleted";
+                                showMsg(msg, false, true, 2000);
+                            }
                         });
-                        libraries_to_purge.forEach(function(row, idx) {
-                            $.ajax({
-                                url: 'delete_all_library_history',
-                                type: 'POST',
-                                data: { section_id: row },
-                                cache: false,
-                                async: true,
-                                success: function (data) {
-                                    var msg = "Library history purged";
-                                    showMsg(msg, false, true, 2000);
-                                }
-                            });
+                        $.ajax({
+                            url: 'delete_all_library_history',
+                            type: 'POST',
+                            data: { row_ids: libraries_to_purge.join(',') },
+                            cache: false,
+                            async: true,
+                            success: function (data) {
+                                var msg = "Library history purged";
+                                showMsg(msg, false, true, 2000);
+                            }
                         });
                         libraries_list_table.draw();
                     });
@@ -188,7 +184,7 @@
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;
-                if (result.result == 'success') {
+                if (result.result === 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 2000, false);
                     libraries_list_table.draw();
                 } else {

@@ -684,7 +684,8 @@ class Users(object):
             if purge_only:
                 return True
             else:
-                logger.info(u"Tautulli Users :: Deleting user with user_id %s from database." % user_id)
+                logger.info(u"Tautulli Users :: Deleting user with user_id %s from database."
+                            % user_id)
                 try:
                     monitor_db.action('UPDATE users '
                                       'SET deleted_user = 1, keep_history = 0, do_notify = 0 '

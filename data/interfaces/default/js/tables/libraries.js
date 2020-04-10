@@ -27,8 +27,8 @@ libraries_list_table_options = {
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 $(td).html('<div class="edit-library-toggles">' +
-                    '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
-                    '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
+                    '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
+                    '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
@@ -63,7 +63,7 @@ libraries_list_table_options = {
             "data": "section_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html('<div data-id="' + rowData['section_id'] + '">' +
+                    $(td).html('<div data-id="' + rowData['row_id'] + '">' +
                         '<a href="library?section_id=' + rowData['section_id'] + '">' + cellData + '</a>' +
                         '</div>');
                 } else {
@@ -234,11 +234,11 @@ libraries_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
-        if ($.inArray(rowData['section_id'], libraries_to_delete) !== -1) {
-            $(row).find('button.delete-library[data-id="' + rowData['section_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        if ($.inArray(rowData['row_id'], libraries_to_delete) !== -1) {
+            $(row).find('button.delete-library[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
-        if ($.inArray(rowData['section_id'], libraries_to_purge) !== -1) {
-            $(row).find('button.purge-library[data-id="' + rowData['section_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        if ($.inArray(rowData['row_id'], libraries_to_purge) !== -1) {
+            $(row).find('button.purge-library[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
     }
 }
@@ -279,11 +279,11 @@ $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles 
     var row = libraries_list_table.row(tr);
     var rowData = row.data();
 
-    var index_delete = $.inArray(rowData['section_id'], libraries_to_delete);
-    var index_purge = $.inArray(rowData['section_id'], libraries_to_purge);
+    var index_delete = $.inArray(rowData['row_id'], libraries_to_delete);
+    var index_purge = $.inArray(rowData['row_id'], libraries_to_purge);
 
     if (index_delete === -1) {
-        libraries_to_delete.push(rowData['section_id']);
+        libraries_to_delete.push(rowData['row_id']);
         if (index_purge === -1) {
             tr.find('button.purge-library').click();
         }
@@ -302,11 +302,11 @@ $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles 
     var row = libraries_list_table.row(tr);
     var rowData = row.data();
 
-    var index_delete = $.inArray(rowData['section_id'], libraries_to_delete);
-    var index_purge = $.inArray(rowData['section_id'], libraries_to_purge);
+    var index_delete = $.inArray(rowData['row_id'], libraries_to_delete);
+    var index_purge = $.inArray(rowData['row_id'], libraries_to_purge);
 
     if (index_purge === -1) {
-        libraries_to_purge.push(rowData['section_id']);
+        libraries_to_purge.push(rowData['row_id']);
     } else {
         libraries_to_purge.splice(index_purge, 1);
         if (index_delete != -1) {

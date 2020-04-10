@@ -81,10 +81,27 @@ def delete_user_history(user_id=None):
         monitor_db = MonitorDatabase()
 
         # Get all history associated with the user_id
-        result = monitor_db.select('SELECT id FROM session_history WHERE user_id = ?', [user_id])
+        result = monitor_db.select('SELECT id FROM session_history WHERE user_id = ?',
+                                   [user_id])
         row_ids = [row['id'] for row in result]
 
-        logger.info(u"Tautulli Database :: Deleting all history for user id %s from database." % user_id)
+        logger.info(u"Tautulli Database :: Deleting all history for user_id %s from database." % user_id)
+        return delete_session_history_rows(row_ids=row_ids)
+
+
+def delete_library_history(server_id=None, section_id=None):
+    if server_id and str(section_id).isdigit():
+        monitor_db = MonitorDatabase()
+
+        # Get all history associated with the server_id and section_id
+        result = monitor_db.select('SELECT session_history.id FROM session_history '
+                                   'JOIN session_history_metadata ON session_history.id = session_history_metadata.id '
+                                   'WHERE session_history.server_id = ? AND session_history_metadata.section_id = ?',
+                                   [server_id, section_id])
+        row_ids = [row['id'] for row in result]
+
+        logger.info(u"Tautulli Database :: Deleting all history for library server_id %s and section_id %s from database."
+                    % (server_id, section_id))
         return delete_session_history_rows(row_ids=row_ids)
 
 

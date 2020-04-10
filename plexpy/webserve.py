@@ -397,7 +397,7 @@ class WebInterface(object):
                           "do_notify_created": "Checked",
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-                          "id": 1128,
+                          "histroy_row_id": 1128,
                           "is_active": 1,
                           "keep_history": "Checked",
                           "labels": [],
@@ -414,9 +414,11 @@ class WebInterface(object):
                           "parent_title": "",
                           "plays": 772,
                           "rating_key": 153037,
+                          "row_id": 1,
                           "section_id": 2,
                           "section_name": "TV Shows",
                           "section_type": "Show",
+                          "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
                           "thumb": "/library/metadata/153036/thumb/1462175062",
                           "year": 2016
                           },
@@ -794,9 +796,11 @@ class WebInterface(object):
                      "library_art": "/:/resources/movie-fanart.jpg",
                      "library_thumb": "/:/resources/movie.png",
                      "parent_count": null,
+                     "row_id": 1,
                      "section_id": 1,
                      "section_name": "Movies",
-                     "section_type": "movie"
+                     "section_type": "movie",
+                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
                      }
             ```
         """
@@ -906,57 +910,59 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_all_library_history(self, section_id, **kwargs):
+    def delete_all_library_history(self, server_id=None, section_id=None, row_ids=None, **kwargs):
         """ Delete all Tautulli history for a specific library.
 
             ```
             Required parameters:
+                server_id (str):        The Plex server identifier of the library section
                 section_id (str):       The id of the Plex library section
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        library_data = libraries.Libraries()
-
-        if section_id:
-            delete_row = library_data.delete_all_history(section_id=section_id)
-
-            if delete_row:
-                return {'message': delete_row}
+        if (server_id and section_id) or row_ids:
+            library_data = libraries.Libraries()
+            success = library_data.delete(server_id=server_id, section_id=section_id, row_ids=row_ids, purge_only=True)
+            if success:
+                return {'result': 'success', 'message': 'Deleted library history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete library(s) history.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_library(self, section_id, **kwargs):
+    def delete_library(self, server_id=None, section_id=None, row_ids=None, **kwargs):
         """ Delete a library section from Tautulli. Also erases all history for the library.
 
             ```
             Required parameters:
+                server_id (str):        The Plex server identifier of the library section
                 section_id (str):       The id of the Plex library section
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        library_data = libraries.Libraries()
-
-        if section_id:
-            delete_row = library_data.delete(section_id=section_id)
-
-            if delete_row:
-                return {'message': delete_row}
+        if (server_id and section_id) or row_ids:
+            library_data = libraries.Libraries()
+            success = library_data.delete(server_id=server_id, section_id=section_id, row_ids=row_ids)
+            if success:
+                return {'result': 'success', 'message': 'Deleted library.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete library(s).'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1291,7 +1297,7 @@ class WebInterface(object):
                      "data":
                         [{"friendly_name": "Jon Snow",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-                          "history_row_id": 1121,
+                          "id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
