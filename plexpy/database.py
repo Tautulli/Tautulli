@@ -28,8 +28,8 @@ if plexpy.PYTHON2:
     import helpers
     import logger
 else:
-    from plexpy import helpers
     from plexpy import logger
+    from plexpy.helpers import cast_to_int
 
 
 FILENAME = "tautulli.db"
@@ -67,8 +67,8 @@ def delete_recently_added():
 
 
 def delete_rows_from_table(table, row_ids):
-    if row_ids and isinstance(row_ids, basestring):
-        row_ids = map(helpers.cast_to_int, row_ids.split(','))
+    if row_ids and isinstance(row_ids, str):
+        row_ids = map(cast_to_int, row_ids.split(','))
 
     logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
     query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
