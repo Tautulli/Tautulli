@@ -20,7 +20,6 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import str
 from future.builtins import object
-from past.utils import old_div
 
 import json
 from itertools import groupby
@@ -237,7 +236,7 @@ class DataFactory(object):
 
             if item['percent_complete'] >= watched_percent[item['media_type']]:
                 watched_status = 1
-            elif item['percent_complete'] >= old_div(watched_percent[item['media_type']],2):
+            elif item['percent_complete'] >= watched_percent[item['media_type']] / 2.0:
                 watched_status = 0.5
             else:
                 watched_status = 0

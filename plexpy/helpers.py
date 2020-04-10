@@ -17,11 +17,9 @@
 
 from __future__ import division
 from __future__ import unicode_literals
-from past.builtins import cmp
 
 from future.builtins import zip
 from future.builtins import str
-from past.utils import old_div
 
 import arrow
 import base64
@@ -104,20 +102,6 @@ def addtoapi(*dargs, **dkwargs):
     return rd
 
 
-def multikeysort(items, columns):
-    comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
-
-    def comparer(left, right):
-        for fn, mult in comparers:
-            result = cmp(fn(left), fn(right))
-            if result:
-                return mult * result
-        else:
-            return 0
-
-    return sorted(items, cmp=comparer)
-
-
 def checked(variable):
     if variable:
         return 'Checked'
@@ -180,7 +164,7 @@ def latinToAscii(unicrap):
 
 def convert_milliseconds(ms):
 
-    seconds = old_div(ms, 1000)
+    seconds = ms // 1000
     gmtime = time.gmtime(seconds)
     if seconds > 3600:
         minutes = time.strftime("%H:%M:%S", gmtime)
@@ -194,7 +178,7 @@ def convert_milliseconds_to_minutes(ms):
 
     if str(ms).isdigit():
         seconds = float(ms) / 1000
-        minutes = round(old_div(seconds, 60), 0)
+        minutes = round(seconds / 60, 0)
 
         return math.trunc(minutes)
 
@@ -266,10 +250,9 @@ def human_duration(s, sig='dhms'):
     hd = ''
 
     if str(s).isdigit() and s > 0:
-        d = int(old_div(s, 86400))
-        h = int(old_div((s % 86400), 3600))
-        m = int(old_div(((s % 86400) % 3600), 60))
-        s = int(((s % 86400) % 3600) % 60)
+        d, h = divmod(s, 86400)
+        h, m = divmod(h, 3600)
+        m, s = divmod(m, 60)
 
         hd_list = []
         if sig >= 'd' and d > 0:
@@ -319,7 +302,7 @@ def get_age(date):
 
 def bytes_to_mb(bytes):
 
-    mb = old_div(int(bytes), 1048576)
+    mb = float(bytes) / 1048576
     size = '%.1f MB' % mb
     return size
 
@@ -522,7 +505,7 @@ def get_percent(value1, value2):
     value2 = cast_to_float(value2)
 
     if value1 != 0 and value2 != 0:
-        percent = (old_div(value1, value2)) * 100
+        percent = (value1 / value2) * 100
     else:
         percent = 0
 

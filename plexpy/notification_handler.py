@@ -22,8 +22,6 @@ from future.builtins import next
 from future.builtins import map
 from future.builtins import str
 from future.builtins import range
-from past.builtins import basestring
-from past.utils import old_div
 
 import arrow
 import bleach
@@ -277,7 +275,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 continue
 
             # Make sure the condition values is in a list
-            if isinstance(values, basestring):
+            if isinstance(values, str):
                 values = [values]
 
             # Cast the condition values to the correct type
@@ -578,9 +576,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     user_transcode_decision_count = Counter(s['transcode_decision'] for s in user_sessions)
 
     if notify_action != 'on_play':
-        stream_duration = int(old_div((time.time() -
-                              helpers.cast_to_int(session.get('started', 0)) -
-                              helpers.cast_to_int(session.get('paused_counter', 0))), 60))
+        stream_duration = int((time.time() -
+                               helpers.cast_to_int(session.get('started', 0)) -
+                               helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
     else:
         stream_duration = 0
 
@@ -1116,10 +1114,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         default_body = default_action.get('body', '')
 
     # Make sure subject and body text are strings
-    if not isinstance(subject, basestring):
+    if not isinstance(subject, str):
         logger.error("Tautulli NotificationHandler :: Invalid subject text. Using fallback.")
         subject = default_subject
-    if not isinstance(body, basestring):
+    if not isinstance(body, str):
         logger.error("Tautulli NotificationHandler :: Invalid body text. Using fallback.")
         body = default_body
 
@@ -1659,7 +1657,7 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
 
 def str_format(s, parameters):
     custom_formatter = CustomFormatter()
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return custom_formatter.format(str(s), **parameters)
     return s
 
@@ -1708,7 +1706,7 @@ class CustomFormatter(Formatter):
                 return value
 
     def get_value(self, key, args, kwargs):
-        if isinstance(key, basestring):
+        if isinstance(key, str):
             return kwargs.get(key, self.default.format(key))
         else:
             return super(CustomFormatter, self).get_value(key, args, kwargs)

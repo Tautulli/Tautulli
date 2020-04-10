@@ -17,7 +17,6 @@
 
 from __future__ import unicode_literals
 from future.builtins import str
-from past.builtins import basestring
 
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
@@ -66,7 +65,7 @@ def blacklist_config(config):
     blacklist_keys = ['HOOK', 'APIKEY', 'KEY', 'PASSWORD', 'TOKEN']
 
     for key, value in config.items():
-        if isinstance(value, basestring) and len(value.strip()) > 5 and \
+        if isinstance(value, str) and len(value.strip()) > 5 and \
             key.upper() not in _WHITELIST_KEYS and (key.upper() in blacklist_keys or
                                                     any(bk in key.upper() for bk in _BLACKLIST_KEYS)):
             blacklist.add(value.strip())
@@ -102,7 +101,7 @@ class BlacklistFilter(logging.Filter):
                 if item in record.msg:
                     record.msg = record.msg.replace(item, 8 * '*' + item[-2:])
                 if any(item in str(arg) for arg in record.args):
-                    record.args = tuple(arg.replace(item, 8 * '*' + item[-2:]) if isinstance(arg, basestring) else arg
+                    record.args = tuple(arg.replace(item, 8 * '*' + item[-2:]) if isinstance(arg, str) else arg
                                         for arg in record.args)
             except:
                 pass
@@ -129,7 +128,7 @@ class RegexFilter(logging.Filter):
 
             args = []
             for arg in record.args:
-                matches = self.regex.findall(arg) if isinstance(arg, basestring) else []
+                matches = self.regex.findall(arg) if isinstance(arg, str) else []
                 for match in matches:
                     arg = self.replace(arg, match)
                 args.append(arg)
