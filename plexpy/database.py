@@ -120,6 +120,7 @@ def make_backup(cleanup=False, scheduler=False):
     corrupt = ''
     if not integrity:
         corrupt = '.corrupt'
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
         backup_file = 'tautulli.backup-{}{}.sched.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)

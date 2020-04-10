@@ -696,16 +696,19 @@ def dbcheck():
         'on_created INTEGER DEFAULT 0, on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
         'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
         'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, '
+        'on_plexpydbcorrupt INTEGER DEFAULT 0, '
         'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
         'on_resume_subject TEXT, on_change_subject TEXT, on_buffer_subject TEXT, on_watched_subject TEXT, '
         'on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
         'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
         'on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, '
+        'on_plexpydbcorrupt_subject TEXT, '
         'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
         'on_resume_body TEXT, on_change_body TEXT, on_buffer_body TEXT, on_watched_body TEXT, '
         'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
         'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
         'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, '
+        'on_plexpydbcorrupt_body TEXT, '
         'custom_conditions TEXT, custom_conditions_logic TEXT)'
     )
 
@@ -2007,6 +2010,21 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notifiers ADD COLUMN on_change_body TEXT'
+        )
+
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT on_plexpydbcorrupt FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_body TEXT'
         )
 
     # Upgrade tvmaze_lookup table from earlier versions
