@@ -3127,6 +3127,7 @@ div.dataTables_info {
 }
 .inactive-library-tooltip i.fa,
 .inactive-user-tooltip i.fa {
+    color: #E5A00D;
     position: absolute;
     right: 0;
     bottom: 0;
