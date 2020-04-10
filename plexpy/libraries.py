@@ -812,17 +812,17 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_watch_time_stats(self, section_id=None, grouping=None, time_queries=None):
+    def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None):
         if not session.allow_session_library(section_id):
             return []
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        if time_queries is not None:
-            time_queries = map(int, time_queries.split(","))
+        if query_days is not None:
+            query_days = map(int, query_days.split(","))
         else:
-            time_queries = [1, 7, 30, 0]
+            query_days = [1, 7, 30, 0]
 
         monitor_db = database.MonitorDatabase()
 
@@ -830,7 +830,7 @@ class Libraries(object):
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
-        for days in time_queries:
+        for days in query_days:
             try:
                 if days > 0:
                     if str(section_id).isdigit():

@@ -1066,7 +1066,7 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
-    time_queries (str):     "1, 7, 30, 0"
+    query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
 
 Returns:
     json:
@@ -2379,7 +2379,7 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
-    time_queries (str):     "1, 7, 30, 0"
+    query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
 
 Returns:
     json:

@@ -434,17 +434,17 @@ class Users(object):
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
 
-    def get_watch_time_stats(self, user_id=None, grouping=None, time_queries=None):
+    def get_watch_time_stats(self, user_id=None, grouping=None, query_days=None):
         if not session.allow_session_user(user_id):
             return []
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        if time_queries is not None:
-            time_queries = map(int, time_queries.split(","))
+        if query_days is not None:
+            query_days = map(int, query_days.split(","))
         else:
-            time_queries = [1, 7, 30, 0]
+            query_days = [1, 7, 30, 0]
 
         monitor_db = database.MonitorDatabase()
 
@@ -452,7 +452,7 @@ class Users(object):
 
         group_by = 'reference_id' if grouping else 'id'
 
-        for days in time_queries:
+        for days in query_days:
             try:
                 if days > 0:
                     if str(user_id).isdigit():
