@@ -130,7 +130,8 @@ class Users(object):
                    'session_history_media_info.transcode_decision',
                    'users.do_notify as do_notify',
                    'users.keep_history as keep_history',
-                   'users.allow_guest as allow_guest'
+                   'users.allow_guest as allow_guest',
+                   'users.is_active as is_active'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -196,7 +197,8 @@ class Users(object):
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history']),
-                   'allow_guest': helpers.checked(item['allow_guest'])
+                   'allow_guest': helpers.checked(item['allow_guest']),
+                   'is_active': item['is_active']
                    }
 
             rows.append(row)
@@ -337,6 +339,7 @@ class Users(object):
                           'friendly_name': 'Local',
                           'user_thumb': common.DEFAULT_USER_THUMB,
                           'email': '',
+                          'is_active': 1,
                           'is_admin': '',
                           'is_home_user': 0,
                           'is_allow_sync': 0,
@@ -357,21 +360,24 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                            'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                            'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_admin, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                            'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE email = ? COLLATE NOCASE '
@@ -406,6 +412,7 @@ class Users(object):
                                     'friendly_name': friendly_name,
                                     'user_thumb': user_thumb,
                                     'email': item['email'],
+                                    'is_active': item['is_active'],
                                     'is_admin': item['is_admin'],
                                     'is_home_user': item['is_home_user'],
                                     'is_allow_sync': item['is_allow_sync'],
@@ -613,7 +620,7 @@ class Users(object):
 
         try:
             query = 'SELECT user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
-                    'is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                    'is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                     'do_notify, keep_history, allow_guest, server_token, shared_libraries, ' \
                     'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
                     'FROM users WHERE deleted_user = 0'
@@ -629,6 +636,7 @@ class Users(object):
                     'friendly_name': item['friendly_name'] or item['username'],
                     'thumb': item['custom_avatar_url'] or item['thumb'],
                     'email': item['email'],
+                    'is_active': item['is_active'],
                     'is_admin': item['is_admin'],
                     'is_home_user': item['is_home_user'],
                     'is_allow_sync': item['is_allow_sync'],

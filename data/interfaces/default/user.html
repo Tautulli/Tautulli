@@ -51,7 +51,13 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
-                            <div class="user-info-poster-face" style="background-image: url(${data['user_thumb']});"></div>
+                                <div class="user-info-poster-face" style="background-image: url(${data['user_thumb']});">
+                                    % if not data['is_active']:
+                                    <span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server">
+                                        <i class="fa fa-lg fa-exclamation-triangle"></i>
+                                    </span>
+                                    % endif
+                                </div>
                             <div class="user-info-username">
                                 <span class="set-username">${data['friendly_name']}</span>
                                 % if _session['user_group'] == 'admin':
@@ -539,6 +545,8 @@ DOCUMENTATION :: END
     $("#refresh-login-list").click(function () {
         login_log_table.draw();
     });
+
+    $(".inactive-user-tooltip").tooltip();
 
     % if _session['user_group'] == 'admin':
     $("#edit-user-tooltip").tooltip();
