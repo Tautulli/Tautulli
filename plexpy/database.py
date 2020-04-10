@@ -25,8 +25,10 @@ import time
 
 import plexpy
 if plexpy.PYTHON2:
+    import helpers
     import logger
 else:
+    from plexpy import helpers
     from plexpy import logger
 
 
@@ -64,6 +66,53 @@ def delete_recently_added():
     return clear_table('recently_added')
 
 
+def delete_rows_from_table(table, row_ids):
+    if row_ids and isinstance(row_ids, basestring):
+        row_ids = map(helpers.cast_to_int, row_ids.split(','))
+
+    logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
+    query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
+    monitor_db = MonitorDatabase()
+    monitor_db.action(query, row_ids)
+
+
+def delete_session_history_rows(row_ids=None):
+    if row_ids:
+        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+            delete_rows_from_table(table=table, row_ids=row_ids)
+        return True
+    return False
+
+
+def delete_user_history(user_id=None):
+    if str(user_id).isdigit():
+        monitor_db = MonitorDatabase()
+
+        # Get all history associated with the user_id
+        result = monitor_db.select('SELECT id FROM session_history WHERE user_id = ?',
+                                   [user_id])
+        row_ids = [row['id'] for row in result]
+
+        logger.info("Tautulli Database :: Deleting all history for user_id %s from database." % user_id)
+        return delete_session_history_rows(row_ids=row_ids)
+
+
+def delete_library_history(server_id=None, section_id=None):
+    if server_id and str(section_id).isdigit():
+        monitor_db = MonitorDatabase()
+
+        # Get all history associated with the server_id and section_id
+        result = monitor_db.select('SELECT session_history.id FROM session_history '
+                                   'JOIN session_history_metadata ON session_history.id = session_history_metadata.id '
+                                   'WHERE session_history.server_id = ? AND session_history_metadata.section_id = ?',
+                                   [server_id, section_id])
+        row_ids = [row['id'] for row in result]
+
+        logger.info("Tautulli Database :: Deleting all history for library server_id %s and section_id %s from database."
+                    % (server_id, section_id))
+        return delete_session_history_rows(row_ids=row_ids)
+
+
 def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """
 
@@ -79,6 +128,7 @@ def make_backup(cleanup=False, scheduler=False):
     corrupt = ''
     if not integrity:
         corrupt = '.corrupt'
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
         backup_file = 'tautulli.backup-{}{}.sched.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)

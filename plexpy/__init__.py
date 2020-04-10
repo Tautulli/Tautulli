@@ -693,11 +693,11 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, '
-        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
-        'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
-        'filter_music TEXT, filter_photos TEXT)'
+        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, '
+        'is_home_user INTEGER DEFAULT NULL, is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, '
+        'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, '
+        'allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, '
+        'filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -705,7 +705,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, '
-        'count INTEGER, parent_count INTEGER, child_count INTEGER, '
+        'count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
@@ -726,16 +726,19 @@ def dbcheck():
         'on_created INTEGER DEFAULT 0, on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
         'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
         'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, '
+        'on_plexpydbcorrupt INTEGER DEFAULT 0, '
         'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
         'on_resume_subject TEXT, on_change_subject TEXT, on_buffer_subject TEXT, on_watched_subject TEXT, '
         'on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
         'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
         'on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, '
+        'on_plexpydbcorrupt_subject TEXT, '
         'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
         'on_resume_body TEXT, on_change_body TEXT, on_buffer_body TEXT, on_watched_body TEXT, '
         'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
         'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
         'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, '
+        'on_plexpydbcorrupt_body TEXT, '
         'custom_conditions TEXT, custom_conditions_logic TEXT)'
     )
 
@@ -1247,7 +1250,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT video_dynamic_range FROM sessions')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN video_dynamic_range TEXT'
         )
@@ -1259,7 +1262,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT channel_identifier FROM sessions')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN channel_call_sign TEXT'
         )
@@ -1274,7 +1277,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT originally_available_at FROM sessions')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN originally_available_at TEXT'
         )
@@ -1286,7 +1289,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT guid FROM sessions')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN guid TEXT'
         )
@@ -1358,12 +1361,12 @@ def dbcheck():
         result = c_db.execute('SELECT platform FROM session_history '
                               'WHERE platform = "windows"').fetchall()
         if len(result) > 0:
-            logger.debug(u"Altering database. Capitalizing Windows platform values in session_history table.")
+            logger.debug("Altering database. Capitalizing Windows platform values in session_history table.")
             c_db.execute(
                 'UPDATE session_history SET platform = "Windows" WHERE platform = "windows" '
             )
     except sqlite3.OperationalError:
-        logger.warn(u"Unable to capitalize Windows platform values in session_history table.")
+        logger.warn("Unable to capitalize Windows platform values in session_history table.")
 
     # Upgrade session_history_metadata table from earlier versions
     try:
@@ -1414,7 +1417,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT live FROM session_history_metadata')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN live INTEGER DEFAULT 0'
         )
@@ -1663,7 +1666,7 @@ def dbcheck():
     try:
         c_db.execute('SELECT video_dynamic_range FROM session_history_media_info')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             'ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT '
         )
@@ -1761,6 +1764,15 @@ def dbcheck():
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT is_active FROM users')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1'
         )
 
     # Upgrade notify_log table from earlier versions
@@ -1930,9 +1942,18 @@ def dbcheck():
     try:
         c_db.execute('SELECT custom_art_url FROM library_sections')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table library_sections.")
+        logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
             'ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT'
+        )
+
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute('SELECT is_active FROM library_sections')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table library_sections.")
+        c_db.execute(
+            'ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1'
         )
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
@@ -2019,6 +2040,21 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notifiers ADD COLUMN on_change_body TEXT'
+        )
+
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT on_plexpydbcorrupt FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_body TEXT'
         )
 
     # Upgrade tvmaze_lookup table from earlier versions
@@ -2157,11 +2193,11 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
             logger.warn("Tautulli failed to switch git branch: %s. Restarting." % e)
 
     if reset:
-        logger.info(u"Tautulli is resetting the git install...")
+        logger.info("Tautulli is resetting the git install...")
         try:
             versioncheck.reset_git_install()
         except Exception as e:
-            logger.warn(u"Tautulli failed to reset git install: %s. Restarting." % e)
+            logger.warn("Tautulli failed to reset git install: %s. Restarting." % e)
 
     if CREATEPID:
         logger.info("Removing pidfile %s", PIDFILE)

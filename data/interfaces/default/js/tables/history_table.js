@@ -36,10 +36,10 @@ history_table_options = {
             "targets": [0],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (rowData['id'] === null) {
+                if (rowData['row_id'] === null) {
                     $(td).html('');
                 } else {
-                    $(td).html('<button class="btn btn-xs btn-warning" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+                    $(td).html('<button class="btn btn-xs btn-warning" data-id="' + rowData['row_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
                 }
             },
             "width": "5%",
@@ -317,19 +317,19 @@ history_table_options = {
     "rowCallback": function (row, rowData, rowIndex) {
         if (rowData['group_count'] == 1) {
             // if no grouped rows simply toggle the delete button
-            if ($.inArray(rowData['id'], history_to_delete) !== -1) {
-                $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            if ($.inArray(rowData['row_id'], history_to_delete) !== -1) {
+                $(row).find('button[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
             }
-        } else if (rowData['id'] !== null) {
+        } else if (rowData['row_id'] !== null) {
             // if grouped rows
             // toggle the parent button to danger
-            $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            $(row).find('button[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
             // check if any child rows are not selected
             var group_ids = rowData['group_ids'].split(',').map(Number);
             group_ids.forEach(function (id) {
                 var index = $.inArray(id, history_to_delete);
                 if (index == -1) {
-                    $(row).find('button[data-id="' + rowData['id'] + '"]').addClass('btn-warning').removeClass('btn-danger');
+                    $(row).find('button[data-id="' + rowData['row_id'] + '"]').addClass('btn-warning').removeClass('btn-danger');
                 }
             });
         }
@@ -353,7 +353,7 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control', function () {
     var rowData = row.data();
 
     $.get('get_stream_data', {
-        row_id: rowData['id'],
+        row_id: rowData['row_id'],
         session_key: rowData['session_key'],
         user: rowData['friendly_name']
     }).then(function (jqXHR) {
@@ -382,9 +382,9 @@ $('.history_table').on('click', '> tbody > tr > td.delete-control > button', fun
 
     if (rowData['group_count'] == 1) {
         // if no grouped rows simply add or remove row from history_to_delete
-        var index = $.inArray(rowData['id'], history_to_delete);
+        var index = $.inArray(rowData['row_id'], history_to_delete);
         if (index === -1) {
-            history_to_delete.push(rowData['id']);
+            history_to_delete.push(rowData['row_id']);
         } else {
             history_to_delete.splice(index, 1);
         }
@@ -549,7 +549,7 @@ function createChildTable(row, rowData) {
         var childRowData = childRow.data();
 
         $.get('get_stream_data', {
-            row_id: childRowData['id'],
+            row_id: childRowData['row_id'],
             user: childRowData['friendly_name']
         }).then(function (jqXHR) {
             $("#info-modal").html(jqXHR);
@@ -576,9 +576,9 @@ function createChildTable(row, rowData) {
         var childRowData = childRow.data();
 
         // add or remove row from history_to_delete
-        var index = $.inArray(childRowData['id'], history_to_delete);
+        var index = $.inArray(childRowData['row_id'], history_to_delete);
         if (index === -1) {
-            history_to_delete.push(childRowData['id']);
+            history_to_delete.push(childRowData['row_id']);
         } else {
             history_to_delete.splice(index, 1);
         }

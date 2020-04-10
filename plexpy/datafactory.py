@@ -82,7 +82,7 @@ class DataFactory(object):
 
         columns = [
             'session_history.reference_id',
-            'session_history.id',
+            'session_history.id AS row_id',
             'MAX(started) AS date',
             'MIN(started) AS started',
             'MAX(stopped) AS stopped',
@@ -134,7 +134,7 @@ class DataFactory(object):
 
             columns_union = [
                 'NULL AS reference_id',
-                'NULL AS id',
+                'NULL AS row_id',
                 'started AS date',
                 'started',
                 'stopped',
@@ -246,7 +246,7 @@ class DataFactory(object):
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
             row = {'reference_id': item['reference_id'],
-                   'id': item['id'],
+                   'row_id': item['row_id'],
                    'date': item['date'],
                    'started': item['started'],
                    'stopped': item['stopped'],
@@ -1425,7 +1425,7 @@ class DataFactory(object):
 
     def delete_lookup_info(self, rating_key='', service='', delete_all=False):
         if not rating_key and not delete_all:
-            logger.error(u"Tautulli DataFactory :: Unable to delete lookup info: rating_key not provided.")
+            logger.error("Tautulli DataFactory :: Unable to delete lookup info: rating_key not provided.")
             return False
 
         monitor_db = database.MonitorDatabase()
@@ -1439,12 +1439,12 @@ class DataFactory(object):
             return bool(result_themoviedb or result_tvmaze or result_musicbrainz)
         elif service and delete_all:
             if service.lower() in ('themoviedb', 'tvmaze', 'musicbrainz'):
-                logger.info(u"Tautulli DataFactory :: Deleting all lookup info for '%s' from the database."
+                logger.info("Tautulli DataFactory :: Deleting all lookup info for '%s' from the database."
                             % service)
                 result = monitor_db.action('DELETE FROM %s_lookup' % service.lower())
                 return bool(result)
             else:
-                logger.error(u"Tautulli DataFactory :: Unable to delete lookup info: invalid service '%s' provided."
+                logger.error("Tautulli DataFactory :: Unable to delete lookup info: invalid service '%s' provided."
                              % service)
 
     def get_search_query(self, rating_key=''):
@@ -1578,22 +1578,6 @@ class DataFactory(object):
         key_list = grandparents
 
         return key_list
-
-    def delete_session_history_rows(self, row_id=None):
-        monitor_db = database.MonitorDatabase()
-
-        if row_id.isdigit():
-            logger.info("Tautulli DataFactory :: Deleting row id %s from the session history database." % row_id)
-            session_history_del = \
-                monitor_db.action('DELETE FROM session_history WHERE id = ?', [row_id])
-            session_history_media_info_del = \
-                monitor_db.action('DELETE FROM session_history_media_info WHERE id = ?', [row_id])
-            session_history_metadata_del = \
-                monitor_db.action('DELETE FROM session_history_metadata WHERE id = ?', [row_id])
-
-            return 'Deleted rows %s.' % row_id
-        else:
-            return 'Unable to delete rows. Input row not valid.'
 
     def update_metadata(self, old_key_list='', new_key_list='', media_type=''):
         pms_connect = pmsconnect.PmsConnect()

@@ -339,6 +339,14 @@ def available_notification_actions():
                 'body': 'An update is available for Tautulli (version {tautulli_update_version}).',
                 'icon': 'fa-refresh',
                 'media_types': ('server',)
+                },
+               {'label': 'Tautulli Database Corruption',
+                'name': 'on_plexpydbcorrupt',
+                'description': 'Trigger a notification if Tautulli database corruption is detected when backing up the database.',
+                'subject': 'Tautulli ({server_name})',
+                'body': 'Tautulli database corruption detected. Automatic cleanup of database backups is suspended.',
+                'icon': 'fa-database',
+                'media_types': ('server',)
                 }
                ]
 

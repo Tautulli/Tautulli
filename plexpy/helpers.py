@@ -631,17 +631,17 @@ def is_valid_ip(address):
 
 def update_geoip_db():
     if plexpy.CONFIG.GEOIP_DB_INSTALLED:
-        logger.info(u"Tautulli Helpers :: Checking for GeoLite2 database updates.")
+        logger.info("Tautulli Helpers :: Checking for GeoLite2 database updates.")
         now = timestamp()
         if now - plexpy.CONFIG.GEOIP_DB_INSTALLED >= plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS * 24 * 60 * 60:
             return install_geoip_db(update=True)
-        logger.info(u"Tautulli Helpers :: GeoLite2 database already updated within the last %s days."
+        logger.info("Tautulli Helpers :: GeoLite2 database already updated within the last %s days."
                     % plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS)
 
 
 def install_geoip_db(update=False):
     if not plexpy.CONFIG.MAXMIND_LICENSE_KEY:
-        logger.error(u"Tautulli Helpers :: Failed to download GeoLite2 database file from MaxMind: Missing MaxMindLicense Key")
+        logger.error("Tautulli Helpers :: Failed to download GeoLite2 database file from MaxMind: Missing MaxMindLicense Key")
         return False
 
     maxmind_db = 'GeoLite2-City'
@@ -674,7 +674,7 @@ def install_geoip_db(update=False):
         return False
 
     # Check MD5 hash for GeoLite2 tar.gz file
-    logger.debug(u"Tautulli Helpers :: Checking MD5 checksum for GeoLite2 gzip file...")
+    logger.debug("Tautulli Helpers :: Checking MD5 checksum for GeoLite2 gzip file...")
     try:
         hash_md5 = hashlib.md5()
         with open(temp_gz, 'rb') as f:
@@ -690,11 +690,11 @@ def install_geoip_db(update=False):
                          "Checksum: %s, file hash: %s" % (md5_checksum, md5_hash))
             return False
     except Exception as e:
-        logger.error(u"Tautulli Helpers :: Failed to generate MD5 checksum for GeoLite2 gzip file: %s" % e)
+        logger.error("Tautulli Helpers :: Failed to generate MD5 checksum for GeoLite2 gzip file: %s" % e)
         return False
 
     # Extract the GeoLite2 database file
-    logger.debug(u"Tautulli Helpers :: Extracting GeoLite2 database...")
+    logger.debug("Tautulli Helpers :: Extracting GeoLite2 database...")
     try:
         mmdb = None
         with tarfile.open(temp_gz, 'r:gz') as tar:
@@ -707,7 +707,7 @@ def install_geoip_db(update=False):
         if not mmdb:
             raise Exception("{} not found in gzip file.".format(geolite2_db))
     except Exception as e:
-        logger.error(u"Tautulli Helpers :: Failed to extract the GeoLite2 database: %s" % e)
+        logger.error("Tautulli Helpers :: Failed to extract the GeoLite2 database: %s" % e)
         return False
 
     # Delete temportary GeoLite2 gzip file
@@ -722,7 +722,7 @@ def install_geoip_db(update=False):
     plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', timestamp())
     plexpy.CONFIG.write()
 
-    logger.debug(u"Tautulli Helpers :: GeoLite2 database installed successfully.")
+    logger.debug("Tautulli Helpers :: GeoLite2 database installed successfully.")
 
     if not update:
         plexpy.schedule_job(update_geoip_db, 'Update GeoLite2 database', hours=12, minutes=0, seconds=0)
@@ -741,7 +741,7 @@ def uninstall_geoip_db():
     plexpy.CONFIG.__setattr__('GEOIP_DB_INSTALLED', 0)
     plexpy.CONFIG.write()
 
-    logger.debug(u"Tautulli Helpers :: GeoLite2 database uninstalled successfully.")
+    logger.debug("Tautulli Helpers :: GeoLite2 database uninstalled successfully.")
 
     plexpy.schedule_job(update_geoip_db, 'Update GeoLite2 database', hours=0, minutes=0, seconds=0)
 

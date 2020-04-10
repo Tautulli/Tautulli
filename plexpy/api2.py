@@ -308,7 +308,7 @@ class API2(object):
     def sql(self, query=''):
         """ Query the Tautulli database with raw SQL. Automatically makes a backup of
             the database if the latest backup is older then 24h. `api_sql` must be
-            manually enabled in the config file.
+            manually enabled in the config file while Tautulli is shut down.
 
             ```
             Required parameters:

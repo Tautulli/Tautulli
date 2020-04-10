@@ -484,7 +484,8 @@ class WebInterface(object):
                           "do_notify_created": "Checked",
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-                          "id": 1128,
+                          "histroy_row_id": 1128,
+                          "is_active": 1,
                           "keep_history": "Checked",
                           "labels": [],
                           "last_accessed": 1462693216,
@@ -500,9 +501,11 @@ class WebInterface(object):
                           "parent_title": "",
                           "plays": 772,
                           "rating_key": 153037,
+                          "row_id": 1,
                           "section_id": 2,
                           "section_name": "TV Shows",
                           "section_type": "Show",
+                          "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
                           "thumb": "/library/metadata/153036/thumb/1462175062",
                           "year": 2016
                           },
@@ -875,13 +878,16 @@ class WebInterface(object):
                      "deleted_section": 0,
                      "do_notify": 1,
                      "do_notify_created": 1,
+                     "is_active": 1,
                      "keep_history": 1,
                      "library_art": "/:/resources/movie-fanart.jpg",
                      "library_thumb": "/:/resources/movie.png",
                      "parent_count": null,
+                     "row_id": 1,
                      "section_id": 1,
                      "section_name": "Movies",
-                     "section_type": "movie"
+                     "section_type": "movie",
+                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
                      }
             ```
         """
@@ -899,15 +905,16 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, grouping=None, query_days=None, **kwargs):
         """ Get a library's watch time statistics.
 
             ```
             Required parameters:
-                section_id (str):               The id of the Plex library section
+                section_id (str):       The id of the Plex library section
 
             Optional parameters:
                 grouping (int):         0 or 1
+                query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
             Returns:
                 json:
@@ -934,7 +941,8 @@ class WebInterface(object):
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping,
+                                                       query_days=query_days)
             if result:
                 return result
             else:
@@ -989,7 +997,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_all_library_history(self, section_id, **kwargs):
+    def delete_all_library_history(self, server_id=None, section_id=None, row_ids=None, **kwargs):
         """ Delete all Tautulli history for a specific library.
 
             ```
@@ -997,27 +1005,28 @@ class WebInterface(object):
                 section_id (str):       The id of the Plex library section
 
             Optional parameters:
-                None
+                server_id (str):        The Plex server identifier of the library section
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        library_data = libraries.Libraries()
-
-        if section_id:
-            delete_row = library_data.delete_all_history(section_id=section_id)
-
-            if delete_row:
-                return {'message': delete_row}
+        if (server_id and section_id) or row_ids:
+            library_data = libraries.Libraries()
+            success = library_data.delete(server_id=server_id, section_id=section_id, row_ids=row_ids, purge_only=True)
+            if success:
+                return {'result': 'success', 'message': 'Deleted library history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete library(s) history.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_library(self, section_id, **kwargs):
+    def delete_library(self, server_id=None, section_id=None, row_ids=None, **kwargs):
         """ Delete a library section from Tautulli. Also erases all history for the library.
 
             ```
@@ -1025,21 +1034,22 @@ class WebInterface(object):
                 section_id (str):       The id of the Plex library section
 
             Optional parameters:
-                None
+                server_id (str):        The Plex server identifier of the library section
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        library_data = libraries.Libraries()
-
-        if section_id:
-            delete_row = library_data.delete(section_id=section_id)
-
-            if delete_row:
-                return {'message': delete_row}
+        if (server_id and section_id) or row_ids:
+            library_data = libraries.Libraries()
+            success = library_data.delete(server_id=server_id, section_id=section_id, row_ids=row_ids)
+            if success:
+                return {'result': 'success', 'message': 'Deleted library.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete library(s).'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1155,8 +1165,9 @@ class WebInterface(object):
                           "duration": 2998290,
                           "friendly_name": "Jon Snow",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-                          "id": 1121,
+                          "history_row_id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
+                          "is_active": 1,
                           "keep_history": "Checked",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
@@ -1170,6 +1181,7 @@ class WebInterface(object):
                           "player": "Plex Web (Chrome)",
                           "plays": 487,
                           "rating_key": 153037,
+                          "row_id": 1,
                           "thumb": "/library/metadata/153036/thumb/1462175062",
                           "transcode_decision": "transcode",
                           "user_id": 133788,
@@ -1493,10 +1505,13 @@ class WebInterface(object):
                      "do_notify": 1,
                      "email": "Jon.Snow.1337@CastleBlack.com",
                      "friendly_name": "Jon Snow",
+                     "is_active": 1,
+                     "is_admin": 0,
                      "is_allow_sync": 1,
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
+                     "row_id": 1,
                      "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
                      "user_id": 133788,
                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
@@ -1518,7 +1533,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_watch_time_stats(self, user_id=None, grouping=None, **kwargs):
+    def get_user_watch_time_stats(self, user_id=None, grouping=None, query_days=None, **kwargs):
         """ Get a user's watch time statistics.
 
             ```
@@ -1527,6 +1542,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
             Returns:
                 json:
@@ -1553,7 +1569,7 @@ class WebInterface(object):
 
         if user_id:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping)
+            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping, query_days=query_days)
             if result:
                 return result
             else:
@@ -1608,7 +1624,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_all_user_history(self, user_id, **kwargs):
+    def delete_all_user_history(self, user_id=None, row_ids=None, **kwargs):
         """ Delete all Tautulli history for a specific user.
 
             ```
@@ -1616,25 +1632,27 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        if user_id:
+        if user_id or row_ids:
             user_data = users.Users()
-            delete_row = user_data.delete_all_history(user_id=user_id)
-            if delete_row:
-                return {'message': delete_row}
+            success = user_data.delete(user_id=user_id, row_ids=row_ids, purge_only=True)
+            if success:
+                return {'result': 'success', 'message': 'Deleted user history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete user(s) history.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_user(self, user_id, **kwargs):
+    def delete_user(self, user_id=None, row_ids=None, **kwargs):
         """ Delete a user from Tautulli. Also erases all history for the user.
 
             ```
@@ -1642,19 +1660,21 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        if user_id:
+        if user_id or row_ids:
             user_data = users.Users()
-            delete_row = user_data.delete(user_id=user_id)
-            if delete_row:
-                return {'message': delete_row}
+            success = user_data.delete(user_id=user_id, row_ids=row_ids)
+            if success:
+                return {'result': 'success', 'message': 'Deleted user.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete user(s).'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1742,7 +1762,6 @@ class WebInterface(object):
                           "group_count": 1,
                           "group_ids": "1124",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-                          "id": 1124,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "live": 0,
                           "media_index": 17,
@@ -1758,6 +1777,7 @@ class WebInterface(object):
                           "player": "Castle-PC",
                           "rating_key": 4348,
                           "reference_id": 1123,
+                          "row_id": 1124,
                           "session_key": null,
                           "started": 1462688107,
                           "state": null,
@@ -1932,16 +1952,32 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_history_rows(self, row_id, **kwargs):
+    @addtoapi("delete_history")
+    def delete_history_rows(self, row_ids=None, **kwargs):
+        """ Delete history rows from Tautulli.
+
+            ```
+            Required parameters:
+                row_ids (str):          Comma separated row ids to delete, e.g. "65,110,2,3645"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         data_factory = datafactory.DataFactory()
 
-        if row_id:
-            delete_row = data_factory.delete_session_history_rows(row_id=row_id)
+        if row_ids:
+            success = database.delete_session_history_rows(row_ids=row_ids)
 
-            if delete_row:
-                return {'message': delete_row}
+            if success:
+                return {'result': 'success', 'message': 'Deleted history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete history.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No row ids received.'}
 
 
     ##### Graphs #####
@@ -4296,7 +4332,7 @@ class WebInterface(object):
                     raise Exception('PMS image request failed')
 
             except Exception as e:
-                logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
+                logger.warn("Failed to get image %s, falling back to %s." % (img, fallback))
                 if fallback in common.DEFAULT_IMAGES:
                     fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
@@ -5440,6 +5476,7 @@ class WebInterface(object):
                     [{"art": "/:/resources/show-fanart.jpg",
                       "child_count": "3745",
                       "count": "62",
+                      "is_active": 1,
                       "parent_count": "240",
                       "section_id": "2",
                       "section_name": "TV Shows",
@@ -5483,11 +5520,13 @@ class WebInterface(object):
                       "filter_music": "",
                       "filter_photos": "",
                       "filter_tv": "",
+                      "is_active": 1,
                       "is_admin": 0,
                       "is_allow_sync": 1,
                       "is_home_user": 1,
                       "is_restricted": 0,
                       "keep_history": 1,
+                      "row_id": 1,
                       "server_token": "PU9cMuQZxJKFBtGqHk68",
                       "shared_libraries": "1;2;3",
                       "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",

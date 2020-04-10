@@ -2660,7 +2660,8 @@ class PmsConnect(object):
                                      'agent': library['agent'],
                                      'thumb': library['thumb'],
                                      'art': library['art'],
-                                     'count': children_list['library_count']
+                                     'count': children_list['library_count'],
+                                     'is_active': 1
                                      }
 
                     if section_type == 'show':

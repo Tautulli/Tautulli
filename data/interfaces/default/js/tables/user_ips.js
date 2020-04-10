@@ -167,7 +167,7 @@ $('.user_ip_table').on('click', 'td.modal-control', function () {
     function showStreamDetails() {
         $.ajax({
             url: 'get_stream_data',
-            data: { row_id: rowData['id'], user: rowData['friendly_name'] },
+            data: { row_id: rowData['history_row_id'], user: rowData['friendly_name'] },
             cache: false,
             async: true,
             complete: function (xhr, status) {
