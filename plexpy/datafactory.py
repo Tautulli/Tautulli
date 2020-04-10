@@ -64,7 +64,7 @@ class DataFactory(object):
 
         columns = [
             'session_history.reference_id',
-            'session_history.id',
+            'session_history.id AS row_id',
             'MAX(started) AS date',
             'MIN(started) AS started',
             'MAX(stopped) AS stopped',
@@ -116,7 +116,7 @@ class DataFactory(object):
 
             columns_union = [
                 'NULL AS reference_id',
-                'NULL AS id',
+                'NULL AS row_id',
                 'started AS date',
                 'started',
                 'stopped',
@@ -228,7 +228,7 @@ class DataFactory(object):
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
             row = {'reference_id': item['reference_id'],
-                   'id': item['id'],
+                   'row_id': item['row_id'],
                    'date': item['date'],
                    'started': item['started'],
                    'stopped': item['stopped'],
