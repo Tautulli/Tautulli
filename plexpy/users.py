@@ -99,7 +99,8 @@ class Users(object):
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
-        columns = ['users.user_id',
+        columns = ['users.id AS row_id',
+                   'users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name',
                    'users.thumb AS user_thumb',
@@ -109,7 +110,7 @@ class Users(object):
                     ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
                     session_history.paused_counter END) AS duration',
                    'MAX(session_history.started) AS last_seen',
-                   'MAX(session_history.id) AS id',
+                   'MAX(session_history.id) AS history_row_id',
                    'session_history_metadata.full_title AS last_played',
                    'session_history.ip_address',
                    'session_history.platform',
@@ -128,10 +129,10 @@ class Users(object):
                    'session_history_metadata.originally_available_at',
                    'session_history_metadata.guid',
                    'session_history_media_info.transcode_decision',
-                   'users.do_notify as do_notify',
-                   'users.keep_history as keep_history',
-                   'users.allow_guest as allow_guest',
-                   'users.is_active as is_active'
+                   'users.do_notify AS do_notify',
+                   'users.keep_history AS keep_history',
+                   'users.allow_guest AS allow_guest',
+                   'users.is_active AS is_active'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -173,14 +174,15 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
-            row = {'user_id': item['user_id'],
+            row = {'row_id': item['row_id'],
+                   'user_id': item['user_id'],
                    'friendly_name': item['friendly_name'],
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
                    'duration': item['duration'],
                    'last_seen': item['last_seen'],
                    'last_played': item['last_played'],
-                   'id': item['id'],
+                   'history_row_id': item['history_row_id'],
                    'ip_address': item['ip_address'],
                    'platform': platform,
                    'player': item['player'],
@@ -225,7 +227,7 @@ class Users(object):
 
         custom_where = ['users.user_id', user_id]
 
-        columns = ['session_history.id',
+        columns = ['session_history.id AS history_row_id',
                    'MAX(session_history.started) AS last_seen',
                    'session_history.ip_address',
                    'COUNT(session_history.id) AS play_count',
@@ -285,7 +287,7 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
-            row = {'id': item['id'],
+            row = {'history_row_id': item['history_row_id'],
                    'last_seen': item['last_seen'],
                    'ip_address': item['ip_address'],
                    'play_count': item['play_count'],
@@ -334,7 +336,8 @@ class Users(object):
                 logger.warn(u"Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, user_id=None, user=None, email=None):
-        default_return = {'user_id': 0,
+        default_return = {'row_id': 0,
+                          'user_id': 0,
                           'username': 'Local',
                           'friendly_name': 'Local',
                           'user_thumb': common.DEFAULT_USER_THUMB,
@@ -359,7 +362,8 @@ class Users(object):
 
             try:
                 if str(user_id).isdigit():
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                             'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
@@ -367,7 +371,8 @@ class Users(object):
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                             'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
@@ -375,7 +380,8 @@ class Users(object):
                             'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
-                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                             'do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
@@ -407,7 +413,8 @@ class Users(object):
 
                     shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
 
-                    user_details = {'user_id': item['user_id'],
+                    user_details = {'row_id': item['row_id'],
+                                    'user_id': item['user_id'],
                                     'username': item['username'],
                                     'friendly_name': friendly_name,
                                     'user_thumb': user_thumb,
@@ -619,7 +626,7 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
+            query = 'SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
                     'is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                     'do_notify, keep_history, allow_guest, server_token, shared_libraries, ' \
                     'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
@@ -631,7 +638,8 @@ class Users(object):
 
         users = []
         for item in result:
-            user = {'user_id': item['user_id'],
+            user = {'row_id': item['row_id'],
+                    'user_id': item['user_id'],
                     'username': item['username'],
                     'friendly_name': item['friendly_name'] or item['username'],
                     'thumb': item['custom_avatar_url'] or item['thumb'],
@@ -656,53 +664,38 @@ class Users(object):
 
         return users
 
-    def delete_all_history(self, user_id=None):
+    def delete(self, user_id=None, row_ids=None, purge_only=False):
         monitor_db = database.MonitorDatabase()
 
-        try:
-            if str(user_id).isdigit():
-                logger.info(u"Tautulli Users :: Deleting all history for user id %s from database." % user_id)
-                session_history_media_info_del = \
-                    monitor_db.action('DELETE FROM '
-                                      'session_history_media_info '
-                                      'WHERE session_history_media_info.id IN (SELECT session_history_media_info.id '
-                                      'FROM session_history_media_info '
-                                      'JOIN session_history ON session_history_media_info.id = session_history.id '
-                                      'WHERE session_history.user_id = ?)', [user_id])
-                session_history_metadata_del = \
-                    monitor_db.action('DELETE FROM '
-                                      'session_history_metadata '
-                                      'WHERE session_history_metadata.id IN (SELECT session_history_metadata.id '
-                                      'FROM session_history_metadata '
-                                      'JOIN session_history ON session_history_metadata.id = session_history.id '
-                                      'WHERE session_history.user_id = ?)', [user_id])
-                session_history_del = \
-                    monitor_db.action('DELETE FROM '
-                                      'session_history '
-                                      'WHERE session_history.user_id = ?', [user_id])
+        if row_ids and row_ids is not None:
+            row_ids = map(helpers.cast_to_int, row_ids.split(','))
 
-                return 'Deleted all items for user_id %s.' % user_id
+            # Get the user_ids corresponding to the row_ids
+            result = monitor_db.select('SELECT user_id FROM users '
+                                       'WHERE id IN ({})'.format(','.join(['?'] * len(row_ids))), row_ids)
+            user_ids = [user['user_id'] for user in result]
+
+            success = []
+            for user_id in user_ids:
+                success.append(self.delete(user_id=user_id, purge_only=purge_only))
+            return all(success)
+
+        elif str(user_id).isdigit():
+            database.delete_user_history(user_id=user_id)
+            if purge_only:
+                return True
             else:
-                return 'Unable to delete items. Input user_id not valid.'
-        except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for delete_all_history: %s." % e)
+                logger.info(u"Tautulli Users :: Deleting user with user_id %s from database." % user_id)
+                try:
+                    monitor_db.action('UPDATE users '
+                                      'SET deleted_user = 1, keep_history = 0, do_notify = 0 '
+                                      'WHERE user_id = ?', [user_id])
+                    return True
+                except Exception as e:
+                    logger.warn(u"Tautulli Users :: Unable to execute database query for delete: %s." % e)
 
-    def delete(self, user_id=None):
-        monitor_db = database.MonitorDatabase()
-
-        try:
-            if str(user_id).isdigit():
-                self.delete_all_history(user_id)
-                logger.info(u"Tautulli Users :: Deleting user with id %s from database." % user_id)
-                monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
-                monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
-                monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
-
-                return 'Deleted user with id %s.' % user_id
-            else:
-                return 'Unable to delete user, user_id not valid.'
-        except Exception as e:
-            logger.warn(u"Tautulli Users :: Unable to execute database query for delete: %s." % e)
+        else:
+            return False
 
     def undelete(self, user_id=None, username=None):
         monitor_db = database.MonitorDatabase()

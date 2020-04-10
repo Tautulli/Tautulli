@@ -1417,6 +1417,7 @@ class WebInterface(object):
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
+                     "row_id": 1,
                      "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
                      "user_id": 133788,
                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
@@ -1529,7 +1530,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_all_user_history(self, user_id, **kwargs):
+    def delete_all_user_history(self, user_id=None, row_ids=None, **kwargs):
         """ Delete all Tautulli history for a specific user.
 
             ```
@@ -1537,25 +1538,27 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        if user_id:
+        if user_id or row_ids:
             user_data = users.Users()
-            delete_row = user_data.delete_all_history(user_id=user_id)
-            if delete_row:
-                return {'message': delete_row}
+            success = user_data.delete(user_id=user_id, row_ids=row_ids, purge_only=True)
+            if success:
+                return {'result': 'success', 'message': 'Deleted user history.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete user(s) history.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_user(self, user_id, **kwargs):
+    def delete_user(self, user_id=None, row_ids=None, **kwargs):
         """ Delete a user from Tautulli. Also erases all history for the user.
 
             ```
@@ -1563,19 +1566,21 @@ class WebInterface(object):
                 user_id (str):          The id of the Plex user
 
             Optional parameters:
-                None
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Returns:
                 None
             ```
         """
-        if user_id:
+        if user_id or row_ids:
             user_data = users.Users()
-            delete_row = user_data.delete(user_id=user_id)
-            if delete_row:
-                return {'message': delete_row}
+            success = user_data.delete(user_id=user_id, row_ids=row_ids)
+            if success:
+                return {'result': 'success', 'message': 'Deleted user.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete user(s).'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5427,6 +5432,7 @@ class WebInterface(object):
                       "is_home_user": 1,
                       "is_restricted": 0,
                       "keep_history": 1,
+                      "row_id": 1,
                       "server_token": "PU9cMuQZxJKFBtGqHk68",
                       "shared_libraries": "1;2;3",
                       "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",

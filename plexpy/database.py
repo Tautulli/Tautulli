@@ -58,14 +58,6 @@ def delete_recently_added():
     return clear_table('recently_added')
 
 
-def delete_session_history_rows(row_ids=None):
-    if row_ids:
-        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
-            delete_rows_from_table(table=table, row_ids=row_ids)
-        return True
-    return False
-
-
 def delete_rows_from_table(table, row_ids):
     if row_ids and isinstance(row_ids, basestring):
         row_ids = map(helpers.cast_to_int, row_ids.split(','))
@@ -74,6 +66,26 @@ def delete_rows_from_table(table, row_ids):
     query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
     monitor_db = MonitorDatabase()
     monitor_db.action(query, row_ids)
+
+
+def delete_session_history_rows(row_ids=None):
+    if row_ids:
+        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+            delete_rows_from_table(table=table, row_ids=row_ids)
+        return True
+    return False
+
+
+def delete_user_history(user_id=None):
+    if str(user_id).isdigit():
+        monitor_db = MonitorDatabase()
+
+        # Get all history associated with the user_id
+        result = monitor_db.select('SELECT id FROM session_history WHERE user_id = ?', [user_id])
+        row_ids = [row['id'] for row in result]
+
+        logger.info(u"Tautulli Database :: Deleting all history for user id %s from database." % user_id)
+        return delete_session_history_rows(row_ids=row_ids)
 
 
 def db_filename(filename=FILENAME):

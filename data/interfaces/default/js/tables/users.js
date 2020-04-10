@@ -44,8 +44,8 @@ users_list_table_options = {
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 $(td).html('<div class="edit-user-toggles">' + 
-                    '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
-                    '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
+                    '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
+                    '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
@@ -77,7 +77,7 @@ users_list_table_options = {
             "data": "friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '">' +
+                    $(td).html('<div class="edit-user-name" data-id="' + rowData['row_id'] + '">' +
                         '<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>' +
                         '<input type="text" class="hidden" value="' + cellData + '">' +
                         '</div>');
@@ -256,10 +256,10 @@ users_list_table_options = {
     },
     "rowCallback": function (row, rowData) {
         if ($.inArray(rowData['user_id'], users_to_delete) !== -1) {
-            $(row).find('button.delete-user[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            $(row).find('button.delete-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
         if ($.inArray(rowData['user_id'], users_to_purge) !== -1) {
-            $(row).find('button.purge-user[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            $(row).find('button.purge-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
     }
 }
@@ -270,7 +270,7 @@ $('#users_list_table').on('click', 'td.modal-control', function () {
     var rowData = row.data();
 
     $.get('get_stream_data', {
-        row_id: rowData['id'],
+        row_id: rowData['history_row_id'],
         user: rowData['friendly_name']
     }).then(function (jqXHR) {
         $("#info-modal").html(jqXHR);
@@ -328,11 +328,11 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    var index_delete = $.inArray(rowData['user_id'], users_to_delete);
-    var index_purge = $.inArray(rowData['user_id'], users_to_purge);
+    var index_delete = $.inArray(rowData['row_id'], users_to_delete);
+    var index_purge = $.inArray(rowData['row_id'], users_to_purge);
 
     if (index_delete === -1) {
-        users_to_delete.push(rowData['user_id']);
+        users_to_delete.push(rowData['row_id']);
         if (index_purge === -1) {
             tr.find('button.purge-user').click();
         }
@@ -351,11 +351,11 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    var index_delete = $.inArray(rowData['user_id'], users_to_delete);
-    var index_purge = $.inArray(rowData['user_id'], users_to_purge);
+    var index_delete = $.inArray(rowData['row_id'], users_to_delete);
+    var index_purge = $.inArray(rowData['row_id'], users_to_purge);
 
     if (index_purge === -1) {
-        users_to_purge.push(rowData['user_id']);
+        users_to_purge.push(rowData['row_id']);
     } else {
         users_to_purge.splice(index_purge, 1);
         if (index_delete != -1) {
