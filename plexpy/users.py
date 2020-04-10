@@ -441,8 +441,8 @@ class Users(object):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
-        if query_days is not None:
-            query_days = map(int, query_days.split(","))
+        if query_days and query_days is not None:
+            query_days = map(helpers.cast_to_int, query_days.split(','))
         else:
             query_days = [1, 7, 30, 0]
 
