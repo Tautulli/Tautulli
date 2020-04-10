@@ -819,11 +819,11 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                section_id (str):               The id of the Plex library section
+                section_id (str):       The id of the Plex library section
 
             Optional parameters:
                 grouping (int):         0 or 1
-                query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
+                query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
             Returns:
                 json:
@@ -1447,7 +1447,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
-                query_days (str):       Comma separated days, e.g. "1, 7, 30, 0"
+                query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
             Returns:
                 json:
@@ -1853,16 +1853,30 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_history_rows(self, row_id, **kwargs):
+    @addtoapi("delete_history")
+    def delete_history_rows(self, row_ids=None, **kwargs):
+        """ Delete history rows from Tautulli.
+
+            ```
+            Required parameters:
+                row_ids (str):          Comma separated row ids to delete, e.g. "65,110,2,3645"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         data_factory = datafactory.DataFactory()
 
-        if row_id:
-            delete_row = data_factory.delete_session_history_rows(row_id=row_id)
+        if row_ids:
+            delete_row = data_factory.delete_session_history_rows(row_ids=row_ids)
 
             if delete_row:
                 return {'message': delete_row}
         else:
-            return {'message': 'no data received'}
+            return {'message': 'No row ids received.'}
 
 
     ##### Graphs #####

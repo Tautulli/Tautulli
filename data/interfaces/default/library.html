@@ -485,17 +485,15 @@ DOCUMENTATION :: END
                 $('#deleteCount').text(history_to_delete.length);
                 $('#confirm-modal-delete').modal();
                 $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                    history_to_delete.forEach(function(row, idx) {
-                        $.ajax({
-                            url: 'delete_history_rows',
-                            type: 'POST',
-                            data: { row_id: row },
-                            async: true,
-                            success: function (data) {
-                                var msg = "History deleted";
-                                showMsg(msg, false, true, 2000);
-                            }
-                        });
+                    $.ajax({
+                        url: 'delete_history_rows',
+                        type: 'POST',
+                        data: { row_ids: history_to_delete.join(',') },
+                        async: true,
+                        success: function (data) {
+                            var msg = "History deleted";
+                            showMsg(msg, false, true, 2000);
+                        }
                     });
                     history_table.draw();
                 });

@@ -1561,21 +1561,23 @@ class DataFactory(object):
 
         return key_list
 
-    def delete_session_history_rows(self, row_id=None):
-        monitor_db = database.MonitorDatabase()
+    def delete_session_history_rows(self, row_ids=None):
+        if row_ids and row_ids is not None:
+            row_ids = map(helpers.cast_to_int, row_ids.split(','))
 
-        if row_id.isdigit():
-            logger.info(u"Tautulli DataFactory :: Deleting row id %s from the session history database." % row_id)
-            session_history_del = \
-                monitor_db.action('DELETE FROM session_history WHERE id = ?', [row_id])
-            session_history_media_info_del = \
-                monitor_db.action('DELETE FROM session_history_media_info WHERE id = ?', [row_id])
-            session_history_metadata_del = \
-                monitor_db.action('DELETE FROM session_history_metadata WHERE id = ?', [row_id])
+        if row_ids:
+            monitor_db = database.MonitorDatabase()
 
-            return 'Deleted rows %s.' % row_id
+            logger.info(u"Tautulli DataFactory :: Deleting history row ids %s from the session history database." % row_ids)
+
+            where = 'WHERE id IN ({})'.format(', '.join(['?'] * len(row_ids)))
+            for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+                query = 'DELETE FROM {table} {where}'.format(table=table, where=where)
+                monitor_db.action(query=query, args=row_ids)
+
+            return 'Deleted history.'
         else:
-            return 'Unable to delete rows. Input row not valid.'
+            return 'Unable to delete rows. Input rows not valid.'
 
     def update_metadata(self, old_key_list='', new_key_list='', media_type=''):
         pms_connect = pmsconnect.PmsConnect()
