@@ -856,7 +856,6 @@ a .users-poster-face:hover {
     z-index: 2;
 }
 .dashboard-activity-info-platform {
-    padding: 6px !important;
     background-position: center;
     background-size: cover;
     width: 50px;
