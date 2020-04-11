@@ -1,13 +1,14 @@
 {
     "name": "Tautulli",
+	"start_url": "/",
     "icons": [
         {
-            "src": "${http_root}images/favicon/android-chrome-192x192.png?v=2.0.5",
+            "src": "android-chrome-192x192.png?v=2.0.5",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "${http_root}images/favicon/android-chrome-256x256.png?v=2.0.5",
+            "src": "android-chrome-256x256.png?v=2.0.5",
             "sizes": "256x256",
             "type": "image/png"
         }
