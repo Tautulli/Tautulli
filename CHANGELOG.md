@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.2.2-beta (2020-04-12)
+
+* Notifications:
+  * New: Added notification trigger for Tautulli database corruption.
+  * New: Added TAUTULLI_PYTHON_VERSION to script notification environment variables.
+  * Fix: Notification grouping by season/album and show/artist not enabled by default.
+  * Change: The file size notification parameter is now reported in SI units. (Thanks @aaronldunlap)
+* UI:
+  * Fix: Delete lookup info from the media info page failing.
+  * New: Added icon on the users table to indicate if the user is not on the Plex server.
+  * New: Added icon on the libraries table to indicate if the library is not on the Plex server.
+  * Fix: XBMC platform icon not being redirected to the Kodi platform icon.
+  * Change: Improved deleting libraries so libraries with the same section ID are not also deleted.
+* API:
+  * Fix: Returning XML for the API failing due to unicode characters.
+  * Fix: Grouping parameter for various API commands not falling back to default setting.
+  * New: Added time_queries parameter to get_library_watch_time_stats and get_user_watch_time_stats API command. (Thanks @KaasKop97)
+  * New: Added an "is_active" return value to the get_user, get_users, get_library, and get_libraries API commands which indicates if the user or library is on the Plex server.
+  * New: Added delete_history API command.
+  * Change: Added optional parameter for row_ids for delete_library, delete_user, delete_all_library_history, and delete_all_user_history API commands.
+* Mobile App:
+  * Fix: Temporary device token not being invalidated after cancelling device registration.
+* Other:
+  * Fix: Update failing on CentOS due to an older git version.
+  * Fix: Manifest file for creating a web app had incorrect info.
+  * New: Docker images updated to support ARM platforms.
+
+
 ## v2.2.1 (2020-03-28)
 
 * Notifications:
