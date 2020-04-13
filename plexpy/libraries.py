@@ -1058,9 +1058,16 @@ class Libraries(object):
 
         elif str(section_id).isdigit():
             server_id = server_id or plexpy.CONFIG.PMS_IDENTIFIER
-            database.delete_library_history(server_id=server_id, section_id=section_id)
+            if server_id == plexpy.CONFIG.PMS_IDENTIFIER:
+                delete_success = database.delete_library_history(section_id=section_id)
+            else:
+                logger.warn("Tautulli Libraries :: Library history not deleted for library section_id %s "
+                            "because library server_id %s does not match Plex server identifier %s."
+                            % (section_id, server_id, plexpy.CONFIG.PMS_IDENTIFIER))
+                delete_success = True
+
             if purge_only:
-                return True
+                return delete_success
             else:
                 logger.info("Tautulli Libraries :: Deleting library with server_id %s and section_id %s from database."
                             % (server_id, section_id))
@@ -1068,7 +1075,7 @@ class Libraries(object):
                     monitor_db.action('UPDATE library_sections '
                                       'SET deleted_section = 1, keep_history = 0, do_notify = 0, do_notify_created = 0 '
                                       'WHERE server_id = ? AND section_id = ?', [server_id, section_id])
-                    return True
+                    return delete_success
                 except Exception as e:
                     logger.warn("Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
 

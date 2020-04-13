@@ -132,17 +132,6 @@
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         $.ajax({
-                            url: 'delete_library',
-                            type: 'POST',
-                            data: { row_ids: libraries_to_delete.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "Library deleted";
-                                showMsg(msg, false, true, 2000);
-                            }
-                        });
-                        $.ajax({
                             url: 'delete_all_library_history',
                             type: 'POST',
                             data: { row_ids: libraries_to_purge.join(',') },
@@ -151,9 +140,21 @@
                             success: function (data) {
                                 var msg = "Library history purged";
                                 showMsg(msg, false, true, 2000);
+                                libraries_list_table.draw();
                             }
                         });
-                        libraries_list_table.draw();
+                        $.ajax({
+                            url: 'delete_library',
+                            type: 'POST',
+                            data: { row_ids: libraries_to_delete.join(',') },
+                            cache: false,
+                            async: true,
+                            success: function (data) {
+                                var msg = "Library deleted";
+                                showMsg(msg, false, true, 2000);
+                                libraries_list_table.draw();
+                            }
+                        });
                     });
                 }
 

@@ -135,17 +135,6 @@
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         $.ajax({
-                            url: 'delete_user',
-                            type: 'POST',
-                            data: { row_ids: users_to_delete.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "User deleted";
-                                showMsg(msg, false, true, 2000);
-                            }
-                        });
-                        $.ajax({
                             url: 'delete_all_user_history',
                             type: 'POST',
                             data: { row_ids: users_to_purge.join(',') },
@@ -154,9 +143,21 @@
                             success: function (data) {
                                 var msg = "User history purged";
                                 showMsg(msg, false, true, 2000);
+                                users_list_table.draw();
                             }
                         });
-                        users_list_table.draw();
+                        $.ajax({
+                            url: 'delete_user',
+                            type: 'POST',
+                            data: { row_ids: users_to_delete.join(',') },
+                            cache: false,
+                            async: true,
+                            success: function (data) {
+                                var msg = "User deleted";
+                                showMsg(msg, false, true, 2000);
+                                users_list_table.draw();
+                            }
+                        });
                     });
                 }
 

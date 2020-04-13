@@ -3674,12 +3674,12 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def verify_mobile_device(self, device_token='', cancel=False, **kwargs):
         if helpers.bool_true(cancel):
-            mobile_app.TEMP_DEVICE_TOKEN = None
+            mobile_app.set_temp_device_token(None)
             return {'result': 'error', 'message': 'Device registration cancelled.'}
 
         result = mobile_app.get_mobile_device_by_token(device_token)
         if result:
-            mobile_app.TEMP_DEVICE_TOKEN = None
+            mobile_app.set_temp_device_token(None)
             return {'result': 'success', 'message': 'Device registered successfully.', 'data': result}
         else:
             return {'result': 'error', 'message': 'Device not registered.'}
@@ -3966,7 +3966,7 @@ class WebInterface(object):
         logger._BLACKLIST_WORDS.add(apikey)
 
         if helpers.bool_true(device):
-            mobile_app.TEMP_DEVICE_TOKEN = apikey
+            mobile_app.set_temp_device_token(apikey)
 
         return apikey
 

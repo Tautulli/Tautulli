@@ -70,18 +70,26 @@ def delete_rows_from_table(table, row_ids):
     if row_ids and isinstance(row_ids, str):
         row_ids = list(map(cast_to_int, row_ids.split(',')))
 
-    logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
-    query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
-    monitor_db = MonitorDatabase()
-    monitor_db.action(query, row_ids)
+    if row_ids:
+        logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
+        query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
+        monitor_db = MonitorDatabase()
+
+        try:
+            monitor_db.action(query, row_ids)
+            return True
+        except Exception as e:
+            logger.error("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
+            return False
+
+    return True
 
 
 def delete_session_history_rows(row_ids=None):
-    if row_ids:
-        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
-            delete_rows_from_table(table=table, row_ids=row_ids)
-        return True
-    return False
+    success = []
+    for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+        success.append(delete_rows_from_table(table=table, row_ids=row_ids))
+    return all(success)
 
 
 def delete_user_history(user_id=None):
@@ -97,19 +105,18 @@ def delete_user_history(user_id=None):
         return delete_session_history_rows(row_ids=row_ids)
 
 
-def delete_library_history(server_id=None, section_id=None):
-    if server_id and str(section_id).isdigit():
+def delete_library_history(section_id=None):
+    if str(section_id).isdigit():
         monitor_db = MonitorDatabase()
 
-        # Get all history associated with the server_id and section_id
+        # Get all history associated with the section_id
         result = monitor_db.select('SELECT session_history.id FROM session_history '
                                    'JOIN session_history_metadata ON session_history.id = session_history_metadata.id '
-                                   'WHERE session_history.server_id = ? AND session_history_metadata.section_id = ?',
-                                   [server_id, section_id])
+                                   'WHERE session_history_metadata.section_id = ?',
+                                   [section_id])
         row_ids = [row['id'] for row in result]
 
-        logger.info("Tautulli Database :: Deleting all history for library server_id %s and section_id %s from database."
-                    % (server_id, section_id))
+        logger.info("Tautulli Database :: Deleting all history for library section_id %s from database." % section_id)
         return delete_session_history_rows(row_ids=row_ids)
 
 
