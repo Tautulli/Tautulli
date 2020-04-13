@@ -14,6 +14,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+import threading
 
 import plexpy
 import database
@@ -22,6 +23,24 @@ import logger
 
 
 TEMP_DEVICE_TOKEN = None
+INVALIDATE_TIMER = None
+
+
+def set_temp_device_token(token=None):
+    global TEMP_DEVICE_TOKEN
+    TEMP_DEVICE_TOKEN = token
+
+    if TEMP_DEVICE_TOKEN is not None:
+        global INVALIDATE_TIMER
+        if INVALIDATE_TIMER:
+            INVALIDATE_TIMER.cancel()
+        invalidate_time = 5 * 60  # 5 minutes
+        INVALIDATE_TIMER = threading.Timer(invalidate_time, set_temp_device_token, args=[None])
+        INVALIDATE_TIMER.start()
+
+
+def get_temp_device_token():
+    return TEMP_DEVICE_TOKEN
 
 
 def get_mobile_devices(device_id=None, device_token=None):
