@@ -1,6 +1,6 @@
-FROM python:2.7.17-slim
+FROM tautulli/tautulli-baseimage:latest
 
-LABEL maintainer="TheMeanCanEHdian"
+LABEL maintainer="Tautulli"
 
 ARG VERSION
 ARG BRANCH
@@ -11,16 +11,8 @@ ENV TZ=UTC
 WORKDIR /app
 
 RUN \
-apt-get -q -y update --no-install-recommends && \
-apt-get install -q -y --no-install-recommends \
-  curl && \
-rm -rf /var/lib/apt/lists/* && \
-pip install --no-cache-dir --upgrade pip && \
-pip install --no-cache-dir --upgrade \
-  pycryptodomex \
-  pyopenssl && \
-echo ${VERSION} > /app/version.txt && \
-echo ${BRANCH} > /app/branch.txt
+  echo ${VERSION} > /app/version.txt && \
+  echo ${BRANCH} > /app/branch.txt
 
 COPY . /app
 

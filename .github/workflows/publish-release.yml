@@ -1,8 +1,7 @@
-name: Create Release
+name: Publish Release
 on:
   push:
-    tags:
-      - 'v*'
+    tags: [v*]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,7 +9,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@master
       - name: Get Release Version
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
       - name: Get Changelog
         run: echo ::set-env name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
       - name: Create Release
