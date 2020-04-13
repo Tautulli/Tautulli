@@ -11,11 +11,11 @@ jobs:
         id: prepare
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo ::set-output name=version::${GITHUB_REF#refs/tags/}
+            echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
           elif [[ $GITHUB_REF == refs/heads/master ]]; then
-            echo ::set-output name=version::latest
+            echo ::set-output name=tag::latest
           else
-            echo ::set-output name=version::${GITHUB_REF#refs/heads/}
+            echo ::set-output name=tag::${GITHUB_REF#refs/heads/}
           fi
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             echo ::set-output name=branch::master
@@ -41,11 +41,11 @@ jobs:
           docker buildx build \
             --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=false" \
-            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
+            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
             --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
             --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
             --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
             --file Dockerfile .
 
       - name: Docker Login
@@ -61,11 +61,11 @@ jobs:
           docker buildx build \
             --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=true" \
-            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
+            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
             --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
             --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
             --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
             --file Dockerfile .
 
       - name: Clear
