@@ -1,0 +1,83 @@
+name: Publish Docker
+on:
+  push:
+    branches: [master, beta, nightly, python3]
+    tags: [v*]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/master ]]; then
+            echo ::set-output name=tag::latest
+          else
+            echo ::set-output name=tag::${GITHUB_REF#refs/heads/}
+          fi
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo ::set-output name=branch::master
+          else
+            echo ::set-output name=branch::${GITHUB_REF#refs/heads/}
+          fi
+          echo ::set-output name=commit::${GITHUB_SHA}
+          echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/arm
+          echo ::set-output name=docker_image::tautulli/tautulli
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Buildx (no push)
+        run: |
+          docker buildx build \
+            --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=false" \
+            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
+            --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
+            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
+            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
+            --file Dockerfile .
+
+      - name: Docker Login
+        if: success()
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Docker Buildx (push)
+        if: success()
+        run: |
+          docker buildx build \
+            --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=true" \
+            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
+            --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
+            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
+            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
+            --file Dockerfile .
+
+      - name: Clear
+        if: always()
+        run: |
+          rm -f ${HOME}/.docker/config.json
+
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          job: ${{ github.workflow }}
+          nofail: true

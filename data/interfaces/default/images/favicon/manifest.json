@@ -1,18 +1,23 @@
 {
-    "name": "Tautulli",
+    "name": "Tautulli: Monitor your Plex Media Server",
+    "short_name": "Tautulli",
+    "Description": "A Python based monitoring and tracking tool for Plex Media Server.",
+    "start_url": "../../",
+    "scope": "../../",
     "icons": [
         {
-            "src": "${http_root}images/favicon/android-chrome-192x192.png?v=2.0.5",
+            "src": "android-chrome-192x192.png?v=2.0.5",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "${http_root}images/favicon/android-chrome-256x256.png?v=2.0.5",
+            "src": "android-chrome-256x256.png?v=2.0.5",
             "sizes": "256x256",
             "type": "image/png"
         }
     ],
     "theme_color": "#282a2d",
     "background_color": "#282a2d",
-    "display": "standalone"
+    "display": "standalone",
+    "orientation": "any"
 }

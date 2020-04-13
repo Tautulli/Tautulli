@@ -1034,13 +1034,13 @@ a .users-poster-face:hover {
 }
 .dashboard-activity-container:hover .progress-bar {
     color: rgba(255, 255, 255, 1);
-    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
 .dashboard-activity-container:hover .buffer-bar {
     color: rgba(255, 255, 255, 1);
-    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
@@ -1740,7 +1740,7 @@ a:hover .dashboard-recent-media-cover {
     top: 0;
     bottom: 0;
     background-image: -webkit-gradient(linear,left 0,left 100%,from(rgba(0,0,0,.7)),to(rgba(0,0,0,.9)));
-    background-image: -webkit-linear-gradient(top,rgba(0,0,0,.7),0,rgba(0,0,0,.9),100%);
+    background-image: -webkit-linear-gradient(top,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-image: -moz-linear-gradient(top,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-image: linear-gradient(to bottom,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
     background-repeat: repeat-x;
@@ -3932,7 +3932,7 @@ a:hover .overlay-refresh-image:hover {
 }
 .platform-xbmc {
     background-color: #3b4872;
-    background-image: url(../images/platforms/xbmc.svg);
+    background-image: url(../images/platforms/kodi.svg);
 }
 .platform-xbox {
     background-color: #107c10;
