@@ -681,9 +681,10 @@ class Users(object):
             return all(success)
 
         elif str(user_id).isdigit():
-            database.delete_user_history(user_id=user_id)
+            delete_success = database.delete_user_history(user_id=user_id)
+
             if purge_only:
-                return True
+                return delete_success
             else:
                 logger.info(u"Tautulli Users :: Deleting user with user_id %s from database."
                             % user_id)
@@ -691,7 +692,7 @@ class Users(object):
                     monitor_db.action('UPDATE users '
                                       'SET deleted_user = 1, keep_history = 0, do_notify = 0 '
                                       'WHERE user_id = ?', [user_id])
-                    return True
+                    return delete_success
                 except Exception as e:
                     logger.warn(u"Tautulli Users :: Unable to execute database query for delete: %s." % e)
 
