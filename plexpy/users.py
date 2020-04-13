@@ -685,7 +685,7 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         if row_ids and row_ids is not None:
-            row_ids = map(helpers.cast_to_int, row_ids.split(','))
+            row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
 
             # Get the user_ids corresponding to the row_ids
             result = monitor_db.select('SELECT user_id FROM users '

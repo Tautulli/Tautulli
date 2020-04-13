@@ -68,7 +68,7 @@ def delete_recently_added():
 
 def delete_rows_from_table(table, row_ids):
     if row_ids and isinstance(row_ids, str):
-        row_ids = map(cast_to_int, row_ids.split(','))
+        row_ids = list(map(cast_to_int, row_ids.split(',')))
 
     logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
     query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
