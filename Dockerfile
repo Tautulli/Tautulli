@@ -2,8 +2,8 @@ FROM tautulli/tautulli-baseimage:latest
 
 LABEL maintainer="Tautulli"
 
-ARG VERSION
 ARG BRANCH
+ARG COMMIT
 
 ENV TAUTULLI_DOCKER=True
 ENV TZ=UTC
@@ -11,8 +11,8 @@ ENV TZ=UTC
 WORKDIR /app
 
 RUN \
-  echo ${VERSION} > /app/version.txt && \
-  echo ${BRANCH} > /app/branch.txt
+  echo ${BRANCH} > /app/branch.txt && \
+  echo ${COMMIT} > /app/version.txt
 
 COPY . /app
 

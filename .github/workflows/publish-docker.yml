@@ -22,6 +22,7 @@ jobs:
           else
             echo ::set-output name=branch::${GITHUB_REF#refs/heads/}
           fi
+          echo ::set-output name=commit::${GITHUB_SHA}
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/arm
           echo ::set-output name=docker_image::tautulli/tautulli
@@ -42,8 +43,8 @@ jobs:
             --output "type=image,push=false" \
             --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
             --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
+            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
             --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
             --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
             --file Dockerfile .
 
@@ -62,8 +63,8 @@ jobs:
             --output "type=image,push=true" \
             --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
             --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
+            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
             --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
             --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
             --file Dockerfile .
 
