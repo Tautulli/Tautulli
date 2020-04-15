@@ -3,6 +3,7 @@
 .gitignore
 contrib
 init-scripts
+package
 pylintrc
 *.md
 !CHANGELOG*.md

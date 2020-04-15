@@ -2,27 +2,189 @@ name: Publish Release
 on:
   push:
     tags: [v*]
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-windows:
+    if: ${{ !endsWith(github.ref, '-beta') }}
+    runs-on: windows-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@master
-      - name: Get Release Version
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+        uses: actions/checkout@v2.1.0
+
+      - name: Set Release Version
+        id: get_version
+        shell: bash
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+          echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+          echo $GITHUB_SHA > version.txt
+
+      - name: Set Up Python
+        uses: actions/setup-python@v1.2.0
+        with:
+          python-version: 3.8
+
+      - name: Cache Dependencies
+        id: cache_dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ steps.get_version.outputs.VERSION }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyopenssl pycryptodomex pywin32 pyinstaller
+
+      - name: Build Package
+        run: |
+          pyinstaller -y ./package/Tautulli-windows.spec
+
+      - name: Create Installer
+        uses: joncloud/makensis-action@v1
+        with:
+          script-file: ./package/Tautulli.nsi
+          arguments: /DVERSION=${{ steps.get_version.outputs.VERSION }}.0 /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+          includeMorePlugins: package/nsis-plugins
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v1
+        with:
+          name: Tautulli-windows-installer
+          path: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          job: Build Windows Installer
+          nofail: true
+
+  build-macos:
+    if: ${{ !endsWith(github.ref, '-beta') }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2.1.0
+
+      - name: Set Release Version
+        id: get_version
+        shell: bash
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+          echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+          echo $GITHUB_SHA > version.txt
+          echo ::set-env name=VERSION::${GITHUB_REF#refs/tags/v}
+
+      - name: Set Up Python
+        uses: actions/setup-python@v1.2.0
+        with:
+          python-version: 3.8
+
+      - name: Cache Dependencies
+        id: cache_dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-pip-${{ steps.get_version.outputs.VERSION }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyopenssl pycryptodomex pyinstaller
+
+      - name: Build Package
+        run: |
+          pyinstaller -y ./package/Tautulli-macos.spec
+
+      - name: Create Installer
+        run: |
+          sudo pkgbuild --install-location /Applications --version ${{ steps.get_version.outputs.VERSION }} --component ./dist/Tautulli.app --scripts ./package/macos-scripts Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v1
+        with:
+          name: Tautulli-macos-package
+          path: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          job: Build MacOS Package
+          nofail: true
+
+  release:
+    needs: [build-windows, build-macos]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Job Status
+        uses: technote-space/workflow-conclusion-action@v1
+
+      - name: Checkout Code
+        uses: actions/checkout@v2.1.0
+
+      - name: Set Release Version
+        id: get_version
+        run: |
+          echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+
+      - name: Download Windows Installer
+        if: env.WORKFLOW_CONCLUSION == 'success'
+        uses: actions/download-artifact@v1
+        with:
+          name: Tautulli-windows-installer
+
+      - name: Download MacOS Package
+        if: env.WORKFLOW_CONCLUSION == 'success'
+        uses: actions/download-artifact@v1
+        with:
+          name: Tautulli-macos-package
+
       - name: Get Changelog
-        run: echo ::set-env name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
+        id: get_changelog
+        run: echo ::set-output name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.RELEASE_VERSION }}
-          release_name: Tautulli ${{ env.RELEASE_VERSION }}
+          tag_name: ${{ steps.get_version.outputs.RELEASE_VERSION }}
+          release_name: Tautulli ${{ steps.get_version.outputs.RELEASE_VERSION }}
           body: |
             ## Changelog
             
-            ##${{ env.CHANGELOG }}
+            ##${{ steps.get_changelog.outputs.CHANGELOG }}
           draft: false
-          prerelease: ${{ endsWith(env.RELEASE_VERSION, '-beta') }}
+          prerelease: ${{ endsWith(steps.get_version.outputs.RELEASE_VERSION, '-beta') }}
+
+      - name: Upload Windows Installer
+        if: env.WORKFLOW_CONCLUSION == 'success'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+          asset_name: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload MacOS Package
+        if: env.WORKFLOW_CONCLUSION == 'success'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Tautulli-macos-package/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+          asset_name: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+          asset_content_type: application/vnd.apple.installer+xml
