@@ -99,6 +99,7 @@ CREATEPID = False
 PIDFILE = None
 NOFORK = False
 DOCKER = False
+FROZEN = False
 
 SCHED = None
 SCHED_LOCK = threading.Lock()
@@ -186,11 +187,18 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
+        if DOCKER:
+            build = '[Docker] '
+        elif FROZEN:
+            build = '[Bundle] '
+        else:
+            build = ''
+
         logger.info("Starting Tautulli {}".format(
             common.RELEASE
         ))
         logger.info("{}{} {} ({}{})".format(
-            '[Docker] ' if DOCKER else '', common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
+            build, common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info("{} (UTC{})".format(
@@ -2237,7 +2245,10 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
         logger.info("Tautulli is restarting...")
 
         exe = sys.executable
-        args = [exe, FULL_PATH]
+        if FROZEN:
+            args = [exe]
+        else:
+            args = [exe, FULL_PATH]
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']

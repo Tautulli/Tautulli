@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib
 
 from future.builtins import str
 
+import appdirs
 import argparse
 import datetime
 import locale
@@ -49,12 +50,14 @@ def main():
     """
 
     # Fixed paths to Tautulli
-    if hasattr(sys, 'frozen'):
+    if hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS'):
+        plexpy.FROZEN = True
         plexpy.FULL_PATH = os.path.abspath(sys.executable)
+        plexpy.PROG_DIR = sys._MEIPASS
     else:
         plexpy.FULL_PATH = os.path.abspath(__file__)
+        plexpy.PROG_DIR = os.path.dirname(plexpy.FULL_PATH)
 
-    plexpy.PROG_DIR = os.path.dirname(plexpy.FULL_PATH)
     plexpy.ARGS = sys.argv[1:]
 
     # From sickbeard
@@ -173,6 +176,8 @@ def main():
     # Determine which data directory and config file to use
     if args.datadir:
         plexpy.DATA_DIR = args.datadir
+    elif plexpy.FROZEN:
+        plexpy.DATA_DIR = appdirs.user_data_dir("Tautulli", "Tautulli")
     else:
         plexpy.DATA_DIR = plexpy.PROG_DIR
 
