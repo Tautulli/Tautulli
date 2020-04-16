@@ -72,33 +72,37 @@ def runGit(args):
         elif output:
             break
 
-    return (output, err)
+    return output, err
 
 
-def getVersion():
+def get_version():
 
-    if common.BRANCH.startswith('win32build'):
-        plexpy.INSTALL_TYPE = 'win'
+    if plexpy.FROZEN and common.PLATFORM == 'Windows':
+        plexpy.INSTALL_TYPE = 'windows'
+        current_version, current_branch = get_version_from_file()
+        return current_version, 'origin', current_branch
 
-        # Don't have a way to update exe yet, but don't want to set VERSION to None
-        return 'Windows Install', 'origin', 'master'
+    elif plexpy.FROZEN and common.PLATFORM == 'Darwin':
+        plexpy.INSTALL_TYPE = 'macos'
+        current_version, current_branch = get_version_from_file()
+        return current_version, 'origin', current_branch
 
     elif os.path.isdir(os.path.join(plexpy.PROG_DIR, '.git')):
-
         plexpy.INSTALL_TYPE = 'git'
         output, err = runGit('rev-parse HEAD')
 
         if not output:
             logger.error('Could not find latest installed version.')
             cur_commit_hash = None
-
-        cur_commit_hash = str(output)
+        else:
+            cur_commit_hash = str(output)
 
         if not re.match('^[a-z0-9]+$', cur_commit_hash):
             logger.error('Output does not look like a hash, not using it.')
             cur_commit_hash = None
 
         if plexpy.CONFIG.DO_NOT_OVERRIDE_GIT_BRANCH and plexpy.CONFIG.GIT_BRANCH:
+            remote_name = None
             branch_name = plexpy.CONFIG.GIT_BRANCH
 
         else:
@@ -126,25 +130,28 @@ def getVersion():
         return cur_commit_hash, remote_name, branch_name
 
     else:
-
         plexpy.INSTALL_TYPE = 'docker' if plexpy.DOCKER else 'source'
-
-        version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
-        branch_file = os.path.join(plexpy.PROG_DIR, 'branch.txt')
-
-        if os.path.isfile(version_file):
-            with open(version_file, 'r') as f:
-                current_version = f.read().strip(' \n\r')
-        else:
-            current_version = None
-
-        if os.path.isfile(branch_file):
-            with open(branch_file, 'r') as f:
-                current_branch = f.read().strip(' \n\r')
-        else:
-            current_branch = common.BRANCH
-
+        current_version, current_branch = get_version_from_file()
         return current_version, 'origin', current_branch
+
+
+def get_version_from_file():
+    version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
+    branch_file = os.path.join(plexpy.PROG_DIR, 'branch.txt')
+
+    if os.path.isfile(version_file):
+        with open(version_file, 'r') as f:
+            current_version = f.read().strip(' \n\r')
+    else:
+        current_version = None
+
+    if os.path.isfile(branch_file):
+        with open(branch_file, 'r') as f:
+            current_branch = f.read().strip(' \n\r')
+    else:
+        current_branch = common.BRANCH
+
+    return current_version, current_branch
 
 
 def check_update(scheduler=False, notify=False):
@@ -152,11 +159,10 @@ def check_update(scheduler=False, notify=False):
 
     if not plexpy.CURRENT_VERSION:
         plexpy.UPDATE_AVAILABLE = None
-    elif plexpy.COMMITS_BEHIND > 0 and plexpy.common.BRANCH in ('master', 'beta') and \
+    elif plexpy.COMMITS_BEHIND > 0 and (plexpy.common.BRANCH in ('master', 'beta') or plexpy.FROZEN) and \
             plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
         plexpy.UPDATE_AVAILABLE = 'release'
-    elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and \
-            plexpy.INSTALL_TYPE != 'win':
+    elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and not plexpy.FROZEN:
         plexpy.UPDATE_AVAILABLE = 'commit'
     else:
         plexpy.UPDATE_AVAILABLE = False
@@ -259,8 +265,11 @@ def check_github(scheduler=False, notify=False):
 
 
 def update():
-    if plexpy.INSTALL_TYPE == 'win':
-        logger.info('Windows .exe updating not supported yet.')
+    if not plexpy.UPDATE_AVAILABLE:
+        return
+
+    if plexpy.INSTALL_TYPE in ('docker', 'windows', 'macos'):
+        return
 
     elif plexpy.INSTALL_TYPE == 'git':
         output, err = runGit('pull --ff-only {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
@@ -276,14 +285,11 @@ def update():
             elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
 
-    elif plexpy.INSTALL_TYPE == 'docker':
-        return
-
-    else:
+    elif plexpy.INSTALL_TYPE == 'source':
         tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER,
                                                                         plexpy.CONFIG.GIT_REPO,
                                                                         plexpy.CONFIG.GIT_BRANCH)
-        update_dir = os.path.join(plexpy.PROG_DIR, 'update')
+        update_dir = os.path.join(plexpy.DATA_DIR, 'update')
         version_path = os.path.join(plexpy.PROG_DIR, 'version.txt')
 
         logger.info('Downloading update from: ' + tar_download_url)
@@ -294,7 +300,7 @@ def update():
             return
 
         download_name = plexpy.CONFIG.GIT_BRANCH + '-github'
-        tar_download_path = os.path.join(plexpy.PROG_DIR, download_name)
+        tar_download_path = os.path.join(plexpy.DATA_DIR, download_name)
 
         # Save tar to disk
         with open(tar_download_path, 'wb') as f:

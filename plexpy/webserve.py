@@ -4007,8 +4007,8 @@ class WebInterface(object):
                       'message': 'Tautulli is up to date.'
                       }
 
-        if plexpy.DOCKER:
-            update['docker'] = plexpy.DOCKER
+        if plexpy.DOCKER or plexpy.FROZEN:
+            update['install_type'] = plexpy.INSTALL_TYPE
 
         return update
 

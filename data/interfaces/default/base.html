@@ -330,8 +330,10 @@ ${next.modalIncludes()}
                         msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
                             'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />';
                     }
-                    if (result.docker) {
+                    if (result.install_type === 'docker') {
                         msg += 'Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>';
+                    } else if (result.install_type === 'windows' || result.install_type === 'macos') {
+                        msg += '<a href="' + result.release_url + '" target="_blank">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>'
                     } else {
                         msg += '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     }

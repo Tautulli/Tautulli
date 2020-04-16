@@ -277,10 +277,10 @@ def initialize(config_file):
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
-        CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
+        CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.get_version()
 
         # Write current version to a file, so we know which version did work.
-        # This allowes one to restore to that version. The idea is that if we
+        # This allows one to restore to that version. The idea is that if we
         # arrive here, most parts of Tautulli seem to work.
         if CURRENT_VERSION:
             try:
@@ -2210,9 +2210,6 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
 
     CONFIG.write()
 
-    if not restart and not update and not checkout:
-        logger.info("Tautulli is shutting down...")
-
     if update:
         logger.info("Tautulli is updating...")
         try:
@@ -2255,25 +2252,23 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
 
         # Separate out logger so we can shutdown logger after
         if NOFORK:
-            logger.info('Running as service, not forking. Exiting...')
-        elif os.name == 'nt':
-            logger.info('Restarting Tautulli with %s', args)
+            logger.info("Running as service, not forking. Exiting...")
         else:
-            logger.info('Restarting Tautulli with %s', args)
-
-        logger.shutdown()
+            logger.info("Restarting Tautulli with %s", args)
 
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
         if NOFORK:
             pass
-        elif os.name == 'nt':
+        elif common.PLATFORM == 'Windows':
             subprocess.Popen(args, cwd=os.getcwd())
         else:
             os.execv(exe, args)
 
     else:
-        logger.shutdown()
+        logger.info("Tautulli is shutting down...")
+
+    logger.shutdown()
 
     os._exit(0)
 
@@ -2331,7 +2326,7 @@ def check_folder_writable(folder, fallback, name):
             os.makedirs(folder)
         except OSError as e:
             logger.error("Could not create %s dir '%s': %s" % (name, folder, e))
-            if folder != fallback:
+            if fallback and folder != fallback:
                 logger.warn("Falling back to %s dir '%s'" % (name, fallback))
                 return check_folder_writable(None, fallback, name)
             else:
@@ -2339,7 +2334,7 @@ def check_folder_writable(folder, fallback, name):
 
     if not os.access(folder, os.W_OK):
         logger.error("Cannot write to %s dir '%s'" % (name, folder))
-        if folder != fallback:
+        if fallback and folder != fallback:
             logger.warn("Falling back to %s dir '%s'" % (name, fallback))
             return check_folder_writable(None, fallback, name)
         else:

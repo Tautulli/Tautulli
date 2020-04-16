@@ -177,7 +177,7 @@ def main():
     if args.datadir:
         plexpy.DATA_DIR = args.datadir
     elif plexpy.FROZEN:
-        plexpy.DATA_DIR = appdirs.user_data_dir("Tautulli", "Tautulli")
+        plexpy.DATA_DIR = appdirs.user_data_dir("Tautulli", False)
     else:
         plexpy.DATA_DIR = plexpy.PROG_DIR
 
@@ -268,8 +268,11 @@ def main():
                 plexpy.shutdown(restart=True, checkout=True)
             elif plexpy.SIGNAL == 'reset':
                 plexpy.shutdown(restart=True, reset=True)
-            else:
+            elif plexpy.SIGNAL == 'update':
                 plexpy.shutdown(restart=True, update=True)
+            else:
+                logger.error('Unknown signal. Shutting down...')
+                plexpy.shutdown()
 
             plexpy.SIGNAL = None
 
