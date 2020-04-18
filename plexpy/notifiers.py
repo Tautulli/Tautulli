@@ -101,103 +101,128 @@ DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
 def available_notification_agents():
     agents = [{'label': 'Tautulli Remote Android App',
                'name': 'androidapp',
-               'id': AGENT_IDS['androidapp']
+               'id': AGENT_IDS['androidapp'],
+               'action_types': ('all',)
                },
               {'label': 'Boxcar',
                'name': 'boxcar',
-               'id': AGENT_IDS['boxcar']
+               'id': AGENT_IDS['boxcar'],
+               'action_types': ('all',)
                },
               {'label': 'Browser',
                'name': 'browser',
-               'id': AGENT_IDS['browser']
+               'id': AGENT_IDS['browser'],
+               'action_types': ('all',)
                },
               {'label': 'Discord',
                'name': 'discord',
                'id': AGENT_IDS['discord'],
+               'action_types': ('all',)
                },
               {'label': 'Email',
                'name': 'email',
-               'id': AGENT_IDS['email']
+               'id': AGENT_IDS['email'],
+               'action_types': ('all',)
                },
               {'label': 'Facebook',
                'name': 'facebook',
-               'id': AGENT_IDS['facebook']
+               'id': AGENT_IDS['facebook'],
+               'action_types': ('all',)
                },
               {'label': 'GroupMe',
                'name': 'groupme',
-               'id': AGENT_IDS['groupme']
+               'id': AGENT_IDS['groupme'],
+               'action_types': ('all',)
                },
               {'label': 'Growl',
                'name': 'growl',
-               'id': AGENT_IDS['growl']
+               'id': AGENT_IDS['growl'],
+               'action_types': ('all',)
                },
               {'label': 'Hipchat',
                'name': 'hipchat',
-               'id': AGENT_IDS['hipchat']
+               'id': AGENT_IDS['hipchat'],
+               'action_types': ('all',)
                },
               {'label': 'IFTTT',
                'name': 'ifttt',
-               'id': AGENT_IDS['ifttt']
+               'id': AGENT_IDS['ifttt'],
+               'action_types': ('all',)
                },
               {'label': 'Join',
                'name': 'join',
-               'id': AGENT_IDS['join']
+               'id': AGENT_IDS['join'],
+               'action_types': ('all',)
                },
               {'label': 'Kodi',
                'name': 'xbmc',
-               'id': AGENT_IDS['xbmc']
+               'id': AGENT_IDS['xbmc'],
+               'action_types': ('all',)
                },
               # {'label': 'Notify My Android',
               #  'name': 'nma',
-              #  'id': AGENT_IDS['nma']
+              #  'id': AGENT_IDS['nma'],
+              #  'action_types': ('all',)
               #  },
               {'label': 'MQTT',
                'name': 'mqtt',
-               'id': AGENT_IDS['mqtt']
+               'id': AGENT_IDS['mqtt'],
+               'action_types': ('all',)
                },
               {'label': 'Plex Home Theater',
                'name': 'plex',
-               'id': AGENT_IDS['plex']
+               'id': AGENT_IDS['plex'],
+               'action_types': ('all',)
                },
               {'label': 'Prowl',
                'name': 'prowl',
-               'id': AGENT_IDS['prowl']
+               'id': AGENT_IDS['prowl'],
+               'action_types': ('all',)
                },
               # {'label': 'Pushalot',
               #  'name': 'pushalot',
-              #  'id': AGENT_IDS['pushalot']
+              #  'id': AGENT_IDS['pushalot'],
+              #  'action_types': ('all',)
               #  },
               {'label': 'Pushbullet',
                'name': 'pushbullet',
-               'id': AGENT_IDS['pushbullet']
+               'id': AGENT_IDS['pushbullet'],
+               'action_types': ('all',)
                },
               {'label': 'Pushover',
                'name': 'pushover',
-               'id': AGENT_IDS['pushover']
+               'id': AGENT_IDS['pushover'],
+               'action_types': ('all',)
                },
               {'label': 'Script',
                'name': 'scripts',
-               'id': AGENT_IDS['scripts']
+               'id': AGENT_IDS['scripts'],
+               'action_types': ('all',)
                },
               {'label': 'Slack',
                'name': 'slack',
-               'id': AGENT_IDS['slack']
+               'id': AGENT_IDS['slack'],
+               'action_types': ('all',)
                },
               {'label': 'Telegram',
                'name': 'telegram',
-               'id': AGENT_IDS['telegram']
+               'id': AGENT_IDS['telegram'],
+               'action_types': ('all',)
                },
               {'label': 'Twitter',
                'name': 'twitter',
-               'id': AGENT_IDS['twitter']
+               'id': AGENT_IDS['twitter'],
+               'action_types': ('all',)
                },
               {'label': 'Webhook',
                'name': 'webhook',
-               'id': AGENT_IDS['webhook']
+               'id': AGENT_IDS['webhook'],
+               'action_types': ('all',)
                },
               {'label': 'Zapier',
                'name': 'zapier',
-               'id': AGENT_IDS['zapier']
+               'id': AGENT_IDS['zapier'],
+               'action_types': ('all',)
                }
               ]
 
@@ -205,13 +230,14 @@ def available_notification_agents():
     if OSX().validate():
         agents.append({'label': 'macOS Notification Center',
                        'name': 'osx',
-                       'id': AGENT_IDS['osx']
+                       'id': AGENT_IDS['osx'],
+                       'action_types': ('all',)
                        })
 
     return agents
 
 
-def available_notification_actions():
+def available_notification_actions(agent_id=None):
     actions = [{'label': 'Playback Start',
                 'name': 'on_play',
                 'description': 'Trigger a notification when a stream is started.',
@@ -350,6 +376,11 @@ def available_notification_actions():
                 }
                ]
 
+    if agent_id:
+        action_types = get_notify_agents(return_dict=True).get(agent_id, {}).get('action_types', [])
+        if 'all' not in action_types:
+            actions = [a for a in actions if a['name'] in action_types]
+
     return actions
 
 
@@ -415,13 +446,15 @@ def get_agent_class(agent_id=None, config=None):
         return None
 
 
-def get_notify_agents():
+def get_notify_agents(return_dict=False):
+    if return_dict:
+        return {a['id']: a for a in available_notification_agents()}
     return tuple(a['name'] for a in sorted(available_notification_agents(), key=lambda k: k['label']))
 
 
 def get_notify_actions(return_dict=False):
     if return_dict:
-        return {a.pop('name'): a for a in available_notification_actions()}
+        return {a['name']: a for a in available_notification_actions()}
     return tuple(a['name'] for a in available_notification_actions())
 
 
@@ -529,7 +562,7 @@ def add_notifier_config(agent_id=None, **kwargs):
                      % agent_id)
         return False
 
-    agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
+    agent = get_notify_agents(return_dict=True).get(agent_id, None)
 
     if not agent:
         logger.error(u"Tautulli Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s."
@@ -578,7 +611,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
                      % agent_id)
         return False
 
-    agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
+    agent = get_notify_agents(return_dict=True).get(agent_id, None)
 
     if not agent:
         logger.error(u"Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s."
