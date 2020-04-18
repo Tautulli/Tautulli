@@ -354,6 +354,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'User', 'type': 'str', 'value': 'user', 'description': 'The friendly name of the user streaming.'},
              {'name': 'Username', 'type': 'str', 'value': 'username', 'description': 'The username of the user streaming.'},
              {'name': 'User Email', 'type': 'str', 'value': 'user_email', 'description': 'The email address of the user streaming.'},
+             {'name': 'User Thumb', 'type': 'str', 'value': 'user_thumb', 'description': 'The profile picture URL of the user streaming.'},
              {'name': 'Device', 'type': 'str', 'value': 'device', 'description': 'The type of client device being used for playback.'},
              {'name': 'Platform', 'type': 'str', 'value': 'platform', 'description': 'The type of client platform being used for playback.'},
              {'name': 'Product', 'type': 'str', 'value': 'product', 'description': 'The type of client product being used for playback.'},

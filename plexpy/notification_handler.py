@@ -830,6 +830,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user': notify_params['friendly_name'],
         'username': notify_params['user'],
         'user_email': notify_params['email'],
+        'user_thumb': notify_params['user_thumb'],
         'device': notify_params['device'],
         'platform': notify_params['platform'],
         'product': notify_params['product'],
