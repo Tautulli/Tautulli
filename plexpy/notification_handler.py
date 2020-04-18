@@ -636,6 +636,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             themoviedb_info = lookup_themoviedb_by_id(rating_key=lookup_key,
                                                       thetvdb_id=notify_params.get('thetvdb_id'),
                                                       imdb_id=notify_params.get('imdb_id'))
+            themoviedb_info.pop('rating_key', None)
             notify_params.update(themoviedb_info)
 
     # Get TVmaze info (for tv shows only)
@@ -651,6 +652,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             tvmaze_info = lookup_tvmaze_by_id(rating_key=lookup_key,
                                               thetvdb_id=notify_params.get('thetvdb_id'),
                                               imdb_id=notify_params.get('imdb_id'))
+            tvmaze_info.pop('rating_key', None)
             notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
@@ -680,6 +682,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         musicbrainz_info = lookup_musicbrainz_info(musicbrainz_type=musicbrainz_type, rating_key=rating_key,
                                                    artist=artist, release=release, recording=recording, tracks=tracks,
                                                    tnum=tnum)
+        musicbrainz_info.pop('rating_key', None)
         notify_params.update(musicbrainz_info)
 
     if notify_params['media_type'] in ('movie', 'show', 'artist'):
