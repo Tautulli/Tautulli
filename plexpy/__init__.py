@@ -442,7 +442,7 @@ def initialize_scheduler():
         pms_update_check_hours = CONFIG.PMS_UPDATE_CHECK_INTERVAL if 1 <= CONFIG.PMS_UPDATE_CHECK_INTERVAL else 24
 
         schedule_job(versioncheck.check_update, 'Check GitHub for updates',
-                     hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE), True))
+                     hours=0, minutes=github_minutes, seconds=0, args=(True, True))
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 

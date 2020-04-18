@@ -135,8 +135,8 @@ def getVersion():
         return current_version, 'origin', current_branch
 
 
-def check_update(auto_update=False, notify=False):
-    check_github(auto_update=auto_update, notify=notify)
+def check_update(scheduler=False, notify=False):
+    check_github(scheduler=scheduler, notify=notify)
 
     if not plexpy.CURRENT_VERSION:
         plexpy.UPDATE_AVAILABLE = None
@@ -159,7 +159,7 @@ def check_update(auto_update=False, notify=False):
         plexpy.WIN_SYS_TRAY_ICON.update(icon=icon, hover_text=hover_text)
 
 
-def check_github(auto_update=False, notify=False):
+def check_github(scheduler=False, notify=False):
     plexpy.COMMITS_BEHIND = 0
 
     if plexpy.CONFIG.GIT_TOKEN:
@@ -236,7 +236,7 @@ def check_github(auto_update=False, notify=False):
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
-        if auto_update and not plexpy.DOCKER:
+        if scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and not plexpy.DOCKER:
             logger.info('Running automatic update.')
             plexpy.shutdown(restart=True, update=True)
 
