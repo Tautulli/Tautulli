@@ -547,6 +547,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     stream_count = len(sessions)
     user_stream_count = len(user_sessions)
 
+    lan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] == 'lan')
+    wan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] != 'lan')
+    total_bandwidth = lan_bandwidth + wan_bandwidth
+
     # Generate a combined transcode decision value
     if session.get('stream_video_decision', '') == 'transcode' or session.get('stream_audio_decision', '') == 'transcode':
         transcode_decision = 'Transcode'
@@ -813,6 +817,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'direct_plays': transcode_decision_count['direct play'],
         'direct_streams': transcode_decision_count['copy'],
         'transcodes': transcode_decision_count['transcode'],
+        'total_bandwidth': total_bandwidth,
+        'lan_bandwidth': lan_bandwidth,
+        'wan_bandwidth': wan_bandwidth,
         'user_streams': user_stream_count,
         'user_direct_plays': user_transcode_decision_count['direct play'],
         'user_direct_streams': user_transcode_decision_count['copy'],

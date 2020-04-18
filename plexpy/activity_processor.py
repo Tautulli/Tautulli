@@ -56,6 +56,8 @@ class ActivityProcessor(object):
                       'year': session.get('year', ''),
                       'friendly_name': session.get('friendly_name', ''),
                       'ip_address': session.get('ip_address', ''),
+                      'bandwidth': session.get('bandwidth', 0),
+                      'location': session.get('location', ''),
                       'player': session.get('player', ''),
                       'product': session.get('product', ''),
                       'platform': session.get('platform', ''),
