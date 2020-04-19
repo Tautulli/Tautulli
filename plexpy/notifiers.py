@@ -66,7 +66,6 @@ import users
 
 BROWSER_NOTIFIERS = {}
 
-
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
@@ -103,131 +102,157 @@ def available_notification_agents():
     agents = [{'label': 'Tautulli Remote Android App',
                'name': 'androidapp',
                'id': AGENT_IDS['androidapp'],
+               'class': ANDROIDAPP,
                'action_types': ('all',)
                },
               {'label': 'Boxcar',
                'name': 'boxcar',
                'id': AGENT_IDS['boxcar'],
+               'class': BOXCAR,
                'action_types': ('all',)
                },
               {'label': 'Browser',
                'name': 'browser',
                'id': AGENT_IDS['browser'],
+               'class': BROWSER,
                'action_types': ('all',)
                },
               {'label': 'Discord',
                'name': 'discord',
                'id': AGENT_IDS['discord'],
+               'class': DISCORD,
                'action_types': ('all',)
                },
               {'label': 'Email',
                'name': 'email',
                'id': AGENT_IDS['email'],
+               'class': EMAIL,
                'action_types': ('all',)
                },
               {'label': 'Facebook',
                'name': 'facebook',
                'id': AGENT_IDS['facebook'],
+               'class': FACEBOOK,
                'action_types': ('all',)
                },
               {'label': 'GroupMe',
                'name': 'groupme',
                'id': AGENT_IDS['groupme'],
+               'class': GROUPME,
                'action_types': ('all',)
                },
               {'label': 'Growl',
                'name': 'growl',
                'id': AGENT_IDS['growl'],
+               'class': GROWL,
                'action_types': ('all',)
                },
               {'label': 'Hipchat',
                'name': 'hipchat',
                'id': AGENT_IDS['hipchat'],
+               'class': HIPCHAT,
                'action_types': ('all',)
                },
               {'label': 'IFTTT',
                'name': 'ifttt',
                'id': AGENT_IDS['ifttt'],
+               'class': IFTTT,
                'action_types': ('all',)
                },
               {'label': 'Join',
                'name': 'join',
                'id': AGENT_IDS['join'],
+               'class': JOIN,
                'action_types': ('all',)
                },
               {'label': 'Kodi',
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc'],
+               'class': XBMC,
                'action_types': ('all',)
                },
               # {'label': 'Notify My Android',
               #  'name': 'nma',
               #  'id': AGENT_IDS['nma'],
+              #  'class': NMA,
               #  'action_types': ('all',)
               #  },
               {'label': 'MQTT',
                'name': 'mqtt',
                'id': AGENT_IDS['mqtt'],
+               'class': MQTT,
                'action_types': ('all',)
                },
               {'label': 'Plex Home Theater',
                'name': 'plex',
                'id': AGENT_IDS['plex'],
+               'class': PLEX,
                'action_types': ('all',)
                },
               {'label': 'Plex Mobile App',
                'name': 'plexmobileapp',
                'id': AGENT_IDS['plexmobileapp'],
+               'class': PLEXMOBILEAPP,
                'action_types': ('on_play', 'on_created', 'on_newdevice')
                },
               {'label': 'Prowl',
                'name': 'prowl',
                'id': AGENT_IDS['prowl'],
+               'class': PROWL,
                'action_types': ('all',)
                },
               # {'label': 'Pushalot',
               #  'name': 'pushalot',
               #  'id': AGENT_IDS['pushalot'],
+              #  'class': PUSHALOT,
               #  'action_types': ('all',)
               #  },
               {'label': 'Pushbullet',
                'name': 'pushbullet',
                'id': AGENT_IDS['pushbullet'],
+               'class': PUSHBULLET,
                'action_types': ('all',)
                },
               {'label': 'Pushover',
                'name': 'pushover',
                'id': AGENT_IDS['pushover'],
+               'class': PUSHOVER,
                'action_types': ('all',)
                },
               {'label': 'Script',
                'name': 'scripts',
                'id': AGENT_IDS['scripts'],
+               'class': SCRIPTS,
                'action_types': ('all',)
                },
               {'label': 'Slack',
                'name': 'slack',
                'id': AGENT_IDS['slack'],
+               'class': SLACK,
                'action_types': ('all',)
                },
               {'label': 'Telegram',
                'name': 'telegram',
                'id': AGENT_IDS['telegram'],
+               'class': TELEGRAM,
                'action_types': ('all',)
                },
               {'label': 'Twitter',
                'name': 'twitter',
                'id': AGENT_IDS['twitter'],
+               'class': TWITTER,
                'action_types': ('all',)
                },
               {'label': 'Webhook',
                'name': 'webhook',
                'id': AGENT_IDS['webhook'],
+               'class': WEBHOOK,
                'action_types': ('all',)
                },
               {'label': 'Zapier',
                'name': 'zapier',
                'id': AGENT_IDS['zapier'],
+               'class': ZAPIER,
                'action_types': ('all',)
                }
               ]
@@ -237,6 +262,7 @@ def available_notification_agents():
         agents.append({'label': 'macOS Notification Center',
                        'name': 'osx',
                        'id': AGENT_IDS['osx'],
+                       'class': OSX,
                        'action_types': ('all',)
                        })
 
@@ -382,8 +408,8 @@ def available_notification_actions(agent_id=None):
                 }
                ]
 
-    if agent_id:
-        action_types = get_notify_agents(return_dict=True).get(agent_id, {}).get('action_types', [])
+    if str(agent_id).isdigit():
+        action_types = get_notify_agents(return_dict=True).get(int(agent_id), {}).get('action_types', [])
         if 'all' not in action_types:
             actions = [a for a in actions if a['name'] in action_types]
 
@@ -392,64 +418,8 @@ def available_notification_actions(agent_id=None):
 
 def get_agent_class(agent_id=None, config=None):
     if str(agent_id).isdigit():
-        agent_id = int(agent_id)
-
-        if agent_id == 0:
-            return GROWL(config=config)
-        elif agent_id == 1:
-            return PROWL(config=config)
-        elif agent_id == 2:
-            return XBMC(config=config)
-        elif agent_id == 3:
-            return PLEX(config=config)
-        elif agent_id == 4:
-            return NMA(config=config)
-        elif agent_id == 5:
-            return PUSHALOT(config=config)
-        elif agent_id == 6:
-            return PUSHBULLET(config=config)
-        elif agent_id == 7:
-            return PUSHOVER(config=config)
-        elif agent_id == 8:
-            return OSX(config=config)
-        elif agent_id == 9:
-            return BOXCAR(config=config)
-        elif agent_id == 10:
-            return EMAIL(config=config)
-        elif agent_id == 11:
-            return TWITTER(config=config)
-        elif agent_id == 12:
-            return IFTTT(config=config)
-        elif agent_id == 13:
-            return TELEGRAM(config=config)
-        elif agent_id == 14:
-            return SLACK(config=config)
-        elif agent_id == 15:
-            return SCRIPTS(config=config)
-        elif agent_id == 16:
-            return FACEBOOK(config=config)
-        elif agent_id == 17:
-            return BROWSER(config=config)
-        elif agent_id == 18:
-            return JOIN(config=config)
-        elif agent_id == 19:
-            return HIPCHAT(config=config)
-        elif agent_id == 20:
-            return DISCORD(config=config)
-        elif agent_id == 21:
-            return ANDROIDAPP(config=config)
-        elif agent_id == 22:
-            return GROUPME(config=config)
-        elif agent_id == 23:
-            return MQTT(config=config)
-        elif agent_id == 24:
-            return ZAPIER(config=config)
-        elif agent_id == 25:
-            return WEBHOOK(config=config)
-        elif agent_id == 26:
-            return PLEXMOBILEAPP(config=config)
-        else:
-            return Notifier(config=config)
+        agent = get_notify_agents(return_dict=True).get(int(agent_id), {}).get('class', Notifier)
+        return agent(config=config)
     else:
         return None
 
