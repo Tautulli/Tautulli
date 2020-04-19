@@ -673,7 +673,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             tracks = notify_params['children_count']
         else:
             musicbrainz_type = 'recording'
-            artist = notify_params['original_title']
+            artist = notify_params['original_title'] or notify_params['grandparent_title']
             release = notify_params['parent_title']
             recording = notify_params['title']
             tracks = notify_params['children_count']
