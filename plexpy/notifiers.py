@@ -189,7 +189,7 @@ def available_notification_agents():
                'class': PLEX,
                'action_types': ('all',)
                },
-              {'label': 'Plex Mobile App',
+              {'label': 'Plex Android / iOS App',
                'name': 'plexmobileapp',
                'id': AGENT_IDS['plexmobileapp'],
                'class': PLEXMOBILEAPP,
@@ -2610,7 +2610,7 @@ class PLEXMOBILEAPP(Notifier):
     """
     Plex Mobile App Notifications
     """
-    NAME = 'Plex Mobile App'
+    NAME = 'Plex Android / iOS App'
     NOTIFICATION_URL = 'https://notifications.plex.tv/api/v1/notifications'
     _DEFAULT_CONFIG = {'user_ids': [],
                        'tap_action': 'preplay',
@@ -2751,7 +2751,9 @@ class PLEXMOBILEAPP(Notifier):
         config_option = [{'label': 'Plex User(s)',
                           'value': self.config['user_ids'],
                           'name': 'plexmobileapp_user_ids',
-                          'description': 'Select which Plex User(s) to receive notifications.',
+                          'description': 'Select which Plex User(s) to receive notifications.<br>'
+                                         'Note: The user(s) must have notifications enabled '
+                                         'for the matching Tautulli triggers in their Plex mobile app.',
                           'input_type': 'select',
                           'select_options': self.get_users()
                           },
