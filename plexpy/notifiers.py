@@ -92,7 +92,8 @@ AGENT_IDS = {'growl': 0,
              'groupme': 22,
              'mqtt': 23,
              'zapier': 24,
-             'webhook': 25
+             'webhook': 25,
+             'plexmobileapp': 26
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -173,6 +174,11 @@ def available_notification_agents():
                'name': 'plex',
                'id': AGENT_IDS['plex'],
                'action_types': ('all',)
+               },
+              {'label': 'Plex Mobile App',
+               'name': 'plexmobileapp',
+               'id': AGENT_IDS['plexmobileapp'],
+               'action_types': ('on_play', 'on_created', 'on_newdevice')
                },
               {'label': 'Prowl',
                'name': 'prowl',
@@ -440,6 +446,8 @@ def get_agent_class(agent_id=None, config=None):
             return ZAPIER(config=config)
         elif agent_id == 25:
             return WEBHOOK(config=config)
+        elif agent_id == 26:
+            return PLEXMOBILEAPP(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -2623,6 +2631,168 @@ class PLEX(Notifier):
                           'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
                           'input_type': 'text'
                           }
+                         ]
+
+        return config_option
+
+
+class PLEXMOBILEAPP(Notifier):
+    """
+    Plex Mobile App Notifications
+    """
+    NAME = 'Plex Mobile App'
+    NOTIFICATION_URL = 'https://notifications.plex.tv/api/v1/notifications'
+    _DEFAULT_CONFIG = {'user_ids': [],
+                       'tap_action': 'preplay',
+                       }
+
+    def __init__(self, config=None):
+        super(PLEXMOBILEAPP, self).__init__(config=config)
+
+        self.configurations = {
+            'created': {'group': 'media', 'identifier': 'tv.plex.notification.library.new'},
+            'play': {'group': 'media', 'identifier': 'tv.plex.notification.playback.started'},
+            'newdevice': {'group': 'admin', 'identifier': 'tv.plex.notification.device.new'},
+            'test': {'group': 'media', 'identifier': 'tv.plex.notification.library.new'}
+        }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if action not in self.configurations:
+            logger.error(u"Tautulli Notifiers :: Notification action %s not allowed for %s." % (action, self.NAME))
+            return
+
+        headers = {'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN}
+
+        # No subject to always show up regardless of client selected filters
+        # icon can be info, warning, or error
+        # play = true to start playing when tapping the notification
+        # Send the minimal amount of data necessary through Plex servers
+        data = {
+            'group': self.configurations[action]['group'],
+            'identifier': self.configurations[action]['identifier'],
+            'to': self.config['user_ids'],
+            'data': {
+                'provider': {
+                    'identifier': plexpy.CONFIG.PMS_IDENTIFIER,
+                    'title': plexpy.CONFIG.PMS_NAME
+                }
+            }
+        }
+
+        pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+        if action == 'test':
+            data['metadata'] = {
+                'type': 'movie',
+                'title': subject,
+                'year': body
+            }
+
+        elif action in ('play', 'newdevice'):
+            data['data']['player'] = {
+                'title': pretty_metadata.parameters['player'],
+                'platform': pretty_metadata.parameters['platform'],
+                'machineIdentifier': pretty_metadata.parameters['machine_id']
+            }
+            data['data']['user'] = {
+                'title': pretty_metadata.parameters['user'],
+                'id': pretty_metadata.parameters['user_id'],
+                'thumb': pretty_metadata.parameters['user_thumb'],
+            }
+
+        elif action == 'created':
+            # No addition data required for recently added
+            pass
+
+        else:
+            return
+
+        if data['group'] == 'media' and action != 'test':
+            media_type = pretty_metadata.media_type
+            uri_rating_key = None
+
+            if media_type == 'movie':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['title'],
+                    'year': pretty_metadata.parameters['year'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'show':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['show_name'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'season':
+                metadata = {
+                    'type': 'show',
+                    'title': pretty_metadata.parameters['show_name'],
+                    'thumb': pretty_metadata.parameters['thumb'],
+                }
+            elif media_type == 'episode':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['episode_name'],
+                    'grandparentTitle': pretty_metadata.parameters['show_name'],
+                    'index': pretty_metadata.parameters['episode_num'],
+                    'parentIndex': pretty_metadata.parameters['season_num'],
+                    'grandparentThumb': pretty_metadata.parameters['grandparent_thumb']
+                }
+            elif media_type == 'artist':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'album':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['album_name'],
+                    'parentTitle': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['thumb'],
+                }
+            elif media_type == 'track':
+                metadata = {
+                    'type': 'album',
+                    'title': pretty_metadata.parameters['album_name'],
+                    'parentTitle': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['parent_thumb']
+                }
+                uri_rating_key = pretty_metadata.parameters['parent_rating_key']
+            else:
+                logger.error(u"Tautulli Notifiers :: Media type %s not supported for %s." % (media_type, self.NAME))
+                return
+
+            data['metadata'] = metadata
+            data['uri'] = 'server://{}/com.plexapp.plugins.library/library/metadata/{}'.format(
+                plexpy.CONFIG.PMS_IDENTIFIER, uri_rating_key or pretty_metadata.parameters['rating_key']
+            )
+            data['play'] = self.config['tap_action'] == 'play'
+
+        return self.make_request(self.NOTIFICATION_URL, headers=headers, json=data)
+
+    def get_users(self):
+        user_ids = {u['user_id']: u['friendly_name'] for u in users.Users().get_users() if u['user_id']}
+        user_ids[''] = ''
+        return user_ids
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Plex User(s)',
+                          'value': self.config['user_ids'],
+                          'name': 'plexmobileapp_user_ids',
+                          'description': 'Select which Plex User(s) to receive notifications.',
+                          'input_type': 'select',
+                          'select_options': self.get_users()
+                          },
+                         {'label': 'Notification Tap Action',
+                          'value': self.config['tap_action'],
+                          'name': 'plexmobileapp_tap_action',
+                          'description': 'Set the action when tapping on the notification.',
+                          'input_type': 'select',
+                          'select_options': {'preplay': 'Go to media pre-play screen',
+                                             'play': 'Start playing the media'}
+                          },
                          ]
 
         return config_option

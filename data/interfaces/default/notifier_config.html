@@ -1,9 +1,9 @@
 % if notifier:
-<%!
+<%
     import json
     from plexpy import notifiers, users
     from plexpy.helpers import checked
-    available_notification_actions = notifiers.available_notification_actions()
+    available_notification_actions = notifiers.available_notification_actions(agent_id=notifier['agent_id'])
 
     user_emails = [{'user': u['friendly_name'] or u['username'], 'email': u['email']} for u in users.Users().get_users() if u['email']]
     sorted(user_emails, key=lambda u: u['user'])
@@ -25,7 +25,7 @@
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Arguments</a></li>
                         % elif notifier['agent_name'] == 'webhook':
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Data</a></li>
-                        % else:
+                        % elif notifier['agent_name'] != 'plexmobileapp':
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Text</a></li>
                         % endif
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
@@ -683,6 +683,15 @@
     $('#pushover_priority').change( function () {
         pushoverPriority();
     });
+
+    % elif notifier['agent_name'] == 'plexmobileapp':
+    var $plexmobileapp_user_ids = $('#plexmobileapp_user_ids').selectize({
+        plugins: ['remove_button'],
+        maxItems: null,
+        create: true
+    });
+    var plexmobileapp_user_ids = $plexmobileapp_user_ids[0].selectize;
+    plexmobileapp_user_ids.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'plexmobileapp_user_ids'), [])) | n});
 
     % endif
 
