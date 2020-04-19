@@ -2622,24 +2622,29 @@ class PLEXMOBILEAPP(Notifier):
         self.configurations = {
             'created': {'group': 'media', 'identifier': 'tv.plex.notification.library.new'},
             'play': {'group': 'media', 'identifier': 'tv.plex.notification.playback.started'},
-            'newdevice': {'group': 'admin', 'identifier': 'tv.plex.notification.device.new'},
-            'test': {'group': 'media', 'identifier': 'tv.plex.notification.library.new'}
+            'newdevice': {'group': 'admin', 'identifier': 'tv.plex.notification.device.new'}
         }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        if action not in self.configurations:
+        if action not in self.configurations and not action.startswith('test'):
             logger.error(u"Tautulli Notifiers :: Notification action %s not allowed for %s." % (action, self.NAME))
             return
 
-        headers = {'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN}
+        if action == 'test':
+            tests = []
+            for configuration in self.configurations:
+                tests.append(self.agent_notify(subject=subject, body=body, action='test_'+configuration))
+            return all(tests)
+
+        configuration_action = action.split('test_')[-1]
 
         # No subject to always show up regardless of client selected filters
         # icon can be info, warning, or error
         # play = true to start playing when tapping the notification
         # Send the minimal amount of data necessary through Plex servers
         data = {
-            'group': self.configurations[action]['group'],
-            'identifier': self.configurations[action]['identifier'],
+            'group': self.configurations[configuration_action]['group'],
+            'identifier': self.configurations[configuration_action]['identifier'],
             'to': self.config['user_ids'],
             'data': {
                 'provider': {
@@ -2649,9 +2654,18 @@ class PLEXMOBILEAPP(Notifier):
             }
         }
 
-        pretty_metadata = PrettyMetadata(kwargs['parameters'])
+        pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
-        if action == 'test':
+        if action.startswith('test'):
+            data['data']['player'] = {
+                'title': 'Device',
+                'platform': 'Platform',
+                'machineIdentifier': 'Tautulli'
+            }
+            data['data']['user'] = {
+                'title': 'User',
+                'id': 0
+            }
             data['metadata'] = {
                 'type': 'movie',
                 'title': subject,
@@ -2675,9 +2689,10 @@ class PLEXMOBILEAPP(Notifier):
             pass
 
         else:
+            logger.error(u"Tautulli Notifiers :: Notification action %s not supported for %s." % (action, self.NAME))
             return
 
-        if data['group'] == 'media' and action != 'test':
+        if data['group'] == 'media' and not action.startswith('test'):
             media_type = pretty_metadata.media_type
             uri_rating_key = None
 
@@ -2739,6 +2754,8 @@ class PLEXMOBILEAPP(Notifier):
                 plexpy.CONFIG.PMS_IDENTIFIER, uri_rating_key or pretty_metadata.parameters['rating_key']
             )
             data['play'] = self.config['tap_action'] == 'play'
+
+        headers = {'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN}
 
         return self.make_request(self.NOTIFICATION_URL, headers=headers, json=data)
 
