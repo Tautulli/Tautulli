@@ -1849,6 +1849,10 @@ class WebInterface(object):
                      }
             ```
         """
+        # For backwards compatibility
+        if 'id' in kwargs:
+            row_id = kwargs['id']
+
         data_factory = datafactory.DataFactory()
         stream_data = data_factory.get_stream_details(row_id, session_key)
 
