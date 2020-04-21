@@ -389,7 +389,7 @@ def shutdown():
 # Expose logger methods
 # Main Tautulli logger
 info = logger.info
-warn = logger.warn
+warn = logger.warning
 error = logger.error
 debug = logger.debug
 warning = logger.warning
@@ -397,7 +397,7 @@ exception = logger.exception
 
 # Tautulli API logger
 api_info = logger_api.info
-api_warn = logger_api.warn
+api_warn = logger_api.warning
 api_error = logger_api.error
 api_debug = logger_api.debug
 api_warning = logger_api.warning
@@ -405,7 +405,7 @@ api_exception = logger_api.exception
 
 # Tautulli websocket logger
 websocket_info = logger_plex_websocket.info
-websocket_warn = logger_plex_websocket.warn
+websocket_warn = logger_plex_websocket.warning
 websocket_error = logger_plex_websocket.error
 websocket_debug = logger_plex_websocket.debug
 websocket_warning = logger_plex_websocket.warning
