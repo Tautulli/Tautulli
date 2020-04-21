@@ -33,10 +33,10 @@ import traceback
 
 import plexpy
 if plexpy.PYTHON2:
-    from helpers import is_public_ip
+    import helpers
     from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 else:
-    from plexpy.helpers import is_public_ip
+    from plexpy import helpers
     from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
@@ -153,7 +153,7 @@ class PublicIPFilter(RegexFilter):
         self.regex = re.compile(r'[0-9]+(?:[.-][0-9]+){3}(?!\d*-[a-z0-9]{6})')
 
     def replace(self, text, ip):
-        if is_public_ip(ip.replace('-', '.')):
+        if helpers.is_public_ip(ip.replace('-', '.')):
             partition = '-' if '-' in ip else '.'
             return text.replace(ip, ip.partition(partition)[0] + (partition + '***') * 3)
         return text
