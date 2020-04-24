@@ -653,4 +653,4 @@ class ActivityProcessor(object):
                                              'WHERE user_id = ? AND machine_id = ? AND media_type = ? '
                                              'ORDER BY stopped DESC',
                                              [user_id, machine_id, media_type])
-        return int(started - last_session.get('stopped', 0) > plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
+        return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
