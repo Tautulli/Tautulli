@@ -144,11 +144,11 @@ class ActivityProcessor(object):
             if result == 'insert':
                 # If it's our first write then time stamp it.
                 started = int(time.time())
-                continued_session = self.is_continued_session(user_id=values['user_id'],
-                                                              machine_id=values['machine_id'],
-                                                              media_type=values['media_type'],
-                                                              started=started)
-                timestamp = {'started': started, 'continued_session': continued_session}
+                initial_stream = self.is_initial_stream(user_id=values['user_id'],
+                                                        machine_id=values['machine_id'],
+                                                        media_type=values['media_type'],
+                                                        started=started)
+                timestamp = {'started': started, 'initial_stream': initial_stream}
                 self.db.upsert('sessions', timestamp, keys)
 
                 # Check if any notification agents have notifications enabled
@@ -647,10 +647,10 @@ class ActivityProcessor(object):
         values = {'stopped': stopped}
         self.db.upsert(table_name='sessions_continued', key_dict=keys, value_dict=values)
 
-    def is_continued_session(self, user_id=None, machine_id=None, media_type=None, started=None):
+    def is_initial_stream(self, user_id=None, machine_id=None, media_type=None, started=None):
         last_session = self.db.select_single('SELECT stopped '
                                              'FROM sessions_continued '
                                              'WHERE user_id = ? AND machine_id = ? AND media_type = ? '
                                              'ORDER BY stopped DESC',
                                              [user_id, machine_id, media_type])
-        return int(started - last_session.get('stopped', 0) < plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
+        return int(started - last_session.get('stopped', 0) > plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
