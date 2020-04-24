@@ -843,6 +843,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'progress_duration': view_offset,
         'progress_time': arrow.get(view_offset * 60).format(duration_format),
         'progress_percent': helpers.get_percent(view_offset, duration),
+        'continued_session': notify_params['continued_session'],
         'transcode_decision': transcode_decision,
         'video_decision': notify_params['video_decision'],
         'audio_decision': notify_params['audio_decision'],

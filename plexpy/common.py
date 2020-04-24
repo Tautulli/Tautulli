@@ -367,6 +367,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Progress Duration', 'type': 'int', 'value': 'progress_duration', 'description': 'The last reported offset (in minutes) of the stream.'},
              {'name': 'Progress Time', 'type': 'str', 'value': 'progress_time', 'description': 'The last reported offset (in time format) of the stream.'},
              {'name': 'Progress Percent', 'type': 'int', 'value': 'progress_percent', 'description': 'The last reported progress percent of the stream.'},
+             {'name': 'Continued Session', 'type': 'int', 'value': 'continued_session', 'description': 'If the stream is continued from the previous streaming session.', 'example': '0 or 1'},
              {'name': 'Transcode Decision', 'type': 'str', 'value': 'transcode_decision', 'description': 'The transcode decisions of the stream.'},
              {'name': 'Video Decision', 'type': 'str', 'value': 'video_decision', 'description': 'The video transcode decisions of the stream.'},
              {'name': 'Audio Decision', 'type': 'str', 'value': 'audio_decision', 'description': 'The audio transcode decisions of the stream.'},

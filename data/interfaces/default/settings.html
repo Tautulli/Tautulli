@@ -941,7 +941,7 @@
                                 </div>
                                 <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
+                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. Set to 0 to always trigger.</p>
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
@@ -964,6 +964,20 @@
                                 <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The number of concurrent streams by a single user for Tautulli to trigger a notification. Minimum 2.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="notify_concurrent_threshold">Continued Session Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_continued_session_threshold" name="notify_continued_session_threshold" value="${config['notify_continued_session_threshold']}" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#notify_continued_session_threshold_error" required>
+                                </div>
+                                <div id="notify_continued_session_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of seconds between stopping and starting a new stream to be considered as a continued session. Set to 0 to consider all streams as new sessions.
+                                <br>
+                                Note: The threshold is only used for the continued session notification parameter.
+                            </p>
                         </div>
 
                         <div class="padded-header">
