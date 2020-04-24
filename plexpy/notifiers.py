@@ -2715,6 +2715,7 @@ class PLEXMOBILEAPP(Notifier):
                     'title': pretty_metadata.parameters['show_name'],
                     'thumb': pretty_metadata.parameters['thumb'],
                 }
+                data['data']['count'] = pretty_metadata.parameters['episode_count']
             elif media_type == 'episode':
                 metadata = {
                     'type': media_type,
@@ -2734,6 +2735,7 @@ class PLEXMOBILEAPP(Notifier):
                 metadata = {
                     'type': media_type,
                     'title': pretty_metadata.parameters['album_name'],
+                    'year': pretty_metadata.parameters['year'],
                     'parentTitle': pretty_metadata.parameters['artist_name'],
                     'thumb': pretty_metadata.parameters['thumb'],
                 }
@@ -2741,6 +2743,7 @@ class PLEXMOBILEAPP(Notifier):
                 metadata = {
                     'type': 'album',
                     'title': pretty_metadata.parameters['album_name'],
+                    'year': pretty_metadata.parameters['year'],
                     'parentTitle': pretty_metadata.parameters['artist_name'],
                     'thumb': pretty_metadata.parameters['parent_thumb']
                 }
