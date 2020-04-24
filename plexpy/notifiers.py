@@ -3014,7 +3014,7 @@ class SCRIPTS(Notifier):
             if user_tokens and user_tokens['server_token']:
                 custom_env['PLEX_USER_TOKEN'] = str(user_tokens['server_token'])
 
-        if self.pythonpath:
+        if self.pythonpath and plexpy.INSTALL_TYPE not in ('windows', 'macos'):
             custom_env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
 
         if plexpy.PYTHON2:
