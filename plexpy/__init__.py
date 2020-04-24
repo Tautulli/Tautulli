@@ -610,7 +610,13 @@ def dbcheck():
         'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
         'secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
-        'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
+        'continued_session INTEGER DEFAULT 0, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
+    )
+
+    # sessions_continued table :: This is a temp table that keeps track of continued streaming sessions
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS sessions_continued (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -1274,6 +1280,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN location TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT continued_session FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN continued_session INTEGER DEFAULT 0'
         )
 
     # Upgrade session_history table from earlier versions

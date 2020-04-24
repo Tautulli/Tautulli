@@ -84,14 +84,14 @@ class ActivityHandler(object):
 
         return None
 
-    def update_db_session(self, session=None):
+    def update_db_session(self, session=None, notify=False):
         if session is None:
             session = self.get_live_session()
 
         if session:
             # Update our session temp table values
             ap = activity_processor.ActivityProcessor()
-            ap.write_session(session=session, notify=False)
+            ap.write_session(session=session, notify=notify)
 
         self.set_session_state()
 
@@ -121,10 +121,11 @@ class ActivityHandler(object):
                          % (str(session['session_key']), str(session['user_id']), session['username'],
                             str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
+            # Send notification after updating db
+            #plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
 
             # Write the new session to our temp session table
-            self.update_db_session(session=session)
+            self.update_db_session(session=session, notify=True)
 
             # Schedule a callback to force stop a stale stream 5 minutes later
             schedule_callback('session_key-{}'.format(self.get_session_key()),
