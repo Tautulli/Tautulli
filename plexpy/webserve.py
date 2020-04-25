@@ -66,6 +66,7 @@ if plexpy.PYTHON2:
     import versioncheck
     import web_socket
     import webstart
+    import windows
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -95,6 +96,7 @@ else:
     from plexpy import versioncheck
     from plexpy import web_socket
     from plexpy import webstart
+    from plexpy import windows
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -2939,6 +2941,7 @@ class WebInterface(object):
             "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
             "http_plex_admin": checked(plexpy.CONFIG.HTTP_PLEX_ADMIN),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
+            "launch_startup": checked(plexpy.CONFIG.LAUNCH_STARTUP),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
             "https_cert": plexpy.CONFIG.HTTPS_CERT,
@@ -3042,6 +3045,7 @@ class WebInterface(object):
 
         # Check if we should refresh our data
         first_run = False
+        startup_changed = False
         server_changed = False
         reschedule = False
         https_changed = False
@@ -3053,7 +3057,8 @@ class WebInterface(object):
             first_run = True
 
         checked_configs = [
-            "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
+            "launch_browser", "launch_startup", "enable_https", "https_create_cert",
+            "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
             "pms_url_manual", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
@@ -3102,28 +3107,32 @@ class WebInterface(object):
             kwargs[plain_config] = kwargs[use_config]
             del kwargs[use_config]
 
+        if kwargs.get('launch_startup') != plexpy.CONFIG.LAUNCH_STARTUP or \
+                kwargs.get('launch_browser') != plexpy.CONFIG.LAUNCH_BROWSER:
+            startup_changed = True
+
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
-            kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
-            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
-            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
-            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
-            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
+                kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
+                kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
+                kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
+                kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
+                kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
+                kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
         if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
-            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
-            kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
+                kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
+                kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
         if kwargs.get('enable_https') and kwargs.get('https_create_cert'):
             if kwargs.get('https_domain') != plexpy.CONFIG.HTTPS_DOMAIN or \
-                kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
-                kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
-                kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
+                    kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
+                    kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
+                    kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
                 https_changed = True
 
         # Remove config with 'hsec-' prefix and change home_sections to list
@@ -3167,6 +3176,11 @@ class WebInterface(object):
 
         # Write the config
         plexpy.CONFIG.write()
+
+        # Enable or disable system startup
+        if startup_changed:
+            if os.name == 'nt':
+                windows.set_startup()
 
         # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:

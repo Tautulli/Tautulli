@@ -415,56 +415,6 @@ def launch_browser(host, port, root):
             logger.error("Could not launch browser: %s" % e)
 
 
-def win_system_tray():
-    from systray import SysTrayIcon
-
-    def tray_open(sysTrayIcon):
-        launch_browser(CONFIG.HTTP_HOST, HTTP_PORT, HTTP_ROOT)
-
-    def tray_check_update(sysTrayIcon):
-        versioncheck.check_update()
-
-    def tray_update(sysTrayIcon):
-        global SIGNAL
-        global WIN_SYS_TRAY_ICON
-        if UPDATE_AVAILABLE:
-            SIGNAL = 'update'
-        else:
-            hover_text = common.PRODUCT + ' - No Update Available'
-            WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
-
-    def tray_restart(sysTrayIcon):
-        global SIGNAL
-        SIGNAL = 'restart'
-
-    def tray_quit(sysTrayIcon):
-        global SIGNAL
-        SIGNAL = 'shutdown'
-
-    if UPDATE_AVAILABLE:
-        icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo_tray-update.ico')
-        hover_text = common.PRODUCT + ' - Update Available!'
-    else:
-        icon = os.path.join(PROG_DIR, 'data/interfaces/', CONFIG.INTERFACE, 'images/logo_tray.ico')
-        hover_text = common.PRODUCT
-
-    menu_options = (('Open Tautulli', None, tray_open, 'default'),
-                    ('', None, 'separator', None),
-                    ('Check for Updates', None, tray_check_update, None),
-                    ('Update', None, tray_update, None),
-                    ('Restart', None, tray_restart, None))
-
-    logger.info("Launching system tray icon.")
-
-    global WIN_SYS_TRAY_ICON
-    try:
-        WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
-        WIN_SYS_TRAY_ICON.start()
-    except Exception as e:
-        logger.error("Unable to launch system tray icon: %s." % e)
-        WIN_SYS_TRAY_ICON = None
-
-
 def initialize_scheduler():
     """
     Start the scheduled background tasks. Re-schedule if interval settings changed.

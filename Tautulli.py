@@ -36,7 +36,8 @@ import tzlocal
 
 import plexpy
 from plexpy import config, database, helpers, logger, webstart
-
+if os.name == 'nt':
+    from plexpy import windows
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
@@ -240,8 +241,10 @@ def main():
     webstart.start()
 
     # Windows system tray icon
-    if os.name == 'nt' and plexpy.CONFIG.WIN_SYS_TRAY:
-        plexpy.win_system_tray()
+    if os.name == 'nt':
+        windows.set_startup()
+        if plexpy.CONFIG.WIN_SYS_TRAY:
+            windows.win_system_tray()
 
     logger.info("Tautulli is ready!")
 

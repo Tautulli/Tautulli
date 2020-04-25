@@ -293,6 +293,7 @@ _CONFIG_DEFINITIONS = {
     'JOIN_ON_NEWDEVICE': (int, 'Join', 0),
     'JOURNAL_MODE': (str, 'Advanced', 'WAL'),
     'LAUNCH_BROWSER': (int, 'General', 1),
+    'LAUNCH_STARTUP': (int, 'General', 1),
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
