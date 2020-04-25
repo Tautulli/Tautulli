@@ -35,7 +35,7 @@ def set_startup():
             try:
                 subprocess.Popen(['osascript', '-e',
                                   'tell application "System Events" to make login item at end with properties '
-                                  '{path:"~/Applications/Tautulli.app", hidden:false}'])
+                                  '{path:"/Applications/Tautulli.app", hidden:false}'])
                 logger.info("Added Tautulli to MacOS login items.")
                 return True
             except OSError as e:
