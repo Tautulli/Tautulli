@@ -312,31 +312,27 @@ def check_server_access():
 
         # Check for remote access
         if server_response:
-
-            mapping_state = server_response['mapping_state']
-            mapping_error = server_response['mapping_error']
-
-            # Check if the port is mapped
-            if not mapping_state == 'mapped':
+            if server_response['reason']:
                 ext_ping_count += 1
-                logger.warn(u"Tautulli Monitor :: Plex remote access port not mapped, ping attempt %s." \
+                logger.warn(u"Tautulli Monitor :: Remote access failed: %s, ping attempt %s." \
+                            % (server_response['reason'], str(ext_ping_count)))
+
+            # Waiting for port mapping
+            elif server_response['mapping_state'] == 'waiting':
+                logger.warn(u"Tautulli Monitor :: Remote access waiting for port mapping, ping attempt %s." \
                             % str(ext_ping_count))
-            # Check if the port is open
-            elif mapping_error == 'unreachable':
-                ext_ping_count += 1
-                logger.warn(u"Tautulli Monitor :: Plex remote access port mapped, but mapping failed, ping attempt %s." \
-                            % str(ext_ping_count))
+
             # Reset external ping counter
             else:
                 if ext_ping_count >= plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
                     logger.info(u"Tautulli Monitor :: Plex remote access is back up.")
 
-                    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup'})
+                    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
 
                 ext_ping_count = 0
 
         if ext_ping_count == plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
-            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown'})
+            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
 
 
 def check_server_updates():
