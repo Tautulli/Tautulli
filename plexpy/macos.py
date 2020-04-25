@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import subprocess
 import sys
 import plistlib
 
@@ -29,50 +30,73 @@ else:
 
 
 def set_startup():
-    launch_agents = os.path.join(os.path.expanduser('~'), 'Library/LaunchAgents')
-    plist_file = 'com.Tautulli.Tautulli.plist'
-    plist_file_path = os.path.join(launch_agents, plist_file)
-
-    exe = sys.executable
-    if plexpy.FROZEN:
-        args = [exe]
-    else:
-        args = [exe, plexpy.FULL_PATH]
-
-    args += ['--nolaunch']
-
-    plist_dict = {
-        'Label': common.PRODUCT,
-        'ProgramArguments': args,
-        'RunAtLoad': True,
-        'KeepAlive': True
-    }
-
-    if plexpy.CONFIG.LAUNCH_STARTUP:
-        if not os.path.exists(launch_agents):
+    if plexpy.INSTALL_TYPE == 'macos':
+        if plexpy.CONFIG.LAUNCH_STARTUP:
             try:
-                os.makedirs(launch_agents)
-            except OSError:
-                return False
-
-        with open(plist_file_path, 'wb') as f:
-            try:
-                plistlib.dump(plist_dict, f)
-            except AttributeError:
-                plistlib.writePlist(plist_dict, f)
+                subprocess.Popen(['osascript', '-e',
+                                  'tell application "System Events" to make login item at end with properties '
+                                  '{path:"~/Applications/Tautulli.app", hidden:false}'])
+                logger.info("Added Tautulli to MacOS login items.")
+                return True
             except OSError as e:
-                logger.error("Failed to create MacOS system startup plist file: %s", e)
+                logger.error("Failed to add Tautulli to MacOS login items: %s", e)
                 return False
 
-        logger.info("Added Tautulli to MacOS system startup.")
-        return True
+        else:
+            try:
+                subprocess.Popen(['osascript', '-e',
+                                  'tell application "System Events" to delete login item "Tautulli"'])
+                logger.info("Removed Tautulli from MacOS login items.")
+                return True
+            except OSError as e:
+                logger.error("Failed to remove Tautulli from MacOS login items: %s", e)
+                return False
 
     else:
-        try:
-            if os.path.isfile(plist_file_path):
-                os.remove(plist_file_path)
-                logger.info("Removed Tautulli from MacOS system startup.")
+        launch_agents = os.path.join(os.path.expanduser('~'), 'Library/LaunchAgents')
+        plist_file = 'com.Tautulli.Tautulli.plist'
+        plist_file_path = os.path.join(launch_agents, plist_file)
+
+        exe = sys.executable
+        if plexpy.FROZEN:
+            args = [exe]
+        else:
+            args = [exe, plexpy.FULL_PATH]
+
+        args += ['--nolaunch']
+
+        plist_dict = {
+            'Label': common.PRODUCT,
+            'ProgramArguments': args,
+            'RunAtLoad': True,
+            'KeepAlive': True
+        }
+
+        if plexpy.CONFIG.LAUNCH_STARTUP:
+            if not os.path.exists(launch_agents):
+                try:
+                    os.makedirs(launch_agents)
+                except OSError:
+                    return False
+
+            with open(plist_file_path, 'wb') as f:
+                try:
+                    plistlib.dump(plist_dict, f)
+                except AttributeError:
+                    plistlib.writePlist(plist_dict, f)
+                except OSError as e:
+                    logger.error("Failed to create MacOS system startup plist file: %s", e)
+                    return False
+
+            logger.info("Added Tautulli to MacOS system startup launch agents.")
             return True
-        except OSError as e:
-            logger.error("Failed to delete MacOS system startup plist file: %s", e)
-            return False
+
+        else:
+            try:
+                if os.path.isfile(plist_file_path):
+                    os.remove(plist_file_path)
+                    logger.info("Removed Tautulli from MacOS system startup launch agents.")
+                return True
+            except OSError as e:
+                logger.error("Failed to delete MacOS system startup plist file: %s", e)
+                return False
