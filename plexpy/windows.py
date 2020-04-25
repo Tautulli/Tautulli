@@ -37,6 +37,15 @@ def win_system_tray():
     def tray_open(sysTrayIcon):
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
 
+    def tray_startup(sysTrayIcon):
+        plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
+        if plexpy.CONFIG.LAUNCH_STARTUP:
+            start_icon = os.path.join(image_dir, 'check-solid.ico')
+        else:
+            start_icon = None
+        menu_options[2][1] = start_icon
+        plexpy.WIN_SYS_TRAY_ICON.update(menu_options=menu_options)
+
     def tray_check_update(sysTrayIcon):
         versioncheck.check_update()
 
@@ -53,18 +62,29 @@ def win_system_tray():
     def tray_quit(sysTrayIcon):
         plexpy.SIGNAL = 'shutdown'
 
+    image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
+
     if plexpy.UPDATE_AVAILABLE:
-        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray-update.ico')
+        icon = os.path.join(image_dir, 'logo-circle-update.ico')
         hover_text = common.PRODUCT + ' - Update Available!'
     else:
-        icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray.ico')
+        icon = os.path.join(image_dir, 'logo-circle.ico')
         hover_text = common.PRODUCT
 
-    menu_options = (('Open Tautulli', None, tray_open, 'default'),
-                    ('', None, 'separator', None),
-                    ('Check for Updates', None, tray_check_update, None),
-                    ('Update', None, tray_update, None),
-                    ('Restart', None, tray_restart, None))
+    if plexpy.CONFIG.LAUNCH_STARTUP:
+        start_icon = os.path.join(image_dir, 'check-solid.ico')
+    else:
+        start_icon = None
+
+    menu_options = [
+        ['Open Tautulli', None, tray_open, 'default'],
+        ['', None, 'separator', None],
+        ['Start Tautulli at Login', start_icon, tray_startup, None],
+        ['', None, 'separator', None],
+        ['Check for Updates', None, tray_check_update, None],
+        ['Update', None, tray_update, None],
+        ['Restart', None, tray_restart, None]
+    ]
 
     logger.info("Launching system tray icon.")
 

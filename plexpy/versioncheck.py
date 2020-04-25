@@ -168,11 +168,12 @@ def check_update(scheduler=False, notify=False):
         plexpy.UPDATE_AVAILABLE = False
 
     if plexpy.WIN_SYS_TRAY_ICON:
+        image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
         if plexpy.UPDATE_AVAILABLE:
-            icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray-update.ico')
+            icon = os.path.join(image_dir, 'logo-circle-update.ico')
             hover_text = common.PRODUCT + ' - Update Available!'
         else:
-            icon = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images/logo_tray.ico')
+            icon = os.path.join(image_dir, 'logo-circle.ico')
             hover_text = common.PRODUCT + ' - No Update Available'
         plexpy.WIN_SYS_TRAY_ICON.update(icon=icon, hover_text=hover_text)
 
