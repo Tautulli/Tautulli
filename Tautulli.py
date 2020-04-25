@@ -38,6 +38,8 @@ import plexpy
 from plexpy import common, config, database, helpers, logger, webstart
 if common.PLATFORM == 'Windows':
     from plexpy import windows
+elif common.PLATFORM == 'Darwin':
+    from plexpy import macos
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
@@ -245,6 +247,8 @@ def main():
         windows.set_startup()
         if plexpy.CONFIG.WIN_SYS_TRAY:
             windows.win_system_tray()
+    elif common.PLATFORM == 'Darwin':
+        macos.set_startup()
 
     logger.info("Tautulli is ready!")
 
