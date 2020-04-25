@@ -63,8 +63,6 @@ def set_startup():
         else:
             args = [exe, plexpy.FULL_PATH]
 
-        args += ['--nolaunch']
-
         plist_dict = {
             'Label': common.PRODUCT,
             'ProgramArguments': args,

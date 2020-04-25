@@ -119,8 +119,6 @@ def set_startup():
     else:
         args = [exe, plexpy.FULL_PATH]
 
-    args += ['--nolaunch']
-
     cmd = ' '.join(shlex.quote(arg) for arg in args).replace('python.exe', 'pythonw.exe').replace("'", '"')
 
     if plexpy.CONFIG.LAUNCH_STARTUP:
