@@ -552,6 +552,18 @@ NOTIFICATION_PARAMETERS = [
          ]
      },
     {
+        'category': 'Plex Remote Access',
+        'parameters': [
+            {'name': 'Remote Access Mapping State', 'type': 'str', 'value': 'remote_access_mapping_state', 'description': 'The mapping state of the Plex remote access port.'},
+            {'name': 'Remote Access Mapping Error', 'type': 'str', 'value': 'remote_access_mapping_error', 'description': 'The mapping error of the Plex remote access port.'},
+            {'name': 'Remote Access Public IP Address', 'type': 'str', 'value': 'remote_access_public_address', 'description': 'The Plex remote access public IP address.'},
+            {'name': 'Remote Access Public Port', 'type': 'str', 'value': 'remote_access_public_port', 'description': 'The Plex remote access public port.'},
+            {'name': 'Remote Access Private IP Address', 'type': 'str', 'value': 'remote_access_private_address', 'description': 'The Plex remote access private IP address.'},
+            {'name': 'Remote Access Private Port', 'type': 'str', 'value': 'remote_access_private_port', 'description': 'The Plex remote access private port.'},
+            {'name': 'Remote Access Failure Reason', 'type': 'str', 'value': 'remote_access_reason', 'description': 'The failure reason for Plex remote access going down.'},
+        ]
+     },
+    {
         'category': 'Plex Update Available',
         'parameters': [
              {'name': 'Update Version', 'type': 'str', 'value': 'update_version', 'description': 'The available update version for your Plex Server.'},

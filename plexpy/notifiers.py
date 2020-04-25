@@ -370,7 +370,7 @@ def available_notification_actions(agent_id=None):
                 'name': 'on_extdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached externally.',
                 'subject': 'Tautulli ({server_name})',
-                'body': 'The Plex Media Server remote access is down.',
+                'body': 'The Plex Media Server remote access is down. ({remote_access_reason})',
                 'icon': 'fa-server',
                 'media_types': ('server',)
                 },

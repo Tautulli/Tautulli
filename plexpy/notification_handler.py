@@ -1041,6 +1041,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
 
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
+    remote_access_info = defaultdict(str, kwargs.pop('remote_access_info', {}))
 
     now = arrow.now()
     now_iso = now.isocalendar()
@@ -1072,6 +1073,14 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'timestamp': now.format(time_format),
         'unixtime': int(time.time()),
         'utctime': helpers.utc_now_iso(),
+        # Plex remote access parameters
+        'remote_access_mapping_state': remote_access_info['mapping_state'],
+        'remote_access_mapping_error': remote_access_info['mapping_error'],
+        'remote_access_public_address': remote_access_info['public_address'],
+        'remote_access_public_port': remote_access_info['public_port'],
+        'remote_access_private_address': remote_access_info['private_address'],
+        'remote_access_private_port': remote_access_info['private_port'],
+        'remote_access_reason': remote_access_info['reason'],
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
