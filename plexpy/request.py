@@ -310,11 +310,11 @@ def server_message(response, return_msg=False):
         message = response.content.strip()
 
     if message:
+        message = str(message, 'utf-8', 'replace')
+
         # Truncate message if it is too long.
         if len(message) > 150:
             message = message[:150] + "..."
-
-        message = str(message, 'utf-8', 'replace')
 
         if return_msg:
             return message
