@@ -35,8 +35,8 @@ import time
 import tzlocal
 
 import plexpy
-from plexpy import config, database, helpers, logger, webstart
-if os.name == 'nt':
+from plexpy import common, config, database, helpers, logger, webstart
+if common.PLATFORM == 'Windows':
     from plexpy import windows
 
 # Register signals, such as CTRL + C
@@ -241,7 +241,7 @@ def main():
     webstart.start()
 
     # Windows system tray icon
-    if os.name == 'nt':
+    if common.PLATFORM == 'Windows':
         windows.set_startup()
         if plexpy.CONFIG.WIN_SYS_TRAY:
             windows.win_system_tray()

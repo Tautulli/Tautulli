@@ -3179,7 +3179,7 @@ class WebInterface(object):
 
         # Enable or disable system startup
         if startup_changed:
-            if os.name == 'nt':
+            if common.PLATFORM == 'Windows':
                 windows.set_startup()
 
         # Get new server URLs for SSL communications and get new server friendly name

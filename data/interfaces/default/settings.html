@@ -448,7 +448,7 @@
                         </div>
 
                         <p class="help-block">Note: Web interface changes require a restart.</p>
-                        % if os.name == 'nt':
+                        % if common.PLATFORM == 'Windows':
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" class="http-settings" name="win_sys_tray" id="win_sys_tray" value="1" ${config['win_sys_tray']}> Enable System Tray Icon
