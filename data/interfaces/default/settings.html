@@ -455,11 +455,13 @@
                             </label>
                             <p class="help-block">Show Tautulli shortcut in the system tray.</p>
                         </div>
+                        % endif
+                        % if common.PLATFORM in ('Windows', 'Darwin'):
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="launch_startup" id="launch_startup" value="1" ${config['launch_startup']}> Launch at System Startup
                             </label>
-                            <p class="help-block">Start Tautulli automatically after Windows Login.</p>
+                            <p class="help-block">Start Tautulli automatically after Login.</p>
                         </div>
                         % endif
                         <div class="checkbox">

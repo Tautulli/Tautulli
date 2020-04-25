@@ -66,11 +66,14 @@ if plexpy.PYTHON2:
     import versioncheck
     import web_socket
     import webstart
-    import windows
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from webauth import AuthController, requireAuth, member_of, check_auth
+    if common.PLATFORM == 'Windows':
+        import windows
+    elif common.PLATFORM == 'Darwin':
+        import macos
 else:
     from plexpy import activity_pinger
     from plexpy import common
@@ -96,11 +99,14 @@ else:
     from plexpy import versioncheck
     from plexpy import web_socket
     from plexpy import webstart
-    from plexpy import windows
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from plexpy.webauth import AuthController, requireAuth, member_of, check_auth
+    if common.PLATFORM == 'Windows':
+        from plexpy import windows
+    elif common.PLATFORM == 'Darwin':
+        from plexpy import macos
 
 
 def serve_template(templatename, **kwargs):
@@ -3181,6 +3187,8 @@ class WebInterface(object):
         if startup_changed:
             if common.PLATFORM == 'Windows':
                 windows.set_startup()
+            elif common.PLATFORM == 'Darwin':
+                macos.set_startup()
 
         # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:
