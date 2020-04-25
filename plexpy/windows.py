@@ -105,8 +105,7 @@ def set_startup():
     else:
         args = [exe, plexpy.FULL_PATH]
 
-    if not plexpy.CONFIG.LAUNCH_BROWSER:
-        args += ['--nolaunch']
+    args += ['--nolaunch']
 
     cmd = ' '.join(shlex.quote(arg) for arg in args).replace('python.exe', 'pythonw.exe').replace("'", '"')
 
