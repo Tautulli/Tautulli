@@ -115,6 +115,7 @@ def set_startup():
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_WRITE)
             winreg.SetValueEx(registry_key, common.PRODUCT, 0, winreg.REG_SZ, cmd)
             winreg.CloseKey(registry_key)
+            logger.info("Added Tautulli to Windows system startup.")
             return True
         except WindowsError as e:
             logger.error("Failed to create Windows system startup registry key: %s", e)
@@ -125,6 +126,7 @@ def set_startup():
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_ALL_ACCESS)
             winreg.DeleteValue(registry_key, common.PRODUCT)
             winreg.CloseKey(registry_key)
+            logger.info("Removed Tautulli from Windows system startup.")
             return True
         except WindowsError as e:
             logger.error("Failed to delete Windows system startup registry key: %s", e)

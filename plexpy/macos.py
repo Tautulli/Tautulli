@@ -64,12 +64,14 @@ def set_startup():
                 logger.error("Failed to create MacOS system startup plist file: %s", e)
                 return False
 
+        logger.info("Added Tautulli to MacOS system startup.")
         return True
 
     else:
         try:
             if os.path.isfile(plist_file_path):
                 os.remove(plist_file_path)
+                logger.info("Removed Tautulli from MacOS system startup.")
             return True
         except OSError as e:
             logger.error("Failed to delete MacOS system startup plist file: %s", e)
