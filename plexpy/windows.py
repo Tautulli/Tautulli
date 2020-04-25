@@ -116,7 +116,8 @@ def set_startup():
             winreg.SetValueEx(registry_key, common.PRODUCT, 0, winreg.REG_SZ, cmd)
             winreg.CloseKey(registry_key)
             return True
-        except WindowsError:
+        except WindowsError as e:
+            logger.error("Failed to create Windows system startup registry key: %s", e)
             return False
 
     else:
@@ -125,5 +126,6 @@ def set_startup():
             winreg.DeleteValue(registry_key, common.PRODUCT)
             winreg.CloseKey(registry_key)
             return True
-        except WindowsError:
+        except WindowsError as e:
+            logger.error("Failed to delete Windows system startup registry key: %s", e)
             return False
