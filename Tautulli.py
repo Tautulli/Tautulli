@@ -244,9 +244,9 @@ def main():
 
     # Windows system tray icon
     if common.PLATFORM == 'Windows':
-        windows.set_startup()
         if plexpy.CONFIG.WIN_SYS_TRAY:
-            windows.win_system_tray()
+            plexpy.WIN_SYS_TRAY_ICON = windows.WindowsSystemTray()
+        windows.set_startup()
     elif common.PLATFORM == 'Darwin':
         macos.set_startup()
 

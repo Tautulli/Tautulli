@@ -18,6 +18,7 @@
 import os
 import shlex
 import sys
+from systray import SysTrayIcon
 import winreg
 
 import plexpy
@@ -31,72 +32,85 @@ else:
     from plexpy import versioncheck
 
 
-def win_system_tray():
-    from systray import SysTrayIcon
+class WindowsSystemTray(object):
+    def __init__(self):
+        self.image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
 
-    def tray_open(sysTrayIcon):
-        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+        if plexpy.UPDATE_AVAILABLE:
+            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
+            self.hover_text = common.PRODUCT + ' - Update Available!'
+        else:
+            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
+            self.hover_text = common.PRODUCT
 
-    def tray_startup(sysTrayIcon):
-        plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
         if plexpy.CONFIG.LAUNCH_STARTUP:
-            start_icon = os.path.join(image_dir, 'check-solid.ico')
+            start_icon = os.path.join(self.image_dir, 'check-solid.ico')
         else:
             start_icon = None
-        menu_options[2][1] = start_icon
-        plexpy.WIN_SYS_TRAY_ICON.update(menu_options=menu_options)
 
-    def tray_check_update(sysTrayIcon):
+        self.menu_options = [
+            ['Open Tautulli', None, self.tray_open, 'default'],
+            ['', None, 'separator', None],
+            ['Start Tautulli at Login', start_icon, self.tray_startup, None],
+            ['', None, 'separator', None],
+            ['Check for Updates', None, self.tray_check_update, None],
+            ['Update', None, self.tray_update, None],
+            ['Restart', None, self.tray_restart, None]
+        ]
+
+        self.sys_tray_icon = None
+        self.start()
+
+    def start(self):
+        logger.info("Launching system tray icon.")
+        try:
+            self.sys_tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu_options, on_quit=self.tray_quit)
+            self.sys_tray_icon.start()
+        except Exception as e:
+            logger.error("Unable to launch system tray icon: %s." % e)
+
+    def shutdown(self):
+        self.sys_tray_icon.shutdown()
+
+    def update(self, **kwargs):
+        self.sys_tray_icon.update(**kwargs)
+
+    def tray_open(self, sysTrayIcon):
+        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+
+    def tray_startup(self, sysTrayIcon):
+        plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
+        set_startup()
+
+    def tray_check_update(self, sysTrayIcon):
         versioncheck.check_update()
 
-    def tray_update(sysTrayIcon):
+    def tray_update(self, sysTrayIcon):
         if plexpy.UPDATE_AVAILABLE:
             plexpy.SIGNAL = 'update'
         else:
             hover_text = common.PRODUCT + ' - No Update Available'
-            plexpy.WIN_SYS_TRAY_ICON.update(hover_text=hover_text)
+            self.update(hover_text=hover_text)
 
-    def tray_restart(sysTrayIcon):
+    def tray_restart(self, sysTrayIcon):
         plexpy.SIGNAL = 'restart'
 
-    def tray_quit(sysTrayIcon):
+    def tray_quit(self, sysTrayIcon):
         plexpy.SIGNAL = 'shutdown'
 
-    image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
-
-    if plexpy.UPDATE_AVAILABLE:
-        icon = os.path.join(image_dir, 'logo-circle-update.ico')
-        hover_text = common.PRODUCT + ' - Update Available!'
-    else:
-        icon = os.path.join(image_dir, 'logo-circle.ico')
-        hover_text = common.PRODUCT
-
-    if plexpy.CONFIG.LAUNCH_STARTUP:
-        start_icon = os.path.join(image_dir, 'check-solid.ico')
-    else:
-        start_icon = None
-
-    menu_options = [
-        ['Open Tautulli', None, tray_open, 'default'],
-        ['', None, 'separator', None],
-        ['Start Tautulli at Login', start_icon, tray_startup, None],
-        ['', None, 'separator', None],
-        ['Check for Updates', None, tray_check_update, None],
-        ['Update', None, tray_update, None],
-        ['Restart', None, tray_restart, None]
-    ]
-
-    logger.info("Launching system tray icon.")
-
-    try:
-        plexpy.WIN_SYS_TRAY_ICON = SysTrayIcon(icon, hover_text, menu_options, on_quit=tray_quit)
-        plexpy.WIN_SYS_TRAY_ICON.start()
-    except Exception as e:
-        logger.error("Unable to launch system tray icon: %s." % e)
-        plexpy.WIN_SYS_TRAY_ICON = None
+    def change_tray_startup_icon(self):
+        if plexpy.CONFIG.LAUNCH_STARTUP:
+            start_icon = os.path.join(self.image_dir, 'check-solid.ico')
+        else:
+            start_icon = None
+        self.menu_options[2][1] = start_icon
+        self.update(menu_options=self.menu_options)
 
 
 def set_startup():
+    if plexpy.WIN_SYS_TRAY_ICON:
+        plexpy.WIN_SYS_TRAY_ICON.change_tray_startup_icon()
+
     startup_reg_path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
     exe = sys.executable
