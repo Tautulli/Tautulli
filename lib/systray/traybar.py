@@ -37,8 +37,8 @@ class SysTrayIcon(object):
         self._hover_text = hover_text
         self._on_quit = on_quit
 
-        menu_options = menu_options or ()
-        menu_options = menu_options + (('Quit', None, SysTrayIcon.QUIT, None),)
+        menu_options = menu_options or []
+        menu_options = menu_options + [['Quit', None, SysTrayIcon.QUIT, None]]
         self._next_action_id = SysTrayIcon.FIRST_ID
         self._menu_actions_by_id = set()
         self._menu_options = self._add_ids_to_menu_options(list(menu_options))
@@ -122,13 +122,21 @@ class SysTrayIcon(object):
         PostMessage(self._hwnd, WM_CLOSE, 0, 0)
         self._message_loop_thread.join()
 
-    def update(self, icon=None, hover_text=None):
-        """ update icon image and/or hover text """
+    def update(self, icon=None, hover_text=None, menu_options=None):
+        """ update icon image and/or hover text and/or menu options"""
         if icon:
             self._icon = icon
             self._load_icon()
         if hover_text:
             self._hover_text = hover_text
+        # "if menu_options" added to be allow the update of the menu options
+        if menu_options:
+            menu_options = menu_options + [['Quit', None, SysTrayIcon.QUIT, None]]
+            self._next_action_id = SysTrayIcon.FIRST_ID
+            self._menu_actions_by_id = set()
+            self._menu_options = self._add_ids_to_menu_options(list(menu_options))
+            self._menu_actions_by_id = dict(self._menu_actions_by_id)
+            self._menu = None  # detroy the old menu created by right clicking the icon
         self._refresh_icon()
 
     def _add_ids_to_menu_options(self, menu_options):
@@ -137,7 +145,7 @@ class SysTrayIcon(object):
             option_text, option_icon, option_action, option_state = menu_option
             if callable(option_action) or option_action in SysTrayIcon.SPECIAL_ACTIONS:
                 self._menu_actions_by_id.add((self._next_action_id, option_action))
-                result.append(menu_option + (self._next_action_id,))
+                result.append(menu_option + [self._next_action_id])
             elif option_action == 'separator':
                 result.append((option_text,
                                option_icon,
