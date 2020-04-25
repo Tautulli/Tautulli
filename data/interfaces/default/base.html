@@ -55,8 +55,10 @@
         newer version</a> of Tautulli is available!<br />
         You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
         % endif
-        % if plexpy.DOCKER:
+        % if plexpy.INSTALL_TYPE == 'docker':
         Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>
+        % elif plexpy.INSTALL_TYPE in ('windows', 'macos'):
+        <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>
         % else:
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
         % endif
