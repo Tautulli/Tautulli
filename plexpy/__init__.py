@@ -457,8 +457,10 @@ def initialize_scheduler():
             schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
                          hours=12 * (not bool(CONFIG.PMS_URL_MANUAL)), minutes=0, seconds=0)
 
+            pms_remote_access_seconds = CONFIG.REMOTE_ACCESS_PING_INTERVAL if 60 <= CONFIG.REMOTE_ACCESS_PING_INTERVAL else 60
+
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
-                         hours=0, minutes=0, seconds=60 * bool(CONFIG.MONITOR_REMOTE_ACCESS))
+                         hours=0, minutes=0, seconds=pms_remote_access_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=pms_update_check_hours * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
