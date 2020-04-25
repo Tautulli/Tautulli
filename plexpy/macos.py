@@ -55,16 +55,16 @@ def set_startup():
             except OSError:
                 return False
 
-            with open(plist_file_path, 'wb') as f:
-                try:
-                    plistlib.dump(plist_dict, f)
-                except AttributeError:
-                    plistlib.writePlist(plist_dict, f)
-                except OSError as e:
-                    logger.error("Failed to create MacOS system startup plist file: %s", e)
-                    return False
+        with open(plist_file_path, 'wb') as f:
+            try:
+                plistlib.dump(plist_dict, f)
+            except AttributeError:
+                plistlib.writePlist(plist_dict, f)
+            except OSError as e:
+                logger.error("Failed to create MacOS system startup plist file: %s", e)
+                return False
 
-            return True
+        return True
 
     else:
         try:
