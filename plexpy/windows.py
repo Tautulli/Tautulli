@@ -48,23 +48,22 @@ class WindowsSystemTray(object):
         else:
             start_icon = None
 
-        self.menu_options = [
+        self.menu = [
             ['Open Tautulli', None, self.tray_open, 'default'],
             ['', None, 'separator', None],
             ['Start Tautulli at Login', start_icon, self.tray_startup, None],
             ['', None, 'separator', None],
             ['Check for Updates', None, self.tray_check_update, None],
-            ['Update', None, self.tray_update, None],
             ['Restart', None, self.tray_restart, None]
         ]
+        if not plexpy.FROZEN:
+            self.menu.insert(5, ['Update', None, self.tray_update, None])
 
-        self.tray_icon = None
-        self.start()
+        self.tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu, on_quit=self.tray_quit)
 
     def start(self):
         logger.info("Launching Windows system tray icon.")
         try:
-            self.tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu_options, on_quit=self.tray_quit)
             self.tray_icon.start()
         except Exception as e:
             logger.error("Unable to launch system tray icon: %s." % e)
@@ -98,13 +97,22 @@ class WindowsSystemTray(object):
     def tray_quit(self, tray_icon):
         plexpy.SIGNAL = 'shutdown'
 
+    def change_tray_update_icon(self):
+        if plexpy.UPDATE_AVAILABLE:
+            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
+            self.hover_text = common.PRODUCT + ' - Update Available!'
+        else:
+            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
+            self.hover_text = common.PRODUCT + ' - No Update Available'
+        self.update(icon=self.icon, hover_text=self.hover_text)
+
     def change_tray_startup_icon(self):
         if plexpy.CONFIG.LAUNCH_STARTUP:
             start_icon = os.path.join(self.image_dir, 'check-solid.ico')
         else:
             start_icon = None
-        self.menu_options[2][1] = start_icon
-        self.update(menu_options=self.menu_options)
+        self.menu[2][1] = start_icon
+        self.update(menu_options=self.menu)
 
 
 def set_startup():

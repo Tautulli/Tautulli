@@ -638,7 +638,7 @@ _CONFIG_DEFINITIONS = {
     'JWT_SECRET': (str, 'Advanced', ''),
     'JWT_UPDATE_SECRET': (bool_int, 'Advanced', 0),
     'SYSTEM_ANALYTICS': (int, 'Advanced', 1),
-    'SYS_TRAY': (int, 'General', 1),
+    'SYS_TRAY_ICON': (int, 'General', 1),
 }
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']

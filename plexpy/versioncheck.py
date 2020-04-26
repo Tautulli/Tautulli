@@ -168,14 +168,9 @@ def check_update(scheduler=False, notify=False):
         plexpy.UPDATE_AVAILABLE = False
 
     if plexpy.WIN_SYS_TRAY_ICON:
-        image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
-        if plexpy.UPDATE_AVAILABLE:
-            icon = os.path.join(image_dir, 'logo-circle-update.ico')
-            hover_text = common.PRODUCT + ' - Update Available!'
-        else:
-            icon = os.path.join(image_dir, 'logo-circle.ico')
-            hover_text = common.PRODUCT + ' - No Update Available'
-        plexpy.WIN_SYS_TRAY_ICON.update(icon=icon, hover_text=hover_text)
+        plexpy.WIN_SYS_TRAY_ICON.change_tray_update_icon()
+    elif plexpy.MAC_SYS_TRAY_ICON:
+        plexpy.MAC_SYS_TRAY_ICON.change_tray_update_icon()
 
 
 def check_github(scheduler=False, notify=False):
