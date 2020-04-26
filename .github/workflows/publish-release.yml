@@ -5,7 +5,6 @@ on:
 
 jobs:
   build-windows:
-    if: ${{ !endsWith(github.ref, '-beta') }}
     runs-on: windows-latest
     steps:
       - name: Checkout Code
@@ -15,6 +14,8 @@ jobs:
         id: get_version
         shell: bash
         run: |
+          VERSION_NSIS=${GITHUB_REF#refs/tags/v}.1
+          echo ::set-output name=VERSION_NSIS::${VERSION_NSIS/%-beta.1/.0}
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
           echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
           echo $GITHUB_SHA > version.txt
@@ -45,7 +46,7 @@ jobs:
         uses: joncloud/makensis-action@v1
         with:
           script-file: ./package/Tautulli.nsi
-          arguments: /DVERSION=${{ steps.get_version.outputs.VERSION }}.0 /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+          arguments: /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }} /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
           includeMorePlugins: package/nsis-plugins
 
       - name: Upload Installer
@@ -64,7 +65,6 @@ jobs:
           nofail: true
 
   build-macos:
-    if: ${{ !endsWith(github.ref, '-beta') }}
     runs-on: macos-latest
     steps:
       - name: Checkout Code
@@ -74,10 +74,10 @@ jobs:
         id: get_version
         shell: bash
         run: |
+          echo ::set-env name=VERSION::${GITHUB_REF#refs/tags/v}
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
           echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
           echo $GITHUB_SHA > version.txt
-          echo ::set-env name=VERSION::${GITHUB_REF#refs/tags/v}
 
       - name: Set Up Python
         uses: actions/setup-python@v1.2.0
