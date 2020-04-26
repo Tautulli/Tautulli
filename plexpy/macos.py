@@ -75,7 +75,7 @@ class MacOSSystemTray(object):
 
     def tray_startup(self, tray_icon):
         plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
-        tray_icon.state = plexpy.CONFIG.LAUNCH_STARTUP
+        set_startup()
 
     def tray_check_update(self, tray_icon):
         versioncheck.check_update()
