@@ -32,6 +32,7 @@ import locale
 import pytz
 import signal
 import time
+import threading
 import tzlocal
 
 import plexpy
@@ -257,6 +258,14 @@ def main():
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
                               plexpy.HTTP_ROOT)
 
+    if common.PLATFORM == 'Darwin':
+        threading.Thread(target=wait).start()
+        macos.MacOSSystemTray().start()
+    else:
+        wait()
+
+
+def wait():
     # Wait endlessy for a signal to happen
     while True:
         if not plexpy.SIGNAL:

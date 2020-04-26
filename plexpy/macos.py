@@ -19,14 +19,85 @@ import os
 import subprocess
 import sys
 import plistlib
+import rumps
 
 import plexpy
 if plexpy.PYTHON2:
     import common
     import logger
+    import versioncheck
 else:
     from plexpy import common
     from plexpy import logger
+    from plexpy import versioncheck
+
+
+class MacOSSystemTray(object):
+    def __init__(self):
+        self.image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
+        if plexpy.UPDATE_AVAILABLE:
+            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
+            self.hover_text = common.PRODUCT + ' - Update Available!'
+        else:
+            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
+            self.hover_text = common.PRODUCT
+
+        self.menu = [
+            rumps.MenuItem('Open Tautulli', callback=self.tray_open),
+            rumps.MenuItem('Start Tautulli at Login', callback=self.tray_startup),
+            rumps.MenuItem('Check for Updates', callback=self.tray_check_update),
+            rumps.MenuItem('Update', callback=self.tray_update),
+            rumps.MenuItem('Restart', callback=self.tray_restart),
+            rumps.MenuItem('Quit', callback=self.tray_quit)
+        ]
+
+        self.tray_icon = None
+
+    def start(self):
+        logger.info("Launching MacOS system tray icon.")
+        try:
+            self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
+            self.tray_icon.run()
+        except Exception as e:
+            logger.error("Unable to launch system tray icon: %s." % e)
+
+    def shutdown(self):
+        rumps.quit_application()
+
+    def update(self, **kwargs):
+        #self.sys_tray_icon.update(**kwargs)
+        pass
+
+    def tray_open(self, tray_icon):
+        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
+
+    def tray_startup(self, tray_icon):
+        plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
+        tray_icon.state = plexpy.CONFIG.LAUNCH_STARTUP
+
+    def tray_check_update(self, tray_icon):
+        versioncheck.check_update()
+
+    def tray_update(self, tray_icon):
+        if plexpy.UPDATE_AVAILABLE:
+            plexpy.SIGNAL = 'update'
+        else:
+            hover_text = common.PRODUCT + ' - No Update Available'
+            self.update(hover_text=hover_text)
+
+    def tray_restart(self, tray_icon):
+        plexpy.SIGNAL = 'restart'
+
+    def tray_quit(self, tray_icon):
+        plexpy.SIGNAL = 'shutdown'
+
+    def change_tray_startup_icon(self):
+        if plexpy.CONFIG.LAUNCH_STARTUP:
+            start_icon = os.path.join(self.image_dir, 'check-solid.ico')
+        else:
+            start_icon = None
+        #self.menu_options[2][1] = start_icon
+        #self.update(menu_options=self.menu_options)
 
 
 def set_startup():
