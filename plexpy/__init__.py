@@ -2188,6 +2188,8 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
 
     if WIN_SYS_TRAY_ICON:
         WIN_SYS_TRAY_ICON.shutdown()
+    elif MAC_SYS_TRAY_ICON:
+        MAC_SYS_TRAY_ICON.shutdown()
 
     if restart:
         logger.info("Tautulli is restarting...")
