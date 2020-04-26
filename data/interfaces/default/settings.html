@@ -215,12 +215,14 @@
                             <p class="help-block">Check for Tautulli updates periodically.</p>
                         </div>
                         <div id="git_update_options">
+                            % if not plexpy.FROZEN:
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']} ${docker_setting}> Update Automatically ${docker_msg | n}
                                 </label>
                                 <p class="help-block">Update Tautulli automatically if an update is available.</p>
                             </div>
+                            % endif
                             <div class="form-group advanced-setting">
                                 <label for="git_token">GitHub API Token</label>
                                 <div class="row">
