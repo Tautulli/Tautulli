@@ -245,8 +245,9 @@ def main():
 
     # Windows system tray icon
     if common.PLATFORM == 'Windows':
-        if plexpy.CONFIG.WIN_SYS_TRAY:
+        if plexpy.CONFIG.SYS_TRAY_ICON:
             plexpy.WIN_SYS_TRAY_ICON = windows.WindowsSystemTray()
+            plexpy.WIN_SYS_TRAY_ICON.start()
         windows.set_startup()
     elif common.PLATFORM == 'Darwin':
         macos.set_startup()
@@ -258,9 +259,10 @@ def main():
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
                               plexpy.HTTP_ROOT)
 
-    if common.PLATFORM == 'Darwin':
+    if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
         threading.Thread(target=wait).start()
-        macos.MacOSSystemTray().start()
+        plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()
+        plexpy.MAC_SYS_TRAY_ICON.start()
     else:
         wait()
 

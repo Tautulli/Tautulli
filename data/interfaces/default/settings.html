@@ -448,15 +448,13 @@
                         </div>
 
                         <p class="help-block">Note: Web interface changes require a restart.</p>
-                        % if common.PLATFORM == 'Windows':
+                        % if common.PLATFORM in ('Windows', 'Darwin'):
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="http-settings" name="win_sys_tray" id="win_sys_tray" value="1" ${config['win_sys_tray']}> Enable System Tray Icon
+                                <input type="checkbox" class="http-settings" name="sys_tray_icon" id="sys_tray_icon" value="1" ${config['sys_tray_icon']}> Enable System Tray Icon
                             </label>
                             <p class="help-block">Show Tautulli shortcut in the system tray.</p>
                         </div>
-                        % endif
-                        % if common.PLATFORM in ('Windows', 'Darwin'):
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="launch_startup" id="launch_startup" value="1" ${config['launch_startup']}> Launch at System Startup
