@@ -58,44 +58,44 @@ class WindowsSystemTray(object):
             ['Restart', None, self.tray_restart, None]
         ]
 
-        self.sys_tray_icon = None
+        self.tray_icon = None
         self.start()
 
     def start(self):
-        logger.info("Launching system tray icon.")
+        logger.info("Launching Windows system tray icon.")
         try:
-            self.sys_tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu_options, on_quit=self.tray_quit)
-            self.sys_tray_icon.start()
+            self.tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu_options, on_quit=self.tray_quit)
+            self.tray_icon.start()
         except Exception as e:
             logger.error("Unable to launch system tray icon: %s." % e)
 
     def shutdown(self):
-        self.sys_tray_icon.shutdown()
+        self.tray_icon.shutdown()
 
     def update(self, **kwargs):
-        self.sys_tray_icon.update(**kwargs)
+        self.tray_icon.update(**kwargs)
 
-    def tray_open(self, sysTrayIcon):
+    def tray_open(self, tray_icon):
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
 
-    def tray_startup(self, sysTrayIcon):
+    def tray_startup(self, tray_icon):
         plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
         set_startup()
 
-    def tray_check_update(self, sysTrayIcon):
+    def tray_check_update(self, tray_icon):
         versioncheck.check_update()
 
-    def tray_update(self, sysTrayIcon):
+    def tray_update(self, tray_icon):
         if plexpy.UPDATE_AVAILABLE:
             plexpy.SIGNAL = 'update'
         else:
             hover_text = common.PRODUCT + ' - No Update Available'
             self.update(hover_text=hover_text)
 
-    def tray_restart(self, sysTrayIcon):
+    def tray_restart(self, tray_icon):
         plexpy.SIGNAL = 'restart'
 
-    def tray_quit(self, sysTrayIcon):
+    def tray_quit(self, tray_icon):
         plexpy.SIGNAL = 'shutdown'
 
     def change_tray_startup_icon(self):
