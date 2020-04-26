@@ -43,7 +43,9 @@ class MacOSSystemTray(object):
 
         self.menu = [
             rumps.MenuItem('Open Tautulli', callback=self.tray_open),
+            None,
             rumps.MenuItem('Start Tautulli at Login', callback=self.tray_startup),
+            None,
             rumps.MenuItem('Check for Updates', callback=self.tray_check_update),
             rumps.MenuItem('Restart', callback=self.tray_restart),
             rumps.MenuItem('Quit', callback=self.tray_quit)
@@ -96,8 +98,7 @@ class MacOSSystemTray(object):
         self.update(icon=self.icon)
 
     def change_tray_startup_icon(self):
-        self.menu[1].state = plexpy.CONFIG.LAUNCH_STARTUP
-        self.tray_icon.menu = self.menu
+        self.tray_icon.menu['Start Tautulli at Login'].state = plexpy.CONFIG.LAUNCH_STARTUP
 
 
 def set_startup():

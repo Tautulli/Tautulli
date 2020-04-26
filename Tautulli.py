@@ -243,7 +243,6 @@ def main():
     # Try to start the server. Will exit here is address is already in use.
     webstart.start()
 
-    # Windows system tray icon
     if common.PLATFORM == 'Windows':
         if plexpy.CONFIG.SYS_TRAY_ICON:
             plexpy.WIN_SYS_TRAY_ICON = windows.WindowsSystemTray()
@@ -260,6 +259,8 @@ def main():
                               plexpy.HTTP_ROOT)
 
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
+        # MacOS system tray icon must be run on the main thread and is blocking
+        # Start the rest of Tautulli on a new thread
         threading.Thread(target=wait).start()
         plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()
         plexpy.MAC_SYS_TRAY_ICON.start()
@@ -268,7 +269,7 @@ def main():
 
 
 def wait():
-    # Wait endlessy for a signal to happen
+    # Wait endlessly for a signal to happen
     while True:
         if not plexpy.SIGNAL:
             try:
@@ -294,6 +295,6 @@ def wait():
 
             plexpy.SIGNAL = None
 
-# Call main()
+
 if __name__ == "__main__":
     main()
