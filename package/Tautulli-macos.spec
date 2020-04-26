@@ -18,6 +18,7 @@ analysis = Analysis(
         ('../version.txt', '.')
     ],
     excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
+    hiddenimports=['Foundation', 'AppKit'],
     cipher=block_cipher
 )
 pyz = PYZ(

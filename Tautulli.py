@@ -236,7 +236,7 @@ def main():
         try:
             import OpenSSL
         except ImportError:
-            logger.warn("The pyOpenSSL module is missing. Install this " \
+            logger.warn("The pyOpenSSL module is missing. Install this "
                         "module to enable HTTPS. HTTPS will be disabled.")
             plexpy.CONFIG.ENABLE_HTTPS = False
 
@@ -255,6 +255,13 @@ def main():
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
                               plexpy.HTTP_ROOT)
+
+    try:
+        import AppKit
+    except ImportError:
+        logger.warn("The pyobjc module is missing. Install this "
+                    "module to enable the system tray icon.")
+        plexpy.CONFIG.SYS_TRAY_ICON = False
 
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
         # MacOS system tray icon must be run on the main thread and is blocking

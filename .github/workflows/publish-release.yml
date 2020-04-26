@@ -95,7 +95,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyopenssl pycryptodomex pyinstaller
+          pip install pyopenssl pycryptodomex pyinstaller pyobjc
 
       - name: Build Package
         run: |
