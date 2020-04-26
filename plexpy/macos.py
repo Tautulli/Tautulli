@@ -51,8 +51,8 @@ class MacOSSystemTray(object):
             rumps.MenuItem('Quit', callback=self.tray_quit)
         ]
         if not plexpy.FROZEN:
-            self.menu.insert(3, rumps.MenuItem('Update', callback=self.tray_update))
-        self.menu[1].state = plexpy.CONFIG.LAUNCH_STARTUP
+            self.menu.insert(5, rumps.MenuItem('Update', callback=self.tray_update))
+        self.menu[2].state = plexpy.CONFIG.LAUNCH_STARTUP
 
         self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
 

@@ -251,8 +251,6 @@ def main():
     elif common.PLATFORM == 'Darwin':
         macos.set_startup()
 
-    logger.info("Tautulli is ready!")
-
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
@@ -269,6 +267,8 @@ def main():
 
 
 def wait():
+    logger.info("Tautulli is ready!")
+
     # Wait endlessly for a signal to happen
     while True:
         if not plexpy.SIGNAL:
