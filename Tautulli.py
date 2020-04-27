@@ -256,19 +256,22 @@ def main():
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
                               plexpy.HTTP_ROOT)
 
-    try:
-        import AppKit
-    except ImportError:
-        logger.warn("The pyobjc module is missing. Install this "
-                    "module to enable the system tray icon.")
-        plexpy.CONFIG.SYS_TRAY_ICON = False
-
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
-        # MacOS system tray icon must be run on the main thread and is blocking
-        # Start the rest of Tautulli on a new thread
-        threading.Thread(target=wait).start()
-        plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()
-        plexpy.MAC_SYS_TRAY_ICON.start()
+        try:
+            import AppKit
+        except ImportError:
+            logger.warn("The pyobjc module is missing. Install this "
+                        "module to enable the system tray icon.")
+            plexpy.CONFIG.SYS_TRAY_ICON = False
+
+        if plexpy.CONFIG.SYS_TRAY_ICON:
+            # MacOS system tray icon must be run on the main thread and is blocking
+            # Start the rest of Tautulli on a new thread
+            threading.Thread(target=wait).start()
+            plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()
+            plexpy.MAC_SYS_TRAY_ICON.start()
+        else:
+            wait()
     else:
         wait()
 
