@@ -108,9 +108,13 @@ def set_startup():
     if plexpy.INSTALL_TYPE == 'macos':
         if plexpy.CONFIG.LAUNCH_STARTUP:
             try:
-                subprocess.Popen(['osascript', '-e',
-                                  'tell application "System Events" to make login item at end with properties '
-                                  '{path:"/Applications/Tautulli.app", hidden:false}'])
+                subprocess.Popen(['osascript',
+                                  '-e', 'tell application "System Events"',
+                                  '-e', 'get the name of every login item',
+                                  '-e', 'if not exists login item "Tautulli" then '
+                                        'make login item at end with properties '
+                                        '{path:"/Applications/Tautulli.app", hidden:false}',
+                                  '-e', 'end tell'])
                 logger.info("Added Tautulli to MacOS login items.")
                 return True
             except OSError as e:
@@ -119,8 +123,12 @@ def set_startup():
 
         else:
             try:
-                subprocess.Popen(['osascript', '-e',
-                                  'tell application "System Events" to delete login item "Tautulli"'])
+                subprocess.Popen(['osascript',
+                                  '-e', 'tell application "System Events"',
+                                  '-e', 'get the name of every login item',
+                                  '-e', 'if exists login item "Tautulli" then '
+                                        'delete login item "Tautulli"',
+                                  '-e', 'end tell'])
                 logger.info("Removed Tautulli from MacOS login items.")
                 return True
             except OSError as e:
