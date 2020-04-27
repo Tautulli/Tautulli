@@ -149,8 +149,7 @@ def set_startup():
         plist_dict = {
             'Label': common.PRODUCT,
             'ProgramArguments': args,
-            'RunAtLoad': True,
-            'KeepAlive': True
+            'RunAtLoad': True
         }
 
         if plexpy.CONFIG.LAUNCH_STARTUP:
