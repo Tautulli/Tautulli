@@ -3,15 +3,10 @@
 function check_tautulli_running () {
     if pgrep -x "Tautulli" > /dev/null
     then
-        dialogText=`osascript -e 'set dialogText to button returned of (display dialog "Tautulli is still running. Please shutdown Tautulli before continuing." buttons {"Retry", "Shutdown Tautulli", "Abort"})'`;
+        dialogText=`osascript -e 'set dialogText to button returned of (display dialog "Tautulli is still running. Please shutdown Tautulli before continuing." buttons {"Retry", "Abort"})'`;
 
         if [[ $dialogText == 'Retry' ]]
         then
-            check_tautulli_running;
-        elif [[ $dialogText == 'Shutdown Tautulli' ]]
-        then
-            pkill Tautulli
-            while pgrep Tautulli > /dev/null; do sleep 1; done
             check_tautulli_running;
         elif [[ $dialogText == 'Abort' ]]
         then

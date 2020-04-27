@@ -218,9 +218,7 @@ Function .onInit
   Loop:
     ${nsProcess::FindProcess} ${MAIN_APP_EXE} $R0
     StrCmp $R0 0 0 NoAbort
-    MessageBox MB_ABORTRETRYIGNORE|MB_ICONEXCLAMATION "${APP_NAME} is still running. Please shutdown ${APP_NAME} before continuing.$\r$\n$\r$\nIgnore will attempt to shutdown ${APP_NAME} for you." IDABORT End IDRETRY Loop
-  ${nsProcess::CloseProcess} ${MAIN_APP_EXE} $R0
-  StrCmp $R0 0 0 NoAbort
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "${APP_NAME} is still running. Please shutdown ${APP_NAME} before continuing." IDCANCEL End IDRETRY Loop
   Goto Loop
   End:
 	Abort
@@ -232,9 +230,7 @@ Function un.onInit
   Loop:
     ${nsProcess::FindProcess} ${MAIN_APP_EXE} $R0
     StrCmp $R0 0 0 NoAbort
-    MessageBox MB_ABORTRETRYIGNORE|MB_ICONEXCLAMATION "${APP_NAME} is still running. Please shutdown ${APP_NAME} before continuing.$\r$\n$\r$\nIgnore will attempt to shutdown ${APP_NAME} for you." IDABORT End IDRETRY Loop
-  ${nsProcess::CloseProcess} ${MAIN_APP_EXE} $R0
-  StrCmp $R0 0 0 NoAbort
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "${APP_NAME} is still running. Please shutdown ${APP_NAME} before continuing." IDCANCEL End IDRETRY Loop
   Goto Loop
   End:
 	Abort
