@@ -1,0 +1,4 @@
+pyinstaller
+pyopenssl
+pycryptodomex
+pyobjc

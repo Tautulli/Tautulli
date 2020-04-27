@@ -30,13 +30,13 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ steps.get_version.outputs.VERSION }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-windows.txt') }}
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyopenssl pycryptodomex pywin32 pyinstaller
+          pip install -r package/requirements-windows.txt
 
       - name: Build Package
         run: |
@@ -89,13 +89,13 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-pip-${{ steps.get_version.outputs.VERSION }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-macos.txt') }}
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyopenssl pycryptodomex pyinstaller pyobjc
+          pip install -r package/requirements-macos.txt
 
       - name: Build Package
         run: |
