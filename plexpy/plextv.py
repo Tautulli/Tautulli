@@ -377,6 +377,14 @@ class PlexTV(object):
 
         return request
 
+    def get_plextv_geoip(self, ip_address='', output_format=''):
+        uri = '/api/v2/geoip?ip_address=%s' % ip_address
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_full_users_list(self):
         own_account = self.get_plextv_user_details(output_format='xml')
         friends_list = self.get_plextv_friends(output_format='xml')
@@ -923,3 +931,35 @@ class PlexTV(object):
                                "user_token": helpers.get_xml_attr(a, 'authToken')
                                }
             return account_details
+
+    def get_geoip_lookup(self, ip_address=''):
+        if not ip_address or not helpers.is_public_ip(ip_address):
+            return
+
+        geoip_data = self.get_plextv_geoip(ip_address=ip_address, output_format='xml')
+
+        try:
+            xml_head = geoip_data.getElementsByTagName('location')
+        except Exception as e:
+            logger.warn(u"Tautulli PlexTV :: Unable to parse XML for get_geoip_lookup: %s." % e)
+            return None
+
+        for a in xml_head:
+            coordinates = helpers.get_xml_attr(a, 'coordinates').split(',')
+            latitude = longitude = None
+            if len(coordinates) == 2:
+                latitude, longitude = [helpers.cast_to_float(c) for c in coordinates]
+
+            geo_info = {"code": helpers.get_xml_attr(a, 'code') or None,
+                        "country": helpers.get_xml_attr(a, 'country') or None,
+                        "region": helpers.get_xml_attr(a, 'subdivisions') or None,
+                        "city": helpers.get_xml_attr(a, 'city') or None,
+                        "postal_code": helpers.get_xml_attr(a, 'postal_code') or None,
+                        "timezone": helpers.get_xml_attr(a, 'time_zone') or None,
+                        "latitude": latitude,
+                        "longitude": longitude,
+                        "continent": None,  # keep for backwards compatibility with GeoLite2
+                        "accuracy": None   # keep for backwards compatibility with GeoLite2
+                        }
+
+            return geo_info

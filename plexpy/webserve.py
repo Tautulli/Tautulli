@@ -5751,10 +5751,22 @@ class WebInterface(object):
                      }
             ```
         """
-        geo_info = helpers.geoip_lookup(ip_address)
-        if isinstance(geo_info, basestring):
-            return {'error': geo_info}
-        return geo_info
+        message = ''
+        if not ip_address:
+            message = 'No IP address provided.'
+        elif not helpers.is_valid_ip(ip_address):
+            message = 'Invalid IP address provided: %s' % ip_address
+        elif not helpers.is_public_ip(ip_address):
+            message = 'Non-public IP address provided: %s' % ip_address
+
+        if message:
+            return {'result': 'error', 'message': message}
+
+        plex_tv = plextv.PlexTV()
+        geo_info = plex_tv.get_geoip_lookup(ip_address)
+        if geo_info:
+            return {'result': 'success', 'data': geo_info}
+        return {'result': 'error', 'message': 'Failed to lookup GeoIP info for address: %s' % ip_address}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
