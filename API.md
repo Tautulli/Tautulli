@@ -683,7 +683,7 @@ Optional parameters:
 
 Returns:
     json:
-        {"continent": "North America",
+        {"code": 'US",
          "country": "United States",
          "region": "California",
          "city": "Mountain View",
@@ -692,9 +692,6 @@ Returns:
          "latitude": 37.386,
          "longitude": -122.0838,
          "accuracy": 1000
-         }
-    json:
-        {"error": "The address 127.0.0.1 is not in the database."
          }
 ```
 
