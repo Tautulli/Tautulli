@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.2.3-beta (2020-04-27)
+
+* Notifications:
+  * New: Added Plex Android / iOS App notification agent.
+  * New: Added bandwidth notification parameters.
+  * New: Added user thumb to notification parameters.
+  * New: Added initial stream notification parameter and threshold setting to determine if a stream is the first stream of a continuous streaming session.
+  * New: Added Plex remote access notification parameters.
+  * Fix: The rating key notification parameter was being overwritten when 3rd party lookup was enabled.
+  * Fix: Missing artist value for Musicbrainz lookup in certain situations. 
+* UI:
+  * Fix: History table was not being refreshed after deleting entries.
+* Other:
+  * Fix: Auto-updater was not scheduled when enabling the setting unless Tautulli was restarted.
+  * Change: Remove the unnecessary optional Plex logs volume from the Docker image.
+  * Change: Use Plex.tv for GeoIP lookup instead of requiring the MaxMind GeoLite2 database.
+
+
 ## v2.2.2-beta (2020-04-12)
 
 * Notifications:
