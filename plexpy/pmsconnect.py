@@ -2980,9 +2980,25 @@ class PmsConnect(object):
         for a in xml_head:
             server_response = {'mapping_state': helpers.get_xml_attr(a, 'mappingState'),
                                'mapping_error': helpers.get_xml_attr(a, 'mappingError'),
+                               'sign_in_state': helpers.get_xml_attr(a, 'signInState'),
                                'public_address': helpers.get_xml_attr(a, 'publicAddress'),
-                               'public_port': helpers.get_xml_attr(a, 'publicPort')
+                               'public_port': helpers.get_xml_attr(a, 'publicPort'),
+                               'private_address': helpers.get_xml_attr(a, 'privateAddress'),
+                               'private_port': helpers.get_xml_attr(a, 'privatePort')
                                }
+
+            if server_response['mapping_state'] == 'unknown':
+                server_response['reason'] = 'Plex remote access port mapping unknown'
+            elif server_response['mapping_state'] not in ('mapped', 'waiting'):
+                server_response['reason'] = 'Plex remote access port not mapped'
+            elif server_response['mapping_error'] == 'unreachable':
+                server_response['reason'] = 'Plex remote access port mapped, ' \
+                                            'but the port is unreachable from Plex.tv'
+            elif server_response['mapping_error'] == 'publisherror':
+                server_response['reason'] = 'Plex remote access port mapped, ' \
+                                            'but failed to publish the port to Plex.tv'
+            else:
+                server_response['reason'] = ''
 
         return server_response
 

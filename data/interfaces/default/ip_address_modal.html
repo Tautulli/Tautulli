@@ -24,7 +24,6 @@
             <div id="ip_error" class="col-sm-12 text-muted"></div>
             <div class="col-sm-6">
                 <ul class="list-unstyled">
-                    <li>Continent: <strong><span id="continent"></span></strong></li>
                     <li>Country: <strong><span id="country"></span></strong></li>
                     <li>Region: <strong><span id="region"></span></strong></li>
                     <li>City: <strong><span id="city"></span></strong></li>
@@ -36,7 +35,6 @@
                     <li>Timezone: <strong><span id="timezone"></span></strong></li>
                     <li>Latitude: <strong><span id="latitude"></span></strong></li>
                     <li>Longitude: <strong><span id="longitude"></span></strong></li>
-                    <li>Accuracy Radius: <strong><span id="accuracy"></span></strong></li>
                 </ul>
             </div>
             <div class="col-sm-12">
@@ -61,8 +59,6 @@
             </div>
         </div>
         <div class="modal-footer">
-            <% from plexpy.helpers import anon_url %>
-            <span class="text-muted">GeoLite2 data created by <a href="${anon_url('http://www.maxmind.com')}" target="_blank">MaxMind</a>.</span>
         </div>
     </div>
 </div>
@@ -82,11 +78,11 @@
             error: function () {
                 $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> Internal request failed.').show();
             },
-            success: function (data) {
-                if ('error' in data) {
-                    $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error).show();
+            success: function (result) {
+                if (result.results === 'error') {
+                    $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + result.message).show();
                 } else {
-                    $('#continent').html(data.continent);
+                    var data = result.data;
                     $('#country').html(data.country);
                     $('#region').html(data.region);
                     $('#city').html(data.city);
@@ -94,7 +90,6 @@
                     $('#timezone').html(data.timezone);
                     $('#latitude').html(data.latitude);
                     $('#longitude').html(data.longitude);
-                    $('#accuracy').html(data.accuracy + ' km');
                 }
             }
         });

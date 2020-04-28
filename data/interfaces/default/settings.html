@@ -941,7 +941,7 @@
                                 </div>
                                 <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
+                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. Set to 0 to always trigger.</p>
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
@@ -964,6 +964,20 @@
                                 <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The number of concurrent streams by a single user for Tautulli to trigger a notification. Minimum 2.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="notify_concurrent_threshold">Continued Session Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_continued_session_threshold" name="notify_continued_session_threshold" value="${config['notify_continued_session_threshold']}" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#notify_continued_session_threshold_error" required>
+                                </div>
+                                <div id="notify_continued_session_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of seconds between stopping and starting a new stream to be considered as a continued session. Set to 0 to consider all streams as new sessions.
+                                <br>
+                                Note: The threshold is only used by the "Initial Stream" notification parameter to determine if a stream is the first stream of a continuous streaming session.
+                            </p>
                         </div>
 
                         <div class="padded-header">
@@ -1254,7 +1268,7 @@
                             <p class="help-block">Enable to lookup links to MusicBrainz for music when available.</p>
                         </div>
                         <div class="form-group">
-                            <label for="maxmind_license_key">Delete Lookup Info</label>
+                            <label for="delete_lookup_info">Delete Lookup Info</label>
                             <p class="help-block">Delete all cached metadata lookup info in Tautulli.</p>
                             <div class="row">
                                 <div class="col-md-9">
@@ -1265,54 +1279,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="padded-header">
-                            <h3>Geolocation Database</h3>
-                        </div>
-
-                        <p class="help-block">The GeoLite2 database is used to geolocate IP addresses.</p>
-                        <p class="help-block">
-                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up MaxMind.<br>
-                        </p>
-                        <div class="form-group">
-                            <label for="maxmind_license_key">MaxMind License Key</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="maxmind_license_key" name="maxmind_license_key" value="${config['maxmind_license_key']}" data-parsley-trigger="change">
-                                </div>
-                            </div>
-                            <p class="help-block">
-                                Enter your MaxMind License Key to install the GeoLite2 database.
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="geoip_db">GeoLite2 Database File</label> ${docker_msg | n}
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="geoip_db" name="geoip_db" value="${config['geoip_db']}" ${docker_setting} data-parsley-trigger="change" data-parsley-pattern=".+\.mmdb$" data-parsley-errors-container="#geoip_db_error"  data-parsley-error-message="Must end with '.mmdb'">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="install_geoip_db">${'Update' if config["geoip_db_installed"] else 'Install'}</button>
-                                            <button class="btn btn-form" type="button" id="uninstall_geoip_db" ${'disabled' if not config['geoip_db_installed'] else ''}>Uninstall</button>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div id="geoip_db_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">
-                                Leave blank to install in the default location. GeoLite2 database last updated <strong><span id="geoip_db_updated">never</span></strong>.
-                            </p>
-                        </div>
-                        <div class="form-group advanced-setting">
-                            <label for="geoip_db_update_days">GeoLite2 Database Update Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="geoip_db_update_days" name="geoip_db_update_days" value="${config['geoip_db_update_days']}" size="5" data-parsley-range="[7, 30]" data-parsley-trigger="change" data-parsley-errors-container="#geoip_db_update_days_error" required>
-                                </div>
-                                <div id="geoip_db_update_days_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in days) Tautulli will automatically update the GeoLite2 database. Minimum 7, maximum 30, default 30.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -2927,56 +2893,6 @@ $(document).ready(function() {
 
     $('#resources-xml').on('tripleclick', function () {
         openPlexXML('/api/resources', true, {includeHttps: 1});
-    });
-
-    if ("${kwargs.get('install_geoip')}" === 'true') {
-        gotoSetting('3rd_party_apis', 'geoip_db')
-    }
-
-    if ("${config['geoip_db_installed']}" > "0") {
-        $("#geoip_db_updated").text(moment("${config['geoip_db_installed']}", "X").fromNow());
-    }
-
-    $("#install_geoip_db").click(function () {
-        var maxmind_license_key = $("#maxmind_license_key");
-        maxmind_license_key.val($.trim(maxmind_license_key.val()));
-        if (maxmind_license_key.val() === "") {
-            maxmind_license_key.focus();
-            showMsg('<i class="fa fa-exclamation-circle"></i> Maxmind License Key is required.', false, true, 5000, true);
-            return false;
-        } else if (!(saveSettings())) {
-            return false;
-        }
-        var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
-            'The database is used to lookup IP address geolocation info.<br />' +
-            'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
-            'and requires <strong>100MB</strong> of free space to install.<br />';
-        var url = 'install_geoip_db';
-        if ($(this).text() === 'Update') {
-            url += '?update=true';
-        }
-        confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', function (result) {
-            if (result.result === "success") {
-                $('#install_geoip_db').text('Update');
-                $('#uninstall_geoip_db').prop('disabled', false);
-                $('#geoip_db_updated').text(moment(result.updated, "X").fromNow());
-            }
-            getSchedulerTable();
-        });
-    });
-
-    $("#uninstall_geoip_db").click(function () {
-        var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
-            'You will not be able to lookup IP address geolocation info.';
-        var url = 'uninstall_geoip_db';
-        confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', function (result) {
-            if (result.result === "success") {
-                $('#install_geoip_db').text('Install');
-                $('#uninstall_geoip_db').prop('disabled', true);
-                $('#geoip_db_updated').text('never');
-            }
-            getSchedulerTable();
-        });
     });
 });
 </script>

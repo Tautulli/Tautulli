@@ -755,7 +755,7 @@ class Libraries(object):
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, section_id=None):
+    def get_details(self, section_id=None, server_id=None):
         default_return = {'row_id': 0,
                           'server_id': '',
                           'section_id': 0,
@@ -776,7 +776,10 @@ class Libraries(object):
         if not section_id:
             return default_return
 
-        def get_library_details(section_id=section_id):
+        if server_id is None:
+            server_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+        def get_library_details(section_id=section_id, server_id=server_id):
             monitor_db = database.MonitorDatabase()
 
             try:
@@ -787,8 +790,8 @@ class Libraries(object):
                             'custom_art_url AS custom_art, is_active, ' \
                             'do_notify, do_notify_created, keep_history, deleted_section ' \
                             'FROM library_sections ' \
-                            'WHERE section_id = ? '
-                    result = monitor_db.select(query, args=[section_id])
+                            'WHERE section_id = ? AND server_id = ? '
+                    result = monitor_db.select(query, args=[section_id, server_id])
                 else:
                     result = []
             except Exception as e:
@@ -828,7 +831,7 @@ class Libraries(object):
                                        }
             return library_details
 
-        library_details = get_library_details(section_id=section_id)
+        library_details = get_library_details(section_id=section_id, server_id=server_id)
 
         if library_details:
             return library_details
@@ -839,7 +842,7 @@ class Libraries(object):
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
             refresh_libraries()
 
-            library_details = get_library_details(section_id=section_id)
+            library_details = get_library_details(section_id=section_id, server_id=server_id)
 
             if library_details:
                 return library_details

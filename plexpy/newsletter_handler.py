@@ -18,7 +18,6 @@
 from __future__ import unicode_literals
 
 import os
-import time
 
 from apscheduler.triggers.cron import CronTrigger
 import email.utils

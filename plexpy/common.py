@@ -224,8 +224,7 @@ SCHEDULER_LIST = [
     'Refresh libraries list',
     'Refresh Plex server URLs',
     'Backup Tautulli database',
-    'Backup Tautulli config',
-    'Update GeoLite2 database'
+    'Backup Tautulli config'
 ]
 
 DATE_TIME_FORMATS = [
@@ -350,10 +349,13 @@ NOTIFICATION_PARAMETERS = [
     {
         'category': 'Stream Details',
         'parameters': [
-             {'name': 'Streams', 'type': 'int', 'value': 'streams', 'description': 'The number of concurrent streams.'},
-             {'name': 'Direct Plays', 'type': 'int', 'value': 'direct_plays', 'description': 'The number of concurrent direct plays.'},
-             {'name': 'Direct Streams', 'type': 'int', 'value': 'direct_streams', 'description': 'The number of concurrent direct streams.'},
-             {'name': 'Transcodes', 'type': 'int', 'value': 'transcodes', 'description': 'The number of concurrent transcodes.'},
+             {'name': 'Streams', 'type': 'int', 'value': 'streams', 'description': 'The total number of concurrent streams.'},
+             {'name': 'Direct Plays', 'type': 'int', 'value': 'direct_plays', 'description': 'The total number of concurrent direct plays.'},
+             {'name': 'Direct Streams', 'type': 'int', 'value': 'direct_streams', 'description': 'The total number of concurrent direct streams.'},
+             {'name': 'Transcodes', 'type': 'int', 'value': 'transcodes', 'description': 'The total number of concurrent transcodes.'},
+             {'name': 'Total Bandwidth', 'type': 'int', 'value': 'total_bandwidth', 'description': 'The total Plex Streaming Brain reserved bandwidth (in kbps).', 'help_text': 'not the used bandwidth'},
+             {'name': 'LAN Bandwidth', 'type': 'int', 'value': 'lan_bandwidth', 'description': 'The total Plex Streaming Brain reserved LAN bandwidth (in kbps).', 'help_text': 'not the used bandwidth'},
+             {'name': 'WAN Bandwidth', 'type': 'int', 'value': 'wan_bandwidth', 'description': 'The total Plex Streaming Brain reserved WAN bandwidth (in kbps).', 'help_text': 'not the used bandwidth'},
              {'name': 'User Streams', 'type': 'int', 'value': 'user_streams', 'description': 'The number of concurrent streams by the user streaming.'},
              {'name': 'User Direct Plays', 'type': 'int', 'value': 'user_direct_plays', 'description': 'The number of concurrent direct plays by the user streaming.'},
              {'name': 'User Direct Streams', 'type': 'int', 'value': 'user_direct_streams', 'description': 'The number of concurrent direct streams by the user streaming.'},
@@ -361,10 +363,12 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'User', 'type': 'str', 'value': 'user', 'description': 'The friendly name of the user streaming.'},
              {'name': 'Username', 'type': 'str', 'value': 'username', 'description': 'The username of the user streaming.'},
              {'name': 'User Email', 'type': 'str', 'value': 'user_email', 'description': 'The email address of the user streaming.'},
+             {'name': 'User Thumb', 'type': 'str', 'value': 'user_thumb', 'description': 'The profile picture URL of the user streaming.'},
              {'name': 'Device', 'type': 'str', 'value': 'device', 'description': 'The type of client device being used for playback.'},
              {'name': 'Platform', 'type': 'str', 'value': 'platform', 'description': 'The type of client platform being used for playback.'},
              {'name': 'Product', 'type': 'str', 'value': 'product', 'description': 'The type of client product being used for playback.'},
              {'name': 'Player', 'type': 'str', 'value': 'player', 'description': 'The name of the player being used for playback.'},
+             {'name': 'Initial Stream', 'type': 'int', 'value': 'initial_stream', 'description': 'If the stream is the initial stream of a continuous streaming session.', 'example': '0 or 1'},
              {'name': 'IP Address', 'type': 'str', 'value': 'ip_address', 'description': 'The IP address of the device being used for playback.'},
              {'name': 'Stream Duration', 'type': 'int', 'value': 'stream_duration', 'description': 'The duration (in minutes) for the stream.'},
              {'name': 'Stream Time', 'type': 'str', 'value': 'stream_time', 'description': 'The duration (in time format) of the stream.'},
@@ -389,7 +393,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Relayed', 'type': 'int', 'value': 'relayed', 'description': 'If the stream is using Plex Relay.', 'example': '0 or 1'},
              {'name': 'Stream Local', 'type': 'int', 'value': 'stream_local', 'description': 'If the stream is local.', 'example': '0 or 1'},
              {'name': 'Stream Location', 'type': 'str', 'value': 'stream_location', 'description': 'The network location of the stream.', 'example': 'lan or wan'},
-             {'name': 'Stream Bandwidth', 'type': 'int', 'value': 'stream_bandwidth', 'description': 'The required bandwidth (in kbps) of the stream.', 'help_text': 'not the used bandwidth'},
+             {'name': 'Stream Bandwidth', 'type': 'int', 'value': 'stream_bandwidth', 'description': 'The Plex Streaming Brain reserved bandwidth (in kbps) of the stream.', 'help_text': 'not the used bandwidth'},
              {'name': 'Stream Container', 'type': 'str', 'value': 'stream_container', 'description': 'The media container of the stream.'},
              {'name': 'Stream Bitrate', 'type': 'int', 'value': 'stream_bitrate', 'description': 'The bitrate (in kbps) of the stream.'},
              {'name': 'Stream Aspect Ratio', 'type': 'float', 'value': 'stream_aspect_ratio', 'description': 'The aspect ratio of the stream.'},
@@ -555,6 +559,18 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Poster Title', 'type': 'str', 'value': 'poster_title', 'description': 'The title for the poster image.'},
              {'name': 'Indexes', 'type': 'int', 'value': 'indexes', 'description': 'If the media has video preview thumbnails.', 'example': '0 or 1'},
          ]
+     },
+    {
+        'category': 'Plex Remote Access',
+        'parameters': [
+            {'name': 'Remote Access Mapping State', 'type': 'str', 'value': 'remote_access_mapping_state', 'description': 'The mapping state of the Plex remote access port.'},
+            {'name': 'Remote Access Mapping Error', 'type': 'str', 'value': 'remote_access_mapping_error', 'description': 'The mapping error of the Plex remote access port.'},
+            {'name': 'Remote Access Public IP Address', 'type': 'str', 'value': 'remote_access_public_address', 'description': 'The Plex remote access public IP address.'},
+            {'name': 'Remote Access Public Port', 'type': 'str', 'value': 'remote_access_public_port', 'description': 'The Plex remote access public port.'},
+            {'name': 'Remote Access Private IP Address', 'type': 'str', 'value': 'remote_access_private_address', 'description': 'The Plex remote access private IP address.'},
+            {'name': 'Remote Access Private Port', 'type': 'str', 'value': 'remote_access_private_port', 'description': 'The Plex remote access private port.'},
+            {'name': 'Remote Access Failure Reason', 'type': 'str', 'value': 'remote_access_reason', 'description': 'The failure reason for Plex remote access going down.'},
+        ]
      },
     {
         'category': 'Plex Update Available',

@@ -729,9 +729,9 @@ DOCUMENTATION :: END
                             success: function (data) {
                                 var msg = "History deleted";
                                 showMsg(msg, false, true, 2000);
+                                history_table.draw();
                             }
                         });
-                        history_table.draw();
                     });
                 }
 

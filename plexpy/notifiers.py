@@ -16,7 +16,6 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
-from future.builtins import next
 from future.builtins import str
 from future.builtins import object
 
@@ -81,7 +80,6 @@ else:
 
 BROWSER_NOTIFIERS = {}
 
-
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
@@ -104,7 +102,8 @@ AGENT_IDS = {'growl': 0,
              'groupme': 22,
              'mqtt': 23,
              'zapier': 24,
-             'webhook': 25
+             'webhook': 25,
+             'plexmobileapp': 26
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -113,91 +112,141 @@ DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
 def available_notification_agents():
     agents = [{'label': 'Tautulli Remote Android App',
                'name': 'androidapp',
-               'id': AGENT_IDS['androidapp']
+               'id': AGENT_IDS['androidapp'],
+               'class': ANDROIDAPP,
+               'action_types': ('all',)
                },
               {'label': 'Boxcar',
                'name': 'boxcar',
-               'id': AGENT_IDS['boxcar']
+               'id': AGENT_IDS['boxcar'],
+               'class': BOXCAR,
+               'action_types': ('all',)
                },
               {'label': 'Browser',
                'name': 'browser',
-               'id': AGENT_IDS['browser']
+               'id': AGENT_IDS['browser'],
+               'class': BROWSER,
+               'action_types': ('all',)
                },
               {'label': 'Discord',
                'name': 'discord',
                'id': AGENT_IDS['discord'],
+               'class': DISCORD,
+               'action_types': ('all',)
                },
               {'label': 'Email',
                'name': 'email',
-               'id': AGENT_IDS['email']
+               'id': AGENT_IDS['email'],
+               'class': EMAIL,
+               'action_types': ('all',)
                },
               {'label': 'Facebook',
                'name': 'facebook',
-               'id': AGENT_IDS['facebook']
+               'id': AGENT_IDS['facebook'],
+               'class': FACEBOOK,
+               'action_types': ('all',)
                },
               {'label': 'GroupMe',
                'name': 'groupme',
-               'id': AGENT_IDS['groupme']
+               'id': AGENT_IDS['groupme'],
+               'class': GROUPME,
+               'action_types': ('all',)
                },
               {'label': 'Growl',
                'name': 'growl',
-               'id': AGENT_IDS['growl']
+               'id': AGENT_IDS['growl'],
+               'class': GROWL,
+               'action_types': ('all',)
                },
               {'label': 'IFTTT',
                'name': 'ifttt',
-               'id': AGENT_IDS['ifttt']
+               'id': AGENT_IDS['ifttt'],
+               'class': IFTTT,
+               'action_types': ('all',)
                },
               {'label': 'Join',
                'name': 'join',
-               'id': AGENT_IDS['join']
+               'id': AGENT_IDS['join'],
+               'class': JOIN,
+               'action_types': ('all',)
                },
               {'label': 'Kodi',
                'name': 'xbmc',
-               'id': AGENT_IDS['xbmc']
+               'id': AGENT_IDS['xbmc'],
+               'class': XBMC,
+               'action_types': ('all',)
                },
               {'label': 'MQTT',
                'name': 'mqtt',
-               'id': AGENT_IDS['mqtt']
+               'id': AGENT_IDS['mqtt'],
+               'class': MQTT,
+               'action_types': ('all',)
                },
               {'label': 'Plex Home Theater',
                'name': 'plex',
-               'id': AGENT_IDS['plex']
+               'id': AGENT_IDS['plex'],
+               'class': PLEX,
+               'action_types': ('all',)
+               },
+              {'label': 'Plex Android / iOS App',
+               'name': 'plexmobileapp',
+               'id': AGENT_IDS['plexmobileapp'],
+               'class': PLEXMOBILEAPP,
+               'action_types': ('on_play', 'on_created', 'on_newdevice')
                },
               {'label': 'Prowl',
                'name': 'prowl',
-               'id': AGENT_IDS['prowl']
+               'id': AGENT_IDS['prowl'],
+               'class': PROWL,
+               'action_types': ('all',)
                },
               {'label': 'Pushbullet',
                'name': 'pushbullet',
-               'id': AGENT_IDS['pushbullet']
+               'id': AGENT_IDS['pushbullet'],
+               'class': PUSHBULLET,
+               'action_types': ('all',)
                },
               {'label': 'Pushover',
                'name': 'pushover',
-               'id': AGENT_IDS['pushover']
+               'id': AGENT_IDS['pushover'],
+               'class': PUSHOVER,
+               'action_types': ('all',)
                },
               {'label': 'Script',
                'name': 'scripts',
-               'id': AGENT_IDS['scripts']
+               'id': AGENT_IDS['scripts'],
+               'class': SCRIPTS,
+               'action_types': ('all',)
                },
               {'label': 'Slack',
                'name': 'slack',
-               'id': AGENT_IDS['slack']
+               'id': AGENT_IDS['slack'],
+               'class': SLACK,
+               'action_types': ('all',)
                },
               {'label': 'Telegram',
                'name': 'telegram',
-               'id': AGENT_IDS['telegram']
+               'id': AGENT_IDS['telegram'],
+               'class': TELEGRAM,
+               'action_types': ('all',)
                },
               {'label': 'Twitter',
                'name': 'twitter',
-               'id': AGENT_IDS['twitter']
+               'id': AGENT_IDS['twitter'],
+               'class': TWITTER,
+               'action_types': ('all',)
                },
               {'label': 'Webhook',
                'name': 'webhook',
-               'id': AGENT_IDS['webhook']
+               'id': AGENT_IDS['webhook'],
+               'class': WEBHOOK,
+               'action_types': ('all',)
                },
               {'label': 'Zapier',
                'name': 'zapier',
-               'id': AGENT_IDS['zapier']
+               'id': AGENT_IDS['zapier'],
+               'class': ZAPIER,
+               'action_types': ('all',)
                }
               ]
 
@@ -205,13 +254,15 @@ def available_notification_agents():
     if OSX().validate():
         agents.append({'label': 'macOS Notification Center',
                        'name': 'osx',
-                       'id': AGENT_IDS['osx']
+                       'id': AGENT_IDS['osx'],
+                       'class': OSX,
+                       'action_types': ('all',)
                        })
 
     return agents
 
 
-def available_notification_actions():
+def available_notification_actions(agent_id=None):
     actions = [{'label': 'Playback Start',
                 'name': 'on_play',
                 'description': 'Trigger a notification when a stream is started.',
@@ -312,7 +363,7 @@ def available_notification_actions():
                 'name': 'on_extdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached externally.',
                 'subject': 'Tautulli ({server_name})',
-                'body': 'The Plex Media Server remote access is down.',
+                'body': 'The Plex Media Server remote access is down. ({remote_access_reason})',
                 'icon': 'fa-server',
                 'media_types': ('server',)
                 },
@@ -350,72 +401,31 @@ def available_notification_actions():
                 }
                ]
 
+    if str(agent_id).isdigit():
+        action_types = get_notify_agents(return_dict=True).get(int(agent_id), {}).get('action_types', [])
+        if 'all' not in action_types:
+            actions = [a for a in actions if a['name'] in action_types]
+
     return actions
 
 
 def get_agent_class(agent_id=None, config=None):
     if str(agent_id).isdigit():
-        agent_id = int(agent_id)
-
-        if agent_id == 0:
-            return GROWL(config=config)
-        elif agent_id == 1:
-            return PROWL(config=config)
-        elif agent_id == 2:
-            return XBMC(config=config)
-        elif agent_id == 3:
-            return PLEX(config=config)
-        elif agent_id == 6:
-            return PUSHBULLET(config=config)
-        elif agent_id == 7:
-            return PUSHOVER(config=config)
-        elif agent_id == 8:
-            return OSX(config=config)
-        elif agent_id == 9:
-            return BOXCAR(config=config)
-        elif agent_id == 10:
-            return EMAIL(config=config)
-        elif agent_id == 11:
-            return TWITTER(config=config)
-        elif agent_id == 12:
-            return IFTTT(config=config)
-        elif agent_id == 13:
-            return TELEGRAM(config=config)
-        elif agent_id == 14:
-            return SLACK(config=config)
-        elif agent_id == 15:
-            return SCRIPTS(config=config)
-        elif agent_id == 16:
-            return FACEBOOK(config=config)
-        elif agent_id == 17:
-            return BROWSER(config=config)
-        elif agent_id == 18:
-            return JOIN(config=config)
-        elif agent_id == 20:
-            return DISCORD(config=config)
-        elif agent_id == 21:
-            return ANDROIDAPP(config=config)
-        elif agent_id == 22:
-            return GROUPME(config=config)
-        elif agent_id == 23:
-            return MQTT(config=config)
-        elif agent_id == 24:
-            return ZAPIER(config=config)
-        elif agent_id == 25:
-            return WEBHOOK(config=config)
-        else:
-            return Notifier(config=config)
+        agent = get_notify_agents(return_dict=True).get(int(agent_id), {}).get('class', Notifier)
+        return agent(config=config)
     else:
         return None
 
 
-def get_notify_agents():
+def get_notify_agents(return_dict=False):
+    if return_dict:
+        return {a['id']: a for a in available_notification_agents()}
     return tuple(a['name'] for a in sorted(available_notification_agents(), key=lambda k: k['label']))
 
 
 def get_notify_actions(return_dict=False):
     if return_dict:
-        return {a.pop('name'): a for a in available_notification_actions()}
+        return {a['name']: a for a in available_notification_actions()}
     return tuple(a['name'] for a in available_notification_actions())
 
 
@@ -523,7 +533,7 @@ def add_notifier_config(agent_id=None, **kwargs):
                      % agent_id)
         return False
 
-    agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
+    agent = get_notify_agents(return_dict=True).get(agent_id, None)
 
     if not agent:
         logger.error("Tautulli Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s."
@@ -572,7 +582,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
                      % agent_id)
         return False
 
-    agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
+    agent = get_notify_agents(return_dict=True).get(agent_id, None)
 
     if not agent:
         logger.error("Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s."
@@ -2363,6 +2373,190 @@ class PLEX(Notifier):
                           'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
                           'input_type': 'text'
                           }
+                         ]
+
+        return config_option
+
+
+class PLEXMOBILEAPP(Notifier):
+    """
+    Plex Mobile App Notifications
+    """
+    NAME = 'Plex Android / iOS App'
+    NOTIFICATION_URL = 'https://notifications.plex.tv/api/v1/notifications'
+    _DEFAULT_CONFIG = {'user_ids': [],
+                       'tap_action': 'preplay',
+                       }
+
+    def __init__(self, config=None):
+        super(PLEXMOBILEAPP, self).__init__(config=config)
+
+        self.configurations = {
+            'created': {'group': 'media', 'identifier': 'tv.plex.notification.library.new'},
+            'play': {'group': 'media', 'identifier': 'tv.plex.notification.playback.started'},
+            'newdevice': {'group': 'admin', 'identifier': 'tv.plex.notification.device.new'}
+        }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if action not in self.configurations and not action.startswith('test'):
+            logger.error(u"Tautulli Notifiers :: Notification action %s not allowed for %s." % (action, self.NAME))
+            return
+
+        if action == 'test':
+            tests = []
+            for configuration in self.configurations:
+                tests.append(self.agent_notify(subject=subject, body=body, action='test_'+configuration))
+            return all(tests)
+
+        configuration_action = action.split('test_')[-1]
+
+        # No subject to always show up regardless of client selected filters
+        # icon can be info, warning, or error
+        # play = true to start playing when tapping the notification
+        # Send the minimal amount of data necessary through Plex servers
+        data = {
+            'group': self.configurations[configuration_action]['group'],
+            'identifier': self.configurations[configuration_action]['identifier'],
+            'to': self.config['user_ids'],
+            'data': {
+                'provider': {
+                    'identifier': plexpy.CONFIG.PMS_IDENTIFIER,
+                    'title': plexpy.CONFIG.PMS_NAME
+                }
+            }
+        }
+
+        pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
+
+        if action.startswith('test'):
+            data['data']['player'] = {
+                'title': 'Device',
+                'platform': 'Platform',
+                'machineIdentifier': 'Tautulli'
+            }
+            data['data']['user'] = {
+                'title': 'User',
+                'id': 0
+            }
+            data['metadata'] = {
+                'type': 'movie',
+                'title': subject,
+                'year': body
+            }
+
+        elif action in ('play', 'newdevice'):
+            data['data']['player'] = {
+                'title': pretty_metadata.parameters['player'],
+                'platform': pretty_metadata.parameters['platform'],
+                'machineIdentifier': pretty_metadata.parameters['machine_id']
+            }
+            data['data']['user'] = {
+                'title': pretty_metadata.parameters['user'],
+                'id': pretty_metadata.parameters['user_id'],
+                'thumb': pretty_metadata.parameters['user_thumb'],
+            }
+
+        elif action == 'created':
+            # No addition data required for recently added
+            pass
+
+        else:
+            logger.error(u"Tautulli Notifiers :: Notification action %s not supported for %s." % (action, self.NAME))
+            return
+
+        if data['group'] == 'media' and not action.startswith('test'):
+            media_type = pretty_metadata.media_type
+            uri_rating_key = None
+
+            if media_type == 'movie':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['title'],
+                    'year': pretty_metadata.parameters['year'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'show':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['show_name'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'season':
+                metadata = {
+                    'type': 'show',
+                    'title': pretty_metadata.parameters['show_name'],
+                    'thumb': pretty_metadata.parameters['thumb'],
+                }
+                data['data']['count'] = pretty_metadata.parameters['episode_count']
+            elif media_type == 'episode':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['episode_name'],
+                    'grandparentTitle': pretty_metadata.parameters['show_name'],
+                    'index': pretty_metadata.parameters['episode_num'],
+                    'parentIndex': pretty_metadata.parameters['season_num'],
+                    'grandparentThumb': pretty_metadata.parameters['grandparent_thumb']
+                }
+            elif media_type == 'artist':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['thumb']
+                }
+            elif media_type == 'album':
+                metadata = {
+                    'type': media_type,
+                    'title': pretty_metadata.parameters['album_name'],
+                    'year': pretty_metadata.parameters['year'],
+                    'parentTitle': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['thumb'],
+                }
+            elif media_type == 'track':
+                metadata = {
+                    'type': 'album',
+                    'title': pretty_metadata.parameters['album_name'],
+                    'year': pretty_metadata.parameters['year'],
+                    'parentTitle': pretty_metadata.parameters['artist_name'],
+                    'thumb': pretty_metadata.parameters['parent_thumb']
+                }
+                uri_rating_key = pretty_metadata.parameters['parent_rating_key']
+            else:
+                logger.error(u"Tautulli Notifiers :: Media type %s not supported for %s." % (media_type, self.NAME))
+                return
+
+            data['metadata'] = metadata
+            data['uri'] = 'server://{}/com.plexapp.plugins.library/library/metadata/{}'.format(
+                plexpy.CONFIG.PMS_IDENTIFIER, uri_rating_key or pretty_metadata.parameters['rating_key']
+            )
+            data['play'] = self.config['tap_action'] == 'play'
+
+        headers = {'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN}
+
+        return self.make_request(self.NOTIFICATION_URL, headers=headers, json=data)
+
+    def get_users(self):
+        user_ids = {u['user_id']: u['friendly_name'] for u in users.Users().get_users() if u['user_id']}
+        user_ids[''] = ''
+        return user_ids
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Plex User(s)',
+                          'value': self.config['user_ids'],
+                          'name': 'plexmobileapp_user_ids',
+                          'description': 'Select which Plex User(s) to receive notifications.<br>'
+                                         'Note: The user(s) must have notifications enabled '
+                                         'for the matching Tautulli triggers in their Plex mobile app.',
+                          'input_type': 'select',
+                          'select_options': self.get_users()
+                          },
+                         {'label': 'Notification Tap Action',
+                          'value': self.config['tap_action'],
+                          'name': 'plexmobileapp_tap_action',
+                          'description': 'Set the action when tapping on the notification.',
+                          'input_type': 'select',
+                          'select_options': {'preplay': 'Go to media pre-play screen',
+                                             'play': 'Start playing the media'}
+                          },
                          ]
 
         return config_option

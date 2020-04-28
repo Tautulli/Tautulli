@@ -18,4 +18,4 @@
 from __future__ import unicode_literals
 
 PLEXPY_BRANCH = "python3"
-PLEXPY_RELEASE_VERSION = "v2.2.2-beta"
+PLEXPY_RELEASE_VERSION = "v2.2.3-beta"

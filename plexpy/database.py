@@ -250,7 +250,7 @@ class MonitorDatabase(object):
         sql_results = self.action(query, args).fetchone()
 
         if sql_results is None or sql_results == "":
-            return ""
+            return {}
 
         return sql_results
 

@@ -565,6 +565,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     stream_count = len(sessions)
     user_stream_count = len(user_sessions)
 
+    lan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] == 'lan')
+    wan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] != 'lan')
+    total_bandwidth = lan_bandwidth + wan_bandwidth
+
     # Generate a combined transcode decision value
     if session.get('stream_video_decision', '') == 'transcode' or session.get('stream_audio_decision', '') == 'transcode':
         transcode_decision = 'Transcode'
@@ -650,6 +654,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             themoviedb_info = lookup_themoviedb_by_id(rating_key=lookup_key,
                                                       thetvdb_id=notify_params.get('thetvdb_id'),
                                                       imdb_id=notify_params.get('imdb_id'))
+            themoviedb_info.pop('rating_key', None)
             notify_params.update(themoviedb_info)
 
     # Get TVmaze info (for tv shows only)
@@ -665,6 +670,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             tvmaze_info = lookup_tvmaze_by_id(rating_key=lookup_key,
                                               thetvdb_id=notify_params.get('thetvdb_id'),
                                               imdb_id=notify_params.get('imdb_id'))
+            tvmaze_info.pop('rating_key', None)
             notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
@@ -685,7 +691,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             tracks = notify_params['children_count']
         else:
             musicbrainz_type = 'recording'
-            artist = notify_params['original_title']
+            artist = notify_params['original_title'] or notify_params['grandparent_title']
             release = notify_params['parent_title']
             recording = notify_params['title']
             tracks = notify_params['children_count']
@@ -694,6 +700,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         musicbrainz_info = lookup_musicbrainz_info(musicbrainz_type=musicbrainz_type, rating_key=rating_key,
                                                    artist=artist, release=release, recording=recording, tracks=tracks,
                                                    tnum=tnum)
+        musicbrainz_info.pop('rating_key', None)
         notify_params.update(musicbrainz_info)
 
     if notify_params['media_type'] in ('movie', 'show', 'artist'):
@@ -831,6 +838,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'direct_plays': transcode_decision_count['direct play'],
         'direct_streams': transcode_decision_count['copy'],
         'transcodes': transcode_decision_count['transcode'],
+        'total_bandwidth': total_bandwidth,
+        'lan_bandwidth': lan_bandwidth,
+        'wan_bandwidth': wan_bandwidth,
         'user_streams': user_stream_count,
         'user_direct_plays': user_transcode_decision_count['direct play'],
         'user_direct_streams': user_transcode_decision_count['copy'],
@@ -838,6 +848,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user': notify_params['friendly_name'],
         'username': notify_params['user'],
         'user_email': notify_params['email'],
+        'user_thumb': notify_params['user_thumb'],
         'device': notify_params['device'],
         'platform': notify_params['platform'],
         'product': notify_params['product'],
@@ -850,6 +861,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'progress_duration': view_offset,
         'progress_time': arrow.get(view_offset * 60).format(duration_format),
         'progress_percent': helpers.get_percent(view_offset, duration),
+        'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
         'video_decision': notify_params['video_decision'],
         'audio_decision': notify_params['audio_decision'],
@@ -1047,6 +1059,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
 
     pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
+    remote_access_info = defaultdict(str, kwargs.pop('remote_access_info', {}))
 
     now = arrow.now()
     now_iso = now.isocalendar()
@@ -1078,6 +1091,14 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'timestamp': now.format(time_format),
         'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
+        # Plex remote access parameters
+        'remote_access_mapping_state': remote_access_info['mapping_state'],
+        'remote_access_mapping_error': remote_access_info['mapping_error'],
+        'remote_access_public_address': remote_access_info['public_address'],
+        'remote_access_public_port': remote_access_info['public_port'],
+        'remote_access_private_address': remote_access_info['private_address'],
+        'remote_access_private_port': remote_access_info['private_port'],
+        'remote_access_reason': remote_access_info['reason'],
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],

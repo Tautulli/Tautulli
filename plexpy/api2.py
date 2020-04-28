@@ -631,6 +631,12 @@ General optional parameters:
                 cherrypy.response.headers['Content-Type'] = 'image/jpeg'
                 return out['response']['data']
 
+        elif self._api_cmd == 'get_geoip_lookup':
+            # Remove nested data and put error message inside data for backwards compatibility
+            out['response']['data'] = out['response']['data'].get('data')
+            if not out['response']['data']:
+                out['response']['data'] = {'error': out['response']['message']}
+
         if self._api_out_type == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:

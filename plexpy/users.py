@@ -21,7 +21,6 @@ from future.builtins import str
 from future.builtins import object
 
 import httpagentparser
-import time
 
 import plexpy
 if plexpy.PYTHON2:

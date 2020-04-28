@@ -1936,6 +1936,10 @@ class WebInterface(object):
                      }
             ```
         """
+        # For backwards compatibility
+        if 'id' in kwargs:
+            row_id = kwargs['id']
+
         data_factory = datafactory.DataFactory()
         stream_data = data_factory.get_stream_details(row_id, session_key)
 
@@ -2993,6 +2997,7 @@ class WebInterface(object):
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
+            "notify_continued_session_threshold": plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
@@ -3024,11 +3029,7 @@ class WebInterface(object):
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
-            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
-            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY,
-            "geoip_db": plexpy.CONFIG.GEOIP_DB,
-            "geoip_db_installed": plexpy.CONFIG.GEOIP_DB_INSTALLED,
-            "geoip_db_update_days": plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -3259,36 +3260,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Database backup successful.'}
         else:
             return {'result': 'error', 'message': 'Database backup failed.'}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def install_geoip_db(self, update=False, **kwargs):
-        """ Downloads and installs the GeoLite2 database """
-
-        update = helpers.bool_true(update)
-
-        result = helpers.install_geoip_db(update=update)
-
-        if result:
-            return {'result': 'success', 'message': 'GeoLite2 database installed successful.', 'updated': result}
-        else:
-            return {'result': 'error', 'message': 'GeoLite2 database install failed.', 'updated': 0}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def uninstall_geoip_db(self, **kwargs):
-        """ Uninstalls the GeoLite2 database """
-
-        result = helpers.uninstall_geoip_db()
-
-        if result:
-            return {'result': 'success', 'message': 'GeoLite2 database uninstalled successfully.'}
-        else:
-            return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5807,7 +5778,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_geoip_lookup(self, ip_address='', **kwargs):
-        """ Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+        """ Get the geolocation info for an IP address.
 
             ```
             Required parameters:
@@ -5818,7 +5789,7 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"continent": "North America",
+                    {"code": 'US",
                      "country": "United States",
                      "region": "California",
                      "city": "Mountain View",
@@ -5828,15 +5799,24 @@ class WebInterface(object):
                      "longitude": -122.0838,
                      "accuracy": 1000
                      }
-                json:
-                    {"error": "The address 127.0.0.1 is not in the database."
-                     }
             ```
         """
-        geo_info = helpers.geoip_lookup(ip_address)
-        if isinstance(geo_info, str):
-            return {'error': geo_info}
-        return geo_info
+        message = ''
+        if not ip_address:
+            message = 'No IP address provided.'
+        elif not helpers.is_valid_ip(ip_address):
+            message = 'Invalid IP address provided: %s' % ip_address
+        elif not helpers.is_public_ip(ip_address):
+            message = 'Non-public IP address provided: %s' % ip_address
+
+        if message:
+            return {'result': 'error', 'message': message}
+
+        plex_tv = plextv.PlexTV()
+        geo_info = plex_tv.get_geoip_lookup(ip_address)
+        if geo_info:
+            return {'result': 'success', 'data': geo_info}
+        return {'result': 'error', 'message': 'Failed to lookup GeoIP info for address: %s' % ip_address}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

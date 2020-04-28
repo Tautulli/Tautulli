@@ -472,7 +472,7 @@ def initialize_scheduler():
         pms_update_check_hours = CONFIG.PMS_UPDATE_CHECK_INTERVAL if 1 <= CONFIG.PMS_UPDATE_CHECK_INTERVAL else 24
 
         schedule_job(versioncheck.check_update, 'Check GitHub for updates',
-                     hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE), True))
+                     hours=0, minutes=github_minutes, seconds=0, args=(True, True))
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
@@ -480,15 +480,15 @@ def initialize_scheduler():
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
         schedule_job(config.make_backup, 'Backup Tautulli config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
-        schedule_job(helpers.update_geoip_db, 'Update GeoLite2 database',
-                     hours=12 * bool(CONFIG.GEOIP_DB_INSTALLED), minutes=0, seconds=0)
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
                          hours=12 * (not bool(CONFIG.PMS_URL_MANUAL)), minutes=0, seconds=0)
 
+            pms_remote_access_seconds = CONFIG.REMOTE_ACCESS_PING_INTERVAL if 60 <= CONFIG.REMOTE_ACCESS_PING_INTERVAL else 60
+
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
-                         hours=0, minutes=0, seconds=60 * bool(CONFIG.MONITOR_REMOTE_ACCESS))
+                         hours=0, minutes=0, seconds=pms_remote_access_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=pms_update_check_hours * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
@@ -612,8 +612,8 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, session_id TEXT, '
         'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
-        'ip_address TEXT, machine_id TEXT, player TEXT, product TEXT, platform TEXT, title TEXT, parent_title TEXT, '
-        'grandparent_title TEXT, original_title TEXT, full_title TEXT, '
+        'ip_address TEXT, machine_id TEXT, bandwidth INTEGER, location TEXT, player TEXT, product TEXT, platform TEXT, '
+        'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
         'media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
@@ -640,7 +640,13 @@ def dbcheck():
         'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
         'secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
-        'write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
+        'initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT)'
+    )
+
+    # sessions_continued table :: This is a temp table that keeps track of continued streaming sessions
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS sessions_continued (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -1292,6 +1298,27 @@ def dbcheck():
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN guid TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT bandwidth FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN bandwidth INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN location TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT initial_stream FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN initial_stream INTEGER DEFAULT 1'
         )
 
     # Upgrade session_history table from earlier versions

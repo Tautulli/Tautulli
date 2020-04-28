@@ -182,9 +182,6 @@ _CONFIG_DEFINITIONS = {
     'FACEBOOK_ON_NEWDEVICE': (int, 'Facebook', 0),
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
-    'GEOIP_DB': (str, 'General', ''),
-    'GEOIP_DB_INSTALLED': (int, 'General', 0),
-    'GEOIP_DB_UPDATE_DAYS': (int, 'General', 30),
     'GET_FILE_SIZES': (int, 'General', 0),
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
@@ -299,7 +296,6 @@ _CONFIG_DEFINITIONS = {
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
-    'MAXMIND_LICENSE_KEY': (str, 'General', ''),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ENABLE': (int, 'Monitoring', 0),
@@ -345,6 +341,7 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_NEWDEVICE': (int, 'NMA', 0),
     'NOTIFICATION_THREADS': (int, 'Advanced', 2),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
+    'NOTIFY_CONTINUED_SESSION_THRESHOLD': (int, 'Monitoring', 15),
     'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 1),
     'NOTIFY_GROUP_RECENTLY_ADDED_PARENT': (int, 'Monitoring', 1),
     'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 1),
@@ -497,6 +494,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
+    'REMOTE_ACCESS_PING_INTERVAL': (int, 'Advanced', 60),
     'REMOTE_ACCESS_PING_THRESHOLD': (int, 'Advanced', 3),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
     'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
@@ -937,8 +935,6 @@ class Config(object):
             self.CONFIG_VERSION = 13
 
         if self.CONFIG_VERSION == 13:
-            if not self.GEOIP_DB:
-                self.GEOIP_DB = os.path.join(plexpy.DATA_DIR, 'GeoLite2-City.mmdb')
 
             self.CONFIG_VERSION = 14
 

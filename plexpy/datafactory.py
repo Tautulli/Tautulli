@@ -246,6 +246,7 @@ class DataFactory(object):
 
             row = {'reference_id': item['reference_id'],
                    'row_id': item['row_id'],
+                   'id': item['row_id'],
                    'date': item['date'],
                    'started': item['started'],
                    'stopped': item['stopped'],

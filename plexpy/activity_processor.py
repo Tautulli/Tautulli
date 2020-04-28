@@ -19,7 +19,6 @@ from future.builtins import object
 
 from collections import defaultdict
 import json
-import time
 
 import plexpy
 if plexpy.PYTHON2:
@@ -68,6 +67,8 @@ class ActivityProcessor(object):
                       'year': session.get('year', ''),
                       'friendly_name': session.get('friendly_name', ''),
                       'ip_address': session.get('ip_address', ''),
+                      'bandwidth': session.get('bandwidth', 0),
+                      'location': session.get('location', ''),
                       'player': session.get('player', ''),
                       'product': session.get('product', ''),
                       'platform': session.get('platform', ''),
@@ -152,14 +153,19 @@ class ActivityProcessor(object):
             result = self.db.upsert('sessions', values, keys)
 
             if result == 'insert':
-                # Check if any notification agents have notifications enabled
-                if notify:
-                    plexpy.NOTIFY_QUEUE.put({'stream_data': values.copy(), 'notify_action': 'on_play'})
-
                 # If it's our first write then time stamp it.
                 started = helpers.timestamp()
-                timestamp = {'started': started}
+                initial_stream = self.is_initial_stream(user_id=values['user_id'],
+                                                        machine_id=values['machine_id'],
+                                                        media_type=values['media_type'],
+                                                        started=started)
+                timestamp = {'started': started, 'initial_stream': initial_stream}
                 self.db.upsert('sessions', timestamp, keys)
+
+                # Check if any notification agents have notifications enabled
+                if notify:
+                    session.update(timestamp)
+                    plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_play'})
 
                 # Add Live TV library if it hasn't been added
                 if values['live']:
@@ -208,6 +214,12 @@ class ActivityProcessor(object):
                 self.set_session_state(session_key=session['session_key'],
                                        state='stopped',
                                        stopped=stopped)
+
+            if not is_import:
+                self.write_continued_session(user_id=session['user_id'],
+                                             machine_id=session['machine_id'],
+                                             media_type=session['media_type'],
+                                             stopped=stopped)
 
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
@@ -637,3 +649,16 @@ class ActivityProcessor(object):
         self.db.action('UPDATE sessions SET watched = ?'
                        'WHERE session_key = ?',
                        [1, session_key])
+
+    def write_continued_session(self, user_id=None, machine_id=None, media_type=None, stopped=None):
+        keys = {'user_id': user_id, 'machine_id': machine_id, 'media_type': media_type}
+        values = {'stopped': stopped}
+        self.db.upsert(table_name='sessions_continued', key_dict=keys, value_dict=values)
+
+    def is_initial_stream(self, user_id=None, machine_id=None, media_type=None, started=None):
+        last_session = self.db.select_single('SELECT stopped '
+                                             'FROM sessions_continued '
+                                             'WHERE user_id = ? AND machine_id = ? AND media_type = ? '
+                                             'ORDER BY stopped DESC',
+                                             [user_id, machine_id, media_type])
+        return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
