@@ -108,7 +108,7 @@ jobs:
       - name: Upload Installer
         uses: actions/upload-artifact@v1
         with:
-          name: Tautulli-macos-package
+          name: Tautulli-macos-installer
           path: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
 
       - name: Post Status to Discord
@@ -117,7 +117,7 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          job: Build MacOS Package
+          job: Build MacOS Installer
           nofail: true
 
   release:
@@ -142,11 +142,11 @@ jobs:
         with:
           name: Tautulli-windows-installer
 
-      - name: Download MacOS Package
+      - name: Download MacOS Installer
         if: env.WORKFLOW_CONCLUSION == 'success'
         uses: actions/download-artifact@v1
         with:
-          name: Tautulli-macos-package
+          name: Tautulli-macos-installer
 
       - name: Get Changelog
         id: get_changelog
@@ -178,13 +178,13 @@ jobs:
           asset_name: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
-      - name: Upload MacOS Package
+      - name: Upload MacOS Installer
         if: env.WORKFLOW_CONCLUSION == 'success'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Tautulli-macos-package/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+          asset_path: Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
           asset_name: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
           asset_content_type: application/vnd.apple.installer+xml

@@ -107,7 +107,7 @@ jobs:
       - name: Upload Installer
         uses: actions/upload-artifact@v1
         with:
-          name: Tautulli-macos-package
+          name: Tautulli-macos-installer
           path: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
 
       - name: Post Status to Discord
@@ -116,5 +116,5 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          job: Build MacOS Package
+          job: Build MacOS Installer
           nofail: true
