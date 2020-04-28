@@ -150,12 +150,20 @@ def set_startup():
             return False
 
     else:
+        # Check if registry value exists
         try:
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_ALL_ACCESS)
-            winreg.DeleteValue(registry_key, common.PRODUCT)
-            winreg.CloseKey(registry_key)
-            logger.info("Removed Tautulli from Windows system startup registry key.")
-            return True
-        except WindowsError as e:
-            logger.error("Failed to delete Windows system startup registry key: %s", e)
-            return False
+            winreg.QueryValueEx(registry_key, common.PRODUCT)
+            reg_value_exists = True
+        except WindowsError:
+            reg_value_exists = False
+
+        if reg_value_exists:
+            try:
+                winreg.DeleteValue(registry_key, common.PRODUCT)
+                winreg.CloseKey(registry_key)
+                logger.info("Removed Tautulli from Windows system startup registry key.")
+                return True
+            except WindowsError as e:
+                logger.error("Failed to delete Windows system startup registry key: %s", e)
+                return False
