@@ -5719,8 +5719,6 @@ class WebInterface(object):
             message = 'No IP address provided.'
         elif not helpers.is_valid_ip(ip_address):
             message = 'Invalid IP address provided: %s' % ip_address
-        elif not helpers.is_public_ip(ip_address):
-            message = 'Non-public IP address provided: %s' % ip_address
 
         if message:
             return {'result': 'error', 'message': message}

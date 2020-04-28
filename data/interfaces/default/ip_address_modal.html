@@ -79,7 +79,7 @@
                 $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> Internal request failed.').show();
             },
             success: function (result) {
-                if (result.results === 'error') {
+                if (result.result === 'error') {
                     $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + result.message).show();
                 } else {
                     var data = result.data;
