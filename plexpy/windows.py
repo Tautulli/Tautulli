@@ -16,10 +16,18 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import shlex
 import sys
 from systray import SysTrayIcon
-import winreg
+
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
+
+try:
+    import winreg
+except ImportError:
+    import _winreg as winreg
 
 import plexpy
 if plexpy.PYTHON2:
@@ -127,7 +135,7 @@ def set_startup():
     else:
         args = [exe, plexpy.FULL_PATH]
 
-    cmd = ' '.join(shlex.quote(arg) for arg in args).replace('python.exe', 'pythonw.exe').replace("'", '"')
+    cmd = ' '.join(cmd_quote(arg) for arg in args).replace('python.exe', 'pythonw.exe').replace("'", '"')
 
     if plexpy.CONFIG.LAUNCH_STARTUP:
         try:
