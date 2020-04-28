@@ -672,7 +672,7 @@ Returns:
 
 
 ### get_geoip_lookup
-Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+Get the geolocation info for an IP address.
 
 ```
 Required parameters:
@@ -2571,10 +2571,6 @@ Returns:
 ```
 
 
-### install_geoip_db
-Downloads and installs the GeoLite2 database
-
-
 ### notify
 Send a notification using Tautulli.
 
@@ -2849,10 +2845,6 @@ Optional parameters:
 Returns:
     None
 ```
-
-
-### uninstall_geoip_db
-Uninstalls the GeoLite2 database
 
 
 ### update

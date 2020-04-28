@@ -2942,11 +2942,7 @@ class WebInterface(object):
             "newsletter_password": plexpy.CONFIG.NEWSLETTER_PASSWORD,
             "newsletter_inline_styles": checked(plexpy.CONFIG.NEWSLETTER_INLINE_STYLES),
             "newsletter_custom_dir": plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR,
-            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY),
-            "maxmind_license_key": plexpy.CONFIG.MAXMIND_LICENSE_KEY,
-            "geoip_db": plexpy.CONFIG.GEOIP_DB,
-            "geoip_db_installed": plexpy.CONFIG.GEOIP_DB_INSTALLED,
-            "geoip_db_update_days": plexpy.CONFIG.GEOIP_DB_UPDATE_DAYS
+            "win_sys_tray": checked(plexpy.CONFIG.WIN_SYS_TRAY)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -3177,36 +3173,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Database backup successful.'}
         else:
             return {'result': 'error', 'message': 'Database backup failed.'}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def install_geoip_db(self, update=False, **kwargs):
-        """ Downloads and installs the GeoLite2 database """
-
-        update = helpers.bool_true(update)
-
-        result = helpers.install_geoip_db(update=update)
-
-        if result:
-            return {'result': 'success', 'message': 'GeoLite2 database installed successful.', 'updated': result}
-        else:
-            return {'result': 'error', 'message': 'GeoLite2 database install failed.', 'updated': 0}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def uninstall_geoip_db(self, **kwargs):
-        """ Uninstalls the GeoLite2 database """
-
-        result = helpers.uninstall_geoip_db()
-
-        if result:
-            return {'result': 'success', 'message': 'GeoLite2 database uninstalled successfully.'}
-        else:
-            return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5725,7 +5691,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_geoip_lookup(self, ip_address='', **kwargs):
-        """ Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+        """ Get the geolocation info for an IP address.
 
             ```
             Required parameters:
