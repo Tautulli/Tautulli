@@ -946,7 +946,7 @@ class PlexTV(object):
             return account_details
 
     def get_geoip_lookup(self, ip_address=''):
-        if not ip_address or not helpers.is_public_ip(ip_address):
+        if not ip_address or not helpers.is_valid_ip(ip_address):
             return
 
         geoip_data = self.get_plextv_geoip(ip_address=ip_address, output_format='xml')

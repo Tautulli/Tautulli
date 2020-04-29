@@ -45,6 +45,7 @@ else:
 
 monitor_lock = threading.Lock()
 ext_ping_count = 0
+ext_ping_error = None
 int_ping_count = 0
 
 
@@ -323,18 +324,25 @@ def check_server_access():
         server_response = pms_connect.get_server_response()
 
         global ext_ping_count
+        global ext_ping_error
 
         # Check for remote access
         if server_response:
+            log = (server_response['mapping_error'] != ext_ping_error)
+
             if server_response['reason']:
                 ext_ping_count += 1
-                logger.warn("Tautulli Monitor :: Remote access failed: %s, ping attempt %s." \
-                            % (server_response['reason'], str(ext_ping_count)))
+                ext_ping_error = server_response['mapping_error']
+                if log:
+                    logger.warn("Tautulli Monitor :: Remote access failed: %s, ping attempt %s."
+                                % (server_response['reason'], str(ext_ping_count)))
 
             # Waiting for port mapping
             elif server_response['mapping_state'] == 'waiting':
-                logger.warn("Tautulli Monitor :: Remote access waiting for port mapping, ping attempt %s." \
-                            % str(ext_ping_count))
+                ext_ping_error = server_response['mapping_error']
+                if log:
+                    logger.warn("Tautulli Monitor :: Remote access waiting for port mapping, ping attempt %s."
+                                % str(ext_ping_count))
 
             # Reset external ping counter
             else:
@@ -344,8 +352,10 @@ def check_server_access():
                     plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
 
                 ext_ping_count = 0
+                ext_ping_error = None
 
         if ext_ping_count == plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
+            logger.info("Tautulli Monitor: Plex remote access is down.")
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
 
 

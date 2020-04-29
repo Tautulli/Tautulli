@@ -2993,6 +2993,8 @@ class WebInterface(object):
             "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
             "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
             "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
+            "remote_access_ping_interval": plexpy.CONFIG.REMOTE_ACCESS_PING_INTERVAL,
+            "remote_access_ping_threshold": plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD,
             "refresh_libraries_interval": plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL,
             "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
@@ -3124,6 +3126,7 @@ class WebInterface(object):
                 kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
                 kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
                 kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
+                kwargs.get('remote_access_ping_interval') != plexpy.CONFIG.REMOTE_ACCESS_PING_INTERVAL or \
                 kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             reschedule = True
 
@@ -5828,8 +5831,6 @@ class WebInterface(object):
             message = 'No IP address provided.'
         elif not helpers.is_valid_ip(ip_address):
             message = 'Invalid IP address provided: %s' % ip_address
-        elif not helpers.is_public_ip(ip_address):
-            message = 'Non-public IP address provided: %s' % ip_address
 
         if message:
             return {'result': 'error', 'message': message}
