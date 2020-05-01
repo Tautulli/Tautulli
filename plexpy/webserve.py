@@ -3740,17 +3740,23 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def import_database(self, app=None, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
-        """ Import a PlexWatch or Plexivity database into Tautulli.
+    def import_database(self, app=None, database_path=None, method=None, backup=True,
+                        table_name=None, import_ignore_interval=0, **kwargs):
+        """ Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
 
             ```
             Required parameters:
-                app (str):                      "plexwatch" or "plexivity"
+                app (str):                      "tautulli" or "plexwatch" or "plexivity"
                 database_path (str):            The full path to the plexwatch database file
-                table_name (str):               "processed" or "grouped"
+                method (str):                   For Tautulli only, "merge" or "overwrite"
+                table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
+
 
             Optional parameters:
-                import_ignore_interval (int):   The minimum number of seconds for a stream to import
+                backup (bool):                  For Tautulli only, true or false whether to backup
+                                                the current database before importing
+                import_ignore_interval (int):   For PlexWatch or Plexivity only, the minimum number
+                                                of seconds for a stream to import
 
             Returns:
                 None
@@ -3759,7 +3765,18 @@ class WebInterface(object):
         if not app:
             return 'No app specified for import'
 
-        if app.lower() == 'plexwatch':
+        if app.lower() == 'tautulli':
+            db_check_msg = database.validate_database(database=database_path)
+            if db_check_msg == 'success':
+                threading.Thread(target=database.import_tautulli_db,
+                                 kwargs={'database': database_path,
+                                         'method': method,
+                                         'backup': helpers.bool_true(backup)}).start()
+                return 'Import has started. Check the Tautulli logs to monitor any problems.'
+            else:
+                return db_check_msg
+
+        elif app.lower() == 'plexwatch':
             db_check_msg = plexwatch_import.validate_database(database=database_path,
                                                               table_name=table_name)
             if db_check_msg == 'success':
@@ -3770,6 +3787,7 @@ class WebInterface(object):
                 return 'Import has started. Check the Tautulli logs to monitor any problems.'
             else:
                 return db_check_msg
+            
         elif app.lower() == 'plexivity':
             db_check_msg = plexivity_import.validate_database(database=database_path,
                                                               table_name=table_name)
@@ -3781,13 +3799,16 @@ class WebInterface(object):
                 return 'Import has started. Check the Tautulli logs to monitor any problems.'
             else:
                 return db_check_msg
+
         else:
             return 'App not recognized for import'
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def import_database_tool(self, app=None, **kwargs):
-        if app == 'plexwatch':
+        if app == 'tautulli':
+            return serve_template(templatename="app_import.html", title="Import Tautulli Database", app="Tautulli")
+        elif app == 'plexwatch':
             return serve_template(templatename="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
         elif app == 'plexivity':
             return serve_template(templatename="app_import.html", title="Import Plexivity Database", app="Plexivity")

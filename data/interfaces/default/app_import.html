@@ -5,6 +5,7 @@
             <h4 class="modal-title">Import ${app} Database</h4>
         </div>
         <div class="modal-body" id="modal-text">
+            % if app in ('PlexWatch', 'Plexivity'):
             <p class="help-block">
                 <%
                     v = ''
@@ -15,26 +16,54 @@
                 %>
                 <strong>Please ensure your ${app} database is at version ${v} or higher.</strong>
             </p>
+            % endif
             <div class="form-group">
-                <label for="db_location">Database Location</label>
+                <label for="import_database_path">Database Location</label>
                 <div class="row">
-                    <div class="col-xs-8">
-                        <input type="text" class="form-control" id="db_location" name="db_location" value="" required>
+                    <div class="col-xs-12">
+                        <input type="text" class="form-control" id="import_database_path" name="import_database_path" value="" required>
                     </div>
                 </div>
-                <p class="help-block">Enter the path and file name for the ${app} database you wish to import.</p>
+                <p class="help-block">Enter the full path to the ${app} database you wish to import.</p>
             </div>
+            % if app == 'Tautulli':
             <div class="form-group">
-                <label for="table_name">Table Name</label>
+                <label for="table_name">Import Method</label>
                 <div class="row">
                     <div class="col-xs-4">
-                        <select id="table_name" class="form-control" name="table_name">
-                            <option value="processed">processed</option>
-                            <option value="grouped">grouped</option>
+                        <select class="form-control" id="import_method" name="import_method">
+                            <option value="merge">Merge</option>
+                            <option value="append">Append</option>
+                            <option value="overwrite">Oerwrite</option>
                         </select>
                     </div>
                 </div>
-                <p class="help-block">The table name from which you wish to import. Only import one of these, importing both will result in duplicated data.</p>
+                <p class="help-block">Select how you would like to import the Tautulli history.</p>
+                <ul class="help-block" style="padding-inline-start: 15px;">
+                    <li><strong>Merge</strong> will only add missing history from the imported database into the current database.</li>
+                    <li><strong>Append</strong> will add all history from the imported database into the current database.
+                        <br>Note: History will be duplicated if it is present in both databases.</li>
+                    <li><strong>Overwrite</strong> will replace all history in the current database with the imported database.</li>
+                </ul>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="import_backup_db" id="import_backup_db" value="1" checked> Backup Database
+                </label>
+                <p class="help-block">Automatically create a backup of the current database before importing.</p>
+            </div>
+            % else:
+            <div class="form-group">
+                <label for="import_table_name">Table Name</label>
+                <div class="row">
+                    <div class="col-xs-4">
+                        <select class="form-control" id="import_table_name" name="import_table_name">
+                            <option value="processed">Processed</option>
+                            <option value="grouped">Grouped</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="help-block">Select the table name from which you wish to import. Only import one of these, importing both will result in duplicated data.</p>
             </div>
             <div class="form-group">
                 <label for="import_ignore_interval">Ignore Interval</label>
@@ -45,6 +74,7 @@
                 </div>
                 <p class="help-block">Enter the minimum duration (in seconds) an item must have been active for. Set to 0 to import all.</p>
             </div>
+            % endif
         </div>
         <div class="modal-footer">
             <div>
@@ -57,22 +87,26 @@
 <script>
     // Send database path to import script
     $("#import_db").click(function() {
-        var database_path = $("#db_location").val();
-        var table_name = $("#table_name").val();
+        var database_path = $("#import_database_path").val();
+        var import_method = $("#import_method").val();
+        var import_backup_db = $("#import_backup_db").is(':checked');
+        var import_table_name = $("#import_table_name").val();
         var import_ignore_interval = $("#import_ignore_interval").val();
         $.ajax({
             url: 'import_database',
             data: {
                 app: "${app}",
                 database_path: database_path,
-                table_name: table_name,
+                method: import_method,
+                backup: import_backup_db,
+                table_name: import_table_name,
                 import_ignore_interval: import_ignore_interval
             },
             cache: false,
             async: true,
             success: function(data) {
                 $("#status-message").html(data);
-                $("#db_location").val('')
+                $("#import_database_path").val('')
             }
         });
     });
