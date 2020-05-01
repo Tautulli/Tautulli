@@ -2110,6 +2110,15 @@ def dbcheck():
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_musicbrainz_lookup ON musicbrainz_lookup (rating_key)'
     )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_image_hash_lookup ON image_hash_lookup (img_hash)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_cloudinary_lookup ON cloudinary_lookup (img_hash)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_imgur_lookup ON imgur_lookup (img_hash)'
+    )
 
     conn_db.commit()
     c_db.close()
