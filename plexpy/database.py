@@ -36,6 +36,87 @@ FILENAME = "tautulli.db"
 db_lock = threading.Lock()
 
 
+def validate_database(database=None):
+    try:
+        connection = sqlite3.connect(database, timeout=20)
+    except sqlite3.OperationalError as e:
+        logger.error("Tautulli Database :: Invalid database specified: %s", e)
+        return 'Invalid database specified'
+    except ValueError as e:
+        logger.error("Tautulli Database :: Invalid database specified: %s", e)
+        return 'Invalid database specified'
+    except Exception as e:
+        logger.error("Tautulli Database :: Uncaught exception: %s", e)
+        return 'Uncaught exception'
+
+    return 'success'
+
+
+def import_tautulli_db(database=None, method=None, backup=True):
+    db_validate = validate_database(database=database)
+    if not db_validate == 'success':
+        logger.error("Tautulli Database :: Failed to import Tautulli database: %s", db_validate)
+        return False
+
+    if method not in ('merge', 'append', 'overwrite'):
+        logger.error("Tautulli Database :: Failed to import Tautulli database: invalid import method '%s'", method)
+        return False
+
+    # Make a backup of the current database first
+    if backup:
+        logger.info("Tautulli Database :: Creating a database backup before importing.")
+        if not make_backup():
+            logger.error("Tautulli Database :: Failed to import Tautulli database: failed to create database backup")
+            return False
+
+    logger.info("Tautulli Database :: Tautulli database import started with method '%s'...", method)
+
+    db = MonitorDatabase()
+    db.connection.execute('BEGIN IMMEDIATE')
+    db.connection.execute('ATTACH ? AS import_db', [database])
+
+    # Create a temporary table so we can reindex session_history.reference_id after merging
+    if method == 'append':
+        logger.info("Tautulli Database :: Creating temporary database table to re-index grouped session history.")
+        session_history_seq = db.select_single('SELECT seq FROM sqlite_sequence WHERE name = "session_history" ')
+        db.action('CREATE TABLE IF NOT EXISTS temp (id INTEGER PRIMARY KEY, old_id, new_id)')
+        db.action('INSERT INTO temp (old_id) SELECT id FROM import_db.session_history')
+        db.action('UPDATE temp SET new_id = id + ?', [session_history_seq['seq']])
+
+    tables = db.select('SELECT name FROM import_db.sqlite_master '
+                       'WHERE type = "table" AND name NOT LIKE "sqlite_%"')
+    for table in tables:
+        table_name = table['name']
+        logger.info("Tautulli Database :: Importing database table '%s'", table_name)
+
+        if method == 'overwrite':
+            db.action('DELETE FROM {table}'.format(table=table_name))
+            db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
+
+        columns = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
+
+        if method == 'merge':
+            import_columns = [c['name'] for c in columns]
+        else:
+            import_columns = [c['name'] for c in columns if not c['pk']]
+
+        insert_columns = ', '.join(import_columns)
+        db.action('INSERT OR IGNORE INTO {table} ({columns}) '
+                  'SELECT {columns} FROM import_db.{table}'.format(table=table_name, columns=insert_columns))
+
+    # Reindex session_history.reference_id and delete the temp table
+    if method == 'append':
+        logger.info("Tautulli Database :: Re-indexing grouped session history.")
+        db.action('UPDATE session_history SET reference_id = (SELECT new_id FROM temp WHERE old_id = reference_id)'
+                  'WHERE id > ?', [session_history_seq['seq']])
+        logger.info("Tautulli Database :: Deleting temporary database table.")
+        db.action('DROP TABLE temp')
+
+    db.action('VACUUM')
+
+    logger.info("Tautulli Database :: Tautulli database import complete.")
+
+
 def integrity_check():
     monitor_db = MonitorDatabase()
     result = monitor_db.select_single('PRAGMA integrity_check')
@@ -149,7 +230,7 @@ def make_backup(cleanup=False, scheduler=False):
         os.makedirs(backup_folder)
 
     db = MonitorDatabase()
-    db.connection.execute('begin immediate')
+    db.connection.execute('BEGIN IMMEDIATE')
     shutil.copyfile(db_filename(), backup_file_fp)
     db.connection.rollback()
 
