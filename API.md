@@ -2555,16 +2555,21 @@ Returns:
 
 
 ### import_database
-Import a PlexWatch or Plexivity database into Tautulli.
+Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
 
 ```
 Required parameters:
-    app (str):                      "plexwatch" or "plexivity"
+    app (str):                      "tautulli" or "plexwatch" or "plexivity"
     database_path (str):            The full path to the plexwatch database file
-    table_name (str):               "processed" or "grouped"
+    method (str):                   For Tautulli only, "merge" or "append" or "overwrite"
+    table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
+
 
 Optional parameters:
-    import_ignore_interval (int):   The minimum number of seconds for a stream to import
+    backup (bool):                  For Tautulli only, true or false whether to backup
+                                    the current database before importing
+    import_ignore_interval (int):   For PlexWatch or Plexivity only, the minimum number
+                                    of seconds for a stream to import
 
 Returns:
     None
