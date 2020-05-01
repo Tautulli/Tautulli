@@ -2119,6 +2119,9 @@ def dbcheck():
     c_db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_imgur_lookup ON imgur_lookup (img_hash)'
     )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued ON sessions_continued (user_id, machine_id, media_type)'
+    )
 
     conn_db.commit()
     c_db.close()
