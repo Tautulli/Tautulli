@@ -87,6 +87,10 @@ def import_tautulli_db(database=None, method=None, backup=True):
                        'WHERE type = "table" AND name NOT LIKE "sqlite_%"')
     for table in tables:
         table_name = table['name']
+        if table_name == 'sessions':
+            # Skip temporary sessions table
+            continue
+
         logger.info("Tautulli Database :: Importing database table '%s'", table_name)
 
         if method == 'overwrite':
