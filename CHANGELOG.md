@@ -1,36 +1,28 @@
 # Changelog
 
-## v2.2.3-beta (2020-04-27)
+## v2.2.3 (2020-05-01)
 
 * Notifications:
+  * Fix: Notification grouping by season/album and show/artist not enabled by default.
+  * Fix: The rating key notification parameter was being overwritten when 3rd party lookup was enabled.
+  * Fix: Missing artist value for Musicbrainz lookup in certain situations. 
+  * New: Added notification trigger for Tautulli database corruption.
+  * New: Added TAUTULLI_PYTHON_VERSION to script notification environment variables.
   * New: Added Plex Android / iOS App notification agent.
   * New: Added bandwidth notification parameters.
   * New: Added user thumb to notification parameters.
   * New: Added initial stream notification parameter and threshold setting to determine if a stream is the first stream of a continuous streaming session.
   * New: Added Plex remote access notification parameters.
-  * Fix: The rating key notification parameter was being overwritten when 3rd party lookup was enabled.
-  * Fix: Missing artist value for Musicbrainz lookup in certain situations. 
-* UI:
-  * Fix: History table was not being refreshed after deleting entries.
-* Other:
-  * Fix: Auto-updater was not scheduled when enabling the setting unless Tautulli was restarted.
-  * Change: Remove the unnecessary optional Plex logs volume from the Docker image.
-  * Change: Use Plex.tv for GeoIP lookup instead of requiring the MaxMind GeoLite2 database.
-
-
-## v2.2.2-beta (2020-04-12)
-
-* Notifications:
-  * New: Added notification trigger for Tautulli database corruption.
-  * New: Added TAUTULLI_PYTHON_VERSION to script notification environment variables.
-  * Fix: Notification grouping by season/album and show/artist not enabled by default.
   * Change: The file size notification parameter is now reported in SI units. (Thanks @aaronldunlap)
 * UI:
   * Fix: Delete lookup info from the media info page failing.
+  * Fix: XBMC platform icon not being redirected to the Kodi platform icon.
+  * Fix: History table was not being refreshed after deleting entries.
   * New: Added icon on the users table to indicate if the user is not on the Plex server.
   * New: Added icon on the libraries table to indicate if the library is not on the Plex server.
-  * Fix: XBMC platform icon not being redirected to the Kodi platform icon.
   * Change: Improved deleting libraries so libraries with the same section ID are not also deleted.
+* Mobile App:
+  * Fix: Temporary device token was not being invalidated after cancelling device registration.
 * API:
   * Fix: Returning XML from the API failing due to unicode characters.
   * Fix: Grouping parameter for various API commands not falling back to default setting.
@@ -38,12 +30,13 @@
   * New: Added an "is_active" return value to the get_user, get_users, get_library, and get_libraries API commands which indicates if the user or library is on the Plex server.
   * New: Added delete_history API command.
   * Change: Added optional parameter for row_ids for delete_library, delete_user, delete_all_library_history, and delete_all_user_history API commands.
-* Mobile App:
-  * Fix: Temporary device token was not being invalidated after cancelling device registration.
 * Other:
   * Fix: Update failing on CentOS due to an older git version.
   * Fix: Manifest file for creating a web app had incorrect info.
+  * Fix: Auto-updater was not scheduled when enabling the setting unless Tautulli was restarted.
   * New: Docker images updated to support ARM platforms.
+  * Change: Remove the unnecessary optional Plex logs volume from the Docker image.
+  * Change: Use Plex.tv for GeoIP lookup instead of requiring the MaxMind GeoLite2 database.
 
 
 ## v2.2.1 (2020-03-28)
