@@ -865,7 +865,7 @@ class DataFactory(object):
                     'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art, ' \
                     'count, parent_count, child_count ' \
                     'FROM library_sections ' \
-                    'WHERE section_id IN (%s) ' \
+                    'WHERE section_id IN (%s) AND deleted_section = 0 ' \
                     'ORDER BY section_type, count DESC, parent_count DESC, child_count DESC ' % ','.join(library_cards)
             result = monitor_db.select(query)
         except Exception as e:
