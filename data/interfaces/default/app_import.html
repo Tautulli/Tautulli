@@ -5,6 +5,7 @@
             <h4 class="modal-title">Import ${app} Database</h4>
         </div>
         <div class="modal-body" id="modal-text">
+            <input type="hidden" id="import_app" name="import_app" value="${app.lower()}" />
             % if app in ('PlexWatch', 'Plexivity'):
             <p class="help-block">
                 <%
@@ -33,23 +34,20 @@
                     <div class="col-xs-4">
                         <select class="form-control" id="import_method" name="import_method">
                             <option value="merge">Merge</option>
-                            <option value="append">Append</option>
                             <option value="overwrite">Oerwrite</option>
                         </select>
                     </div>
                 </div>
                 <p class="help-block">Select how you would like to import the Tautulli history.</p>
                 <ul class="help-block" style="padding-inline-start: 15px;">
-                    <li><strong>Merge</strong> will only add missing history from the imported database into the current database.</li>
-                    <li><strong>Append</strong> will add all history from the imported database into the current database.
-                        <br>Note: History will be duplicated if it is present in both databases.</li>
+                    <li><strong>Merge</strong> will add all history and remove any duplicates from the imported database into the current database.</li>
                     <li><strong>Overwrite</strong> will replace all history in the current database with the imported database.</li>
                 </ul>
-                <p class="help-block">Note: Other settings such as notification and newsletter agents will also be imported.</p>
+                <p class="help-block">Note: Libraries, users, notification agents, newsletter agents, and registered mobile devices will also be imported</p>
             </div>
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="import_backup_db" id="import_backup_db" value="1" checked> Backup Database
+                    <input type="checkbox" name="import_backup_db" id="import_backup_db" value="1" checked> Backup Current Database
                 </label>
                 <p class="help-block">Automatically create a backup of the current database before importing.</p>
             </div>
@@ -88,6 +86,7 @@
 <script>
     // Send database path to import script
     $("#import_db").click(function() {
+        var import_app = $("#import_app").val();
         var database_path = $("#import_database_path").val();
         var import_method = $("#import_method").val();
         var import_backup_db = $("#import_backup_db").is(':checked');
@@ -96,7 +95,7 @@
         $.ajax({
             url: 'import_database',
             data: {
-                app: "${app}",
+                app: import_app,
                 database_path: database_path,
                 method: import_method,
                 backup: import_backup_db,

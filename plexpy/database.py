@@ -58,30 +58,37 @@ def import_tautulli_db(database=None, method=None, backup=True):
         logger.error("Tautulli Database :: Failed to import Tautulli database: %s", db_validate)
         return False
 
-    if method not in ('merge', 'append', 'overwrite'):
+    if method not in ('merge', 'overwrite'):
         logger.error("Tautulli Database :: Failed to import Tautulli database: invalid import method '%s'", method)
         return False
 
-    # Make a backup of the current database first
     if backup:
+        # Make a backup of the current database first
         logger.info("Tautulli Database :: Creating a database backup before importing.")
         if not make_backup():
             logger.error("Tautulli Database :: Failed to import Tautulli database: failed to create database backup")
             return False
 
-    logger.info("Tautulli Database :: Tautulli database import started with method '%s'...", method)
+    logger.info("Tautulli Database :: Importing Tautulli database '%s' with import method '%s'...", database, method)
 
     db = MonitorDatabase()
     db.connection.execute('BEGIN IMMEDIATE')
     db.connection.execute('ATTACH ? AS import_db', [database])
 
-    # Create a temporary table so we can reindex session_history.reference_id after merging
-    if method == 'append':
+    # Get the current number of used ids in the session_history table
+    session_history_seq = db.select_single('SELECT seq FROM sqlite_sequence WHERE name = "session_history"')
+
+    if method == 'merge':
+        # Create a temporary table so we can reindex session_history.reference_id after merging
         logger.info("Tautulli Database :: Creating temporary database table to re-index grouped session history.")
-        session_history_seq = db.select_single('SELECT seq FROM sqlite_sequence WHERE name = "session_history" ')
         db.action('CREATE TABLE IF NOT EXISTS temp (id INTEGER PRIMARY KEY, old_id, new_id)')
         db.action('INSERT INTO temp (old_id) SELECT id FROM import_db.session_history')
         db.action('UPDATE temp SET new_id = id + ?', [session_history_seq['seq']])
+
+    # Keep track of all table columns so that duplicates can be removed after importing
+    session_history_tables = ('session_history', 'session_history_metadata', 'session_history_media_info')
+    session_history_columns = []
+    table_columns = {}
 
     tables = db.select('SELECT name FROM import_db.sqlite_master '
                        'WHERE type = "table" AND name NOT LIKE "sqlite_%"')
@@ -91,28 +98,50 @@ def import_tautulli_db(database=None, method=None, backup=True):
             # Skip temporary sessions table
             continue
 
-        logger.info("Tautulli Database :: Importing database table '%s'", table_name)
+        logger.info("Tautulli Database :: Importing database table '%s'.", table_name)
 
         if method == 'overwrite':
+            # Clear the table and reset the autoincrement ids
             db.action('DELETE FROM {table}'.format(table=table_name))
             db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
 
+        # Get the list of columns to import
         columns = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
-
-        if method == 'merge':
-            import_columns = [c['name'] for c in columns]
-        else:
-            import_columns = [c['name'] for c in columns if not c['pk']]
-
+        import_columns = [c['name'] for c in columns if not c['pk']]
         insert_columns = ', '.join(import_columns)
+
+        table_columns[table_name] = insert_columns
+        if table == 'session_history':
+            session_history_columns = import_columns
+
+        # Insert the data with ignore instead of replace to be safe
         db.action('INSERT OR IGNORE INTO {table} ({columns}) '
                   'SELECT {columns} FROM import_db.{table}'.format(table=table_name, columns=insert_columns))
 
-    # Reindex session_history.reference_id and delete the temp table
-    if method == 'append':
+    db.connection.execute('DETACH import_db')
+
+    if method == 'merge':
+        # Reindex session_history.reference_id
         logger.info("Tautulli Database :: Re-indexing grouped session history.")
         db.action('UPDATE session_history SET reference_id = (SELECT new_id FROM temp WHERE old_id = reference_id)'
                   'WHERE id > ?', [session_history_seq['seq']])
+
+        if session_history_columns:
+            # Remove reference_id column from the list of session_history table columns to get unique rows
+            columns = ', '.join([c for c in session_history_columns if c != 'reference_id'])
+            # Remove session_history ids to KEEP from the temp table
+            db.action('DELETE FROM temp WHERE new_id IN ('
+                      'SELECT MIN(id) FROM session_history '
+                      'GROUP BY {columns})'.format(columns=columns))
+
+        for table, columns in table_columns.items():
+            logger.info("Tautulli Database :: Removing duplicate rows from database table '%s'.", table)
+            if table in session_history_tables:
+                db.action('DELETE FROM {table} WHERE id IN (SELECT new_id FROM temp)'.format(table=table))
+            else:
+                db.action('DELETE FROM {table} WHERE id NOT IN '
+                          '(SELECT MIN(id) FROM {table} GROUP BY {columns})'.format(table=table, columns=columns))
+
         logger.info("Tautulli Database :: Deleting temporary database table.")
         db.action('DROP TABLE temp')
 

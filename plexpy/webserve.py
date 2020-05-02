@@ -3748,7 +3748,7 @@ class WebInterface(object):
             Required parameters:
                 app (str):                      "tautulli" or "plexwatch" or "plexivity"
                 database_path (str):            The full path to the plexwatch database file
-                method (str):                   For Tautulli only, "merge" or "append" or "overwrite"
+                method (str):                   For Tautulli only, "merge" or "overwrite"
                 table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
 
 
