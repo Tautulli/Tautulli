@@ -45,14 +45,16 @@ class MacOSSystemTray(object):
             rumps.MenuItem('Open Tautulli', callback=self.tray_open),
             None,
             rumps.MenuItem('Start Tautulli at Login', callback=self.tray_startup),
+            rumps.MenuItem('Open Browser when Tautulli Starts', callback=self.tray_browser),
             None,
             rumps.MenuItem('Check for Updates', callback=self.tray_check_update),
             rumps.MenuItem('Restart', callback=self.tray_restart),
             rumps.MenuItem('Quit', callback=self.tray_quit)
         ]
         if not plexpy.FROZEN:
-            self.menu.insert(5, rumps.MenuItem('Update', callback=self.tray_update))
+            self.menu.insert(6, rumps.MenuItem('Update', callback=self.tray_update))
         self.menu[2].state = plexpy.CONFIG.LAUNCH_STARTUP
+        self.menu[3].state = plexpy.CONFIG.LAUNCH_BROWSER
 
         self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
 
@@ -77,6 +79,10 @@ class MacOSSystemTray(object):
         plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
         set_startup()
 
+    def tray_browser(self, tray_icon):
+        plexpy.CONFIG.LAUNCH_BROWSER = not plexpy.CONFIG.LAUNCH_BROWSER
+        set_startup()
+
     def tray_check_update(self, tray_icon):
         versioncheck.check_update()
 
@@ -97,13 +103,14 @@ class MacOSSystemTray(object):
             self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
         self.update(icon=self.icon)
 
-    def change_tray_startup_icon(self):
+    def change_tray_icons(self):
         self.tray_icon.menu['Start Tautulli at Login'].state = plexpy.CONFIG.LAUNCH_STARTUP
+        self.tray_icon.menu['Open Browser when Tautulli Starts'].state = plexpy.CONFIG.LAUNCH_BROWSER
 
 
 def set_startup():
     if plexpy.MAC_SYS_TRAY_ICON:
-        plexpy.MAC_SYS_TRAY_ICON.change_tray_startup_icon()
+        plexpy.MAC_SYS_TRAY_ICON.change_tray_icons()
 
     if plexpy.INSTALL_TYPE == 'macos':
         if plexpy.CONFIG.LAUNCH_STARTUP:

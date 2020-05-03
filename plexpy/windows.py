@@ -52,20 +52,25 @@ class WindowsSystemTray(object):
             self.hover_text = common.PRODUCT
 
         if plexpy.CONFIG.LAUNCH_STARTUP:
-            start_icon = os.path.join(self.image_dir, 'check-solid.ico')
+            launch_start_icon = os.path.join(self.image_dir, 'check-solid.ico')
         else:
-            start_icon = None
+            launch_start_icon = None
+        if plexpy.CONFIG.LAUNCH_BROWSER:
+            launch_browser_icon = os.path.join(self.image_dir, 'check-solid.ico')
+        else:
+            launch_browser_icon = None
 
         self.menu = [
             ['Open Tautulli', None, self.tray_open, 'default'],
             ['', None, 'separator', None],
-            ['Start Tautulli at Login', start_icon, self.tray_startup, None],
+            ['Start Tautulli at Login', launch_start_icon, self.tray_startup, None],
+            ['Open Browser when Tautulli Starts', launch_browser_icon, self.tray_browser, None],
             ['', None, 'separator', None],
             ['Check for Updates', None, self.tray_check_update, None],
             ['Restart', None, self.tray_restart, None]
         ]
         if not plexpy.FROZEN:
-            self.menu.insert(5, ['Update', None, self.tray_update, None])
+            self.menu.insert(6, ['Update', None, self.tray_update, None])
 
         self.tray_icon = SysTrayIcon(self.icon, self.hover_text, self.menu, on_quit=self.tray_quit)
 
@@ -87,6 +92,10 @@ class WindowsSystemTray(object):
 
     def tray_startup(self, tray_icon):
         plexpy.CONFIG.LAUNCH_STARTUP = not plexpy.CONFIG.LAUNCH_STARTUP
+        set_startup()
+
+    def tray_browser(self, tray_icon):
+        plexpy.CONFIG.LAUNCH_BROWSER = not plexpy.CONFIG.LAUNCH_BROWSER
         set_startup()
 
     def tray_check_update(self, tray_icon):
@@ -114,18 +123,23 @@ class WindowsSystemTray(object):
             self.hover_text = common.PRODUCT + ' - No Update Available'
         self.update(icon=self.icon, hover_text=self.hover_text)
 
-    def change_tray_startup_icon(self):
+    def change_tray_icons(self):
         if plexpy.CONFIG.LAUNCH_STARTUP:
-            start_icon = os.path.join(self.image_dir, 'check-solid.ico')
+            launch_start_icon = os.path.join(self.image_dir, 'check-solid.ico')
         else:
-            start_icon = None
-        self.menu[2][1] = start_icon
+            launch_start_icon = None
+        if plexpy.CONFIG.LAUNCH_BROWSER:
+            launch_browser_icon = os.path.join(self.image_dir, 'check-solid.ico')
+        else:
+            launch_browser_icon = None
+        self.menu[2][1] = launch_start_icon
+        self.menu[3][1] = launch_browser_icon
         self.update(menu_options=self.menu)
 
 
 def set_startup():
     if plexpy.WIN_SYS_TRAY_ICON:
-        plexpy.WIN_SYS_TRAY_ICON.change_tray_startup_icon()
+        plexpy.WIN_SYS_TRAY_ICON.change_tray_icons()
 
     startup_reg_path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
