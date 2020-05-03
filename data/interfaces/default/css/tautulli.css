@@ -4297,3 +4297,7 @@ a[data-tab-destination] {
     margin-top: 0;
     color: #737373;
 }
+
+#browse-path-list > li > span > i.fa {
+    color: #999;
+}

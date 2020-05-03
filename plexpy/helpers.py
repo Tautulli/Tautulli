@@ -42,6 +42,7 @@ import os
 import re
 import shlex
 import socket
+import string
 import sys
 import time
 import unicodedata
@@ -1197,3 +1198,64 @@ def user_page(user_id=None, user=None):
         params['user'] = user
 
     return params
+
+
+def browse_path(path=None, include_hidden=False, filter_ext=''):
+    output = []
+
+    if not os.path.isdir(path):
+        return output
+
+    if path != os.path.dirname(path):
+        parent_path = os.path.dirname(path)
+        out = {
+            'key': base64.b64encode(parent_path.encode('UTF-8')),
+            'path': parent_path,
+            'title': '..',
+            'type': 'folder',
+            'icon': 'level-up-alt'
+        }
+        output.append(out)
+    elif os.name == 'nt':
+        drives = ['%s:\\' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+        for drive in drives:
+            out = {
+                'key': base64.b64encode(drive.encode('UTF-8')),
+                'path': drive,
+                'title': drive,
+                'type': 'folder',
+                'icon': 'level-up-alt'
+            }
+            output.append(out)
+
+    for root, dirs, files in os.walk(path):
+        for d in dirs:
+            if not include_hidden and d.startswith('.'):
+                continue
+            dir_path = os.path.join(root, d)
+            out = {
+                'key': base64.b64encode(dir_path.encode('UTF-8')),
+                'path': dir_path,
+                'title': d,
+                'type': 'folder',
+                'icon': 'folder'
+            }
+            output.append(out)
+        for f in files:
+            if not include_hidden and f.startswith('.'):
+                continue
+            if filter_ext and not f.endswith(filter_ext):
+                continue
+            file_path = os.path.join(root, f)
+            out = {
+                'key': base64.b64encode(file_path.encode('UTF-8')),
+                'path': file_path,
+                'title': f,
+                'type': 'file',
+                'icon': 'file'
+            }
+            output.append(out)
+
+        break
+
+    return output

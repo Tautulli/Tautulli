@@ -1882,6 +1882,38 @@ Rating: {rating}/10   --> Rating: /10
     </div>
 </div>
 <div id="mobile-device-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="mobile-device-config-modal"></div>
+<div id="browse-path-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="browse-path-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">File Browser</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="browse-path">Select a <span id="browse-path-type"></span> Below</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <input type="text" class="form-control" id="browse-path" name="browse-path" value="" size="30" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="height: 400px; overflow: auto;">
+                        <ul id="browse-path-list" class="stacked-configs list-unstyled">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="browse-path-status-message" style="padding-right: 25px;"></span>
+                <input type="button" id="select-browse-file" class="btn btn-bright" value="Select">
+            </div>
+        </div>
+    </div>
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -1984,6 +2016,38 @@ Rating: {rating}/10   --> Rating: /10
             complete: function (xhr, status) {
                 $("#mobile-device-config-modal").html(xhr.responseText).modal('show');
                 showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    function browsePath(key, path, filter_ext) {
+        $("#browse-path-status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>');
+        getBrowsePath(key, path, filter_ext).then(function (data) {
+            if (data.result === 'error') {
+                $("#browse-path-status-message").html("<i class='fa fa-exclamation-triangle'></i> " + data.message);
+            } else {
+                $("#browse-path-status-message").html("");
+
+                $('#browse-path').val(data.path);
+                var browse_list = $('#browse-path-list');
+                browse_list.parent().animate({ scrollTop: 0 }, 0);
+                browse_list.empty();
+
+                $.each(data.data, function(i, item) {
+                    var browse_item = $('<li/>')
+                        .html("<span><i class='fa fa-fw fa-" + item.icon + "'></i>&nbsp; " + item.title + "</span>")
+                        .addClass(item.type + ' pointer')
+                        .data('key', item.key)
+                        .data('path', item.path)
+                        .appendTo(browse_list)
+                });
+
+                $('#browse-path-list li').click(function (){
+                    $('#browse-path').val($(this).data('path'));
+                    if ($(this).hasClass('folder')) {
+                        browsePath($(this).data('key'), null, filter_ext)
+                    }
+                });
             }
         });
     }

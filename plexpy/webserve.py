@@ -21,6 +21,7 @@ from future.builtins import object
 from future.builtins import str
 
 from io import open
+import base64
 import json
 import linecache
 import os
@@ -3740,13 +3741,15 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def import_database(self, app=None, database_path=None, method=None, backup=True,
+    def import_database(self, app=None, database_file=None, database_path=None, method=None, backup=True,
                         table_name=None, import_ignore_interval=0, **kwargs):
         """ Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
 
             ```
             Required parameters:
                 app (str):                      "tautulli" or "plexwatch" or "plexivity"
+                database_file (file):           The database file to import (multipart/form-data)
+                or
                 database_path (str):            The full path to the plexwatch database file
                 method (str):                   For Tautulli only, "merge" or "overwrite"
                 table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
@@ -3764,6 +3767,20 @@ class WebInterface(object):
         """
         if not app:
             return 'No app specified for import'
+
+        if database_file:
+            database_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file.filename)
+            logger.info("Received database file '%s' for import. Saving to cache '%s'.",
+                        database_file.filename, database_path)
+            with open(database_path, 'wb') as f:
+                while True:
+                    data = database_file.file.read(8192)
+                    if not data:
+                        break
+                    f.write(data)
+
+        if not database_path:
+            return 'No database specified for import'
 
         if app.lower() == 'tautulli':
             db_check_msg = database.validate_database(database=database_path)
@@ -3815,6 +3832,21 @@ class WebInterface(object):
 
         logger.warn("No app specified for import.")
         return
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def browse_path(self, key=None, path=None, filter_ext=''):
+        if key:
+            path = base64.b64decode(key)
+        if not path:
+            path = plexpy.DATA_DIR
+
+        data = helpers.browse_path(path=path, filter_ext=filter_ext)
+        if data:
+            return {'result': 'success', 'path': path, 'data': data}
+        else:
+            return {'result': 'error', 'message': 'Invalid path.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

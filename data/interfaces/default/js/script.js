@@ -237,6 +237,27 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     });
 }
 
+getBrowsePath = function (key, path, filter_ext) {
+    var deferred = $.Deferred();
+
+    $.ajax({
+        url: 'browse_path',
+        type: 'GET',
+        data: {
+            key: key,
+            path: path,
+            filter_ext: filter_ext
+        },
+        success: function(data) {
+            deferred.resolve(data);
+        },
+        error: function() {
+            deferred.reject();
+        }
+    });
+    return deferred;
+};
+
 function doSimpleAjaxCall(url) {
     $.ajax(url);
 }
