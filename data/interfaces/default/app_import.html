@@ -123,6 +123,7 @@
     });
 
     $("#import_db").click(function() {
+        $(this).prop('disabled', true);
         var database_file = false;
 
         var formData = new FormData();
@@ -145,7 +146,9 @@
             formData.append('ignore_interval', $("#import_ignore_interval").val());
         }
         if (database_file) {
-            $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i> Uploading database file...');
+            $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>&nbsp; Uploading database file...');
+        } else {
+            $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>');
         }
 
         $.ajax({
@@ -157,10 +160,26 @@
             contentType: false,
             processData: false,
             success: function(data) {
-                $("#status-message").html(data);
+                var msg;
+                if (data.result === 'success') {
+                    msg = "<i class='fa fa-check'></i>&nbsp; " + data.message;
+                } else {
+                    msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; " + data.message;
+                }
+                $("#status-message").html(msg);
                 $("#import_database_file").val(null);
-                $('#import_database_file_name').val('');
+                $("#import_database_file_name").val('');
                 $("#import_database_path").val('');
+            },
+            error: function (xhr) {
+                var msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; Error (" + xhr.status + ")";
+                if (xhr.status === 413) {
+                    msg += ": file is too large to upload"
+                }
+                $("#status-message").html(msg);
+            },
+            complete: function(xhr) {
+                $("#import_db").prop('disabled', false);
             }
         });
     });

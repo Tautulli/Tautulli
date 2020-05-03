@@ -3739,6 +3739,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to delete device.'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def import_database(self, app=None, database_file=None, database_path=None, method=None, backup=True,
@@ -3762,11 +3763,14 @@ class WebInterface(object):
                                                 of seconds for a stream to import
 
             Returns:
-                None
+                json:
+                    {"result": "success",
+                     "message": "Import has started. Check the logs to monitor any problems."
+                     }
             ```
         """
         if not app:
-            return 'No app specified for import'
+            return {'result': 'error', 'message': 'No app specified for import'}
 
         if database_file:
             database_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file.filename)
@@ -3780,7 +3784,7 @@ class WebInterface(object):
                     f.write(data)
 
         if not database_path:
-            return 'No database specified for import'
+            return {'result': 'error', 'message': 'No database specified for import'}
 
         if app.lower() == 'tautulli':
             db_check_msg = database.validate_database(database=database_path)
@@ -3789,9 +3793,10 @@ class WebInterface(object):
                                  kwargs={'database': database_path,
                                          'method': method,
                                          'backup': helpers.bool_true(backup)}).start()
-                return 'Import has started. Check the Tautulli logs to monitor any problems.'
+                return {'result': 'success',
+                        'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
-                return db_check_msg
+                return {'result': 'error', 'message': db_check_msg}
 
         elif app.lower() == 'plexwatch':
             db_check_msg = plexwatch_import.validate_database(database=database_path,
@@ -3801,10 +3806,11 @@ class WebInterface(object):
                                  kwargs={'database': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
-                return 'Import has started. Check the Tautulli logs to monitor any problems.'
+                return {'result': 'success',
+                        'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
-                return db_check_msg
-            
+                return {'result': 'error', 'message': db_check_msg}
+
         elif app.lower() == 'plexivity':
             db_check_msg = plexivity_import.validate_database(database=database_path,
                                                               table_name=table_name)
@@ -3813,12 +3819,13 @@ class WebInterface(object):
                                  kwargs={'database': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
-                return 'Import has started. Check the Tautulli logs to monitor any problems.'
+                return {'result': 'success',
+                        'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
-                return db_check_msg
+                return {'result': 'error', 'message': db_check_msg}
 
         else:
-            return 'App not recognized for import'
+            return {'result': 'error', 'message': 'App not recognized for import'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
