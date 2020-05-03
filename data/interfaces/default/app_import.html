@@ -28,7 +28,7 @@
                                     <span class="btn btn-form">Upload</span>
                                     <input type="file" style="display: none;" id="import_database_file" name="import_database_file" required>
                                 </label>
-                                <input type="text" class="form-control" disabled>
+                                <input id="import_database_file_name" type="text" class="form-control" disabled>
                             </div>
                         </div>
                     </div>
@@ -118,8 +118,7 @@
 
     $('#import_database_file').change(function() {
         if ($(this)[0].files[0]) {
-            var input = $(this).parents('.input-group').find(':text')
-            input.val($(this)[0].files[0].name);
+            $('#import_database_file_name').val($(this)[0].files[0].name);
         }
     });
 
@@ -160,6 +159,7 @@
             success: function(data) {
                 $("#status-message").html(data);
                 $("#import_database_file").val(null);
+                $('#import_database_file_name').val('');
                 $("#import_database_path").val('');
             }
         });
