@@ -15,7 +15,8 @@ analysis = Analysis(
         ('../data', 'data'),
         ('../CHANGELOG.md', '.'),
         ('../LICENSE', '.'),
-        ('../version.txt', '.')
+        ('../version.txt', '.'),
+        ('../lib/ipwhois/data', 'data')
     ],
     excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
     hiddenimports=['Foundation', 'AppKit'],

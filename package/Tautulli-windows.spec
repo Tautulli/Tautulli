@@ -8,10 +8,12 @@ block_cipher = None
 analysis = Analysis(
     ['..\\Tautulli.py'],
     pathex=['lib'],
-    datas=[('..\\data', 'data'),
-           ('..\\CHANGELOG.md', '.'),
-           ('..\\LICENSE', '.'),
-           ('..\\version.txt', '.')
+    datas=[
+        ('..\\data', 'data'),
+        ('..\\CHANGELOG.md', '.'),
+        ('..\\LICENSE', '.'),
+        ('..\\version.txt', '.')
+        ('..\\lib\\ipwhois\\data', 'data')
     ],
     excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
     cipher=block_cipher,
