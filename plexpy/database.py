@@ -39,10 +39,17 @@ db_lock = threading.Lock()
 def validate_database(database=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
-    except sqlite3.OperationalError as e:
+    except (sqlite3.OperationalError, sqlite3.DatabaseError, ValueError) as e:
         logger.error("Tautulli Database :: Invalid database specified: %s", e)
         return 'Invalid database specified'
-    except ValueError as e:
+    except Exception as e:
+        logger.error("Tautulli Database :: Uncaught exception: %s", e)
+        return 'Uncaught exception'
+
+    try:
+        connection.execute('SELECT started from session_history')
+        connection.close()
+    except (sqlite3.OperationalError, sqlite3.DatabaseError, ValueError) as e:
         logger.error("Tautulli Database :: Invalid database specified: %s", e)
         return 'Invalid database specified'
     except Exception as e:
