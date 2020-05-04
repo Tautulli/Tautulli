@@ -3738,6 +3738,7 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Failed to delete device.'}
 
+    @cherrypy.config(**{'response.timeout': 3600})
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))

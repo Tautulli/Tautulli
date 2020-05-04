@@ -89,6 +89,8 @@ def initialize(options):
         'server.socket_host': options['http_host'],
         'environment': options['http_environment'],
         'server.thread_pool': 10,
+        'server.max_request_body_size': 1073741824,
+        'server.socket_timeout': 60,
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
         'tools.decode.on': True
