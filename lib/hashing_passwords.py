@@ -56,6 +56,6 @@ def check_hash(password, hash_):
     # Same as "return hash_a == hash_b" but takes a constant time.
     # See http://carlos.bueno.org/2011/10/timing.html
     diff = 0
-    for char_a, char_b in zip(hash_a, hash_b):
+    for char_a, char_b in zip(bytearray(hash_a), bytearray(hash_b)):
         diff |= char_a ^ char_b
     return diff == 0
