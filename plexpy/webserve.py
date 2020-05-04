@@ -3845,7 +3845,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def browse_path(self, key=None, path=None, filter_ext=''):
         if key:
-            path = base64.b64decode(key)
+            path = base64.b64decode(key).decode('UTF-8')
         if not path:
             path = plexpy.DATA_DIR
 
