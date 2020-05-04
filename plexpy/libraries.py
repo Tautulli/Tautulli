@@ -61,6 +61,7 @@ def refresh_libraries():
                               'count': section['count'],
                               'parent_count': section.get('parent_count', None),
                               'child_count': section.get('child_count', None),
+                              'is_active': section['is_active']
                               }
 
             result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
