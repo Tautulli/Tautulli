@@ -1229,7 +1229,7 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
             output.append(out)
 
     for root, dirs, files in os.walk(path):
-        for d in dirs:
+        for d in sorted(dirs):
             if not include_hidden and d.startswith('.'):
                 continue
             dir_path = os.path.join(root, d)
@@ -1241,7 +1241,7 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
                 'icon': 'folder'
             }
             output.append(out)
-        for f in files:
+        for f in sorted(files):
             if not include_hidden and f.startswith('.'):
                 continue
             if filter_ext and not f.endswith(filter_ext):
