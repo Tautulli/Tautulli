@@ -2536,7 +2536,6 @@ class PLEXMOBILEAPP(Notifier):
 
     def get_users(self):
         user_ids = {u['user_id']: u['friendly_name'] for u in users.Users().get_users() if u['user_id']}
-        user_ids[''] = ''
         return user_ids
 
     def _return_config_options(self):
