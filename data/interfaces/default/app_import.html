@@ -187,9 +187,11 @@
                 $("#import_database_path").val('');
             },
             error: function (xhr) {
-                var msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; Error (" + xhr.status + ")";
+                var msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; Error (" + xhr.status + "): ";
                 if (xhr.status === 413) {
-                    msg += ": file is too large to upload"
+                    msg += "file is too large to upload"
+                } else {
+                    msg += 'try again'
                 }
                 $("#status-message").html(msg);
             },
