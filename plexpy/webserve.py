@@ -3742,7 +3742,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def import_database(self, app=None, database_file=None, database_path=None, method=None, backup=True,
+    def import_database(self, app=None, database_file=None, database_path=None, method=None, backup=False,
                         table_name=None, import_ignore_interval=0, **kwargs):
         """ Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
 

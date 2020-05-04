@@ -124,27 +124,42 @@
 
     $("#import_db").click(function() {
         $(this).prop('disabled', true);
-        var database_file = false;
 
-        var formData = new FormData();
-        formData.append('app', $("#import_app").val());
-        formData.append('database_path', $("#import_database_path").val());
-        if ($('#import_database_file')[0].files[0]) {
-            database_file = true;
-            formData.append('database_file', $('#import_database_file')[0].files[0]);
+        var app = $("#import_app").val();
+        var database_file = $('#import_database_file')[0].files[0];
+        var database_path = $("#import_database_path").val();
+        var method = $("#import_method").val();
+        var backup = $("#import_backup_db").is(':checked');
+        var table_name = $("#import_table_name").val();
+        var ignore_interval = $("#import_ignore_interval").val();
+
+        var content_type;
+        var process_data;
+        var data;
+
+        if (database_file) {
+            content_type = false;
+            process_data = false;
+            data = new FormData();
+            data.append('app', app);
+            data.append('database_file', database_file);
+            data.append('method', method);
+            data.append('backup', backup);
+            data.append('table_name', table_name);
+            data.append('ignore_interval', ignore_interval);
+        } else {
+            content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
+            process_data = true;
+            data = {
+                app: app,
+                database_path: database_path,
+                method: method,
+                backup: backup,
+                table_name: table_name,
+                ignore_interval: ignore_interval
+            }
         }
-        if ($("#import_method").length) {
-            formData.append('method', $("#import_method").val());
-        }
-        if ($("#import_backup_db").length) {
-            formData.append('backup', $("#import_backup_db").is(':checked'));
-        }
-        if ($("#import_table_name").length) {
-            formData.append('table_name', $("#import_table_name").val());
-        }
-        if ($("#import_ignore_interval").length) {
-            formData.append('ignore_interval', $("#import_ignore_interval").val());
-        }
+
         if (database_file) {
             $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>&nbsp; Uploading database file...');
         } else {
@@ -154,11 +169,11 @@
         $.ajax({
             url: 'import_database',
             type: 'POST',
-            data: formData,
+            data: data,
             cache: false,
             async: true,
-            contentType: false,
-            processData: false,
+            contentType: content_type,
+            processData: process_data,
             success: function(data) {
                 var msg;
                 if (data.result === 'success') {

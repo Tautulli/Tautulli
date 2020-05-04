@@ -59,7 +59,7 @@ def validate_database(database=None):
     return 'success'
 
 
-def import_tautulli_db(database=None, method=None, backup=True):
+def import_tautulli_db(database=None, method=None, backup=False):
     db_validate = validate_database(database=database)
     if not db_validate == 'success':
         logger.error("Tautulli Database :: Failed to import Tautulli database: %s", db_validate)
