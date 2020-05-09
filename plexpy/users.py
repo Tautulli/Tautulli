@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import str
 from future.builtins import object
+from future.moves.urllib.parse import parse_qsl
 
 import httpagentparser
 
@@ -804,8 +805,6 @@ class Users(object):
         return None
 
     def get_filters(self, user_id=None):
-        import urllib.parse
-
         if not user_id:
             return {}
 
@@ -824,7 +823,7 @@ class Users(object):
 
             for f in v.split('|'):
                 if 'contentRating=' in f or 'label=' in f:
-                    filters.update(dict(urllib.parse.parse_qsl(f)))
+                    filters.update(dict(parse_qsl(f)))
 
             filters['content_rating'] = tuple(f for f in filters.pop('contentRating', '').split(',') if f)
             filters['labels'] = tuple(f for f in filters.pop('label', '').split(',') if f)
