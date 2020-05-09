@@ -167,7 +167,7 @@ class PlexTV(object):
         uri = '/users/sign_in.xml'
         base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'Authorization': 'Basic %s' % base64string}
+                   'Authorization': 'Basic %s' % base64string.decode('utf-8')}
 
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='POST',
