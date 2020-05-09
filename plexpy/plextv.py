@@ -164,16 +164,20 @@ class PlexTV(object):
                                                         headers=headers)
 
     def get_plex_auth(self, output_format='raw'):
-        uri = '/users/sign_in.xml'
-        base64string = base64.b64encode(('%s:%s' % (self.username, self.password)).encode('utf-8'))
-        headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'Authorization': 'Basic %s' % base64string.decode('utf-8')}
+        uri = '/api/v2/users/signin'
+        headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                   'Accept': 'application/xml'}
+        data = {'login': self.username,
+                'password': self.password,
+                'rememberMe': True}
 
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='POST',
                                                     headers=headers,
+                                                    data=data,
                                                     output_format=output_format,
-                                                    no_token=True)
+                                                    no_token=True,
+                                                    encode_multipart=False)
 
         return request
 
@@ -184,7 +188,7 @@ class PlexTV(object):
             try:
                 xml_head = plextv_response.getElementsByTagName('user')
                 if xml_head:
-                    user = {'auth_token': xml_head[0].getAttribute('authenticationToken'),
+                    user = {'auth_token': xml_head[0].getAttribute('authToken'),
                             'user_id': xml_head[0].getAttribute('id')
                             }
                 else:

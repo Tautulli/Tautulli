@@ -73,12 +73,14 @@ class HTTPHandler(object):
     def make_request(self,
                      uri=None,
                      headers=None,
+                     data=None,
                      request_type='GET',
                      output_format='raw',
                      return_type=False,
                      no_token=False,
                      timeout=None,
-                     callback=None):
+                     callback=None,
+                     **request_kwargs):
         """
         Handle the HTTP requests.
 
@@ -86,11 +88,13 @@ class HTTPHandler(object):
         """
 
         self.uri = str(uri)
+        self.data = data
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
         self.return_type = return_type
         self.callback = callback
         self.timeout = timeout or self.timeout
+        self.request_kwargs = request_kwargs
 
         if self.request_type not in self.valid_request_types:
             logger.debug("HTTP request made but unsupported request type given.")
@@ -149,7 +153,8 @@ class HTTPHandler(object):
     def _http_requests_urllib3(self, url, session):
         """Request the data from the url"""
         try:
-            r = session.request(self.request_type, url, headers=self.headers, timeout=self.timeout)
+            r = session.request(self.request_type, url, headers=self.headers, fields=self.data,
+                                timeout=self.timeout, **self.request_kwargs)
         except IOError as e:
             if not self._silent:
                 logger.warn("Failed to access uri endpoint %s with error %s" % (self.uri, e))
