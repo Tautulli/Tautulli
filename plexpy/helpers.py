@@ -1203,6 +1203,18 @@ def user_page(user_id=None, user=None):
 def browse_path(path=None, include_hidden=False, filter_ext=''):
     output = []
 
+    if os.name == 'nt' and path.lower() == 'my computer':
+        drives = ['%s:\\' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+        for drive in drives:
+            out = {
+                'key': base64.b64encode(drive.encode('UTF-8')),
+                'path': drive,
+                'title': drive,
+                'type': 'folder',
+                'icon': 'folder'
+            }
+            output.append(out)
+
     if not os.path.isdir(path):
         return output
 
@@ -1217,16 +1229,15 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
         }
         output.append(out)
     elif os.name == 'nt':
-        drives = ['%s:\\' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
-        for drive in drives:
-            out = {
-                'key': base64.b64encode(drive.encode('UTF-8')),
-                'path': drive,
-                'title': drive,
-                'type': 'folder',
-                'icon': 'level-up-alt'
-            }
-            output.append(out)
+        parent_path = 'My Computer'
+        out = {
+            'key': base64.b64encode(parent_path.encode('UTF-8')),
+            'path': parent_path,
+            'title': parent_path,
+            'type': 'folder',
+            'icon': 'level-up-alt'
+        }
+        output.append(out)
 
     for root, dirs, files in os.walk(path):
         for d in sorted(dirs):
