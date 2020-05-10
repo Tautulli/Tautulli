@@ -1805,7 +1805,8 @@ class PmsConnect(object):
                                 'stream_subtitle_location': helpers.get_xml_attr(subtitle_stream_info, 'location'),
                                 'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
                                 'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
-                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision')
+                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision'),
+                                'stream_subtitle_transient': int(helpers.get_xml_attr(subtitle_stream_info, 'transient') == '1')
                                 }
         else:
             subtitle_selected = None
@@ -1816,7 +1817,8 @@ class PmsConnect(object):
                                 'stream_subtitle_location': '',
                                 'stream_subtitle_language': '',
                                 'stream_subtitle_language_code': '',
-                                'stream_subtitle_decision': ''
+                                'stream_subtitle_decision': '',
+                                'stream_subtitle_transient': 0
                                 }
 
         # Get the bif thumbnail

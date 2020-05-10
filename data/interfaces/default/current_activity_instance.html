@@ -276,14 +276,17 @@ DOCUMENTATION :: END
                                 <div class="sub-heading">Subtitle</div>
                                 <div class="sub-value" id="subtitle_decision-${sk}">
                                     % if data['subtitles'] == 1:
+                                        <%
+                                            subtitle_codec = 'None' if data['stream_subtitle_codec'] and data['stream_subtitle_transient'] else data['subtitle_codec'].upper()
+                                        %>
                                         % if data['stream_subtitle_decision'] == 'transcode':
-                                        Transcode (${data['subtitle_codec'].upper()} <i class="fa fa-long-arrow-right"></i> ${data['stream_subtitle_codec'].upper()})
+                                        Transcode (${subtitle_codec} <i class="fa fa-long-arrow-right"></i> ${data['stream_subtitle_codec'].upper()})
                                         % elif data['stream_subtitle_decision'] == 'copy':
-                                        Direct Stream (${data['subtitle_codec'].upper()})
+                                        Direct Stream (${subtitle_codec})
                                         % elif data['stream_subtitle_decision'] == 'burn':
-                                        Burn (${data['subtitle_codec'].upper()})
+                                        Burn (${subtitle_codec})
                                         % else:
-                                        Direct Play (${data['subtitle_codec'].upper() if data['synced_version'] else data['stream_subtitle_codec'].upper()})
+                                        Direct Play (${subtitle_codec if data['synced_version'] else data['stream_subtitle_codec'].upper()})
                                         % endif
                                     % else:
                                     None
