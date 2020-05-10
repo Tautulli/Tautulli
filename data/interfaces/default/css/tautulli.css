@@ -2994,6 +2994,9 @@ a .home-platforms-list-cover-face:hover
 .accordion li .link i.fa {
     color: #999;
 }
+.accordion li .link span.toggle-left {
+    padding-right: 5px;
+}
 .accordion li .link span.toggle-right {
     float: right;
     padding-left: 10px;
@@ -4300,4 +4303,37 @@ a[data-tab-destination] {
 
 #browse-path-list > li > span > i.fa {
     color: #999;
+}
+
+#tautulli-news .open .news-title,
+#tautulli-news .open .news-date,
+#tautulli-news .accordion li.open .link i.fa {
+    color: #eee;
+}
+.news-title,
+.news-date {
+    color: #999;
+    padding-left: 5px;
+}
+.news-subtitle {
+    display: block;
+    color: #aaa;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.news-body {
+    display: block;
+    color: #aaa;
+}
+.news-body p:last-of-type {
+    margin-bottom: 0;
+}
+.news-body a {
+    display: inline !important;
+    background: none !important;
+    padding: 0 !important;
+    color: #fff;
+}
+.news-body a:hover {
+    color: #f9be03;
 }

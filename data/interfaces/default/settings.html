@@ -72,6 +72,13 @@
                         </div>
                         % endif
                         <div class="padded-header">
+                            <h3>Tautulli News</h3>
+                        </div>
+                        <div id="tautulli-news">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading news...</div>
+                            <br>
+                        </div>
+                        <div class="padded-header">
                             <h3>Tautulli Configuration</h3>
                         </div>
                         <div id="plexpy-configuration-table">
@@ -2989,6 +2996,46 @@ $(document).ready(function() {
 
     $('#resources-xml').on('tripleclick', function () {
         openPlexXML('/api/resources', true, {includeHttps: 1});
+    });
+
+    var tautulli_news = $('#tautulli-news')
+    $.ajax({
+        url: 'https://tautulli.com/news/tautulli-news.json',
+        type: 'GET',
+        dataType: 'json',
+        cache: false,
+        async: true,
+        success: function (data) {
+            if (data) {
+                var news = $('<ul/>').addClass('accordion list-unstyled')
+                $.each(data, function (index, news_item) {
+                    if (index >= 5) { return false; }
+                    var header = $('<div/>').addClass('link').html(
+                        '<span class="toggle-left"><i class="fa fa-newspaper fa-fw"></i></span>' +
+                        '<span class="news-title">' + news_item.title + '</span>' +
+                        '<span class="toggle-right"><i class="fa fa-chevron-down fa-fw"></i></span>' +
+                        '<span class="news-date toggle-right">' + moment(news_item.date, "YYYY-MM-DD").format($('#date_format').val()) + '</span>');
+                    var subtitle = $('<span/>').addClass('news-subtitle').html(news_item.subtitle);
+                    var body = $('<span/>').addClass('news-body').html(news_item.body);
+                    var content = $('<div/>').addClass('submenu');
+                    if (news_item.subtitle) { content.append(subtitle); }
+                    content.append(body);
+                    var li = $('<li/>').append(header).append(content)
+                    if (index === 0) {
+                        li.addClass('open');
+                        content.css('display', 'block');
+                    }
+                    news.append(li)
+                });
+                tautulli_news.html(news);
+                var accordion_news = new Accordion(news, false);
+            } else {
+                tautulli_news.html('<p class="help-block"><i class="fa fa-check"></i>&nbsp; No news available.</p>')
+            }
+        },
+        error: function () {
+            tautulli_news.html('<p class="help-block"><i class="fa fa-exclamation-triangle"></i>&nbsp; Failed to retrieve news.</p>')
+        }
     });
 });
 </script>
