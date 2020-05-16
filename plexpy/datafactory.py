@@ -248,7 +248,7 @@ class DataFactory(object):
                    'parent_rating_key': item['parent_rating_key'],
                    'grandparent_rating_key': item['grandparent_rating_key'],
                    'full_title': item['full_title'],
-                   'title': item['parent_title'],
+                   'title': item['title'],
                    'parent_title': item['parent_title'],
                    'grandparent_title': item['grandparent_title'],
                    'original_title': item['original_title'],
