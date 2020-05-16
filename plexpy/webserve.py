@@ -3127,7 +3127,7 @@ class WebInterface(object):
                 kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
                 kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
                 kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS or \
-                kwargs.get('remote_access_ping_interval') != plexpy.CONFIG.REMOTE_ACCESS_PING_INTERVAL or \
+                kwargs.get('remote_access_ping_interval') != str(plexpy.CONFIG.REMOTE_ACCESS_PING_INTERVAL) or \
                 kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             reschedule = True
 

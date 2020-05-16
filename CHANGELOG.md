@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.2.4 (2020-05-16)
+
+* Monitoring:
+  * Fix: Show "None" as the subtitle source on the activity card for user selected subtitles.
+* UI:
+  * Fix: Deleted libraries were showing up on the homepage library cards.
+  * Fix: Libraries could get stuck as inactive in the database in some instances.
+* API:
+  * Fix: Incorrect title was being returned for the get_history API command.
+* Other:
+  * Fix: Plex remote access check was not being rescheduled after changing the settings.
+
+
 ## v2.2.3 (2020-05-01)
 
 * Notifications:

@@ -493,14 +493,15 @@
 
                         var subtitle_decision = 'None';
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles === 1) {
+                            var subtitle_codec = (s.stream_subtitle_codec && s.stream_subtitle_transient) ? 'None' : s.subtitle_codec.toUpperCase();
                             if (s.stream_subtitle_decision === 'transcode') {
-                                subtitle_decision = 'Transcode (' + s.subtitle_codec.toUpperCase() + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Transcode (' + subtitle_codec + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
                             } else if (s.stream_subtitle_decision === 'copy') {
-                                subtitle_decision = 'Direct Stream (' + s.subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Direct Stream (' + subtitle_codec + ')';
                             } else if (s.stream_subtitle_decision === 'burn') {
-                                subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Burn (' + subtitle_codec + ')';
                             } else {
-                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? s.subtitle_codec.toUpperCase() : s.stream_subtitle_codec.toUpperCase()) + ')';
+                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? subtitle_codec : s.stream_subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
