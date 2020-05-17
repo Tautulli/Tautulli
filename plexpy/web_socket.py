@@ -24,6 +24,7 @@ import json
 import threading
 import time
 
+import certifi
 import websocket
 
 import plexpy
@@ -145,12 +146,17 @@ def run():
     if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
         uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
         secure = 'secure '
+        if plexpy.CONFIG.VERIFY_SSL_CERT:
+            sslopt = {'ca_certs': certifi.where()}
+        else:
+            sslopt = None
     else:
         uri = 'ws://%s:%s/:/websockets/notifications' % (
             plexpy.CONFIG.PMS_IP,
             plexpy.CONFIG.PMS_PORT
         )
         secure = ''
+        sslopt = None
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
@@ -165,7 +171,7 @@ def run():
     # Try an open the websocket connection
     logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
     try:
-        plexpy.WEBSOCKET = create_connection(uri, header=header)
+        plexpy.WEBSOCKET = create_connection(uri, header=header, sslopt=sslopt)
         logger.info("Tautulli WebSocket :: Ready")
         plexpy.WS_CONNECTED = True
     except (websocket.WebSocketException, IOError, Exception) as e:
