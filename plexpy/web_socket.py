@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 from future.builtins import str
 
 import json
+import ssl
 import threading
 import time
 
@@ -149,7 +150,7 @@ def run():
         if plexpy.CONFIG.VERIFY_SSL_CERT:
             sslopt = {'ca_certs': certifi.where()}
         else:
-            sslopt = None
+            sslopt = {'cert_reqs': ssl.CERT_NONE}
     else:
         uri = 'ws://%s:%s/:/websockets/notifications' % (
             plexpy.CONFIG.PMS_IP,
