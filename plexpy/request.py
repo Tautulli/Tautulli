@@ -23,6 +23,7 @@ from xml.dom import minidom
 
 import collections
 import requests
+from requests.packages import urllib3
 
 import plexpy
 if plexpy.PYTHON2:
@@ -59,6 +60,8 @@ def request_response(url, method="get", auto_raise=True,
     # Disable verification of SSL certificates if requested. Note: this could
     # pose a security issue!
     kwargs["verify"] = bool(plexpy.CONFIG.VERIFY_SSL_CERT)
+    if not kwargs['verify']:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     # Map method to the request.XXX method. This is a simple hack, but it
     # allows requests to apply more magic per method. See lib/requests/api.py.
@@ -149,6 +152,8 @@ def request_response2(url, method="get", auto_raise=True,
     # Disable verification of SSL certificates if requested. Note: this could
     # pose a security issue!
     kwargs['verify'] = bool(plexpy.CONFIG.VERIFY_SSL_CERT)
+    if not kwargs['verify']:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     # Map method to the request.XXX method. This is a simple hack, but it
     # allows requests to apply more magic per method. See lib/requests/api.py.
