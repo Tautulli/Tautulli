@@ -129,7 +129,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
         insert_columns = ', '.join(import_columns)
 
         table_columns[table_name] = insert_columns
-        if table == 'session_history':
+        if table_name == 'session_history':
             session_history_columns = import_columns
 
         # Insert the data with ignore instead of replace to be safe
