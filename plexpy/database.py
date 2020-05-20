@@ -91,7 +91,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
         logger.info("Tautulli Database :: Creating temporary database table to re-index grouped session history.")
         db.action('CREATE TABLE IF NOT EXISTS temp (id INTEGER PRIMARY KEY, old_id, new_id)')
         db.action('INSERT INTO temp (old_id) SELECT id FROM import_db.session_history')
-        db.action('UPDATE temp SET new_id = id + ?', [session_history_seq['seq']])
+        db.action('UPDATE temp SET new_id = id + ?', [session_history_seq.get('seq', 0)])
 
     # Keep track of all table columns so that duplicates can be removed after importing
     session_history_tables = ('session_history', 'session_history_metadata', 'session_history_media_info')
@@ -135,7 +135,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
         # Reindex session_history.reference_id
         logger.info("Tautulli Database :: Re-indexing grouped session history.")
         db.action('UPDATE session_history SET reference_id = (SELECT new_id FROM temp WHERE old_id = reference_id)'
-                  'WHERE id > ?', [session_history_seq['seq']])
+                  'WHERE id > ?', [session_history_seq.get('seq', 0)])
 
         if session_history_columns:
             # Remove reference_id column from the list of session_history table columns to get unique rows
