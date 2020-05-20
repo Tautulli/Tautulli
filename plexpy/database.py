@@ -106,6 +106,11 @@ def import_tautulli_db(database=None, method=None, backup=False):
             # Skip temporary sessions table
             continue
 
+        current_table = db.select('PRAGMA main.table_info({table})'.format(table=table_name))
+        if not current_table:
+            # Skip table does not exits
+            continue
+
         logger.info("Tautulli Database :: Importing database table '%s'.", table_name)
 
         if method == 'overwrite':
@@ -114,14 +119,13 @@ def import_tautulli_db(database=None, method=None, backup=False):
             db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
 
         # Get the list of columns to import
-        current_columns = db.select('PRAGMA table_info({table})'.format(table=table_name))
-        current_columns = [c['name'] for c in current_columns]
-        import_columns = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
+        current_columns = [c['name'] for c in current_table]
+        import_table = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
 
         if method == 'merge':
-            import_columns = [c['name'] for c in import_columns if c['name'] in current_columns and not c['pk']]
+            import_columns = [c['name'] for c in import_table if c['name'] in current_columns and not c['pk']]
         else:
-            import_columns = [c['name'] for c in import_columns if c['name'] in current_columns]
+            import_columns = [c['name'] for c in import_table if c['name'] in current_columns]
         insert_columns = ', '.join(import_columns)
 
         table_columns[table_name] = insert_columns
