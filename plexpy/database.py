@@ -114,11 +114,14 @@ def import_tautulli_db(database=None, method=None, backup=False):
             db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
 
         # Get the list of columns to import
-        columns = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
+        current_columns = db.select('PRAGMA table_info({table})'.format(table=table_name))
+        current_columns = [c['name'] for c in current_columns]
+        import_columns = db.select('PRAGMA import_db.table_info({table})'.format(table=table_name))
+
         if method == 'merge':
-            import_columns = [c['name'] for c in columns if not c['pk']]
+            import_columns = [c['name'] for c in import_columns if c['name'] in current_columns and not c['pk']]
         else:
-            import_columns = [c['name'] for c in columns]
+            import_columns = [c['name'] for c in import_columns if c['name'] in current_columns]
         insert_columns = ', '.join(import_columns)
 
         table_columns[table_name] = insert_columns
