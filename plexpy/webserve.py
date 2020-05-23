@@ -3797,6 +3797,8 @@ class WebInterface(object):
                 return {'result': 'success',
                         'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
+                if database_file:
+                    helpers.delete_file(database_path)
                 return {'result': 'error', 'message': db_check_msg}
 
         elif app.lower() == 'plexwatch':
@@ -3810,6 +3812,8 @@ class WebInterface(object):
                 return {'result': 'success',
                         'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
+                if database_file:
+                    helpers.delete_file(database_path)
                 return {'result': 'error', 'message': db_check_msg}
 
         elif app.lower() == 'plexivity':
@@ -3823,6 +3827,8 @@ class WebInterface(object):
                 return {'result': 'success',
                         'message': 'Import has started. Check the logs to monitor any problems.'}
             else:
+                if database_file:
+                    helpers.delete_file(database_path)
                 return {'result': 'error', 'message': db_check_msg}
 
         else:
