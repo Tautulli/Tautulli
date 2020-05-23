@@ -1270,3 +1270,13 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
         break
 
     return output
+
+
+def delete_file(file_path):
+    logger.info("Tautulli Helpers :: Deleting file: %s", file_path)
+    try:
+        os.remove(file_path)
+        return True
+    except OSError:
+        logger.error("Tautulli Helpers :: Failed to delete file: %s", file_path)
+        return False
