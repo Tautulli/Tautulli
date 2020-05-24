@@ -1720,7 +1720,11 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def history(self, **kwargs):
-        return serve_template(templatename="history.html", title="History")
+        config = {
+            "database_is_importing": database.IS_IMPORTING,
+        }
+
+        return serve_template(templatename="history.html", title="History", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

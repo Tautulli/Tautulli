@@ -27,14 +27,21 @@ import time
 import plexpy
 if plexpy.PYTHON2:
     import logger
-    from helpers import cast_to_int
+    from helpers import cast_to_int, bool_true
 else:
     from plexpy import logger
-    from plexpy.helpers import cast_to_int
+    from plexpy.helpers import cast_to_int, bool_true
 
 
 FILENAME = "tautulli.db"
 db_lock = threading.Lock()
+
+IS_IMPORTING = False
+
+
+def set_is_importing(value):
+    global IS_IMPORTING
+    IS_IMPORTING = bool_true(value)
 
 
 def validate_database(database=None):
@@ -78,6 +85,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
             return False
 
     logger.info("Tautulli Database :: Importing Tautulli database '%s' with import method '%s'...", database, method)
+    set_is_importing(True)
 
     db = MonitorDatabase()
     db.connection.execute('BEGIN IMMEDIATE')
@@ -171,6 +179,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
     db.action('VACUUM')
 
     logger.info("Tautulli Database :: Tautulli database import complete.")
+    set_is_importing(False)
 
 
 def integrity_check():

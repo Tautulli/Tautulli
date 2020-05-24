@@ -283,6 +283,7 @@ def import_from_plexwatch(database_file=None, table_name=None, import_ignore_int
         return None
 
     logger.debug("Tautulli Importer :: PlexWatch data import in progress...")
+    database.set_is_importing(True)
 
     ap = activity_processor.ActivityProcessor()
     user_data = users.Users()
@@ -438,8 +439,11 @@ def import_from_plexwatch(database_file=None, table_name=None, import_ignore_int
         else:
             logger.debug("Tautulli Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 
-    logger.debug("Tautulli Importer :: PlexWatch data import complete.")
     import_users()
+
+    logger.debug("Tautulli Importer :: PlexWatch data import complete.")
+    database.set_is_importing(False)
+
 
 def import_users():
     logger.debug("Tautulli Importer :: Importing PlexWatch Users...")
