@@ -154,7 +154,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
     if method == 'merge':
         for table_name, columns in sorted(table_columns.items()):
-            duplicate_columns = ', '.join([c for c in columns if c != 'id'])
+            duplicate_columns = ', '.join([c for c in columns if c not in ('id', 'reference_id')])
             logger.info("Tautulli Database :: Removing duplicate rows from database table '%s'.", table_name)
             if table_name in session_history_tables[1:]:
                 db.action('DELETE FROM {table} WHERE id NOT IN '
