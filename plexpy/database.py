@@ -123,7 +123,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
             db.action('DELETE FROM {table}'.format(table=table_name))
             db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
 
-        if table_name in session_history_tables:
+        if method == 'merge' and table_name in session_history_tables:
             from_db_name = 'main'
             from_table_name = table_name + '_copy'
         else:
