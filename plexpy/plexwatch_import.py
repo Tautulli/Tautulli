@@ -23,14 +23,12 @@ from xml.dom import minidom
 
 import plexpy
 if plexpy.PYTHON2:
-    import activity_pinger
     import activity_processor
     import database
     import helpers
     import logger
     import users
 else:
-    from plexpy import activity_pinger
     from plexpy import activity_processor
     from plexpy import database
     from plexpy import helpers
@@ -239,9 +237,10 @@ def extract_plexwatch_xml(xml=None):
 
     return output
 
-def validate_database(database=None, table_name=None):
+
+def validate_database(database_file=None, table_name=None):
     try:
-        connection = sqlite3.connect(database, timeout=20)
+        connection = sqlite3.connect(database_file, timeout=20)
     except sqlite3.OperationalError:
         logger.error("Tautulli Importer :: Invalid database specified.")
         return 'Invalid database specified.'
@@ -264,10 +263,11 @@ def validate_database(database=None, table_name=None):
 
     return 'success'
 
-def import_from_plexwatch(database=None, table_name=None, import_ignore_interval=0):
+
+def import_from_plexwatch(database_file=None, table_name=None, import_ignore_interval=0):
 
     try:
-        connection = sqlite3.connect(database, timeout=20)
+        connection = sqlite3.connect(database_file, timeout=20)
         connection.row_factory = sqlite3.Row
     except sqlite3.OperationalError:
         logger.error("Tautulli Importer :: Invalid filename.")

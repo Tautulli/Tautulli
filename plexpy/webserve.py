@@ -3802,11 +3802,11 @@ class WebInterface(object):
                 return {'result': 'error', 'message': db_check_msg}
 
         elif app.lower() == 'plexwatch':
-            db_check_msg = plexwatch_import.validate_database(database=database_path,
+            db_check_msg = plexwatch_import.validate_database(database_file=database_path,
                                                               table_name=table_name)
             if db_check_msg == 'success':
                 threading.Thread(target=plexwatch_import.import_from_plexwatch,
-                                 kwargs={'database': database_path,
+                                 kwargs={'database_file': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
                 return {'result': 'success',
@@ -3817,11 +3817,11 @@ class WebInterface(object):
                 return {'result': 'error', 'message': db_check_msg}
 
         elif app.lower() == 'plexivity':
-            db_check_msg = plexivity_import.validate_database(database=database_path,
+            db_check_msg = plexivity_import.validate_database(database_file=database_path,
                                                               table_name=table_name)
             if db_check_msg == 'success':
                 threading.Thread(target=plexivity_import.import_from_plexivity,
-                                 kwargs={'database': database_path,
+                                 kwargs={'database_file': database_path,
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
                 return {'result': 'success',
