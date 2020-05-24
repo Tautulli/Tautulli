@@ -359,6 +359,7 @@ class MonitorDatabase(object):
                     break
 
                 except sqlite3.OperationalError as e:
+                    e = str(e)
                     if "unable to open database file" in e or "database is locked" in e:
                         logger.warn("Tautulli Database :: Database Error: %s", e)
                         attempts += 1
