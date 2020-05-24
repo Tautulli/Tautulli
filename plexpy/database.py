@@ -103,7 +103,8 @@ def import_tautulli_db(database=None, method=None, backup=False):
     table_columns = {}
 
     tables = db.select('SELECT name FROM import_db.sqlite_master '
-                       'WHERE type = "table" AND name NOT LIKE "sqlite_%"')
+                       'WHERE type = "table" AND name NOT LIKE "sqlite_%"'
+                       'ORDER BY name')
     for table in tables:
         table_name = table['name']
         if table_name == 'sessions':
