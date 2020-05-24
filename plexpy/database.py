@@ -152,11 +152,16 @@ def import_tautulli_db(database=None, method=None, backup=False):
     db.connection.execute('DETACH import_db')
 
     if method == 'merge':
-        for table, columns in table_columns.items():
+        for table_name, columns in sorted(table_columns.items()):
             duplicate_columns = ', '.join([c for c in columns if c != 'id'])
-            logger.info("Tautulli Database :: Removing duplicate rows from database table '%s'.", table)
-            db.action('DELETE FROM {table} WHERE id NOT IN '
-                      '(SELECT MIN(id) FROM {table} GROUP BY {columns})'.format(table=table, columns=duplicate_columns))
+            logger.info("Tautulli Database :: Removing duplicate rows from database table '%s'.", table_name)
+            if table_name in session_history_tables[1:]:
+                db.action('DELETE FROM {table} WHERE id NOT IN '
+                          '(SELECT id FROM session_history)'.format(table=table_name))
+            else:
+                db.action('DELETE FROM {table} WHERE id NOT IN '
+                          '(SELECT MIN(id) FROM {table} GROUP BY {columns})'.format(table=table_name,
+                                                                                    columns=duplicate_columns))
 
         logger.info("Tautulli Database :: Deleting temporary database tables.")
         for table_name in session_history_tables:
