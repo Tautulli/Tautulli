@@ -495,7 +495,7 @@ $(document).ready(function() {
             var pms_ssl = $("#pms_ssl").val();
             var pms_is_remote = $("#pms_is_remote").val();
             if ((pms_ip !== '') || (pms_port !== '')) {
-                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Validating server...');
+                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Verifying server...');
                 $('#pms-verify-status').fadeIn('fast');
                 $.ajax({
                     url: 'get_server_id',
@@ -510,7 +510,7 @@ $(document).ready(function() {
                     async: true,
                     timeout: 5000,
                     error: function (jqXHR, textStatus, errorThrown) {
-                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; This is not a Plex Server!');
+                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error verifying server: ' + textStatus);
                         $('#pms-verify-status').fadeIn('fast');
                     },
                     success: function(xhr, status) {
