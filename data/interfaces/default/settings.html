@@ -3007,21 +3007,23 @@ $(document).ready(function() {
         async: true,
         success: function (data) {
             if (data) {
+                var now = moment().endOf('day');
                 var news = $('<ul/>').addClass('accordion list-unstyled')
                 $.each(data, function (index, news_item) {
+                    var date = moment(news_item.date, "YYYY-MM-DD");
                     if (index >= 5) { return false; }
                     var header = $('<div/>').addClass('link').html(
                         '<span class="toggle-left"><i class="fa fa-newspaper fa-fw"></i></span>' +
                         '<span class="news-title">' + news_item.title + '</span>' +
                         '<span class="toggle-right"><i class="fa fa-chevron-down fa-fw"></i></span>' +
-                        '<span class="news-date toggle-right">' + moment(news_item.date, "YYYY-MM-DD").format($('#date_format').val()) + '</span>');
+                        '<span class="news-date toggle-right">' + date.format($('#date_format').val()) + '</span>');
                     var subtitle = $('<span/>').addClass('news-subtitle').html(news_item.subtitle);
                     var body = $('<span/>').addClass('news-body').html(news_item.body);
                     var content = $('<div/>').addClass('submenu');
                     if (news_item.subtitle) { content.append(subtitle); }
                     content.append(body);
                     var li = $('<li/>').append(header).append(content)
-                    if (index === 0) {
+                    if (index === 0 && Math.abs(now.diff(date, 'days')) < 7) {
                         li.addClass('open');
                         content.css('display', 'block');
                     }
