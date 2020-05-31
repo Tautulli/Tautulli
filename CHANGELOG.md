@@ -1,5 +1,19 @@
 # Changelog
 
+# v2.5.0-beta (2020-05-31)
+
+* Announcements:
+  * Tautulli now supports Python 3!
+  * Python 2 is still supported for the time being, but it is recommended to upgrade to Python 3.
+* UI:
+  * New: Windows and MacOS setting to enable Tautulli to start automatically when you login.
+  * New: Added system tray icon for MacOS.
+  * New: Ability to import a Tautulli database in the settings.
+  * New: Added Tautulli news area on the settings page.
+* Other:
+  * New: Windows and MacOS app installers to install Tautulli without needing Python installed.
+
+
 ## v2.2.4 (2020-05-16)
 
 * Monitoring:
