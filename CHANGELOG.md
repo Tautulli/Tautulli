@@ -1,6 +1,6 @@
 # Changelog
 
-# v2.5.0-beta (2020-05-31)
+## v2.5.0-beta (2020-05-31)
 
 * Announcements:
   * Tautulli now supports Python 3!
