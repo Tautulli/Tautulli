@@ -50,11 +50,12 @@ jobs:
           pyinstaller -y ./package/Tautulli-windows.spec
 
       - name: Create Installer
-        uses: joncloud/makensis-action@v2
+        uses: joncloud/makensis-action@v1.2
         with:
           script-file: ./package/Tautulli.nsi
           arguments: /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }} /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
-          additional-plugin-paths: package/nsis-plugins
+          include-more-plugins: true
+          include-custom-plugins-path: package/nsis-plugins
 
       - name: Upload Installer
         uses: actions/upload-artifact@v1
