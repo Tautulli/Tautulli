@@ -52,10 +52,12 @@ import xmltodict
 
 import plexpy
 if plexpy.PYTHON2:
+    import common
     import logger
     import request
     from api2 import API2
 else:
+    from plexpy import common
     from plexpy import logger
     from plexpy import request
     from plexpy.api2 import API2
@@ -445,22 +447,25 @@ def create_https_certificates(ssl_cert, ssl_key):
         return False
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
+    issuer = common.PRODUCT
     serial = timestamp()
+    not_before = 0
+    not_after = 60 * 60 * 24 * 365 * 10  # ten years
     domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
     ips = ['IP:' + d.strip() for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
-    altNames = ','.join(domains + ips)
+    alt_names = ','.join(domains + ips).encode('utf-8')
 
     # Create the self-signed Tautulli certificate
     logger.debug("Generating self-signed SSL certificate.")
     pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate("Tautulli", pkey, serial, 0, 60 * 60 * 24 * 365 * 10, altNames) # ten years
+    cert = createSelfSignedCertificate(issuer, pkey, serial, not_before, not_after, alt_names)
 
     # Save the key and certificate to disk
     try:
         with open(ssl_cert, "w") as fp:
-            fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+            fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))
         with open(ssl_key, "w") as fp:
-            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey))
+            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode('utf-8'))
     except IOError as e:
         logger.error("Error creating SSL key and certificate: %s", e)
         return False

@@ -100,7 +100,7 @@ def createSelfSignedCertificate(issuerName, issuerKey, serial, notBefore, notAft
     cert.set_pubkey(issuerKey)
 
     if altNames:
-        cert.add_extensions([crypto.X509Extension("subjectAltName", False, altNames)])
+        cert.add_extensions([crypto.X509Extension(b"subjectAltName", False, altNames)])
 
     cert.sign(issuerKey, digest)
     return cert
