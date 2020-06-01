@@ -348,7 +348,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 1),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
-    'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 60),
+    'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 300),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
