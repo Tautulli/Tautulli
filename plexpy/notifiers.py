@@ -1123,17 +1123,22 @@ class BROWSER(Notifier):
         return True
 
     def _return_config_options(self):
-        config_option = [{'label': 'Allow Notifications',
+        config_option = [{'label': 'Note',
+                          'description': 'You may need to refresh the page after saving for changes to take effect.',
+                          'input_type': 'help'
+                          },
+                         {'label': 'Allow Notifications',
                           'value': 'Allow Notifications',
                           'name': 'browser_allow_browser',
-                          'description': 'Click to allow browser notifications. You must click this button for each browser.',
+                          'description': 'Click to allow browser notifications. '
+                                         'You must click this button for each browser.',
                           'input_type': 'button'
                           },
                          {'label': 'Auto Hide Delay',
                           'value': self.config['auto_hide_delay'],
                           'name': 'browser_auto_hide_delay',
-                          'description': 'Set the number of seconds for the notification to remain visible. \
-                                          Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
+                          'description': 'Set the number of seconds for the notification to remain visible. '
+                                         'Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
                           'input_type': 'number'
                           }
                          ]

@@ -853,10 +853,7 @@
                 PNotify.prototype.options.hide = true;
                 PNotify.prototype.options.delay = $('#browser_auto_hide_delay').val() * 1000;
             }
-            var notification = new PNotify({
-                title: $('#test_subject').val(),
-                text: $('#test_body').val()
-            });
+            displayPNotify($('#test_subject').val(), $('#test_body').val());
             showMsg('<i class="fa fa-check"></i> Notification sent.', false, true, 5000);
         }
     }

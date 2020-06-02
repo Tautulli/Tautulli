@@ -36,7 +36,3 @@ function check_notifications() {
         check_notifications();
     }, 5000);
 }
-
-$(document).ready(function () {
-    check_notifications();
-});
