@@ -141,7 +141,7 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
                 return True, user_details, 'admin'
 
     if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):
-        plex_login = plex_user_login(username=username, password=password, token=token, headers=headers)
+        plex_login = plex_user_login(token=token, headers=headers)
         if plex_login is not None:
             return True, plex_login[0], plex_login[1]
 
