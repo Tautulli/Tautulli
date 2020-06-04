@@ -737,7 +737,7 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
     )
 
     try:
-        response = upload(img_data,
+        response = upload((img_title, img_data),
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=['tautulli', fallback, str(rating_key)],
                           context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
