@@ -259,6 +259,7 @@ def main():
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
         try:
             import AppKit
+            import Foundation
         except ImportError:
             logger.warn("The pyobjc module is missing. Install this "
                         "module to enable the system tray icon.")
