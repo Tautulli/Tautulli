@@ -21,10 +21,14 @@ import sys
 import plistlib
 
 try:
-    import rumps
-    has_rumps = True
+    import AppKit
+    import Foundation
+    HAS_PYOBJC = True
 except ImportError:
-    has_rumps = False
+    HAS_PYOBJC = False
+
+if HAS_PYOBJC:
+    import rumps
 
 import plexpy
 if plexpy.PYTHON2:

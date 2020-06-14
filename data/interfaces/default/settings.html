@@ -8,7 +8,7 @@
     from plexpy.helpers import anon_url, checked
 
     docker_setting = 'disabled' if plexpy.DOCKER else ''
-    docker_msg = '<span class="docker-setting small">(Controlled by Docker Container)</span>' if plexpy.DOCKER else ''
+    docker_msg = '<span class="setting-message small">(Controlled by Docker Container)</span>' if plexpy.DOCKER else ''
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'].lower())
     available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'].lower())
@@ -460,10 +460,16 @@
                         % if common.PLATFORM in ('Windows', 'Darwin'):
                         <%
                             tray = {'Windows': 'System Tray', 'Darwin': 'Menu Bar'}
+                            tray_disabled = tray_disabled_msg = ''
+                            if common.PLATFORM == 'Darwin':
+                                from plexpy.macos import HAS_PYOBJC
+                                if not HAS_PYOBJC:
+                                    tray_disabled = 'disabled'
+                                    tray_disabled_msg = '<span class="setting-message small">(Missing pyobjc module)</span>'
                         %>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="http-settings" name="sys_tray_icon" id="sys_tray_icon" value="1" ${config['sys_tray_icon']}> Enable ${tray[common.PLATFORM]} Icon
+                                <input type="checkbox" class="http-settings" name="sys_tray_icon" id="sys_tray_icon" value="1" ${config['sys_tray_icon']} ${tray_disabled}> Enable ${tray[common.PLATFORM]} Icon ${tray_disabled_msg | n}
                             </label>
                             <p class="help-block">Show Tautulli shortcut in the ${tray[common.PLATFORM].lower()}.</p>
                         </div>

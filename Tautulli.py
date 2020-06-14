@@ -257,15 +257,12 @@ def main():
                               plexpy.HTTP_ROOT)
 
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
-        try:
-            import AppKit
-            import Foundation
-        except ImportError:
+        if not macos.HAS_PYOBJC:
             logger.warn("The pyobjc module is missing. Install this "
-                        "module to enable the menu bar icon.")
+                        "module to enable the MacOS menu bar icon.")
             plexpy.CONFIG.SYS_TRAY_ICON = False
 
-        if plexpy.CONFIG.SYS_TRAY_ICON and macos.has_rumps:
+        if plexpy.CONFIG.SYS_TRAY_ICON:
             # MacOS menu bar icon must be run on the main thread and is blocking
             # Start the rest of Tautulli on a new thread
             threading.Thread(target=wait).start()

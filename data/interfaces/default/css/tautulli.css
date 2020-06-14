@@ -2161,7 +2161,7 @@ div.advanced-setting {
 li.advanced-setting {
     border-left: 1px solid #cc7b19;
 }
-.docker-setting {
+.setting-message {
     color: #cc7b19;
     margin-left: 10px;
 }
