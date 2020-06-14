@@ -64,11 +64,11 @@ class MacOSSystemTray(object):
         self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
 
     def start(self):
-        logger.info("Launching MacOS system tray icon.")
+        logger.info("Launching MacOS menu bar icon.")
         try:
             self.tray_icon.run()
         except Exception as e:
-            logger.error("Unable to launch system tray icon: %s." % e)
+            logger.error("Unable to launch menu bar icon: %s." % e)
 
     def shutdown(self):
         rumps.quit_application()

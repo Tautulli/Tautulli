@@ -262,11 +262,11 @@ def main():
             import Foundation
         except ImportError:
             logger.warn("The pyobjc module is missing. Install this "
-                        "module to enable the system tray icon.")
+                        "module to enable the menu bar icon.")
             plexpy.CONFIG.SYS_TRAY_ICON = False
 
         if plexpy.CONFIG.SYS_TRAY_ICON and macos.has_rumps:
-            # MacOS system tray icon must be run on the main thread and is blocking
+            # MacOS menu bar icon must be run on the main thread and is blocking
             # Start the rest of Tautulli on a new thread
             threading.Thread(target=wait).start()
             plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()

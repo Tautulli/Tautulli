@@ -7,7 +7,7 @@
   * Python 2 is still supported for the time being, but it is recommended to upgrade to Python 3.
 * UI:
   * New: Windows and MacOS setting to enable Tautulli to start automatically when you login.
-  * New: Added system tray icon for MacOS.
+  * New: Added menu bar icon for MacOS.
   * New: Ability to import a Tautulli database in the settings.
   * New: Added Tautulli news area on the settings page.
 * Other:
