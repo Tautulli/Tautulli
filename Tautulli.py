@@ -265,7 +265,7 @@ def main():
                         "module to enable the system tray icon.")
             plexpy.CONFIG.SYS_TRAY_ICON = False
 
-        if plexpy.CONFIG.SYS_TRAY_ICON:
+        if plexpy.CONFIG.SYS_TRAY_ICON and macos.has_rumps:
             # MacOS system tray icon must be run on the main thread and is blocking
             # Start the rest of Tautulli on a new thread
             threading.Thread(target=wait).start()

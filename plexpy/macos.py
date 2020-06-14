@@ -19,7 +19,12 @@ import os
 import subprocess
 import sys
 import plistlib
-import rumps
+
+try:
+    import rumps
+    has_rumps = True
+except ImportError:
+    has_rumps = False
 
 import plexpy
 if plexpy.PYTHON2:
