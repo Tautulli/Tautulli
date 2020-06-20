@@ -884,6 +884,14 @@ class ANDROIDAPP(Notifier):
 
     _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
+    def validate_device_id(self, device_id):
+        headers = {'Content-Type': 'application/json'}
+        payload = {'app_id': self._ONESIGNAL_APP_ID}
+
+        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(device_id), headers=headers, json=payload)
+        if r.status_code == 200:
+            return r.json()
+
     def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])

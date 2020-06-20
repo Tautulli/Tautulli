@@ -407,12 +407,17 @@ class API2(object):
             ```
         """
         if not device_id:
-            self._api_msg = 'Device registartion failed: no device id provided.'
+            self._api_msg = 'Device registration failed: no device id provided.'
             self._api_result_type = 'error'
             return
 
         elif not device_name:
-            self._api_msg = 'Device registartion failed: no device name provided.'
+            self._api_msg = 'Device registration failed: no device name provided.'
+            self._api_result_type = 'error'
+            return
+
+        elif not notifiers.ANDROIDAPP().validate_device_id(device_id=device_id):
+            self._api_msg = 'Device registration failed: invalid OneSignal Player ID.'
             self._api_result_type = 'error'
             return
 
@@ -426,7 +431,7 @@ class API2(object):
             self._api_result_type = 'success'
             mobile_app.set_temp_device_token(None)
         else:
-            self._api_msg = 'Device registartion failed: database error.'
+            self._api_msg = 'Device registration failed: database error.'
             self._api_result_type = 'error'
 
         return
