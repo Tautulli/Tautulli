@@ -3873,6 +3873,10 @@ a:hover .overlay-refresh-image:hover {
     background-color: #31afe1;
     background-image: url(../images/platforms/kodi.svg);
 }
+.platform-lg {
+    background-color: #a50034;
+    background-image: url(../images/platforms/lg.svg);
+}
 .platform-linux {
     background-color: #1793d0;
     background-image: url(../images/platforms/linux.svg);
@@ -3973,6 +3977,9 @@ a:hover .overlay-refresh-image:hover {
 }
 .platform-kodi-rgba {
     background-color: rgba(49, 175, 225, 0.40);
+}
+.platform-lg-rgba {
+    background-color: rgba(165, 0, 52, 0.40);
 }
 .platform-linux-rgba {
     background-color: rgba(23, 147, 208, 0.40);
