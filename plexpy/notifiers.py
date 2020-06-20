@@ -882,16 +882,6 @@ class ANDROIDAPP(Notifier):
                        'priority': 3
                        }
 
-    _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
-
-    def validate_device_id(self, device_id):
-        headers = {'Content-Type': 'application/json'}
-        payload = {'app_id': self._ONESIGNAL_APP_ID}
-
-        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(device_id), headers=headers, json=payload)
-        if r.status_code == 200:
-            return r.json()
-
     def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
@@ -938,7 +928,7 @@ class ANDROIDAPP(Notifier):
             #logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
             #logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
 
-            payload = {'app_id': self._ONESIGNAL_APP_ID,
+            payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': True,
@@ -951,7 +941,7 @@ class ANDROIDAPP(Notifier):
                         "Android app notifications will be sent unecrypted. "
                         "Install the library to encrypt the notifications.")
 
-            payload = {'app_id': self._ONESIGNAL_APP_ID,
+            payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': False,
@@ -968,7 +958,7 @@ class ANDROIDAPP(Notifier):
         db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT * FROM mobile_devices'
+            query = 'SELECT * FROM mobile_devices WHERE official = 1'
             result = db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Android app devices list: %s." % e)

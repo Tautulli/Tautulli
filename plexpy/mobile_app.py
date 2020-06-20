@@ -18,6 +18,7 @@
 from __future__ import unicode_literals
 from future.builtins import str
 
+import requests
 import threading
 
 import plexpy
@@ -33,6 +34,8 @@ else:
 
 TEMP_DEVICE_TOKEN = None
 INVALIDATE_TIMER = None
+
+_ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
 
 def set_temp_device_token(token=None):
@@ -84,7 +87,8 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None, frien
 
     keys = {'device_id': device_id}
     values = {'device_name': device_name,
-              'device_token': device_token}
+              'device_token': device_token,
+              'official': validate_device_id(device_id=device_id)}
 
     if friendly_name:
         values['friendly_name'] = friendly_name
@@ -159,6 +163,14 @@ def set_last_seen(device_token=None):
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set last_seen time for device: %s." % e)
         return
+
+
+def validate_device_id(device_id):
+    headers = {'Content-Type': 'application/json'}
+    payload = {'app_id': _ONESIGNAL_APP_ID}
+
+    r = requests.get('https://onesignal.com/api/v1/players/{}'.format(device_id), headers=headers, json=payload)
+    return r.status_code == 200
 
 
 def blacklist_logger():

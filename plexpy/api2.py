@@ -416,11 +416,6 @@ class API2(object):
             self._api_result_type = 'error'
             return
 
-        elif not notifiers.ANDROIDAPP().validate_device_id(device_id=device_id):
-            self._api_msg = 'Device registration failed: invalid OneSignal Player ID.'
-            self._api_result_type = 'error'
-            return
-
         result = mobile_app.add_mobile_device(device_id=device_id,
                                               device_name=device_name,
                                               device_token=self._api_apikey,
