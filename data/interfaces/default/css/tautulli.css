@@ -2312,6 +2312,7 @@ li.advanced-setting {
     width: 140px;
     margin-left: 10px;
     margin-bottom: 10px;
+    white-space: nowrap;
 }
 .user-player-instance-playcount h3 {
     font-size: 30px;
