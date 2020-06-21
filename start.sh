@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [[ "$TAUTULLI_DOCKER" = "True" ]]; then
-    PUID=${PUID:-1000}
-    PGID=${PGID:-1000}
+    PUID=${PUID:-911}
+    PGID=${PGID:-911}
     getent group tautulli 2>&1 > /dev/null || groupadd -g "$PGID" tautulli
     getent passwd tautulli 2>&1 > /dev/null || useradd -r -u "$PUID" -g tautulli tautulli
     chown -f -R tautulli:tautulli /config
