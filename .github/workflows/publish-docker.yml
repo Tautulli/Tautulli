@@ -7,6 +7,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
       - name: Prepare
         id: prepare
         run: |
@@ -29,16 +32,24 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
+        uses: crazy-max/ghaction-docker-buildx@v3
         with:
-          version: latest
+          buildx-version: latest
 
-      - name: Checkout Code
-        uses: actions/checkout@v2.1.0
+      - name: Cache Docker Layers
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Docker Buildx (no push)
         run: |
           docker buildx build \
+            --cache-from "type=local,src=/tmp/.buildx-cache" \
+            --cache-to "type=local,dest=/tmp/.buildx-cache" \
             --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=false" \
             --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
@@ -59,6 +70,7 @@ jobs:
         if: success()
         run: |
           docker buildx build \
+            --cache-from "type=local,src=/tmp/.buildx-cache" \
             --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=true" \
             --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
@@ -79,5 +91,5 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          job: ${{ github.workflow }}
+          title: ${{ github.workflow }}
           nofail: true
