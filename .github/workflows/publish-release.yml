@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2.1.0
+        uses: actions/checkout@v2
 
       - name: Set Release Version
         id: get_version
@@ -28,13 +28,13 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v1.2.0
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
       - name: Cache Dependencies
         id: cache_dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-windows.txt') }}
@@ -58,7 +58,7 @@ jobs:
           include-custom-plugins-path: package/nsis-plugins
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Tautulli-windows-installer
           path: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
@@ -69,14 +69,14 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          job: Build Windows Installer
+          title: Build Windows Installer
           nofail: true
 
   build-macos:
     runs-on: macos-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2.1.0
+        uses: actions/checkout@v2
 
       - name: Set Release Version
         id: get_version
@@ -94,13 +94,13 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v1.2.0
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
       - name: Cache Dependencies
         id: cache_dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-macos.txt') }}
@@ -120,7 +120,7 @@ jobs:
           sudo pkgbuild --install-location /Applications --version ${{ steps.get_version.outputs.VERSION }} --component ./dist/Tautulli.app --scripts ./package/macos-scripts Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Tautulli-macos-installer
           path: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
@@ -131,7 +131,7 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          job: Build MacOS Installer
+          title: Build MacOS Installer
           nofail: true
 
   release:
@@ -143,7 +143,7 @@ jobs:
         uses: technote-space/workflow-conclusion-action@v1
 
       - name: Checkout Code
-        uses: actions/checkout@v2.1.0
+        uses: actions/checkout@v2
 
       - name: Set Release Version
         id: get_version
@@ -152,13 +152,13 @@ jobs:
 
       - name: Download Windows Installer
         if: env.WORKFLOW_CONCLUSION == 'success'
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: Tautulli-windows-installer
 
       - name: Download MacOS Installer
         if: env.WORKFLOW_CONCLUSION == 'success'
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: Tautulli-macos-installer
 
@@ -188,7 +188,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
+          asset_path: ./Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
           asset_name: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
@@ -199,6 +199,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
+          asset_path: ./Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
           asset_name: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}.pkg
           asset_content_type: application/vnd.apple.installer+xml
