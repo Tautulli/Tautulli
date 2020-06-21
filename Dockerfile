@@ -16,7 +16,7 @@ RUN \
 
 COPY . /app
 
-CMD [ "python", "Tautulli.py", "--datadir", "/config" ]
+ENTRYPOINT [ "./start.sh" ]
 
 VOLUME /config
 EXPOSE 8181

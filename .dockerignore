@@ -7,3 +7,4 @@ package
 pylintrc
 *.md
 !CHANGELOG*.md
+start.bat
