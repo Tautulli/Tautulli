@@ -2556,7 +2556,6 @@ $(document).ready(function() {
     function OAuthSuccessCallback(authToken) {
         var x_plex_headers = getPlexHeaders();
         $("#pms_token").val(authToken);
-        $("#pms_uuid").val(x_plex_headers['X-Plex-Client-Identifier']);
         $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
         getServerOptions(authToken);
     }
