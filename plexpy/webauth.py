@@ -298,7 +298,7 @@ class AuthController(object):
         jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
         cherrypy.response.cookie[jwt_cookie] = 'expire'
         cherrypy.response.cookie[jwt_cookie]['expires'] = 0
-        cherrypy.response.cookie[jwt_cookie]['path'] = '/'
+        cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
 
         cherrypy.request.login = None
 
@@ -344,7 +344,9 @@ class AuthController(object):
             jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
             cherrypy.response.cookie[jwt_cookie] = jwt_token
             cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
-            cherrypy.response.cookie[jwt_cookie]['path'] = '/'
+            cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
+            cherrypy.response.cookie[jwt_cookie]['httponly'] = True
+            cherrypy.response.cookie[jwt_cookie]['samesite'] = 'lax'
 
             cherrypy.request.login = payload
             cherrypy.response.status = 200
