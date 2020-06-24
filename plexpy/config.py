@@ -943,4 +943,10 @@ class Config(object):
             if plexpy.DOCKER:
                 self.PLEXPY_AUTO_UPDATE = 0
 
-            self.CONFIG_VERSION == 15
+            self.CONFIG_VERSION = 15
+
+        if self.CONFIG_VERSION == 15:
+            if self.HTTP_ROOT and self.HTTP_ROOT != '/':
+                self.JWT_UPDATE_SECRET = True
+
+            self.CONFIG_VERSION = 16
