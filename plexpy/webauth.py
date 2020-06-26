@@ -301,7 +301,7 @@ class AuthController(object):
         cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
 
         if plexpy.HTTP_ROOT != '/':
-            # Aslo expire the JWT on the root path
+            # Also expire the JWT on the root path
             cherrypy.response.headers['Set-Cookie'] = jwt_cookie + '=""; expires=Thu, 01 Jan 1970 12:00:00 GMT; path=/'
 
         cherrypy.request.login = None
