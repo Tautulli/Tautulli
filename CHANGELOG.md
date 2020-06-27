@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.5.1-beta (2020-06-26)
+
+* Notifications:
+  * Fix: Error uploading images to Cloudinary on Python 2.
+  * Fix: Testing browser notifications alert not disappearing.
+  * Change: Default recently added notification delay set to 300 seconds.
+* UI: 
+  * Fix: MacOS menu bar icon causing Tautulli to fail to start.
+  * New: Added platform icon for LG devices.
+* Mobile App:
+  * Fix: Improved API security and validation when registering the Android app.
+* Other:
+  * Fix: Error creating self-signed certificates on Python 3.
+  * Fix: Docker container not respecting the PUID and PGID environment variables.
+  * Fix: Tautulli login session cookie not set on the HTTP root path.
+  * Remove: Ability to login to Tautulli using a Plex username and password has been removed. Login using a Plex.tv account is only supported via OAuth.
+
+
 ## v2.5.0-beta (2020-05-31)
 
 * Announcements:
