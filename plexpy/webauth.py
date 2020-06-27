@@ -41,6 +41,13 @@ else:
     from plexpy.users import Users, refresh_users
     from plexpy.plextv import PlexTV
 
+# Monkey patch SameSite support into cookies.
+# https://stackoverflow.com/a/50813092
+try:
+    from http.cookies import Morsel
+except ImportError:
+    from Cookie import Morsel
+Morsel._reserved[str('samesite')] = str('SameSite')
 
 JWT_ALGORITHM = 'HS256'
 JWT_COOKIE_NAME = 'tautulli_token_'
