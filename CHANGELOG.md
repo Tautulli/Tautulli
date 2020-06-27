@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5.2-beta (2020-06-27)
+
+* Other:
+  * Fix: Login to Tautulli not working on Python 2.
+
+
 ## v2.5.1-beta (2020-06-26)
 
 * Notifications:
