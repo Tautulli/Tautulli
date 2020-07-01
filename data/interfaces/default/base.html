@@ -230,25 +230,25 @@ ${next.modalIncludes()}
                     </div>
                 </div>
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
-                    <li class="active"><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
-                    <li><a href="#github-donation" role="tab" data-toggle="tab">GitHub</a></li>
+                    <li class="active"><a href="#github-donation" role="tab" data-toggle="tab">GitHub</a></li>
+                    <li><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
                     <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="patreon-donation" style="text-align: center">
-                        <p>
-                            Click the button below to continue to Patreon.
-                        </p>
-                        <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank">
-                            <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
-                        </a>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="github-donation" style="text-align: center">
+                    <div role="tabpanel" class="tab-pane active" id="github-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to GitHub.
                         </p>
                         <a href="${anon_url('https://github.com/sponsors/JonnyWong16')}" target="_blank" class="btn btn-sm btn-default" style="font-weight: 600;">
                             <i class="fa fa-heart fa-sm" style="color: #ea4aaa;"></i>&nbsp; Sponsor
+                        </a>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="patreon-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Patreon.
+                        </p>
+                        <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank">
+                            <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
                         </a>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
