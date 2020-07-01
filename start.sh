@@ -17,5 +17,21 @@ if [[ "$TAUTULLI_DOCKER" = "True" ]]; then
 	    python Tautulli.py --datadir /config
     fi
 else
-    python Tautulli.py &> /dev/null &
+    if which python3 >/dev/null; then
+        python3 Tautulli.py &> /dev/null &
+    elif which python3.8 >/dev/null; then
+        python3.8 Tautulli.py &> /dev/null &
+    elif which python3.7 >/dev/null; then
+        python3.7 Tautulli.py &> /dev/null &
+    elif which python3.6 >/dev/null; then
+        python3.6 Tautulli.py &> /dev/null &
+    elif which python >/dev/null; then
+        python Tautulli.py &> /dev/null &
+    elif which python2 >/dev/null; then
+        python2 Tautulli.py &> /dev/null &
+    elif which python2.7 >/dev/null; then
+        python2.7 Tautulli.py &> /dev/null &
+    else
+        echo "Cannot start Tautulli: python not found."
+    fi
 fi
