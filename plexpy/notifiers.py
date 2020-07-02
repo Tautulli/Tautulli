@@ -1399,8 +1399,7 @@ class EMAIL(Notifier):
             success = True
 
         except Exception as e:
-            logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(
-                name=self.NAME, e=str(e).decode('utf-8')))
+            logger.error("Tautulli Notifiers :: %s notification failed: %s", self.NAME, e)
 
         finally:
             if mailserver:
