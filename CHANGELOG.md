@@ -1,40 +1,30 @@
 # Changelog
 
-## v2.5.2-beta (2020-06-27)
+## v2.5.2 (2020-07-01)
 
-* Other:
-  * Fix: Login to Tautulli not working on Python 2.
-
-
-## v2.5.1-beta (2020-06-26)
-
+* Announcements:
+  * Tautulli now supports Python 3!
+  * Python 2 is still supported for the time being, but it is recommended to upgrade to Python 3.
 * Notifications:
   * Fix: Error uploading images to Cloudinary on Python 2.
   * Fix: Testing browser notifications alert not disappearing.
   * Change: Default recently added notification delay set to 300 seconds.
 * UI: 
   * Fix: MacOS menu bar icon causing Tautulli to fail to start.
-  * New: Added platform icon for LG devices.
-* Mobile App:
-  * Fix: Improved API security and validation when registering the Android app.
-* Other:
-  * Fix: Error creating self-signed certificates on Python 3.
-  * Fix: Docker container not respecting the PUID and PGID environment variables.
-  * Fix: Tautulli login session cookie not set on the HTTP root path.
-  * Remove: Ability to login to Tautulli using a Plex username and password has been removed. Login using a Plex.tv account is only supported via OAuth.
-
-
-## v2.5.0-beta (2020-05-31)
-
-* Announcements:
-  * Tautulli now supports Python 3!
-  * Python 2 is still supported for the time being, but it is recommended to upgrade to Python 3.
-* UI:
+  * Fix: Unable to login to Tautulli on Python 2.
   * New: Windows and MacOS setting to enable Tautulli to start automatically when you login.
   * New: Added menu bar icon for MacOS.
   * New: Ability to import a Tautulli database in the settings.
   * New: Added Tautulli news area on the settings page.
+  * New: Added platform icon for LG devices.
+  * Remove: Ability to login to Tautulli using a Plex username and password has been removed. Login using a Plex.tv account is only supported via OAuth.
+* Mobile App:
+  * Fix: Improved API security and validation when registering the Android app.
+* Docker:
+  * Fix: Docker container not respecting the PUID and PGID environment variables.
 * Other:
+  * Fix: Error creating self-signed certificates on Python 3.
+  * Fix: Tautulli login session cookie not set on the HTTP root path.
   * New: Windows and MacOS app installers to install Tautulli without needing Python installed.
 
 
