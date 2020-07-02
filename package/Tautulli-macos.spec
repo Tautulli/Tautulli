@@ -19,7 +19,7 @@ analysis = Analysis(
         ('../lib/ipwhois/data', 'data')
     ],
     excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
-    hiddenimports=['Foundation', 'AppKit'],
+    hiddenimports=['Foundation', 'AppKit', 'chroot.ssl'],
     cipher=block_cipher
 )
 pyz = PYZ(
