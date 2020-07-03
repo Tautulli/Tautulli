@@ -214,7 +214,7 @@ def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):
 
         if newsletter_file in os.listdir(newsletter_folder):
             try:
-                with open(newsletter_file_fp, 'r') as n_file:
+                with open(newsletter_file_fp, 'r', encoding='utf-8') as n_file:
                     newsletter = n_file.read()
                 return newsletter
             except OSError as e:
