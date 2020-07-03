@@ -17,6 +17,7 @@
 
 from __future__ import unicode_literals
 
+from io import open
 import os
 
 from apscheduler.triggers.cron import CronTrigger
