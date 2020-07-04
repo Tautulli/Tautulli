@@ -2233,7 +2233,7 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
         # https://bugs.python.org/issue19066
         if NOFORK:
             pass
-        elif common.PLATFORM == 'Windows':
+        elif common.PLATFORM in ('Windows', 'Darwin'):
             subprocess.Popen(args, cwd=os.getcwd())
         else:
             os.execv(exe, args)
