@@ -265,7 +265,10 @@ def main():
         if plexpy.CONFIG.SYS_TRAY_ICON:
             # MacOS menu bar icon must be run on the main thread and is blocking
             # Start the rest of Tautulli on a new thread
-            threading.Thread(target=wait).start()
+            thread = threading.Thread(target=wait)
+            thread.daemon = True
+            thread.start()
+
             plexpy.MAC_SYS_TRAY_ICON = macos.MacOSSystemTray()
             plexpy.MAC_SYS_TRAY_ICON.start()
         else:
