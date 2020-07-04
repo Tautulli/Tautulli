@@ -47,5 +47,9 @@ app = BUNDLE(
     name='Tautulli.app',
     icon='../data/interfaces/default/images/logo-circle.icns',
     bundle_identifier='com.Tautulli.Tautulli',
-    version=VERSION
+    version=VERSION,
+    info_plist={
+        'LSBackgroundOnly': True,
+        'LSUIElement': True
+    }
 )
