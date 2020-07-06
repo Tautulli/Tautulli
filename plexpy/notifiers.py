@@ -2969,7 +2969,7 @@ class SCRIPTS(Notifier):
                             '.php': 'php',
                             '.pl': 'perl',
                             '.ps1': 'powershell -executionPolicy bypass -file',
-                            '.py': 'python',
+                            '.py': 'python' if plexpy.FROZEN else sys.executable,
                             '.pyw': 'pythonw',
                             '.rb': 'ruby',
                             '.sh': ''
