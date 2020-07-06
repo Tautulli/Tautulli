@@ -31,7 +31,7 @@
 #           sudo chown tautulli:tautulli -R /opt/Tautulli
 #
 #    - Adjust ExecStart= to point to:
-#       1. Your Python interpreter (get the path with command -v python3)
+#       1. Your Python interpreter (get the path with "command -v python3")
 #          - Default: /usr/bin/python3
 #       2. Your Tautulli executable
 #          - Default: /opt/Tautulli/Tautulli.py
