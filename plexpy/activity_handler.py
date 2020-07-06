@@ -505,6 +505,55 @@ class TimelineHandler(object):
                     schedule_callback('rating_key-{}'.format(rating_key), remove_job=True)
 
 
+class ReachabilityHandler(object):
+
+    def __init__(self, data):
+        self.data = data
+
+    def is_reachable(self):
+        if 'reachability' in self.data:
+            return self.data['reachability']
+        return False
+
+    def remote_access_enabled(self):
+        pms_connect = pmsconnect.PmsConnect()
+        pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
+        return helpers.bool_true(pref)
+
+    def process(self):
+        # Check if remote access is enabled
+        if not self.remote_access_enabled():
+            return
+
+        # Do nothing if remote access is still up and hasn't changed
+        if self.is_reachable() and plexpy.PLEX_REMOTE_ACCESS_UP:
+            return
+
+        pms_connect = pmsconnect.PmsConnect()
+        server_response = pms_connect.get_server_response()
+
+        if server_response:
+            # Waiting for port mapping
+            if server_response['mapping_state'] == 'waiting':
+                logger.warn("Tautulli Monitor :: Remote access waiting for port mapping.")
+
+            elif plexpy.PLEX_REMOTE_ACCESS_UP is not False and server_response['reason']:
+                logger.warn("Tautulli Monitor :: Remote access failed: %s" % server_response['reason'])
+                logger.info("Tautulli Monitor :: Plex remote access is down.")
+
+                plexpy.PLEX_REMOTE_ACCESS_UP = False
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
+
+            elif plexpy.PLEX_REMOTE_ACCESS_UP is False and not server_response['reason']:
+                logger.info("Tautulli Monitor :: Plex remote access is back up.")
+
+                plexpy.PLEX_REMOTE_ACCESS_UP = True
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
+
+            elif plexpy.PLEX_REMOTE_ACCESS_UP is None:
+                plexpy.PLEX_REMOTE_ACCESS_UP = self.is_reachable()
+
+
 def del_keys(key):
     if isinstance(key, set):
         for child_key in key:
