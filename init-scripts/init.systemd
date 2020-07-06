@@ -31,11 +31,13 @@
 #           sudo chown tautulli:tautulli -R /opt/Tautulli
 #
 #    - Adjust ExecStart= to point to:
-#       1. Your Tautulli executable
+#       1. Your Python interpreter (get the path with command -v python3)
+#          - Default: /usr/bin/python3
+#       2. Your Tautulli executable
 #          - Default: /opt/Tautulli/Tautulli.py
-#       2. Your config file (recommended is to put it somewhere in /etc)
+#       3. Your config file (recommended is to put it somewhere in /etc)
 #          - Default: --config /opt/Tautulli/config.ini
-#       3. Your datadir (recommended is to NOT put it in your Tautulli exec dir)
+#       4. Your datadir (recommended is to NOT put it in your Tautulli exec dir)
 #          - Default: --datadir /opt/Tautulli
 #
 #    - Adjust User= and Group= to the user/group you want Tautulli to run as.
@@ -50,7 +52,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir /opt/Tautulli --quiet --daemon --nolaunch
+ExecStart=/usr/bin/python3 /opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir /opt/Tautulli --quiet --daemon --nolaunch
 GuessMainPID=no
 Type=forking
 User=tautulli

@@ -38,6 +38,7 @@ load_rc_config ${name}
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
+command_interpreter="python3"
 command="${tautulli_dir}/Tautulli.py"
 command_args="--daemon --pidfile ${tautulli_pid} --quiet --nolaunch ${tautulli_flags}"
 
