@@ -318,47 +318,6 @@ def connect_server(log=True, startup=False):
             logger.error("Websocket :: Unable to open connection: %s." % e)
 
 
-def check_server_access():
-    with monitor_lock:
-        pms_connect = pmsconnect.PmsConnect()
-        server_response = pms_connect.get_server_response()
-
-        global ext_ping_count
-        global ext_ping_error
-
-        # Check for remote access
-        if server_response:
-            log = (server_response['mapping_error'] != ext_ping_error)
-
-            if server_response['reason']:
-                ext_ping_count += 1
-                ext_ping_error = server_response['mapping_error']
-                if log:
-                    logger.warn("Tautulli Monitor :: Remote access failed: %s, ping attempt %s."
-                                % (server_response['reason'], str(ext_ping_count)))
-
-            # Waiting for port mapping
-            elif server_response['mapping_state'] == 'waiting':
-                ext_ping_error = server_response['mapping_error']
-                if log:
-                    logger.warn("Tautulli Monitor :: Remote access waiting for port mapping, ping attempt %s."
-                                % str(ext_ping_count))
-
-            # Reset external ping counter
-            else:
-                if ext_ping_count >= plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
-                    logger.info("Tautulli Monitor :: Plex remote access is back up.")
-
-                    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
-
-                ext_ping_count = 0
-                ext_ping_error = None
-
-        if ext_ping_count == plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
-            logger.info("Tautulli Monitor: Plex remote access is down.")
-            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
-
-
 def check_server_updates():
 
     with monitor_lock:
