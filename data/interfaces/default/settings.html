@@ -775,7 +775,6 @@
                             <label>
                                 <input type="checkbox" class="pms-settings" id="pms_url_manual" name="pms_url_manual" value="1" ${config['pms_url_manual']}> Manual Connection
                             </label>
-                            <span id="cloudManualConnection" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <p class="help-block">Use the user defined connection details. Do not retrieve the server connection URL automatically.</p>
                         </div>
                         <div class="form-group advanced-setting">
@@ -832,7 +831,6 @@
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
-                            <span id="cloudMonitorUpdates" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
                             <p class="help-block">Enable to have Tautulli check if updates are available for the Plex Media Server.</p>
                         </div>
                         <div id="pms_update_options">
@@ -864,36 +862,6 @@
                                 <p class="help-block">
                                     The interval (in hours) Tautulli will check for a new Plex Media Server update. Minimum 1, default 24.
                                 </p>
-                            </div>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
-                            </label>
-                            <span id="cloudMonitorRemoteAccess" style="display: none; color: #eb8600; padding-left: 10px;"> Not available for Plex Cloud servers.</span>
-                            <span id="remoteAccessCheck" class="settings-warning"></span>
-                            <p class="help-block">Enable to have Tautulli check if remote access to the Plex Media Server goes down.</p>
-                        </div>
-                        <div id="monitor_remote_access_options">
-                            <div class="form-group advanced-setting">
-                                <label for="remote_access_ping_interval">Remote Access Ping Interval</label>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <input type="text" class="form-control" data-parsley-type="integer" id="remote_access_ping_interval" name="remote_access_ping_interval" value="${config['remote_access_ping_interval']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#remote_access_ping_interval_error" required>
-                                    </div>
-                                    <div id="remote_access_ping_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                                </div>
-                                <p class="help-block">The interval (in seconds) Tautulli will ping the Plex Media Server for the remote access status. Minimum 60.</p>
-                            </div>
-                            <div class="form-group advanced-setting">
-                                <label for="remote_access_ping_threshold">Remote Access Ping Threshold</label>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <input type="text" class="form-control" data-parsley-type="integer" id="remote_access_ping_threshold" name="remote_access_ping_threshold" value="${config['remote_access_ping_threshold']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#remote_access_ping_threshold_error" required>
-                                    </div>
-                                    <div id="remote_access_ping_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
-                                </div>
-                                <p class="help-block">The number of consecutive remote access status failures to consider remote access as down. Minimum 1.</p>
                             </div>
                         </div>
 
@@ -2158,7 +2126,6 @@ $(document).ready(function() {
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#monitor_pms_updates');
-    initConfigCheckbox('#monitor_remote_access');
     initConfigCheckbox('#newsletter_self_hosted');
 
     $('#menu_link_shutdown').click(function() {
@@ -2404,7 +2371,6 @@ $(document).ready(function() {
             $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
             $('#pms_url_manual').prop('checked', false);
             $('#pms_url').val('Please verify your server above to retrieve the URL');
-            PMSCloudCheck();
         },
         onDropdownOpen: function() {
             this.clear();
@@ -2434,38 +2400,6 @@ $(document).ready(function() {
         })
     }
     getServerOptions();
-
-    function PMSCloudCheck() {
-        if ($('#pms_is_cloud').val() === "1") {
-            $('#pms_port').val(443).prop('readonly', true);
-            $('#pms_is_remote_checkbox').prop('checked', true).prop('disabled', true);
-            $('#pms_is_remote').val(1);
-            $('#pms_ssl_checkbox').prop('checked', true).prop('disabled', true);
-            $('#pms_ssl').val(1);
-            $('#pms_url_manual').prop('checked', false).prop('disabled', true);
-            $('#monitor_pms_updates').prop('checked', false).prop('disabled', true);
-            $('#pms_update_options').hide();
-            $('#monitor_remote_access').prop('checked', false).prop('disabled', true);
-            $('#cloudManualConnection').show();
-            $('#cloudMonitorUpdates').show();
-            $('#cloudMonitorRemoteAccess').show();
-            $('#remoteAccessCheck').hide();
-        } else {
-            $('#pms_port').prop('readonly', false);
-            $('#pms_is_remote_checkbox').prop('disabled', false);
-            $('#pms_is_remote').val($('#pms_is_remote_checkbox').is(':checked') ? 1 : 0);
-            $('#pms_ssl_checkbox').prop('disabled', false);
-            $('#pms_ssl').val($('#pms_ssl_checkbox').is(':checked') ? 1 : 0);
-            $('#pms_url_manual').prop('disabled', false);
-            $('#monitor_pms_updates').prop('disabled', false);
-            $('#monitor_remote_access').prop('disabled', false);
-            $('#cloudManualConnection').hide();
-            $('#cloudMonitorUpdates').hide();
-            $('#cloudMonitorRemoteAccess').hide();
-            remoteAccessEnabledCheck()
-        }
-    }
-    PMSCloudCheck();
 
     function verifyServer(_callback) {
         var pms_ip = $("#pms_ip").val();
@@ -2582,21 +2516,6 @@ $(document).ready(function() {
     pms_version = false;
     pms_logs_debug = false;
     pms_logs = false;
-
-    function remoteAccessEnabledCheck() {
-        $.ajax({
-            url: 'get_server_pref',
-            data: { pref: 'PublishServerOnPlexOnlineKey' },
-            async: true,
-            success: function(data) {
-                if (data === 'false' || data === '0') {
-                    $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
-                    $("#monitor_remote_access").attr("checked", false).attr("disabled", true);
-                }
-            }
-        });
-    }
-    remoteAccessEnabledCheck();
 
     // Sortable home_sections
     function set_home_sections() {
