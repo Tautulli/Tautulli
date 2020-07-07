@@ -1,4 +1,4 @@
 pyinstaller
 pyopenssl
 pycryptodomex
-pyobjc
+pyobjc-framework-Cocoa
