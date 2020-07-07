@@ -3,7 +3,7 @@
 dialogText=`osascript -e 'set dialogText to button returned of (display dialog "Installation complete. Start Tautulli?" buttons {"Start", "Close"})'`;
 if [[ $dialogText == 'Start' ]]
 then
-	  open /Applications/Tautulli.app
+    open /Applications/Tautulli.app
 else
     exit 0;
 fi
