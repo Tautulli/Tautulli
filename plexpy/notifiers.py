@@ -3007,7 +3007,7 @@ class SCRIPTS(Notifier):
             'TAUTULLI_PUBLIC_URL': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT,
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
             'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-            'TAUTULLI_PYTHON_VERSION': '.'.join(map(str, plexpy.PYTHON_VERSION))
+            'TAUTULLI_PYTHON_VERSION': common.PYTHON_VERSION
             }
 
         if user_id:

@@ -37,8 +37,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from UniversalAnalytics import Tracker
 import pytz
 
-PYTHON_VERSION = sys.version_info[:3]
-PYTHON2 = PYTHON_VERSION[0] == 2
+PYTHON2 = sys.version_info[0] == 2
 
 if PYTHON2:
     import activity_handler
@@ -2264,6 +2263,7 @@ def initialize_tracker():
         'appInstallerId': CONFIG.GIT_BRANCH,
         'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_RELEASE),  # App Platform
         'dimension2': common.PLATFORM_LINUX_DISTRO,  # Linux Distro
+        'dimension3': common.PYTHON_VERSION,
         'userLanguage': SYS_LANGUAGE,
         'documentEncoding': SYS_ENCODING,
         'noninteractive': True
