@@ -31,7 +31,7 @@ import datetime
 from functools import wraps
 import hashlib
 import imghdr
-from future.moves.itertools import zip_longest
+from future.moves.itertools import islice, zip_longest
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
@@ -1066,6 +1066,11 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
+
+
+def chunk(it, size):
+    it = iter(it)
+    return iter(lambda: tuple(islice(it, size)), ())
 
 
 def traverse_map(obj, func):

@@ -27,10 +27,10 @@ import time
 import plexpy
 if plexpy.PYTHON2:
     import logger
-    from helpers import cast_to_int, bool_true
+    from helpers import cast_to_int, bool_true, chunk
 else:
     from plexpy import logger
-    from plexpy.helpers import cast_to_int, bool_true
+    from plexpy.helpers import cast_to_int, bool_true, chunk
 
 
 FILENAME = "tautulli.db"
@@ -218,12 +218,16 @@ def delete_rows_from_table(table, row_ids):
 
     if row_ids:
         logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
-        query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids))
-        monitor_db = MonitorDatabase()
 
+        # SQlite verions prior to 3.32.0 (2020-05-22) have maximum variable limit of 999
+        # https://sqlite.org/limits.html
+        sqlite_max_variable_number = 999
+
+        monitor_db = MonitorDatabase()
         try:
-            monitor_db.action(query, row_ids)
-            return True
+            for row_ids_group in chunk(row_ids, sqlite_max_variable_number):
+                query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids_group))
+                monitor_db.action(query, row_ids_group)
         except Exception as e:
             logger.error("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
             return False
