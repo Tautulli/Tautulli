@@ -88,6 +88,8 @@ def refresh_libraries():
             if result == 'insert':
                 new_keys.append(section['section_id'])
 
+        add_live_tv_library(refresh=True)
+
         query = 'UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR ' \
                 'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
         monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
@@ -115,27 +117,27 @@ def refresh_libraries():
         return False
 
 
-def add_live_tv_library():
-    if not plexpy.CONFIG.ADD_LIVE_TV_LIBRARY:
+def add_live_tv_library(refresh=False):
+    monitor_db = database.MonitorDatabase()
+    result = monitor_db.select_single('SELECT * FROM library_sections '
+                                      'WHERE section_id = ? and server_id = ?',
+                                      [common.LIVE_TV_SECTION_ID, plexpy.CONFIG.PMS_IDENTIFIER])
+
+    if result and not refresh or not result and refresh:
         return
 
     logger.info("Tautulli Libraries :: Adding Live TV library to the database.")
-
-    monitor_db = database.MonitorDatabase()
 
     section_keys = {'server_id': plexpy.CONFIG.PMS_IDENTIFIER,
                     'section_id': common.LIVE_TV_SECTION_ID}
     section_values = {'server_id': plexpy.CONFIG.PMS_IDENTIFIER,
                       'section_id': common.LIVE_TV_SECTION_ID,
                       'section_name': common.LIVE_TV_SECTION_NAME,
-                      'section_type': 'live'
+                      'section_type': 'live',
+                      'is_active': 1
                       }
 
     result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
-
-    if result == 'insert':
-        plexpy.CONFIG.__setattr__('ADD_LIVE_TV_LIBRARY', 0)
-        plexpy.CONFIG.write()
 
 
 def has_library_type(section_type):

@@ -75,7 +75,6 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ADD_LIVE_TV_LIBRARY': (int, 'Advanced', 1),
     'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
