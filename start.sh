@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ "$TAUTULLI_DOCKER" = "True" ]]; then
+if [[ "$TAUTULLI_DOCKER" == "True" ]]; then
     if [[ -n $PUID && -n $PGID ]]; then
         getent group "$PGID" 2>&1 > /dev/null || groupadd -g "$PGID" tautulli
         getent passwd "$PUID" 2>&1 > /dev/null || useradd -r -u "$PUID" -g "$PGID" tautulli
@@ -17,21 +17,17 @@ if [[ "$TAUTULLI_DOCKER" = "True" ]]; then
         python Tautulli.py --datadir /config
     fi
 else
-    if command -v python3 >/dev/null; then
-        python3 Tautulli.py &> /dev/null &
-    elif command -v python3.8 >/dev/null; then
-        python3.8 Tautulli.py &> /dev/null &
-    elif command -v python3.7 >/dev/null; then
-        python3.7 Tautulli.py &> /dev/null &
-    elif command -v python3.6 >/dev/null; then
-        python3.6 Tautulli.py &> /dev/null &
-    elif command -v python >/dev/null; then
-        python Tautulli.py &> /dev/null &
-    elif command -v python2 >/dev/null; then
-        python2 Tautulli.py &> /dev/null &
-    elif command -v python2.7 >/dev/null; then
-        python2.7 Tautulli.py &> /dev/null &
-    else
-        echo "Cannot start Tautulli: python not found."
-    fi
+    python_versions=("python3" "python3.8" "python3.7" "python3.6" "python" "python2" "python2.7")
+    for cmd in "${python_versions[@]}"; do
+        if command -v "$cmd" >/dev/null; then
+            echo "Starting Tautulli with $cmd."
+            if [[ "$(uname -s)" == "Darwin" ]]; then
+                $cmd Tautulli.py &> /dev/null &
+            else
+                $cmd Tautulli.py --quiet --daemon
+            fi
+            exit
+        fi
+    done
+    echo "Unable to start Tautulli. No Python interpreter was found in the following options:" "${python_versions[@]}"
 fi
