@@ -1378,8 +1378,8 @@ class WebInterface(object):
                 user_id (str):                  The id of the Plex user
 
             Optional parameters:
-                order_column (str):             "last_seen", "ip_address", "platform", "player",
-                                                "last_played", "play_count"
+                order_column (str):             "last_seen", "first_seen", "ip_address", "platform",
+                                                "player", "last_played", "play_count"
                 order_dir (str):                "desc" or "asc"
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
@@ -1397,6 +1397,7 @@ class WebInterface(object):
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
+                          "first_seen": 1583968210,
                           "live": 0,
                           "media_index": 1,
                           "media_type": "episode",
@@ -1423,6 +1424,7 @@ class WebInterface(object):
         if not kwargs.get('json_data'):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("last_seen", True, False),
+                          ("first_seen", True, False),
                           ("ip_address", True, True),
                           ("platform", True, True),
                           ("player", True, True),

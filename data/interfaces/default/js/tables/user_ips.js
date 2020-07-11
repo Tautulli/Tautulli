@@ -1,3 +1,25 @@
+var date_format = 'YYYY-MM-DD';
+var time_format = 'hh:mm a';
+
+$.ajax({
+  url: 'get_date_formats',
+  type: 'GET',
+  success: function(data) {
+      date_format = data.date_format;
+      time_format = data.time_format;
+  }
+});
+
+var seenRender = function (data, type, full) {
+  return moment(data, "X").fromNow();
+};
+
+var seenCreatedCell = function (td, cellData, rowData, row, col) {
+  if (cellData !== null) {
+    $(td).attr('title', moment(cellData, "X").format(date_format + ' ' + time_format));
+  }
+};
+
 user_ip_table_options = {
     "destroy": true,
     "language": {
@@ -21,16 +43,24 @@ user_ip_table_options = {
     "columnDefs": [
         {
             "targets": [0],
-            "data":"last_seen",
-            "render": function ( data, type, full ) {
-                return moment(data, "X").fromNow();
-            },
+            "data": "last_seen",
+            "render": seenRender,
+            "createdCell": seenCreatedCell,
             "searchable": false,
             "width": "15%",
             "className": "no-wrap"
         },
         {
             "targets": [1],
+            "data": "first_seen",
+            "render": seenRender,
+            "createdCell": seenCreatedCell,
+            "searchable": false,
+            "width": "15%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [2],
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
@@ -48,7 +78,7 @@ user_ip_table_options = {
             "className": "no-wrap modal-control-ip"
         },
         {
-            "targets": [2],
+            "targets": [3],
             "data": "platform",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -59,7 +89,7 @@ user_ip_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [3],
+            "targets": [4],
             "data": "player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -78,7 +108,7 @@ user_ip_table_options = {
             "className": "no-wrap modal-control"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -119,7 +149,7 @@ user_ip_table_options = {
             "className": "datatable-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "play_count",
             "searchable": false,
             "width": "10%",
