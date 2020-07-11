@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.5.3 (2020-07-10)
+
+* History:
+  * Fix: Unable to delete more than 1000 history entries at the same time.
+* Notifications:
+  * Change: Python script notifications to run using the same Python interpreter as Tautulli.
+* Newsletters:
+  * Fix: Unable to view newsletters with special characters.
+* Other:
+  * Fix: Tautulli failing to start after enabling HTTPS when installed using the Windows / macOS installers.
+  * Fix: Startup script not working on macOS.
+  * Fix: Unable to hide dock icon on macOS with the pkg install. Refer to the FAQ regarding the Python rocket dock icon.
+  * Change: Added path to Python interpreter in system startup (daemon) scripts.
+  * Change: Added Python version to Google analytics.
+
+
 ## v2.5.2 (2020-07-01)
 
 * Announcements:
