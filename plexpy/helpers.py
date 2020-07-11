@@ -112,7 +112,7 @@ def radio(variable, pos):
         return ''
 
 
-def latinToAscii(unicrap):
+def latinToAscii(unicrap, replace=False):
     """
     From couch potato
     """
@@ -150,7 +150,8 @@ def latinToAscii(unicrap):
             if ord(i) in xlate:
                 r += xlate[ord(i)]
             elif ord(i) >= 0x80:
-                pass
+                if replace:
+                    r += '?'
             else:
                 r += str(i)
 
@@ -736,11 +737,17 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
         api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
     )
 
+    # Cloudinary library has very poor support for non-ASCII characters on Python 2
+    if plexpy.PYTHON2:
+        _img_title = latinToAscii(img_title, replace=True)
+    else:
+        _img_title = img_title
+
     try:
         response = upload((img_title, img_data),
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=['tautulli', fallback, str(rating_key)],
-                          context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
+                          context={'title': _img_title, 'rating_key': str(rating_key), 'fallback': fallback})
         logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
