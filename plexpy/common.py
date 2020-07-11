@@ -217,18 +217,19 @@ EXTRA_TYPES = {
 }
 
 SCHEDULER_LIST = [
-    'Check GitHub for updates',
-    'Check for server response',
-    'Check for active sessions',
-    'Check for recently added items',
-    'Check for Plex updates',
-    'Check for Plex remote access',
-    'Refresh users list',
-    'Refresh libraries list',
-    'Refresh Plex server URLs',
-    'Backup Tautulli database',
-    'Backup Tautulli config'
+    ('Check GitHub for updates', 'websocket'),
+    ('Check for server response', 'websocket'),
+    ('Check for active sessions', 'websocket'),
+    ('Check for recently added items', 'websocket'),
+    ('Check for server remote access', 'websocket'),
+    ('Check for Plex updates', 'scheduled'),
+    ('Refresh users list', 'scheduled'),
+    ('Refresh libraries list', 'scheduled'),
+    ('Refresh Plex server URLs', 'scheduled'),
+    ('Backup Tautulli database', 'scheduled'),
+    ('Backup Tautulli config', 'scheduled')
 ]
+SCHEDULER_LIST = OrderedDict(SCHEDULER_LIST)
 
 DATE_TIME_FORMATS = [
     {

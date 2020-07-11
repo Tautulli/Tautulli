@@ -2971,8 +2971,6 @@ class PmsConnect(object):
         return key_list
 
     def get_server_response(self):
-        # Refresh Plex remote access port mapping first
-        self.put_refresh_reachability()
         account_data = self.get_account(output_format='xml')
 
         try:

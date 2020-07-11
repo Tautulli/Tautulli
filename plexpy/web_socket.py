@@ -255,42 +255,55 @@ def process(opcode, data):
     try:
         data = data.decode('utf-8')
         logger.websocket_debug(data)
-        info = json.loads(data)
+        event = json.loads(data)
     except Exception as e:
         logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
         logger.websocket_error(data)
         return False
 
-    info = info.get('NotificationContainer', info)
-    info_type = info.get('type')
+    event = event.get('NotificationContainer', event)
+    event_type = event.get('type')
 
-    if not info_type:
+    if not event_type:
         return False
 
-    if info_type == 'playing':
-        time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
+    if event_type == 'playing':
+        event_data = event.get('PlaySessionStateNotification', event.get('_children', {}))
 
-        if not time_line:
-            logger.debug("Tautulli WebSocket :: Session found but unable to get timeline data.")
+        if not event_data:
+            logger.debug("Tautulli WebSocket :: Session event found but unable to get websocket data.")
             return False
 
         try:
-            activity = activity_handler.ActivityHandler(timeline=time_line[0])
+            activity = activity_handler.ActivityHandler(timeline=event_data[0])
             activity.process()
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
 
-    if info_type == 'timeline':
-        time_line = info.get('TimelineEntry', info.get('_children', {}))
+    if event_type == 'timeline':
+        event_data = event.get('TimelineEntry', event.get('_children', {}))
 
-        if not time_line:
-            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get timeline data.")
+        if not event_data:
+            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
             return False
 
         try:
-            activity = activity_handler.TimelineHandler(timeline=time_line[0])
+            activity = activity_handler.TimelineHandler(timeline=event_data[0])
             activity.process()
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
+
+    if event_type == 'reachability':
+        event_data = event.get('ReachabilityNotification', event.get('_children', {}))
+
+        if not event_data:
+            logger.debug("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
+            return False
+
+        try:
+            activity = activity_handler.ReachabilityHandler(data=event_data[0])
+            activity.process()
+        except Exception as e:
+            logger.exception("Tautulli WebSocket :: Failed to process reachability data: %s." % e)
 
     return True
