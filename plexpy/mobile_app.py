@@ -42,6 +42,11 @@ def set_temp_device_token(token=None):
     global TEMP_DEVICE_TOKEN
     TEMP_DEVICE_TOKEN = token
 
+    if TEMP_DEVICE_TOKEN:
+        logger._BLACKLIST_WORDS.add(TEMP_DEVICE_TOKEN)
+    else:
+        logger._BLACKLIST_WORDS.discard(TEMP_DEVICE_TOKEN)
+
     if TEMP_DEVICE_TOKEN is not None:
         global INVALIDATE_TIMER
         if INVALIDATE_TIMER:
@@ -95,6 +100,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None, frien
 
     try:
         result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
+        blacklist_logger()
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to register mobile device in the database: %s." % e)
         return
@@ -135,6 +141,7 @@ def set_mobile_device_config(mobile_device_id=None, **kwargs):
     try:
         db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
         logger.info("Tautulli MobileApp :: Updated mobile device agent: mobile_device_id %s." % mobile_device_id)
+        blacklist_logger()
         return True
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Unable to update mobile device: %s." % e)
