@@ -47,7 +47,7 @@ user_ip_table_options = {
             "render": seenRender,
             "createdCell": seenCreatedCell,
             "searchable": false,
-            "width": "15%",
+            "width": "12%",
             "className": "no-wrap"
         },
         {
@@ -56,7 +56,7 @@ user_ip_table_options = {
             "render": seenRender,
             "createdCell": seenCreatedCell,
             "searchable": false,
-            "width": "15%",
+            "width": "12%",
             "className": "no-wrap"
         },
         {
@@ -74,7 +74,7 @@ user_ip_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "15%",
+            "width": "12%",
             "className": "no-wrap modal-control-ip"
         },
         {
@@ -85,7 +85,7 @@ user_ip_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "15%",
+            "width": "12%",
             "className": "no-wrap"
         },
         {
@@ -104,7 +104,7 @@ user_ip_table_options = {
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp;' + cellData + '</div></a></div>');
                 }
             },
-            "width": "15%",
+            "width": "12%",
             "className": "no-wrap modal-control"
         },
         {
