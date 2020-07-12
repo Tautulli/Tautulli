@@ -2674,11 +2674,12 @@ Registers the Tautulli Android App for notifications.
 
 ```
 Required parameters:
-    device_name (str):        The device name of the Tautulli Android App
-    device_id (str):          The OneSignal device id of the Tautulli Android App
+    device_id (str):          The unique device identifier for the mobile device
+    device_name (str):        The device name of the mobile device
 
 Optional parameters:
     friendly_name (str):      A friendly name to identify the mobile device
+    onesignal_id (str):       The OneSignal id for the mobile device
 
 Returns:
     None

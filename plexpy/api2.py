@@ -391,16 +391,17 @@ class API2(object):
 
         return data
 
-    def register_device(self, device_id='', device_name='', friendly_name='', **kwargs):
+    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id='', **kwargs):
         """ Registers the Tautulli Android App for notifications.
 
             ```
             Required parameters:
-                device_name (str):        The device name of the Tautulli Android App
-                device_id (str):          The OneSignal device id of the Tautulli Android App
+                device_id (str):          The unique device identifier for the mobile device
+                device_name (str):        The device name of the mobile device
 
             Optional parameters:
                 friendly_name (str):      A friendly name to identify the mobile device
+                onesignal_id (str):       The OneSignal id for the mobile device
 
             Returns:
                 None
@@ -419,7 +420,8 @@ class API2(object):
         result = mobile_app.add_mobile_device(device_id=device_id,
                                               device_name=device_name,
                                               device_token=self._api_apikey,
-                                              friendly_name=friendly_name)
+                                              friendly_name=friendly_name,
+                                              onesignal_id=onesignal_id)
 
         if result:
             self._api_msg = 'Device registration successful.'

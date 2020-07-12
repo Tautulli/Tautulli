@@ -87,13 +87,14 @@ def get_mobile_device_by_token(device_token=None):
     return get_mobile_devices(device_token=device_token)
 
 
-def add_mobile_device(device_id=None, device_name=None, device_token=None, friendly_name=None):
+def add_mobile_device(device_id=None, device_name=None, device_token=None, friendly_name=None, onesignal_id=None):
     db = database.MonitorDatabase()
 
     keys = {'device_id': device_id}
     values = {'device_name': device_name,
               'device_token': device_token,
-              'official': validate_device_id(device_id=device_id)}
+              'onesignal_id': onesignal_id,
+              'official': validate_onesignal_id(onesignal_id=onesignal_id)}
 
     if friendly_name:
         values['friendly_name'] = friendly_name
@@ -172,11 +173,14 @@ def set_last_seen(device_token=None):
         return
 
 
-def validate_device_id(device_id):
+def validate_onesignal_id(onesignal_id):
+    if onesignal_id is None:
+        return False
+
     headers = {'Content-Type': 'application/json'}
     payload = {'app_id': _ONESIGNAL_APP_ID}
 
-    r = requests.get('https://onesignal.com/api/v1/players/{}'.format(device_id), headers=headers, json=payload)
+    r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
     return r.status_code == 200
 
 

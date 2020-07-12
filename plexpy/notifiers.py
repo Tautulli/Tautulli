@@ -929,7 +929,7 @@ class ANDROIDAPP(Notifier):
             #logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_player_ids': [self.config['device_id']],
+                       'include_player_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': True,
                                 'cipher_text': base64.b64encode(encrypted_data),
@@ -942,7 +942,7 @@ class ANDROIDAPP(Notifier):
                         "Install the library to encrypt the notifications.")
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_player_ids': [self.config['device_id']],
+                       'include_player_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': False,
                                 'plain_text': plaintext_data}
@@ -958,7 +958,8 @@ class ANDROIDAPP(Notifier):
         db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT * FROM mobile_devices WHERE official = 1'
+            query = 'SELECT * FROM mobile_devices WHERE official = 1 ' \
+                    'AND onesignal_id IS NOT NULL AND onesignal_id != ""'
             result = db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Android app devices list: %s." % e)
@@ -983,9 +984,9 @@ class ANDROIDAPP(Notifier):
                                'The content of your notifications will be sent unencrypted!</strong><br>'
                                'Please install the library to encrypt the notification contents. '
                                'Instructions can be found in the '
-                               '<a href="https://github.com/%s/%s-Wiki/wiki/'
-                               'Frequently-Asked-Questions#notifications-pycryptodome'
-                               '" target="_blank">FAQ</a>.' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO),
+                               '<a href="' + helpers.anon_url(
+                                 'https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
+                                 % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.' ,
                 'input_type': 'help'
                 })
         else:
@@ -998,7 +999,7 @@ class ANDROIDAPP(Notifier):
 
         config_option[-1]['description'] += '<br><br>Notifications are sent using the ' \
             '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
-            'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
+            'OneSignal</a>. Some user data is collected and cannot be encrypted. ' \
             'Please read the <a href="' + helpers.anon_url(
                 'https://onesignal.com/privacy_policy') + '" target="_blank">' \
             'OneSignal Privacy Policy</a> for more details.'
@@ -1008,7 +1009,7 @@ class ANDROIDAPP(Notifier):
         if not devices:
             config_option.append({
                 'label': 'Device',
-                'description': 'No devices registered. '
+                'description': 'No mobile devices registered with OneSignal. '
                                '<a data-tab-destination="android_app" data-toggle="tab" data-dismiss="modal">'
                                'Get the Android App</a> and register a device.',
                 'input_type': 'help'
@@ -1018,7 +1019,7 @@ class ANDROIDAPP(Notifier):
                 'label': 'Device',
                 'value': self.config['device_id'],
                 'name': 'androidapp_device_id',
-                'description': 'Set your Android app device or '
+                'description': 'Set your mobile device or '
                                '<a data-tab-destination="android_app" data-toggle="tab" data-dismiss="modal">'
                                'register a new device</a> with Tautulli.',
                 'input_type': 'select',
