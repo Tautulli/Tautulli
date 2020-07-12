@@ -246,6 +246,7 @@ class Users(object):
 
         columns = ['session_history.id AS history_row_id',
                    'MAX(session_history.started) AS last_seen',
+                   'MIN(session_history.started) AS first_seen',
                    'session_history.ip_address',
                    'COUNT(session_history.id) AS play_count',
                    'session_history.platform',
@@ -306,6 +307,7 @@ class Users(object):
 
             row = {'history_row_id': item['history_row_id'],
                    'last_seen': item['last_seen'],
+                   'first_seen': item['first_seen'],
                    'ip_address': item['ip_address'],
                    'play_count': item['play_count'],
                    'platform': platform,
