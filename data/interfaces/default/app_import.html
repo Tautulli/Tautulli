@@ -32,7 +32,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="help-block">Upload the ${app} database you wish to import.</p>
+                    <p class="help-block">Upload the ${app} database file you wish to import.</p>
                 </div>
                 <div class="form-group">
                     <label for="import_database_path">Option 2: Browse for a Database File</label>
@@ -46,7 +46,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="help-block">Browse for the ${app} database you wish to import.</p>
+                    <p class="help-block">Browse for the ${app} database file you wish to import.</p>
                 </div>
                 % if app == 'Tautulli':
                 <div class="form-group">
@@ -73,7 +73,12 @@
                 </div>
                 <div class="form-group">
                     <label>Import Notes</label>
-                    <p class="help-block">Libraries, users, notification agents, newsletter agents, and registered mobile devices will also be imported</p>
+                    <p class="help-block">The following data will also be imported:</p>
+                    <ul class="help-block" style="padding-inline-start: 15px;">
+                        <li>Libraries and Users</li>
+                        <li>Notification / Newsletter Agents</li>
+                        <li>Registered Mobile Devices</li>
+                    </ul>
                 </div>
                 % else:
                 <div class="form-group">

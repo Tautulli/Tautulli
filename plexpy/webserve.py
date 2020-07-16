@@ -3898,7 +3898,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def import_config_tool(self, **kwargs):
-        return serve_template(templatename="config_import.html", title="Import Tautulli Config")
+        return serve_template(templatename="config_import.html", title="Import Tautulli Configuration")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
