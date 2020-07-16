@@ -142,9 +142,7 @@ _CONFIG_DEFINITIONS = {
     'MUSIC_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'MUSICBRAINZ_LOOKUP': (int, 'General', 0),
     'MONITOR_PMS_UPDATES': (int, 'Monitoring', 0),
-    'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
-    'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
     'NEWSLETTER_AUTH': (int, 'Newsletter', 0),
     'NEWSLETTER_PASSWORD': (str, 'Newsletter', ''),
     'NEWSLETTER_CUSTOM_DIR': (str, 'Newsletter', ''),
@@ -152,14 +150,12 @@ _CONFIG_DEFINITIONS = {
     'NEWSLETTER_TEMPLATES': (str, 'Newsletter', 'newsletters'),
     'NEWSLETTER_DIR': (str, 'Newsletter', ''),
     'NEWSLETTER_SELF_HOSTED': (int, 'Newsletter', 0),
-    'NEWSLETTER_STATIC_URL': (int, 'Newsletter', 0),
     'NOTIFICATION_THREADS': (int, 'Advanced', 2),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
     'NOTIFY_CONTINUED_SESSION_THRESHOLD': (int, 'Monitoring', 15),
     'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 1),
     'NOTIFY_GROUP_RECENTLY_ADDED_PARENT': (int, 'Monitoring', 1),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
-    'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 300),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
@@ -170,8 +166,6 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
-    'REMOTE_ACCESS_PING_INTERVAL': (int, 'Advanced', 60),
-    'REMOTE_ACCESS_PING_THRESHOLD': (int, 'Advanced', 3),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
     'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
     'SYNCHRONOUS_MODE': (str, 'Advanced', 'NORMAL'),
@@ -183,7 +177,6 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
-    'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
     'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
@@ -408,8 +401,6 @@ class Config(object):
             self.CONFIG_VERSION = 7
 
         if self.CONFIG_VERSION == 7:
-            self.MONITORING_USE_WEBSOCKET = 1
-
             self.CONFIG_VERSION = 8
 
         if self.CONFIG_VERSION == 8:
@@ -438,7 +429,6 @@ class Config(object):
             self.CONFIG_VERSION = 13
 
         if self.CONFIG_VERSION == 13:
-
             self.CONFIG_VERSION = 14
 
         if self.CONFIG_VERSION == 14:
