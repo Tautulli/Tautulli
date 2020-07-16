@@ -2995,9 +2995,6 @@ class WebInterface(object):
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
             "get_file_sizes": checked(plexpy.CONFIG.GET_FILE_SIZES),
-            "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
-            "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
-            "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
             "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
             "refresh_libraries_interval": plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL,
             "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
@@ -3071,7 +3068,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "launch_startup", "enable_https", "https_create_cert",
             "api_enabled", "freeze_db", "check_github",
-            "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
+            "group_history_tables",
             "pms_url_manual", "week_start_monday",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "notify_consecutive", "notify_recently_added_upgrade",
