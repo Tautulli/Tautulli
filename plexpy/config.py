@@ -180,9 +180,7 @@ _CONFIG_DEFINITIONS = {
     'TVMAZE_LOOKUP': (int, 'General', 0),
     'TV_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
-    'UPDATE_SECTION_IDS': (int, 'General', 1),
     'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
-    'UPDATE_LABELS': (int, 'General', 1),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
@@ -197,7 +195,7 @@ _CONFIG_DEFINITIONS = {
 }
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
-_WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
+_WHITELIST_KEYS = ['HTTPS_KEY']
 
 
 def make_backup(cleanup=False, scheduler=False):
