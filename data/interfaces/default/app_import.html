@@ -5,7 +5,7 @@
             <h4 class="modal-title">Import ${app} Database</h4>
         </div>
         <div class="modal-body" id="modal-text">
-            <form id="import_database" enctype="multipart/form-data" method="post" name="import_database">
+            <form id="import_database_form" enctype="multipart/form-data" method="post" name="import_database_form">
                 <input type="hidden" id="import_app" name="import_app" value="${app.lower()}" />
                 % if app in ('PlexWatch', 'Plexivity'):
                 <p class="help-block">
@@ -64,13 +64,16 @@
                         <li><strong>Merge</strong> will add all history and remove any duplicates from the imported database into the current database.</li>
                         <li><strong>Overwrite</strong> will replace all history in the current database with the imported database.</li>
                     </ul>
-                    <p class="help-block">Note: Libraries, users, notification agents, newsletter agents, and registered mobile devices will also be imported</p>
                 </div>
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="import_backup_db" id="import_backup_db" value="1" checked> Backup Current Database
                     </label>
                     <p class="help-block">Automatically create a backup of the current database before importing.</p>
+                </div>
+                <div class="form-group">
+                    <label>Import Notes</label>
+                    <p class="help-block">Libraries, users, notification agents, newsletter agents, and registered mobile devices will also be imported</p>
                 </div>
                 % else:
                 <div class="form-group">
@@ -107,7 +110,7 @@
 </div>
 <script>
     $('#import_database_path_browse').click(function () {
-        $('#browse-path-type').text('Databse File');
+        $('#browse-path-type').text('Database File');
         $('#browse-path-modal').modal('show');
         browsePath(null, null, '.db');
     });
