@@ -136,7 +136,7 @@ class API2(object):
             self._api_app = True
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
-            if self._api_apikey == plexpy.CONFIG.API_KEY:
+            if not self._api_app and self._api_apikey == plexpy.CONFIG.API_KEY:
                 self._api_authenticated = True
 
             elif self._api_app and self._api_apikey == mobile_app.get_temp_device_token() and \
