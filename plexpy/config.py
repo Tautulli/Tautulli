@@ -72,7 +72,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
+    'ANON_REDIRECT': (str, 'General', 'https://www.nullrefer.com/?'),
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
@@ -106,9 +106,9 @@ _CONFIG_DEFINITIONS = {
     'GIT_REPO': (str, 'General', 'Tautulli'),
     'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
-    'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
+    'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
-    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
+    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music',
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
@@ -158,7 +158,6 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_CONTINUED_SESSION_THRESHOLD': (int, 'Monitoring', 15),
     'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 1),
     'NOTIFY_GROUP_RECENTLY_ADDED_PARENT': (int, 'Monitoring', 1),
-    'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 1),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 300),
@@ -166,7 +165,6 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
-    'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'PLEXPY_AUTO_UPDATE': (int, 'General', 0),
     'REFRESH_LIBRARIES_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
@@ -361,14 +359,6 @@ class Config(object):
         Upgrades config file from previous verisions and bumps up config version
         """
         if self.CONFIG_VERSION == 0:
-            # Separate out movie and tv notifications
-            if self.MOVIE_NOTIFY_ENABLE == 1:
-                self.TV_NOTIFY_ENABLE = 1
-            # Separate out movie and tv logging
-            if self.VIDEO_LOGGING_ENABLE == 0:
-                self.MOVIE_LOGGING_ENABLE = 0
-                self.TV_LOGGING_ENABLE = 0
-
             self.CONFIG_VERSION = 1
 
         if self.CONFIG_VERSION == 1:
@@ -388,23 +378,6 @@ class Config(object):
             self.CONFIG_VERSION = 2
 
         if self.CONFIG_VERSION == 2:
-            def rep(s):
-                return s.replace('{progress}', '{progress_duration}')
-
-            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
-            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
-            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
-            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
-            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
-            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
-            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
-            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
-            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
-            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
-            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
-            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
-            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
-
             self.CONFIG_VERSION = 3
 
         if self.CONFIG_VERSION == 3:
@@ -437,37 +410,11 @@ class Config(object):
             self.CONFIG_VERSION = 7
 
         if self.CONFIG_VERSION == 7:
-            def rep(s):
-                return s.replace('<tv>', '<episode>') \
-                    .replace('</tv>', '</episode>') \
-                    .replace('<music>', '<track>') \
-                    .replace('</music>', '</track>')
-
-            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
-            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
-            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
-            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
-            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
-            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
-            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
-            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
-            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
-            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
-            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
-            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
-            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
-
-            self.NOTIFY_GROUP_RECENTLY_ADDED_PARENT = self.NOTIFY_GROUP_RECENTLY_ADDED
-
             self.MONITORING_USE_WEBSOCKET = 1
 
             self.CONFIG_VERSION = 8
 
         if self.CONFIG_VERSION == 8:
-            self.MOVIE_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
-            self.TV_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
-            self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
-
             self.CONFIG_VERSION = 9
 
         if self.CONFIG_VERSION == 9:
