@@ -3833,6 +3833,57 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'App not recognized for import'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def import_config(self, config_file=None, config_path=None, backup=False, **kwargs):
+        """ Import a Tautulli config file.
+
+            ```
+            Required parameters:
+                config_file (file):             The config file to import (multipart/form-data)
+                or
+                config_path (str):              The full path to the config file to import
+
+
+            Optional parameters:
+                backup (bool):                  true or false whether to backup
+                                                the current config before importing
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Config import has started. Check the logs to monitor any problems. "
+                                "Tautulli will restart automatically."
+                     }
+            ```
+        """
+        if database.IS_IMPORTING:
+            return {'result': 'error',
+                    'message': 'Database import is in progress. Please wait until it is finished to import a config.'}
+
+        if config_file:
+            config_path = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file.filename + '.import.ini')
+            logger.info("Received config file '%s' for import. Saving to cache '%s'.",
+                        config_file.filename, config_path)
+            with open(config_path, 'wb') as f:
+                while True:
+                    data = config_file.file.read(8192)
+                    if not data:
+                        break
+                    f.write(data)
+
+        if not config_path:
+            return {'result': 'error', 'message': 'No config specified for import'}
+
+        threading.Thread(target=config.import_tautulli_config,
+                         kwargs={'config': config_path,
+                                 'backup': helpers.bool_true(backup)}).start()
+        return {'result': 'success',
+                'message': 'Config import has started. Check the logs to monitor any problems. '
+                           'Tautulli will restart automatically.'}
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     def import_database_tool(self, app=None, **kwargs):
         if app == 'tautulli':

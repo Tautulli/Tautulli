@@ -190,6 +190,56 @@ _CONFIG_DEFINITIONS = {
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
 _WHITELIST_KEYS = ['HTTPS_KEY']
 
+_DO_NOT_IMPORT_KEYS = [
+    'FIRST_RUN_COMPLETE', 'GET_FILE_SIZES_HOLD', 'GIT_PATH',
+    'BACKUP_DIR', 'CACHE_DIR', 'LOG_DIR', 'NEWSLETTER_DIR', 'NEWSLETTER_CUSTOM_DIR',
+    'HTTP_HOST', 'HTTP_PORT', 'HTTP_ROOT',
+    'HTTP_USERNAME', 'HTTP_PASSWORD', 'HTTP_HASH_PASSWORD', 'HTTP_HASHED_PASSWORD',
+    'ENABLE_HTTPS', 'HTTPS_CREATE_CERT', 'HTTPS_CERT', 'HTTPS_CERT_CHAIN', 'HTTPS_KEY'
+]
+_DO_NOT_IMPORT_KEYS_DOCKER = [
+    'PLEXPY_AUTO_UPDATE', 'GIT_REMOTE', 'GIT_BRANCH'
+]
+
+IS_IMPORTING = False
+
+
+def set_is_importing(value):
+    global IS_IMPORTING
+    IS_IMPORTING = value
+
+
+def import_tautulli_config(config=None, backup=False):
+    if backup:
+        # Make a backup of the current config first
+        logger.info("Tautulli Config :: Creating a config backup before importing.")
+        if not make_backup():
+            logger.error("Tautulli Config :: Failed to import Tautulli config: failed to create config backup")
+            return False
+
+    logger.info("Tautulli Config :: Importing Tautulli config '%s'...", config)
+    set_is_importing(True)
+
+    # Create a new Config object with the imported config file
+    imported_config = Config(config, is_import=True)
+
+    # Remove keys that should not be imported
+    for key in _DO_NOT_IMPORT_KEYS:
+        delattr(imported_config, key)
+    if plexpy.DOCKER:
+        for key in _DO_NOT_IMPORT_KEYS_DOCKER:
+            delattr(imported_config, key)
+
+    # Merge the imported config file into the current config file
+    plexpy.CONFIG._config.merge(imported_config._config)
+    plexpy.CONFIG.write()
+
+    logger.info("Tautulli Config :: Tautulli config import complete.")
+    set_is_importing(False)
+
+    # Restart to apply changes
+    plexpy.SIGNAL = 'restart'
+
 
 def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of config file, removes all but the last 5 backups """
@@ -233,14 +283,15 @@ def make_backup(cleanup=False, scheduler=False):
 class Config(object):
     """ Wraps access to particular values in a config file """
 
-    def __init__(self, config_file):
+    def __init__(self, config_file, is_import=False):
         """ Initialize the config with values from a file """
         self._config_file = config_file
         self._config = ConfigObj(self._config_file, encoding='utf-8')
         for key in _CONFIG_DEFINITIONS:
             self.check_setting(key)
-        self._upgrade()
-        self._blacklist()
+        if not is_import:
+            self._upgrade()
+            self._blacklist()
 
     def _blacklist(self):
         """ Add tokens and passwords to blacklisted words in logger """
@@ -336,6 +387,16 @@ class Config(object):
             key, definition_type, section, ini_key, default = self._define(name)
             self._config[section][ini_key] = definition_type(value)
             return self._config[section][ini_key]
+
+    def __delattr__(self, name):
+        """
+        Deletes a key from the configuration object.
+        """
+        if not re.match(r'[A-Z_]+$', name):
+            return super(Config, self).__delattr__(name)
+        else:
+            key, definition_type, section, ini_key, default = self._define(name)
+            del self._config[section][ini_key]
 
     def process_kwargs(self, kwargs):
         """
