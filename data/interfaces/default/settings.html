@@ -1302,14 +1302,32 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-import_backups">
 
                         <div class="padded-header">
-                            <h3>Database Import</h3>
+                            <h3>Import</h3>
                         </div>
 
-                        <p class="help-block">Click a button below to import an existing database from the selected app.</p>
-                        <div class="btn-group">
-                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="tautulli">Tautulli</button>
-                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
-                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                        <div class="form-group">
+                            <label for="database_import">Database Import</label>
+                            <p class="help-block">Click a button below to import an existing database from the selected app.</p>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="tautulli">Tautulli</button>
+                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
+                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_import">Config Import</label>
+                            <p class="help-block">Click the button below to import a previous Tautulli config.</p>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form toggle-config-import-modal" type="button" data-target="#config-import-modal" data-toggle="modal">Tautulli</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="padded-header">
@@ -1500,6 +1518,7 @@
     </div>
 </div>
 <div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
+<div id="config-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="config-import-modal"></div>
 <div id="add-notifier-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-notifier-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -2509,6 +2528,18 @@ $(document).ready(function() {
             async: true,
             complete: function(xhr, status) {
                 $("#app-import-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    // Load config import modal
+    $(".toggle-config-import-modal").click(function() {
+        $.ajax({
+            url: 'import_config_tool',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#config-import-modal").html(xhr.responseText);
             }
         });
     });

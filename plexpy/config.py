@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import time
+import threading
 
 from configobj import ConfigObj
 
@@ -202,11 +203,21 @@ _DO_NOT_IMPORT_KEYS_DOCKER = [
 ]
 
 IS_IMPORTING = False
+IMPORT_THREAD = None
 
 
 def set_is_importing(value):
     global IS_IMPORTING
     IS_IMPORTING = value
+
+
+def set_import_thread(config=None, backup=False):
+    global IMPORT_THREAD
+    if config:
+        IMPORT_THREAD = threading.Thread(target=import_tautulli_config,
+                                         kwargs={'config': config, 'backup': backup})
+    else:
+        IMPORT_THREAD = None
 
 
 def import_tautulli_config(config=None, backup=False):
@@ -235,6 +246,7 @@ def import_tautulli_config(config=None, backup=False):
     plexpy.CONFIG.write()
 
     logger.info("Tautulli Config :: Tautulli config import complete.")
+    set_import_thread(None)
     set_is_importing(False)
 
     # Restart to apply changes

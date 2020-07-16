@@ -1,0 +1,148 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">${title}</h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <form id="import_config_form" enctype="multipart/form-data" method="post" name="import_config_form">
+                <div class="form-group">
+                    <label for="import_config_file">Option 1: Upload a Config File</label>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="input-group">
+                                <label for="import_config_file" class="input-group-btn">
+                                    <span class="btn btn-form">Upload</span>
+                                    <input type="file" style="display: none;" id="import_config_file" name="import_config_file" required>
+                                </label>
+                                <input id="import_config_file_name" type="text" class="form-control" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="help-block">Upload the Tautulli config you wish to import.</p>
+                </div>
+                <div class="form-group">
+                    <label for="import_config_path">Option 2: Browse for a Config File</label>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-form" type="button" id="import_config_path_browse">Browse</button>
+                                </span>
+                                <input type="text" class="form-control" id="import_config_path" name="import_config_path" value="" required disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="help-block">Browse for the Tautulli config you wish to import.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_backup_config" id="import_backup_config" value="1" checked> Backup Current Config
+                    </label>
+                    <p class="help-block">Automatically create a backup of the current config before importing.</p>
+                </div>
+                <div class="form-group">
+                    <label>Import Notes</label>
+                    <p class="help-block">The following settings will <em>not</em> be imported:</p>
+                    <ul class="help-block" style="padding-inline-start: 15px;">
+                        <li>Git Path, Log / Backup / Cache Directory</li>
+                        <li>Custom Newsletter Templates Folder, Newsletter Output Directory</li>
+                        <li>HTTP Host / Port / Root / Username / Password</li>
+                        <li>Enable HTTPS, HTTPS Certificate / Certificate Chain / Key</li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <span id="status-message" style="padding-right: 25px;"></span>
+                <input type="button" id="import_config" class="btn btn-bright" value="Import">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#import_config_path_browse').click(function () {
+        $('#browse-path-type').text('Config File');
+        $('#browse-path-modal').modal('show');
+        browsePath(null, null, '.ini');
+    });
+    $('#select-browse-file').click(function () {
+        $('#browse-path-modal').modal('hide');
+        $("#import_config_path").val($('#browse-path').val());
+    });
+
+    $('#import_config_file').change(function() {
+        if ($(this)[0].files[0]) {
+            $('#import_config_file_name').val($(this)[0].files[0].name);
+        }
+    });
+
+    $("#import_config").click(function() {
+        $(this).prop('disabled', true);
+
+        var config_file = $('#import_config_file')[0].files[0];
+        var config_path = $("#import_config_path").val();
+        var backup = $("#import_backup_config").is(':checked');
+
+        var content_type;
+        var process_data;
+        var data;
+
+        if (config_file) {
+            content_type = false;
+            process_data = false;
+            data = new FormData();
+            data.append('config_file', config_file);
+            data.append('backup', backup);
+        } else {
+            content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
+            process_data = true;
+            data = {
+                config_path: config_path,
+                backup: backup
+            }
+        }
+
+        if (config_file) {
+            $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>&nbsp; Uploading config file...');
+        } else {
+            $("#status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>');
+        }
+
+        $.ajax({
+            url: 'import_config',
+            type: 'POST',
+            data: data,
+            cache: false,
+            async: true,
+            contentType: content_type,
+            processData: process_data,
+            success: function(data) {
+                var msg;
+                if (data.result === 'success') {
+                    msg = "<i class='fa fa-check'></i>&nbsp; " + data.message;
+                    window.location.href = 'restart_import_config';
+                } else {
+                    msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; " + data.message;
+                }
+                $("#status-message").html(msg);
+                $("#import_config_file").val(null);
+                $("#import_config_file_name").val('');
+                $("#import_config_path").val('');
+            },
+            error: function (xhr) {
+                var msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; Error (" + xhr.status + "): ";
+                if (xhr.status === 413) {
+                    msg += "file is too large to upload"
+                } else {
+                    msg += 'try again'
+                }
+                $("#status-message").html(msg);
+            },
+            complete: function(xhr) {
+                $("#import_config").prop('disabled', false);
+            }
+        });
+    });
+</script>

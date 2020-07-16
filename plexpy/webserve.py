@@ -3876,9 +3876,8 @@ class WebInterface(object):
         if not config_path:
             return {'result': 'error', 'message': 'No config specified for import'}
 
-        threading.Thread(target=config.import_tautulli_config,
-                         kwargs={'config': config_path,
-                                 'backup': helpers.bool_true(backup)}).start()
+        config.set_import_thread(config=config_path, backup=helpers.bool_true(backup))
+
         return {'result': 'success',
                 'message': 'Config import has started. Check the logs to monitor any problems. '
                            'Tautulli will restart automatically.'}
@@ -3895,6 +3894,11 @@ class WebInterface(object):
 
         logger.warn("No app specified for import.")
         return
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def import_config_tool(self, **kwargs):
+        return serve_template(templatename="config_import.html", title="Import Tautulli Config")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4158,7 +4162,8 @@ class WebInterface(object):
     def do_state_change(self, signal, title, timer, **kwargs):
         message = title
         quote = self.random_arnold_quotes()
-        plexpy.SIGNAL = signal
+        if signal:
+            plexpy.SIGNAL = signal
 
         if plexpy.CONFIG.HTTP_ROOT.strip('/'):
             new_http_root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/') + '/'
@@ -4206,6 +4211,13 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def reset_git_install(self, **kwargs):
         return self.do_state_change('reset', 'Resetting to {}'.format(common.RELEASE), 120)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def restart_import_config(self, **kwargs):
+        if config.IMPORT_THREAD:
+            config.IMPORT_THREAD.start()
+        return self.do_state_change(None, 'Importing a Config', 15)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
