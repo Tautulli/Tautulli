@@ -27,10 +27,10 @@ import time
 import plexpy
 if plexpy.PYTHON2:
     import logger
-    from helpers import cast_to_int, bool_true, chunk
+    from helpers import cast_to_int, chunk
 else:
     from plexpy import logger
-    from plexpy.helpers import cast_to_int, bool_true, chunk
+    from plexpy.helpers import cast_to_int, chunk
 
 
 FILENAME = "tautulli.db"
@@ -41,7 +41,7 @@ IS_IMPORTING = False
 
 def set_is_importing(value):
     global IS_IMPORTING
-    IS_IMPORTING = bool_true(value)
+    IS_IMPORTING = value
 
 
 def validate_database(database=None):
