@@ -3750,7 +3750,7 @@ class WebInterface(object):
                 app (str):                      "tautulli" or "plexwatch" or "plexivity"
                 database_file (file):           The database file to import (multipart/form-data)
                 or
-                database_path (str):            The full path to the plexwatch database file
+                database_path (str):            The full path to the database file to import
                 method (str):                   For Tautulli only, "merge" or "overwrite"
                 table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
 
@@ -3764,7 +3764,7 @@ class WebInterface(object):
             Returns:
                 json:
                     {"result": "success",
-                     "message": "Import has started. Check the logs to monitor any problems."
+                     "message": "Database import has started. Check the logs to monitor any problems."
                      }
             ```
         """
@@ -3793,7 +3793,7 @@ class WebInterface(object):
                                          'method': method,
                                          'backup': helpers.bool_true(backup)}).start()
                 return {'result': 'success',
-                        'message': 'Import has started. Check the logs to monitor any problems.'}
+                        'message': 'Database import has started. Check the logs to monitor any problems.'}
             else:
                 if database_file:
                     helpers.delete_file(database_path)
@@ -3808,7 +3808,7 @@ class WebInterface(object):
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
                 return {'result': 'success',
-                        'message': 'Import has started. Check the logs to monitor any problems.'}
+                        'message': 'Database import has started. Check the logs to monitor any problems.'}
             else:
                 if database_file:
                     helpers.delete_file(database_path)
@@ -3823,7 +3823,7 @@ class WebInterface(object):
                                          'table_name': table_name,
                                          'import_ignore_interval': import_ignore_interval}).start()
                 return {'result': 'success',
-                        'message': 'Import has started. Check the logs to monitor any problems.'}
+                        'message': 'Database import has started. Check the logs to monitor any problems.'}
             else:
                 if database_file:
                     helpers.delete_file(database_path)
