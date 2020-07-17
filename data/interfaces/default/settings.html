@@ -568,8 +568,13 @@
                             <div class="form-group advanced-setting">
                                 <label for="https_cert">HTTPS Certificate</label>
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="https_cert_browse" data-filter=".pem" data-target="#https_cert">Browse</button>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">The location of the SSL certificate.</p>
@@ -577,8 +582,13 @@
                             <div class="form-group advanced-setting">
                                 <label for="https_cert_chain">HTTPS Certificate Chain</label>
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control http-settings" id="https_cert_chain" name="https_cert_chain" value="${config['https_cert_chain']}">
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control http-settings" id="https_cert_chain" name="https_cert_chain" value="${config['https_cert_chain']}">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="https_cert_chain_browse" data-filter=".pem" data-target="#https_cert_chain">Browse</button>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">The location of the SSL certificate chain.</p>
@@ -586,8 +596,13 @@
                             <div class="form-group advanced-setting">
                                 <label for="https_key">HTTPS Key</label>
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                    <div class="col-md-7">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="https_key_browse" data-filter=".pem" data-target="#https_key">Browse</button>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">The location of the SSL key.</p>
@@ -800,10 +815,15 @@
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
                         <div class="form-group advanced-setting">
-                            <label for="pms_logs_folder">Logs Folder</label>
+                            <label for="pms_logs_folder">Plex Logs Folder</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="pms_logs_folder_browse" data-filter=".folderonly" data-target="#pms_logs_folder">Browse</button>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -1102,10 +1122,15 @@
                             </p>
                         </div>
                         <div class="form-group advanced-setting">
-                            <label for="newsletter_dir">Custom Newsletter Templates Folder</label>
+                            <label for="newsletter_custom_dir">Custom Newsletter Templates Folder</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="newsletter_custom_dir" name="newsletter_custom_dir" value="${config['newsletter_custom_dir']}">
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="newsletter_custom_dir" name="newsletter_custom_dir" value="${config['newsletter_custom_dir']}">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="newsletter_custom_dir_browse" data-filter=".folderonly" data-target="#newsletter_custom_dir">Browse</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <p class="help-block">Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.</p>
@@ -1113,8 +1138,13 @@
                         <div class="form-group advanced-setting">
                             <label for="newsletter_dir">Newsletter Output Directory</label> ${docker_msg | n}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}" ${docker_setting}>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="newsletter_dir_browse" data-filter=".folderonly" data-target="#newsletter_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
@@ -1365,8 +1395,13 @@
                         <div class="form-group">
                             <label for="log_dir">Log Directory</label> ${docker_msg | n}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}" ${docker_setting}>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="log_dir_browse" data-filter=".folderonly" data-target="#log_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
                                     </div>
@@ -1376,8 +1411,13 @@
                         <div class="form-group">
                             <label for="backup_dir">Backup Directory</label> ${docker_msg | n}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}" ${docker_setting}>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="backup_dir_browse" data-filter=".folderonly" data-target="#backup_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
                                         <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
@@ -1388,8 +1428,13 @@
                         <div class="form-group">
                             <label for="cache_dir">Cache Directory</label> ${docker_msg | n}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}" ${docker_setting}>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="cache_dir_browse" data-filter=".folderonly" data-target="#cache_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
                                     <div class="btn-group">
                                         <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
                                         <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
@@ -3012,6 +3057,14 @@ $(document).ready(function() {
         error: function () {
             tautulli_news.html('<p class="help-block"><i class="fa fa-exclamation-triangle"></i>&nbsp; Failed to retrieve news.</p>')
         }
+    });
+
+    $("#log_dir_browse, #backup_dir_browse, #cache_dir_browse, " +
+            "#newsletter_custom_dir_browse, #newsletter_dir_browse, #pms_logs_folder_browse, " +
+            "#https_cert_browse, #https_cert_chain_browse, #https_key_browse").click(function () {
+        var filter = $(this).data('filter');
+        var target = $(this).data('target');
+        openBrowsePath(null, null, filter, $("label[for='" + target.replace('#', '') + "']").text(), target);
     });
 });
 </script>

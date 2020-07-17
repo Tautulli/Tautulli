@@ -1269,6 +1269,10 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
                 'icon': 'folder'
             }
             output.append(out)
+
+        if filter_ext == '.folderonly':
+            break
+
         for f in sorted(files):
             if not include_hidden and f.startswith('.'):
                 continue
