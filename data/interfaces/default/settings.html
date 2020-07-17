@@ -2033,7 +2033,8 @@ Rating: {rating}/10   --> Rating: /10
 
         $("#select-browse-file").click(function () {
             $("#browse-path-modal").modal('hide');
-            $("#" + select_target).val($("#browse-path").val());
+            $(select_target).val($("#browse-path").val()).change();
+            $(this).unbind('click');
         });
 
         browsePath(key, path, filter_ext);
