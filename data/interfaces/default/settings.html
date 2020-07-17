@@ -2027,6 +2027,18 @@ Rating: {rating}/10   --> Rating: /10
         });
     }
 
+    function openBrowsePath(key, path, filter_ext, file_description, select_target) {
+        $("#browse-path-type").text(file_description);
+        $("#browse-path-modal").modal('show');
+
+        $("#select-browse-file").click(function () {
+            $("#browse-path-modal").modal('hide');
+            $("#" + select_target).val($("#browse-path").val());
+        });
+
+        browsePath(key, path, filter_ext);
+    }
+
     function browsePath(key, path, filter_ext) {
         $("#browse-path-status-message").html('<i class="fa fa-fw fa-spin fa-refresh"></i>');
         getBrowsePath(key, path, filter_ext).then(function (data) {

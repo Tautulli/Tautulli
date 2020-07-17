@@ -114,19 +114,13 @@
     </div>
 </div>
 <script>
-    $('#import_database_path_browse').click(function () {
-        $('#browse-path-type').text('Database File');
-        $('#browse-path-modal').modal('show');
-        browsePath(null, null, '.db');
-    });
-    $('#select-browse-file').click(function () {
-        $('#browse-path-modal').modal('hide');
-        $("#import_database_path").val($('#browse-path').val());
+    $("#import_database_path_browse").click(function () {
+        openBrowsePath(null, null, '.db', 'Database File', 'import_database_path');
     });
 
-    $('#import_database_file').change(function() {
+    $("#import_database_file").change(function() {
         if ($(this)[0].files[0]) {
-            $('#import_database_file_name').val($(this)[0].files[0].name);
+            $("#import_database_file_name").val($(this)[0].files[0].name);
         }
     });
 
@@ -134,7 +128,7 @@
         $(this).prop('disabled', true);
 
         var app = $("#import_app").val();
-        var database_file = $('#import_database_file')[0].files[0];
+        var database_file = $("#import_database_file")[0].files[0];
         var database_path = $("#import_database_path").val();
         var method = $("#import_method").val();
         var backup = $("#import_backup_db").is(':checked');

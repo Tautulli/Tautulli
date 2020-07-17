@@ -62,26 +62,20 @@
     </div>
 </div>
 <script>
-    $('#import_config_path_browse').click(function () {
-        $('#browse-path-type').text('Config File');
-        $('#browse-path-modal').modal('show');
-        browsePath(null, null, '.ini');
-    });
-    $('#select-browse-file').click(function () {
-        $('#browse-path-modal').modal('hide');
-        $("#import_config_path").val($('#browse-path').val());
+    $("#import_config_path_browse").click(function () {
+        openBrowsePath(null, null, '.ini', 'Configuration File', 'import_config_path');
     });
 
-    $('#import_config_file').change(function() {
+    $("#import_config_file").change(function() {
         if ($(this)[0].files[0]) {
-            $('#import_config_file_name').val($(this)[0].files[0].name);
+            $("#import_config_file_name").val($(this)[0].files[0].name);
         }
     });
 
     $("#import_config").click(function() {
         $(this).prop('disabled', true);
 
-        var config_file = $('#import_config_file')[0].files[0];
+        var config_file = $("#import_config_file")[0].files[0];
         var config_path = $("#import_config_path").val();
         var backup = $("#import_backup_config").is(':checked');
 
