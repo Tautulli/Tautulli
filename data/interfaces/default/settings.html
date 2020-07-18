@@ -572,7 +572,7 @@
                                         <div class="input-group">
                                             <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
                                             <span class="input-group-btn">
-                                                <button class="btn btn-form" type="button" id="https_cert_browse" data-filter=".pem" data-target="#https_cert">Browse</button>
+                                                <button class="btn btn-form" type="button" id="https_cert_browse" data-toggle="browse" data-filter=".pem" data-target="#https_cert">Browse</button>
                                             </span>
                                         </div>
                                     </div>
@@ -586,7 +586,7 @@
                                         <div class="input-group">
                                             <input type="text" class="form-control http-settings" id="https_cert_chain" name="https_cert_chain" value="${config['https_cert_chain']}">
                                             <span class="input-group-btn">
-                                                <button class="btn btn-form" type="button" id="https_cert_chain_browse" data-filter=".pem" data-target="#https_cert_chain">Browse</button>
+                                                <button class="btn btn-form" type="button" id="https_cert_chain_browse" data-toggle="browse" data-filter=".pem" data-target="#https_cert_chain">Browse</button>
                                             </span>
                                         </div>
                                     </div>
@@ -600,7 +600,7 @@
                                         <div class="input-group">
                                             <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
                                             <span class="input-group-btn">
-                                                <button class="btn btn-form" type="button" id="https_key_browse" data-filter=".pem" data-target="#https_key">Browse</button>
+                                                <button class="btn btn-form" type="button" id="https_key_browse" data-toggle="browse" data-filter=".pem" data-target="#https_key">Browse</button>
                                             </span>
                                         </div>
                                     </div>
@@ -821,7 +821,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="pms_logs_folder_browse" data-filter=".folderonly" data-target="#pms_logs_folder">Browse</button>
+                                            <button class="btn btn-form" type="button" id="pms_logs_folder_browse" data-toggle="browse" data-filter=".folderonly" data-target="#pms_logs_folder">Browse</button>
                                         </span>
                                     </div>
                                 </div>
@@ -1128,7 +1128,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="newsletter_custom_dir" name="newsletter_custom_dir" value="${config['newsletter_custom_dir']}">
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="newsletter_custom_dir_browse" data-filter=".folderonly" data-target="#newsletter_custom_dir">Browse</button>
+                                            <button class="btn btn-form" type="button" id="newsletter_custom_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#newsletter_custom_dir">Browse</button>
                                         </span>
                                     </div>
                                 </div>
@@ -1142,7 +1142,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}" ${docker_setting}>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="newsletter_dir_browse" data-filter=".folderonly" data-target="#newsletter_dir" ${docker_setting}>Browse</button>
+                                            <button class="btn btn-form" type="button" id="newsletter_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#newsletter_dir" ${docker_setting}>Browse</button>
                                         </span>
                                     </div>
                                 </div>
@@ -1399,7 +1399,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}" ${docker_setting}>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="log_dir_browse" data-filter=".folderonly" data-target="#log_dir" ${docker_setting}>Browse</button>
+                                            <button class="btn btn-form" type="button" id="log_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#log_dir" ${docker_setting}>Browse</button>
                                         </span>
                                     </div>
                                     <div class="btn-group">
@@ -1415,7 +1415,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}" ${docker_setting}>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="backup_dir_browse" data-filter=".folderonly" data-target="#backup_dir" ${docker_setting}>Browse</button>
+                                            <button class="btn btn-form" type="button" id="backup_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#backup_dir" ${docker_setting}>Browse</button>
                                         </span>
                                     </div>
                                     <div class="btn-group">
@@ -1432,7 +1432,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}" ${docker_setting}>
                                         <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="cache_dir_browse" data-filter=".folderonly" data-target="#cache_dir" ${docker_setting}>Browse</button>
+                                            <button class="btn btn-form" type="button" id="cache_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#cache_dir" ${docker_setting}>Browse</button>
                                         </span>
                                     </div>
                                     <div class="btn-group">
@@ -2072,6 +2072,10 @@ Rating: {rating}/10   --> Rating: /10
         });
     }
 
+    $("#browse-path-modal").on('hidden.bs.modal', function() {
+        $("#select-browse-file").unbind('click');
+    });
+
     function openBrowsePath(key, path, filter_ext, file_description, select_target) {
         $("#browse-path-type").text(file_description);
         $("#browse-path-modal").modal('show');
@@ -2079,7 +2083,6 @@ Rating: {rating}/10   --> Rating: /10
         $("#select-browse-file").click(function () {
             $("#browse-path-modal").modal('hide');
             $(select_target).val($("#browse-path").val()).change();
-            $(this).unbind('click');
         });
 
         browsePath(key, path, filter_ext);
@@ -3059,12 +3062,12 @@ $(document).ready(function() {
         }
     });
 
-    $("#log_dir_browse, #backup_dir_browse, #cache_dir_browse, " +
-            "#newsletter_custom_dir_browse, #newsletter_dir_browse, #pms_logs_folder_browse, " +
-            "#https_cert_browse, #https_cert_chain_browse, #https_key_browse").click(function () {
+    $("body").on('click', '[data-toggle=browse]', function () {
         var filter = $(this).data('filter');
         var target = $(this).data('target');
-        openBrowsePath(null, null, filter, $("label[for='" + target.replace('#', '') + "']").text(), target);
+        var path = $(target).val();
+        var description = $(this).data('description') || $("label[for='" + target.replace('#', '') + "']").text();
+        openBrowsePath(null, path, filter, description, target);
     });
 });
 </script>

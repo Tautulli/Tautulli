@@ -27,7 +27,7 @@
                         <div class="col-xs-12">
                             <div class="input-group">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-form" type="button" id="import_config_path_browse" data-filter=".ini" data-target="#import_config_path">Browse</button>
+                                    <button class="btn btn-form" type="button" id="import_config_path_browse" data-toggle="browse" data-description="Configuration File" data-filter=".ini" data-target="#import_config_path">Browse</button>
                                 </span>
                                 <input type="text" class="form-control" id="import_config_path" name="import_config_path" value="" placeholder="config.ini" required disabled>
                             </div>
@@ -62,10 +62,6 @@
     </div>
 </div>
 <script>
-    $("#import_config_path_browse").click(function () {
-        openBrowsePath(null, null, $(this).data('filter'), 'Configuration File', $(this).data('target'));
-    });
-
     $("#import_config_file").change(function() {
         if ($(this)[0].files[0]) {
             $("#import_config_file_name").val($(this)[0].files[0].name);

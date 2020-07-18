@@ -40,7 +40,7 @@
                         <div class="col-xs-12">
                             <div class="input-group">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-form" type="button" id="import_database_path_browse" data-filter=".db" data-target="#import_database_path">Browse</button>
+                                    <button class="btn btn-form" type="button" id="import_database_path_browse" data-toggle="browse" data-description="Database File" data-filter=".db" data-target="#import_database_path">Browse</button>
                                 </span>
                                 <input type="text" class="form-control" id="import_database_path" name="import_database_path" value="" placeholder="tautulli.db" required disabled>
                             </div>
@@ -114,10 +114,6 @@
     </div>
 </div>
 <script>
-    $("#import_database_path_browse").click(function () {
-        openBrowsePath(null, null, $(this).data('filter'), 'Database File', $(this).data('target'));
-    });
-
     $("#import_database_file").change(function() {
         if ($(this)[0].files[0]) {
             $("#import_database_file_name").val($(this)[0].files[0].name);

@@ -1232,6 +1232,9 @@ def browse_path(path=None, include_hidden=False, filter_ext=''):
             }
             output.append(out)
 
+    if os.path.isfile(path):
+        path = os.path.dirname(path)
+
     if not os.path.isdir(path):
         return output
 
