@@ -49,7 +49,16 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-12">
+                                                % if notifier['agent_name'] == 'scripts' and item['name'] == 'scripts_script_folder':
+                                                <div class="input-group">
+                                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-form" type="button" id="${item['name']}_browse" data-filter=".folderonly" data-target="#${item['name']}">Browse</button>
+                                                    </span>
+                                                </div>
+                                                % else:
                                                 <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                % endif
                                             </div>
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
@@ -692,6 +701,13 @@
     });
     var plexmobileapp_user_ids = $plexmobileapp_user_ids[0].selectize;
     plexmobileapp_user_ids.setValue(${json.dumps(next((c['value'] for c in notifier['config_options'] if c['name'] == 'plexmobileapp_user_ids'), [])) | n});
+
+    % elif notifier['agent_name'] == 'scripts':
+    $("#scripts_script_folder_browse").click(function () {
+        var filter = $(this).data('filter');
+        var target = $(this).data('target');
+        openBrowsePath(null, null, filter, $("label[for='" + target.replace('#', '') + "']").text(), target);
+    });
 
     % endif
 
