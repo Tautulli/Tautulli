@@ -404,7 +404,10 @@ class API2(object):
                 onesignal_id (str):       The OneSignal id for the mobile device
 
             Returns:
-                None
+                json:
+                    {"pms_name": "Winterfell-Server",
+                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
+                     }
             ```
         """
         if not device_id:
@@ -426,7 +429,16 @@ class API2(object):
         if result:
             self._api_msg = 'Device registration successful.'
             self._api_result_type = 'success'
+
             mobile_app.set_temp_device_token(None)
+
+            data = {
+                "pms_name": plexpy.CONFIG.PMS_NAME,
+                "server_id": plexpy.CONFIG.PMS_UUID
+            }
+
+            return data
+
         else:
             self._api_msg = 'Device registration failed: database error.'
             self._api_result_type = 'error'

@@ -2682,7 +2682,10 @@ Optional parameters:
     onesignal_id (str):       The OneSignal id for the mobile device
 
 Returns:
-    None
+    json:
+        {"pms_name": "Winterfell-Server",
+         "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
+         }
 ```
 
 
