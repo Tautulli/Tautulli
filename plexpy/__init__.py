@@ -160,7 +160,11 @@ def initialize(config_file):
         global UMASK
         global _UPDATE
 
-        CONFIG = config.Config(config_file)
+        try:
+            CONFIG = config.Config(config_file)
+        except:
+            raise SystemExit("Unable to initialize Tautulli due to a corrupted config file. Exiting...")
+
         CONFIG_FILE = config_file
 
         assert CONFIG is not None

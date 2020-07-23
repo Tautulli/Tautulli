@@ -24,7 +24,7 @@ import shutil
 import time
 import threading
 
-from configobj import ConfigObj
+from configobj import ConfigObj, ParseError
 
 import plexpy
 if plexpy.PYTHON2:
@@ -228,11 +228,15 @@ def import_tautulli_config(config=None, backup=False):
             logger.error("Tautulli Config :: Failed to import Tautulli config: failed to create config backup")
             return False
 
+    # Create a new Config object with the imported config file
+    try:
+        imported_config = Config(config, is_import=True)
+    except:
+        logger.error("Tautulli Config :: Failed to import Tautulli config: error reading imported config file")
+        return False
+
     logger.info("Tautulli Config :: Importing Tautulli config '%s'...", config)
     set_is_importing(True)
-
-    # Create a new Config object with the imported config file
-    imported_config = Config(config, is_import=True)
 
     # Remove keys that should not be imported
     for key in _DO_NOT_IMPORT_KEYS:
@@ -298,7 +302,12 @@ class Config(object):
     def __init__(self, config_file, is_import=False):
         """ Initialize the config with values from a file """
         self._config_file = config_file
-        self._config = ConfigObj(self._config_file, encoding='utf-8')
+        try:
+            self._config = ConfigObj(self._config_file, encoding='utf-8')
+        except ParseError as e:
+            logger.error("Tautulli Config :: Error reading configuration file: %s", e)
+            raise
+
         for key in _CONFIG_DEFINITIONS:
             self.check_setting(key)
         if not is_import:
