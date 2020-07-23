@@ -3080,20 +3080,23 @@ class SCRIPTS(Notifier):
             logger.error("Tautulli Notifiers :: No script folder specified.")
             return
 
-        script_args = helpers.split_args(kwargs.get('script_args', subject))
-
-        logger.debug("Tautulli Notifiers :: Trying to run notify script, action: %s, arguments: %s"
-                     % (action, script_args))
-
         script = kwargs.get('script', self.config.get('script', ''))
+        script_args = helpers.split_args(kwargs.get('script_args', subject))
         user_id = kwargs.get('parameters', {}).get('user_id')
+
+        logger.debug("Tautulli Notifiers :: Trying to run notify script: %s, arguments: %s, action: %s"
+                     % (script, script_args, action))
 
         # Don't try to run the script if the action does not have one
         if action and not script:
-            logger.debug("Tautulli Notifiers :: No script selected for action %s, exiting..." % action)
+            logger.debug("Tautulli Notifiers :: No script selected for action '%s', exiting..." % action)
             return
         elif not script:
             logger.debug("Tautulli Notifiers :: No script selected, exiting...")
+            return
+        # Check for a valid script file
+        elif not os.path.isfile(script) or not script.endswith(tuple(self.script_exts)):
+            logger.error("Tautulli Notifiers :: Invalid script file '%s' specified, exiting..." % script)
             return
 
         name, ext = os.path.splitext(script)
