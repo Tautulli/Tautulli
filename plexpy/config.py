@@ -214,6 +214,8 @@ def set_is_importing(value):
 def set_import_thread(config=None, backup=False):
     global IMPORT_THREAD
     if config:
+        if IMPORT_THREAD:
+            return
         IMPORT_THREAD = threading.Thread(target=import_tautulli_config,
                                          kwargs={'config': config, 'backup': backup})
     else:
@@ -221,6 +223,11 @@ def set_import_thread(config=None, backup=False):
 
 
 def import_tautulli_config(config=None, backup=False):
+    if IS_IMPORTING:
+        logger.warn("Tautulli Config :: Another Tautulli config is currently being imported. "
+                    "Please wait until it is complete before importing another config.")
+        return False
+
     if backup:
         # Make a backup of the current config first
         logger.info("Tautulli Config :: Creating a config backup before importing.")

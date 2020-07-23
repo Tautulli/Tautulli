@@ -68,6 +68,11 @@ def validate_database(database=None):
 
 
 def import_tautulli_db(database=None, method=None, backup=False):
+    if IS_IMPORTING:
+        logger.warn("Tautulli Database :: Another Tautulli database is currently being imported. "
+                    "Please wait until it is complete before importing another database.")
+        return False
+
     db_validate = validate_database(database=database)
     if not db_validate == 'success':
         logger.error("Tautulli Database :: Failed to import Tautulli database: %s", db_validate)
