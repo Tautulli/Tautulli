@@ -391,7 +391,7 @@ class API2(object):
 
         return data
 
-    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id='', **kwargs):
+    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id=None, **kwargs):
         """ Registers the Tautulli Android App for notifications.
 
             ```
@@ -419,6 +419,10 @@ class API2(object):
             self._api_msg = 'Device registration failed: no device name provided.'
             self._api_result_type = 'error'
             return
+
+        ## TODO: Temporary for backwards compatibility, assume device_id is onesignal_id
+        if device_id and onesignal_id is None:
+            onesignal_id = device_id
 
         result = mobile_app.add_mobile_device(device_id=device_id,
                                               device_name=device_name,
