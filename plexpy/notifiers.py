@@ -2977,7 +2977,12 @@ class SCRIPTS(Notifier):
 
         self.pythonpath_override = 'nopythonpath'
         self.pythonpath = True
-        self.prefix_overrides = ('python2', 'python3', 'python', 'pythonw', 'php', 'ruby', 'perl')
+        self.prefix_overrides = {
+            'python': ['.py'],
+            'python2': ['.py'],
+            'python3': ['.py'],
+            'pythonw': ['.py', '.pyw']
+        }
         self.script_killed = False
 
     def list_scripts(self):
@@ -3114,10 +3119,14 @@ class SCRIPTS(Notifier):
                 del script_args[0]
 
         # Allow overrides for shitty systems
-        if prefix and script_args:
-            if script_args[0] in self.prefix_overrides:
+        if prefix and script_args and script_args[0] in self.prefix_overrides:
+            if ext in self.prefix_overrides[script_args[0]]:
                 script[0] = script_args[0]
                 del script_args[0]
+            else:
+                logger.error("Tautulli Notifiers :: Invalid prefix override '%s' for '%s' script, exiting..."
+                             % (script_args[0], ext))
+                return
 
         script.extend(script_args)
 
