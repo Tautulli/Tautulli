@@ -4069,6 +4069,11 @@ a:hover .overlay-refresh-image:hover {
     width: 62px !important;
     background-image: url(../images/rating/imdb.svg);
 }
+.rating-themoviedb {
+    width: 72px !important;
+    background-image: url(../images/rating/themoviedb.svg);
+    background-size: auto 16px !important;
+}
 .rating-rottentomatos-ripe {
     background-image: url(../images/rating/tomato-ripe.svg);
 }
