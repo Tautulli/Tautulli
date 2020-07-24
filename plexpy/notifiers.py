@@ -2963,17 +2963,17 @@ class SCRIPTS(Notifier):
     def __init__(self, config=None):
         super(SCRIPTS, self).__init__(config=config)
 
-        self.script_exts = {'.bat': '',
-                            '.cmd': '',
-                            '.exe': '',
-                            '.php': 'php',
-                            '.pl': 'perl',
-                            '.ps1': 'powershell -executionPolicy bypass -file',
-                            '.py': 'python' if plexpy.FROZEN else sys.executable,
-                            '.pyw': 'pythonw',
-                            '.rb': 'ruby',
-                            '.sh': ''
-                            }
+        self.script_exts = {
+            '.bat': '',
+            '.cmd': '',
+            '.php': 'php',
+            '.pl': 'perl',
+            '.ps1': 'powershell -executionPolicy bypass -file',
+            '.py': 'python' if plexpy.FROZEN else sys.executable,
+            '.pyw': 'pythonw',
+            '.rb': 'ruby',
+            '.sh': ''
+        }
 
         self.pythonpath_override = 'nopythonpath'
         self.pythonpath = True
