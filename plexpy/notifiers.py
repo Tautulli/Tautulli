@@ -934,7 +934,8 @@ class ANDROIDAPP(Notifier):
                        'data': {'encrypted': True,
                                 'cipher_text': base64.b64encode(encrypted_data),
                                 'nonce': base64.b64encode(nonce),
-                                'salt': base64.b64encode(salt)}
+                                'salt': base64.b64encode(salt),
+                                'server_id': plexpy.CONFIG.PMS_UUID}
                        }
         else:
             logger.warn("Tautulli Notifiers :: PyCryptodome library is missing. "
@@ -945,7 +946,8 @@ class ANDROIDAPP(Notifier):
                        'include_player_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': False,
-                                'plain_text': plaintext_data}
+                                'plain_text': plaintext_data,
+                                'server_id': plexpy.CONFIG.PMS_UUID}
                        }
 
         #logger.debug("OneSignal payload: {}".format(payload))
