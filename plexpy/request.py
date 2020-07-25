@@ -295,20 +295,20 @@ def server_message(response, return_msg=False):
         try:
             soup = BeautifulSoup(response.content, "html5lib")
         except Exception:
-            pass
+            soup = None
 
-        # Find body and cleanup common tags to grab content, which probably
-        # contains the message.
-        message = soup.find("body")
-        elements = ("header", "script", "footer", "nav", "input", "textarea")
+        if soup:
+            # Find body and cleanup common tags to grab content, which probably
+            # contains the message.
+            message = soup.find("body")
+            elements = ("header", "script", "footer", "nav", "input", "textarea")
 
-        for element in elements:
+            for element in elements:
+                for tag in soup.find_all(element):
+                    tag.replaceWith("")
 
-            for tag in soup.find_all(element):
-                tag.replaceWith("")
-
-        message = message.text if message else soup.text
-        message = message.strip()
+            message = message.text if message else soup.text
+            message = message.strip()
 
     # Second attempt is to just take the response
     if message is None:
