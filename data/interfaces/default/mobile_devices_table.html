@@ -121,6 +121,7 @@ DOCUMENTATION :: END
     });
 
     $('#api_qr_address').change(function () {
+        this.value = $.trim(this.value);
         var url = $(this).val();
         checkQRAddress(url);
 
