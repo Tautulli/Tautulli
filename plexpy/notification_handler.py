@@ -602,6 +602,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         rating_key=plex_web_rating_key)
 
     # Get media IDs from guid and build URLs
+    if 'plex://' in notify_params['guid']:
+        notify_params['plex_id'] = notify_params['guid'].split('plex://')[1].split('/')[1]
+
     if 'imdb://' in notify_params['guid']:
         notify_params['imdb_id'] = notify_params['guid'].split('imdb://')[1].split('?')[0]
         notify_params['imdb_url'] = 'https://www.imdb.com/title/' + notify_params['imdb_id']
@@ -610,30 +613,30 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if 'thetvdb://' in notify_params['guid']:
         notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
-        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
         notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
-        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     if 'themoviedb://' in notify_params['guid']:
         if notify_params['media_type'] == 'movie':
             notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + notify_params['themoviedb_id']
-            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=movie'
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=movie'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
             notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
-            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=show'
 
     if 'lastfm://' in notify_params['guid']:
         notify_params['lastfm_id'] = '/'.join(notify_params['guid'].split('lastfm://')[1].split('?')[0].split('/')[:2])
         notify_params['lastfm_url'] = 'https://www.last.fm/music/' + notify_params['lastfm_id']
 
-    # Get TheMovieDB info
-    if plexpy.CONFIG.THEMOVIEDB_LOOKUP:
+    # Get TheMovieDB info (for movies and tv only)
+    if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
         if notify_params.get('themoviedb_id'):
             themoveidb_json = get_themoviedb_info(rating_key=rating_key,
                                                   media_type=notify_params['media_type'],
@@ -643,23 +646,42 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                 notify_params['imdb_id'] = themoveidb_json['imdb_id']
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
-        elif notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
-            if notify_params['media_type'] in ('episode', 'track'):
+        elif notify_params.get('thetvdb_id') or notify_params.get('imdb_id') or notify_params.get('plex_id'):
+            if notify_params['media_type'] == 'episode':
                 lookup_key = notify_params['grandparent_rating_key']
-            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_title = notify_params['grandparent_title']
+                lookup_year = notify_params['year']
+                lookup_media_type = 'tv'
+            elif notify_params['media_type'] == 'season':
                 lookup_key = notify_params['parent_rating_key']
+                lookup_title = notify_params['parent_title']
+                lookup_year = notify_params['year']
+                lookup_media_type = 'tv'
             else:
                 lookup_key = rating_key
+                lookup_title = notify_params['title']
+                lookup_year = notify_params['year']
+                lookup_media_type = 'tv' if notify_params['media_type'] == 'show' else 'movie'
 
             themoviedb_info = lookup_themoviedb_by_id(rating_key=lookup_key,
                                                       thetvdb_id=notify_params.get('thetvdb_id'),
-                                                      imdb_id=notify_params.get('imdb_id'))
+                                                      imdb_id=notify_params.get('imdb_id'),
+                                                      title=lookup_title,
+                                                      year=lookup_year,
+                                                      media_type=lookup_media_type)
             themoviedb_info.pop('rating_key', None)
             notify_params.update(themoviedb_info)
 
+            if themoviedb_info.get('imdb_id'):
+                notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoviedb_info['imdb_id']
+            if themoviedb_info.get('themoviedb_id'):
+                notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/{}?type={}'.format(
+                    notify_params['themoviedb_id'], 'show' if lookup_media_type == 'tv' else 'movie'
+                )
+
     # Get TVmaze info (for tv shows only)
-    if plexpy.CONFIG.TVMAZE_LOOKUP:
-        if notify_params['media_type'] in ('show', 'season', 'episode') and (notify_params.get('thetvdb_id') or notify_params.get('imdb_id')):
+    if plexpy.CONFIG.TVMAZE_LOOKUP and notify_params['media_type'] in ('show', 'season', 'episode'):
+        if notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
             if notify_params['media_type'] in ('episode', 'track'):
                 lookup_key = notify_params['grandparent_rating_key']
             elif notify_params['media_type'] in ('season', 'album'):
@@ -675,8 +697,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
             if tvmaze_info.get('thetvdb_id'):
                 notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+                notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
+                notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
     # Get MusicBrainz info (for music only)
     if plexpy.CONFIG.MUSICBRAINZ_LOOKUP and notify_params['media_type'] in ('artist', 'album', 'track'):
@@ -1497,7 +1521,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
     return tvmaze_info
 
 
-def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
+def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=None, year=None, media_type=None):
     db = database.MonitorDatabase()
 
     try:
@@ -1513,13 +1537,24 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
         if thetvdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
-        else:
+        elif imdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up The Movie Database info for imdb_id '{}'.".format(imdb_id))
+        else:
+            logger.debug("Tautulli NotificationHandler :: Looking up The Movie Database info for '{} ({})'.".format(title, year))
 
-        params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY,
-                  'external_source': 'tvdb_id' if thetvdb_id else 'imdb_id'
-                  }
-        response, err_msg, req_msg = request.request_response2('https://api.themoviedb.org/3/find/{}'.format(thetvdb_id or imdb_id), params=params)
+        params = {'api_key': plexpy.CONFIG.THEMOVIEDB_APIKEY}
+
+        if thetvdb_id or imdb_id:
+            params['external_source'] = 'tvdb_id' if thetvdb_id else 'imdb_id'
+            response, err_msg, req_msg = request.request_response2(
+                'https://api.themoviedb.org/3/find/{}'.format(thetvdb_id or imdb_id), params=params)
+        elif title and year and media_type:
+            params['query'] = title
+            params['year'] = year
+            response, err_msg, req_msg = request.request_response2(
+                'https://api.themoviedb.org/3/search/{}'.format(media_type), params=params)
+        else:
+            return themoviedb_info
 
         if response and not err_msg:
             themoviedb_find_json = response.json()
@@ -1527,11 +1562,12 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
                 themoviedb_id = themoviedb_find_json['tv_results'][0]['id']
             elif themoviedb_find_json.get('movie_results'):
                 themoviedb_id = themoviedb_find_json['movie_results'][0]['id']
+            elif themoviedb_find_json.get('results'):
+                themoviedb_id = themoviedb_find_json['results'][0]['id']
             else:
                 themoviedb_id = ''
 
             if themoviedb_id:
-                media_type = 'tv' if thetvdb_id else 'movie'
                 themoviedb_url = 'https://www.themoviedb.org/{}/{}'.format(media_type, themoviedb_id)
                 themoviedb_json = get_themoviedb_info(rating_key=rating_key,
                                                       media_type=media_type,
