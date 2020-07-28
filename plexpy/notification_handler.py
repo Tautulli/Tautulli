@@ -1009,6 +1009,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'duration': duration,
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
+        'plex_id': notify_params['plex_id'],
         'plex_url': notify_params['plex_url'],
         'imdb_id': notify_params['imdb_id'],
         'imdb_url': notify_params['imdb_url'],
