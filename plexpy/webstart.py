@@ -264,7 +264,7 @@ def initialize(options):
             cherrypy.engine.start()
             cherrypy.engine.block()
     except IOError:
-        sys.stderr.write('Failed to start on port: %i. Is something else running?\n' % (options['http_port']))
+        logger.error("Tautulli WebStart :: Failed to start on port: %i. Is something else running?" % options['http_port'])
         sys.exit(1)
 
     cherrypy.server.wait()

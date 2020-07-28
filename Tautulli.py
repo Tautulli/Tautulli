@@ -131,8 +131,7 @@ def main():
 
     if args.daemon:
         if sys.platform == 'win32':
-            sys.stderr.write(
-                "Daemonizing not supported under Windows, starting normally\n")
+            logger.warn("Daemonizing not supported under Windows, starting normally")
         else:
             plexpy.DAEMON = True
             plexpy.QUIET = True
