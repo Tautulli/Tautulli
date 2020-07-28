@@ -676,28 +676,31 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoviedb_info['imdb_id']
             if themoviedb_info.get('themoviedb_id'):
                 notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/{}?type={}'.format(
-                    notify_params['themoviedb_id'], 'show' if lookup_media_type == 'tv' else 'movie'
-                )
+                    notify_params['themoviedb_id'], 'show' if lookup_media_type == 'tv' else 'movie')
 
     # Get TVmaze info (for tv shows only)
     if plexpy.CONFIG.TVMAZE_LOOKUP and notify_params['media_type'] in ('show', 'season', 'episode'):
-        if notify_params.get('thetvdb_id') or notify_params.get('imdb_id'):
-            if notify_params['media_type'] in ('episode', 'track'):
+        if notify_params.get('thetvdb_id') or notify_params.get('imdb_id') or notify_params.get('plex_id'):
+            if notify_params['media_type'] == 'episode':
                 lookup_key = notify_params['grandparent_rating_key']
-            elif notify_params['media_type'] in ('season', 'album'):
+                lookup_title = notify_params['grandparent_title']
+            elif notify_params['media_type'] == 'season':
                 lookup_key = notify_params['parent_rating_key']
+                lookup_title = notify_params['parent_title']
             else:
                 lookup_key = rating_key
+                lookup_title = notify_params['title']
 
             tvmaze_info = lookup_tvmaze_by_id(rating_key=lookup_key,
                                               thetvdb_id=notify_params.get('thetvdb_id'),
-                                              imdb_id=notify_params.get('imdb_id'))
+                                              imdb_id=notify_params.get('imdb_id'),
+                                              title=lookup_title)
             tvmaze_info.pop('rating_key', None)
             notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
                 notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
-                notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
+                notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/{}' + str(notify_params['thetvdb_id']) + '?type=show'
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
                 notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
@@ -1471,7 +1474,7 @@ def get_hash_image_info(img_hash=None):
     return result
 
 
-def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
+def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=None):
     db = database.MonitorDatabase()
 
     try:
@@ -1487,11 +1490,21 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
 
         if thetvdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
-        else:
+        elif imdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up TVmaze info for imdb_id '{}'.".format(imdb_id))
+        else:
+            logger.debug("Tautulli NotificationHandler :: Looking up TVmaze info for '{}'.".format(title))
 
-        params = {'thetvdb': thetvdb_id} if thetvdb_id else {'imdb': imdb_id}
-        response, err_msg, req_msg = request.request_response2('http://api.tvmaze.com/lookup/shows', params=params)
+        if thetvdb_id or imdb_id:
+            params = {'thetvdb': thetvdb_id} if thetvdb_id else {'imdb': imdb_id}
+            response, err_msg, req_msg = request.request_response2(
+                'http://api.tvmaze.com/lookup/shows', params=params)
+        elif title:
+            params = {'q': title}
+            response, err_msg, req_msg = request.request_response2(
+                'https://api.tvmaze.com/singlesearch/shows', params=params)
+        else:
+            return tvmaze_info
 
         if response and not err_msg:
             tvmaze_json = response.json()
