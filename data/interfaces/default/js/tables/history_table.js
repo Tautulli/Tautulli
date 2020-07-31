@@ -141,7 +141,7 @@ history_table_options = {
                     if (rowData['transcode_decision'] === 'transcode') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
                     } else if (rowData['transcode_decision'] === 'copy') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-stream fa-fw"></i></span>';
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
