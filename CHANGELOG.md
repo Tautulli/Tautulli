@@ -1,5 +1,27 @@
 # Changelog
 
+## v2.5.4 (2020-07-31)
+
+* Monitoring:
+  * Change: Montitoring remote access changed to use websockets. Refer to Tautulli/Tautulli-Issues#251 for details.
+* Notifications:
+  * Fix: Uploading images to Cloudinary failed for titles with non-ASCII characters on Python 2.
+  * New: Added plex_id notification parameter.
+  * Remove: Running .exe files directly using script notifications is no longer supported.
+  * Remove: php, perl, and ruby prefix overrides for script notifications is no longer supported.
+  * Change: Stricter checking of file extensions for script notifications.
+  * Change: Fallback to The Movie Database lookup using title and year.
+  * Change: Fallback to TVmaze lookup using title.
+* UI:
+  * New: Added ability to import a previous Tautullli configuration file in the settings.
+  * New: Added a browse button for settings which require a folder or file input.
+  * New: Added first streamed column to user IP addresses table. (Thanks @dotsam)
+  * New: Added The Movie Database rating image to media page.
+  * Change: Different icon to represent direct stream in the history tables.
+* API:
+  * New: Updated API docs for importing a database and configuration file.
+
+
 ## v2.5.3 (2020-07-10)
 
 * History:
