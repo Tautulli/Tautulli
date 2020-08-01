@@ -132,6 +132,8 @@ class PlexObject(object):
                     * __regex: Value matches the specified regular expression.
                     * __startswith: Value starts with specified arg.
         """
+        if ekey is None:
+            raise BadRequest('ekey was not provided')
         if isinstance(ekey, int):
             ekey = '/library/metadata/%s' % ekey
         for elem in self._server.query(ekey):
@@ -140,13 +142,27 @@ class PlexObject(object):
         clsname = cls.__name__ if cls else 'None'
         raise NotFound('Unable to find elem: cls=%s, attrs=%s' % (clsname, kwargs))
 
-    def fetchItems(self, ekey, cls=None, **kwargs):
+    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
         """ Load the specified key to find and build all items with the specified tag
             and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
             on how this is used.
+
+            Parameters:
+                container_start (None, int): offset to get a subset of the data
+                container_size (None, int): How many items in data
+
         """
-        data = self._server.query(ekey)
+        url_kw = {}
+        if container_start is not None:
+            url_kw["X-Plex-Container-Start"] = container_start
+        if container_size is not None:
+            url_kw["X-Plex-Container-Size"] = container_size
+
+        if ekey is None:
+            raise BadRequest('ekey was not provided')
+        data = self._server.query(ekey, params=url_kw)
         items = self.findItems(data, cls, ekey, **kwargs)
+
         librarySectionID = data.attrib.get('librarySectionID')
         if librarySectionID:
             for item in items:
@@ -421,6 +437,141 @@ class PlexPartialObject(PlexObject):
                 'havnt allowed items to be deleted' % self.key)
             raise
 
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get Play History for a media item.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        return self._server.history(maxresults=maxresults, mindate=mindate, ratingKey=self.ratingKey)
+
+    def posters(self):
+        """ Returns list of available poster objects. :class:`~plexapi.media.Poster`. """
+
+        return self.fetchItems('%s/posters' % self.key)
+
+    def uploadPoster(self, url=None, filepath=None):
+        """ Upload poster from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
+        if url:
+            key = '%s/posters?url=%s' % (self.key, quote_plus(url))
+            self._server.query(key, method=self._server._session.post)
+        elif filepath:
+            key = '%s/posters?' % self.key
+            data = open(filepath, 'rb').read()
+            self._server.query(key, method=self._server._session.post, data=data)
+
+    def setPoster(self, poster):
+        """ Set . :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
+        poster.select()
+
+    def arts(self):
+        """ Returns list of available art objects. :class:`~plexapi.media.Poster`. """
+
+        return self.fetchItems('%s/arts' % self.key)
+
+    def uploadArt(self, url=None, filepath=None):
+        """ Upload art from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
+        if url:
+            key = '/library/metadata/%s/arts?url=%s' % (self.ratingKey, quote_plus(url))
+            self._server.query(key, method=self._server._session.post)
+        elif filepath:
+            key = '/library/metadata/%s/arts?' % self.ratingKey
+            data = open(filepath, 'rb').read()
+            self._server.query(key, method=self._server._session.post, data=data)
+
+    def setArt(self, art):
+        """ Set :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
+        art.select()
+
+    def unmatch(self):
+        """ Unmatches metadata match from object. """
+        key = '/library/metadata/%s/unmatch' % self.ratingKey
+        self._server.query(key, method=self._server._session.put)
+
+    def matches(self, agent=None, title=None, year=None, language=None):
+        """ Return list of (:class:`~plexapi.media.SearchResult`) metadata matches.
+
+             Parameters:
+                agent (str): Agent name to be used (imdb, thetvdb, themoviedb, etc.)
+                title (str): Title of item to search for
+                year (str): Year of item to search in
+                language (str) : Language of item to search in
+
+            Examples:
+                1. video.matches()
+                2. video.matches(title="something", year=2020)
+                3. video.matches(title="something")
+                4. video.matches(year=2020)
+                5. video.matches(title="something", year="")
+                6. video.matches(title="", year=2020)
+                7. video.matches(title="", year="")
+
+                1. The default behaviour in Plex Web = no params in plexapi
+                2. Both title and year specified by user
+                3. Year automatically filled in
+                4. Title automatically filled in
+                5. Explicitly searches for title with blank year
+                6. Explicitly searches for blank title with year
+                7. I don't know what the user is thinking... return the same result as 1
+
+                For 2 to 7, the agent and language is automatically filled in
+        """
+        key = '/library/metadata/%s/matches' % self.ratingKey
+        params = {'manual': 1}
+
+        if agent and not any([title, year, language]):
+            params['language'] = self.section().language
+            params['agent'] = utils.getAgentIdentifier(self.section(), agent)
+        else:
+            if any(x is not None for x in [agent, title, year, language]):
+                if title is None:
+                    params['title'] = self.title
+                else:
+                    params['title'] = title
+
+                if year is None:
+                    params['year'] = self.year
+                else:
+                    params['year'] = year
+
+                params['language'] = language or self.section().language
+
+                if agent is None:
+                    params['agent'] = self.section().agent
+                else:
+                    params['agent'] = utils.getAgentIdentifier(self.section(), agent)
+
+        key = key + '?' + urlencode(params)
+        data = self._server.query(key, method=self._server._session.get)
+        return self.findItems(data, initpath=key)
+
+    def fixMatch(self, searchResult=None, auto=False, agent=None):
+        """ Use match result to update show metadata.
+
+            Parameters:
+                auto (bool): True uses first match from matches
+                    False allows user to provide the match
+                searchResult (:class:`~plexapi.media.SearchResult`): Search result from
+                    ~plexapi.base.matches()
+                agent (str): Agent name to be used (imdb, thetvdb, themoviedb, etc.)
+        """
+        key = '/library/metadata/%s/match' % self.ratingKey
+        if auto:
+            autoMatch = self.matches(agent=agent)
+            if autoMatch:
+                searchResult = autoMatch[0]
+            else:
+                raise NotFound('No matches found using this agent: (%s:%s)' % (agent, autoMatch))
+        elif not searchResult:
+            raise NotFound('fixMatch() requires either auto=True or '
+                           'searchResult=:class:`~plexapi.media.SearchResult`.')
+
+        params = {'guid': searchResult.guid,
+                  'name': searchResult.name}
+
+        data = key + '?' + urlencode(params)
+        self._server.query(data, method=self._server._session.put)
+
     # The photo tag cant be built atm. TODO
     # def arts(self):
     #     part = '%s/arts' % self.key
@@ -509,6 +660,14 @@ class Playable(object):
         key = '%s/split' % self.key
         return self._server.query(key, method=self._server._session.put)
 
+    def merge(self, ratingKeys):
+        """Merge duplicate items."""
+        if not isinstance(ratingKeys, list):
+            ratingKeys = str(ratingKeys).split(",")
+
+        key = '%s/merge?ids=%s' % (self.key, ','.join(ratingKeys))
+        return self._server.query(key, method=self._server._session.put)
+
     def unmatch(self):
         """Unmatch a media file."""
         key = '%s/unmatch' % self.key
@@ -573,7 +732,7 @@ class Playable(object):
                                                                                               time, state)
         self._server.query(key)
         self.reload()
-        
+
     def updateTimeline(self, time, state='stopped', duration=None):
         """ Set the timeline progress for this video.
 

@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 import copy
-import requests
+import threading
 import time
-from requests.status_codes import _codes as codes
-from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_IDENTIFIER, X_PLEX_ENABLE_FAST_CONNECT
-from plexapi import log, logfilter, utils
+
+import requests
+from plexapi import (BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_ENABLE_FAST_CONNECT,
+                     X_PLEX_IDENTIFIER, log, logfilter, utils)
 from plexapi.base import PlexObject
-from plexapi.exceptions import BadRequest, NotFound
+from plexapi.exceptions import BadRequest, NotFound, Unauthorized
 from plexapi.client import PlexClient
 from plexapi.compat import ElementTree
 from plexapi.library import LibrarySection
 from plexapi.server import PlexServer
-from plexapi.sync import SyncList, SyncItem
+from plexapi.sonos import PlexSonosClient
+from plexapi.sync import SyncItem, SyncList
 from plexapi.utils import joinArgs
+from requests.status_codes import _codes as codes
 
 
 class MyPlexAccount(PlexObject):
@@ -73,6 +76,12 @@ class MyPlexAccount(PlexObject):
     REQUESTS = 'https://plex.tv/api/invites/requests'                                           # get
     SIGNIN = 'https://plex.tv/users/sign_in.xml'                                                # get with auth
     WEBHOOKS = 'https://plex.tv/api/v2/user/webhooks'                                           # get, post with data
+    # Hub sections
+    VOD = 'https://vod.provider.plex.tv/'                                                       # get
+    WEBSHOWS = 'https://webshows.provider.plex.tv/'                                             # get
+    NEWS = 'https://news.provider.plex.tv/'                                                     # get
+    PODCASTS = 'https://podcasts.provider.plex.tv/'                                             # get
+    MUSIC = 'https://music.provider.plex.tv/'                                                   # get
     # Key may someday switch to the following url. For now the current value works.
     # https://plex.tv/api/v2/user?X-Plex-Token={token}&X-Plex-Client-Identifier={clientId}
     key = 'https://plex.tv/users/account'
@@ -80,6 +89,8 @@ class MyPlexAccount(PlexObject):
     def __init__(self, username=None, password=None, token=None, session=None, timeout=None):
         self._token = token
         self._session = session or requests.Session()
+        self._sonos_cache = []
+        self._sonos_cache_timestamp = 0
         data, initpath = self._signin(username, password, timeout)
         super(MyPlexAccount, self).__init__(self, data, initpath)
 
@@ -175,7 +186,13 @@ class MyPlexAccount(PlexObject):
         if response.status_code not in (200, 201, 204):  # pragma: no cover
             codename = codes.get(response.status_code)[0]
             errtext = response.text.replace('\n', ' ')
-            raise BadRequest('(%s) %s %s; %s' % (response.status_code, codename, response.url, errtext))
+            message = '(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext)
+            if response.status_code == 401:
+                raise Unauthorized(message)
+            elif response.status_code == 404:
+                raise NotFound(message)
+            else:
+                raise BadRequest(message)
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
@@ -194,6 +211,24 @@ class MyPlexAccount(PlexObject):
         """ Returns a list of all :class:`~plexapi.myplex.MyPlexResource` objects connected to the server. """
         data = self.query(MyPlexResource.key)
         return [MyPlexResource(self, elem) for elem in data]
+
+    def sonos_speakers(self):
+        if 'companions_sonos' not in self.subscriptionFeatures:
+            return []
+
+        t = time.time()
+        if t - self._sonos_cache_timestamp > 60:
+            self._sonos_cache_timestamp = t
+            data = self.query('https://sonos.plex.tv/resources')
+            self._sonos_cache = [PlexSonosClient(self, elem) for elem in data]
+
+        return self._sonos_cache
+
+    def sonos_speaker(self, name):
+        return [x for x in self.sonos_speakers() if x.title == name][0]
+
+    def sonos_speaker_by_id(self, identifier):
+        return [x for x in self.sonos_speakers() if x.machineIdentifier == identifier][0]
 
     def inviteFriend(self, user, server, sections=None, allowSync=False, allowCameraUpload=False,
                      allowChannels=False, filterMovies=None, filterTelevision=None, filterMusic=None):
@@ -384,8 +419,8 @@ class MyPlexAccount(PlexObject):
             params = {'server_id': machineId, 'shared_server': {'library_section_ids': sectionIds}}
             url = self.FRIENDSERVERS.format(machineId=machineId, serverId=serverId)
         else:
-            params = {'server_id': machineId, 'shared_server': {'library_section_ids': sectionIds,
-                      'invited_id': user.id}}
+            params = {'server_id': machineId,
+                      'shared_server': {'library_section_ids': sectionIds, 'invited_id': user.id}}
             url = self.FRIENDINVITE.format(machineId=machineId)
         # Remove share sections, add shares to user without shares, or update shares
         if not user_servers or sectionIds:
@@ -429,7 +464,7 @@ class MyPlexAccount(PlexObject):
                 return user
 
             elif (user.username and user.email and user.id and username.lower() in
-                 (user.username.lower(), user.email.lower(), str(user.id))):
+                  (user.username.lower(), user.email.lower(), str(user.id))):
                 return user
 
         raise NotFound('Unable to find user %s' % username)
@@ -600,6 +635,54 @@ class MyPlexAccount(PlexObject):
             raise BadRequest('(%s) %s %s; %s' % (response.status_code, codename, response.url, errtext))
         return response.json()['token']
 
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get Play History for all library sections on all servers for the owner.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        servers = [x for x in self.resources() if x.provides == 'server' and x.owned]
+        hist = []
+        for server in servers:
+            conn = server.connect()
+            hist.extend(conn.history(maxresults=maxresults, mindate=mindate, accountID=1))
+        return hist
+
+    def videoOnDemand(self):
+        """ Returns a list of VOD Hub items :class:`~plexapi.library.Hub`
+        """
+        req = requests.get(self.VOD + 'hubs/', headers={'X-Plex-Token': self._token})
+        elem = ElementTree.fromstring(req.text)
+        return self.findItems(elem)
+
+    def webShows(self):
+        """ Returns a list of Webshow Hub items :class:`~plexapi.library.Hub`
+        """
+        req = requests.get(self.WEBSHOWS + 'hubs/', headers={'X-Plex-Token': self._token})
+        elem = ElementTree.fromstring(req.text)
+        return self.findItems(elem)
+
+    def news(self):
+        """ Returns a list of News Hub items :class:`~plexapi.library.Hub`
+        """
+        req = requests.get(self.NEWS + 'hubs/sections/all', headers={'X-Plex-Token': self._token})
+        elem = ElementTree.fromstring(req.text)
+        return self.findItems(elem)
+
+    def podcasts(self):
+        """ Returns a list of Podcasts Hub items :class:`~plexapi.library.Hub`
+        """
+        req = requests.get(self.PODCASTS + 'hubs/', headers={'X-Plex-Token': self._token})
+        elem = ElementTree.fromstring(req.text)
+        return self.findItems(elem)
+
+    def tidal(self):
+        """ Returns a list of tidal Hub items :class:`~plexapi.library.Hub`
+        """
+        req = requests.get(self.MUSIC + 'hubs/', headers={'X-Plex-Token': self._token})
+        elem = ElementTree.fromstring(req.text)
+        return self.findItems(elem)
+
 
 class MyPlexUser(PlexObject):
     """ This object represents non-signed in users such as friends and linked
@@ -654,6 +737,8 @@ class MyPlexUser(PlexObject):
         self.title = data.attrib.get('title', '')
         self.username = data.attrib.get('username', '')
         self.servers = self.findItems(data, MyPlexServerShare)
+        for server in self.servers:
+            server.accountID = self.id
 
     def get_token(self, machineIdentifier):
         try:
@@ -662,6 +747,29 @@ class MyPlexUser(PlexObject):
                     return item.attrib.get('accessToken')
         except Exception:
             log.exception('Failed to get access token for %s' % self.title)
+
+    def server(self, name):
+        """ Returns the :class:`~plexapi.myplex.MyPlexServerShare` that matches the name specified.
+
+            Parameters:
+                name (str): Name of the server to return.
+        """
+        for server in self.servers:
+            if name.lower() == server.name.lower():
+                return server
+
+        raise NotFound('Unable to find server %s' % name)
+
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get all Play History for a user in all shared servers.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        hist = []
+        for server in self.servers:
+            hist.extend(server.history(maxresults=maxresults, mindate=mindate))
+        return hist
 
 
 class Section(PlexObject):
@@ -689,6 +797,16 @@ class Section(PlexObject):
         self.type = data.attrib.get('type')
         self.shared = utils.cast(bool, data.attrib.get('shared'))
 
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get all Play History for a user for this section in this shared server.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        server = self._server._server.resource(self._server.name).connect()
+        return server.history(maxresults=maxresults, mindate=mindate,
+                              accountID=self._server.accountID, librarySectionID=self.sectionKey)
+
 
 class MyPlexServerShare(PlexObject):
     """ Represents a single user's server reference. Used for library sharing.
@@ -711,6 +829,7 @@ class MyPlexServerShare(PlexObject):
         """ Load attribute values from Plex XML response. """
         self._data = data
         self.id = utils.cast(int, data.attrib.get('id'))
+        self.accountID = utils.cast(int, data.attrib.get('accountID'))
         self.serverId = utils.cast(int, data.attrib.get('serverId'))
         self.machineIdentifier = data.attrib.get('machineIdentifier')
         self.name = data.attrib.get('name')
@@ -720,7 +839,21 @@ class MyPlexServerShare(PlexObject):
         self.owned = utils.cast(bool, data.attrib.get('owned'))
         self.pending = utils.cast(bool, data.attrib.get('pending'))
 
+    def section(self, name):
+        """ Returns the :class:`~plexapi.myplex.Section` that matches the name specified.
+
+            Parameters:
+                name (str): Name of the section to return.
+        """
+        for section in self.sections():
+            if name.lower() == section.title.lower():
+                return section
+
+        raise NotFound('Unable to find section %s' % name)
+
     def sections(self):
+        """ Returns a list of all :class:`~plexapi.myplex.Section` objects shared with this user.
+        """
         url = MyPlexAccount.FRIENDSERVERS.format(machineId=self.machineIdentifier, serverId=self.id)
         data = self._server.query(url)
         sections = []
@@ -730,6 +863,15 @@ class MyPlexServerShare(PlexObject):
                 sections.append(Section(self, section, url))
 
         return sections
+
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get all Play History for a user in this shared server.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        server = self._server.resource(self.name).connect()
+        return server.history(maxresults=maxresults, mindate=mindate, accountID=self.accountID)
 
 
 class MyPlexResource(PlexObject):
@@ -930,6 +1072,186 @@ class MyPlexDevice(PlexObject):
             raise BadRequest('Requested syncList for device which do not provides sync-target')
 
         return self._server.syncItems(client=self)
+
+
+class MyPlexPinLogin(object):
+    """
+        MyPlex PIN login class which supports getting the four character PIN which the user must
+        enter on https://plex.tv/link to authenticate the client and provide an access token to
+        create a :class:`~plexapi.myplex.MyPlexAccount` instance.
+        This helper class supports a polling, threaded and callback approach.
+
+        - The polling approach expects the developer to periodically check if the PIN login was
+          successful using :func:`plexapi.myplex.MyPlexPinLogin.checkLogin`.
+        - The threaded approach expects the developer to call
+          :func:`plexapi.myplex.MyPlexPinLogin.run` and then at a later time call
+          :func:`plexapi.myplex.MyPlexPinLogin.waitForLogin` to wait for and check the result.
+        - The callback approach is an extension of the threaded approach and expects the developer
+          to pass the `callback` parameter to the call to :func:`plexapi.myplex.MyPlexPinLogin.run`.
+          The callback will be called when the thread waiting for the PIN login to succeed either
+          finishes or expires. The parameter passed to the callback is the received authentication
+          token or `None` if the login expired.
+
+        Parameters:
+            session (requests.Session, optional): Use your own session object if you want to
+                cache the http responses from PMS
+            requestTimeout (int): timeout in seconds on initial connect to plex.tv (default config.TIMEOUT).
+
+        Attributes:
+            PINS (str): 'https://plex.tv/pins.xml'
+            CHECKPINS (str): 'https://plex.tv/pins/{pinid}.xml'
+            POLLINTERVAL (int): 1
+            finished (bool): Whether the pin login has finished or not.
+            expired (bool): Whether the pin login has expired or not.
+            token (str): Token retrieved through the pin login.
+            pin (str): Pin to use for the login on https://plex.tv/link.
+    """
+    PINS = 'https://plex.tv/pins.xml'               # get
+    CHECKPINS = 'https://plex.tv/pins/{pinid}.xml'  # get
+    POLLINTERVAL = 1
+
+    def __init__(self, session=None, requestTimeout=None):
+        super(MyPlexPinLogin, self).__init__()
+        self._session = session or requests.Session()
+        self._requestTimeout = requestTimeout or TIMEOUT
+
+        self._loginTimeout = None
+        self._callback = None
+        self._thread = None
+        self._abort = False
+        self._id = None
+
+        self.finished = False
+        self.expired = False
+        self.token = None
+        self.pin = self._getPin()
+
+    def run(self, callback=None, timeout=None):
+        """ Starts the thread which monitors the PIN login state.
+            Parameters:
+                callback (Callable[str]): Callback called with the received authentication token (optional).
+                timeout (int): Timeout in seconds waiting for the PIN login to succeed (optional).
+
+            Raises:
+                :class:`RuntimeError`: if the thread is already running.
+                :class:`RuntimeError`: if the PIN login for the current PIN has expired.
+        """
+        if self._thread and not self._abort:
+            raise RuntimeError('MyPlexPinLogin thread is already running')
+        if self.expired:
+            raise RuntimeError('MyPlexPinLogin has expired')
+
+        self._loginTimeout = timeout
+        self._callback = callback
+        self._abort = False
+        self.finished = False
+        self._thread = threading.Thread(target=self._pollLogin, name='plexapi.myplex.MyPlexPinLogin')
+        self._thread.start()
+
+    def waitForLogin(self):
+        """ Waits for the PIN login to succeed or expire.
+            Parameters:
+                callback (Callable[str]): Callback called with the received authentication token (optional).
+                timeout (int): Timeout in seconds waiting for the PIN login to succeed (optional).
+
+            Returns:
+                `True` if the PIN login succeeded or `False` otherwise.
+        """
+        if not self._thread or self._abort:
+            return False
+
+        self._thread.join()
+        if self.expired or not self.token:
+            return False
+
+        return True
+
+    def stop(self):
+        """ Stops the thread monitoring the PIN login state. """
+        if not self._thread or self._abort:
+            return
+
+        self._abort = True
+        self._thread.join()
+
+    def checkLogin(self):
+        """ Returns `True` if the PIN login has succeeded. """
+        if self._thread:
+            return False
+
+        try:
+            return self._checkLogin()
+        except Exception:
+            self.expired = True
+            self.finished = True
+
+        return False
+
+    def _getPin(self):
+        if self.pin:
+            return self.pin
+
+        url = self.PINS
+        response = self._query(url, self._session.post)
+        if not response:
+            return None
+
+        self._id = response.find('id').text
+        self.pin = response.find('code').text
+
+        return self.pin
+
+    def _checkLogin(self):
+        if not self._id:
+            return False
+
+        if self.token:
+            return True
+
+        url = self.CHECKPINS.format(pinid=self._id)
+        response = self._query(url)
+        if not response:
+            return False
+
+        token = response.find('auth_token').text
+        if not token:
+            return False
+
+        self.token = token
+        self.finished = True
+        return True
+
+    def _pollLogin(self):
+        try:
+            start = time.time()
+            while not self._abort and (not self._loginTimeout or (time.time() - start) < self._loginTimeout):
+                try:
+                    result = self._checkLogin()
+                except Exception:
+                    self.expired = True
+                    break
+
+                if result:
+                    break
+
+                time.sleep(self.POLLINTERVAL)
+
+            if self.token and self._callback:
+                self._callback(self.token)
+        finally:
+            self.finished = True
+
+    def _query(self, url, method=None):
+        method = method or self._session.get
+        log.debug('%s %s', method.__name__.upper(), url)
+        headers = BASE_HEADERS.copy()
+        response = method(url, headers=headers, timeout=self._requestTimeout)
+        if not response.ok:  # pragma: no cover
+            codename = codes.get(response.status_code)[0]
+            errtext = response.text.replace('\n', ' ')
+            raise BadRequest('(%s) %s %s; %s' % (response.status_code, codename, response.url, errtext))
+        data = response.text.encode('utf8')
+        return ElementTree.fromstring(data) if data.strip() else None
 
 
 def _connect(cls, url, token, timeout, results, i, job_is_done_event=None):

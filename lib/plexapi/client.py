@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import time
-import requests
 
-from requests.status_codes import _codes as codes
-from plexapi import BASE_HEADERS, CONFIG, TIMEOUT
-from plexapi import log, logfilter, utils
+import requests
+from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, log, logfilter, utils
 from plexapi.base import PlexObject
 from plexapi.compat import ElementTree
-from plexapi.exceptions import BadRequest, Unsupported
+from plexapi.exceptions import BadRequest, NotFound, Unauthorized, Unsupported
 from plexapi.playqueue import PlayQueue
-
+from requests.status_codes import _codes as codes
 
 DEFAULT_MTYPE = 'video'
 
@@ -159,11 +157,16 @@ class PlexClient(PlexObject):
         log.debug('%s %s', method.__name__.upper(), url)
         headers = self._headers(**headers or {})
         response = method(url, headers=headers, timeout=timeout, **kwargs)
-        if response.status_code not in (200, 201):
+        if response.status_code not in (200, 201, 204):
             codename = codes.get(response.status_code)[0]
             errtext = response.text.replace('\n', ' ')
-            log.warning('BadRequest (%s) %s %s; %s' % (response.status_code, codename, response.url, errtext))
-            raise BadRequest('(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext))
+            message = '(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext)
+            if response.status_code == 401:
+                raise Unauthorized(message)
+            elif response.status_code == 404:
+                raise NotFound(message)
+            else:
+                raise BadRequest(message)
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
@@ -204,10 +207,13 @@ class PlexClient(PlexObject):
             return query(key, headers=headers)
         except ElementTree.ParseError:
             # Workaround for players which don't return valid XML on successful commands
-            #   - Plexamp: `b'OK'`
+            #   - Plexamp, Plex for Android: `b'OK'`
+            #   - Plex for Samsung: `b'<?xml version="1.0"?><Response code="200" status="OK">'`
             if self.product in (
                 'Plexamp',
                 'Plex for Android (TV)',
+                'Plex for Android (Mobile)',
+                'Plex for Samsung',
             ):
                 return
             raise
@@ -300,6 +306,8 @@ class PlexClient(PlexObject):
             'address': server_url[1].strip('/'),
             'port': server_url[-1],
             'key': media.key,
+            'protocol': server_url[0],
+            'token': media._server.createToken()
         }, **params))
 
     # -------------------
@@ -465,6 +473,18 @@ class PlexClient(PlexObject):
         server_url = media._server._baseurl.split(':')
         server_port = server_url[-1].strip('/')
 
+        if hasattr(media, "playlistType"):
+            mediatype = media.playlistType
+        else:
+            if isinstance(media, PlayQueue):
+                mediatype = media.items[0].listType
+            else:
+                mediatype = media.listType
+
+        # mediatype must be in ["video", "music", "photo"]
+        if mediatype == "audio":
+            mediatype = "music"
+
         if self.product != 'OpenPHT':
             try:
                 self.sendCommand('timeline/subscribe', port=server_port, protocol='http')
@@ -481,7 +501,8 @@ class PlexClient(PlexObject):
             'port': server_port,
             'offset': offset,
             'key': media.key,
-            'token': media._server._token,
+            'token': media._server.createToken(),
+            'type': mediatype,
             'containerKey': '/playQueues/%s?window=100&own=1' % playqueue.playQueueID,
         }, **params))
 
@@ -527,9 +548,9 @@ class PlexClient(PlexObject):
 
     # -------------------
     # Timeline Commands
-    def timeline(self):
+    def timeline(self, wait=1):
         """ Poll the current timeline and return the XML response. """
-        return self.sendCommand('timeline/poll', wait=1)
+        return self.sendCommand('timeline/poll', wait=wait)
 
     def isPlayingMedia(self, includePaused=False):
         """ Returns True if any media is currently playing.
@@ -538,7 +559,7 @@ class PlexClient(PlexObject):
                 includePaused (bool): Set True to treat currently paused items
                     as playing (optional; default True).
         """
-        for mediatype in self.timeline():
+        for mediatype in self.timeline(wait=0):
             if mediatype.get('state') == 'playing':
                 return True
             if includePaused and mediatype.get('state') == 'paused':

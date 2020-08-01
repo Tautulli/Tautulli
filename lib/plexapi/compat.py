@@ -25,9 +25,9 @@ except ImportError:
     from urllib import quote
 
 try:
-    from urllib.parse import quote_plus
+    from urllib.parse import quote_plus, quote
 except ImportError:
-    from urllib import quote_plus
+    from urllib import quote_plus, quote
 
 try:
     from urllib.parse import unquote
@@ -43,11 +43,6 @@ try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
     from xml.etree import ElementTree
-
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    from mock import patch, MagicMock
 
 
 def makedirs(name, mode=0o777, exist_ok=False):

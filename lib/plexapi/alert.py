@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import json
 import threading
-import websocket
+
 from plexapi import log
 
 
 class AlertListener(threading.Thread):
-    """ Creates a websocket connection to the PlexServer to optionally recieve alert notifications.
+    """ Creates a websocket connection to the PlexServer to optionally receive alert notifications.
         These often include messages from Plex about media scans as well as updates to currently running
-        Transcode Sessions. This class implements threading.Thread, therfore to start monitoring
+        Transcode Sessions. This class implements threading.Thread, therefore to start monitoring
         alerts you must call .start() on the object once it's created. When calling
         `PlexServer.startAlertListener()`, the thread will be started for you.
 
@@ -26,9 +26,9 @@ class AlertListener(threading.Thread):
 
         Parameters:
             server (:class:`~plexapi.server.PlexServer`): PlexServer this listener is connected to.
-            callback (func): Callback function to call on recieved messages. The callback function
+            callback (func): Callback function to call on received messages. The callback function
                 will be sent a single argument 'data' which will contain a dictionary of data
-                recieved from the server. :samp:`def my_callback(data): ...`
+                received from the server. :samp:`def my_callback(data): ...`
     """
     key = '/:/websockets/notifications'
 
@@ -40,6 +40,11 @@ class AlertListener(threading.Thread):
         self._ws = None
 
     def run(self):
+        try:
+            import websocket
+        except ImportError:
+            log.warning("Can't use the AlertListener without websocket")
+            return
         # create the websocket connection
         url = self._server.url(self.key, includeToken=True).replace('http', 'ws')
         log.info('Starting AlertListener: %s', url)
@@ -48,15 +53,21 @@ class AlertListener(threading.Thread):
         self._ws.run_forever()
 
     def stop(self):
-        """ Stop the AlertListener thread. Once the notifier is stopped, it cannot be diractly
+        """ Stop the AlertListener thread. Once the notifier is stopped, it cannot be directly
             started again. You must call :func:`plexapi.server.PlexServer.startAlertListener()`
             from a PlexServer instance.
         """
         log.info('Stopping AlertListener.')
         self._ws.close()
 
-    def _onMessage(self, ws, message):
-        """ Called when websocket message is recieved. """
+    def _onMessage(self, *args):
+        """ Called when websocket message is received.
+            In earlier releases, websocket-client returned a tuple of two parameters: a websocket.app.WebSocketApp
+            object and the message as a STR. Current releases appear to only return the message.
+            We are assuming the last argument in the tuple is the message.
+            This is to support compatibility with current and previous releases of websocket-client.
+        """
+        message = args[-1]
         try:
             data = json.loads(message)['NotificationContainer']
             log.debug('Alert: %s %s %s', *data)
@@ -65,6 +76,12 @@ class AlertListener(threading.Thread):
         except Exception as err:  # pragma: no cover
             log.error('AlertListener Msg Error: %s', err)
 
-    def _onError(self, ws, err):  # pragma: no cover
-        """ Called when websocket error is recieved. """
+    def _onError(self, *args):  # pragma: no cover
+        """ Called when websocket error is received.
+            In earlier releases, websocket-client returned a tuple of two parameters: a websocket.app.WebSocketApp
+            object and the error. Current releases appear to only return the error.
+            We are assuming the last argument in the tuple is the message.
+            This is to support compatibility with current and previous releases of websocket-client.
+        """
+        err = args[-1]
         log.error('AlertListener Error: %s' % err)

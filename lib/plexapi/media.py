@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from plexapi import log, utils
+
+import xml
+
+from plexapi import compat, log, settings, utils
 from plexapi.base import PlexObject
 from plexapi.exceptions import BadRequest
 from plexapi.utils import cast
@@ -143,7 +146,7 @@ class MediaPart(PlexObject):
 
     def setDefaultSubtitleStream(self, stream):
         """ Set the default :class:`~plexapi.media.SubtitleStream` for this MediaPart.
-            
+
             Parameters:
                 stream (:class:`~plexapi.media.SubtitleStream`): SubtitleStream to set as default.
         """
@@ -349,6 +352,118 @@ class TranscodeSession(PlexObject):
         self.width = cast(int, data.attrib.get('width'))
 
 
+@utils.registerPlexObject
+class TranscodeJob(PlexObject):
+    """ Represents an Optimizing job.
+        TrancodeJobs are the process for optimizing conversions.
+        Active or paused optimization items. Usually one item as a time"""
+    TAG = 'TranscodeJob'
+
+    def _loadData(self, data):
+        self._data = data
+        self.generatorID = data.attrib.get('generatorID')
+        self.key = data.attrib.get('key')
+        self.progress = data.attrib.get('progress')
+        self.ratingKey = data.attrib.get('ratingKey')
+        self.size = data.attrib.get('size')
+        self.targetTagID = data.attrib.get('targetTagID')
+        self.thumb = data.attrib.get('thumb')
+        self.title = data.attrib.get('title')
+        self.type = data.attrib.get('type')
+
+
+@utils.registerPlexObject
+class Optimized(PlexObject):
+    """ Represents a Optimized item.
+        Optimized items are optimized and queued conversions items."""
+    TAG = 'Item'
+
+    def _loadData(self, data):
+        self._data = data
+        self.id = data.attrib.get('id')
+        self.composite = data.attrib.get('composite')
+        self.title = data.attrib.get('title')
+        self.type = data.attrib.get('type')
+        self.target = data.attrib.get('target')
+        self.targetTagID = data.attrib.get('targetTagID')
+
+    def remove(self):
+        """ Remove an Optimized item"""
+        key = '%s/%s' % (self._initpath, self.id)
+        self._server.query(key, method=self._server._session.delete)
+
+    def rename(self, title):
+        """ Rename an Optimized item"""
+        key = '%s/%s?Item[title]=%s' % (self._initpath, self.id, title)
+        self._server.query(key, method=self._server._session.put)
+
+    def reprocess(self, ratingKey):
+        """ Reprocess a removed Conversion item that is still a listed Optimize item"""
+        key = '%s/%s/%s/enable' % (self._initpath, self.id, ratingKey)
+        self._server.query(key, method=self._server._session.put)
+
+
+@utils.registerPlexObject
+class Conversion(PlexObject):
+    """ Represents a Conversion item.
+        Conversions are items queued for optimization or being actively optimized."""
+    TAG = 'Video'
+
+    def _loadData(self, data):
+        self._data = data
+        self.addedAt = data.attrib.get('addedAt')
+        self.art = data.attrib.get('art')
+        self.chapterSource = data.attrib.get('chapterSource')
+        self.contentRating = data.attrib.get('contentRating')
+        self.duration = data.attrib.get('duration')
+        self.generatorID = data.attrib.get('generatorID')
+        self.generatorType = data.attrib.get('generatorType')
+        self.guid = data.attrib.get('guid')
+        self.key = data.attrib.get('key')
+        self.lastViewedAt = data.attrib.get('lastViewedAt')
+        self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
+        self.originallyAvailableAt = data.attrib.get('originallyAvailableAt')
+        self.playQueueItemID = data.attrib.get('playQueueItemID')
+        self.playlistID = data.attrib.get('playlistID')
+        self.primaryExtraKey = data.attrib.get('primaryExtraKey')
+        self.rating = data.attrib.get('rating')
+        self.ratingKey = data.attrib.get('ratingKey')
+        self.studio = data.attrib.get('studio')
+        self.summary = data.attrib.get('summary')
+        self.tagline = data.attrib.get('tagline')
+        self.target = data.attrib.get('target')
+        self.thumb = data.attrib.get('thumb')
+        self.title = data.attrib.get('title')
+        self.type = data.attrib.get('type')
+        self.updatedAt = data.attrib.get('updatedAt')
+        self.userID = data.attrib.get('userID')
+        self.username = data.attrib.get('username')
+        self.viewOffset = data.attrib.get('viewOffset')
+        self.year = data.attrib.get('year')
+
+    def remove(self):
+        """ Remove Conversion from queue """
+        key = '/playlists/%s/items/%s/%s/disable' % (self.playlistID, self.generatorID, self.ratingKey)
+        self._server.query(key, method=self._server._session.put)
+
+    def move(self, after):
+        """ Move Conversion items position in queue
+            after (int): Place item after specified playQueueItemID. '-1' is the active conversion.
+
+                Example:
+                    Move 5th conversion Item to active conversion
+                        conversions[4].move('-1')
+
+                    Move 4th conversion Item to 3rd in conversion queue
+                        conversions[3].move(conversions[1].playQueueItemID)
+        """
+
+        key = '%s/items/%s/move?after=%s' % (self._initpath, self.playQueueItemID, after)
+        self._server.query(key, method=self._server._session.put)
+
+
 class MediaTag(PlexObject):
     """ Base class for media tags used for filtering and searching your library
         items or navigating the metadata of media items in your library. Tags are
@@ -420,6 +535,25 @@ class Label(MediaTag):
 
 
 @utils.registerPlexObject
+class Tag(MediaTag):
+    """ Represents a single tag media tag.
+
+        Attributes:
+            TAG (str): 'tag'
+            FILTER (str): 'tag'
+    """
+    TAG = 'Tag'
+    FILTER = 'tag'
+
+    def _loadData(self, data):
+        self._data = data
+        self.id = cast(int, data.attrib.get('id', 0))
+        self.filter = data.attrib.get('filter')
+        self.tag = data.attrib.get('tag')
+        self.title = self.tag
+
+
+@utils.registerPlexObject
 class Country(MediaTag):
     """ Represents a single Country media tag.
 
@@ -482,6 +616,14 @@ class Poster(PlexObject):
         self.ratingKey = data.attrib.get('ratingKey')
         self.selected = data.attrib.get('selected')
         self.thumb = data.attrib.get('thumb')
+
+    def select(self):
+        key = self._initpath[:-1]
+        data = '%s?url=%s' % (key, compat.quote_plus(self.ratingKey))
+        try:
+            self._server.query(data, method=self._server._session.put)
+        except xml.etree.ElementTree.ParseError:
+            pass
 
 
 @utils.registerPlexObject
@@ -565,3 +707,74 @@ class Field(PlexObject):
         self._data = data
         self.name = data.attrib.get('name')
         self.locked = cast(bool, data.attrib.get('locked'))
+
+
+@utils.registerPlexObject
+class SearchResult(PlexObject):
+    """ Represents a single SearchResult.
+
+        Attributes:
+            TAG (str): 'SearchResult'
+    """
+    TAG = 'SearchResult'
+
+    def __repr__(self):
+        name = self._clean(self.firstAttr('name'))
+        score = self._clean(self.firstAttr('score'))
+        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, name, score] if p])
+
+    def _loadData(self, data):
+        self._data = data
+        self.guid = data.attrib.get('guid')
+        self.lifespanEnded = data.attrib.get('lifespanEnded')
+        self.name = data.attrib.get('name')
+        self.score = cast(int, data.attrib.get('score'))
+        self.year = data.attrib.get('year')
+
+
+@utils.registerPlexObject
+class Agent(PlexObject):
+    """ Represents a single Agent.
+
+        Attributes:
+            TAG (str): 'Agent'
+    """
+    TAG = 'Agent'
+
+    def __repr__(self):
+        uid = self._clean(self.firstAttr('shortIdentifier'))
+        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid] if p])
+
+    def _loadData(self, data):
+        self._data = data
+        self.hasAttribution = data.attrib.get('hasAttribution')
+        self.hasPrefs = data.attrib.get('hasPrefs')
+        self.identifier = data.attrib.get('identifier')
+        self.primary = data.attrib.get('primary')
+        self.shortIdentifier = self.identifier.rsplit('.', 1)[1]
+        if 'mediaType' in self._initpath:
+            self.name = data.attrib.get('name')
+            self.languageCode = []
+            for code in data:
+                self.languageCode += [code.attrib.get('code')]
+        else:
+            self.mediaTypes = [AgentMediaType(server=self._server, data=d) for d in data]
+
+    def _settings(self):
+        key = '/:/plugins/%s/prefs' % self.identifier
+        data = self._server.query(key)
+        return self.findItems(data, cls=settings.Setting)
+
+
+class AgentMediaType(Agent):
+
+    def __repr__(self):
+        uid = self._clean(self.firstAttr('name'))
+        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid] if p])
+
+    def _loadData(self, data):
+        self.mediaType = cast(int, data.attrib.get('mediaType'))
+        self.name = data.attrib.get('name')
+        self.languageCode = []
+        for code in data:
+            self.languageCode += [code.attrib.get('code')]

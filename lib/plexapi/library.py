@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from plexapi import X_PLEX_CONTAINER_SIZE, log, utils
 from plexapi.base import PlexObject
-from plexapi.compat import unquote, urlencode, quote_plus
-from plexapi.media import MediaTag
+from plexapi.compat import quote, quote_plus, unquote, urlencode
 from plexapi.exceptions import BadRequest, NotFound
+from plexapi.media import MediaTag
+from plexapi.settings import Setting
 
 
 class Library(PlexObject):
@@ -294,6 +295,17 @@ class Library(PlexObject):
             part += urlencode(kwargs)
         return self._server.query(part, method=self._server._session.post)
 
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get Play History for all library Sections for the owner.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        hist = []
+        for section in self.sections():
+            hist.extend(section.history(maxresults=maxresults, mindate=mindate))
+        return hist
+
 
 class LibrarySection(PlexObject):
     """ Base class for a single library section.
@@ -320,6 +332,8 @@ class LibrarySection(PlexObject):
             type (str): Type of content section represents (movie, artist, photo, show).
             updatedAt (datetime): Datetime this library section was last updated.
             uuid (str): Unique id for this section (32258d7c-3e6c-4ac5-98ad-bad7a3b78c63)
+            totalSize (int): Total number of item in the library
+
     """
     ALLOWED_FILTERS = ()
     ALLOWED_SORT = ()
@@ -343,6 +357,51 @@ class LibrarySection(PlexObject):
         self.type = data.attrib.get('type')
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
         self.uuid = data.attrib.get('uuid')
+        # Private attrs as we dont want a reload.
+        self._total_size = None
+
+    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
+        """ Load the specified key to find and build all items with the specified tag
+            and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
+            on how this is used.
+
+            Parameters:
+                container_start (None, int): offset to get a subset of the data
+                container_size (None, int): How many items in data
+
+        """
+        url_kw = {}
+        if container_start is not None:
+            url_kw["X-Plex-Container-Start"] = container_start
+        if container_size is not None:
+            url_kw["X-Plex-Container-Size"] = container_size
+
+        if ekey is None:
+            raise BadRequest('ekey was not provided')
+        data = self._server.query(ekey, params=url_kw)
+
+        if '/all' in ekey:
+            # totalSize is only included in the xml response
+            # if container size is used.
+            total_size = data.attrib.get("totalSize") or data.attrib.get("size")
+            self._total_size = utils.cast(int, total_size)
+
+        items = self.findItems(data, cls, ekey, **kwargs)
+
+        librarySectionID = data.attrib.get('librarySectionID')
+        if librarySectionID:
+            for item in items:
+                item.librarySectionID = librarySectionID
+        return items
+
+    @property
+    def totalSize(self):
+        if self._total_size is None:
+            part = '/library/sections/%s/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1' % self.key
+            data = self._server.query(part)
+            self._total_size = int(data.attrib.get("totalSize"))
+
+        return self._total_size
 
     def delete(self):
         """ Delete a library section. """
@@ -354,13 +413,18 @@ class LibrarySection(PlexObject):
             log.error(msg)
             raise
 
-    def edit(self, **kwargs):
+    def reload(self, key=None):
+        return self._server.library.section(self.title)
+
+    def edit(self, agent=None, **kwargs):
         """ Edit a library (Note: agent is required). See :class:`~plexapi.library.Library` for example usage.
 
             Parameters:
                 kwargs (dict): Dict of settings to edit.
         """
-        part = '/library/sections/%s?%s' % (self.key, urlencode(kwargs))
+        if not agent:
+            agent = self.agent
+        part = '/library/sections/%s?agent=%s&%s' % (self.key, agent, urlencode(kwargs))
         self._server.query(part, method=self._server._session.put)
 
         # Reload this way since the self.key dont have a full path, but is simply a id.
@@ -374,7 +438,7 @@ class LibrarySection(PlexObject):
             Parameters:
                 title (str): Title of the item to return.
         """
-        key = '/library/sections/%s/all' % self.key
+        key = '/library/sections/%s/all?title=%s' % (self.key, quote(title, safe=''))
         return self.fetchItem(key, title__iexact=title)
 
     def all(self, sort=None, **kwargs):
@@ -389,6 +453,17 @@ class LibrarySection(PlexObject):
 
         key = '/library/sections/%s/all%s' % (self.key, sortStr)
         return self.fetchItems(key, **kwargs)
+
+    def agents(self):
+        """ Returns a list of available `:class:`~plexapi.media.Agent` for this library section.
+        """
+        return self._server.agents(utils.searchType(self.type))
+
+    def settings(self):
+        """ Returns a list of all library settings. """
+        key = '/library/sections/%s/prefs' % self.key
+        data = self._server.query(key)
+        return self.findItems(data, cls=Setting)
 
     def onDeck(self):
         """ Returns a list of media items on deck from this library section. """
@@ -464,9 +539,9 @@ class LibrarySection(PlexObject):
         key = '/library/sections/%s/%s%s' % (self.key, category, utils.joinArgs(args))
         return self.fetchItems(key, cls=FilterChoice)
 
-    def search(self, title=None, sort=None, maxresults=999999, libtype=None, **kwargs):
-        """ Search the library. If there are many results, they will be fetched from the server
-            in batches of X_PLEX_CONTAINER_SIZE amounts. If you're only looking for the first <num>
+    def search(self, title=None, sort=None, maxresults=None,
+               libtype=None, container_start=0, container_size=X_PLEX_CONTAINER_SIZE, **kwargs):
+        """ Search the library. The http requests will be batched in container_size. If you're only looking for the first <num>
             results, it would be wise to set the maxresults option to that amount so this functions
             doesn't iterate over all results on the server.
 
@@ -477,6 +552,8 @@ class LibrarySection(PlexObject):
                 maxresults (int): Only return the specified number of results (optional).
                 libtype (str): Filter results to a spcifiec libtype (movie, show, episode, artist,
                     album, track; optional).
+                container_start (int): default 0
+                container_size (int): default X_PLEX_CONTAINER_SIZE in your config file.
                 **kwargs (dict): Any of the available filters for the current library section. Partial string
                         matches allowed. Multiple matches OR together. Negative filtering also possible, just add an
                         exclamation mark to the end of filter name, e.g. `resolution!=1x1`.
@@ -508,15 +585,37 @@ class LibrarySection(PlexObject):
             args['sort'] = self._cleanSearchSort(sort)
         if libtype is not None:
             args['type'] = utils.searchType(libtype)
-        # iterate over the results
-        results, subresults = [], '_init'
-        args['X-Plex-Container-Start'] = 0
-        args['X-Plex-Container-Size'] = min(X_PLEX_CONTAINER_SIZE, maxresults)
-        while subresults and maxresults > len(results):
+
+        results = []
+        subresults = []
+        offset = container_start
+
+        if maxresults is not None:
+            container_size = min(container_size, maxresults)
+        while True:
             key = '/library/sections/%s/all%s' % (self.key, utils.joinArgs(args))
-            subresults = self.fetchItems(key)
-            results += subresults[:maxresults - len(results)]
-            args['X-Plex-Container-Start'] += args['X-Plex-Container-Size']
+            subresults = self.fetchItems(key, container_start=container_start,
+                                         container_size=container_size)
+            if not len(subresults):
+                if offset > self.totalSize:
+                    log.info("container_start is higher then the number of items in the library")
+                break
+
+            results.extend(subresults)
+
+            # self.totalSize is not used as a condition in the while loop as
+            # this require a additional http request.
+            # self.totalSize is updated from .fetchItems
+            wanted_number_of_items = self.totalSize - offset
+            if maxresults is not None:
+                wanted_number_of_items = min(maxresults, wanted_number_of_items)
+                container_size = min(container_size, maxresults - len(results))
+
+            if wanted_number_of_items <= len(results):
+                break
+
+            container_start += container_size
+
         return results
 
     def _cleanSearchFilter(self, category, value, libtype=None):
@@ -543,7 +642,7 @@ class LibrarySection(PlexObject):
             matches = [k for t, k in lookup.items() if item in t]
             if matches: map(result.add, matches); continue
             # nothing matched; use raw item value
-            log.warning('Filter value not listed, using raw item value: %s' % item)
+            log.debug('Filter value not listed, using raw item value: %s' % item)
             result.add(item)
         return ','.join(result)
 
@@ -632,6 +731,14 @@ class LibrarySection(PlexObject):
         sync_item.mediaSettings = mediaSettings
 
         return myplex.sync(client=client, clientId=clientId, sync_item=sync_item)
+
+    def history(self, maxresults=9999999, mindate=None):
+        """ Get Play History for this library Section for the owner.
+            Parameters:
+                maxresults (int): Only return the specified number of results (optional).
+                mindate (datetime): Min datetime to return results from.
+        """
+        return self._server.history(maxresults=maxresults, mindate=mindate, librarySectionID=self.key, accountID=1)
 
 
 class MovieSection(LibrarySection):
@@ -869,7 +976,7 @@ class PhotoSection(LibrarySection):
             TYPE (str): 'photo'
     """
     ALLOWED_FILTERS = ('all', 'iso', 'make', 'lens', 'aperture', 'exposure', 'device', 'resolution', 'place',
-                       'originallyAvailableAt', 'addedAt', 'title', 'userRating')
+                       'originallyAvailableAt', 'addedAt', 'title', 'userRating', 'tag', 'year')
     ALLOWED_SORT = ('addedAt',)
     TAG = 'Directory'
     TYPE = 'photo'
@@ -968,6 +1075,7 @@ class Hub(PlexObject):
         self.size = utils.cast(int, data.attrib.get('size'))
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
+        self.key = data.attrib.get('key')
         self.items = self.findItems(data)
 
     def __len__(self):
@@ -979,9 +1087,11 @@ class Collections(PlexObject):
 
     TAG = 'Directory'
     TYPE = 'collection'
+    _include = "?includeExternalMedia=1&includePreferences=1"
 
     def _loadData(self, data):
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
+        self._details_key = "/library/metadata/%s%s" % (self.ratingKey, self._include)
         self.key = data.attrib.get('key')
         self.type = data.attrib.get('type')
         self.title = data.attrib.get('title')
@@ -1050,6 +1160,44 @@ class Collections(PlexObject):
             raise BadRequest('Unknown sort dir: %s. Options: %s' % (sort, list(sort_dict)))
         part = '/library/metadata/%s/prefs?collectionSort=%s' % (self.ratingKey, key)
         return self._server.query(part, method=self._server._session.put)
+
+    def posters(self):
+        """ Returns list of available poster objects. :class:`~plexapi.media.Poster`. """
+
+        return self.fetchItems('/library/metadata/%s/posters' % self.ratingKey)
+
+    def uploadPoster(self, url=None, filepath=None):
+        """ Upload poster from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
+        if url:
+            key = '/library/metadata/%s/posters?url=%s' % (self.ratingKey, quote_plus(url))
+            self._server.query(key, method=self._server._session.post)
+        elif filepath:
+            key = '/library/metadata/%s/posters?' % self.ratingKey
+            data = open(filepath, 'rb').read()
+            self._server.query(key, method=self._server._session.post, data=data)
+
+    def setPoster(self, poster):
+        """ Set . :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
+        poster.select()
+
+    def arts(self):
+        """ Returns list of available art objects. :class:`~plexapi.media.Poster`. """
+
+        return self.fetchItems('/library/metadata/%s/arts' % self.ratingKey)
+
+    def uploadArt(self, url=None, filepath=None):
+        """ Upload art from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
+        if url:
+            key = '/library/metadata/%s/arts?url=%s' % (self.ratingKey, quote_plus(url))
+            self._server.query(key, method=self._server._session.post)
+        elif filepath:
+            key = '/library/metadata/%s/arts?' % self.ratingKey
+            data = open(filepath, 'rb').read()
+            self._server.query(key, method=self._server._session.post, data=data)
+
+    def setArt(self, art):
+        """ Set :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
+        art.select()
 
     # def edit(self, **kwargs):
     #    TODO

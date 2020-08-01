@@ -124,8 +124,8 @@ class Setting(PlexObject):
         self.enumValues = self._getEnumValues(data)
 
     def _cast(self, value):
-        """ Cast the specifief value to the type of this setting. """
-        if self.type != 'text':
+        """ Cast the specific value to the type of this setting. """
+        if self.type != 'enum':
             value = utils.cast(self.TYPES.get(self.type)['cast'], value)
         return value
 

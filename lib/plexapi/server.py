@@ -7,12 +7,13 @@ from plexapi.alert import AlertListener
 from plexapi.base import PlexObject
 from plexapi.client import PlexClient
 from plexapi.compat import ElementTree, urlencode
-from plexapi.exceptions import BadRequest, NotFound
+from plexapi.exceptions import BadRequest, NotFound, Unauthorized
 from plexapi.library import Library, Hub
 from plexapi.settings import Settings
 from plexapi.playlist import Playlist
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import cast
+from plexapi.media import Optimized, Conversion
 
 # Need these imports to populate utils.PLEXOBJECTS
 from plexapi import (audio as _audio, video as _video,        # noqa: F401
@@ -183,8 +184,18 @@ class PlexServer(PlexObject):
         data = self.query(Account.key)
         return Account(self, data)
 
+    def agents(self, mediaType=None):
+        """ Returns the `:class:`~plexapi.media.Agent` objects this server has available. """
+        key = '/system/agents'
+        if mediaType:
+            key += '?mediaType=%s' % mediaType
+        return self.fetchItems(key)
+
     def createToken(self, type='delegation', scope='all'):
         """Create a temp access token for the server."""
+        if not self._token:
+            # Handle unclaimed servers
+            return None
         q = self.query('/security/token?type=%s&scope=%s' % (type, scope))
         return q.attrib.get('token')
 
@@ -322,7 +333,7 @@ class PlexServer(PlexObject):
             # figure out what method this is..
             return self.query(part, method=self._session.put)
 
-    def history(self, maxresults=9999999, mindate=None):
+    def history(self, maxresults=9999999, mindate=None, ratingKey=None, accountID=None, librarySectionID=None):
         """ Returns a list of media items from watched history. If there are many results, they will
             be fetched from the server in batches of X_PLEX_CONTAINER_SIZE amounts. If you're only
             looking for the first <num> results, it would be wise to set the maxresults option to that
@@ -332,9 +343,18 @@ class PlexServer(PlexObject):
                 maxresults (int): Only return the specified number of results (optional).
                 mindate (datetime): Min datetime to return results from. This really helps speed
                     up the result listing. For example: datetime.now() - timedelta(days=7)
+                ratingKey (int/str) Request history for a specific ratingKey item.
+                accountID (int/str) Request history for a specific account ID.
+                librarySectionID (int/str) Request history for a specific library section ID.
         """
         results, subresults = [], '_init'
         args = {'sort': 'viewedAt:desc'}
+        if ratingKey:
+            args['metadataItemID'] = ratingKey
+        if accountID:
+            args['accountID'] = accountID
+        if librarySectionID:
+            args['librarySectionID'] = librarySectionID
         if mindate:
             args['viewedAt>'] = int(mindate.timestamp())
         args['X-Plex-Container-Start'] = 0
@@ -363,6 +383,36 @@ class PlexServer(PlexObject):
         """
         return self.fetchItem('/playlists', title=title)
 
+    def optimizedItems(self, removeAll=None):
+        """ Returns list of all :class:`~plexapi.media.Optimized` objects connected to server. """
+        if removeAll is True:
+            key = '/playlists/generators?type=42'
+            self.query(key, method=self._server._session.delete)
+        else:
+            backgroundProcessing = self.fetchItem('/playlists?type=42')
+            return self.fetchItems('%s/items' % backgroundProcessing.key, cls=Optimized)
+
+    def optimizedItem(self, optimizedID):
+        """ Returns single queued optimized item :class:`~plexapi.media.Video` object.
+            Allows for using optimized item ID to connect back to source item.
+        """
+
+        backgroundProcessing = self.fetchItem('/playlists?type=42')
+        return self.fetchItem('%s/items/%s/items' % (backgroundProcessing.key, optimizedID))
+
+    def conversions(self, pause=None):
+        """ Returns list of all :class:`~plexapi.media.Conversion` objects connected to server. """
+        if pause is True:
+            self.query('/:/prefs?BackgroundQueueIdlePaused=1', method=self._server._session.put)
+        elif pause is False:
+            self.query('/:/prefs?BackgroundQueueIdlePaused=0', method=self._server._session.put)
+        else:
+            return self.fetchItems('/playQueues/1', cls=Conversion)
+
+    def currentBackgroundProcess(self):
+        """ Returns list of all :class:`~plexapi.media.TranscodeJob` objects running or paused on server. """
+        return self.fetchItems('/status/sessions/background')
+
     def query(self, key, method=None, headers=None, timeout=None, **kwargs):
         """ Main method used to handle HTTPS requests to the Plex server. This method helps
             by encoding the response to utf-8 and parsing the returned XML into and
@@ -377,8 +427,13 @@ class PlexServer(PlexObject):
         if response.status_code not in (200, 201):
             codename = codes.get(response.status_code)[0]
             errtext = response.text.replace('\n', ' ')
-            log.warning('BadRequest (%s) %s %s; %s' % (response.status_code, codename, response.url, errtext))
-            raise BadRequest('(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext))
+            message = '(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext)
+            if response.status_code == 401:
+                raise Unauthorized(message)
+            elif response.status_code == 404:
+                raise NotFound(message)
+            else:
+                raise BadRequest(message)
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
@@ -471,6 +526,25 @@ class PlexServer(PlexObject):
         """
         self.refreshSynclist()
         self.refreshContent()
+
+    def _allowMediaDeletion(self, toggle=False):
+        """ Toggle allowMediaDeletion.
+            Parameters:
+                toggle (bool): True enables Media Deletion
+                               False or None disable Media Deletion (Default)
+        """
+        if self.allowMediaDeletion and toggle is False:
+            log.debug('Plex is currently allowed to delete media. Toggling off.')
+        elif self.allowMediaDeletion and toggle is True:
+            log.debug('Plex is currently allowed to delete media. Toggle set to allow, exiting.')
+            raise BadRequest('Plex is currently allowed to delete media. Toggle set to allow, exiting.')
+        elif self.allowMediaDeletion is None and toggle is True:
+            log.debug('Plex is currently not allowed to delete media. Toggle set to allow.')
+        else:
+            log.debug('Plex is currently not allowed to delete media. Toggle set to not allow, exiting.')
+            raise BadRequest('Plex is currently not allowed to delete media. Toggle set to not allow, exiting.')
+        value = 1 if toggle is True else 0
+        return self.query('/:/prefs?allowMediaDeletion=%s' % value, self._session.put)
 
 
 class Account(PlexObject):

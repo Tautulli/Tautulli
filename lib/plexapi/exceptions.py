@@ -26,6 +26,6 @@ class Unsupported(PlexApiException):
     pass
 
 
-class Unauthorized(PlexApiException):
-    """ Invalid username or password. """
+class Unauthorized(BadRequest):
+    """ Invalid username/password or token. """
     pass
