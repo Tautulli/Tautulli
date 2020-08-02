@@ -2555,6 +2555,29 @@ Returns:
 ```
 
 
+### import_config
+Import a Tautulli config file.
+
+```
+Required parameters:
+    config_file (file):             The config file to import (multipart/form-data)
+    or
+    config_path (str):              The full path to the config file to import
+
+
+Optional parameters:
+    backup (bool):                  true or false whether to backup
+                                    the current config before importing
+
+Returns:
+    json:
+        {"result": "success",
+         "message": "Config import has started. Check the logs to monitor any problems. "
+                    "Tautulli will restart automatically."
+         }
+```
+
+
 ### import_database
 Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
 
