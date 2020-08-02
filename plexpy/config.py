@@ -17,7 +17,6 @@ from __future__ import unicode_literals
 from future.builtins import object
 from future.builtins import str
 
-import arrow
 import os
 import re
 import shutil
@@ -28,8 +27,10 @@ from configobj import ConfigObj, ParseError
 
 import plexpy
 if plexpy.PYTHON2:
+    import helpers
     import logger
 else:
+    from plexpy import helpers
     from plexpy import logger
 
 
@@ -268,9 +269,9 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of config file, removes all but the last 5 backups """
 
     if scheduler:
-        backup_file = 'config.backup-%s.sched.ini' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'config.backup-{}.sched.ini'.format(helpers.now(no_sep=True))
     else:
-        backup_file = 'config.backup-%s.ini' % arrow.now().format('YYYYMMDDHHmmss')
+        backup_file = 'config.backup-{}.ini'.format(helpers.now(no_sep=True))
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 

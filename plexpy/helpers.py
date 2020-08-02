@@ -213,9 +213,10 @@ def today():
     return yyyymmdd
 
 
-def now():
+def now(no_sep=False):
     now = datetime.datetime.now()
-
+    if no_sep:
+        return now.strftime("%Y%m%d%H%M%S")
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
 

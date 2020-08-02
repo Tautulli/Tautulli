@@ -17,7 +17,6 @@ from __future__ import unicode_literals
 from future.builtins import str
 from future.builtins import object
 
-import arrow
 import os
 import sqlite3
 import shutil
@@ -26,11 +25,11 @@ import time
 
 import plexpy
 if plexpy.PYTHON2:
+    import helpers
     import logger
-    from helpers import cast_to_int, chunk
 else:
+    from plexpy import helpers
     from plexpy import logger
-    from plexpy.helpers import cast_to_int, chunk
 
 
 FILENAME = "tautulli.db"
@@ -219,7 +218,7 @@ def delete_recently_added():
 
 def delete_rows_from_table(table, row_ids):
     if row_ids and isinstance(row_ids, str):
-        row_ids = list(map(cast_to_int, row_ids.split(',')))
+        row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
 
     if row_ids:
         logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
@@ -230,7 +229,7 @@ def delete_rows_from_table(table, row_ids):
 
         monitor_db = MonitorDatabase()
         try:
-            for row_ids_group in chunk(row_ids, sqlite_max_variable_number):
+            for row_ids_group in helpers.chunk(row_ids, sqlite_max_variable_number):
                 query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids_group))
                 monitor_db.action(query, row_ids_group)
         except Exception as e:
@@ -293,9 +292,9 @@ def make_backup(cleanup=False, scheduler=False):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
-        backup_file = 'tautulli.backup-{}{}.sched.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)
+        backup_file = 'tautulli.backup-{}{}.sched.db'.format(helpers.now(no_sep=True), corrupt)
     else:
-        backup_file = 'tautulli.backup-{}{}.db'.format(arrow.now().format('YYYYMMDDHHmmss'), corrupt)
+        backup_file = 'tautulli.backup-{}{}.db'.format(helpers.now(no_sep=True), corrupt)
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 
