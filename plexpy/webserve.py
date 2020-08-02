@@ -4048,6 +4048,40 @@ class WebInterface(object):
             return result
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_server_info(self, **kwargs):
+        """ Get the PMS server information.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"pms_identifier": "08u2phnlkdshf890bhdlksghnljsahgleikjfg9t",
+                     "pms_ip": "10.10.10.1",
+                     "pms_is_remote": 0,
+                     "pms_name": "Winterfell-Server",
+                     "pms_platform": "Windows",
+                     "pms_plexpass": 1,
+                     "pms_port": 32400,
+                     "pms_ssl": 0,
+                     "pms_url": "http://10.10.10.1:32400",
+                     "pms_url_manual": 0,
+                     "pms_version": "1.20.0.3133-fede5bdc7"
+                    }
+            ```
+        """
+        server = plextv.get_server_resources(return_info=True)
+        server.pop('pms_is_cloud', None)
+        return server
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_pref(self, pref=None, **kwargs):

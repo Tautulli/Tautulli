@@ -42,8 +42,8 @@ else:
     from plexpy import session
 
 
-def get_server_resources(return_presence=False, return_server=False, **kwargs):
-    if not return_presence:
+def get_server_resources(return_presence=False, return_server=False, return_info=False, **kwargs):
+    if not return_presence and not return_info:
         logger.info("Tautulli PlexTV :: Requesting resources for server...")
 
     server = {'pms_name': plexpy.CONFIG.PMS_NAME,
@@ -56,8 +56,12 @@ def get_server_resources(return_presence=False, return_server=False, **kwargs):
               'pms_is_cloud': plexpy.CONFIG.PMS_IS_CLOUD,
               'pms_url': plexpy.CONFIG.PMS_URL,
               'pms_url_manual': plexpy.CONFIG.PMS_URL_MANUAL,
-              'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER
+              'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
+              'pms_plexpass': plexpy.CONFIG.PMS_PLEXPASS
               }
+
+    if return_info:
+        return server
 
     if kwargs:
         server.update(kwargs)
