@@ -878,7 +878,9 @@ def export(section_id=None, rating_key=None, file_format='json'):
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
         media_type = item.type
-        section_id = item.librarySectionID
+
+        if media_type != 'playlist':
+            section_id = item.librarySectionID
 
         if media_type in ('season', 'episode', 'album', 'track'):
             item_title = item._defaultSyncTitle()
