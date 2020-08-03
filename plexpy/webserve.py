@@ -48,6 +48,7 @@ if plexpy.PYTHON2:
     import config
     import database
     import datafactory
+    import exporter
     import graphs
     import helpers
     import http_handler
@@ -81,6 +82,7 @@ else:
     from plexpy import config
     from plexpy import database
     from plexpy import datafactory
+    from plexpy import exporter
     from plexpy import graphs
     from plexpy import helpers
     from plexpy import http_handler
@@ -6414,3 +6416,15 @@ class WebInterface(object):
                     status['message'] = 'Database not ok'
 
         return status
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def export_metadata(self, section_id=None, rating_key=None, output_format='json', **kwargs):
+        threading.Thread(target=exporter.export,
+                         kwargs={'section_id': section_id,
+                                 'rating_key': rating_key,
+                                 'output_format': output_format}).start()
+        return {'result': 'success',
+                'message': 'Metadata export has started. Check the logs to monitor any problems.'}
