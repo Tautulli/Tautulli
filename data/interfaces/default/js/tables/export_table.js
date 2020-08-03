@@ -116,3 +116,12 @@ export_table_options = {
         }
     }
 };
+
+$('.export_table').on('click', '> tbody > tr > td > button.btn-download', function (e) {
+    var tr = $(this).closest('tr');
+    var row = export_table.row(tr);
+    var rowData = row.data();
+
+    e.preventDefault();
+    window.location.href = 'download_export?row_id=' + rowData['row_id'];
+});

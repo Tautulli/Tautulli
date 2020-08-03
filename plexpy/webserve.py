@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -6482,9 +6482,49 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json', **kwargs):
+        """ Download the Plex log file.
+
+            ```
+            Required parameters:
+                row_id (int):          The row id of the exported file to download
+
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Metadata export has started. Check the logs to monitor any problems."
+                     }
+            ```
+        """
         threading.Thread(target=exporter.export,
                          kwargs={'section_id': section_id,
                                  'rating_key': rating_key,
                                  'file_format': file_format}).start()
         return {'result': 'success',
                 'message': 'Metadata export has started. Check the logs to monitor any problems.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_export(self, row_id=None, **kwargs):
+        """ Download the Plex log file.
+
+            ```
+            Required parameters:
+                row_id (int):          The row id of the exported file to download
+
+
+            Optional parameters:
+                None
+
+            Returns:
+                download
+            ```
+        """
+        result = exporter.get_export(export_id=row_id)
+        if result and result['complete'] and result['exists']:
+            serve_download(path=exporter.get_export_filepath(result['filename']), name=result['filename'])

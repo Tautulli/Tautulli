@@ -897,7 +897,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
         return
 
     filename = helpers.clean_filename(filename)
-    filepath = os.path.join(plexpy.CONFIG.EXPORT_DIR, filename)
+    filepath = get_export_filepath(filename)
     logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
 
     export_id = set_export_state(timestamp=timestamp,
@@ -930,6 +930,18 @@ def export(section_id=None, rating_key=None, file_format='json'):
 
     set_export_complete(export_id=export_id)
     logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+
+
+def get_export(export_id):
+    db = database.MonitorDatabase()
+    result = db.select_single('SELECT filename, complete '
+                              'FROM exports WHERE id = ?',
+                              [export_id])
+
+    if result:
+        result['exists'] = check_export_exists(result['filename'])
+
+    return result
 
 
 def set_export_state(timestamp, section_id, rating_key, media_type, file_format, filename):
@@ -1000,8 +1012,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     rows = []
     for item in result:
         media_type_title = item['media_type'].title()
-        filepath = os.path.join(plexpy.CONFIG.EXPORT_DIR, item['filename'])
-        exists = helpers.cast_to_int(os.path.isfile(filepath))
+        exists = helpers.cast_to_int(check_export_exists(item['filename']))
 
         row = {'row_id': item['row_id'],
                'timestamp': item['timestamp'],
@@ -1024,3 +1035,11 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
               }
 
     return result
+
+
+def get_export_filepath(filename):
+    return os.path.join(plexpy.CONFIG.EXPORT_DIR, filename)
+
+
+def check_export_exists(filename):
+    return os.path.isfile(get_export_filepath(filename))
