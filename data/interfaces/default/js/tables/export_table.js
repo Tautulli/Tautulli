@@ -90,10 +90,12 @@ export_table_options = {
             "targets": [5],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === 1) {
+                if (cellData === 0 ) {
+                    $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
+                } else if (cellData === 1 && rowData['exists']) {
                     $(td).html('<button class="btn btn-xs btn-dark btn-download" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
                 } else {
-                    $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
+                    $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</button>');
                 }
             },
             "width": "7%"

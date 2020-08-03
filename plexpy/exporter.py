@@ -904,6 +904,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
                                  section_id=section_id,
                                  rating_key=rating_key,
                                  media_type=media_type,
+                                 file_format=file_format,
                                  filename=filename)
     if not export_id:
         logger.error("Tautulli Exporter :: Failed to export '%s'", filename)
@@ -999,6 +1000,8 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     rows = []
     for item in result:
         media_type_title = item['media_type'].title()
+        filepath = os.path.join(plexpy.CONFIG.EXPORT_DIR, item['filename'])
+        exists = helpers.cast_to_int(os.path.isfile(filepath))
 
         row = {'row_id': item['row_id'],
                'timestamp': item['timestamp'],
@@ -1008,7 +1011,8 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'media_type_title': media_type_title,
                'file_format': item['file_format'],
                'filename': item['filename'],
-               'complete': item['complete']
+               'complete': item['complete'],
+               'exists': exists
                }
 
         rows.append(row)
