@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -6526,6 +6526,14 @@ class WebInterface(object):
         result = exporter.get_export(export_id=row_id)
         if result and result['complete'] and result['exists']:
             serve_download(path=exporter.get_export_filepath(result['filename']), name=result['filename'])
+        else:
+            if result and not result.get('complete'):
+                msg = 'Export is still being processed.'
+            elif result and not result.get('exists'):
+                msg = 'Export file does not exist.'
+            else:
+                msg = 'Invalid row_id provided.'
+            return {'result': 'error', 'message': msg}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
