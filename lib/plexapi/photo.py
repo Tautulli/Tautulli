@@ -40,6 +40,8 @@ class Photoalbum(PlexPartialObject):
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key')
         self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.ratingKey = data.attrib.get('ratingKey')
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
@@ -99,16 +101,32 @@ class Photo(PlexPartialObject):
     TYPE = 'photo'
     METADATA_TYPE = 'photo'
 
+    _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
+                '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
+                '&includeMarkers=1&includeConcerts=1&includePreferences=1'
+                '&indcludeBandwidths=1&includeLoudnessRamps=1')
+
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
+        self.key = data.attrib.get('key')
+        self._details_key = self.key + self._include
         self.listType = 'photo'
         self.addedAt = utils.toDatetime(data.attrib.get('addedAt'))
+        self.createdAtAccuracy = data.attrib.get('createdAtAccuracy')
+        self.createdAtTZOffset = utils.cast(int, data.attrib.get('createdAtTZOffset'))
+        self.guid = data.attrib.get('guid')
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.key = data.attrib.get('key')
+        self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.originallyAvailableAt = utils.toDatetime(
             data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
+        self.parentGuid = data.attrib.get('parentGuid')
+        self.parentIndex = utils.cast(int, data.attrib.get('parentIndex'))
         self.parentKey = data.attrib.get('parentKey')
         self.parentRatingKey = data.attrib.get('parentRatingKey')
+        self.parentThumb = data.attrib.get('parentThumb')
+        self.parentTitle = data.attrib.get('parentTitle')
         self.ratingKey = data.attrib.get('ratingKey')
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')

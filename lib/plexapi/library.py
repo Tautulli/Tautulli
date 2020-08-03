@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from plexapi import X_PLEX_CONTAINER_SIZE, log, utils
+from plexapi import X_PLEX_CONTAINER_SIZE, log, utils, media
 from plexapi.base import PlexObject
 from plexapi.compat import quote, quote_plus, unquote, urlencode
 from plexapi.exceptions import BadRequest, NotFound
@@ -1092,9 +1092,15 @@ class Collections(PlexObject):
     def _loadData(self, data):
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self._details_key = "/library/metadata/%s%s" % (self.ratingKey, self._include)
+        self.contentRating = data.attrib.get('contentRating')
+        self.guid = data.attrib.get('guid')
         self.key = data.attrib.get('key')
+        self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.type = data.attrib.get('type')
         self.title = data.attrib.get('title')
+        self.titleSort = data.attrib.get('titleSort')
         self.subtype = data.attrib.get('subtype')
         self.summary = data.attrib.get('summary')
         self.index = utils.cast(int, data.attrib.get('index'))
@@ -1106,6 +1112,7 @@ class Collections(PlexObject):
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
         self.collectionMode = data.attrib.get('collectionMode')
         self.collectionSort = data.attrib.get('collectionSort')
+        self.fields = self.findItems(data, media.Field)
 
     @property
     def children(self):

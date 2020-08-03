@@ -5,7 +5,7 @@ import xml
 from plexapi import compat, log, settings, utils
 from plexapi.base import PlexObject
 from plexapi.exceptions import BadRequest
-from plexapi.utils import cast
+from plexapi.utils import cast, SEARCHTYPES
 
 
 @utils.registerPlexObject
@@ -45,6 +45,7 @@ class Media(PlexObject):
         self.aspectRatio = cast(float, data.attrib.get('aspectRatio'))
         self.audioChannels = cast(int, data.attrib.get('audioChannels'))
         self.audioCodec = data.attrib.get('audioCodec')
+        self.audioProfile = data.attrib.get('videoProfile')
         self.bitrate = cast(int, data.attrib.get('bitrate'))
         self.container = data.attrib.get('container')
         self.duration = cast(int, data.attrib.get('duration'))
@@ -60,6 +61,16 @@ class Media(PlexObject):
         self.videoResolution = data.attrib.get('videoResolution')
         self.width = cast(int, data.attrib.get('width'))
         self.parts = self.findItems(data, MediaPart)
+        self.proxyType = cast(int, data.attrib.get('proxyType'))
+        self.optimizedVersion = self.proxyType == SEARCHTYPES['optimizedVersion']
+        
+        # For Photo only
+        self.aperture = data.attrib.get('aperture')
+        self.exposure = data.attrib.get('exposure')
+        self.iso = cast(int, data.attrib.get('iso'))
+        self.lens = data.attrib.get('lens')
+        self.make = data.attrib.get('make')
+        self.model = data.attrib.get('model')
 
     def delete(self):
         part = self._initpath + '/media/%s' % self.id
@@ -96,26 +107,34 @@ class MediaPart(PlexObject):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         self._data = data
+        self.audioProfile = data.attrib.get('audioProfile')
         self.container = data.attrib.get('container')
+        self.deepAnalysisVersion = cast(int, data.attrib.get('deepAnalysisVersion'))
         self.duration = cast(int, data.attrib.get('duration'))
         self.file = data.attrib.get('file')
+        self.has64bitOffsets = cast(bool, data.attrib.get('has64bitOffsets'))
+        self.hasThumbnail = cast(bool, data.attrib.get('hasThumbnail'))
         self.id = cast(int, data.attrib.get('id'))
         self.indexes = data.attrib.get('indexes')
         self.key = data.attrib.get('key')
         self.size = cast(int, data.attrib.get('size'))
         self.decision = data.attrib.get('decision')
         self.optimizedForStreaming = cast(bool, data.attrib.get('optimizedForStreaming'))
+        self.requiredBandwidths = data.attrib.get('requiredBandwidths')
         self.syncItemId = cast(int, data.attrib.get('syncItemId'))
         self.syncState = data.attrib.get('syncState')
         self.videoProfile = data.attrib.get('videoProfile')
         self.streams = self._buildStreams(data)
         self.exists = cast(bool, data.attrib.get('exists'))
         self.accessible = cast(bool, data.attrib.get('accessible'))
+        
+        # For Photo only
+        self.orientation = cast(int, data.attrib.get('orientation'))
 
     def _buildStreams(self, data):
         streams = []
         for elem in data:
-            for cls in (VideoStream, AudioStream, SubtitleStream):
+            for cls in (VideoStream, AudioStream, SubtitleStream, LyricStream):
                 if elem.attrib.get('streamType') == str(cls.STREAMTYPE):
                     streams.append(cls(self._server, elem, self._initpath))
         return streams
@@ -131,6 +150,10 @@ class MediaPart(PlexObject):
     def subtitleStreams(self):
         """ Returns a list of :class:`~plexapi.media.SubtitleStream` objects in this MediaPart. """
         return [stream for stream in self.streams if stream.streamType == SubtitleStream.STREAMTYPE]
+
+    def lyricStreams(self):
+        """ Returns a list of :class:`~plexapi.media.LyricStream` objects in this MediaPart. """
+        return [stream for stream in self.streams if stream.streamType == LyricStream.STREAMTYPE]
 
     def setDefaultAudioStream(self, stream):
         """ Set the default :class:`~plexapi.media.AudioStream` for this MediaPart.
@@ -177,7 +200,8 @@ class MediaPartStream(PlexObject):
             languageCode (str): Ascii code for language (ex: eng, tha).
             selected (bool): True if this stream is selected.
             streamType (int): Stream type (1=:class:`~plexapi.media.VideoStream`,
-                2=:class:`~plexapi.media.AudioStream`, 3=:class:`~plexapi.media.SubtitleStream`).
+                2=:class:`~plexapi.media.AudioStream`, 3=:class:`~plexapi.media.SubtitleStream`,
+                4=:class:`~plexapi.media.LyricStream`).
             type (int): Alias for streamType.
     """
 
@@ -186,18 +210,22 @@ class MediaPartStream(PlexObject):
         self._data = data
         self.codec = data.attrib.get('codec')
         self.codecID = data.attrib.get('codecID')
+        self.default = cast(bool, data.attrib.get('selected', '0'))
+        self.displayTitle = data.attrib.get('displayTitle')
+        self.extendedDisplayTitle = data.attrib.get('extendedDisplayTitle')
         self.id = cast(int, data.attrib.get('id'))
         self.index = cast(int, data.attrib.get('index', '-1'))
         self.language = data.attrib.get('language')
         self.languageCode = data.attrib.get('languageCode')
         self.selected = cast(bool, data.attrib.get('selected', '0'))
         self.streamType = cast(int, data.attrib.get('streamType'))
+        self.title = data.attrib.get('title')
         self.type = cast(int, data.attrib.get('streamType'))
 
     @staticmethod
     def parse(server, data, initpath):  # pragma: no cover seems to be dead code.
         """ Factory method returns a new MediaPartStream from xml data. """
-        STREAMCLS = {1: VideoStream, 2: AudioStream, 3: SubtitleStream}
+        STREAMCLS = {1: VideoStream, 2: AudioStream, 3: SubtitleStream, 4: LyricStream}
         stype = cast(int, data.attrib.get('streamType'))
         cls = STREAMCLS.get(stype, MediaPartStream)
         return cls(server, data, initpath)
@@ -236,18 +264,25 @@ class VideoStream(MediaPartStream):
         self.bitDepth = cast(int, data.attrib.get('bitDepth'))
         self.bitrate = cast(int, data.attrib.get('bitrate'))
         self.cabac = cast(int, data.attrib.get('cabac'))
+        self.chromaLocation = data.attrib.get('chromaLocation')
         self.chromaSubsampling = data.attrib.get('chromaSubsampling')
+        self.codedHeight = data.attrib.get('codedHeight')
+        self.codedWidth = data.attrib.get('codedWidth')
+        self.colorPrimaries = data.attrib.get('colorPrimaries')
+        self.colorRange = data.attrib.get('colorRange')
         self.colorSpace = data.attrib.get('colorSpace')
+        self.colorTrc = data.attrib.get('colorTrc')
         self.duration = cast(int, data.attrib.get('duration'))
         self.frameRate = cast(float, data.attrib.get('frameRate'))
         self.frameRateMode = data.attrib.get('frameRateMode')
-        self.hasScallingMatrix = cast(bool, data.attrib.get('hasScallingMatrix'))
+        self.hasScalingMatrix = cast(bool, data.attrib.get('hasScalingMatrix'))
         self.height = cast(int, data.attrib.get('height'))
         self.level = cast(int, data.attrib.get('level'))
         self.profile = data.attrib.get('profile')
         self.refFrames = cast(int, data.attrib.get('refFrames'))
+        self.requiredBandwidths = data.attrib.get('requiredBandwidths')
         self.scanType = data.attrib.get('scanType')
-        self.title = data.attrib.get('title')
+        self.streamIdentifier = cast(int, data.attrib.get('streamIdentifier'))
         self.width = cast(int, data.attrib.get('width'))
 
 
@@ -281,8 +316,20 @@ class AudioStream(MediaPartStream):
         self.channels = cast(int, data.attrib.get('channels'))
         self.dialogNorm = cast(int, data.attrib.get('dialogNorm'))
         self.duration = cast(int, data.attrib.get('duration'))
+        self.profile = data.attrib.get('profile')
+        self.requiredBandwidths = data.attrib.get('requiredBandwidths')
         self.samplingRate = cast(int, data.attrib.get('samplingRate'))
-        self.title = data.attrib.get('title')
+
+        # For Track only
+        self.albumGain = cast(float, data.attrib.get('albumGain'))
+        self.albumPeak = cast(float, data.attrib.get('albumPeak'))
+        self.albumRange = cast(float, data.attrib.get('albumRange'))
+        self.endRamp = data.attrib.get('endRamp')
+        self.gain = cast(float, data.attrib.get('gain'))
+        self.loudness = cast(float, data.attrib.get('loudness'))
+        self.lra = cast(float, data.attrib.get('lra'))
+        self.peak = cast(float, data.attrib.get('peak'))
+        self.startRamp = data.attrib.get('startRamp')
 
 
 @utils.registerPlexObject
@@ -303,10 +350,35 @@ class SubtitleStream(MediaPartStream):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         super(SubtitleStream, self)._loadData(data)
+        self.container = data.attrib.get('container')
         self.forced = cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
         self.key = data.attrib.get('key')
-        self.title = data.attrib.get('title')
+        self.requiredBandwidths = data.attrib.get('requiredBandwidths')
+
+
+@utils.registerPlexObject
+class LyricStream(MediaPartStream):
+    """ Respresents a lyric stream within a :class:`~plexapi.media.MediaPart`.
+
+        Attributes:
+            TAG (str): 'Stream'
+            STREAMTYPE (int): 4
+            format (str): Lyric format (ex: lrc).
+            key (str): Key of this subtitle stream (ex: /library/streams/212284).
+            title (str): Title of this lyric stream.
+    """
+    TAG = 'Stream'
+    STREAMTYPE = 4
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        super(LyricStream, self)._loadData(data)
+        self.format = data.attrib.get('format')
+        self.key = data.attrib.get('key')
+        self.minLines = cast(int, data.attrib.get('minLines'))
+        self.provider = data.attrib.get('provider')
+        self.timed = cast(bool, data.attrib.get('timed', '0'))
 
 
 @utils.registerPlexObject
@@ -602,6 +674,18 @@ class Mood(MediaTag):
 
 
 @utils.registerPlexObject
+class Style(MediaTag):
+    """ Represents a single Style media tag.
+
+        Attributes:
+            TAG (str): 'Style'
+            FILTER (str): 'style'
+    """
+    TAG = 'Style'
+    FILTER = 'style'
+
+
+@utils.registerPlexObject
 class Poster(PlexObject):
     """ Represents a Poster.
 
@@ -689,6 +773,7 @@ class Chapter(PlexObject):
         self.filter = data.attrib.get('filter')  # I couldn't filter on it anyways
         self.tag = data.attrib.get('tag')
         self.title = self.tag
+        self.thumb = data.attrib.get('thumb')
         self.index = cast(int, data.attrib.get('index'))
         self.start = cast(int, data.attrib.get('startTimeOffset'))
         self.end = cast(int, data.attrib.get('endTimeOffset'))
