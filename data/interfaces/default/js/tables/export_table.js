@@ -90,12 +90,12 @@ export_table_options = {
             "targets": [5],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === 0 ) {
-                    $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
+                if (cellData === 0) {
+                    $(td).html('<button class="btn btn-xs btn-dark btn-download pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
                 } else if (cellData === 1 && rowData['exists']) {
-                    $(td).html('<button class="btn btn-xs btn-dark btn-download" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
+                    $(td).html('<button class="btn btn-xs btn-dark btn-download pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
                 } else {
-                    $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</button>');
+                    $(td).html('<button class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</button>');
                 }
             },
             "width": "8%",
@@ -105,7 +105,9 @@ export_table_options = {
             "targets": [6],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<button class="btn btn-xs btn-danger btn-edit pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+                var disabled = '';
+                if (!rowData['complete']) { disabled = 'disabled'; }
+                $(td).html('<button class="btn btn-xs btn-danger btn-edit pull-left" data-id="' + rowData['row_id'] + '" ' + disabled + '><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
             },
             "width": "8%",
             "className": "export_delete"
