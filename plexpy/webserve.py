@@ -6507,7 +6507,6 @@ class WebInterface(object):
                 'message': 'Metadata export has started. Check the logs to monitor any problems.'}
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_export(self, row_id=None, **kwargs):
@@ -6526,7 +6525,7 @@ class WebInterface(object):
         """
         result = exporter.get_export(export_id=row_id)
         if result and result['complete'] and result['exists']:
-            serve_download(path=exporter.get_export_filepath(result['filename']), name=result['filename'])
+            return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
         else:
             if result and not result.get('complete'):
                 msg = 'Export is still being processed.'
@@ -6534,7 +6533,8 @@ class WebInterface(object):
                 msg = 'Export file does not exist.'
             else:
                 msg = 'Invalid row_id provided.'
-            return {'result': 'error', 'message': msg}
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
