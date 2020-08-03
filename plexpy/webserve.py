@@ -5757,6 +5757,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_synced_items.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
