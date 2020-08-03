@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -792,7 +792,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, section_id INTEGER, rating_key INTEGER, media_type TEXT, '
-        'filename TEXT, complete INTEGER DEFAULT 0)'
+        'file_format TEXT, filename TEXT, complete INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions

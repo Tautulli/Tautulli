@@ -845,7 +845,7 @@ MEDIA_TYPES = {
 }
 
 
-def export(section_id=None, rating_key=None, output_format='json'):
+def export(section_id=None, rating_key=None, file_format='json'):
     timestamp = helpers.timestamp()
 
     if not section_id and not rating_key:
@@ -857,8 +857,8 @@ def export(section_id=None, rating_key=None, output_format='json'):
     elif rating_key and not str(rating_key).isdigit():
         logger.error("Tautulli Exporter :: Export called with invalid rating_key '%s'.", rating_key)
         return
-    elif output_format not in ('json', 'csv'):
-        logger.error("Tautulli Exporter :: Export called but invalid output_format '%s' provided.", output_format)
+    elif file_format not in ('json', 'csv'):
+        logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", file_format)
         return
 
     plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
@@ -870,7 +870,7 @@ def export(section_id=None, rating_key=None, output_format='json'):
         media_type = library.type
         library_title = library.title
         filename = 'Library - {} [{}].{}.{}'.format(
-            library_title, section_id, helpers.timestamp_to_YMDHMS(timestamp), output_format)
+            library_title, section_id, helpers.timestamp_to_YMDHMS(timestamp), file_format)
         items = library.all()
 
     elif rating_key:
@@ -889,7 +889,7 @@ def export(section_id=None, rating_key=None, output_format='json'):
             media_type = 'photo album'
 
         filename = '{} - {} [{}].{}.{}'.format(
-            media_type.title(), item_title, rating_key, helpers.timestamp_to_YMDHMS(timestamp), output_format)
+            media_type.title(), item_title, rating_key, helpers.timestamp_to_YMDHMS(timestamp), file_format)
 
         items = [item]
 
@@ -915,11 +915,11 @@ def export(section_id=None, rating_key=None, output_format='json'):
     with ThreadPool(processes=4) as pool:
         result = pool.map(part, items)
 
-    if output_format == 'json':
+    if file_format == 'json':
         with open(filepath, 'w', encoding='utf-8') as outfile:
             json.dump(result, outfile, indent=4, ensure_ascii=False, sort_keys=True)
 
-    elif output_format == 'csv':
+    elif file_format == 'csv':
         flatten_result = helpers.flatten_dict(result)
         flatten_attrs = helpers.flatten_dict(attrs)
         with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
@@ -931,13 +931,14 @@ def export(section_id=None, rating_key=None, output_format='json'):
     logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
 
-def set_export_state(timestamp, section_id, rating_key, media_type, filename):
+def set_export_state(timestamp, section_id, rating_key, media_type, file_format, filename):
     keys = {'timestamp': timestamp,
             'section_id': section_id,
             'rating_key': rating_key,
             'media_type': media_type}
 
-    values = {'filename': filename}
+    values = {'file_format': file_format,
+              'filename': filename}
 
     db = database.MonitorDatabase()
     try:
@@ -976,6 +977,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'exports.section_id',
                'exports.rating_key',
                'exports.media_type',
+               'exports.file_format',
                'exports.filename',
                'exports.complete'
                ]
@@ -1004,6 +1006,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'rating_key': item['rating_key'],
                'media_type': item['media_type'],
                'media_type_title': media_type_title,
+               'file_format': item['file_format'],
                'filename': item['filename'],
                'complete': item['complete']
                }

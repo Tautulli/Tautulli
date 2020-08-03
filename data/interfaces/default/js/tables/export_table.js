@@ -50,7 +50,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "10%",
+            "width": "7%",
             "className": "no-wrap"
         },
         {
@@ -61,22 +61,33 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "10%",
+            "width": "7%",
             "className": "no-wrap"
         },
         {
             "targets": [3],
+            "data": "file_format",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "7%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [4],
             "data": "filename",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "60%",
+            "width": "55%",
             "className": "no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1) {
@@ -85,7 +96,7 @@ export_table_options = {
                     $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
                 }
             },
-            "width": "10%"
+            "width": "7%"
         }
     ],
     "drawCallback": function (settings) {
@@ -96,5 +107,10 @@ export_table_options = {
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
         showMsg(msg, false, false, 0)
+    },
+    "rowCallback": function (row, rowData, rowIndex) {
+        if (rowData['complete'] !== 1) {
+            $(row).addClass('current-activity-row');
+        }
     }
 };
