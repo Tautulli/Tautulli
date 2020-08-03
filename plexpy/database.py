@@ -292,9 +292,9 @@ def make_backup(cleanup=False, scheduler=False):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
-        backup_file = 'tautulli.backup-{}{}.sched.db'.format(helpers.now(no_sep=True), corrupt)
+        backup_file = 'tautulli.backup-{}{}.sched.db'.format(helpers.now(), corrupt)
     else:
-        backup_file = 'tautulli.backup-{}{}.db'.format(helpers.now(no_sep=True), corrupt)
+        backup_file = 'tautulli.backup-{}{}.db'.format(helpers.now(), corrupt)
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 

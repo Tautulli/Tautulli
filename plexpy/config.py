@@ -269,9 +269,9 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of config file, removes all but the last 5 backups """
 
     if scheduler:
-        backup_file = 'config.backup-{}.sched.ini'.format(helpers.now(no_sep=True))
+        backup_file = 'config.backup-{}.sched.ini'.format(helpers.now())
     else:
-        backup_file = 'config.backup-{}.ini'.format(helpers.now(no_sep=True))
+        backup_file = 'config.backup-{}.ini'.format(helpers.now())
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 

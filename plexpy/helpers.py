@@ -213,25 +213,25 @@ def today():
     return yyyymmdd
 
 
-def now(no_sep=False):
-    now = datetime.datetime.now()
-    if no_sep:
-        return now.strftime("%Y%m%d%H%M%S")
-    return now.strftime("%Y-%m-%d %H:%M:%S")
-
-
 def utc_now_iso():
     utcnow = datetime.datetime.utcnow()
 
     return utcnow.isoformat()
 
 
-def timestamp_to_YMD(timestamp):
-    return timestamp_to_datetime(timestamp).strftime("%Y-%m-%d")
+def now(sep=False):
+    return timestamp_to_YMDHMS(timestamp(), sep=sep)
 
 
-def timestamp_to_datetime(timestamp):
-    return datetime.datetime.fromtimestamp(cast_to_int(str(timestamp)))
+def timestamp_to_YMDHMS(ts, sep=False):
+    dt = timestamp_to_datetime(ts)
+    if sep:
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return dt.strftime("%Y%m%d%H%M%S")
+
+
+def timestamp_to_datetime(ts):
+    return datetime.datetime.fromtimestamp(ts)
 
 
 def iso_to_YMD(iso):
