@@ -6488,7 +6488,6 @@ class WebInterface(object):
             Required parameters:
                 row_id (int):          The row id of the exported file to download
 
-
             Optional parameters:
                 None
 
@@ -6517,7 +6516,6 @@ class WebInterface(object):
             Required parameters:
                 row_id (int):          The row id of the exported file to download
 
-
             Optional parameters:
                 None
 
@@ -6528,3 +6526,35 @@ class WebInterface(object):
         result = exporter.get_export(export_id=row_id)
         if result and result['complete'] and result['exists']:
             serve_download(path=exporter.get_export_filepath(result['filename']), name=result['filename'])
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_export(self, row_id=None, delete_all=False, **kwargs):
+        """ Delete exports from Tautulli.
+
+            ```
+            Required parameters:
+                row_id (int):          The row id of the exported file to delete
+
+            Optional parameters:
+                delete_all (bool):     'true' to delete all exported files
+
+            Returns:
+                None
+            ```
+        """
+        if helpers.bool_true(delete_all):
+            result = exporter.delete_all_exports()
+            if result:
+                return {'result': 'success', 'message': 'All exports deleted successfully.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete all exports.'}
+
+        else:
+            result = exporter.delete_export(export_id=row_id)
+            if result:
+                return {'result': 'success', 'message': 'Export deleted successfully.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete export.'}

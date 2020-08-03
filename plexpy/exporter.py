@@ -970,6 +970,46 @@ def set_export_complete(export_id):
     db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
 
+def delete_export(export_id):
+    db = database.MonitorDatabase()
+    if str(export_id).isdigit():
+        export_data = get_export(export_id=export_id)
+
+        logger.debug("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
+        result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
+
+        if export_data and export_data['exists']:
+            filepath = get_export_filepath(export_data['filename'])
+            logger.debug("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
+            try:
+                os.remove(filepath)
+            except OSError as e:
+                logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
+        return True
+    else:
+        return False
+
+
+def delete_all_exports():
+    db = database.MonitorDatabase()
+    result = db.select('SELECT filename FROM exports')
+
+    deleted_files = True
+    for row in result:
+        if check_export_exists(row['filename']):
+            filepath = get_export_filepath(row['filename'])
+            try:
+                os.remove(filepath)
+            except OSError as e:
+                logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
+                deleted_files = False
+                break
+
+    if deleted_files:
+        database.delete_exports()
+        return True
+
+
 def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     default_return = {'recordsFiltered': 0,
                       'recordsTotal': 0,
@@ -1004,7 +1044,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                                       join_evals=[],
                                       kwargs=kwargs)
     except Exception as e:
-        logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s." % e)
+        logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
         return default_return
 
     result = query['result']

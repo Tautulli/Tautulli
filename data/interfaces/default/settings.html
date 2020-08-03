@@ -2308,6 +2308,12 @@ $(document).ready(function() {
         confirmAjaxCall(url, msg);
     });
 
+    $("#clear_exports").click(function () {
+        var msg = 'Are you sure you want to clear the Tautulli metadata exports?';
+        var url = 'delete_export?delete_all=true';
+        confirmAjaxCall(url, msg);
+    });
+
     $("#clear_logs").click(function () {
         var msg = 'Are you sure you want to clear the Tautulli logs?';
         var url = 'delete_logs';

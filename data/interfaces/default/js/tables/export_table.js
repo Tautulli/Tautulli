@@ -50,7 +50,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "8%",
             "className": "no-wrap"
         },
         {
@@ -61,7 +61,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "8%",
             "className": "no-wrap"
         },
         {
@@ -72,7 +72,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "8%",
             "className": "no-wrap"
         },
         {
@@ -83,7 +83,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "55%",
+            "width": "50%",
             "className": "no-wrap"
         },
         {
@@ -98,7 +98,17 @@ export_table_options = {
                     $(td).html('<button class="btn btn-xs btn-dark" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</button>');
                 }
             },
-            "width": "7%"
+            "width": "8%",
+            "className": "export_download"
+        },
+        {
+            "targets": [6],
+            "data": null,
+            "createdCell": function (td, cellData, rowData, row, col) {
+                $(td).html('<button class="btn btn-xs btn-danger btn-edit pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+            },
+            "width": "8%",
+            "className": "export_delete"
         }
     ],
     "drawCallback": function (settings) {
@@ -117,7 +127,7 @@ export_table_options = {
     }
 };
 
-$('.export_table').on('click', '> tbody > tr > td > button.btn-download', function (e) {
+$('.export_table').on('click', '> tbody > tr > td.export_download > button', function (e) {
     var tr = $(this).closest('tr');
     var row = export_table.row(tr);
     var rowData = row.data();
@@ -125,3 +135,18 @@ $('.export_table').on('click', '> tbody > tr > td > button.btn-download', functi
     e.preventDefault();
     window.location.href = 'download_export?row_id=' + rowData['row_id'];
 });
+
+$('.export_table').on('click', '> tbody > tr > td.export_delete > button', function (e) {
+    var tr = $(this).closest('tr');
+    var row = export_table.row(tr);
+    var rowData = row.data();
+
+    var msg = 'Are you sure you want to delete the following export?<br /><br /><strong>' + rowData['filename'] + '</strong>';
+    var url = 'delete_export?row_id=' + rowData['row_id'];
+    confirmAjaxCall(url, msg, null, null, redrawExportTable);
+
+});
+
+function redrawExportTable() {
+    export_table.draw();
+}
