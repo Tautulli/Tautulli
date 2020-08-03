@@ -646,7 +646,7 @@ General optional parameters:
             return out['response']['data']
 
         elif self._api_cmd and self._api_cmd.startswith('download_'):
-            return
+            return out['response']['data']
 
         elif self._api_cmd == 'pms_image_proxy':
             if 'return_hash' not in self._api_kwargs:
