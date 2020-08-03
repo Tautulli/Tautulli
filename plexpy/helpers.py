@@ -242,6 +242,14 @@ def iso_to_datetime(iso):
     return arrow.get(iso).datetime
 
 
+def datetime_to_iso(dt, to_date=False):
+    if isinstance(dt, datetime.datetime):
+        if to_date:
+            dt = dt.date()
+        return dt.isoformat()
+    return dt
+
+
 def human_duration(s, sig='dhms'):
 
     hd = ''
@@ -380,6 +388,13 @@ def cleanTitle(title):
     title = title.title()
 
     return title
+
+
+def clean_filename(filename, replace='_'):
+    whitelist = "-_.()[] {}{}".format(string.ascii_letters, string.digits)
+    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+    cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
+    return cleaned_filename
 
 
 def split_path(f):
@@ -1151,6 +1166,86 @@ def bool_true(value, return_none=False):
     elif isinstance(value, str) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
         return True
     return False
+
+
+def get_attrs_to_dict(obj, attrs):
+    d = {}
+
+    for attr, sub in attrs.items():
+        if isinstance(obj, dict):
+            value = obj.get(attr, None)
+        else:
+            value = getattr(obj, attr, None)
+
+        if callable(value):
+            value = value()
+
+        if isinstance(sub, str):
+            if isinstance(value, list):
+                value = [getattr(o, sub, None) for o in value]
+            else:
+                value = getattr(value, sub, None)
+        elif isinstance(sub, dict):
+            if isinstance(value, list):
+                value = [get_attrs_to_dict(o, sub) for o in value]
+            else:
+                value = get_attrs_to_dict(value, sub)
+        elif callable(sub):
+            if isinstance(value, list):
+                value = [sub(o) for o in value]
+            else:
+                value = sub(value)
+
+        d[attr] = value
+
+    return d
+
+
+def flatten_dict(obj):
+    return flatten_tree(flatten_keys(obj))
+
+
+def flatten_keys(obj, key='', sep='.'):
+    if isinstance(obj, list):
+        new_obj = [flatten_keys(o, key=key) for o in obj]
+    elif isinstance(obj, dict):
+        new_key = key + sep if key else ''
+        new_obj = {new_key + k: flatten_keys(v, key=new_key + k) for k, v in obj.items()}
+    else:
+        new_obj = obj
+
+    return new_obj
+
+
+def flatten_tree(obj, key=''):
+    if isinstance(obj, list):
+        new_rows = []
+
+        for o in obj:
+            if isinstance(o, dict):
+                new_rows.extend(flatten_tree(o))
+            else:
+                new_rows.append({key: o})
+
+    elif isinstance(obj, dict):
+        common_keys = {}
+        all_rows = [[common_keys]]
+
+        for k, v in obj.items():
+            if isinstance(v, list):
+                all_rows.append(flatten_tree(v, k))
+            elif isinstance(v, dict):
+                common_keys.update(*flatten_tree(v))
+            else:
+                common_keys[k] = v
+
+        new_rows = [{k: v for r in row for k, v in r.items()}
+                    for row in zip_longest(*all_rows, fillvalue={})]
+
+    else:
+        new_rows = []
+
+    return new_rows
 
 
 def page(endpoint, *args, **kwargs):
