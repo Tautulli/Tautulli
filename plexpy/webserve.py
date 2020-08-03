@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -6482,11 +6482,12 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json', **kwargs):
-        """ Download the Plex log file.
+        """ Export library or media metadata to a file
 
             ```
             Required parameters:
-                row_id (int):          The row id of the exported file to download
+                section_id (int):      The section id of the library to export, OR
+                rating_key (int):      The rating key of the media item to export
 
             Optional parameters:
                 None
@@ -6510,7 +6511,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_export(self, row_id=None, **kwargs):
-        """ Download the Plex log file.
+        """ Download an exported metadata file
 
             ```
             Required parameters:
