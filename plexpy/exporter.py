@@ -924,9 +924,9 @@ def export(section_id=None, rating_key=None, file_format='json'):
 
     elif file_format == 'csv':
         flatten_result = helpers.flatten_dict(result)
-        flatten_attrs = helpers.flatten_dict(attrs)
+        flatten_attrs = set().union(*flatten_result)
         with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-            writer = csv.DictWriter(outfile, sorted(flatten_attrs[0].keys()))
+            writer = csv.DictWriter(outfile, sorted(flatten_attrs))
             writer.writeheader()
             writer.writerows(flatten_result)
 
