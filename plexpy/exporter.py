@@ -27,10 +27,14 @@ from multiprocessing.dummy import Pool as ThreadPool
 
 import plexpy
 if plexpy.PYTHON2:
+    import database
+    import datatables
     import helpers
     import logger
     from plex import Plex
 else:
+    from plexpy import database
+    from plexpy import datatables
     from plexpy import helpers
     from plexpy import logger
     from plexpy.plex import Plex
@@ -874,6 +878,7 @@ def export(section_id=None, rating_key=None, output_format='json'):
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
         media_type = item.type
+        section_id = item.librarySectionID
 
         if media_type in ('season', 'episode', 'album', 'track'):
             item_title = item._defaultSyncTitle()
@@ -895,6 +900,15 @@ def export(section_id=None, rating_key=None, output_format='json'):
     filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, filename)
     logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
 
+    export_id = set_export_state(timestamp=timestamp,
+                                 section_id=section_id,
+                                 rating_key=rating_key,
+                                 media_type=media_type,
+                                 filename=filename)
+    if not export_id:
+        logger.error("Tautulli Exporter :: Failed to export '%s'", filename)
+        return
+
     attrs = MEDIA_TYPES[media_type]
     part = partial(helpers.get_attrs_to_dict, attrs=attrs)
 
@@ -913,4 +927,93 @@ def export(section_id=None, rating_key=None, output_format='json'):
             writer.writeheader()
             writer.writerows(flatten_result)
 
+    set_export_complete(export_id=export_id)
     logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+
+
+def set_export_state(timestamp, section_id, rating_key, media_type, filename):
+    keys = {'timestamp': timestamp,
+            'section_id': section_id,
+            'rating_key': rating_key,
+            'media_type': media_type}
+
+    values = {'filename': filename}
+
+    db = database.MonitorDatabase()
+    try:
+        db.upsert(table_name='exports', key_dict=keys, value_dict=values)
+        return db.last_insert_id()
+    except Exception as e:
+        logger.error("Tautulli Exporter :: Unable to save export to database: %s", e)
+        return False
+
+
+def set_export_complete(export_id):
+    keys = {'id': export_id}
+    values = {'complete': 1}
+
+    db = database.MonitorDatabase()
+    db.upsert(table_name='exports', key_dict=keys, value_dict=values)
+
+
+def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
+    default_return = {'recordsFiltered': 0,
+                      'recordsTotal': 0,
+                      'draw': 0,
+                      'data': 'null',
+                      'error': 'Unable to execute database query.'}
+
+    data_tables = datatables.DataTables()
+
+    custom_where = []
+    if section_id:
+        custom_where.append(['exports.section_id', section_id])
+    if rating_key:
+        custom_where.append(['exports.rating_key', rating_key])
+
+    columns = ['exports.id AS row_id',
+               'exports.timestamp',
+               'exports.section_id',
+               'exports.rating_key',
+               'exports.media_type',
+               'exports.filename',
+               'exports.complete'
+               ]
+    try:
+        query = data_tables.ssp_query(table_name='exports',
+                                      columns=columns,
+                                      custom_where=custom_where,
+                                      group_by=[],
+                                      join_types=[],
+                                      join_tables=[],
+                                      join_evals=[],
+                                      kwargs=kwargs)
+    except Exception as e:
+        logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s." % e)
+        return default_return
+
+    result = query['result']
+
+    rows = []
+    for item in result:
+        media_type_title = item['media_type'].title()
+
+        row = {'row_id': item['row_id'],
+               'timestamp': item['timestamp'],
+               'section_id': item['section_id'],
+               'rating_key': item['rating_key'],
+               'media_type': item['media_type'],
+               'media_type_title': media_type_title,
+               'filename': item['filename'],
+               'complete': item['complete']
+               }
+
+        rows.append(row)
+
+    result = {'recordsFiltered': query['filteredCount'],
+              'recordsTotal': query['totalCount'],
+              'data': rows,
+              'draw': query['draw']
+              }
+
+    return result

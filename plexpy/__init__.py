@@ -788,6 +788,13 @@ def dbcheck():
         'img_hash TEXT, cloudinary_title TEXT, cloudinary_url TEXT)'
     )
 
+    # exports table :: This table keeps record of the exported files
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'timestamp INTEGER, section_id INTEGER, rating_key INTEGER, media_type TEXT, '
+        'filename TEXT, complete INTEGER DEFAULT 0)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

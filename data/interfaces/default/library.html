@@ -93,6 +93,7 @@ DOCUMENTATION :: END
                                     % if _session['user_group'] == 'admin':
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
                                     <li><a id="media-info-tab-btn" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    <li><a id="export-tab-btn" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
                                 </ul>
@@ -305,6 +306,47 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-export">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-file-export"></i> Exports for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                                    <i class="fa fa-refresh"></i> Refresh exports
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display export_table" id="export_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="timestamp">Exported At</th>
+                                                    <th align="left" id="media_type_title">Media Type</th>
+                                                    <th align="left" id="rating_key">Rating Key</th>
+                                                    <th align="left" id="filename">Filename</th>
+                                                    <th align="left" id="complete">Download</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -387,6 +429,7 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/media_info_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script>
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
@@ -459,6 +502,36 @@ DOCUMENTATION :: END
         refresh_child_tables = true;
         media_info_table.draw();
         refresh_table = false;
+    });
+
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_library_export',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
+            }
+        };
+        export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export-table');
+
+        clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
+    }
+
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
     });
 
     $("#edit-library-tooltip").tooltip();

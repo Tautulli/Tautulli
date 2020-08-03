@@ -473,6 +473,21 @@ fieldset[disabled] .btn-bright.active {
   background-color: #ac2925;
   border-color: #761c19;
 }
+.btn-dark.btn-download:hover {
+  color: #fff;
+  background-color: #449d44;
+  border-color: #398439;
+}
+.btn-dark.btn-download.active {
+  color: #fff;
+  background-color: #449d44;
+  border-color: #398439;
+}
+.btn-dark.btn-download.active:hover {
+  color: #fff;
+  background-color: #398439;
+  border-color: #255625;
+}
 .btn-group select {
     margin-top: 0;
 }
