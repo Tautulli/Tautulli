@@ -897,7 +897,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
         return
 
     filename = helpers.clean_filename(filename)
-    filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, filename)
+    filepath = os.path.join(plexpy.CONFIG.EXPORT_DIR, filename)
     logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
 
     export_id = set_export_state(timestamp=timestamp,

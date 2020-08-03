@@ -3052,6 +3052,7 @@ class WebInterface(object):
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "backup_interval": plexpy.CONFIG.BACKUP_INTERVAL,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "export_dir": plexpy.CONFIG.EXPORT_DIR,
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),

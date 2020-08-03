@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -226,6 +226,8 @@ def initialize(config_file):
             CONFIG.BACKUP_DIR, os.path.join(DATA_DIR, 'backups'), 'backups')
         CONFIG.CACHE_DIR, _ = check_folder_writable(
             CONFIG.CACHE_DIR, os.path.join(DATA_DIR, 'cache'), 'cache')
+        CONFIG.EXPORT_DIR, _ = check_folder_writable(
+            CONFIG.EXPORT_DIR, os.path.join(DATA_DIR, 'exports'), 'exports')
         CONFIG.NEWSLETTER_DIR, _ = check_folder_writable(
             CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
 

@@ -1442,6 +1442,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="export_dir">Export Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="export_dir" name="export_dir" value="${config['export_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="export_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#export_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_exports">Clear All Exports</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
