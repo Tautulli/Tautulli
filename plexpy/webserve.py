@@ -19,10 +19,10 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import object
 from future.builtins import str
+from backports import csv
 
 from io import open
 import base64
-import csv
 import json
 import linecache
 import os
@@ -6538,8 +6538,8 @@ class WebInterface(object):
                 return serve_file(exporter.get_export_filepath(result['filename']), name=result['filename'],
                                   content_type='application/json')
             elif result['file_format'] == 'csv':
-                with open(exporter.get_export_filepath(result['filename']), 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
+                with open(exporter.get_export_filepath(result['filename']), 'r', encoding='utf-8') as infile:
+                    reader = csv.DictReader(infile)
                     table = '<table><tr><th>' + \
                             '</th><th>'.join(reader.fieldnames) + \
                             '</th></tr><tr>' + \

@@ -17,8 +17,8 @@
 
 from __future__ import unicode_literals
 from future.builtins import str
+from backports import csv
 
-import csv
 import json
 import os
 import threading
@@ -941,23 +941,14 @@ def _real_export(export_id, items, attrs, file_format, filename):
         result = pool.map(part, items)
 
         if file_format == 'json':
-            if plexpy.PYTHON2:
-                kw = {'mode': 'wb'}
-            else:
-                kw = {'mode': 'w', 'encoding': 'utf-8'}
-
-            with open(filepath, **kw) as outfile:
-                json.dump(result, outfile, indent=4, ensure_ascii=False, sort_keys=True)
+            json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
+            with open(filepath, 'w', encoding='utf-8') as outfile:
+                outfile.write(json_data)
 
         elif file_format == 'csv':
-            if plexpy.PYTHON2:
-                kw = {'mode': 'wb'}
-            else:
-                kw = {'mode': 'w', 'encoding': 'utf-8', 'newline': ''}
-
             flatten_result = helpers.flatten_dict(result)
             flatten_attrs = set().union(*flatten_result)
-            with open(filepath, **kw) as outfile:
+            with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
                 writer = csv.DictWriter(outfile, sorted(flatten_attrs))
                 writer.writeheader()
                 writer.writerows(flatten_result)
