@@ -70,6 +70,7 @@ MOVIE_ATTRS = {
         'tag': None
     },
     'duration': None,
+    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
     'fields': {
         'name': None,
         'locked': None
@@ -122,6 +123,7 @@ MOVIE_ATTRS = {
             'indexes': None,
             'key': None,
             'size': None,
+            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
             'optimizedForStreaming': None,
             'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
             'syncItemId': None,
@@ -249,6 +251,7 @@ SHOW_ATTRS = {
     },
     'contentRating': None,
     'duration': None,
+    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
     'fields': {
         'name': None,
         'locked': None
@@ -339,6 +342,7 @@ EPISODE_ATTRS = {
         'tag': None
     },
     'duration': None,
+    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
     'fields': {
         'name': None,
         'locked': None
@@ -391,6 +395,7 @@ EPISODE_ATTRS = {
             'indexes': None,
             'key': None,
             'size': None,
+            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
             'optimizedForStreaming': None,
             'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
             'syncItemId': None,
@@ -607,6 +612,7 @@ TRACK_ATTRS = {
     'addedAt': helpers.datetime_to_iso,
     'art': None,
     'duration': None,
+    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
     'grandparentArt': None,
     'grandparentGuid': None,
     'grandparentKey': None,
@@ -641,6 +647,7 @@ TRACK_ATTRS = {
             'id': None,
             'key': None,
             'size': None,
+            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
             'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
             'syncItemId': None,
             'syncState': None,
@@ -777,7 +784,8 @@ PHOTO_ATTRS = {
             'file': None,
             'id': None,
             'key': None,
-            'size': None
+            'size': None,
+            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
         }
     },
     'tag': {
@@ -819,6 +827,7 @@ PLAYLIST_ATTRS = {
     'addedAt': helpers.datetime_to_iso,
     'composite': None,
     'duration': None,
+    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
     'guid': None,
     'key': None,
     'leafCount': None,
