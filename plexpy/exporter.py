@@ -956,8 +956,6 @@ def _real_export(export_id, items, attrs, file_format, filename):
         file_size = os.path.getsize(filepath)
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         set_export_state(export_id=export_id, success=False)
         logger.error("Tautulli Exporter :: Failed to export '%s': %s", filename, e)
         success = False
