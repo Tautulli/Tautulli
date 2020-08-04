@@ -42,6 +42,18 @@ DOCUMENTATION :: END
                     </div>
                     <p class="help-block">Select the export level.</p>
                 </div>
+                <div class="form-group">
+                    <label for="file_format">File Format</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="file_format" name="file_format">
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the export file format.</p>
+                </div>
             </form>
         </div>
         <div class="modal-footer">
@@ -55,12 +67,14 @@ DOCUMENTATION :: END
     $("#export_metadata").click(function() {
         var section_id = $('#section_id').val();
         var rating_key = $('#rating_key').val();
+        var file_format = $('#file_format').val();
 
         $.ajax({
             url: 'export_metadata',
             data: {
                 section_id: section_id,
-                rating_key: rating_key
+                rating_key: rating_key,
+                file_format: file_format
             },
             async: true,
             success: function (data) {
