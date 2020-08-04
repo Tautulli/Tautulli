@@ -58,7 +58,7 @@ export_table_options = {
             "data": "rating_key",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                 }
             },
             "width": "8%",
