@@ -45,7 +45,7 @@ if PYTHON2:
     import common
     import database
     import datafactory
-    import helpers
+    import exporter
     import libraries
     import logger
     import mobile_app
@@ -65,7 +65,7 @@ else:
     from plexpy import common
     from plexpy import database
     from plexpy import datafactory
-    from plexpy import helpers
+    from plexpy import exporter
     from plexpy import libraries
     from plexpy import logger
     from plexpy import mobile_app
@@ -534,6 +534,9 @@ def start():
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
+
+        # Cancel processing exports
+        exporter.cancel_exports()
 
         if CONFIG.FIRST_RUN_COMPLETE:
             activity_pinger.connect_server(log=True, startup=True)

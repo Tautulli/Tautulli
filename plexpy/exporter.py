@@ -1068,6 +1068,11 @@ def delete_all_exports():
         return True
 
 
+def cancel_exports():
+    db = database.MonitorDatabase()
+    db.action('UPDATE exports SET complete = -1 WHERE complete = 0')
+
+
 def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     default_return = {'recordsFiltered': 0,
                       'recordsTotal': 0,
