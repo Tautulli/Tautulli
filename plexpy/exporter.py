@@ -962,6 +962,8 @@ def _real_export(export_id, items, attrs, file_format, filename):
                 writer.writeheader()
                 writer.writerows(flatten_result)
 
+        file_size = os.path.getsize(filepath)
+
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -976,7 +978,7 @@ def _real_export(export_id, items, attrs, file_format, filename):
     if not success:
         return
 
-    set_export_state(export_id=export_id)
+    set_export_state(export_id=export_id, file_size=file_size)
     logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
 
@@ -1010,14 +1012,15 @@ def add_export(timestamp, section_id, rating_key, media_type, file_format, filen
         return False
 
 
-def set_export_state(export_id, success=True):
+def set_export_state(export_id, file_size=None, success=True):
     if success:
         complete = 1
     else:
         complete = -1
 
     keys = {'id': export_id}
-    values = {'complete': complete}
+    values = {'complete': complete,
+              'file_size': file_size}
 
     db = database.MonitorDatabase()
     db.upsert(table_name='exports', key_dict=keys, value_dict=values)
@@ -1083,8 +1086,9 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'exports.section_id',
                'exports.rating_key',
                'exports.media_type',
-               'exports.file_format',
                'exports.filename',
+               'exports.file_format',
+               'exports.file_size',
                'exports.complete'
                ]
     try:
@@ -1113,8 +1117,9 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'rating_key': item['rating_key'],
                'media_type': item['media_type'],
                'media_type_title': media_type_title,
-               'file_format': item['file_format'],
                'filename': item['filename'],
+               'file_format': item['file_format'],
+               'file_size': item['file_size'],
                'complete': item['complete'],
                'exists': exists
                }

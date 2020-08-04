@@ -794,7 +794,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, section_id INTEGER, rating_key INTEGER, media_type TEXT, '
-        'file_format TEXT, filename TEXT, complete INTEGER DEFAULT 0)'
+        'filename TEXT, file_format TEXT, file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions

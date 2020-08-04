@@ -61,22 +61,11 @@ export_table_options = {
                     $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                 }
             },
-            "width": "8%",
+            "width": "6%",
             "className": "no-wrap"
         },
         {
             "targets": [3],
-            "data": "file_format",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html(cellData);
-                }
-            },
-            "width": "8%",
-            "className": "no-wrap"
-        },
-        {
-            "targets": [4],
             "data": "filename",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -87,7 +76,29 @@ export_table_options = {
             "className": "no-wrap"
         },
         {
+            "targets": [4],
+            "data": "file_format",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "6%",
+            "className": "no-wrap"
+        },
+        {
             "targets": [5],
+            "data": "file_size",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '' && cellData !== null) {
+                    $(td).html(humanFileSize(cellData));
+                }
+            },
+            "width": "6%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [6],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1 && rowData['exists']) {
@@ -100,11 +111,11 @@ export_table_options = {
                     $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</span>');
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "export_download"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['complete'] !== 0) {
@@ -113,7 +124,7 @@ export_table_options = {
                     $(td).html('<span class="btn btn-xs btn-danger pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-trash-o fa-fw"></i> Delete</span>');
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "export_delete"
         }
     ],
