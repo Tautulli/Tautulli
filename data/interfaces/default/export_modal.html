@@ -81,10 +81,13 @@ DOCUMENTATION :: END
             async: true,
             success: function (data) {
                 if (data.result === 'success') {
+                    var msg = '';
                     if (typeof export_table !== 'undefined') {
                         redrawExportTable();
+                    } else {
+                        msg = '<br>View the export from the <a href="library?section_id=' + section_id +'#tab_tabs-export">library page</a>.'
                     }
-                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                    showMsg('<i class="fa fa-check"></i> ' + data.message + msg, false, true, 5000);
                 } else {
                     showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
                 }
