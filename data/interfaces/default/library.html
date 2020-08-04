@@ -379,8 +379,7 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="modalIncludes()">
-<div id="edit-library-modal" class="modal fade" tabindex="-1" role="dialog"
-        aria-labelledby="edit-library-modal">
+<div id="edit-library-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-library-modal">
 </div>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
@@ -521,7 +520,7 @@ DOCUMENTATION :: END
         export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export-table');
+        $(colvis.button()).appendTo('#button-bar-export');
 
         clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
     }
