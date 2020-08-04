@@ -67,7 +67,7 @@ DOCUMENTATION :: END
     $("#export_metadata").click(function() {
         var section_id = $('#section_id').val();
         var rating_key = $('#rating_key').val();
-        var file_format = $('#file_format').val();
+        var file_format = $('#file_format option:selected').val();
 
         $.ajax({
             url: 'export_metadata',
