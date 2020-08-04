@@ -1172,10 +1172,16 @@ def get_attrs_to_dict(obj, attrs):
     d = {}
 
     for attr, sub in attrs.items():
+        no_attr = False
+
         if isinstance(obj, dict):
             value = obj.get(attr, None)
         else:
-            value = getattr(obj, attr, None)
+            try:
+                value = getattr(obj, attr)
+            except AttributeError:
+                no_attr = True
+                value = None
 
         if callable(value):
             value = value()
@@ -1194,7 +1200,10 @@ def get_attrs_to_dict(obj, attrs):
             if isinstance(value, list):
                 value = [sub(o) for o in value]
             else:
-                value = sub(value)
+                if no_attr:
+                    value = sub(obj)
+                else:
+                    value = sub(value)
 
         d[attr] = value
 
