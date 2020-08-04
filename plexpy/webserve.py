@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -5923,8 +5923,9 @@ class WebInterface(object):
         if args and 'v2' in args[0]:
             return API2()._api_run(**kwargs)
         else:
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return json.dumps(API2()._api_responds(result_type='error',
-                                                   msg='Please use the /api/v2 endpoint.'))
+                                                   msg='Please use the /api/v2 endpoint.')).encode('utf-8')
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6327,7 +6328,7 @@ class WebInterface(object):
 
                 if raw:
                     cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
-                    return json.dumps(newsletter_agent.raw_data(preview=preview))
+                    return json.dumps(newsletter_agent.raw_data(preview=preview)).encode('utf-8')
 
                 return newsletter_agent.generate_newsletter(preview=preview)
 
