@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -250,30 +250,36 @@ def datetime_to_iso(dt, to_date=False):
     return dt
 
 
-def human_duration(s, sig='dhms'):
+def human_duration(ms, sig='dhms', units='ms'):
+    factors = {'d': 86400000,
+               'h': 3600000,
+               'm': 60000,
+               's': 1000,
+               'ms': 1}
 
-    hd = ''
+    if str(ms).isdigit() and ms > 0:
+        ms = ms * factors[units]
 
-    if str(s).isdigit() and s > 0:
-        d, h = divmod(s, 86400)
-        h, m = divmod(h, 3600)
-        m, s = divmod(m, 60)
+        d, h = divmod(ms, factors['d'])
+        h, m = divmod(h, factors['h'])
+        m, s = divmod(m, factors['m'])
+        s, ms = divmod(s, factors['s'])
 
         hd_list = []
         if sig >= 'd' and d > 0:
             d = d + 1 if sig == 'd' and h >= 12 else d
-            hd_list.append(str(d) + ' days')
+            hd_list.append(str(d) + ' day' + ('s' if d > 1 else ''))
 
         if sig >= 'dh' and h > 0:
             h = h + 1 if sig == 'dh' and m >= 30 else h
-            hd_list.append(str(h) + ' hrs')
+            hd_list.append(str(h) + ' hr' + ('s' if h > 1 else ''))
 
         if sig >= 'dhm' and m > 0:
             m = m + 1 if sig == 'dhm' and s >= 30 else m
-            hd_list.append(str(m) + ' mins')
+            hd_list.append(str(m) + ' min' + ('s' if m > 1 else ''))
 
         if sig >= 'dhms' and s > 0:
-            hd_list.append(str(s) + ' secs')
+            hd_list.append(str(s) + ' sec' + ('s' if s > 1 else ''))
 
         hd = ' '.join(hd_list)
     else:

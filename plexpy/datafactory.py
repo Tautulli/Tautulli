@@ -290,8 +290,8 @@ class DataFactory(object):
                 'recordsTotal': query['totalCount'],
                 'data': session.friendly_name_to_username(rows),
                 'draw': query['draw'],
-                'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
-                'total_duration': helpers.human_duration(total_duration, sig='dhm')
+                'filter_duration': helpers.human_duration(filter_duration, sig='dhm', units='s'),
+                'total_duration': helpers.human_duration(total_duration, sig='dhm', units='s')
                 }
 
         return dict
