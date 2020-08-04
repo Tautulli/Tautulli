@@ -27,10 +27,10 @@ DOCUMENTATION :: END
                 <input type="hidden" id="section_id" name="section_id" value="${section_id or ''}" />
                 <input type="hidden" id="rating_key" name="rating_key" value="${rating_key or ''}" />
                 <div class="form-group">
-                    <label for="export_level">Export Level</label>
+                    <label for="export_level_select">Export Level</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="export_level" name="export_level">
+                            <select class="form-control" id="export_level_select" name="export_level_select">
                                 <option value="1">Level 1 - Basic Metadata</option>
                                 <option value="2">Level 2 - Extended Metadata</option>
                                 <option value="3">Level 3 - Basic Media Info</option>
@@ -43,10 +43,10 @@ DOCUMENTATION :: END
                     <p class="help-block">Select the export level.</p>
                 </div>
                 <div class="form-group">
-                    <label for="file_format">File Format</label>
+                    <label for="file_format_select">File Format</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="file_format" name="file_format">
+                            <select class="form-control" id="file_format_select" name="file_format_select">
                                 <option value="csv">CSV</option>
                                 <option value="json">JSON</option>
                             </select>
@@ -67,13 +67,15 @@ DOCUMENTATION :: END
     $("#export_metadata").click(function() {
         var section_id = $('#section_id').val();
         var rating_key = $('#rating_key').val();
-        var file_format = $('#file_format option:selected').val();
+        var export_level = $('#export_level_select option:selected').val();
+        var file_format = $('#file_format_select option:selected').val();
 
         $.ajax({
             url: 'export_metadata',
             data: {
                 section_id: section_id,
                 rating_key: rating_key,
+                export_level: export_level,
                 file_format: file_format
             },
             async: true,
