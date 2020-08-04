@@ -865,7 +865,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
     plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
     if section_id:
-        logger.debug("Tautulli Exporter :: Exporting called with section_id %s", section_id)
+        logger.debug("Tautulli Exporter :: Export called with section_id %s", section_id)
 
         library = plex.get_library(section_id)
         media_type = library.type
@@ -875,7 +875,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
         items = library.all()
 
     elif rating_key:
-        logger.debug("Tautulli Exporter :: Exporting called with rating_key %s", rating_key)
+        logger.debug("Tautulli Exporter :: Export called with rating_key %s", rating_key)
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
         media_type = item.type

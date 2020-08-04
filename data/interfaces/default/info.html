@@ -510,6 +510,12 @@ DOCUMENTATION :: END
                                 </button>
                             </div>
                             % endif
+                            <div class="btn-group">
+                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                        data-id="${data['rating_key']}">
+                                    <i class="fa fa-file-export"></i> Export Metadata
+                                </button>
+                            </div>
                             % endif
                             <div class="btn-group">
                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
@@ -629,6 +635,8 @@ DOCUMENTATION :: END
     </div>
 </div>
 % endif
+<div id="export-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="export-modal">
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -770,7 +778,7 @@ DOCUMENTATION :: END
                 data: {
                     rating_key: rating_key,
                     notifier_id: $('#send-notification-notifier option:selected').val()
-                    },
+                },
                 async: true,
                 success: function (data) {
                     if (data.result === 'success') {
@@ -832,6 +840,19 @@ DOCUMENTATION :: END
             return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
         }
     });
+
+    $("#toggle-export-modal").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: { rating_key: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
+            }
+        });
+    });
+
 </script>
 % if data.get('poster_url'):
 <script>

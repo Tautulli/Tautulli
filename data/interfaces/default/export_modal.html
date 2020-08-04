@@ -1,0 +1,78 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           export_modal.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+
+DOCUMENTATION :: END
+</%doc>
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="info-modal-title">
+                ${title}
+            </h4>
+        </div>
+        <div class="modal-body">
+            <form method="post" class="form" id="export_metadata_form">
+                <input type="hidden" id="section_id" name="section_id" value="${section_id or ''}" />
+                <input type="hidden" id="rating_key" name="rating_key" value="${rating_key or ''}" />
+                <div class="form-group">
+                    <label for="export_level">Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="export_level" name="export_level">
+                                <option value="1">Level 1 - Basic Metadata</option>
+                                <option value="2">Level 2 - Extended Metadata</option>
+                                <option value="3">Level 3 - Basic Media Info</option>
+                                <option value="4">Level 4 - Extended Media Info</option>
+                                <option value="9">Level 9 - Everything</option>
+                                <option value="-999">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the export level.</p>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <input type="button" class="btn btn-bright btn-ok" data-dismiss="modal" id="export_metadata" value="Export">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#export_metadata").click(function() {
+        var section_id = $('#section_id').val();
+        var rating_key = $('#rating_key').val();
+
+        $.ajax({
+            url: 'export_metadata',
+            data: {
+                section_id: section_id,
+                rating_key: rating_key
+            },
+            async: true,
+            success: function (data) {
+                if (data.result === 'success') {
+                    if (typeof export_table !== 'undefined') {
+                        redrawExportTable();
+                    }
+                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                } else {
+                    showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                }
+            }
+        });
+    });
+</script>

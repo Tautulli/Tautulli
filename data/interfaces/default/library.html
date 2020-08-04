@@ -321,6 +321,12 @@ DOCUMENTATION :: END
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-id="${data['section_id']}">
+                                                    <i class="fa fa-file-export"></i> Export Metadata
+                                                </button>
+                                            </div>
+                                            <div class="btn-group">
                                                 <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
                                                     <i class="fa fa-refresh"></i> Refresh exports
                                                 </button>
@@ -402,6 +408,8 @@ DOCUMENTATION :: END
             </div>
         </div>
     </div>
+</div>
+<div id="export-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="export-modal">
 </div>
 </%def>
 
@@ -547,6 +555,18 @@ DOCUMENTATION :: END
             async: true,
             complete: function(xhr, status) {
                 $("#edit-library-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $("#toggle-export-modal").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: { section_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
             }
         });
     });

@@ -6479,6 +6479,13 @@ class WebInterface(object):
         return status
 
     @cherrypy.expose
+    @requireAuth()
+    def export_metadata_modal(self, section_id=None, rating_key=None, **kwargs):
+
+        return serve_template(templatename="export_modal.html", title="Export Metadata",
+                              section_id=section_id, rating_key=rating_key)
+
+    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
