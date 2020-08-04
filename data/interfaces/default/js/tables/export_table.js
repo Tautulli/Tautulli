@@ -90,12 +90,14 @@ export_table_options = {
             "targets": [5],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === 0) {
-                    $(td).html('<button class="btn btn-xs btn-dark btn-download pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</button>');
-                } else if (cellData === 1 && rowData['exists']) {
-                    $(td).html('<button class="btn btn-xs btn-dark btn-download pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
+                if (cellData === 1 && rowData['exists']) {
+                    $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
+                } else if (cellData === 0) {
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
+                } else if (cellData === -1) {
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-exclamation-circle fa-fw"></i> Failed</span>');
                 } else {
-                    $(td).html('<button class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</button>');
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</span>');
                 }
             },
             "width": "8%",
@@ -105,9 +107,11 @@ export_table_options = {
             "targets": [6],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                var disabled = '';
-                if (!rowData['complete']) { disabled = 'disabled'; }
-                $(td).html('<button class="btn btn-xs btn-danger btn-edit pull-left" data-id="' + rowData['row_id'] + '" ' + disabled + '><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+                if (rowData['complete'] !== 0) {
+                    $(td).html('<button class="btn btn-xs btn-danger pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+                } else {
+                    $(td).html('<span class="btn btn-xs btn-danger pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-trash-o fa-fw"></i> Delete</span>');
+                }
             },
             "width": "8%",
             "className": "export_delete"
@@ -123,7 +127,7 @@ export_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData, rowIndex) {
-        if (rowData['complete'] !== 1) {
+        if (rowData['complete'] === 0) {
             $(row).addClass('current-activity-row');
         }
     }
