@@ -69,7 +69,11 @@ export_table_options = {
             "data": "filename",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    if (rowData['complete'] === 1 && rowData['exists']) {
+                        $(td).html('<a href="view_export?export_id=' + rowData['export_id'] + '" target="_blank">' + cellData + '</a>');
+                    } else {
+                        $(td).html(cellData);
+                    }
                 }
             },
             "width": "50%",

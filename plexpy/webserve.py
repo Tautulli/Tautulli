@@ -22,6 +22,7 @@ from future.builtins import str
 
 from io import open
 import base64
+import csv
 import json
 import linecache
 import os
@@ -6513,6 +6514,57 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Metadata export has started.'}
         else:
             return {'result': 'error', 'message': 'Failed to export metadata.'}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def view_export(self, export_id=None, **kwargs):
+        """ Download an exported metadata file
+
+            ```
+            Required parameters:
+                export_id (int):          The row id of the exported file to view
+
+            Optional parameters:
+                None
+
+            Returns:
+                download
+            ```
+        """
+        result = exporter.get_export(export_id=export_id)
+
+        if result and result['complete'] == 1 and result['exists']:
+            if result['file_format'] == 'json':
+                return serve_file(exporter.get_export_filepath(result['filename']), name=result['filename'],
+                                  content_type='application/json')
+            elif result['file_format'] == 'csv':
+                with open(exporter.get_export_filepath(result['filename']), 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    table = '<table><tr><th>' + \
+                            '</th><th>'.join(reader.fieldnames) + \
+                            '</th></tr><tr>' + \
+                            '</tr><tr>'.join(
+                                '<td>' + '</td><td>'.join(row.values()) + '</td>' for row in reader) + \
+                            '</tr></table>'
+                    style = '<style>' \
+                            'body {margin: 0;}' \
+                            'table {border-collapse: collapse; overflow-y: auto; height: 100px;} ' \
+                            'th {position: sticky; top: 0; background: #ddd; box-shadow: inset 1px 1px #000, 0 1px #000;}' \
+                            'td {box-shadow: inset 1px -1px #000;}' \
+                            'th, td {padding: 3px; white-space: nowrap;}' \
+                            '</style>'
+                return style + '<pre>%s</pre>' % table
+        else:
+            if result and result.get('complete') == 0:
+                msg = 'Export is still being processed.'
+            elif result and result.get('complete') == -1:
+                msg = 'Export failed to process.'
+            elif result and not result.get('exists'):
+                msg = 'Export file does not exist.'
+            else:
+                msg = 'Invalid export_id provided.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

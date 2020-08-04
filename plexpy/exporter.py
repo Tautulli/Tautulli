@@ -984,7 +984,7 @@ def _real_export(export_id, items, attrs, file_format, filename):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT filename, complete '
+    result = db.select_single('SELECT filename, file_format, complete '
                               'FROM exports WHERE id = ?',
                               [export_id])
 
