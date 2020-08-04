@@ -21,6 +21,7 @@ from future.builtins import str
 import csv
 import json
 import os
+import threading
 
 from functools import partial
 from io import open
@@ -904,8 +905,6 @@ def export(section_id=None, rating_key=None, file_format='json'):
         return
 
     filename = helpers.clean_filename(filename)
-    filepath = get_export_filepath(filename)
-    logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
 
     export_id = add_export(timestamp=timestamp,
                            section_id=section_id,
@@ -918,6 +917,22 @@ def export(section_id=None, rating_key=None, file_format='json'):
         return
 
     attrs = MEDIA_TYPES[media_type]
+
+    threading.Thread(target=_real_export,
+                     kwargs={'export_id': export_id,
+                             'items': items,
+                             'attrs': attrs,
+                             'file_format': file_format,
+                             'filename': filename}).start()
+
+    return True
+
+
+def _real_export(export_id, items, attrs, file_format, filename):
+    logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
+
+    filepath = get_export_filepath(filename)
+
     part = partial(helpers.get_attrs_to_dict, attrs=attrs)
     pool = ThreadPool(processes=4)
     success = True
@@ -951,7 +966,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
         import traceback
         traceback.print_exc()
         set_export_state(export_id=export_id, success=False)
-        logger.error("Tautulli Exporter :: Failed exported to '%s': %s", filename, e)
+        logger.error("Tautulli Exporter :: Failed to export '%s': %s", filename, e)
         success = False
 
     finally:

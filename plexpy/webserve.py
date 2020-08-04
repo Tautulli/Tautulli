@@ -6498,21 +6498,21 @@ class WebInterface(object):
                 rating_key (int):      The rating key of the media item to export
 
             Optional parameters:
-                None
+                file_format (str):     'json' (default) or 'csv'
 
             Returns:
                 json:
                     {"result": "success",
-                     "message": "Metadata export has started. Check the logs to monitor any problems."
+                     "message": "Metadata export has started."
                      }
             ```
         """
-        threading.Thread(target=exporter.export,
-                         kwargs={'section_id': section_id,
-                                 'rating_key': rating_key,
-                                 'file_format': file_format}).start()
-        return {'result': 'success',
-                'message': 'Metadata export has started. Check the logs to monitor any problems.'}
+        result = exporter.export(section_id=section_id, rating_key=rating_key, file_format=file_format)
+
+        if result:
+            return {'result': 'success', 'message': 'Metadata export has started.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to export metadata.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -6532,6 +6532,7 @@ class WebInterface(object):
             ```
         """
         result = exporter.get_export(export_id=row_id)
+
         if result and result['complete'] == 1 and result['exists']:
             return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
         else:
