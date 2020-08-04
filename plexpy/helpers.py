@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -918,7 +918,7 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     return json.dumps(json_data)
 
 
-def humanFileSize(bytes, si=True):
+def human_file_size(bytes, si=True):
     if str(bytes).isdigit():
         bytes = cast_to_float(bytes)
     else:
@@ -940,7 +940,7 @@ def humanFileSize(bytes, si=True):
         bytes /= thresh
         u += 1
 
-    return "{0:.1f} {1}".format(bytes, units[u])
+    return "{0:.2f} {1}".format(bytes, units[u])
 
 
 def parse_condition_logic_string(s, num_cond=0):
