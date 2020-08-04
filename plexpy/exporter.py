@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+from future.builtins import str
 
 import csv
 import json
@@ -898,39 +899,69 @@ def export(section_id=None, rating_key=None, file_format='json'):
     else:
         return
 
+    if media_type not in MEDIA_TYPES:
+        logger.error("Tautulli Exporter :: Cannot export media type '%s'", media_type)
+        return
+
     filename = helpers.clean_filename(filename)
     filepath = get_export_filepath(filename)
     logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
 
-    export_id = set_export_state(timestamp=timestamp,
-                                 section_id=section_id,
-                                 rating_key=rating_key,
-                                 media_type=media_type,
-                                 file_format=file_format,
-                                 filename=filename)
+    export_id = add_export(timestamp=timestamp,
+                           section_id=section_id,
+                           rating_key=rating_key,
+                           media_type=media_type,
+                           file_format=file_format,
+                           filename=filename)
     if not export_id:
         logger.error("Tautulli Exporter :: Failed to export '%s'", filename)
         return
 
     attrs = MEDIA_TYPES[media_type]
     part = partial(helpers.get_attrs_to_dict, attrs=attrs)
+    pool = ThreadPool(processes=4)
+    success = True
 
-    with ThreadPool(processes=4) as pool:
+    try:
         result = pool.map(part, items)
 
-    if file_format == 'json':
-        with open(filepath, 'w', encoding='utf-8') as outfile:
-            json.dump(result, outfile, indent=4, ensure_ascii=False, sort_keys=True)
+        if file_format == 'json':
+            if plexpy.PYTHON2:
+                kw = {'mode': 'wb'}
+            else:
+                kw = {'mode': 'w', 'encoding': 'utf-8'}
 
-    elif file_format == 'csv':
-        flatten_result = helpers.flatten_dict(result)
-        flatten_attrs = set().union(*flatten_result)
-        with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-            writer = csv.DictWriter(outfile, sorted(flatten_attrs))
-            writer.writeheader()
-            writer.writerows(flatten_result)
+            with open(filepath, **kw) as outfile:
+                json.dump(result, outfile, indent=4, ensure_ascii=False, sort_keys=True)
 
-    set_export_complete(export_id=export_id)
+        elif file_format == 'csv':
+            if plexpy.PYTHON2:
+                kw = {'mode': 'wb'}
+            else:
+                kw = {'mode': 'w', 'encoding': 'utf-8', 'newline': ''}
+
+            flatten_result = helpers.flatten_dict(result)
+            flatten_attrs = set().union(*flatten_result)
+            with open(filepath, **kw) as outfile:
+                writer = csv.DictWriter(outfile, sorted(flatten_attrs))
+                writer.writeheader()
+                writer.writerows(flatten_result)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        set_export_state(export_id=export_id, success=False)
+        logger.error("Tautulli Exporter :: Failed exported to '%s': %s", filename, e)
+        success = False
+
+    finally:
+        pool.close()
+        pool.join()
+
+    if not success:
+        return
+
+    set_export_state(export_id=export_id)
     logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
 
@@ -946,7 +977,7 @@ def get_export(export_id):
     return result
 
 
-def set_export_state(timestamp, section_id, rating_key, media_type, file_format, filename):
+def add_export(timestamp, section_id, rating_key, media_type, file_format, filename):
     keys = {'timestamp': timestamp,
             'section_id': section_id,
             'rating_key': rating_key,
@@ -964,9 +995,14 @@ def set_export_state(timestamp, section_id, rating_key, media_type, file_format,
         return False
 
 
-def set_export_complete(export_id):
+def set_export_state(export_id, success=True):
+    if success:
+        complete = 1
+    else:
+        complete = -1
+
     keys = {'id': export_id}
-    values = {'complete': 1}
+    values = {'complete': complete}
 
     db = database.MonitorDatabase()
     db.upsert(table_name='exports', key_dict=keys, value_dict=values)

@@ -919,6 +919,7 @@ class WebInterface(object):
             dt_columns = [("timestamp", True, False),
                           ("media_type_title", True, True),
                           ("rating_key", True, True),
+                          ("file_format", True, True),
                           ("filename", True, True),
                           ("complete", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
@@ -6524,11 +6525,13 @@ class WebInterface(object):
             ```
         """
         result = exporter.get_export(export_id=row_id)
-        if result and result['complete'] and result['exists']:
+        if result and result['complete'] == 1 and result['exists']:
             return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
         else:
-            if result and not result.get('complete'):
+            if result and result.get('complete') == 0:
                 msg = 'Export is still being processed.'
+            elif result and result.get('complete') == -1:
+                msg = 'Export failed to process.'
             elif result and not result.get('exists'):
                 msg = 'Export file does not exist.'
             else:
