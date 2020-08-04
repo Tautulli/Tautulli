@@ -93,7 +93,7 @@ export_table_options = {
                 if (cellData === 1 && rowData['exists']) {
                     $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
                 } else if (cellData === 0) {
-                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
                 } else if (cellData === -1) {
                     $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-exclamation-circle fa-fw"></i> Failed</span>');
                 } else {
@@ -121,6 +121,13 @@ export_table_options = {
         // Jump to top of page
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        if (timer) {
+            clearTimeout(timer);
+        }
+        if ($('.export-processing').length && $("#tabs-export").hasClass("active")) {
+            timer = setTimeout(redrawExportTable.bind(null, false), 5000);
+        }
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
@@ -150,9 +157,10 @@ $('.export_table').on('click', '> tbody > tr > td.export_delete > button', funct
     var msg = 'Are you sure you want to delete the following export?<br /><br /><strong>' + rowData['filename'] + '</strong>';
     var url = 'delete_export?row_id=' + rowData['row_id'];
     confirmAjaxCall(url, msg, null, null, redrawExportTable);
-
 });
 
-function redrawExportTable() {
-    export_table.draw();
+function redrawExportTable(paging) {
+    export_table.draw(paging);
 }
+
+var timer;
