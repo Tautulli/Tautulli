@@ -6517,12 +6517,12 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def download_export(self, row_id=None, **kwargs):
+    def download_export(self, export_id=None, **kwargs):
         """ Download an exported metadata file
 
             ```
             Required parameters:
-                row_id (int):          The row id of the exported file to download
+                export_id (int):          The row id of the exported file to download
 
             Optional parameters:
                 None
@@ -6531,7 +6531,7 @@ class WebInterface(object):
                 download
             ```
         """
-        result = exporter.get_export(export_id=row_id)
+        result = exporter.get_export(export_id=export_id)
 
         if result and result['complete'] == 1 and result['exists']:
             return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
@@ -6543,7 +6543,7 @@ class WebInterface(object):
             elif result and not result.get('exists'):
                 msg = 'Export file does not exist.'
             else:
-                msg = 'Invalid row_id provided.'
+                msg = 'Invalid export_id provided.'
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
 
@@ -6551,15 +6551,15 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_export(self, row_id=None, delete_all=False, **kwargs):
+    def delete_export(self, export_id=None, delete_all=False, **kwargs):
         """ Delete exports from Tautulli.
 
             ```
             Required parameters:
-                row_id (int):          The row id of the exported file to delete
+                export_id (int):          The row id of the exported file to delete
 
             Optional parameters:
-                delete_all (bool):     'true' to delete all exported files
+                delete_all (bool):        'true' to delete all exported files
 
             Returns:
                 None
@@ -6573,7 +6573,7 @@ class WebInterface(object):
                 return {'result': 'error', 'message': 'Failed to delete all exports.'}
 
         else:
-            result = exporter.delete_export(export_id=row_id)
+            result = exporter.delete_export(export_id=export_id)
             if result:
                 return {'result': 'success', 'message': 'Export deleted successfully.'}
             else:

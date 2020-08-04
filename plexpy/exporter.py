@@ -1031,12 +1031,12 @@ def delete_export(export_id):
     if str(export_id).isdigit():
         export_data = get_export(export_id=export_id)
 
-        logger.debug("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
+        logger.info("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
         result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
 
         if export_data and export_data['exists']:
             filepath = get_export_filepath(export_data['filename'])
-            logger.debug("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
+            logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
             except OSError as e:
@@ -1049,6 +1049,8 @@ def delete_export(export_id):
 def delete_all_exports():
     db = database.MonitorDatabase()
     result = db.select('SELECT filename FROM exports')
+
+    logger.info("Tautulli Exporter :: Deleting all exports from the database.")
 
     deleted_files = True
     for row in result:
@@ -1081,7 +1083,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     if rating_key:
         custom_where.append(['exports.rating_key', rating_key])
 
-    columns = ['exports.id AS row_id',
+    columns = ['exports.id AS export_id',
                'exports.timestamp',
                'exports.section_id',
                'exports.rating_key',
@@ -1111,7 +1113,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
         media_type_title = item['media_type'].title()
         exists = helpers.cast_to_int(check_export_exists(item['filename']))
 
-        row = {'row_id': item['row_id'],
+        row = {'export_id': item['export_id'],
                'timestamp': item['timestamp'],
                'section_id': item['section_id'],
                'rating_key': item['rating_key'],

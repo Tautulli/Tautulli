@@ -102,13 +102,13 @@ export_table_options = {
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1 && rowData['exists']) {
-                    $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
+                    $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['export_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
                 } else if (cellData === 0) {
-                    $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
                 } else if (cellData === -1) {
-                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-exclamation-circle fa-fw"></i> Failed</span>');
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-exclamation-circle fa-fw"></i> Failed</span>');
                 } else {
-                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</span>');
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-question-circle fa-fw"></i> Not Found</span>');
                 }
             },
             "width": "7%",
@@ -119,9 +119,9 @@ export_table_options = {
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['complete'] !== 0) {
-                    $(td).html('<button class="btn btn-xs btn-danger pull-left" data-id="' + rowData['row_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
+                    $(td).html('<button class="btn btn-xs btn-danger pull-left" data-id="' + rowData['export_id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
                 } else {
-                    $(td).html('<span class="btn btn-xs btn-danger pull-left" data-id="' + rowData['row_id'] + '" disabled><i class="fa fa-trash-o fa-fw"></i> Delete</span>');
+                    $(td).html('<span class="btn btn-xs btn-danger pull-left" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-trash-o fa-fw"></i> Delete</span>');
                 }
             },
             "width": "7%",
@@ -157,7 +157,7 @@ $('.export_table').on('click', '> tbody > tr > td.export_download > button', fun
     var rowData = row.data();
 
     e.preventDefault();
-    window.location.href = 'download_export?row_id=' + rowData['row_id'];
+    window.location.href = 'download_export?export_id=' + rowData['export_id'];
 });
 
 $('.export_table').on('click', '> tbody > tr > td.export_delete > button', function (e) {
@@ -166,7 +166,7 @@ $('.export_table').on('click', '> tbody > tr > td.export_delete > button', funct
     var rowData = row.data();
 
     var msg = 'Are you sure you want to delete the following export?<br /><br /><strong>' + rowData['filename'] + '</strong>';
-    var url = 'delete_export?row_id=' + rowData['row_id'];
+    var url = 'delete_export?export_id=' + rowData['export_id'];
     confirmAjaxCall(url, msg, null, null, redrawExportTable);
 });
 
