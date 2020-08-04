@@ -853,11 +853,11 @@ def export(section_id=None, rating_key=None, file_format='json'):
     if not section_id and not rating_key:
         logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
         return
-    elif section_id and not str(section_id).isdigit():
-        logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", section_id)
-        return
     elif rating_key and not str(rating_key).isdigit():
         logger.error("Tautulli Exporter :: Export called with invalid rating_key '%s'.", rating_key)
+        return
+    elif section_id and not str(section_id).isdigit():
+        logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", section_id)
         return
     elif file_format not in ('json', 'csv'):
         logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", file_format)
@@ -865,17 +865,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
 
     plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
-    if section_id:
-        logger.debug("Tautulli Exporter :: Export called with section_id %s", section_id)
-
-        library = plex.get_library(section_id)
-        media_type = library.type
-        library_title = library.title
-        filename = 'Library - {} [{}].{}.{}'.format(
-            library_title, section_id, helpers.timestamp_to_YMDHMS(timestamp), file_format)
-        items = library.all()
-
-    elif rating_key:
+    if rating_key:
         logger.debug("Tautulli Exporter :: Export called with rating_key %s", rating_key)
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
@@ -896,6 +886,16 @@ def export(section_id=None, rating_key=None, file_format='json'):
             media_type.title(), item_title, rating_key, helpers.timestamp_to_YMDHMS(timestamp), file_format)
 
         items = [item]
+
+    elif section_id:
+        logger.debug("Tautulli Exporter :: Export called with section_id %s", section_id)
+
+        library = plex.get_library(section_id)
+        media_type = library.type
+        library_title = library.title
+        filename = 'Library - {} [{}].{}.{}'.format(
+            library_title, section_id, helpers.timestamp_to_YMDHMS(timestamp), file_format)
+        items = library.all()
 
     else:
         return

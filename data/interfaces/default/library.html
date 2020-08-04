@@ -322,7 +322,7 @@ DOCUMENTATION :: END
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                                        data-id="${data['section_id']}">
+                                                        data-section_id="${data['section_id']}">
                                                     <i class="fa fa-file-export"></i> Export Metadata
                                                 </button>
                                             </div>
@@ -563,7 +563,7 @@ DOCUMENTATION :: END
     $("#toggle-export-modal").click(function() {
         $.ajax({
             url: 'export_metadata_modal',
-            data: { section_id: $(this).data('id') },
+            data: { section_id: $(this).data('section_id') },
             cache: false,
             async: true,
             complete: function(xhr, status) {
