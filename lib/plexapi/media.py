@@ -261,6 +261,7 @@ class VideoStream(MediaPartStream):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         super(VideoStream, self)._loadData(data)
+        self.anamorphic = data.attrib.get('anamorphic')
         self.bitDepth = cast(int, data.attrib.get('bitDepth'))
         self.bitrate = cast(int, data.attrib.get('bitrate'))
         self.cabac = cast(int, data.attrib.get('cabac'))
@@ -281,6 +282,8 @@ class VideoStream(MediaPartStream):
         self.profile = data.attrib.get('profile')
         self.refFrames = cast(int, data.attrib.get('refFrames'))
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
+        self.pixelAspectRatio = data.attrib.get('pixelAspectRatio')
+        self.pixelFormat = data.attrib.get('pixelFormat')
         self.scanType = data.attrib.get('scanType')
         self.streamIdentifier = cast(int, data.attrib.get('streamIdentifier'))
         self.width = cast(int, data.attrib.get('width'))
@@ -353,6 +356,7 @@ class SubtitleStream(MediaPartStream):
         self.container = data.attrib.get('container')
         self.forced = cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
+        self.headerCompression = data.attrib.get('headerCompression')
         self.key = data.attrib.get('key')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
 
