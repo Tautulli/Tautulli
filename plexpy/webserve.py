@@ -6490,7 +6490,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def export_metadata(self, section_id=None, rating_key=None, file_format='json', **kwargs):
+    def export_metadata(self, section_id=None, rating_key=None, file_format='json',
+                        export_level=1, **kwargs):
         """ Export library or media metadata to a file
 
             ```
@@ -6500,6 +6501,7 @@ class WebInterface(object):
 
             Optional parameters:
                 file_format (str):     'json' (default) or 'csv'
+                export_level (int):    The level of metadata to export
 
             Returns:
                 json:
@@ -6508,7 +6510,10 @@ class WebInterface(object):
                      }
             ```
         """
-        result = exporter.export(section_id=section_id, rating_key=rating_key, file_format=file_format)
+        result = exporter.export(section_id=section_id,
+                                 rating_key=rating_key,
+                                 file_format=file_format,
+                                 level=export_level)
 
         if result:
             return {'result': 'success', 'message': 'Metadata export has started.'}

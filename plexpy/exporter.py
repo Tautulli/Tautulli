@@ -23,7 +23,7 @@ import json
 import os
 import threading
 
-from functools import partial
+from functools import partial, reduce
 from io import open
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -301,7 +301,7 @@ SHOW_ATTRS = {
     'viewCount': None,
     'viewedLeafCount': None,
     'year': None,
-    'seasons': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'seasons': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
 SEASON_ATTRS = {
@@ -336,7 +336,7 @@ SEASON_ATTRS = {
     'userRating': None,
     'viewCount': None,
     'viewedLeafCount': None,
-    'episodes': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'episodes': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
 EPISODE_ATTRS = {
@@ -563,7 +563,7 @@ ARTIST_ATTRS = {
     'updatedAt': helpers.datetime_to_iso,
     'userRating': None,
     'viewCount': None,
-    'albums': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'albums': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
 ALBUM_ATTRS = {
@@ -619,7 +619,7 @@ ALBUM_ATTRS = {
     'userRating': None,
     'viewCount': None,
     'viewedLeafCount': None,
-    'tracks': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'tracks': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
 TRACK_ATTRS = {
@@ -740,7 +740,7 @@ PHOTO_ALBUM_ATTRS = {
     # For some reason photos needs to be first,
     # otherwise the photo album ratingKey gets
     # clobbered by the first photo's ratingKey
-    'photos': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type]),
+    'photos': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0]),
     'addedAt': helpers.datetime_to_iso,
     'art': None,
     'composite': None,
@@ -836,7 +836,7 @@ COLLECTION_ATTRS = {
     'title': None,
     'type': None,
     'updatedAt': helpers.datetime_to_iso,
-    'children': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'children': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
 PLAYLIST_ATTRS = {
@@ -854,26 +854,100 @@ PLAYLIST_ATTRS = {
     'title': None,
     'type': None,
     'updatedAt': helpers.datetime_to_iso,
-    'items': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type])
+    'items': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
+
+MOVIE_LEVELS = {
+    1: [
+        'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year',
+        'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
+        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
+    ],
+    2: [
+        'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
+        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+    ],
+    3: [
+        'art', 'thumb', 'key', 'chapterSource',
+        'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
+        'updatedAt', 'lastViewedAt', 'viewCount'
+    ],
+    4: [
+        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+        'media.optimizedVersion'
+    ],
+    5: [
+        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+        'media.parts.audioProfile', 'media.parts.videoProfile',
+        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+    ],
+    6: [
+        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+        'media.parts.audioStreams.default',
+        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+        'media.parts.subtitleStreams.default'
+    ]
+}
+
+SHOW_LEVELS = {}
+
+SEASON_LEVELS = {}
+
+EPISODE_LEVELS = {}
+
+ARTIST_LEVELS = {}
+
+ALBUM_LEVELS = {}
+
+TRACK_LEVELS = {}
+
+PHOTO_ALBUM_LEVELS = {}
+
+PHOTO_LEVELS = {}
+
+COLLECTION_LEVELS = {}
+
+PLAYLIST_LEVELS = {}
 
 MEDIA_TYPES = {
-    'movie': MOVIE_ATTRS,
-    'show': SHOW_ATTRS,
-    'season': SEASON_ATTRS,
-    'episode': EPISODE_ATTRS,
-    'artist': ARTIST_ATTRS,
-    'album': ALBUM_ATTRS,
-    'track': TRACK_ATTRS,
-    'photo album': PHOTO_ALBUM_ATTRS,
-    'photo': PHOTO_ATTRS,
-    'collection': COLLECTION_ATTRS,
-    'playlist': PLAYLIST_ATTRS
+    'movie': (MOVIE_ATTRS, MOVIE_LEVELS),
+    'show': (SHOW_ATTRS, SHOW_LEVELS),
+    'season': (SEASON_ATTRS, SEASON_LEVELS),
+    'episode': (EPISODE_ATTRS, EPISODE_LEVELS),
+    'artist': (ARTIST_ATTRS, ARTIST_LEVELS),
+    'album': (ALBUM_ATTRS, ALBUM_LEVELS),
+    'track': (TRACK_ATTRS, TRACK_LEVELS),
+    'photo album': (PHOTO_ALBUM_ATTRS, PHOTO_ALBUM_LEVELS),
+    'photo': (PHOTO_ATTRS, PHOTO_LEVELS),
+    'collection': (COLLECTION_ATTRS, COLLECTION_LEVELS),
+    'playlist': (PLAYLIST_ATTRS, PLAYLIST_LEVELS)
 }
 
 
-def export(section_id=None, rating_key=None, file_format='json'):
+def export(section_id=None, rating_key=None, file_format='json', level=1):
     timestamp = helpers.timestamp()
+
+    level = helpers.cast_to_int(level)
 
     if not section_id and not rating_key:
         logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
@@ -884,6 +958,9 @@ def export(section_id=None, rating_key=None, file_format='json'):
     elif section_id and not str(section_id).isdigit():
         logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", section_id)
         return
+    elif not level:
+        logger.error("Tautulli Exporter :: Export called with invalid level '%s'.", level)
+        return
     elif file_format not in ('json', 'csv'):
         logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", file_format)
         return
@@ -891,7 +968,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
     plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
     if rating_key:
-        logger.debug("Tautulli Exporter :: Export called with rating_key %s", rating_key)
+        logger.debug("Tautulli Exporter :: Export called with rating_key %s, level %d", rating_key, level)
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
         media_type = item.type
@@ -913,7 +990,7 @@ def export(section_id=None, rating_key=None, file_format='json'):
         items = [item]
 
     elif section_id:
-        logger.debug("Tautulli Exporter :: Export called with section_id %s", section_id)
+        logger.debug("Tautulli Exporter :: Export called with section_id %s, level %d", section_id, level)
 
         library = plex.get_library(section_id)
         media_type = library.type
@@ -929,6 +1006,36 @@ def export(section_id=None, rating_key=None, file_format='json'):
         logger.error("Tautulli Exporter :: Cannot export media type '%s'", media_type)
         return
 
+    media_attrs, level_attrs = MEDIA_TYPES[media_type]
+
+    if level == 9:
+        export_attrs = media_attrs
+    else:
+        if level not in level_attrs:
+            logger.error("Tautulli Exporter :: Export called with invalid level '%s'.", level)
+            return
+
+        export_attrs_set = set()
+        _levels = sorted(level_attrs.keys())
+        for _level in _levels[:_levels.index(level) + 1]:
+            export_attrs_set.update(level_attrs[_level])
+
+        export_attrs_list = []
+        for attr in export_attrs_set:
+            split_attr = attr.split('.')
+            try:
+                value = helpers.get_by_path(media_attrs, split_attr)
+            except KeyError:
+                logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+                continue
+
+            for _attr in reversed(split_attr):
+                value = {_attr: value}
+
+            export_attrs_list.append(value)
+
+        export_attrs = reduce(helpers.dict_merge, export_attrs_list)
+
     filename = helpers.clean_filename(filename)
 
     export_id = add_export(timestamp=timestamp,
@@ -941,12 +1048,10 @@ def export(section_id=None, rating_key=None, file_format='json'):
         logger.error("Tautulli Exporter :: Failed to export '%s'", filename)
         return
 
-    attrs = MEDIA_TYPES[media_type]
-
     threading.Thread(target=_real_export,
                      kwargs={'export_id': export_id,
                              'items': items,
-                             'attrs': attrs,
+                             'attrs': export_attrs,
                              'file_format': file_format,
                              'filename': filename}).start()
 
