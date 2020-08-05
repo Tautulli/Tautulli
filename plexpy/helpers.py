@@ -28,7 +28,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 import datetime
-from functools import wraps
+from functools import reduce, wraps
 import hashlib
 import imghdr
 from future.moves.itertools import islice, zip_longest
@@ -38,6 +38,7 @@ import ipwhois.utils
 from IPy import IP
 import json
 import math
+import operator
 import os
 import re
 import shlex
@@ -1261,6 +1262,34 @@ def flatten_tree(obj, key=''):
         new_rows = []
 
     return new_rows
+
+
+# https://stackoverflow.com/a/14692747
+def get_by_path(root, items):
+    """Access a nested object in root by item sequence."""
+    return reduce(operator.getitem, items, root)
+
+
+def set_by_path(root, items, value):
+    """Set a value in a nested object in root by item sequence."""
+    get_by_path(root, items[:-1])[items[-1]] = value
+
+
+# https://stackoverflow.com/a/7205107
+def dict_merge(a, b, path=None):
+    if path is None:
+        path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                dict_merge(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass
+            else:
+                pass
+        else:
+            a[key] = b[key]
+    return a
 
 
 def page(endpoint, *args, **kwargs):
