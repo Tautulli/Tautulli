@@ -1292,6 +1292,11 @@ def dict_merge(a, b, path=None):
     return a
 
 
+def is_hdr(bit_depth, color_space):
+    bit_depth = cast_to_int(bit_depth)
+    return bit_depth > 8 and color_space == 'bt2020nc'
+
+
 def page(endpoint, *args, **kwargs):
     endpoints = {
         'pms_image_proxy': pms_image_proxy,

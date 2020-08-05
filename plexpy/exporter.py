@@ -132,6 +132,7 @@ MOVIE_ATTRS = {
             'videoStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -155,8 +156,11 @@ MOVIE_ATTRS = {
                 'frameRate': None,
                 'frameRateMode': None,
                 'hasScalingMatrix': None,
+                'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
                 'height': None,
                 'level': None,
+                'pixelAspectRatio': None,
+                'pixelFormat': None,
                 'profile': None,
                 'refFrames': None,
                 'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
@@ -167,6 +171,7 @@ MOVIE_ATTRS = {
             'audioStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -191,6 +196,7 @@ MOVIE_ATTRS = {
             'subtitleStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -204,6 +210,7 @@ MOVIE_ATTRS = {
                 'type': None,
                 'forced': None,
                 'format': None,
+                'headerCompression': None,
                 'key': None
             }
         }
@@ -404,6 +411,7 @@ EPISODE_ATTRS = {
             'videoStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -427,8 +435,11 @@ EPISODE_ATTRS = {
                 'frameRate': None,
                 'frameRateMode': None,
                 'hasScalingMatrix': None,
+                'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
                 'height': None,
                 'level': None,
+                'pixelAspectRatio': None,
+                'pixelFormat': None,
                 'profile': None,
                 'refFrames': None,
                 'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
@@ -439,6 +450,7 @@ EPISODE_ATTRS = {
             'audioStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -463,6 +475,7 @@ EPISODE_ATTRS = {
             'subtitleStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -476,6 +489,7 @@ EPISODE_ATTRS = {
                 'type': None,
                 'forced': None,
                 'format': None,
+                'headerCompression': None,
                 'key': None
             }
         }
@@ -654,6 +668,7 @@ TRACK_ATTRS = {
             'audioStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
@@ -681,6 +696,7 @@ TRACK_ATTRS = {
             'lyricStreams': {
                 'codec': None,
                 'codecID': None,
+                'default': None,
                 'displayTitle': None,
                 'extendedDisplayTitle': None,
                 'id': None,
