@@ -445,6 +445,14 @@ DOCUMENTATION :: END
                         <div class="header-bar">
                             <span>${MEDIA_TYPE_HEADERS[data['sub_media_type']]} in <strong>${data['title']}</strong> collection</span>
                         </div>
+                        <div class="button-bar">
+                            <div class="btn-group">
+                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}">
+                                    <i class="fa fa-file-export"></i> Export Metadata
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-card-back">
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading movies list...</div>
