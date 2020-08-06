@@ -4341,7 +4341,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    @requireAuth()
+    @requireAuth(member_of("admin"))
     @addtoapi('notify_recently_added')
     def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
         """ Send a recently added notification using Tautulli.
@@ -6044,12 +6044,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    @requireAuth()
-    def get_plexpy_url(self, **kwargs):
-        return helpers.get_plexpy_url()
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_newsletters(self, **kwargs):
@@ -6339,7 +6333,7 @@ class WebInterface(object):
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
 
     @cherrypy.expose
-    @requireAuth()
+    @requireAuth(member_of("admin"))
     def support(self, **kwargs):
         return serve_template(templatename="support.html", title="Support")
 
