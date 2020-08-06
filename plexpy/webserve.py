@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -6480,7 +6480,7 @@ class WebInterface(object):
         return status
 
     @cherrypy.expose
-    @requireAuth()
+    @requireAuth(member_of("admin"))
     def export_metadata_modal(self, section_id=None, rating_key=None, **kwargs):
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
