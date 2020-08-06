@@ -44,9 +44,9 @@ DOCUMENTATION :: END
         % elif job_type == 'websocket' and plexpy.WS_CONNECTED:
         <tr>
             % if job == 'Check for active sessions':
-            <td><a class="queue-modal-link" href="#" data-queue="active sessions">${job}</a></td>
+            <td><a class="queue-modal-link no-highlight" href="#" data-queue="active sessions">${job}</a></td>
             % elif job == 'Check for recently added items':
-            <td><a class="queue-modal-link" href="#" data-queue="recently added">${job}</a></td>
+            <td><a class="queue-modal-link no-highlight" href="#" data-queue="recently added">${job}</a></td>
             % else:
             <td>${job}</td>
             % endif
