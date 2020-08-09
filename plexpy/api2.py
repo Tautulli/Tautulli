@@ -715,11 +715,15 @@ General optional parameters:
         """ handles the stuff from the handler """
 
         # Make sure the device ID is not shown in the logs
-        if self._api_cmd == 'register_device':
+        if kwargs.get('cmd') == 'register_device':
             if kwargs.get('device_id'):
                 logger._BLACKLIST_WORDS.add(kwargs['device_id'])
             if kwargs.get('onesignal_id'):
                 logger._BLACKLIST_WORDS.add(kwargs['onesignal_id'])
+
+        elif kwargs.get('cmd') == 'get_apikey':
+            if kwargs.get('password'):
+                logger._BLACKLIST_WORDS.add(kwargs['password'])
 
         result = {}
         logger.api_debug('Tautulli APIv2 :: API called with kwargs: %s' % kwargs)
