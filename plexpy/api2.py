@@ -21,6 +21,7 @@ from future.builtins import str
 from future.builtins import object
 
 from hashing_passwords import check_hash
+from io import open
 
 import hashlib
 import inspect
@@ -207,7 +208,7 @@ class API2(object):
             logger.api_debug("Tautulli APIv2 :: Filtering log using regex '%s'" % regex)
             reg = re.compile(regex, flags=re.I)
 
-        with open(logfile, 'r') as f:
+        with open(logfile, 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 temp_loglevel_and_time = None
 
@@ -223,7 +224,7 @@ class API2(object):
                 except IndexError:
                     # We assume this is a traceback
                     tl = (len(templog) - 1)
-                    templog[tl]['msg'] += helpers.sanitize(str(line.replace('\n', ''), 'utf-8'))
+                    templog[tl]['msg'] += helpers.sanitize(line.replace('\n', ''))
                     continue
 
                 if len(line) > 1 and temp_loglevel_and_time is not None and loglvl in line:
@@ -231,7 +232,7 @@ class API2(object):
                     d = {
                         'time': temp_loglevel_and_time[0],
                         'loglevel': loglvl,
-                        'msg': helpers.sanitize(str(msg.replace('\n', ''), 'utf-8')),
+                        'msg': helpers.sanitize(msg.replace('\n', '')),
                         'thread': thread
                     }
                     templog.append(d)
