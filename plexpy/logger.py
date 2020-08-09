@@ -99,9 +99,9 @@ class BlacklistFilter(logging.Filter):
         for item in _BLACKLIST_WORDS:
             try:
                 if item in record.msg:
-                    record.msg = record.msg.replace(item, 8 * '*' + item[-2:])
+                    record.msg = record.msg.replace(item, 16 * '*')
                 if any(item in str(arg) for arg in record.args):
-                    record.args = tuple(arg.replace(item, 8 * '*' + item[-2:]) if isinstance(arg, str) else arg
+                    record.args = tuple(arg.replace(item, 16 * '*') if isinstance(arg, str) else arg
                                         for arg in record.args)
             except:
                 pass
@@ -155,7 +155,7 @@ class PublicIPFilter(RegexFilter):
     def replace(self, text, ip):
         if helpers.is_public_ip(ip.replace('-', '.')):
             partition = '-' if '-' in ip else '.'
-            return text.replace(ip, ip.partition(partition)[0] + (partition + '***') * 3)
+            return text.replace(ip, partition.join(['***'] * 4))
         return text
 
 
@@ -172,7 +172,7 @@ class EmailFilter(RegexFilter):
 
     def replace(self, text, email):
         email_parts = email.partition('@')
-        return text.replace(email, email_parts[0][:2] + 8 * '*' + email_parts[1] + 8 * '*')
+        return text.replace(email, 16 * '*' + email_parts[1] + 8 * '*')
 
 
 class PlexTokenFilter(RegexFilter):
@@ -185,7 +185,7 @@ class PlexTokenFilter(RegexFilter):
         self.regex = re.compile(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)')
 
     def replace(self, text, token):
-        return text.replace(token, 8 * '*' + token[-2:])
+        return text.replace(token, 16 * '*')
 
 
 @contextlib.contextmanager
