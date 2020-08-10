@@ -529,7 +529,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Video Full Resolution', 'type': 'str', 'value': 'video_full_resolution', 'description': 'The video resolution of the original media with scan type.'},
              {'name': 'Video Ref Frames', 'type': 'int', 'value': 'video_ref_frames', 'description': 'The video reference frames of the original media.'},
              {'name': 'Video Resolution', 'type': 'str', 'value': 'video_resolution', 'description': 'The video resolution of the original media.'},
-             {'name': 'Video Scan Tpye', 'type': 'str', 'value': 'video_scan_type', 'description': 'The video scan type of the original media.'},
+             {'name': 'Video Scan Type', 'type': 'str', 'value': 'video_scan_type', 'description': 'The video scan type of the original media.'},
              {'name': 'Video Height', 'type': 'int', 'value': 'video_height', 'description': 'The video height of the original media.'},
              {'name': 'Video Width', 'type': 'int', 'value': 'video_width', 'description': 'The video width of the original media.'},
              {'name': 'Video Language', 'type': 'str', 'value': 'video_language', 'description': 'The video language of the original media.'},
