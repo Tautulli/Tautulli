@@ -226,6 +226,7 @@ SCHEDULER_LIST = [
     ('Refresh users list', 'scheduled'),
     ('Refresh libraries list', 'scheduled'),
     ('Refresh Plex server URLs', 'scheduled'),
+    ('Optimize Tautulli database', 'scheduled'),
     ('Backup Tautulli database', 'scheduled'),
     ('Backup Tautulli config', 'scheduled')
 ]

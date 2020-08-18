@@ -180,7 +180,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
         for table_name in session_history_tables:
             db.action('DROP TABLE {table}_copy'.format(table=table_name))
 
-    db.action('VACUUM')
+    vacuum()
 
     logger.info("Tautulli Database :: Tautulli database import complete.")
     set_is_importing(False)
@@ -199,7 +199,7 @@ def clear_table(table=None):
         logger.debug("Tautulli Database :: Clearing database table '%s'." % table)
         try:
             monitor_db.action('DELETE FROM %s' % table)
-            monitor_db.action('VACUUM')
+            vacuum()
             return True
         except Exception as e:
             logger.error("Tautulli Database :: Failed to clear database table '%s': %s." % (table, e))
@@ -232,6 +232,7 @@ def delete_rows_from_table(table, row_ids):
             for row_ids_group in helpers.chunk(row_ids, sqlite_max_variable_number):
                 query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids_group))
                 monitor_db.action(query, row_ids_group)
+            vacuum()
         except Exception as e:
             logger.error("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
             return False
@@ -272,6 +273,20 @@ def delete_library_history(section_id=None):
 
         logger.info("Tautulli Database :: Deleting all history for library section_id %s from database." % section_id)
         return delete_session_history_rows(row_ids=row_ids)
+
+
+def vacuum():
+    monitor_db = MonitorDatabase()
+
+    logger.info("Tautulli Database :: Vacuuming database.")
+    try:
+        monitor_db.action('VACUUM')
+    except Exception as e:
+        logger.error("Tautulli Database :: Failed to vacuum database: %s" % e)
+
+
+def optimize():
+    vacuum()
 
 
 def db_filename(filename=FILENAME):
