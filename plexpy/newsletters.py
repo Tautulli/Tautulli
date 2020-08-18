@@ -320,6 +320,7 @@ def blacklist_logger():
 
 def serve_template(templatename, **kwargs):
     if plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR:
+        logger.info("Tautulli Newsletters :: Using custom newsletter template directory.")
         template_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
     else:
         interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
@@ -470,6 +471,8 @@ class Newsletter(object):
             self.is_preview = True
 
         self.retrieve_data()
+
+        logger.info("Tautulli Newsletters :: Generating newsletter%s." % (' preview' if self.is_preview else ''))
 
         newsletter_rendered, self.template_error = serve_template(
             templatename=self._TEMPLATE,
