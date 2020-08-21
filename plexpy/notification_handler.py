@@ -601,17 +601,26 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         pms_identifier=plexpy.CONFIG.PMS_IDENTIFIER,
         rating_key=plex_web_rating_key)
 
+    # Check external guids
+    for guid in notify_params['guids']:
+        if 'imdb://' in guid:
+            notify_params['imdb_id'] = guid.split('imdb://')[1]
+        elif 'tmdb://' in guid:
+            notify_params['themoviedb_id'] = guid.split('tmdb://')[1]
+        elif 'tvdb://' in guid:
+            notify_params['thetvdb_id'] = guid.split('tvdb://')[1]
+
     # Get media IDs from guid and build URLs
     if 'plex://' in notify_params['guid']:
         notify_params['plex_id'] = notify_params['guid'].split('plex://')[1].split('/')[1]
 
-    if 'imdb://' in notify_params['guid']:
-        notify_params['imdb_id'] = notify_params['guid'].split('imdb://')[1].split('?')[0]
+    if 'imdb://' in notify_params['guid'] or notify_params['imdb_id']:
+        notify_params['imdb_id'] = notify_params['imdb_id'] or notify_params['guid'].split('imdb://')[1].split('?')[0]
         notify_params['imdb_url'] = 'https://www.imdb.com/title/' + notify_params['imdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
-    if 'thetvdb://' in notify_params['guid']:
-        notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
+    if 'thetvdb://' in notify_params['guid'] or notify_params['thetvdb_id']:
+        notify_params['thetvdb_id'] = notify_params['thetvdb_id'] or notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
@@ -620,14 +629,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
-    if 'themoviedb://' in notify_params['guid']:
+    if 'themoviedb://' in notify_params['guid'] or notify_params['themoviedb_id']:
         if notify_params['media_type'] == 'movie':
-            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('?')[0]
+            notify_params['themoviedb_id'] = notify_params['themoviedb_id'] or notify_params['guid'].split('themoviedb://')[1].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + notify_params['themoviedb_id']
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=movie'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
-            notify_params['themoviedb_id'] = notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
+            notify_params['themoviedb_id'] = notify_params['themoviedb_id'] or notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
             notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=show'
 
