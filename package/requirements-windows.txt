@@ -1,4 +1,4 @@
-pyinstaller
+pyinstaller==3.6
 pyopenssl
 pycryptodomex
 pywin32
