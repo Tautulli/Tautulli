@@ -2018,6 +2018,10 @@ class PmsConnect(object):
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id),
                                                next((p for p in source_media_part_streams if p['type'] == '3'), source_subtitle_details))
 
+        # Override the thumb for clips
+        if media_type == 'clip' and metadata_details.get('extra_type') and metadata_details['art']:
+            metadata_details['thumb'] = metadata_details['art'].replace('/art', '/thumb')
+
         # Overrides for live sessions
         if stream_details['live'] and transcode_session:
             stream_details['stream_container_decision'] = 'transcode'

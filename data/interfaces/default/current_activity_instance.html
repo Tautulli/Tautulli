@@ -118,9 +118,7 @@ DOCUMENTATION :: END
                         <div id="poster-${sk}" class="dashboard-activity-cover" style="background-image: url(${page('pms_image_proxy', data['parent_thumb'], data['parent_rating_key'], 300, 300, fallback='cover', refresh=True)});"></div>
                     </a>
                     % elif data['media_type'] in ('photo', 'clip'):
-                        % if data['extra_type']:
-                        <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${page('pms_image_proxy', data['art'].replace('/art', '/thumb') or data['thumb'], data['rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
-                        % elif data['parent_thumb']:
+                        % if data['parent_thumb']:
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${page('pms_image_proxy', data['parent_thumb'], data['parent_rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
                         % else:
                         <div id="poster-${sk}" class="dashboard-activity-poster" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 450, fallback='poster', refresh=True)});"></div>
