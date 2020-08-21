@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -3365,6 +3365,7 @@ class TELEGRAM(Notifier):
     _DEFAULT_CONFIG = {'bot_token': '',
                        'chat_id': '',
                        'disable_web_preview': 0,
+                       'silent_message': 0,
                        'html_support': 1,
                        'incl_subject': 1,
                        'incl_poster': 0
@@ -3409,6 +3410,9 @@ class TELEGRAM(Notifier):
                     return r
 
         data['text'] = (text[:4093] + (text[4093:] and '...')).encode('utf-8')
+
+        if self.config['silent_message']:
+            data['disable_notification'] = True
 
         if self.config['disable_web_preview']:
             data['disable_web_page_preview'] = True
@@ -3459,6 +3463,12 @@ class TELEGRAM(Notifier):
                           'value': self.config['disable_web_preview'],
                           'name': 'telegram_disable_web_preview',
                           'description': 'Disables automatic link previews for links in the message',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable Silent Messages',
+                          'value': self.config['silent_message'],
+                          'name': 'telegram_silent_message',
+                          'description': 'Sends the message silently. Users will receive a notification with no sound.',
                           'input_type': 'checkbox'
                           }
                          ]
