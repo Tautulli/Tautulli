@@ -513,6 +513,7 @@ class PmsConnect(object):
                 genres = []
                 labels = []
                 collections = []
+                guids = []
 
                 if m.getElementsByTagName('Director'):
                     for director in m.getElementsByTagName('Director'):
@@ -537,6 +538,10 @@ class PmsConnect(object):
                 if m.getElementsByTagName('Collection'):
                     for collection in m.getElementsByTagName('Collection'):
                         collections.append(helpers.get_xml_attr(collection, 'tag'))
+
+                if m.getElementsByTagName('Guid'):
+                    for guid in m.getElementsByTagName('Guid'):
+                        guids.append(helpers.get_xml_attr(guid, 'id'))
 
                 recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
                                'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
@@ -578,6 +583,7 @@ class PmsConnect(object):
                                'genres': genres,
                                'labels': labels,
                                'collections': collections,
+                               'guids': guids,
                                'full_title': helpers.get_xml_attr(m, 'title'),
                                'child_count': helpers.get_xml_attr(m, 'childCount')
                                }
@@ -672,6 +678,7 @@ class PmsConnect(object):
         genres = []
         labels = []
         collections = []
+        guids = []
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
@@ -696,6 +703,10 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Collection'):
             for collection in metadata_main.getElementsByTagName('Collection'):
                 collections.append(helpers.get_xml_attr(collection, 'tag'))
+
+        if metadata_main.getElementsByTagName('Guid'):
+            for guid in metadata_main.getElementsByTagName('Guid'):
+                guids.append(helpers.get_xml_attr(guid, 'id'))
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -740,6 +751,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -793,6 +805,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -849,6 +862,7 @@ class PmsConnect(object):
                         'genres': show_details.get('genres', []),
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
+                        'guids': show_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -921,6 +935,7 @@ class PmsConnect(object):
                         'genres': show_details.get('genres', []),
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
+                        'guids': show_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -970,6 +985,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -1020,6 +1036,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1073,6 +1090,7 @@ class PmsConnect(object):
                         'genres': album_details.get('genres', []),
                         'labels': album_details.get('labels', []),
                         'collections': album_details.get('collections', []),
+                        'guids': album_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
                                                         track_artist),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1122,6 +1140,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -1172,6 +1191,7 @@ class PmsConnect(object):
                         'genres': photo_album_details.get('genres', []),
                         'labels': photo_album_details.get('labels', []),
                         'collections': photo_album_details.get('collections', []),
+                        'guids': photo_album_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                         helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1225,6 +1245,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -1273,6 +1294,7 @@ class PmsConnect(object):
                         'genres': genres,
                         'labels': labels,
                         'collections': collections,
+                        'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'extra_type': helpers.get_xml_attr(metadata_main, 'extraType'),
                         'sub_type': helpers.get_xml_attr(metadata_main, 'subtype'),
