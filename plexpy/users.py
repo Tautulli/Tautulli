@@ -602,7 +602,7 @@ class Users(object):
                         'WHERE user_id = ? ' \
                         'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
                         '   ELSE session_history.rating_key END) ' \
-                        'ORDER BY started DESC LIMIT ?'
+                        'ORDER BY MAX(started) DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user_id, limit])
             else:
                 result = []

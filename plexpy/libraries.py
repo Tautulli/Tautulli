@@ -836,7 +836,7 @@ class Libraries(object):
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE section_id = ? ' \
                         'GROUP BY session_history.rating_key ' \
-                        'ORDER BY started DESC LIMIT ?'
+                        'ORDER BY MAX(started) DESC LIMIT ?'
                 result = monitor_db.select(query, args=[section_id, limit])
             else:
                 result = []
