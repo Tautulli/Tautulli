@@ -14,15 +14,21 @@ parts:
   tautulli:
     plugin: dump
     source: .
-    stage-packages: [python3, python3-setuptools]
+    stage-packages: 
+      - python3
+      - python3-setuptools
+      - python3-openssl
     override-build: |
       snapcraftctl build
       sed -i "s|'CHECK_GITHUB': (int, 'General', 1),|'CHECK_GITHUB': (int, 'General', 0),|g" $SNAPCRAFT_PART_INSTALL/plexpy/config.py
       sed -i "s|'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),|'CHECK_GITHUB_ON_STARTUP': (int, 'General', 0),|g" $SNAPCRAFT_PART_INSTALL/plexpy/config.py
       sed -i 's|<input type="checkbox" name="check_github" id="check_github" value="1" checked>||g' $SNAPCRAFT_PART_INSTALL/data/interfaces/default/welcome.html
       sed -i 's|name="plexpy_auto_update" value="1"|name="plexpy_auto_update" value="0"|g' $SNAPCRAFT_PART_INSTALL/data/interfaces/default/settings.html
+
 apps:
   tautulli:
     command: python3 $SNAP/Tautulli.py --datadir $SNAP_COMMON/Tautulli --config $SNAP_COMMON/Tautulli/config.ini --quiet --nolaunch
     daemon: simple
-    plugs: [network, network-bind]
+    plugs: 
+      - network
+      - network-bind
