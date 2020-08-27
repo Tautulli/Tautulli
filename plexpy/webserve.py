@@ -578,6 +578,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_library_sections.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -907,6 +908,7 @@ class WebInterface(object):
                 return library_details
             else:
                 logger.warn("Unable to retrieve data for get_library.")
+                return library_details
         else:
             logger.warn("Library details requested but no section_id received.")
 
@@ -956,6 +958,7 @@ class WebInterface(object):
                 return result
             else:
                 logger.warn("Unable to retrieve data for get_library_watch_time_stats.")
+                return result
         else:
             logger.warn("Library watch time stats requested but no section_id received.")
 
@@ -999,6 +1002,7 @@ class WebInterface(object):
                 return result
             else:
                 logger.warn("Unable to retrieve data for get_library_user_stats.")
+                return result
         else:
             logger.warn("Library user stats requested but no section_id received.")
 
@@ -1537,6 +1541,7 @@ class WebInterface(object):
                 return user_details
             else:
                 logger.warn("Unable to retrieve data for get_user.")
+                return user_details
         else:
             logger.warn("User details requested but no user_id received.")
 
@@ -1585,6 +1590,7 @@ class WebInterface(object):
                 return result
             else:
                 logger.warn("Unable to retrieve data for get_user_watch_time_stats.")
+                return result
         else:
             logger.warn("User watch time stats requested but no user_id received.")
 
@@ -1628,6 +1634,7 @@ class WebInterface(object):
                 return result
             else:
                 logger.warn("Unable to retrieve data for get_user_player_stats.")
+                return result
         else:
             logger.warn("User watch time stats requested but no user_id received.")
 
@@ -2077,6 +2084,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_date.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2120,6 +2128,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_dayofweek.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2163,6 +2172,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_hourofday.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2206,6 +2216,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_per_month.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2249,6 +2260,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_top_10_platforms.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2292,6 +2304,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_top_10_users.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2334,6 +2347,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_stream_type.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2376,6 +2390,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_source_resolution.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2418,6 +2433,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_plays_by_stream_resolution.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2460,6 +2476,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_stream_type_by_top_10_users.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2502,6 +2519,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_stream_type_by_top_10_platforms.")
+            return result
 
     @cherrypy.expose
     @requireAuth()
@@ -4103,6 +4121,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_server_pref.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4749,6 +4768,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for search_results.")
+            return result
 
     @cherrypy.expose
     @requireAuth()
@@ -4856,6 +4876,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_new_rating_keys.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4885,7 +4906,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_old_rating_keys.")
-
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5067,6 +5088,7 @@ class WebInterface(object):
             return metadata
         else:
             logger.warn("Unable to retrieve data for get_metadata_details.")
+            return metadata
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5160,6 +5182,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_recently_added_details.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5260,6 +5283,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_servers_info.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5290,6 +5314,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_server_identity.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5315,6 +5340,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_server_friendly_name.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5614,6 +5640,7 @@ class WebInterface(object):
                 return result
             else:
                 logger.warn("Unable to retrieve data for get_activity.")
+                return {}
         except Exception as e:
             logger.exception("Unable to retrieve data for get_activity: %s" % e)
 
@@ -5655,6 +5682,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_full_libraries_list.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5705,6 +5733,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_full_users_list.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5872,6 +5901,7 @@ class WebInterface(object):
             return result
         else:
             logger.warn("Unable to retrieve data for get_home_stats.")
+            return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
