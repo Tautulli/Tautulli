@@ -867,13 +867,28 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     if not default_sort_col:
         default_sort_col = dt_columns[0][0]
 
-    order_column = [c[0] for c in dt_columns].index(kwargs.pop("order_column", default_sort_col))
+    column_names = [c[0] for c in dt_columns]
+    order_columns = [c.strip() for c in kwargs.pop("order_column", default_sort_col).split(",")]
+    order_dirs = [d.strip() for d in kwargs.pop("order_dir", "desc").split(",")]
+
+    order = []
+    for c, d in zip_longest(order_columns, order_dirs, fillvalue=""):
+        try:
+            order_column = column_names.index(c)
+        except ValueError:
+            continue
+
+        if d.lower() in ("asc", "desc"):
+            order_dir = d.lower()
+        else:
+            order_dir = "desc"
+
+        order.append({"column": order_column, "dir": order_dir})
 
     # Build json data
     json_data = {"draw": 1,
                  "columns": columns,
-                 "order": [{"column": order_column,
-                            "dir": kwargs.pop("order_dir", "desc")}],
+                 "order": order,
                  "start": int(kwargs.pop("start", 0)),
                  "length": int(kwargs.pop("length", 25)),
                  "search": {"value": kwargs.pop("search", "")}
