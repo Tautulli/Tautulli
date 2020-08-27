@@ -174,7 +174,8 @@ class Libraries(object):
                    'library_sections.child_count',
                    'library_sections.thumb AS library_thumb',
                    'library_sections.custom_thumb_url AS custom_thumb',
-                   'library_sections.art',
+                   'library_sections.art AS library_art',
+                   'library_sections.custom_art_url AS custom_art',
                    'COUNT(DISTINCT %s) AS plays' % group_by,
                    'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
                     ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
@@ -239,6 +240,11 @@ class Libraries(object):
             else:
                 library_thumb = common.DEFAULT_COVER_THUMB
 
+            if item['custom_art'] and item['custom_art'] != item['library_art']:
+                library_art = item['custom_art']
+            else:
+                library_art = item['library_art']
+
             row = {'row_id': item['row_id'],
                    'server_id': item['server_id'],
                    'section_id': item['section_id'],
@@ -248,7 +254,7 @@ class Libraries(object):
                    'parent_count': item['parent_count'],
                    'child_count': item['child_count'],
                    'library_thumb': library_thumb,
-                   'library_art': item['art'],
+                   'library_art': library_art,
                    'plays': item['plays'],
                    'duration': item['duration'],
                    'last_accessed': item['last_accessed'],
