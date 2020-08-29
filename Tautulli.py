@@ -149,11 +149,13 @@ def main():
             try:
                 with open(plexpy.PIDFILE, 'r') as fp:
                     pid = int(fp.read())
-                os.kill(pid, 0)
             except IOError as e:
                 raise SystemExit("Unable to read PID file: %s", e)
+
+            try:
+                os.kill(pid, 0)
             except OSError:
-                logger.warn("PID file '%s' already exists, but PID %d is " \
+                logger.warn("PID file '%s' already exists, but PID %d is "
                             "not running. Ignoring PID file." %
                             (plexpy.PIDFILE, pid))
             else:
