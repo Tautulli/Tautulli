@@ -22,9 +22,14 @@ and networks.
 
 """
 
-__version__ = '2.1.11'
+__version__ = '2.2.0'
 
 import struct
+import sys
+
+if sys.version_info > (3,):
+    long = int
+    xrange = range
 
 IPV4LENGTH = 32
 IPV6LENGTH = 128
@@ -156,16 +161,19 @@ def _find_address_range(addresses):
         addresses: a list of IPv4 or IPv6 addresses.
 
     Returns:
-        A tuple containing the first and last IP addresses in the sequence.
+        A tuple containing the first and last IP addresses in the sequence,
+        and the index of the last IP address in the sequence.
 
     """
     first = last = addresses[0]
+    last_index = 0
     for ip in addresses[1:]:
         if ip._ip == last._ip + 1:
             last = ip
+            last_index += 1
         else:
             break
-    return (first, last)
+    return (first, last, last_index)
 
 def _get_prefix_length(number1, number2, bits):
     """Get the number of leading bits that are same for two numbers.
@@ -358,8 +366,8 @@ def collapse_address_list(addresses):
     nets = sorted(set(nets))
 
     while i < len(ips):
-        (first, last) = _find_address_range(ips[i:])
-        i = ips.index(last) + 1
+        (first, last, last_index) = _find_address_range(ips[i:])
+        i += last_index + 1
         addrs.extend(summarize_address_range(first, last))
 
     return _collapse_address_list_recursive(sorted(
@@ -876,6 +884,26 @@ class _BaseNet(_IPAddrBase):
         else:
             raise NetmaskValueError('Bit pattern does not match /1*0*/')
 
+    def _prefix_from_prefix_int(self, prefixlen):
+        """Validate and return a prefix length integer.
+
+        Args:
+            prefixlen: An integer containing the prefix length.
+
+        Returns:
+            The input, possibly converted from long to int.
+
+        Raises:
+            NetmaskValueError: If the input is not an integer, or out of range.
+        """
+        if not isinstance(prefixlen, (int, long)):
+            raise NetmaskValueError('%r is not an integer' % prefixlen)
+        prefixlen = int(prefixlen)
+        if not (0 <= prefixlen <= self._max_prefixlen):
+            raise NetmaskValueError('%d is not a valid prefix length' %
+                                    prefixlen)
+        return prefixlen
+
     def _prefix_from_prefix_string(self, prefixlen_str):
         """Turn a prefix length string into an integer.
 
@@ -893,12 +921,10 @@ class _BaseNet(_IPAddrBase):
             if not _BaseV4._DECIMAL_DIGITS.issuperset(prefixlen_str):
                 raise ValueError
             prefixlen = int(prefixlen_str)
-            if not (0 <= prefixlen <= self._max_prefixlen):
-               raise ValueError
         except ValueError:
             raise NetmaskValueError('%s is not a valid prefix length' %
                                     prefixlen_str)
-        return prefixlen
+        return self._prefix_from_prefix_int(prefixlen)
 
     def _prefix_from_ip_string(self, ip_str):
         """Turn a netmask/hostmask string into a prefix length.
@@ -1239,6 +1265,11 @@ class IPv4Address(_BaseV4, _BaseIP):
         """
         _BaseV4.__init__(self, address)
 
+        # Efficient copy constructor.
+        if isinstance(address, IPv4Address):
+            self._ip = address._ip
+            return
+
         # Efficient constructor from integer.
         if isinstance(address, (int, long)):
             self._ip = address
@@ -1279,29 +1310,32 @@ class IPv4Network(_BaseV4, _BaseNet):
         """Instantiate a new IPv4 network object.
 
         Args:
-            address: A string or integer representing the IP [& network].
-              '192.168.1.1/24'
-              '192.168.1.1/255.255.255.0'
-              '192.168.1.1/0.0.0.255'
-              are all functionally the same in IPv4. Similarly,
-              '192.168.1.1'
-              '192.168.1.1/255.255.255.255'
-              '192.168.1.1/32'
-              are also functionaly equivalent. That is to say, failing to
-              provide a subnetmask will create an object with a mask of /32.
+            address: The IPv4 network as a string, 2-tuple, or any format
+              supported by the IPv4Address constructor.
 
-              If the mask (portion after the / in the argument) is given in
-              dotted quad form, it is treated as a netmask if it starts with a
-              non-zero field (e.g. /255.0.0.0 == /8) and as a hostmask if it
-              starts with a zero field (e.g. 0.255.255.255 == /8), with the
-              single exception of an all-zero mask which is treated as a
-              netmask == /0. If no mask is given, a default of /32 is used.
+              Strings typically use CIDR format, such as '192.0.2.0/24'.
+              If a dotted-quad is provided after the '/', it is treated as
+              a netmask if it starts with a nonzero bit (e.g. 255.0.0.0 == /8)
+              or a hostmask if it starts with a zero bit
+              (e.g. /0.0.0.255 == /8), with the single exception of an all-zero
+              mask which is treated as /0.
 
-              Additionally, an integer can be passed, so
-              IPv4Network('192.168.1.1') == IPv4Network(3232235777).
-              or, more generally
-              IPv4Network(int(IPv4Network('192.168.1.1'))) ==
-                IPv4Network('192.168.1.1')
+              The 2-tuple format consists of an (ip, prefixlen), where ip is any
+              format recognized by the IPv4Address constructor, and prefixlen is
+              an integer from 0 through 32.
+
+              A plain IPv4 address (in any format) will be forwarded to the
+              IPv4Address constructor, with an implied prefixlen of 32.
+
+              For example, the following inputs are equivalent:
+                IPv4Network('192.0.2.1/32')
+                IPv4Network('192.0.2.1/255.255.255.255')
+                IPv4Network('192.0.2.1')
+                IPv4Network(0xc0000201)
+                IPv4Network(IPv4Address('192.0.2.1'))
+                IPv4Network(('192.0.2.1', 32))
+                IPv4Network((0xc0000201, 32))
+                IPv4Network((IPv4Address('192.0.2.1'), 32))
 
             strict: A boolean. If true, ensure that we have been passed
               A true network address, eg, 192.168.1.0/24 and not an
@@ -1318,41 +1352,51 @@ class IPv4Network(_BaseV4, _BaseNet):
         _BaseNet.__init__(self, address)
         _BaseV4.__init__(self, address)
 
-        # Constructing from an integer or packed bytes.
-        if isinstance(address, (int, long, Bytes)):
+        # Constructing from a single IP address.
+        if isinstance(address, (int, long, Bytes, IPv4Address)):
             self.ip = IPv4Address(address)
             self._ip = self.ip._ip
             self._prefixlen = self._max_prefixlen
             self.netmask = IPv4Address(self._ALL_ONES)
             return
 
-        # Assume input argument to be string or any object representation
-        # which converts into a formatted IP prefix string.
-        addr = str(address).split('/')
-
-        if len(addr) > 2:
-            raise AddressValueError(address)
-
-        self._ip = self._ip_int_from_string(addr[0])
-        self.ip = IPv4Address(self._ip)
-
-        if len(addr) == 2:
+        # Constructing from an (ip, prefixlen) tuple.
+        if isinstance(address, tuple):
             try:
-                # Check for a netmask in prefix length form.
-                self._prefixlen = self._prefix_from_prefix_string(addr[1])
-            except NetmaskValueError:
-                # Check for a netmask or hostmask in dotted-quad form.
-                # This may raise NetmaskValueError.
-                self._prefixlen = self._prefix_from_ip_string(addr[1])
+                ip, prefixlen = address
+            except ValueError:
+                raise AddressValueError(address)
+            self.ip = IPv4Address(ip)
+            self._ip = self.ip._ip
+            self._prefixlen = self._prefix_from_prefix_int(prefixlen)
+
         else:
-            self._prefixlen = self._max_prefixlen
+            # Assume input argument to be string or any object representation
+            # which converts into a formatted IP prefix string.
+            addr = str(address).split('/')
+
+            if len(addr) > 2:
+                raise AddressValueError(address)
+
+            self._ip = self._ip_int_from_string(addr[0])
+            self.ip = IPv4Address(self._ip)
+
+            if len(addr) == 2:
+                try:
+                    # Check for a netmask in prefix length form.
+                    self._prefixlen = self._prefix_from_prefix_string(addr[1])
+                except NetmaskValueError:
+                    # Check for a netmask or hostmask in dotted-quad form.
+                    # This may raise NetmaskValueError.
+                    self._prefixlen = self._prefix_from_ip_string(addr[1])
+            else:
+                self._prefixlen = self._max_prefixlen
 
         self.netmask = IPv4Address(self._ip_int_from_prefix(self._prefixlen))
 
         if strict:
             if self.ip != self.network:
-                raise ValueError('%s has host bits set' %
-                                 self.ip)
+                raise ValueError('%s has host bits set' % self.ip)
         if self._prefixlen == (self._max_prefixlen - 1):
             self.iterhosts = self.__iter__
 
@@ -1447,7 +1491,7 @@ class _BaseV6(object):
 
         try:
             # Now, parse the hextets into a 128-bit integer.
-            ip_int = 0L
+            ip_int = long(0)
             for i in xrange(parts_hi):
                 ip_int <<= 16
                 ip_int |= self._parse_hextet(parts[i])
@@ -1752,6 +1796,11 @@ class IPv6Address(_BaseV6, _BaseIP):
         """
         _BaseV6.__init__(self, address)
 
+        # Efficient copy constructor.
+        if isinstance(address, IPv6Address):
+            self._ip = address._ip
+            return
+
         # Efficient constructor from integer.
         if isinstance(address, (int, long)):
             self._ip = address
@@ -1771,9 +1820,6 @@ class IPv6Address(_BaseV6, _BaseIP):
         # Assume input argument to be string or any object representation
         # which converts into a formatted IP string.
         addr_str = str(address)
-        if not addr_str:
-            raise AddressValueError('')
-
         self._ip = self._ip_int_from_string(addr_str)
 
 
@@ -1793,28 +1839,34 @@ class IPv6Network(_BaseV6, _BaseNet):
 
 
     def __init__(self, address, strict=False):
-        """Instantiate a new IPv6 Network object.
+        """Instantiate a new IPv6 network object.
 
         Args:
-            address: A string or integer representing the IPv6 network or the IP
-              and prefix/netmask.
-              '2001:4860::/128'
-              '2001:4860:0000:0000:0000:0000:0000:0000/128'
-              '2001:4860::'
-              are all functionally the same in IPv6.  That is to say,
-              failing to provide a subnetmask will create an object with
-              a mask of /128.
+            address: The IPv6 network as a string, 2-tuple, or any format
+              supported by the IPv6Address constructor.
 
-              Additionally, an integer can be passed, so
-              IPv6Network('2001:4860::') ==
-                IPv6Network(42541956101370907050197289607612071936L).
-              or, more generally
-              IPv6Network(IPv6Network('2001:4860::')._ip) ==
-                IPv6Network('2001:4860::')
+              Strings should be in CIDR format, such as '2001:db8::/32'.
+
+              The 2-tuple format consists of an (ip, prefixlen), where ip is any
+              format recognized by the IPv6Address constructor, and prefixlen is
+              an integer from 0 through 128.
+
+              A plain IPv6 address (in any format) will be forwarded to the
+              IPv6Address constructor, with an implied prefixlen of 128.
+
+              For example, the following inputs are equivalent:
+                IPv6Network('2001:db8::/128')
+                IPv6Network('2001:db8:0:0:0:0:0:0/128')
+                IPv6Network('2001:db8::')
+                IPv6Network(0x20010db8 << 96)
+                IPv6Network(IPv6Address('2001:db8::'))
+                IPv6Network(('2001:db8::', 128))
+                IPv6Network((0x20010db8 << 96, 128))
+                IPv6Network((IPv6Address('2001:db8::'), 128))
 
             strict: A boolean. If true, ensure that we have been passed
-              A true network address, eg, 192.168.1.0/24 and not an
-              IP address on a network, eg, 192.168.1.1/24.
+              A true network address, eg, 2001:db8::/32 and not an
+              IP address on a network, eg, 2001:db8::1/32.
 
         Raises:
             AddressValueError: If address isn't a valid IPv6 address.
@@ -1827,29 +1879,40 @@ class IPv6Network(_BaseV6, _BaseNet):
         _BaseNet.__init__(self, address)
         _BaseV6.__init__(self, address)
 
-        # Constructing from an integer or packed bytes.
-        if isinstance(address, (int, long, Bytes)):
+        # Constructing from a single IP address.
+        if isinstance(address, (int, long, Bytes, IPv6Address)):
             self.ip = IPv6Address(address)
             self._ip = self.ip._ip
             self._prefixlen = self._max_prefixlen
             self.netmask = IPv6Address(self._ALL_ONES)
             return
 
-        # Assume input argument to be string or any object representation
-        # which converts into a formatted IP prefix string.
-        addr = str(address).split('/')
+        # Constructing from an (ip, prefixlen) tuple.
+        if isinstance(address, tuple):
+            try:
+                ip, prefixlen = address
+            except ValueError:
+                raise AddressValueError(address)
+            self.ip = IPv6Address(ip)
+            self._ip = self.ip._ip
+            self._prefixlen = self._prefix_from_prefix_int(prefixlen)
 
-        if len(addr) > 2:
-            raise AddressValueError(address)
-
-        self._ip = self._ip_int_from_string(addr[0])
-        self.ip = IPv6Address(self._ip)
-
-        if len(addr) == 2:
-            # This may raise NetmaskValueError
-            self._prefixlen = self._prefix_from_prefix_string(addr[1])
         else:
-            self._prefixlen = self._max_prefixlen
+            # Assume input argument to be string or any object representation
+            # which converts into a formatted IP prefix string.
+            addr = str(address).split('/')
+
+            if len(addr) > 2:
+                raise AddressValueError(address)
+
+            self._ip = self._ip_int_from_string(addr[0])
+            self.ip = IPv6Address(self._ip)
+
+            if len(addr) == 2:
+                # This may raise NetmaskValueError
+                self._prefixlen = self._prefix_from_prefix_string(addr[1])
+            else:
+                self._prefixlen = self._max_prefixlen
 
         self.netmask = IPv6Address(self._ip_int_from_prefix(self._prefixlen))
 
