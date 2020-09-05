@@ -129,6 +129,9 @@ def get_server_resources(return_presence=False, return_server=False, return_info
     if return_server:
         return server
 
+    logger.info("Tautulli PlexTV :: Selected server: %s (%s) (%s - Version %s)",
+                server['pms_name'], server['pms_url'], server['pms_platform'], server['pms_version'])
+
     plexpy.CONFIG.process_kwargs(server)
     plexpy.CONFIG.write()
 
