@@ -1570,6 +1570,9 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
                 for session_ in session_data:
+                    # Filter out background theme music sessions
+                    if helpers.get_xml_attr(session_, 'guid').startswith('library://'):
+                        continue
                     session_output = self.get_session_each(session_, skip_cache=skip_cache)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
