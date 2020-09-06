@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.5.5 (2020-09-06)
+
+* Activity:
+  * Fix: Filter out TV show background theme music sessions.
+* Notifications:
+  * New: Check Plex external guids for notification metadata provider links.
+* UI:
+  * Fix: Incorrect sorting for user/library recently played items.
+* API:
+  * Fix: get_synced_items API command returning error with empty result.
+  * Fix: Download API commands not returning the file.
+  * Fix: get_logs API command encoding error.
+  * Fix: get_user_player_stats API command returning error instead of empty result.
+  * New: Added get_server_info API command.
+  * New: Added external guids to get_metadata API command.
+  * New: Added support for multi-column sorting for datatable API commands.
+  * Change: get_activity API command return thumbnail override for clips.
+  * Change: get_libraries_table API command return custom library artwork.
+* Other:
+  * Fix: Tautulli failed to run with a stale pid file.
+  * New: Added scheduled task to optimize the Tautulli database.
+  * Change: Update plexapi to 3.6.0.
+  * Change: Update some libraries for Python 3 compatibility.
+
+
 ## v2.5.4 (2020-07-31)
 
 * Monitoring:
