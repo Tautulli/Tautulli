@@ -744,11 +744,6 @@ a .users-poster-face:hover {
 .users-name {
     position: relative;
 }
-#currentActivity,
-.home-platforms,
-.library-platforms {
-    margin-right: -25px;
-}
 #dashboard-checking-activity,
 #dashboard-no-activity {
     margin-bottom: 20px;
