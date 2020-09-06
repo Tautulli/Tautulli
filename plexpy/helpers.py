@@ -617,7 +617,8 @@ def whois_lookup(ip_address):
     nets = []
     err = None
     try:
-        whois = ipwhois.IPWhois(ip_address).lookup_whois(retry_count=0)
+        whois = ipwhois.IPWhois(ip_address).lookup_whois(retry_count=0,
+                                                         asn_methods=['dns', 'whois', 'http'])
         countries = ipwhois.utils.get_countries()
         nets = whois['nets']
         for net in nets:
