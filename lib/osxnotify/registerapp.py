@@ -129,5 +129,5 @@ if __name__ == '__main__':
 
         return app_path, 'App registered'
 
-    except Exception, e:
+    except Exception as e:
         return None, 'Error creating App %s. %s' % (app_path, e)
