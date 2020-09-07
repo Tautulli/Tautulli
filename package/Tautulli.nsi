@@ -7,7 +7,7 @@
 !define APP_NAME "Tautulli"
 !define COMP_NAME "Tautulli"
 !define WEB_SITE "https://tautulli.com"
-!define COPYRIGHT "Tautulli © 2020"
+!define COPYRIGHT "Tautulli Â© 2020"
 !define DESCRIPTION "Monitor your Plex Media Server"
 !define APP_ICON "..\dist\Tautulli\data\interfaces\default\images\logo-circle.ico"
 !define LICENSE_TXT "..\dist\Tautulli\LICENSE"
@@ -116,6 +116,8 @@ Var /GLOBAL nolaunch
 ######################################################################
 
 Section -MainProgram
+Call UninstallPrevious
+
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
@@ -235,6 +237,20 @@ Function un.onInit
   End:
 	Abort
   NoAbort:
+FunctionEnd
+
+######################################################################
+
+Function UninstallPrevious
+  ; Check for uninstaller.
+  ReadRegStr $R0 "${REG_ROOT}" "${UNINSTALL_PATH}" "UninstallString"
+  ${If} $R0 == ""
+    Goto Done
+  ${EndIf}
+  DetailPrint "Removing previous installation."
+  ; Run the uninstaller silently.
+  ExecWait '"$R0" /S _?=$INSTDIR'
+  Done:
 FunctionEnd
 
 ######################################################################
