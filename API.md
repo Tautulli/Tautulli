@@ -85,10 +85,10 @@ Delete all Tautulli history for a specific library.
 
 ```
 Required parameters:
+    server_id (str):        The Plex server identifier of the library section
     section_id (str):       The id of the Plex library section
 
 Optional parameters:
-    server_id (str):        The Plex server identifier of the library section
     row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:
@@ -159,10 +159,10 @@ Delete a library section from Tautulli. Also erases all history for the library.
 
 ```
 Required parameters:
+    server_id (str):        The Plex server identifier of the library section
     section_id (str):       The id of the Plex library section
 
 Optional parameters:
-    server_id (str):        The Plex server identifier of the library section
     row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
 Returns:

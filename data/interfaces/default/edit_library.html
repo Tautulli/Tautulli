@@ -115,21 +115,13 @@ DOCUMENTATION :: END
         var msg = 'Are you REALLY sure you want to purge all history for the <strong>${data["section_name"]}</strong> library?<br>' + 
             'This is permanent and cannot be undone!';
         var url = 'delete_all_library_history';
-        confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
+        confirmAjaxCall(url, msg, { server_id: '${server_id}', section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
     });
 
     $('#undelete-library').click(function () {
-        var msg = 'Are you sure you want to undelete this user?';
+        var msg = 'Are you sure you want to undelete this library?';
         var url = 'undelete_library';
         confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
-    });
-
-    $(document).ready(function() {
-        // Move #confirm-modal to parent container
-        if (!($('#edit-library-modal').next().is('#confirm-modal-purge'))) {
-            $('#confirm-modal-purge').appendTo($('#edit-library-modal').parent());
-        }
-        $('#edit-library-modal > #confirm-modal-purge').remove();
     });
 </script>
 % endif

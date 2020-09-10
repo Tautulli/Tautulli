@@ -134,13 +134,5 @@ DOCUMENTATION :: END
         var url = 'undelete_user';
         confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { location.reload(); });
     });
-
-    $(document).ready(function() {
-        // Move #confirm-modal-purge to parent container
-        if (!($('#edit-user-modal').next().is('#confirm-modal-purge'))) {
-            $('#confirm-modal-purge').appendTo($('#edit-user-modal').parent());
-        }
-        $('#edit-user-modal > #confirm-modal-purge').remove();
-    });
 </script>
 % endif
