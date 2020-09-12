@@ -439,7 +439,7 @@ def initialize_scheduler():
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
-        schedule_job(database.optimize, 'Optimize Tautulli database',
+        schedule_job(database.optimize_db, 'Optimize Tautulli database',
                      hours=24, minutes=0, seconds=0)
         schedule_job(database.make_backup, 'Backup Tautulli database',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))

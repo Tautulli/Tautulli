@@ -286,7 +286,18 @@ def vacuum():
 
 
 def optimize():
+    monitor_db = MonitorDatabase()
+
+    logger.info("Tautulli Database :: Optimizing database.")
+    try:
+        monitor_db.action('PRAGMA optimize')
+    except Exception as e:
+        logger.error("Tautulli Database :: Failed to optimize database: %s" % e)
+
+
+def optimize_db():
     vacuum()
+    optimize()
 
 
 def db_filename(filename=FILENAME):
