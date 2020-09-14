@@ -209,8 +209,9 @@ def check_active_sessions(ws_request=False):
                 new_session = monitor_process.write_session(session)
 
                 if new_session:
-                    logger.debug("Tautulli Monitor :: Session %s started by user %s with ratingKey %s."
-                                 % (session['session_key'], session['user_id'], session['rating_key']))
+                    logger.debug("Tautulli Monitor :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
+                                 % (str(session['session_key']), str(session['user_id']), session['username'],
+                                    str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
 
         else:
             logger.debug("Tautulli Monitor :: Unable to read session list.")
