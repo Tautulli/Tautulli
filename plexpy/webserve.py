@@ -6078,6 +6078,12 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    def get_plexpy_url(self, **kwargs):
+        return helpers.get_plexpy_url()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     @addtoapi()
     def get_newsletters(self, **kwargs):
         """ Get a list of configured newsletters.
