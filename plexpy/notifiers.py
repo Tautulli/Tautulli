@@ -3469,10 +3469,10 @@ class TELEGRAM(Notifier):
                           'description': 'Disables automatic link previews for links in the message',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Enable Silent Messages',
+                         {'label': 'Enable Silent Notifications',
                           'value': self.config['silent_message'],
                           'name': 'telegram_silent_message',
-                          'description': 'Sends the message silently. Users will receive a notification with no sound.',
+                          'description': 'Send notifications silently without any alert sounds.',
                           'input_type': 'checkbox'
                           }
                          ]
