@@ -6491,17 +6491,18 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json',
-                        export_level=1, **kwargs):
+                        metadata_level=1, media_info_level=1, **kwargs):
         """ Export library or media metadata to a file
 
             ```
             Required parameters:
-                section_id (int):      The section id of the library to export, OR
-                rating_key (int):      The rating key of the media item to export
+                section_id (int):          The section id of the library to export, OR
+                rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
-                file_format (str):     'json' (default) or 'csv'
-                export_level (int):    The level of metadata to export
+                file_format (str):         'json' (default) or 'csv'
+                metadata_level (int):      The level of metadata to export (default 1)
+                media_info_level (int):    The level of media info to export (default 1)
 
             Returns:
                 json:
@@ -6513,7 +6514,8 @@ class WebInterface(object):
         result = exporter.export(section_id=section_id,
                                  rating_key=rating_key,
                                  file_format=file_format,
-                                 level=export_level)
+                                 metadata_level=metadata_level,
+                                 media_info_level=media_info_level)
 
         if result:
             return {'result': 'success', 'message': 'Metadata export has started.'}

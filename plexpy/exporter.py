@@ -23,6 +23,7 @@ import json
 import os
 import threading
 
+from copy import deepcopy
 from functools import partial, reduce
 from io import open
 from multiprocessing.dummy import Pool as ThreadPool
@@ -859,57 +860,61 @@ PLAYLIST_ATTRS = {
     'items': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
 }
 
-MOVIE_LEVELS = {
-    1: [
-        'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year',
-        'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
-    ],
-    2: [
-        'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
-        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
-    ],
-    3: [
-        'art', 'thumb', 'key', 'chapterSource',
-        'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-        'updatedAt', 'lastViewedAt', 'viewCount'
-    ],
-    4: [
-        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
-        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
-        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-        'media.optimizedVersion', 'media.hdr'
-    ],
-    5: [
-        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
-        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
-        'media.parts.audioProfile', 'media.parts.videoProfile',
-        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
-    ],
-    6: [
-        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
-        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
-        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
-        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
-        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
-        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
-        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
-        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
-        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
-        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
-        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
-        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
-        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
-        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
-        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
-        'media.parts.audioStreams.default',
-        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
-        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
-        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
-        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-        'media.parts.subtitleStreams.default'
-    ]
-}
+MOVIE_LEVELS = [
+    {
+        1: [
+            'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year',
+            'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
+            'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
+        ],
+        2: [
+            'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
+            'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+        ],
+        3: [
+            'art', 'thumb', 'key', 'chapterSource',
+            'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
+            'updatedAt', 'lastViewedAt', 'viewCount'
+        ]
+    },
+    {
+        1: [
+            'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+            'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+            'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+            'media.optimizedVersion', 'media.hdr'
+        ],
+        2: [
+            'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+            'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+            'media.parts.audioProfile', 'media.parts.videoProfile',
+            'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+        ],
+        3: [
+            'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+            'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+            'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+            'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+            'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+            'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+            'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+            'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+            'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+            'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+            'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+            'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+            'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+            'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+            'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+            'media.parts.audioStreams.default',
+            'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+            'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+            'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+            'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+            'media.parts.subtitleStreams.default'
+        ]
+    }
+]
 
 SHOW_LEVELS = {}
 
@@ -952,9 +957,11 @@ def get_any_hdr(obj, root):
     return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
 
 
+def export(section_id=None, rating_key=None, file_format='json', metadata_level=1, media_info_level=1):
     timestamp = helpers.timestamp()
 
-    level = helpers.cast_to_int(level)
+    metadata_level = helpers.cast_to_int(metadata_level)
+    media_info_level = helpers.cast_to_int(media_info_level)
 
     if not section_id and not rating_key:
         logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
@@ -965,8 +972,11 @@ def get_any_hdr(obj, root):
     elif section_id and not str(section_id).isdigit():
         logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", section_id)
         return
-    elif not level:
-        logger.error("Tautulli Exporter :: Export called with invalid level '%s'.", level)
+    elif not metadata_level:
+        logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", metadata_level)
+        return
+    elif not media_info_level:
+        logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", media_info_level)
         return
     elif file_format not in ('json', 'csv'):
         logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", file_format)
@@ -975,7 +985,8 @@ def get_any_hdr(obj, root):
     plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
     if rating_key:
-        logger.debug("Tautulli Exporter :: Export called with rating_key %s, level %d", rating_key, level)
+        logger.debug("Tautulli Exporter :: Export called with rating_key %s, metadata_level %d, media_info_level %d",
+                     rating_key, metadata_level, media_info_level)
 
         item = plex.get_item(helpers.cast_to_int(rating_key))
         media_type = item.type
@@ -997,7 +1008,8 @@ def get_any_hdr(obj, root):
         items = [item]
 
     elif section_id:
-        logger.debug("Tautulli Exporter :: Export called with section_id %s, level %d", section_id, level)
+        logger.debug("Tautulli Exporter :: Export called with section_id %s, metadata_level %d, media_info_level %d",
+                     rating_key, metadata_level, media_info_level)
 
         library = plex.get_library(section_id)
         media_type = library.type
@@ -1013,31 +1025,45 @@ def get_any_hdr(obj, root):
         logger.error("Tautulli Exporter :: Cannot export media type '%s'", media_type)
         return
 
-    media_attrs, level_attrs = MEDIA_TYPES[media_type]
+    media_attrs, (metadata_level_attrs, media_info_level_attrs) = MEDIA_TYPES[media_type]
 
-    if level == 9:
-        export_attrs = media_attrs
+    if metadata_level != 9 and metadata_level not in metadata_level_attrs:
+        logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", metadata_level)
+        return
+    elif media_info_level != 9 and media_info_level not in media_info_level_attrs:
+        logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", media_info_level)
+        return
+
+    export_attrs_list = []
+    export_attrs_set = set()
+
+    if metadata_level == 9:
+        metadata_export_attrs = deepcopy(media_attrs)
+        del metadata_export_attrs['media']
+        export_attrs_list.append(metadata_export_attrs)
     else:
-        if level not in level_attrs:
-            logger.error("Tautulli Exporter :: Export called with invalid level '%s'.", level)
-            return
+        _metadata_levels = sorted(metadata_level_attrs.keys())
+        for _metadata_level in _metadata_levels[:_metadata_levels.index(metadata_level) + 1]:
+            export_attrs_set.update(metadata_level_attrs[_metadata_level])
 
-        export_attrs_set = set()
-        _levels = sorted(level_attrs.keys())
-        for _level in _levels[:_levels.index(level) + 1]:
-            export_attrs_set.update(level_attrs[_level])
+    if media_info_level == 9:
+        media_info_export_attrs = {'media': deepcopy(media_attrs['media'])}
+        export_attrs_list.append(media_info_export_attrs)
+    else:
+        _media_info_levels = sorted(media_info_level_attrs.keys())
+        for _media_info_level in _media_info_levels[:_media_info_levels.index(media_info_level) + 1]:
+            export_attrs_set.update(media_info_level_attrs[_media_info_level])
 
-        export_attrs_list = []
-        for attr in export_attrs_set:
-            try:
-                value = helpers.get_dict_value_by_path(media_attrs, attr)
-            except KeyError:
-                logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
-                continue
+    for attr in export_attrs_set:
+        try:
+            value = helpers.get_dict_value_by_path(media_attrs, attr)
+        except KeyError:
+            logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+            continue
 
-            export_attrs_list.append(value)
+        export_attrs_list.append(value)
 
-        export_attrs = reduce(helpers.dict_merge, export_attrs_list)
+    export_attrs = reduce(helpers.dict_merge, export_attrs_list)
 
     filename = helpers.clean_filename(filename)
 
@@ -1091,6 +1117,8 @@ def _real_export(export_id, items, attrs, file_format, filename):
     except Exception as e:
         set_export_state(export_id=export_id, success=False)
         logger.error("Tautulli Exporter :: Failed to export '%s': %s", filename, e)
+        import traceback
+        traceback.print_exc()
         success = False
 
     finally:

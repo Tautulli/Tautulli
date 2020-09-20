@@ -27,22 +27,34 @@ DOCUMENTATION :: END
                 <input type="hidden" id="section_id" name="section_id" value="${section_id or ''}" />
                 <input type="hidden" id="rating_key" name="rating_key" value="${rating_key or ''}" />
                 <div class="form-group">
-                    <label for="export_level_select">Export Level</label>
+                    <label for="metadata_export_level_select">Metadata Export Level</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="export_level_select" name="export_level_select">
+                            <select class="form-control" id="metadata_export_level_select" name="metadata_export_level_select">
                                 <option value="1">Level 1 - Basic Metadata</option>
                                 <option value="2">Level 2 - Extended Metadata</option>
                                 <option value="3">Level 3 - All Metadata</option>
-                                <option value="4">Level 4 - Basic Media Info</option>
-                                <option value="5">Level 5 - Extended Media Info</option>
-                                <option value="6">Level 6 - All Media Info</option>
                                 <option value="9">Level 9 - Everything</option>
                                 <option value="-999">Custom</option>
                             </select>
                         </div>
                     </div>
-                    <p class="help-block">Select the export level.</p>
+                    <p class="help-block">Select the metadata export level.</p>
+                </div>
+                <div class="form-group">
+                    <label for="media_info_export_level_select">Media Info Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="media_info_export_level_select" name="media_info_export_level_select">
+                                <option value="1">Level 1 - Basic Media Info</option>
+                                <option value="2">Level 2 - Extended Media Info</option>
+                                <option value="3">Level 3 - All Media Info</option>
+                                <option value="9">Level 9 - Everything</option>
+                                <option value="-999">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the media info export level.</p>
                 </div>
                 <div class="form-group">
                     <label for="file_format_select">File Format</label>
@@ -69,7 +81,8 @@ DOCUMENTATION :: END
     $("#export_metadata").click(function() {
         var section_id = $('#section_id').val();
         var rating_key = $('#rating_key').val();
-        var export_level = $('#export_level_select option:selected').val();
+        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
+        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
         var file_format = $('#file_format_select option:selected').val();
 
         $.ajax({
@@ -77,7 +90,8 @@ DOCUMENTATION :: END
             data: {
                 section_id: section_id,
                 rating_key: rating_key,
-                export_level: export_level,
+                metadata_level: metadata_export_level,
+                media_info_level: media_info_export_level,
                 file_format: file_format
             },
             async: true,
