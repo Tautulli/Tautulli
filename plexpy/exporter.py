@@ -110,6 +110,7 @@ MOVIE_ATTRS = {
         'videoProfile': None,
         'videoResolution': None,
         'width': None,
+        'hdr': lambda i: get_any_hdr(i, MOVIE_ATTRS['media']),
         'parts': {
             'accessible': None,
             'audioProfile': None,
@@ -389,6 +390,7 @@ EPISODE_ATTRS = {
         'videoProfile': None,
         'videoResolution': None,
         'width': None,
+        'hdr': lambda i: get_any_hdr(i, EPISODE_ATTRS['media']),
         'parts': {
             'accessible': None,
             'audioProfile': None,
@@ -876,7 +878,7 @@ MOVIE_LEVELS = {
         'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
         'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
         'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-        'media.optimizedVersion'
+        'media.optimizedVersion', 'media.hdr'
     ],
     5: [
         'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
@@ -944,7 +946,12 @@ MEDIA_TYPES = {
 }
 
 
-def export(section_id=None, rating_key=None, file_format='json', level=1):
+def get_any_hdr(obj, root):
+    attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
+    media = helpers.get_attrs_to_dict(obj, attrs)
+    return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
+
+
     timestamp = helpers.timestamp()
 
     level = helpers.cast_to_int(level)
@@ -1022,15 +1029,11 @@ def export(section_id=None, rating_key=None, file_format='json', level=1):
 
         export_attrs_list = []
         for attr in export_attrs_set:
-            split_attr = attr.split('.')
             try:
-                value = helpers.get_by_path(media_attrs, split_attr)
+                value = helpers.get_dict_value_by_path(media_attrs, attr)
             except KeyError:
                 logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
                 continue
-
-            for _attr in reversed(split_attr):
-                value = {_attr: value}
 
             export_attrs_list.append(value)
 
