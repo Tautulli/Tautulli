@@ -52,9 +52,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir /opt/Tautulli --quiet --daemon --nolaunch
-GuessMainPID=no
-Type=forking
+ExecStart=/usr/bin/python3 /opt/Tautulli/Tautulli.py --config /opt/Tautulli/config.ini --datadir /opt/Tautulli --quiet --nolaunch
 User=tautulli
 Group=tautulli
 Restart=on-abnormal
