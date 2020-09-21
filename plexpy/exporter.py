@@ -53,6 +53,31 @@ class Export(object):
         'playlist'
     )
 
+    def __init__(self, section_id=None, rating_key=None, file_format='json',
+                 metadata_level=1, media_info_level=1, include_images=False):
+        self.section_id = helpers.cast_to_int(section_id)
+        self.rating_key = helpers.cast_to_int(rating_key)
+        self.file_format = file_format
+        self.metadata_level = helpers.cast_to_int(metadata_level)
+        self.media_info_level = helpers.cast_to_int(media_info_level)
+        self.include_images = include_images
+
+        self.timestamp = helpers.timestamp()
+
+        self.media_type = None
+        self.items = []
+
+        self.filename = None
+        self.filename_ext = None
+        self.export_id = None
+        self.file_size = None
+        self.success = False
+
+    def _get_all_metadata_attr(self, media_type):
+        exclude_attrs = ('media', 'artFile', 'thumbFile')
+        all_attrs = self.return_attrs(media_type)
+        return [attr for attr in all_attrs if attr not in exclude_attrs]
+
     def return_attrs(self, media_type):
         def movie_attrs():
             _movie_attrs = {
@@ -935,7 +960,7 @@ class Export(object):
                     1: [
                         'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
                         'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-                        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'artFile', 'thumbFile'
+                        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
                     ],
                     2: [
                         'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
@@ -946,7 +971,7 @@ class Export(object):
                         'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
                         'updatedAt', 'lastViewedAt', 'viewCount'
                     ],
-                    9: [k for k in self.return_attrs('movie') if k != 'media']
+                    9: self._get_all_metadata_attr('movie')
                 },
                 {
                     1: [
@@ -1007,7 +1032,7 @@ class Export(object):
                            'art', 'thumb', 'banner', 'theme', 'key',
                            'updatedAt', 'lastViewedAt', 'viewCount'
                        ] + ['seasons.' + attr for attr in self.return_levels('season')[0][3]],
-                    9: [k for k in self.return_attrs('show') if k != 'media']
+                    9: self._get_all_metadata_attr('show')
                 },
                 {
                     1: ['seasons.' + attr for attr in self.return_levels('season')[1][1]],
@@ -1035,7 +1060,7 @@ class Export(object):
                            'updatedAt', 'lastViewedAt', 'viewCount',
                            'parentKey', 'parentTheme', 'parentThumb'
                        ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][3]],
-                    9: [k for k in self.return_attrs('season') if k != 'media']
+                    9: self._get_all_metadata_attr('season')
                 },
                 {
                     1: ['episodes.' + attr for attr in self.return_levels('episode')[1][1]],
@@ -1066,7 +1091,7 @@ class Export(object):
                         'parentThumb', 'parentKey',
                         'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                     ],
-                    9: [k for k in self.return_attrs('episode') if k != 'media']
+                    9: self._get_all_metadata_attr('episode')
                 },
                 {
                     1: [
@@ -1154,25 +1179,6 @@ class Export(object):
         }
 
         return _media_types[media_type]()
-
-    def __init__(self, section_id=None, rating_key=None, file_format='json',
-                 metadata_level=1, media_info_level=1):
-        self.section_id = helpers.cast_to_int(section_id)
-        self.rating_key = helpers.cast_to_int(rating_key)
-        self.file_format = file_format
-        self.metadata_level = helpers.cast_to_int(metadata_level)
-        self.media_info_level = helpers.cast_to_int(media_info_level)
-
-        self.timestamp = helpers.timestamp()
-
-        self.media_type = None
-        self.items = []
-
-        self.filename = None
-        self.filename_ext = None
-        self.export_id = None
-        self.file_size = None
-        self.success = False
 
     def export(self):
         if not self.section_id and not self.rating_key:
