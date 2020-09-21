@@ -22,6 +22,7 @@ from backports import csv
 import json
 import os
 import requests
+import shutil
 import threading
 
 from functools import partial, reduce
@@ -1430,7 +1431,9 @@ def delete_export(export_id):
             logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
-                # TODO: Delete images as well
+                folder = '{}.images'.format(os.path.splitext(filepath)[0])
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
         return True
@@ -1450,6 +1453,9 @@ def delete_all_exports():
             filepath = get_export_filepath(row['filename'])
             try:
                 os.remove(filepath)
+                folder = '{}.images'.format(os.path.splitext(filepath)[0])
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
                 deleted_files = False
