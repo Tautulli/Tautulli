@@ -1267,15 +1267,11 @@ def flatten_tree(obj, key=''):
 # https://stackoverflow.com/a/14692747
 def get_by_path(root, items):
     """Access a nested object in root by item sequence."""
-    if isinstance(items, str):
-        items = items.split('.')
     return reduce(operator.getitem, items, root)
 
 
 def set_by_path(root, items, value):
     """Set a value in a nested object in root by item sequence."""
-    if isinstance(items, str):
-        items = items.split('.')
     get_by_path(root, items[:-1])[items[-1]] = value
 
 

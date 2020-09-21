@@ -6511,11 +6511,11 @@ class WebInterface(object):
                      }
             ```
         """
-        result = exporter.export(section_id=section_id,
+        result = exporter.Export(section_id=section_id,
                                  rating_key=rating_key,
                                  file_format=file_format,
                                  metadata_level=metadata_level,
-                                 media_info_level=media_info_level)
+                                 media_info_level=media_info_level).export()
 
         if result:
             return {'result': 'success', 'message': 'Metadata export has started.'}

@@ -23,7 +23,6 @@ import json
 import os
 import threading
 
-from copy import deepcopy
 from functools import partial, reduce
 from io import open
 from multiprocessing.dummy import Pool as ThreadPool
@@ -43,912 +42,1312 @@ else:
     from plexpy.plex import Plex
 
 
-MOVIE_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'audienceRating': None,
-    'audienceRatingImage': None,
-    'chapters': {
-        'id': None,
-        'tag': None,
-        'index': None,
-        'start': None,
-        'end': None,
-        'thumb': None
-    },
-    'chapterSource': None,
-    'collections': {
-        'id': None,
-        'tag': None
-    },
-    'contentRating': None,
-    'countries': {
-        'id': None,
-        'tag': None
-    },
-    'directors': {
-        'id': None,
-        'tag': None
-    },
-    'duration': None,
-    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'genres': {
-        'id': None,
-        'tag': None
-    },
-    'guid': None,
-    'key': None,
-    'labels': {
-        'id': None,
-        'tag': None
-    },
-    'lastViewedAt': helpers.datetime_to_iso,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'locations': None,
-    'media': {
-        'aspectRatio': None,
-        'audioChannels': None,
-        'audioCodec': None,
-        'audioProfile': None,
-        'bitrate': None,
-        'container': None,
-        'duration': None,
-        'height': None,
-        'id': None,
-        'has64bitOffsets': None,
-        'optimizedForStreaming': None,
-        'optimizedVersion': None,
-        'target': None,
-        'title': None,
-        'videoCodec': None,
-        'videoFrameRate': None,
-        'videoProfile': None,
-        'videoResolution': None,
-        'width': None,
-        'hdr': lambda i: get_any_hdr(i, MOVIE_ATTRS['media']),
-        'parts': {
-            'accessible': None,
-            'audioProfile': None,
-            'container': None,
-            'deepAnalysisVersion': None,
-            'duration': None,
-            'exists': None,
-            'file': None,
-            'has64bitOffsets': None,
-            'id': None,
-            'indexes': None,
-            'key': None,
-            'size': None,
-            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
-            'optimizedForStreaming': None,
-            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-            'syncItemId': None,
-            'syncState': None,
-            'videoProfile': None,
-            'videoStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'language': None,
-                'languageCode': None,
-                'selected': None,
-                'streamType': None,
-                'title': None,
-                'type': None,
-                'bitDepth': None,
-                'bitrate': None,
-                'cabac': None,
-                'chromaLocation': None,
-                'chromaSubsampling': None,
-                'colorPrimaries': None,
-                'colorRange': None,
-                'colorSpace': None,
-                'colorTrc': None,
+class Export(object):
+    MEDIA_TYPES = (
+        'movie',
+        'show', 'season', 'episode',
+        'artist', 'album', 'track',
+        'photo album', 'photo',
+        'collection',
+        'playlist'
+    )
+
+    def return_attrs(self, media_type):
+        def movie_attrs():
+            _movie_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'artFile': lambda i: get_image(i, 'artUrl', self.filename),
+                'audienceRating': None,
+                'audienceRatingImage': None,
+                'chapters': {
+                    'id': None,
+                    'tag': None,
+                    'index': None,
+                    'start': None,
+                    'end': None,
+                    'thumb': None
+                },
+                'chapterSource': None,
+                'collections': {
+                    'id': None,
+                    'tag': None
+                },
+                'contentRating': None,
+                'countries': {
+                    'id': None,
+                    'tag': None
+                },
+                'directors': {
+                    'id': None,
+                    'tag': None
+                },
                 'duration': None,
-                'frameRate': None,
-                'frameRateMode': None,
-                'hasScalingMatrix': None,
-                'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
-                'height': None,
-                'level': None,
-                'pixelAspectRatio': None,
-                'pixelFormat': None,
-                'profile': None,
-                'refFrames': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'scanType': None,
-                'streamIdentifier': None,
-                'width': None
-            },
-            'audioStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'language': None,
-                'languageCode': None,
-                'selected': None,
-                'streamType': None,
+                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'genres': {
+                    'id': None,
+                    'tag': None
+                },
+                'guid': None,
+                'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
+                'lastViewedAt': helpers.datetime_to_iso,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'locations': None,
+                'media': {
+                    'aspectRatio': None,
+                    'audioChannels': None,
+                    'audioCodec': None,
+                    'audioProfile': None,
+                    'bitrate': None,
+                    'container': None,
+                    'duration': None,
+                    'height': None,
+                    'id': None,
+                    'has64bitOffsets': None,
+                    'optimizedForStreaming': None,
+                    'optimizedVersion': None,
+                    'target': None,
+                    'title': None,
+                    'videoCodec': None,
+                    'videoFrameRate': None,
+                    'videoProfile': None,
+                    'videoResolution': None,
+                    'width': None,
+                    'hdr': lambda i: get_any_hdr(i, self.return_attrs('movie')['media']),
+                    'parts': {
+                        'accessible': None,
+                        'audioProfile': None,
+                        'container': None,
+                        'deepAnalysisVersion': None,
+                        'duration': None,
+                        'exists': None,
+                        'file': None,
+                        'has64bitOffsets': None,
+                        'id': None,
+                        'indexes': None,
+                        'key': None,
+                        'size': None,
+                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'optimizedForStreaming': None,
+                        'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                        'syncItemId': None,
+                        'syncState': None,
+                        'videoProfile': None,
+                        'videoStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'bitDepth': None,
+                            'bitrate': None,
+                            'cabac': None,
+                            'chromaLocation': None,
+                            'chromaSubsampling': None,
+                            'colorPrimaries': None,
+                            'colorRange': None,
+                            'colorSpace': None,
+                            'colorTrc': None,
+                            'duration': None,
+                            'frameRate': None,
+                            'frameRateMode': None,
+                            'hasScalingMatrix': None,
+                            'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
+                            'height': None,
+                            'level': None,
+                            'pixelAspectRatio': None,
+                            'pixelFormat': None,
+                            'profile': None,
+                            'refFrames': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'scanType': None,
+                            'streamIdentifier': None,
+                            'width': None
+                        },
+                        'audioStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'audioChannelLayout': None,
+                            'bitDepth': None,
+                            'bitrate': None,
+                            'bitrateMode': None,
+                            'channels': None,
+                            'dialogNorm': None,
+                            'duration': None,
+                            'profile': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'samplingRate': None
+                        },
+                        'subtitleStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'forced': None,
+                            'format': None,
+                            'headerCompression': None,
+                            'key': None
+                        }
+                    }
+                },
+                'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'originalTitle': None,
+                'producers': {
+                    'id': None,
+                    'tag': None
+                },
+                'rating': None,
+                'ratingImage': None,
+                'ratingKey': None,
+                'roles': {
+                    'id': None,
+                    'tag': None,
+                    'role': None,
+                    'thumb': None
+                },
+                'studio': None,
+                'summary': None,
+                'tagline': None,
+                'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumbUrl', self.filename),
                 'title': None,
+                'titleSort': None,
                 'type': None,
-                'audioChannelLayout': None,
-                'bitDepth': None,
-                'bitrate': None,
-                'bitrateMode': None,
-                'channels': None,
-                'dialogNorm': None,
-                'duration': None,
-                'profile': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'samplingRate': None
-            },
-            'subtitleStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'language': None,
-                'languageCode': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'selected': None,
-                'streamType': None,
-                'title': None,
-                'type': None,
-                'forced': None,
-                'format': None,
-                'headerCompression': None,
-                'key': None
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'writers': {
+                    'id': None,
+                    'tag': None
+                },
+                'year': None
             }
-        }
-    },
-    'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
-    'originalTitle': None,
-    'producers': {
-        'id': None,
-        'tag': None
-    },
-    'rating': None,
-    'ratingImage': None,
-    'ratingKey': None,
-    'roles': {
-        'id': None,
-        'tag': None,
-        'role': None,
-        'thumb': None
-    },
-    'studio': None,
-    'summary': None,
-    'tagline': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'writers': {
-        'id': None,
-        'tag': None
-    },
-    'year': None
-}
+            return _movie_attrs
 
-SHOW_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'banner': None,
-    'childCount': None,
-    'collections': {
-        'id': None,
-        'tag': None
-    },
-    'contentRating': None,
-    'duration': None,
-    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'genres': {
-        'id': None,
-        'tag': None
-    },
-    'guid': None,
-    'index': None,
-    'key': None,
-    'labels': {
-        'id': None,
-        'tag': None
-    },
-    'lastViewedAt': helpers.datetime_to_iso,
-    'leafCount': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'locations': None,
-    'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
-    'rating': None,
-    'ratingKey': None,
-    'roles': {
-        'id': None,
-        'tag': None,
-        'role': None,
-        'thumb': None
-    },
-    'studio': None,
-    'summary': None,
-    'theme': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'viewedLeafCount': None,
-    'year': None,
-    'seasons': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
-
-SEASON_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'guid': None,
-    'index': None,
-    'key': None,
-    'lastViewedAt': helpers.datetime_to_iso,
-    'leafCount': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'parentGuid': None,
-    'parentIndex': None,
-    'parentKey': None,
-    'parentRatingKey': None,
-    'parentTheme': None,
-    'parentThumb': None,
-    'parentTitle': None,
-    'ratingKey': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'viewedLeafCount': None,
-    'episodes': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
-
-EPISODE_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'chapterSource': None,
-    'contentRating': None,
-    'directors': {
-        'id': None,
-        'tag': None
-    },
-    'duration': None,
-    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'grandparentArt': None,
-    'grandparentGuid': None,
-    'grandparentKey': None,
-    'grandparentRatingKey': None,
-    'grandparentTheme': None,
-    'grandparentThumb': None,
-    'grandparentTitle': None,
-    'guid': None,
-    'index': None,
-    'key': None,
-    'lastViewedAt': helpers.datetime_to_iso,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'locations': None,
-    'media': {
-        'aspectRatio': None,
-        'audioChannels': None,
-        'audioCodec': None,
-        'audioProfile': None,
-        'bitrate': None,
-        'container': None,
-        'duration': None,
-        'height': None,
-        'id': None,
-        'has64bitOffsets': None,
-        'optimizedForStreaming': None,
-        'optimizedVersion': None,
-        'target': None,
-        'title': None,
-        'videoCodec': None,
-        'videoFrameRate': None,
-        'videoProfile': None,
-        'videoResolution': None,
-        'width': None,
-        'hdr': lambda i: get_any_hdr(i, EPISODE_ATTRS['media']),
-        'parts': {
-            'accessible': None,
-            'audioProfile': None,
-            'container': None,
-            'deepAnalysisVersion': None,
-            'duration': None,
-            'exists': None,
-            'file': None,
-            'has64bitOffsets': None,
-            'id': None,
-            'indexes': None,
-            'key': None,
-            'size': None,
-            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
-            'optimizedForStreaming': None,
-            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-            'syncItemId': None,
-            'syncState': None,
-            'videoProfile': None,
-            'videoStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'language': None,
-                'languageCode': None,
-                'selected': None,
-                'streamType': None,
-                'title': None,
-                'type': None,
-                'bitDepth': None,
-                'bitrate': None,
-                'cabac': None,
-                'chromaLocation': None,
-                'chromaSubsampling': None,
-                'colorPrimaries': None,
-                'colorRange': None,
-                'colorSpace': None,
-                'colorTrc': None,
+        def show_attrs():
+            _show_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'banner': None,
+                'childCount': None,
+                'collections': {
+                    'id': None,
+                    'tag': None
+                },
+                'contentRating': None,
                 'duration': None,
-                'frameRate': None,
-                'frameRateMode': None,
-                'hasScalingMatrix': None,
-                'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
-                'height': None,
-                'level': None,
-                'pixelAspectRatio': None,
-                'pixelFormat': None,
-                'profile': None,
-                'refFrames': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'scanType': None,
-                'streamIdentifier': None,
-                'width': None
-            },
-            'audioStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
+                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'genres': {
+                    'id': None,
+                    'tag': None
+                },
+                'guid': None,
                 'index': None,
-                'language': None,
-                'languageCode': None,
-                'selected': None,
-                'streamType': None,
+                'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
+                'lastViewedAt': helpers.datetime_to_iso,
+                'leafCount': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'locations': None,
+                'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'rating': None,
+                'ratingKey': None,
+                'roles': {
+                    'id': None,
+                    'tag': None,
+                    'role': None,
+                    'thumb': None
+                },
+                'studio': None,
+                'summary': None,
+                'theme': None,
+                'thumb': None,
                 'title': None,
+                'titleSort': None,
                 'type': None,
-                'audioChannelLayout': None,
-                'bitDepth': None,
-                'bitrate': None,
-                'bitrateMode': None,
-                'channels': None,
-                'dialogNorm': None,
-                'duration': None,
-                'profile': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'samplingRate': None
-            },
-            'subtitleStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'language': None,
-                'languageCode': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'selected': None,
-                'streamType': None,
-                'title': None,
-                'type': None,
-                'forced': None,
-                'format': None,
-                'headerCompression': None,
-                'key': None
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'viewedLeafCount': None,
+                'year': None,
+                'seasons': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                               self.return_attrs(e.type)[0])
             }
-        }
-    },
-    'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
-    'parentGuid': None,
-    'parentIndex': None,
-    'parentKey': None,
-    'parentRatingKey': None,
-    'parentThumb': None,
-    'parentTitle': None,
-    'rating': None,
-    'ratingKey': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'writers': {
-        'id': None,
-        'tag': None
-    },
-    'year': None
-}
+            return _show_attrs
 
-ARTIST_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'collections': {
-        'id': None,
-        'tag': None
-    },
-    'countries': {
-        'id': None,
-        'tag': None
-    },
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'genres': {
-        'id': None,
-        'tag': None
-    },
-    'guid': None,
-    'index': None,
-    'key': None,
-    'lastViewedAt': helpers.datetime_to_iso,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'locations': None,
-    'moods':  {
-        'id': None,
-        'tag': None
-    },
-    'rating': None,
-    'ratingKey': None,
-    'styles':  {
-        'id': None,
-        'tag': None
-    },
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'albums': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
-
-ALBUM_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'collections': {
-        'id': None,
-        'tag': None
-    },
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'genres': {
-        'id': None,
-        'tag': None
-    },
-    'guid': None,
-    'index': None,
-    'key': None,
-    'labels': {
-        'id': None,
-        'tag': None
-    },
-    'lastViewedAt': helpers.datetime_to_iso,
-    'leafCount': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'loudnessAnalysisVersion': None,
-    'moods':  {
-        'id': None,
-        'tag': None
-    },
-    'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
-    'parentGuid': None,
-    'parentKey': None,
-    'parentRatingKey': None,
-    'parentThumb': None,
-    'parentTitle': None,
-    'rating': None,
-    'ratingKey': None,
-    'styles':  {
-        'id': None,
-        'tag': None
-    },
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'viewedLeafCount': None,
-    'tracks': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
-
-TRACK_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'duration': None,
-    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
-    'grandparentArt': None,
-    'grandparentGuid': None,
-    'grandparentKey': None,
-    'grandparentRatingKey': None,
-    'grandparentThumb': None,
-    'grandparentTitle': None,
-    'guid': None,
-    'index': None,
-    'key': None,
-    'lastViewedAt': helpers.datetime_to_iso,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'media': {
-        'audioChannels': None,
-        'audioCodec': None,
-        'audioProfile': None,
-        'bitrate': None,
-        'container': None,
-        'duration': None,
-        'id': None,
-        'title': None,
-        'parts': {
-            'accessible': None,
-            'audioProfile': None,
-            'container': None,
-            'deepAnalysisVersion': None,
-            'duration': None,
-            'exists': None,
-            'file': None,
-            'hasThumbnail': None,
-            'id': None,
-            'key': None,
-            'size': None,
-            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
-            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-            'syncItemId': None,
-            'syncState': None,
-            'audioStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
+        def season_attrs():
+            _season_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'guid': None,
                 'index': None,
-                'selected': None,
-                'streamType': None,
+                'key': None,
+                'lastViewedAt': helpers.datetime_to_iso,
+                'leafCount': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'parentGuid': None,
+                'parentIndex': None,
+                'parentKey': None,
+                'parentRatingKey': None,
+                'parentTheme': None,
+                'parentThumb': None,
+                'parentTitle': None,
+                'ratingKey': None,
+                'summary': None,
+                'thumb': None,
                 'title': None,
+                'titleSort': None,
                 'type': None,
-                'albumGain': None,
-                'albumPeak': None,
-                'albumRange': None,
-                'audioChannelLayout': None,
-                'bitrate': None,
-                'channels': None,
-                'duration': None,
-                'endRamp': None,
-                'gain': None,
-                'loudness': None,
-                'lra': None,
-                'peak': None,
-                'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
-                'samplingRate': None,
-                'startRamp': None,
-            },
-            'lyricStreams': {
-                'codec': None,
-                'codecID': None,
-                'default': None,
-                'displayTitle': None,
-                'extendedDisplayTitle': None,
-                'id': None,
-                'index': None,
-                'minLines': None,
-                'provider': None,
-                'streamType': None,
-                'timed': None,
-                'title': None,
-                'type': None,
-                'format': None,
-                'key': None
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'viewedLeafCount': None,
+                'episodes': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                                self.return_attrs(e.type)[0])
             }
+            return _season_attrs
+
+        def episode_attrs():
+            _episode_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'chapterSource': None,
+                'contentRating': None,
+                'directors': {
+                    'id': None,
+                    'tag': None
+                },
+                'duration': None,
+                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'grandparentArt': None,
+                'grandparentGuid': None,
+                'grandparentKey': None,
+                'grandparentRatingKey': None,
+                'grandparentTheme': None,
+                'grandparentThumb': None,
+                'grandparentTitle': None,
+                'guid': None,
+                'index': None,
+                'key': None,
+                'lastViewedAt': helpers.datetime_to_iso,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'locations': None,
+                'media': {
+                    'aspectRatio': None,
+                    'audioChannels': None,
+                    'audioCodec': None,
+                    'audioProfile': None,
+                    'bitrate': None,
+                    'container': None,
+                    'duration': None,
+                    'height': None,
+                    'id': None,
+                    'has64bitOffsets': None,
+                    'optimizedForStreaming': None,
+                    'optimizedVersion': None,
+                    'target': None,
+                    'title': None,
+                    'videoCodec': None,
+                    'videoFrameRate': None,
+                    'videoProfile': None,
+                    'videoResolution': None,
+                    'width': None,
+                    'hdr': lambda i: get_any_hdr(i, self.return_attrs('episode')['media']),
+                    'parts': {
+                        'accessible': None,
+                        'audioProfile': None,
+                        'container': None,
+                        'deepAnalysisVersion': None,
+                        'duration': None,
+                        'exists': None,
+                        'file': None,
+                        'has64bitOffsets': None,
+                        'id': None,
+                        'indexes': None,
+                        'key': None,
+                        'size': None,
+                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'optimizedForStreaming': None,
+                        'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                        'syncItemId': None,
+                        'syncState': None,
+                        'videoProfile': None,
+                        'videoStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'bitDepth': None,
+                            'bitrate': None,
+                            'cabac': None,
+                            'chromaLocation': None,
+                            'chromaSubsampling': None,
+                            'colorPrimaries': None,
+                            'colorRange': None,
+                            'colorSpace': None,
+                            'colorTrc': None,
+                            'duration': None,
+                            'frameRate': None,
+                            'frameRateMode': None,
+                            'hasScalingMatrix': None,
+                            'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
+                            'height': None,
+                            'level': None,
+                            'pixelAspectRatio': None,
+                            'pixelFormat': None,
+                            'profile': None,
+                            'refFrames': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'scanType': None,
+                            'streamIdentifier': None,
+                            'width': None
+                        },
+                        'audioStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'audioChannelLayout': None,
+                            'bitDepth': None,
+                            'bitrate': None,
+                            'bitrateMode': None,
+                            'channels': None,
+                            'dialogNorm': None,
+                            'duration': None,
+                            'profile': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'samplingRate': None
+                        },
+                        'subtitleStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'language': None,
+                            'languageCode': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'forced': None,
+                            'format': None,
+                            'headerCompression': None,
+                            'key': None
+                        }
+                    }
+                },
+                'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'parentGuid': None,
+                'parentIndex': None,
+                'parentKey': None,
+                'parentRatingKey': None,
+                'parentThumb': None,
+                'parentTitle': None,
+                'rating': None,
+                'ratingKey': None,
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'titleSort': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'writers': {
+                    'id': None,
+                    'tag': None
+                },
+                'year': None
+            }
+            return _episode_attrs
+
+        def artist_attrs():
+            _artist_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'collections': {
+                    'id': None,
+                    'tag': None
+                },
+                'countries': {
+                    'id': None,
+                    'tag': None
+                },
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'genres': {
+                    'id': None,
+                    'tag': None
+                },
+                'guid': None,
+                'index': None,
+                'key': None,
+                'lastViewedAt': helpers.datetime_to_iso,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'locations': None,
+                'moods': {
+                    'id': None,
+                    'tag': None
+                },
+                'rating': None,
+                'ratingKey': None,
+                'styles': {
+                    'id': None,
+                    'tag': None
+                },
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'titleSort': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'albums': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                              self.return_attrs(e.type))
+            }
+            return _artist_attrs
+
+        def album_attrs():
+            _album_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'collections': {
+                    'id': None,
+                    'tag': None
+                },
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'genres': {
+                    'id': None,
+                    'tag': None
+                },
+                'guid': None,
+                'index': None,
+                'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
+                'lastViewedAt': helpers.datetime_to_iso,
+                'leafCount': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'loudnessAnalysisVersion': None,
+                'moods': {
+                    'id': None,
+                    'tag': None
+                },
+                'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'parentGuid': None,
+                'parentKey': None,
+                'parentRatingKey': None,
+                'parentThumb': None,
+                'parentTitle': None,
+                'rating': None,
+                'ratingKey': None,
+                'styles': {
+                    'id': None,
+                    'tag': None
+                },
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'titleSort': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'viewedLeafCount': None,
+                'tracks': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                              self.return_attrs(e.type))
+            }
+            return _album_attrs
+
+        def track_attrs():
+            _track_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'duration': None,
+                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'grandparentArt': None,
+                'grandparentGuid': None,
+                'grandparentKey': None,
+                'grandparentRatingKey': None,
+                'grandparentThumb': None,
+                'grandparentTitle': None,
+                'guid': None,
+                'index': None,
+                'key': None,
+                'lastViewedAt': helpers.datetime_to_iso,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'media': {
+                    'audioChannels': None,
+                    'audioCodec': None,
+                    'audioProfile': None,
+                    'bitrate': None,
+                    'container': None,
+                    'duration': None,
+                    'id': None,
+                    'title': None,
+                    'parts': {
+                        'accessible': None,
+                        'audioProfile': None,
+                        'container': None,
+                        'deepAnalysisVersion': None,
+                        'duration': None,
+                        'exists': None,
+                        'file': None,
+                        'hasThumbnail': None,
+                        'id': None,
+                        'key': None,
+                        'size': None,
+                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                        'syncItemId': None,
+                        'syncState': None,
+                        'audioStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'selected': None,
+                            'streamType': None,
+                            'title': None,
+                            'type': None,
+                            'albumGain': None,
+                            'albumPeak': None,
+                            'albumRange': None,
+                            'audioChannelLayout': None,
+                            'bitrate': None,
+                            'channels': None,
+                            'duration': None,
+                            'endRamp': None,
+                            'gain': None,
+                            'loudness': None,
+                            'lra': None,
+                            'peak': None,
+                            'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
+                            'samplingRate': None,
+                            'startRamp': None,
+                        },
+                        'lyricStreams': {
+                            'codec': None,
+                            'codecID': None,
+                            'default': None,
+                            'displayTitle': None,
+                            'extendedDisplayTitle': None,
+                            'id': None,
+                            'index': None,
+                            'minLines': None,
+                            'provider': None,
+                            'streamType': None,
+                            'timed': None,
+                            'title': None,
+                            'type': None,
+                            'format': None,
+                            'key': None
+                        }
+                    }
+                },
+                'moods': {
+                    'id': None,
+                    'tag': None
+                },
+                'originalTitle': None,
+                'parentGuid': None,
+                'parentIndex': None,
+                'parentKey': None,
+                'parentRatingKey': None,
+                'parentThumb': None,
+                'parentTitle': None,
+                'ratingCount': None,
+                'ratingKey': None,
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'titleSort': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
+                'viewCount': None,
+                'year': None,
+            }
+            return _track_attrs
+
+        def photo_album_attrs():
+            _photo_album_attrs = {
+                # For some reason photos needs to be first,
+                # otherwise the photo album ratingKey gets
+                # clobbered by the first photo's ratingKey
+                'photos': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                              self.return_attrs(e.type)),
+                'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'composite': None,
+                'guid': None,
+                'index': None,
+                'key': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'ratingKey': None,
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso
+            }
+            return _photo_album_attrs
+
+        def photo_attrs():
+            _photo_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'createdAtAccuracy': None,
+                'createdAtTZOffset': None,
+                'guid': None,
+                'index': None,
+                'key': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'parentGuid': None,
+                'parentIndex': None,
+                'parentKey': None,
+                'parentRatingKey': None,
+                'parentThumb': None,
+                'parentTitle': None,
+                'ratingKey': None,
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'year': None,
+                'media': {
+                    'aperture': None,
+                    'aspectRatio': None,
+                    'container': None,
+                    'height': None,
+                    'id': None,
+                    'iso': None,
+                    'lens': None,
+                    'make': None,
+                    'model': None,
+                    'width': None,
+                    'parts': {
+                        'accessible': None,
+                        'container': None,
+                        'exists': None,
+                        'file': None,
+                        'id': None,
+                        'key': None,
+                        'size': None,
+                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                    }
+                },
+                'tag': {
+                    'id': None,
+                    'tag': None,
+                    'title': None
+                }
+            }
+            return _photo_attrs
+
+        def collection_attrs():
+            _collection_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'childCount': None,
+                'collectionMode': None,
+                'collectionSort': None,
+                'contentRating': None,
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
+                'guid': None,
+                'index': None,
+                'key': None,
+                'librarySectionID': None,
+                'librarySectionKey': None,
+                'librarySectionTitle': None,
+                'maxYear': None,
+                'minYear': None,
+                'ratingKey': None,
+                'subtype': None,
+                'summary': None,
+                'thumb': None,
+                'title': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'children': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                                self.return_attrs(e.type))
+            }
+            return _collection_attrs
+
+        def playlist_attrs():
+            _playlist_attrs = {
+                'addedAt': helpers.datetime_to_iso,
+                'composite': None,
+                'duration': None,
+                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'guid': None,
+                'key': None,
+                'leafCount': None,
+                'playlistType': None,
+                'ratingKey': None,
+                'smart': None,
+                'summary': None,
+                'title': None,
+                'type': None,
+                'updatedAt': helpers.datetime_to_iso,
+                'items': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
+                                                             self.return_attrs(e.type))
+            }
+            return _playlist_attrs
+
+        _media_types = {
+            'movie': movie_attrs,
+            'show': show_attrs,
+            'season': season_attrs,
+            'episode': episode_attrs,
+            'artist': artist_attrs,
+            'album': album_attrs,
+            'track': track_attrs,
+            'photo album': photo_album_attrs,
+            'photo': photo_attrs,
+            'collection': collection_attrs,
+            'playlist': playlist_attrs,
         }
-    },
-    'moods':  {
-        'id': None,
-        'tag': None
-    },
-    'originalTitle': None,
-    'parentGuid': None,
-    'parentIndex': None,
-    'parentKey': None,
-    'parentRatingKey': None,
-    'parentThumb': None,
-    'parentTitle': None,
-    'ratingCount': None,
-    'ratingKey': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'titleSort': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'userRating': None,
-    'viewCount': None,
-    'year': None,
-}
 
-PHOTO_ALBUM_ATTRS = {
-    # For some reason photos needs to be first,
-    # otherwise the photo album ratingKey gets
-    # clobbered by the first photo's ratingKey
-    'photos': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0]),
-    'addedAt': helpers.datetime_to_iso,
-    'art': None,
-    'composite': None,
-    'guid': None,
-    'index': None,
-    'key': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'ratingKey': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso
-}
+        return _media_types[media_type]()
 
-PHOTO_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'createdAtAccuracy': None,
-    'createdAtTZOffset': None,
-    'guid': None,
-    'index': None,
-    'key': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
-    'parentGuid': None,
-    'parentIndex': None,
-    'parentKey': None,
-    'parentRatingKey': None,
-    'parentThumb': None,
-    'parentTitle': None,
-    'ratingKey': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'year': None,
-    'media': {
-        'aperture': None,
-        'aspectRatio': None,
-        'container': None,
-        'height': None,
-        'id': None,
-        'iso': None,
-        'lens': None,
-        'make': None,
-        'model': None,
-        'width': None,
-        'parts': {
-            'accessible': None,
-            'container': None,
-            'exists': None,
-            'file': None,
-            'id': None,
-            'key': None,
-            'size': None,
-            'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+    def return_levels(self, media_type):
+        def movie_levels():
+            _movie_levels = [
+                {
+                    1: [
+                        'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
+                        'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
+                        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'artFile', 'thumbFile'
+                    ],
+                    2: [
+                        'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
+                        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+                    ],
+                    3: [
+                        'art', 'thumb', 'key', 'chapterSource',
+                        'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
+                        'updatedAt', 'lastViewedAt', 'viewCount'
+                    ],
+                    9: [k for k in self.return_attrs('movie') if k != 'media']
+                },
+                {
+                    1: [
+                        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+                        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+                        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+                        'media.optimizedVersion', 'media.hdr'
+                    ],
+                    2: [
+                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+                        'media.parts.audioProfile', 'media.parts.videoProfile',
+                        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+                    ],
+                    3: [
+                        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+                        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+                        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+                        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+                        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+                        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+                        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+                        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+                        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+                        'media.parts.audioStreams.default',
+                        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+                        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+                        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+                        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+                        'media.parts.subtitleStreams.default'
+                    ],
+                    9: [
+                        'locations', 'media'
+                    ]
+                }
+            ]
+            return _movie_levels
+
+        def show_levels():
+            _show_levels = [
+                {
+                    1: [
+                           'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                           'rating', 'userRating', 'contentRating',
+                           'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
+                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][1]],
+                    2: [
+                           'roles.tag', 'roles.role',
+                           'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][2]],
+                    3: [
+                           'art', 'thumb', 'banner', 'theme', 'key',
+                           'updatedAt', 'lastViewedAt', 'viewCount'
+                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][3]],
+                    9: [k for k in self.return_attrs('show') if k != 'media']
+                },
+                {
+                    1: ['seasons.' + attr for attr in self.return_levels('season')[1][1]],
+                    2: ['seasons.' + attr for attr in self.return_levels('season')[1][2]],
+                    3: ['seasons.' + attr for attr in self.return_levels('season')[1][3]],
+                    9: ['seasons.' + attr for attr in self.return_levels('season')[1][9]]
+                }
+            ]
+            return _show_levels
+
+        def season_levels():
+            _season_levels = [
+                {
+                    1: [
+                           'ratingKey', 'title', 'titleSort', 'addedAt',
+                           'userRating',
+                           'summary', 'guid', 'type', 'index',
+                           'parentTitle', 'parentRatingKey', 'parentGuid'
+                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][1]],
+                    2: [
+                           'fields.name', 'fields.locked'
+                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][2]],
+                    3: [
+                           'art', 'thumb', 'key',
+                           'updatedAt', 'lastViewedAt', 'viewCount',
+                           'parentKey', 'parentTheme', 'parentThumb'
+                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][3]],
+                    9: [k for k in self.return_attrs('season') if k != 'media']
+                },
+                {
+                    1: ['episodes.' + attr for attr in self.return_levels('episode')[1][1]],
+                    2: ['episodes.' + attr for attr in self.return_levels('episode')[1][2]],
+                    3: ['episodes.' + attr for attr in self.return_levels('episode')[1][3]],
+                    9: ['episodes.' + attr for attr in self.return_levels('episode')[1][9]]
+                }
+            ]
+            return _season_levels
+
+        def episode_levels():
+            _episode_levels = [
+                {
+                    1: [
+                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                        'rating', 'userRating', 'contentRating',
+                        'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
+                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                        'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                    ],
+                    2: [
+                        'directors.tag', 'writers.tag',
+                        'fields.name', 'fields.locked'
+                    ],
+                    3: [
+                        'art', 'thumb', 'key', 'chapterSource',
+                        'updatedAt', 'lastViewedAt', 'viewCount',
+                        'parentThumb', 'parentKey',
+                        'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
+                    ],
+                    9: [k for k in self.return_attrs('episode') if k != 'media']
+                },
+                {
+                    1: [
+                        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+                        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+                        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+                        'media.optimizedVersion', 'media.hdr'
+                    ],
+                    2: [
+                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+                        'media.parts.audioProfile', 'media.parts.videoProfile',
+                        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+                    ],
+                    3: [
+                        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+                        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+                        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+                        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+                        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+                        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+                        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+                        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+                        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+                        'media.parts.audioStreams.default',
+                        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+                        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+                        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+                        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+                        'media.parts.subtitleStreams.default'
+                    ],
+                    9: [
+                        'locations', 'media'
+                    ]
+                }
+            ]
+            return _episode_levels
+
+        def artist_levels():
+            _artist_levels = []
+            return _artist_levels
+
+        def album_levels():
+            _album_levels = []
+            return _album_levels
+
+        def track_levels():
+            _track_levels = []
+            return _track_levels
+
+        def photo_album_levels():
+            _photo_album_levels = []
+            return _photo_album_levels
+
+        def photo_levels():
+            _photo_levels = []
+            return _photo_levels
+
+        def collection_levels():
+            _collection_levels = []
+            return _collection_levels
+
+        def playlist_levels():
+            _playlist_levels = []
+            return _playlist_levels
+
+        _media_types = {
+            'movie': movie_levels,
+            'show': show_levels,
+            'season': season_levels,
+            'episode': episode_levels,
+            'artist': artist_levels,
+            'album': album_levels,
+            'track': track_levels,
+            'photo album': photo_album_levels,
+            'photo': photo_levels,
+            'collection': collection_levels,
+            'playlist': playlist_levels
         }
-    },
-    'tag': {
-        'id': None,
-        'tag': None,
-        'title': None
-    }
-}
 
-COLLECTION_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'childCount': None,
-    'collectionMode': None,
-    'collectionSort': None,
-    'contentRating': None,
-    'fields': {
-        'name': None,
-        'locked': None
-    },
-    'guid': None,
-    'index': None,
-    'key': None,
-    'librarySectionID': None,
-    'librarySectionKey': None,
-    'librarySectionTitle': None,
-    'maxYear': None,
-    'minYear': None,
-    'ratingKey': None,
-    'subtype': None,
-    'summary': None,
-    'thumb': None,
-    'title': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'children': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
+        return _media_types[media_type]()
 
-PLAYLIST_ATTRS = {
-    'addedAt': helpers.datetime_to_iso,
-    'composite': None,
-    'duration': None,
-    'durationHuman': lambda i:  helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
-    'guid': None,
-    'key': None,
-    'leafCount': None,
-    'playlistType': None,
-    'ratingKey': None,
-    'smart': None,
-    'summary': None,
-    'title': None,
-    'type': None,
-    'updatedAt': helpers.datetime_to_iso,
-    'items': lambda e: helpers.get_attrs_to_dict(e, MEDIA_TYPES[e.type][0])
-}
+    def __init__(self, section_id=None, rating_key=None, file_format='json',
+                 metadata_level=1, media_info_level=1):
+        self.section_id = helpers.cast_to_int(section_id)
+        self.rating_key = helpers.cast_to_int(rating_key)
+        self.file_format = file_format
+        self.metadata_level = helpers.cast_to_int(metadata_level)
+        self.media_info_level = helpers.cast_to_int(media_info_level)
 
-MOVIE_LEVELS = [
-    {
-        1: [
-            'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year',
-            'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-            'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
-        ],
-        2: [
-            'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
-            'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
-        ],
-        3: [
-            'art', 'thumb', 'key', 'chapterSource',
-            'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-            'updatedAt', 'lastViewedAt', 'viewCount'
-        ]
-    },
-    {
-        1: [
-            'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
-            'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
-            'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-            'media.optimizedVersion', 'media.hdr'
-        ],
-        2: [
-            'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
-            'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
-            'media.parts.audioProfile', 'media.parts.videoProfile',
-            'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
-        ],
-        3: [
-            'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
-            'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
-            'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
-            'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
-            'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
-            'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
-            'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
-            'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
-            'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
-            'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
-            'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
-            'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
-            'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
-            'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
-            'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
-            'media.parts.audioStreams.default',
-            'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
-            'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
-            'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
-            'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-            'media.parts.subtitleStreams.default'
-        ]
-    }
-]
+        self.timestamp = helpers.timestamp()
 
-SHOW_LEVELS = {}
+        self.media_type = None
+        self.items = []
 
-SEASON_LEVELS = {}
+        self.filename = None
+        self.filename_ext = None
+        self.export_id = None
+        self.file_size = None
+        self.success = False
 
-EPISODE_LEVELS = {}
+    def export(self):
+        if not self.section_id and not self.rating_key:
+            logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
+            return
+        elif self.rating_key and not str(self.rating_key).isdigit():
+            logger.error("Tautulli Exporter :: Export called with invalid rating_key '%s'.", self.rating_key)
+            return
+        elif self.section_id and not str(self.section_id).isdigit():
+            logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", self.section_id)
+            return
+        elif not self.metadata_level:
+            logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
+            return
+        elif not self.media_info_level:
+            logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
+            return
+        elif self.file_format not in ('json', 'csv'):
+            logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", self.file_format)
+            return
 
-ARTIST_LEVELS = {}
+        plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
-ALBUM_LEVELS = {}
+        if self.rating_key:
+            logger.debug(
+                "Tautulli Exporter :: Export called with rating_key %s, metadata_level %d, media_info_level %d",
+                self.rating_key, self.metadata_level, self.media_info_level)
 
-TRACK_LEVELS = {}
+            item = plex.get_item(self.rating_key)
+            self.media_type = item.type
 
-PHOTO_ALBUM_LEVELS = {}
+            if self.media_type != 'playlist':
+                self.section_id = item.librarySectionID
 
-PHOTO_LEVELS = {}
+            if self.media_type in ('season', 'episode', 'album', 'track'):
+                item_title = item._defaultSyncTitle()
+            else:
+                item_title = item.title
 
-COLLECTION_LEVELS = {}
+            if self.media_type == 'photo' and item.TAG == 'Directory':
+                self.media_type = 'photo album'
 
-PLAYLIST_LEVELS = {}
+            filename = '{} - {} [{}].{}'.format(
+                self.media_type.title(), item_title, self.rating_key,
+                helpers.timestamp_to_YMDHMS(self.timestamp))
 
-MEDIA_TYPES = {
-    'movie': (MOVIE_ATTRS, MOVIE_LEVELS),
-    'show': (SHOW_ATTRS, SHOW_LEVELS),
-    'season': (SEASON_ATTRS, SEASON_LEVELS),
-    'episode': (EPISODE_ATTRS, EPISODE_LEVELS),
-    'artist': (ARTIST_ATTRS, ARTIST_LEVELS),
-    'album': (ALBUM_ATTRS, ALBUM_LEVELS),
-    'track': (TRACK_ATTRS, TRACK_LEVELS),
-    'photo album': (PHOTO_ALBUM_ATTRS, PHOTO_ALBUM_LEVELS),
-    'photo': (PHOTO_ATTRS, PHOTO_LEVELS),
-    'collection': (COLLECTION_ATTRS, COLLECTION_LEVELS),
-    'playlist': (PLAYLIST_ATTRS, PLAYLIST_LEVELS)
-}
+            self.items = [item]
+
+        elif self.section_id:
+            logger.debug(
+                "Tautulli Exporter :: Export called with section_id %s, metadata_level %d, media_info_level %d",
+                self.section_id, self.metadata_level, self.media_info_level)
+
+            library = plex.get_library(str(self.section_id))
+            self.media_type = library.type
+            library_title = library.title
+
+            filename = 'Library - {} [{}].{}'.format(
+                library_title, self.section_id,
+                helpers.timestamp_to_YMDHMS(self.timestamp))
+
+            self.items = library.all()
+
+        else:
+            return
+
+        if self.media_type not in self.MEDIA_TYPES:
+            logger.error("Tautulli Exporter :: Cannot export media type '%s'", self.media_type)
+            return
+
+        media_attrs = self.return_attrs(self.media_type)
+        metadata_level_attrs, media_info_level_attrs = self.return_levels(self.media_type)
+
+        if self.metadata_level not in metadata_level_attrs:
+            logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
+            return
+        elif self.media_info_level not in media_info_level_attrs:
+            logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
+            return
+
+        export_attrs_list = []
+        export_attrs_set = set()
+
+        for level, attrs in metadata_level_attrs.items():
+            if level <= self.metadata_level:
+                export_attrs_set.update(attrs)
+
+        for level, attrs in media_info_level_attrs.items():
+            if level <= self.media_info_level:
+                export_attrs_set.update(attrs)
+
+        for attr in export_attrs_set:
+            try:
+                value = helpers.get_dict_value_by_path(media_attrs, attr)
+            except KeyError:
+                logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+                continue
+            except Exception as e:
+                print(e)
+                continue
+
+            export_attrs_list.append(value)
+
+        export_attrs = reduce(helpers.dict_merge, export_attrs_list)
+
+        self.filename = helpers.clean_filename(filename)
+        self.filename_ext = '{}.{}'.format(self.filename, self.file_format)
+
+        self.export_id = self.add_export()
+
+        if not self.export_id:
+            logger.error("Tautulli Exporter :: Failed to export '%s'", self.filename)
+            return
+
+        threading.Thread(target=self._real_export,
+                         kwargs={'attrs': export_attrs}).start()
+
+        return True
+
+    def _real_export(self, attrs):
+        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename_ext)
+
+        filepath = get_export_filepath(self.filename_ext)
+
+        part = partial(helpers.get_attrs_to_dict, attrs=attrs)
+        pool = ThreadPool(processes=4)
+
+        try:
+            result = pool.map(part, self.items)
+
+            if self.file_format == 'json':
+                json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
+                with open(filepath, 'w', encoding='utf-8') as outfile:
+                    outfile.write(json_data)
+
+            elif self.file_format == 'csv':
+                flatten_result = helpers.flatten_dict(result)
+                flatten_attrs = set().union(*flatten_result)
+                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
+                    writer = csv.DictWriter(outfile, sorted(flatten_attrs))
+                    writer.writeheader()
+                    writer.writerows(flatten_result)
+
+            self.file_size = os.path.getsize(filepath)
+            self.success = True
+            logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+
+        except Exception as e:
+            logger.error("Tautulli Exporter :: Failed to export '%s': %s", self.filename_ext, e)
+            import traceback
+            traceback.print_exc()
+
+        finally:
+            pool.close()
+            pool.join()
+            self.set_export_state()
+
+    def add_export(self):
+        keys = {'timestamp': self.timestamp,
+                'section_id': self.section_id,
+                'rating_key': self.rating_key,
+                'media_type': self.media_type}
+
+        values = {'file_format': self.file_format,
+                  'filename': self.filename_ext}
+
+        db = database.MonitorDatabase()
+        try:
+            db.upsert(table_name='exports', key_dict=keys, value_dict=values)
+            return db.last_insert_id()
+        except Exception as e:
+            logger.error("Tautulli Exporter :: Unable to save export to database: %s", e)
+            return False
+
+    def set_export_state(self):
+        if self.success:
+            complete = 1
+        else:
+            complete = -1
+
+        keys = {'id': self.export_id}
+        values = {'complete': complete,
+                  'file_size': self.file_size}
+
+        db = database.MonitorDatabase()
+        db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
 
 def get_any_hdr(obj, root):
@@ -957,179 +1356,19 @@ def get_any_hdr(obj, root):
     return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
 
 
-def export(section_id=None, rating_key=None, file_format='json', metadata_level=1, media_info_level=1):
-    timestamp = helpers.timestamp()
+def get_image(item, prop, export_filename):
+    url = getattr(item, prop)
+    media_type = item.type
 
-    metadata_level = helpers.cast_to_int(metadata_level)
-    media_info_level = helpers.cast_to_int(media_info_level)
-
-    if not section_id and not rating_key:
-        logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
-        return
-    elif rating_key and not str(rating_key).isdigit():
-        logger.error("Tautulli Exporter :: Export called with invalid rating_key '%s'.", rating_key)
-        return
-    elif section_id and not str(section_id).isdigit():
-        logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", section_id)
-        return
-    elif not metadata_level:
-        logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", metadata_level)
-        return
-    elif not media_info_level:
-        logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", media_info_level)
-        return
-    elif file_format not in ('json', 'csv'):
-        logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", file_format)
-        return
-
-    plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
-
-    if rating_key:
-        logger.debug("Tautulli Exporter :: Export called with rating_key %s, metadata_level %d, media_info_level %d",
-                     rating_key, metadata_level, media_info_level)
-
-        item = plex.get_item(helpers.cast_to_int(rating_key))
-        media_type = item.type
-
-        if media_type != 'playlist':
-            section_id = item.librarySectionID
-
-        if media_type in ('season', 'episode', 'album', 'track'):
-            item_title = item._defaultSyncTitle()
-        else:
-            item_title = item.title
-
-        if media_type == 'photo' and item.TAG == 'Directory':
-            media_type = 'photo album'
-
-        filename = '{} - {} [{}].{}.{}'.format(
-            media_type.title(), item_title, rating_key, helpers.timestamp_to_YMDHMS(timestamp), file_format)
-
-        items = [item]
-
-    elif section_id:
-        logger.debug("Tautulli Exporter :: Export called with section_id %s, metadata_level %d, media_info_level %d",
-                     rating_key, metadata_level, media_info_level)
-
-        library = plex.get_library(section_id)
-        media_type = library.type
-        library_title = library.title
-        filename = 'Library - {} [{}].{}.{}'.format(
-            library_title, section_id, helpers.timestamp_to_YMDHMS(timestamp), file_format)
-        items = library.all()
-
+    if media_type in ('season', 'episode', 'album', 'track'):
+        item_title = item._defaultSyncTitle()
     else:
-        return
+        item_title = item.title
 
-    if media_type not in MEDIA_TYPES:
-        logger.error("Tautulli Exporter :: Cannot export media type '%s'", media_type)
-        return
+    filename = os.path.join('{}.images'.format(export_filename), '{}.png'.format(item_title))
 
-    media_attrs, (metadata_level_attrs, media_info_level_attrs) = MEDIA_TYPES[media_type]
-
-    if metadata_level != 9 and metadata_level not in metadata_level_attrs:
-        logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", metadata_level)
-        return
-    elif media_info_level != 9 and media_info_level not in media_info_level_attrs:
-        logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", media_info_level)
-        return
-
-    export_attrs_list = []
-    export_attrs_set = set()
-
-    if metadata_level == 9:
-        metadata_export_attrs = deepcopy(media_attrs)
-        del metadata_export_attrs['media']
-        export_attrs_list.append(metadata_export_attrs)
-    else:
-        _metadata_levels = sorted(metadata_level_attrs.keys())
-        for _metadata_level in _metadata_levels[:_metadata_levels.index(metadata_level) + 1]:
-            export_attrs_set.update(metadata_level_attrs[_metadata_level])
-
-    if media_info_level == 9:
-        media_info_export_attrs = {'media': deepcopy(media_attrs['media'])}
-        export_attrs_list.append(media_info_export_attrs)
-    else:
-        _media_info_levels = sorted(media_info_level_attrs.keys())
-        for _media_info_level in _media_info_levels[:_media_info_levels.index(media_info_level) + 1]:
-            export_attrs_set.update(media_info_level_attrs[_media_info_level])
-
-    for attr in export_attrs_set:
-        try:
-            value = helpers.get_dict_value_by_path(media_attrs, attr)
-        except KeyError:
-            logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
-            continue
-
-        export_attrs_list.append(value)
-
-    export_attrs = reduce(helpers.dict_merge, export_attrs_list)
-
-    filename = helpers.clean_filename(filename)
-
-    export_id = add_export(timestamp=timestamp,
-                           section_id=section_id,
-                           rating_key=rating_key,
-                           media_type=media_type,
-                           file_format=file_format,
-                           filename=filename)
-    if not export_id:
-        logger.error("Tautulli Exporter :: Failed to export '%s'", filename)
-        return
-
-    threading.Thread(target=_real_export,
-                     kwargs={'export_id': export_id,
-                             'items': items,
-                             'attrs': export_attrs,
-                             'file_format': file_format,
-                             'filename': filename}).start()
-
-    return True
-
-
-def _real_export(export_id, items, attrs, file_format, filename):
-    logger.info("Tautulli Exporter :: Starting export for '%s'...", filename)
-
-    filepath = get_export_filepath(filename)
-
-    part = partial(helpers.get_attrs_to_dict, attrs=attrs)
-    pool = ThreadPool(processes=4)
-    success = True
-
-    try:
-        result = pool.map(part, items)
-
-        if file_format == 'json':
-            json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
-            with open(filepath, 'w', encoding='utf-8') as outfile:
-                outfile.write(json_data)
-
-        elif file_format == 'csv':
-            flatten_result = helpers.flatten_dict(result)
-            flatten_attrs = set().union(*flatten_result)
-            with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-                writer = csv.DictWriter(outfile, sorted(flatten_attrs))
-                writer.writeheader()
-                writer.writerows(flatten_result)
-
-        file_size = os.path.getsize(filepath)
-
-    except Exception as e:
-        set_export_state(export_id=export_id, success=False)
-        logger.error("Tautulli Exporter :: Failed to export '%s': %s", filename, e)
-        import traceback
-        traceback.print_exc()
-        success = False
-
-    finally:
-        pool.close()
-        pool.join()
-
-    if not success:
-        return
-
-    set_export_state(export_id=export_id, file_size=file_size)
-    logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+    file = get_export_filepath(filename)
+    return file
 
 
 def get_export(export_id):
@@ -1142,38 +1381,6 @@ def get_export(export_id):
         result['exists'] = check_export_exists(result['filename'])
 
     return result
-
-
-def add_export(timestamp, section_id, rating_key, media_type, file_format, filename):
-    keys = {'timestamp': timestamp,
-            'section_id': section_id,
-            'rating_key': rating_key,
-            'media_type': media_type}
-
-    values = {'file_format': file_format,
-              'filename': filename}
-
-    db = database.MonitorDatabase()
-    try:
-        db.upsert(table_name='exports', key_dict=keys, value_dict=values)
-        return db.last_insert_id()
-    except Exception as e:
-        logger.error("Tautulli Exporter :: Unable to save export to database: %s", e)
-        return False
-
-
-def set_export_state(export_id, file_size=None, success=True):
-    if success:
-        complete = 1
-    else:
-        complete = -1
-
-    keys = {'id': export_id}
-    values = {'complete': complete,
-              'file_size': file_size}
-
-    db = database.MonitorDatabase()
-    db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
 
 def delete_export(export_id):
@@ -1189,6 +1396,7 @@ def delete_export(export_id):
             logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
+                # TODO: Delete images as well
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
         return True
