@@ -68,6 +68,12 @@ DOCUMENTATION :: END
                     </div>
                     <p class="help-block">Select the export file format.</p>
                 </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="export_include_images" name="export_include_images" value="1"> Export artwork and posters
+                    </label>
+                    <p class="help-block">Enable to export artwork and poster image files. Warning: This will take a long time!</p>
+                </div>
             </form>
         </div>
         <div class="modal-footer">
@@ -84,6 +90,7 @@ DOCUMENTATION :: END
         var metadata_export_level = $('#metadata_export_level_select option:selected').val();
         var media_info_export_level = $('#media_info_export_level_select option:selected').val();
         var file_format = $('#file_format_select option:selected').val();
+        var include_images = $("#export_include_images").is(':checked') ? 1 : 0;
 
         $.ajax({
             url: 'export_metadata',
@@ -92,7 +99,8 @@ DOCUMENTATION :: END
                 rating_key: rating_key,
                 metadata_level: metadata_export_level,
                 media_info_level: media_info_export_level,
-                file_format: file_format
+                file_format: file_format,
+                include_images: include_images
             },
             async: true,
             success: function (data) {

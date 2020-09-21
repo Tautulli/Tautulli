@@ -6491,7 +6491,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json',
-                        metadata_level=1, media_info_level=1, **kwargs):
+                        metadata_level=1, media_info_level=1, include_images=False, **kwargs):
         """ Export library or media metadata to a file
 
             ```
@@ -6515,7 +6515,8 @@ class WebInterface(object):
                                  rating_key=rating_key,
                                  file_format=file_format,
                                  metadata_level=metadata_level,
-                                 media_info_level=media_info_level).export()
+                                 media_info_level=media_info_level,
+                                 include_images=helpers.bool_true(include_images)).export()
 
         if result:
             return {'result': 'success', 'message': 'Metadata export has started.'}
