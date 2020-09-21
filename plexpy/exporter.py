@@ -21,6 +21,7 @@ from backports import csv
 
 import json
 import os
+import requests
 import threading
 
 from functools import partial, reduce
@@ -57,7 +58,7 @@ class Export(object):
             _movie_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'artUrl', self.filename),
+                'artFile': lambda i: get_image(i, 'art', self.filename),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'chapters': {
@@ -248,7 +249,7 @@ class Export(object):
                 'summary': None,
                 'tagline': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumbUrl', self.filename),
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -267,6 +268,7 @@ class Export(object):
             _show_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artFile': lambda i: get_image(i, 'art', self.filename),
                 'banner': None,
                 'childCount': None,
                 'collections': {
@@ -310,6 +312,7 @@ class Export(object):
                 'summary': None,
                 'theme': None,
                 'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -349,6 +352,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -547,6 +551,7 @@ class Export(object):
             _artist_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artFile': lambda i: get_image(i, 'art', self.filename),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -583,6 +588,7 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -598,6 +604,7 @@ class Export(object):
             _album_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artFile': lambda i: get_image(i, 'art', self.filename),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -641,6 +648,7 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -852,6 +860,8 @@ class Export(object):
         def collection_attrs():
             _collection_attrs = {
                 'addedAt': helpers.datetime_to_iso,
+                'art': None,
+                'artFile': lambda i: get_image(i, 'art', self.filename),
                 'childCount': None,
                 'collectionMode': None,
                 'collectionSort': None,
@@ -872,6 +882,7 @@ class Export(object):
                 'subtype': None,
                 'summary': None,
                 'thumb': None,
+                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
@@ -1356,19 +1367,36 @@ def get_any_hdr(obj, root):
     return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
 
 
-def get_image(item, prop, export_filename):
-    url = getattr(item, prop)
+def get_image(item, image, export_filename):
     media_type = item.type
+    rating_key = item.ratingKey
 
     if media_type in ('season', 'episode', 'album', 'track'):
         item_title = item._defaultSyncTitle()
     else:
         item_title = item.title
 
-    filename = os.path.join('{}.images'.format(export_filename), '{}.png'.format(item_title))
+    folder = get_export_filepath('{}.images'.format(export_filename))
+    filepath = os.path.join(folder, '{} [{}].{}.jpg'.format(item_title, rating_key, image))
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
-    file = get_export_filepath(filename)
-    return file
+    image_url = None
+    if image == 'art':
+        image_url = item.artUrl
+    elif image == 'thumb':
+        image_url = item.thumbUrl
+
+    if not image_url:
+        return
+
+    r = requests.get(image_url, stream=True)
+    if r.status_code == 200:
+        with open(filepath, 'wb') as outfile:
+            for chunk in r:
+                outfile.write(chunk)
+
+        return filepath
 
 
 def get_export(export_id):
