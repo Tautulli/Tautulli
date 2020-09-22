@@ -408,6 +408,8 @@ DOCUMENTATION :: END
                 <i class="fa fa-fw fa-pause"></i>&nbsp;
                 % elif data['state'] == 'buffering':
                 <i class="fa fa-fw fa-spinner"></i>&nbsp;
+                % elif data['state'] == 'error':
+                <i class="fa fa-fw fa-exclamation-triangle"></i>&nbsp;
                 % endif
             </div>
             <div class="dashboard-activity-metadata-title">

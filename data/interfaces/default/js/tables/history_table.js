@@ -60,6 +60,8 @@ history_table_options = {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Paused"><i class="fa fa-pause fa-fw"></i></span>';
                     } else if (rowData['state'] === 'buffering') {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Buffering"><i class="fa fa-spinner fa-fw"></i></span>';
+                    } else if (rowData['state'] === 'error') {
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Playback Error"><i class="fa fa-exclamation-triangle fa-fw"></i></span>';
                     } else if (rowData['state'] === 'stopped') {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Stopped"><i class="fa fa-stop fa-fw"></i></span>';
                     }
