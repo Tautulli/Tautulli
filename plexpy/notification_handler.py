@@ -899,6 +899,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'progress_percent': helpers.get_percent(view_offset, duration),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
+        'container_decision': notify_params['container_decision'],
         'video_decision': notify_params['video_decision'],
         'audio_decision': notify_params['audio_decision'],
         'subtitle_decision': notify_params['subtitle_decision'],

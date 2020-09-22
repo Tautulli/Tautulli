@@ -427,6 +427,7 @@ Returns:
                  "children_count": "",
                  "collections": [],
                  "container": "mkv",
+                 "container_decision": "direct play",
                  "content_rating": "TV-MA",
                  "deleted_user": 0,
                  "device": "Windows",

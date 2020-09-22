@@ -2070,6 +2070,7 @@ class PmsConnect(object):
             transcode_decision = 'direct play'
 
         stream_details['transcode_decision'] = transcode_decision
+        stream_details['container_decision'] = stream_details['stream_container_decision']
 
         # Override * in audio codecs
         if stream_details['stream_audio_codec'] == '*':
