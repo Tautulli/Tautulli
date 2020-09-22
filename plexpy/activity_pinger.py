@@ -89,6 +89,11 @@ def check_active_sessions(ws_request=False):
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_resume'})
 
+                                if session['state'] == 'error':
+                                    logger.debug("Tautulli Monitor :: Session %s encountered an error." % stream['session_key'])
+
+                                    plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_error'})
+
                             if stream['state'] == 'paused' and not ws_request:
                                 # The stream is still paused so we need to increment the paused_counter
                                 # Using the set config parameter as the interval, probably not the most accurate but

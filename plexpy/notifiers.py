@@ -295,6 +295,14 @@ def available_notification_actions(agent_id=None):
                 'icon': 'fa-play',
                 'media_types': ('movie', 'episode', 'track')
                 },
+               {'label': 'Playback Error',
+                'name': 'on_error',
+                'description': 'Trigger a notification when a stream encounters an error.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) encountered an error trying to play {title}.',
+                'icon': 'fa-exclamation-triangle',
+                'media_types': ('movie', 'episode', 'track')
+                },
                {'label': 'Transcode Decision Change',
                 'name': 'on_change',
                 'description': 'Trigger a notification when a stream changes transcode decision.',

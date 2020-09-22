@@ -264,6 +264,19 @@ class ActivityHandler(object):
 
                 plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_buffer'})
 
+    def on_error(self):
+        if self.is_valid_session():
+            logger.debug("Tautulli ActivityHandler :: Session %s encountered an error." % str(self.get_session_key()))
+
+            # Update the session state and viewOffset
+            self.update_db_session()
+
+            # Retrieve the session data from our temp table
+            ap = activity_processor.ActivityProcessor()
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
+
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_error'})
+
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
@@ -321,6 +334,8 @@ class ActivityHandler(object):
                             self.on_resume()
                         elif this_state == 'stopped':
                             self.on_stop()
+                        elif this_state == 'error':
+                            self.on_error()
 
                     elif this_state == 'paused':
                         # Update the session last_paused timestamp
