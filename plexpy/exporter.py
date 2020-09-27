@@ -74,8 +74,8 @@ class Export(object):
     def __init__(self, section_id=None, rating_key=None, file_format='json',
                  metadata_level=1, media_info_level=1, include_images=False,
                  custom_fields=''):
-        self.section_id = helpers.cast_to_int(section_id)
-        self.rating_key = helpers.cast_to_int(rating_key)
+        self.section_id = helpers.cast_to_int(section_id) or None
+        self.rating_key = helpers.cast_to_int(rating_key) or None
         self.file_format = file_format
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
@@ -1396,24 +1396,19 @@ class Export(object):
         return _media_types[media_type]()
 
     def export(self):
+        msg = ''
         if not self.section_id and not self.rating_key:
-            logger.error("Tautulli Exporter :: Export called but no section_id or rating_key provided.")
-            return
-        elif self.rating_key and not str(self.rating_key).isdigit():
-            logger.error("Tautulli Exporter :: Export called with invalid rating_key '%s'.", self.rating_key)
-            return
-        elif self.section_id and not str(self.section_id).isdigit():
-            logger.error("Tautulli Exporter :: Export called with invalid section_id '%s'.", self.section_id)
-            return
+            msg = "Export called but no section_id or rating_key provided."
         elif self.metadata_level not in self.METADATA_LEVELS:
-            logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
-            return
+            msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
-            logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
-            return
+            msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
         elif self.file_format not in ('json', 'csv'):
-            logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", self.file_format)
-            return
+            msg = "Export called with invalid file_format '{}'.".format(self.file_format)
+
+        if msg:
+            logger.error("Tautulli Exporter :: %s", msg)
+            return msg
 
         plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
@@ -1463,11 +1458,14 @@ class Export(object):
             self.items = library.all()
 
         else:
-            return
+            msg = "Export called but no section_id or rating_key provided."
+            logger.error("Tautulli Exporter :: %s", msg)
+            return msg
 
         if self.media_type not in self.MEDIA_TYPES:
-            logger.error("Tautulli Exporter :: Cannot export media type '%s'", self.media_type)
-            return
+            msg = "Cannot export media type '{}'.".format(self.media_type)
+            logger.error("Tautulli Exporter :: %s", msg)
+            return msg
 
         if self.include_images and self.media_type not in ('movie', 'show', 'season', 'artist', 'album'):
             self.include_images = False
@@ -1477,8 +1475,9 @@ class Export(object):
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
         self.export_id = self.add_export()
         if not self.export_id:
-            logger.error("Tautulli Exporter :: Failed to export '%s'", self.filename)
-            return
+            msg = "Failed to export '{}'.".format(self.filename)
+            logger.error("Tautulli Exporter :: %s", msg)
+            return msg
 
         threading.Thread(target=self._real_export).start()
 

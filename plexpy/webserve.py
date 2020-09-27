@@ -6524,10 +6524,10 @@ class WebInterface(object):
                                  include_images=helpers.bool_true(include_images),
                                  custom_fields=custom_fields).export()
 
-        if result:
+        if result is True:
             return {'result': 'success', 'message': 'Metadata export has started.'}
         else:
-            return {'result': 'error', 'message': 'Failed to export metadata.'}
+            return {'result': 'error', 'message': result}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
