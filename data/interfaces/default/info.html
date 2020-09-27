@@ -906,6 +906,7 @@ DOCUMENTATION :: END
             }
         };
         export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);
+        export_table.column(2).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('#button-bar-export');
