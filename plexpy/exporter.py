@@ -1272,9 +1272,15 @@ class Export(object):
                 export_attrs_set.update(attrs)
 
         if self.include_images:
-            for imgage_attr in ('artFile', 'thumbFile'):
-                if imgage_attr in media_attrs:
-                    export_attrs_set.add(imgage_attr)
+            for image_attr in ('artFile', 'thumbFile'):
+                if image_attr in media_attrs:
+                    export_attrs_set.add(image_attr)
+            if self.media_type in ('show', 'artist'):
+                child_media_type = self.CHILDREN[self.media_type]
+                child_media_attrs = self.return_attrs(child_media_type)
+                for image_attr in ('artFile', 'thumbFile'):
+                    if image_attr in child_media_attrs:
+                        export_attrs_set.add(child_media_type + 's.' + image_attr)
 
         for attr in export_attrs_set:
             value = self._get_attr_value(media_attrs, attr)
