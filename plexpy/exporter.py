@@ -131,6 +131,9 @@ class Export(object):
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'key': None,
                 'labels': {
                     'id': None,
@@ -994,7 +997,7 @@ class Export(object):
                     2: [
                         'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                         'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
-                        'fields.name', 'fields.locked'
+                        'fields.name', 'fields.locked', 'guids.id'
                     ],
                     3: [
                         'art', 'thumb', 'key', 'chapterSource',
