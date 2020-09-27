@@ -876,66 +876,6 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_export(self, section_id=None, rating_key=None, **kwargs):
-        """ Get the data on the Tautulli export tables.
-
-            ```
-            Required parameters:
-                section_id (str):               The id of the Plex library section, OR
-                rating_key (str):               The rating key of the exported item
-
-            Optional parameters:
-                order_column (str):             "added_at", "sort_title", "container", "bitrate", "video_codec",
-                                                "video_resolution", "video_framerate", "audio_codec", "audio_channels",
-                                                "file_size", "last_played", "play_count"
-                order_dir (str):                "desc" or "asc"
-                start (int):                    Row to start from, 0
-                length (int):                   Number of items to return, 25
-                search (str):                   A string to search for, "Thrones"
-
-            Returns:
-                json:
-                    {"draw": 1,
-                     "recordsTotal": 10,
-                     "recordsFiltered": 3,
-                     "data":
-                        [{"row_id": 2,
-                          "timestamp": 1596484600,
-                          "section_id": 1,
-                          "rating_key": 270716,
-                          "media_type": "movie",
-                          "media_type_title": "Movie",
-                          "filename": "Movie - Frozen II [270716].20200803125640.json",
-                          "complete": 1
-                          },
-                         {...},
-                         {...}
-                         ]
-                     }
-            ```
-        """
-        # Check if datatables json_data was received.
-        # If not, then build the minimal amount of json data for a query
-        if not kwargs.get('json_data'):
-            # TODO: Find some one way to automatically get the columns
-            dt_columns = [("timestamp", True, False),
-                          ("media_type_title", True, True),
-                          ("rating_key", True, True),
-                          ("file_format", True, True),
-                          ("filename", True, True),
-                          ("complete", True, False)]
-            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
-
-        result = exporter.get_export_datatable(section_id=section_id,
-                                               rating_key=rating_key,
-                                               kwargs=kwargs)
-
-        return result
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_library(self, section_id=None, **kwargs):
         """ Get a library's details.
 
@@ -6479,6 +6419,66 @@ class WebInterface(object):
                     status['message'] = 'Database not ok'
 
         return status
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi("get_exports_table")
+    def get_export_list(self, section_id=None, rating_key=None, **kwargs):
+        """ Get the data on the Tautulli export tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section, OR
+                rating_key (str):               The rating key of the exported item
+
+            Optional parameters:
+                order_column (str):             "added_at", "sort_title", "container", "bitrate", "video_codec",
+                                                "video_resolution", "video_framerate", "audio_codec", "audio_channels",
+                                                "file_size", "last_played", "play_count"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Thrones"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 10,
+                     "recordsFiltered": 3,
+                     "data":
+                        [{"row_id": 2,
+                          "timestamp": 1596484600,
+                          "section_id": 1,
+                          "rating_key": 270716,
+                          "media_type": "movie",
+                          "media_type_title": "Movie",
+                          "filename": "Movie - Frozen II [270716].20200803125640.json",
+                          "complete": 1
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("timestamp", True, False),
+                          ("media_type_title", True, True),
+                          ("rating_key", True, True),
+                          ("file_format", True, True),
+                          ("filename", True, True),
+                          ("complete", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
+
+        result = exporter.get_export_datatable(section_id=section_id,
+                                               rating_key=rating_key,
+                                               kwargs=kwargs)
+
+        return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
