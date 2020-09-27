@@ -21,7 +21,7 @@ from future.builtins import object
 from future.builtins import str
 from backports import csv
 
-from io import open
+from io import open, BytesIO
 import base64
 import json
 import linecache
@@ -29,10 +29,11 @@ import os
 import shutil
 import sys
 import threading
+import zipfile
 from future.moves.urllib.parse import urlencode
 
 import cherrypy
-from cherrypy.lib.static import serve_file, serve_download
+from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
 from cherrypy._cperror import NotFound
 
 from hashing_passwords import make_hash
@@ -6594,6 +6595,27 @@ class WebInterface(object):
         result = exporter.get_export(export_id=export_id)
 
         if result and result['complete'] == 1 and result['exists']:
+            export_filepath = exporter.get_export_filepath(result['filename'])
+
+            if result['include_images']:
+                zip_filename = '{}.zip'.format(os.path.splitext(result['filename'])[0])
+                images_folder = exporter.get_export_filepath(result['filename'], images=True)
+
+                if os.path.exists(images_folder):
+                    buffer = BytesIO()
+                    temp_zip = zipfile.ZipFile(buffer, 'w')
+                    temp_zip.write(export_filepath, arcname=result['filename'])
+
+                    _images_folder = os.path.basename(images_folder)
+
+                    for f in os.listdir(images_folder):
+                        image_path = os.path.join(images_folder, f)
+                        temp_zip.write(image_path, arcname=os.path.join(_images_folder, f))
+
+                    temp_zip.close()
+                    return serve_fileobj(buffer.getvalue(), content_type='application/zip',
+                                         disposition='attachment', name=zip_filename)
+
             return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
         else:
             if result and result.get('complete') == 0:

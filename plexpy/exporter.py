@@ -69,7 +69,6 @@ class Export(object):
         self.items = []
 
         self.filename = None
-        self.filename_ext = None
         self.export_id = None
         self.file_size = None
         self.success = False
@@ -1205,8 +1204,9 @@ class Export(object):
 
         if self.rating_key:
             logger.debug(
-                "Tautulli Exporter :: Export called with rating_key %s, metadata_level %d, media_info_level %d",
-                self.rating_key, self.metadata_level, self.media_info_level)
+                "Tautulli Exporter :: Export called with rating_key %s, "
+                "metadata_level %d, media_info_level %d, include_images %s",
+                self.rating_key, self.metadata_level, self.media_info_level, self.include_images)
 
             item = plex.get_item(self.rating_key)
             self.media_type = item.type
@@ -1290,8 +1290,7 @@ class Export(object):
 
         export_attrs = reduce(helpers.dict_merge, export_attrs_list)
 
-        self.filename = helpers.clean_filename(filename)
-        self.filename_ext = '{}.{}'.format(self.filename, self.file_format)
+        self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
 
         self.export_id = self.add_export()
 
@@ -1305,9 +1304,9 @@ class Export(object):
         return True
 
     def _real_export(self, attrs):
-        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename_ext)
+        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename)
 
-        filepath = get_export_filepath(self.filename_ext)
+        filepath = get_export_filepath(self.filename)
 
         part = partial(helpers.get_attrs_to_dict, attrs=attrs)
         pool = ThreadPool(processes=4)
@@ -1331,7 +1330,7 @@ class Export(object):
             self.file_size = os.path.getsize(filepath)
 
             if self.include_images:
-                images_folder = get_export_filepath('{}.images'.format(self.filename))
+                images_folder = get_export_filepath(self.filename, images=True)
                 for f in os.listdir(images_folder):
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
@@ -1341,7 +1340,7 @@ class Export(object):
             logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
         except Exception as e:
-            logger.error("Tautulli Exporter :: Failed to export '%s': %s", self.filename_ext, e)
+            logger.error("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
             import traceback
             traceback.print_exc()
 
@@ -1357,7 +1356,7 @@ class Export(object):
                 'media_type': self.media_type}
 
         values = {'file_format': self.file_format,
-                  'filename': self.filename_ext,
+                  'filename': self.filename,
                   'include_images': self.include_images}
 
         db = database.MonitorDatabase()
@@ -1397,8 +1396,10 @@ def get_image(item, image, export_filename):
     else:
         item_title = item.title
 
-    folder = get_export_filepath('{}.images'.format(export_filename))
-    filepath = os.path.join(folder, '{} [{}].{}.jpg'.format(item_title, rating_key, image))
+    folder = get_export_filepath(export_filename, images=True)
+    filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
+    filepath = os.path.join(folder, filename)
+
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -1422,7 +1423,7 @@ def get_image(item, image, export_filename):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT filename, file_format, complete '
+    result = db.select_single('SELECT filename, file_format, include_images, complete '
                               'FROM exports WHERE id = ?',
                               [export_id])
 
@@ -1445,9 +1446,10 @@ def delete_export(export_id):
             logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
-                folder = '{}.images'.format(os.path.splitext(filepath)[0])
-                if os.path.exists(folder):
-                    shutil.rmtree(folder)
+                if export_data['include_images']:
+                    images_folder = get_export_filepath(export_data['filename'], images=True)
+                    if os.path.exists(images_folder):
+                        shutil.rmtree(images_folder)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
         return True
@@ -1457,7 +1459,7 @@ def delete_export(export_id):
 
 def delete_all_exports():
     db = database.MonitorDatabase()
-    result = db.select('SELECT filename FROM exports')
+    result = db.select('SELECT filename, include_images FROM exports')
 
     logger.info("Tautulli Exporter :: Deleting all exports from the database.")
 
@@ -1467,9 +1469,10 @@ def delete_all_exports():
             filepath = get_export_filepath(row['filename'])
             try:
                 os.remove(filepath)
-                folder = '{}.images'.format(os.path.splitext(filepath)[0])
-                if os.path.exists(folder):
-                    shutil.rmtree(folder)
+                if row['include_images']:
+                    images_folder = get_export_filepath(row['filename'], images=True)
+                    if os.path.exists(images_folder):
+                        shutil.rmtree(images_folder)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
                 deleted_files = False
@@ -1556,7 +1559,10 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     return result
 
 
-def get_export_filepath(filename):
+def get_export_filepath(filename, images=False):
+    if images:
+        images_folder = '{}.images'.format(os.path.splitext(filename)[0])
+        return os.path.join(plexpy.CONFIG.EXPORT_DIR, images_folder)
     return os.path.join(plexpy.CONFIG.EXPORT_DIR, filename)
 
 
