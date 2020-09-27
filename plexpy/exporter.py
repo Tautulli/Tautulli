@@ -1271,6 +1271,11 @@ class Export(object):
             if level <= self.media_info_level:
                 export_attrs_set.update(attrs)
 
+        if self.include_images:
+            for imgage_attr in ('artFile', 'thumbFile'):
+                if imgage_attr in media_attrs:
+                    export_attrs_set.add(imgage_attr)
+
         for attr in export_attrs_set:
             try:
                 value = helpers.get_dict_value_by_path(media_attrs, attr)
@@ -1324,6 +1329,14 @@ class Export(object):
                     writer.writerows(flatten_result)
 
             self.file_size = os.path.getsize(filepath)
+
+            if self.include_images:
+                images_folder = get_export_filepath('{}.images'.format(self.filename))
+                for f in os.listdir(images_folder):
+                    image_path = os.path.join(images_folder, f)
+                    if os.path.isfile(image_path):
+                        self.file_size += os.path.getsize(image_path)
+
             self.success = True
             logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
@@ -1344,7 +1357,8 @@ class Export(object):
                 'media_type': self.media_type}
 
         values = {'file_format': self.file_format,
-                  'filename': self.filename_ext}
+                  'filename': self.filename_ext,
+                  'include_images': self.include_images}
 
         db = database.MonitorDatabase()
         try:
@@ -1493,6 +1507,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'exports.media_type',
                'exports.filename',
                'exports.file_format',
+               'exports.include_images',
                'exports.file_size',
                'exports.complete'
                ]
@@ -1524,6 +1539,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'media_type_title': media_type_title,
                'filename': item['filename'],
                'file_format': item['file_format'],
+               'include_images': item['include_images'],
                'file_size': item['file_size'],
                'complete': item['complete'],
                'exists': exists

@@ -50,7 +50,7 @@ export_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap"
         },
         {
@@ -84,10 +84,14 @@ export_table_options = {
             "data": "file_format",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    var images = '';
+                    if (rowData['include_images']) {
+                        images = ' + images';
+                    }
+                    $(td).html(cellData + images);
                 }
             },
-            "width": "6%",
+            "width": "7%",
             "className": "no-wrap"
         },
         {
