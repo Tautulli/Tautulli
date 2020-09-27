@@ -1466,6 +1466,9 @@ class Export(object):
         return True
 
     def _process_custom_fields(self):
+        if self.custom_fields:
+            logger.debug("Tautulli Exporter :: Processing custom fields: %s", self.custom_fields)
+
         for field in self.custom_fields.split(','):
             field = field.strip()
 
