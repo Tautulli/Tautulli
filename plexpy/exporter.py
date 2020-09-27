@@ -53,6 +53,14 @@ class Export(object):
         'collection',
         'playlist'
     )
+    CHILDREN = {
+        'show': 'season',
+        'season': 'episode',
+        'artist': 'album',
+        'album': 'track',
+        'photo album': 'photo'
+    }
+    LEVELS = (1, 2, 3, 9)
 
     def __init__(self, section_id=None, rating_key=None, file_format='json',
                  metadata_level=1, media_info_level=1, include_images=False):
@@ -705,6 +713,7 @@ class Export(object):
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
+                'locations': None,
                 'media': {
                     'audioChannels': None,
                     'audioCodec': None,
@@ -954,7 +963,10 @@ class Export(object):
         return _media_types[media_type]()
 
     def return_levels(self, media_type):
+
         def movie_levels():
+            _media_type = 'movie'
+
             _movie_levels = [
                 {
                     1: [
@@ -971,7 +983,7 @@ class Export(object):
                         'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
                         'updatedAt', 'lastViewedAt', 'viewCount'
                     ],
-                    9: self._get_all_metadata_attr('movie')
+                    9: self._get_all_metadata_attr(_media_type)
                 },
                 {
                     1: [
@@ -1017,33 +1029,40 @@ class Export(object):
             return _movie_levels
 
         def show_levels():
+            _media_type = 'show'
+            _child_type = self.CHILDREN[_media_type]
+            _child_attr = _child_type + 's.'
+            _child_levels = self.return_levels(_child_type)
+
             _show_levels = [
                 {
                     1: [
                            'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
                            'rating', 'userRating', 'contentRating',
                            'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
-                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][1]],
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
                            'roles.tag', 'roles.role',
                            'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
-                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][2]],
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
                            'art', 'thumb', 'banner', 'theme', 'key',
                            'updatedAt', 'lastViewedAt', 'viewCount'
-                       ] + ['seasons.' + attr for attr in self.return_levels('season')[0][3]],
-                    9: self._get_all_metadata_attr('show')
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
                 },
                 {
-                    1: ['seasons.' + attr for attr in self.return_levels('season')[1][1]],
-                    2: ['seasons.' + attr for attr in self.return_levels('season')[1][2]],
-                    3: ['seasons.' + attr for attr in self.return_levels('season')[1][3]],
-                    9: ['seasons.' + attr for attr in self.return_levels('season')[1][9]]
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
                 }
             ]
             return _show_levels
 
         def season_levels():
+            _media_type = 'season'
+            _child_type = self.CHILDREN[_media_type]
+            _child_attr = _child_type + 's.'
+            _child_levels = self.return_levels(_child_type)
+
             _season_levels = [
                 {
                     1: [
@@ -1051,27 +1070,26 @@ class Export(object):
                            'userRating',
                            'summary', 'guid', 'type', 'index',
                            'parentTitle', 'parentRatingKey', 'parentGuid'
-                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][1]],
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
                            'fields.name', 'fields.locked'
-                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][2]],
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
                            'art', 'thumb', 'key',
                            'updatedAt', 'lastViewedAt', 'viewCount',
                            'parentKey', 'parentTheme', 'parentThumb'
-                       ] + ['episodes.' + attr for attr in self.return_levels('episode')[0][3]],
-                    9: self._get_all_metadata_attr('season')
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
                 },
                 {
-                    1: ['episodes.' + attr for attr in self.return_levels('episode')[1][1]],
-                    2: ['episodes.' + attr for attr in self.return_levels('episode')[1][2]],
-                    3: ['episodes.' + attr for attr in self.return_levels('episode')[1][3]],
-                    9: ['episodes.' + attr for attr in self.return_levels('episode')[1][9]]
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
                 }
             ]
             return _season_levels
 
         def episode_levels():
+            _media_type = 'episode'
+
             _episode_levels = [
                 {
                     1: [
@@ -1091,7 +1109,7 @@ class Export(object):
                         'parentThumb', 'parentKey',
                         'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                     ],
-                    9: self._get_all_metadata_attr('episode')
+                    9: self._get_all_metadata_attr(_media_type)
                 },
                 {
                     1: [
@@ -1137,15 +1155,124 @@ class Export(object):
             return _episode_levels
 
         def artist_levels():
-            _artist_levels = []
+            _media_type = 'artist'
+            _child_type = self.CHILDREN[_media_type]
+            _child_attr = _child_type + 's.'
+            _child_levels = self.return_levels(_child_type)
+
+            _artist_levels = [
+                {
+                    1: [
+                           'ratingKey', 'title', 'titleSort', 'addedAt',
+                           'rating', 'userRating',
+                           'summary', 'guid', 'type',
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
+                    2: [
+                           'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
+                           'fields.name', 'fields.locked'
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
+                    3: [
+                           'art', 'thumb', 'key',
+                           'updatedAt', 'lastViewedAt', 'viewCount'
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
+                }
+            ]
             return _artist_levels
 
         def album_levels():
-            _album_levels = []
+            _media_type = 'album'
+            _child_type = self.CHILDREN[_media_type]
+            _child_attr = _child_type + 's.'
+            _child_levels = self.return_levels(_child_type)
+
+            _album_levels = [
+                {
+                    1: [
+                           'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
+                           'rating', 'userRating',
+                           'summary', 'guid', 'type', 'index',
+                           'parentTitle', 'parentRatingKey', 'parentGuid'
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
+                    2: [
+                           'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
+                           'fields.name', 'fields.locked'
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
+                    3: [
+                           'art', 'thumb', 'key',
+                           'updatedAt', 'lastViewedAt', 'viewCount',
+                           'parentKey', 'parentThumb'
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
+                }
+            ]
             return _album_levels
 
         def track_levels():
-            _track_levels = []
+            _media_type = 'track'
+
+            _track_levels = [
+                {
+                    1: [
+                        'ratingKey', 'title', 'titleSort', 'originalTitle', 'year', 'addedAt',
+                        'userRating', 'ratingCount',
+                        'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
+                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                        'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                    ],
+                    2: [
+                        'moods.tag', 'writers.tag',
+                        'fields.name', 'fields.locked'
+                    ],
+                    3: [
+                        'art', 'thumb', 'key',
+                        'updatedAt', 'lastViewedAt', 'viewCount',
+                        'parentThumb', 'parentKey',
+                        'grandparentArt', 'grandparentThumb', 'grandparentKey'
+                    ],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    1: [
+                        'locations', 'media.audioChannels', 'media.audioCodec',
+                        'media.audioProfile',
+                        'media.bitrate', 'media.container', 'media.duration'
+                    ],
+                    2: [
+                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                        'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman',
+                        'media.parts.audioProfile',
+                        'media.parts.deepAnalysisVersion', 'media.parts.hasThumbnail'
+                    ],
+                    3: [
+                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                        'media.parts.audioStreams.extendedDisplayTitle',
+                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                        'media.parts.audioStreams.samplingRate',
+                        'media.parts.audioStreams.default',
+                        'media.parts.audioStreams.albumGain', 'media.parts.audioStreams.albumPeak',
+                        'media.parts.audioStreams.albumRange',
+                        'media.parts.audioStreams.loudness', 'media.parts.audioStreams.gain',
+                        'media.parts.audioStreams.lra', 'media.parts.audioStreams.peak',
+                        'media.parts.audioStreams.startRamp', 'media.parts.audioStreams.endRamp',
+                        'media.parts.lyricStreams.codec', 'media.parts.lyricStreams.format',
+                        'media.parts.lyricStreams.title', 'media.parts.lyricStreams.displayTitle',
+                        'media.parts.lyricStreams.extendedDisplayTitle',
+                        'media.parts.lyricStreams.default', 'media.parts.lyricStreams.minLines',
+                        'media.parts.lyricStreams.provider', 'media.parts.lyricStreams.timed',
+                    ],
+                    9: [
+                        'locations', 'media'
+                    ]
+                }
+            ]
             return _track_levels
 
         def photo_album_levels():
