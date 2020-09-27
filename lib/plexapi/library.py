@@ -1113,6 +1113,7 @@ class Collections(PlexObject):
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
         self.collectionMode = data.attrib.get('collectionMode')
         self.collectionSort = data.attrib.get('collectionSort')
+        self.labels = self.findItems(data, media.Label)
         self.fields = self.findItems(data, media.Field)
 
     @property
