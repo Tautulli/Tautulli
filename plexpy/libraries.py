@@ -126,6 +126,8 @@ def add_live_tv_library(refresh=False):
                       'section_id': common.LIVE_TV_SECTION_ID,
                       'section_name': common.LIVE_TV_SECTION_NAME,
                       'section_type': 'live',
+                      'thumb': common.DEFAULT_LIVE_TV_THUMB,
+                      'art': common.DEFAULT_LIVE_TV_ART_FULL,
                       'is_active': 1
                       }
 

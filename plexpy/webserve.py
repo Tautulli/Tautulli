@@ -4439,6 +4439,10 @@ class WebInterface(object):
                 None
             ```
         """
+        if isinstance(img, str) and img.startswith('interfaces/default/images'):
+            fp = os.path.join(plexpy.PROG_DIR, 'data', img)
+            return serve_file(path=fp, content_type='image/png')
+
         if not img and not rating_key:
             if fallback in common.DEFAULT_IMAGES:
                 fbi = common.DEFAULT_IMAGES[fallback]

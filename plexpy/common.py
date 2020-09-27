@@ -48,6 +48,7 @@ DEFAULT_ART = "interfaces/default/images/art.png"
 DEFAULT_LIVE_TV_POSTER_THUMB = "interfaces/default/images/poster-live.png"
 DEFAULT_LIVE_TV_ART = "interfaces/default/images/art-live.png"
 DEFAULT_LIVE_TV_ART_FULL = "interfaces/default/images/art-live-full.png"
+DEFAULT_LIVE_TV_THUMB = "interfaces/default/images/libraries/live.png"
 
 ONLINE_POSTER_THUMB = "https://tautulli.com/images/poster.png"
 ONLINE_COVER_THUMB = "https://tautulli.com/images/cover.png"

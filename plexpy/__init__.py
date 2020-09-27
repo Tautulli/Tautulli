@@ -1943,6 +1943,19 @@ def dbcheck():
             'ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1'
         )
 
+    # Upgrade library_sections table from earlier versions
+    try:
+        result = c_db.execute('SELECT thumb, art FROM library_sections WHERE section_id = ?',
+                              [common.LIVE_TV_SECTION_ID]).fetchone()
+        if result and (not result[0] or not result[1]):
+            logger.debug("Altering database. Updating database table library_sections.")
+            c_db.execute('UPDATE library_sections SET thumb = ?, art =? WHERE section_id = ?',
+                         [common.DEFAULT_LIVE_TV_THUMB,
+                          common.DEFAULT_LIVE_TV_ART_FULL,
+                          common.LIVE_TV_SECTION_ID])
+    except sqlite3.OperationalError:
+        pass
+
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
