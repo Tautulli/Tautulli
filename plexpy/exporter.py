@@ -150,7 +150,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda o: self.get_any_hdr(o),
+                    'hdr': lambda o: self.get_any_hdr(o, 'movie'),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -440,7 +440,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda o: self.get_any_hdr(o),
+                    'hdr': lambda o: self.get_any_hdr(o, 'episode'),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -1528,7 +1528,7 @@ class Export(object):
 
     def _export_obj(self, obj):
         # Reload ~plexapi.base.PlexPartialObject
-        if obj.isPartialObject():
+        if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
             obj = obj.reload()
 
         export_attrs = self._get_level_attrs(obj.type)
@@ -1570,13 +1570,8 @@ class Export(object):
 
         return reduce(helpers.dict_merge, export_attrs_list)
 
-    def get_any_hdr(self, item):
-        if self.media_type in ('show', 'season'):
-            _media_type = 'episode'
-        else:
-            _media_type = self.media_type
-
-        root = self.return_attrs(_media_type)['media']
+    def get_any_hdr(self, item, media_type):
+        root = self.return_attrs(media_type)['media']
         attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
         media = helpers.get_attrs_to_dict(item, attrs)
         return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
