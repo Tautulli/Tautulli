@@ -914,6 +914,10 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
     }
 
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
+    });
+
     $(document).ready(function () {
         loadExportTable();
     });
