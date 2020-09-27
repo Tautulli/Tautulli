@@ -1277,15 +1277,9 @@ class Export(object):
                     export_attrs_set.add(imgage_attr)
 
         for attr in export_attrs_set:
-            try:
-                value = helpers.get_dict_value_by_path(media_attrs, attr)
-            except KeyError:
-                logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+            value = self._get_attr_value(media_attrs, attr)
+            if not value:
                 continue
-            except Exception as e:
-                print(e)
-                continue
-
             export_attrs_list.append(value)
 
         export_attrs = reduce(helpers.dict_merge, export_attrs_list)
@@ -1379,6 +1373,20 @@ class Export(object):
 
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
+
+    def _get_attr_value(self, media_attrs, attr):
+        try:
+            return helpers.get_dict_value_by_path(media_attrs, attr)
+        except KeyError:
+            pass
+        except TypeError:
+            if '.' in attr:
+                sub_media_type, sub_attr = attr.split('.', maxsplit=1)
+                if sub_media_type[:-1] in self.MEDIA_TYPES:
+                    sub_media_attrs = self.return_attrs(sub_media_type[:-1])
+                    return {sub_media_type: self._get_attr_value(sub_media_attrs, sub_attr)}
+
+        logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
 
 
 def get_any_hdr(obj, root):
