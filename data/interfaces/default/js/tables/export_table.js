@@ -144,8 +144,8 @@ export_table_options = {
         if (timer) {
             clearTimeout(timer);
         }
-        if ($('.export-processing').length && $("#tabs-export").hasClass("active")) {
-            timer = setTimeout(redrawExportTable.bind(null, false), 5000);
+        if ($('.export-processing').length) {
+            timer = setTimeout(redrawExportTable.bind(null, false), 2000);
         }
     },
     "preDrawCallback": function(settings) {

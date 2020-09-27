@@ -24,8 +24,8 @@ DOCUMENTATION :: END
         </div>
         <div class="modal-body">
             <form method="post" class="form" id="export_metadata_form">
-                <input type="hidden" id="section_id" name="section_id" value="${section_id or ''}" />
-                <input type="hidden" id="rating_key" name="rating_key" value="${rating_key or ''}" />
+                <input type="hidden" id="export_section_id" name="export_section_id" value="${section_id or ''}" />
+                <input type="hidden" id="export_rating_key" name="export_rating_key" value="${rating_key or ''}" />
                 <div class="form-group">
                     <label for="metadata_export_level_select">Metadata Export Level</label>
                     <div class="row">
@@ -88,8 +88,8 @@ DOCUMENTATION :: END
 </div>
 <script>
     $("#export_metadata").click(function() {
-        var section_id = $('#section_id').val();
-        var rating_key = $('#rating_key').val();
+        var section_id = $('#export_section_id').val();
+        var rating_key = $('#export_rating_key').val();
         var metadata_export_level = $('#metadata_export_level_select option:selected').val();
         var media_info_export_level = $('#media_info_export_level_select option:selected').val();
         var file_format = $('#file_format_select option:selected').val();
@@ -108,13 +108,8 @@ DOCUMENTATION :: END
             async: true,
             success: function (data) {
                 if (data.result === 'success') {
-                    var msg = '';
-                    if (typeof export_table !== 'undefined') {
-                        redrawExportTable();
-                    } else {
-                        msg = '<br>View the export from the <a href="library?section_id=' + section_id +'#tab_tabs-export">library page</a>.'
-                    }
-                    showMsg('<i class="fa fa-check"></i> ' + data.message + msg, false, true, 5000);
+                    redrawExportTable();
+                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
                 } else {
                     showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
                 }

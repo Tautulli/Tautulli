@@ -518,17 +518,11 @@ DOCUMENTATION :: END
                                 </button>
                             </div>
                             % endif
-                            <div class="btn-group">
-                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}">
-                                    <i class="fa fa-file-export"></i> Export Metadata
-                                </button>
-                            </div>
                             % endif
                             <div class="btn-group">
                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                             </div>
-                            <div class="btn-group colvis-button-bar"></div>
+                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -548,6 +542,48 @@ DOCUMENTATION :: END
                                     <th align="left" id="stopped">Stopped</th>
                                     <th align="left" id="duration">Duration</th>
                                     <th align="left" id="percent_complete"></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                % endif
+                % if _session['user_group'] == 'admin':
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span>Metadata Exports for <strong>${data['title']}</strong></span>
+                        </div>
+                        <div class="button-bar">
+                            % if _session['user_group'] == 'admin':
+                            <div class="btn-group">
+                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}">
+                                    <i class="fa fa-file-export"></i> Export Metadata
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                    <i class="fa fa-refresh"></i> Refresh exports
+                                </button>
+                            </div>
+                            % endif
+                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <table class="display export_table" id="export_table-RK-${data['rating_key']}" width="100%">
+                            <thead>
+                                <tr>
+                                    <th align="left" id="timestamp">Exported At</th>
+                                    <th align="left" id="media_type_title">Media Type</th>
+                                    <th align="left" id="rating_key">Rating Key</th>
+                                    <th align="left" id="filename">Filename</th>
+                                    <th align="left" id="file_format">File Format</th>
+                                    <th align="left" id="file_size">File Size</th>
+                                    <th align="left" id="complete">Download</th>
+                                    <th align="left" id="delete">Delete</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -659,6 +695,7 @@ DOCUMENTATION :: END
     data = defaultdict(None, **metadata)
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 % if data['live']:
 <script>
     function get_history() {
@@ -730,7 +767,7 @@ DOCUMENTATION :: END
         get_history();
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
+        $(colvis.button()).appendTo('#button-bar-history');
 
         clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
 
@@ -864,6 +901,29 @@ DOCUMENTATION :: END
         });
     });
 
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_library_export',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    rating_key: "${data['rating_key']}"
+                };
+            }
+        };
+        export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
+    }
+
+    $(document).ready(function () {
+        loadExportTable();
+    });
 </script>
 % if data.get('poster_url'):
 <script>
