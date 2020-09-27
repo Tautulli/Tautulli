@@ -700,6 +700,10 @@ class Export(object):
                 'art': None,
                 'duration': None,
                 'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
                 'grandparentArt': None,
                 'grandparentGuid': None,
                 'grandparentKey': None,
@@ -821,6 +825,10 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'composite': None,
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
                 'guid': None,
                 'index': None,
                 'key': None,
@@ -831,6 +839,7 @@ class Export(object):
                 'summary': None,
                 'thumb': None,
                 'title': None,
+                'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso
             }
@@ -841,6 +850,10 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'createdAtAccuracy': None,
                 'createdAtTZOffset': None,
+                'fields': {
+                    'name': None,
+                    'locked': None
+                },
                 'guid': None,
                 'index': None,
                 'key': None,
@@ -858,6 +871,7 @@ class Export(object):
                 'summary': None,
                 'thumb': None,
                 'title': None,
+                'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
                 'year': None,
@@ -976,7 +990,8 @@ class Export(object):
                     ],
                     2: [
                         'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
-                        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+                        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
+                        'fields.name', 'fields.locked'
                     ],
                     3: [
                         'art', 'thumb', 'key', 'chapterSource',
@@ -1043,7 +1058,8 @@ class Export(object):
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
                            'roles.tag', 'roles.role',
-                           'genres.tag', 'collections.tag', 'labels.tag', 'fields.name', 'fields.locked'
+                           'genres.tag', 'collections.tag', 'labels.tag',
+                           'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
                            'art', 'thumb', 'banner', 'theme', 'key',
@@ -1276,11 +1292,70 @@ class Export(object):
             return _track_levels
 
         def photo_album_levels():
-            _photo_album_levels = []
+            _media_type = 'photo album'
+            _child_type = self.CHILDREN[_media_type]
+            _child_attr = _child_type + 's.'
+            _child_levels = self.return_levels(_child_type)
+
+            _photo_album_levels = [
+                {
+                    1: [
+                           'ratingKey', 'title', 'titleSort', 'addedAt',
+                           'summary', 'guid', 'type', 'index',
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
+                    2: [
+                           'fields.name', 'fields.locked'
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
+                    3: [
+                           'art', 'thumb', 'key',
+                           'updatedAt'
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
+                }
+            ]
             return _photo_album_levels
 
         def photo_levels():
-            _photo_levels = []
+            _media_type = 'photo'
+
+            _photo_levels = [
+                {
+                    1: [
+                        'ratingKey', 'title', 'titleSort', 'year', 'originallyAvailableAt', 'addedAt',
+                        'summary', 'guid', 'type', 'index',
+                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                        'createdAtAccuracy', 'createdAtTZOffset'
+                    ],
+                    2: [
+                        'tag.tag', 'tag.title'
+                    ],
+                    3: [
+                        'thumb', 'key',
+                        'updatedAt',
+                        'parentThumb', 'parentKey'
+                    ],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    1: [
+                        'media.aspectRatio', 'media.aperture',
+                        'media.container', 'media.height', 'media.width',
+                        'media.iso', 'media.lens', 'media.make', 'media.model'
+                    ],
+                    2: [
+                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file',
+                        'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman'
+                    ],
+                    3: [
+                    ],
+                    9: [
+                        'media'
+                    ]
+                }
+            ]
             return _photo_levels
 
         def collection_levels():
