@@ -49,21 +49,32 @@ class Export(object):
         'movie',
         'show', 'season', 'episode',
         'artist', 'album', 'track',
-        'photo album', 'photo',
+        'photoalbum', 'photo',
         'collection',
         'playlist'
     )
     METADATA_LEVELS = (1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (1, 2, 3, 9)
+    CUSTOM_FIELD_KEYS = (
+        'movies',
+        'shows', 'seasons', 'episodes',
+        'artists', 'albums', 'tracks',
+        'photoalbums', 'photos',
+        'collections', 'children',
+        'playlists', 'items'
+    )
 
     def __init__(self, section_id=None, rating_key=None, file_format='json',
-                 metadata_level=1, media_info_level=1, include_images=False):
+                 metadata_level=1, media_info_level=1, include_images=False,
+                 custom_fields=''):
         self.section_id = helpers.cast_to_int(section_id)
         self.rating_key = helpers.cast_to_int(rating_key)
         self.file_format = file_format
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
         self.include_images = include_images
+        self.custom_fields = custom_fields
+        self._custom_fields = {}
 
         self.timestamp = helpers.timestamp()
 
@@ -955,7 +966,7 @@ class Export(object):
             'artist': artist_attrs,
             'album': album_attrs,
             'track': track_attrs,
-            'photo album': photo_album_attrs,
+            'photoalbum': photo_album_attrs,
             'photo': photo_attrs,
             'collection': collection_attrs,
             'playlist': playlist_attrs,
@@ -1246,7 +1257,7 @@ class Export(object):
             return _metadata_levels, _media_info_levels
 
         def photo_album_levels():
-            _media_type = 'photo album'
+            _media_type = 'photoalbum'
             _metadata_levels = {
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
@@ -1351,7 +1362,7 @@ class Export(object):
             'artist': artist_levels,
             'album': album_levels,
             'track': track_levels,
-            'photo album': photo_album_levels,
+            'photoalbum': photo_album_levels,
             'photo': photo_levels,
             'collection': collection_levels,
             'playlist': playlist_levels
@@ -1408,7 +1419,7 @@ class Export(object):
                 item_title = item.title
 
             if self.media_type == 'photo' and item.TAG == 'Directory':
-                self.media_type = 'photo album'
+                self.media_type = 'photoalbum'
 
             filename = '{} - {} [{}].{}'.format(
                 self.media_type.title(), item_title, self.rating_key,
@@ -1442,6 +1453,8 @@ class Export(object):
         if self.include_images and self.media_type not in ('movie', 'show', 'season', 'artist', 'album'):
             self.include_images = False
 
+        self._process_custom_fields()
+
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
         self.export_id = self.add_export()
         if not self.export_id:
@@ -1451,6 +1464,22 @@ class Export(object):
         threading.Thread(target=self._real_export).start()
 
         return True
+
+    def _process_custom_fields(self):
+        for field in self.custom_fields.split(','):
+            field = field.strip()
+
+            media_type = self.media_type
+            for key in self.CUSTOM_FIELD_KEYS:
+                if field.startswith(key + '.'):
+                    media_type, field = field.split('.', maxsplit=1)
+                    if key != 'children':
+                        media_type = media_type[:-1]
+
+            if media_type in self._custom_fields:
+                self._custom_fields[media_type].add(field)
+            else:
+                self._custom_fields[media_type] = {field}
 
     def add_export(self):
         keys = {'timestamp': self.timestamp,
@@ -1558,6 +1587,12 @@ class Export(object):
             for image_attr in ('artFile', 'thumbFile'):
                 if image_attr in media_attrs:
                     export_attrs_set.add(image_attr)
+
+        export_attrs_set.update(self._custom_fields.get(media_type, []))
+        if self.media_type == 'collection' and 'children' in self._custom_fields:
+            export_attrs_set.update(self._custom_fields['children'])
+        elif self.media_type == 'playlist' and 'items' in self._custom_fields:
+            export_attrs_set.update(self._custom_fields['items'])
 
         for attr in export_attrs_set:
             try:

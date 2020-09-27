@@ -6492,7 +6492,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json',
-                        metadata_level=1, media_info_level=1, include_images=False, **kwargs):
+                        metadata_level=1, media_info_level=1, include_images=False,
+                        custom_fields='', **kwargs):
         """ Export library or media metadata to a file
 
             ```
@@ -6504,6 +6505,9 @@ class WebInterface(object):
                 file_format (str):         'json' (default) or 'csv'
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
+                include_images (bool):     True or False to export artwork and posters images
+                custom_fields (str):       Comma separated list of custom fields to export
+                                           in addition to the export level selected
 
             Returns:
                 json:
@@ -6517,7 +6521,8 @@ class WebInterface(object):
                                  file_format=file_format,
                                  metadata_level=metadata_level,
                                  media_info_level=media_info_level,
-                                 include_images=helpers.bool_true(include_images)).export()
+                                 include_images=helpers.bool_true(include_images),
+                                 custom_fields=custom_fields).export()
 
         if result:
             return {'result': 'success', 'message': 'Metadata export has started.'}
