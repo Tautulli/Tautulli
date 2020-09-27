@@ -1507,7 +1507,8 @@ class Export(object):
 
         keys = {'id': self.export_id}
         values = {'complete': complete,
-                  'file_size': self.file_size}
+                  'file_size': self.file_size,
+                  'include_images': self.include_images}
 
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
@@ -1538,7 +1539,8 @@ class Export(object):
 
             self.file_size = os.path.getsize(filepath)
 
-            if self.include_images and os.path.exists(images_folder):
+            if os.path.exists(images_folder):
+                self.include_images = True
                 for f in os.listdir(images_folder):
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
