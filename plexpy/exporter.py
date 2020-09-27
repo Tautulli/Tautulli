@@ -920,6 +920,10 @@ class Export(object):
                 'guid': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
@@ -1323,6 +1327,7 @@ class Export(object):
                     'children'
                 ],
                 2: [
+                    'labels.tag',
                     'fields.name', 'fields.locked'
                 ],
                 3: [
