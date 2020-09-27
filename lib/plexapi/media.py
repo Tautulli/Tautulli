@@ -586,6 +586,29 @@ class MediaTag(PlexObject):
         return self.fetchItems(self.key)
 
 
+class GuidTag(PlexObject):
+    """ Base class for guid tags used only for Guids, as they contain only a string identifier
+        Attributes:
+            server (:class:`~plexapi.server.PlexServer`): Server this client is connected to.
+            id (id): Tag ID (Used as a unique id, except for Guid's, used for external systems
+                to plex identifiers, like imdb and tmdb).
+    """
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        self._data = data
+        self.id = data.attrib.get('id')
+        self.tag = data.attrib.get('tag')
+
+    def items(self, *args, **kwargs):
+        """ Return the list of items within this tag. This function is only applicable
+            in search results from PlexServer :func:`~plexapi.server.PlexServer.search()`.
+        """
+        if not self.key:
+            raise BadRequest('Key is not defined for this tag: %s' % self.tag)
+        return self.fetchItems(self.key)
+
+
 @utils.registerPlexObject
 class Collection(MediaTag):
     """ Represents a single Collection media tag.
@@ -663,6 +686,12 @@ class Genre(MediaTag):
     """
     TAG = 'Genre'
     FILTER = 'genre'
+
+
+@utils.registerPlexObject
+class Guid(GuidTag):
+    """ Represents a single Guid media tag. """
+    TAG = "Guid"
 
 
 @utils.registerPlexObject

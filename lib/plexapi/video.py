@@ -266,6 +266,7 @@ class Movie(Playable, Video):
             directors (List<:class:`~plexapi.media.Director`>): List of director objects.
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             producers (List<:class:`~plexapi.media.Producer`>): List of producers objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
@@ -310,6 +311,7 @@ class Movie(Playable, Video):
         self.directors = self.findItems(data, media.Director)
         self.fields = self.findItems(data, media.Field)
         self.genres = self.findItems(data, media.Genre)
+        self.guids = self.findItems(data, media.Guid)
         self.media = self.findItems(data, media.Media)
         self.producers = self.findItems(data, media.Producer)
         self.roles = self.findItems(data, media.Role)
