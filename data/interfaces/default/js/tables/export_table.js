@@ -39,7 +39,7 @@ export_table_options = {
                     $(td).html(moment(cellData, "X").format(date_format + ' ' + time_format));
                 }
             },
-            "width": "10%",
+            "width": "8%",
             "className": "no-wrap"
         },
         {
@@ -76,7 +76,7 @@ export_table_options = {
                     }
                 }
             },
-            "width": "50%",
+            "width": "40%",
             "className": "no-wrap"
         },
         {
@@ -96,6 +96,28 @@ export_table_options = {
         },
         {
             "targets": [5],
+            "data": "metadata_level",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null) {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "6%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [6],
+            "data": "media_info_level",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null) {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "6%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [7],
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '' && cellData !== null) {
@@ -106,7 +128,7 @@ export_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [6],
+            "targets": [8],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1 && rowData['exists']) {
@@ -123,7 +145,7 @@ export_table_options = {
             "className": "export_download"
         },
         {
-            "targets": [7],
+            "targets": [9],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['complete'] !== 0) {

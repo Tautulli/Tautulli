@@ -86,7 +86,6 @@ class Export(object):
         self.timestamp = helpers.timestamp()
 
         self.media_type = None
-        self.sub_media_type = None
         self.items = []
 
         self.filename = None
@@ -1421,9 +1420,6 @@ class Export(object):
             item = plex.get_item(self.rating_key)
             self.media_type = item.type
 
-            if self.media_type == 'collection':
-                self.sub_media_type = item.subtype
-
             if self.media_type != 'playlist':
                 self.section_id = item.librarySectionID
 
@@ -1511,7 +1507,10 @@ class Export(object):
 
         values = {'file_format': self.file_format,
                   'filename': self.filename,
-                  'include_images': self.include_images}
+                  'metadata_level': self.metadata_level,
+                  'media_info_level': self.media_info_level,
+                  'include_images': self.include_images,
+                  'custom_fields': self.custom_fields}
 
         db = database.MonitorDatabase()
         try:
@@ -1760,7 +1759,10 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'exports.media_type',
                'exports.filename',
                'exports.file_format',
+               'exports.metadata_level',
+               'exports.media_info_level',
                'exports.include_images',
+               'exports.custom_fields',
                'exports.file_size',
                'exports.complete'
                ]
@@ -1792,7 +1794,10 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'media_type_title': media_type_title,
                'filename': item['filename'],
                'file_format': item['file_format'],
+               'metadata_level': item['metadata_level'],
+               'media_info_level': item['media_info_level'],
                'include_images': item['include_images'],
+               'custom_fields': item['custom_fields'],
                'file_size': item['file_size'],
                'complete': item['complete'],
                'exists': exists

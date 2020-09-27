@@ -797,7 +797,9 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, section_id INTEGER, rating_key INTEGER, media_type TEXT, '
-        'filename TEXT, file_format TEXT, include_images INTEGER DEFAULT 0, '
+        'filename TEXT, file_format TEXT, '
+        'metadata_level INTEGER, media_info_level INTEGER, include_images INTEGER DEFAULT 0, '
+        'custom_fields TEXT, '
         'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
     )
 
