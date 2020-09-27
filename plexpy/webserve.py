@@ -6562,7 +6562,7 @@ class WebInterface(object):
                             'td {box-shadow: inset 1px -1px #000;}' \
                             'th, td {padding: 3px; white-space: nowrap;}' \
                             '</style>'
-                return style + '<pre>%s</pre>' % table
+                return '{style}<pre>{table}</pre>'.format(style=style, table=table)
         else:
             if result and result.get('complete') == 0:
                 msg = 'Export is still being processed.'
