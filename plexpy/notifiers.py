@@ -3373,6 +3373,7 @@ class TELEGRAM(Notifier):
     _DEFAULT_CONFIG = {'bot_token': '',
                        'chat_id': '',
                        'disable_web_preview': 0,
+                       'silent_notification': 0,
                        'html_support': 1,
                        'incl_subject': 1,
                        'incl_poster': 0
@@ -3405,21 +3406,28 @@ class TELEGRAM(Notifier):
                 poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
                 files = {'photo': (poster_filename, poster_content, 'image/png')}
 
-                if len(text) > 1024:
+                max_caption = len(text)
+
+                if max_caption > 1024:
                     data['disable_notification'] = True
+                    self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                                      data=data, files=files)
+                    data.pop('disable_notification') #This prevents from alerting with 2 sounds Telegram when the Silent Message is OFF: one alert for the photo and the second one for the text
                 else:
                     data['caption'] = text.encode('utf-8')
-
-                r = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                    if self.config['silent_notification']:
+                        data['disable_notification'] = True
+                    self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
                                       data=data, files=files)
-
-                if not data.pop('disable_notification', None):
-                    return r
+                    return
 
         data['text'] = (text[:4093] + (text[4093:] and '...')).encode('utf-8')
 
         if self.config['disable_web_preview']:
             data['disable_web_page_preview'] = True
+
+        if self.config['silent_notification']:
+            data['disable_notification'] = True
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
@@ -3467,6 +3475,12 @@ class TELEGRAM(Notifier):
                           'value': self.config['disable_web_preview'],
                           'name': 'telegram_disable_web_preview',
                           'description': 'Disables automatic link previews for links in the message',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable Silent Notifications',
+                          'value': self.config['silent_notification'],
+                          'name': 'telegram_silent_notification',
+                          'description': 'Send notifications silently without any alert sounds.',
                           'input_type': 'checkbox'
                           }
                          ]
