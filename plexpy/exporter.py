@@ -53,12 +53,21 @@ class Export(object):
         'collection',
         'playlist'
     )
-    CHILDREN = {
+    CHILD_MEDIA_TYPES = {
         'show': 'season',
         'season': 'episode',
         'artist': 'album',
         'album': 'track',
-        'photo album': 'photo'
+        'photo album': 'photo',
+        'collection': 'children'
+    }
+    CHILD_ATTR_KEY = {
+        'show': 'seasons.',
+        'season': 'episodes.',
+        'artist': 'albums.',
+        'album': 'tracks.',
+        'photo album': 'photos.',
+        'collection': 'children.'
     }
     LEVELS = (1, 2, 3, 9)
 
@@ -74,6 +83,7 @@ class Export(object):
         self.timestamp = helpers.timestamp()
 
         self.media_type = None
+        self.sub_media_type = None
         self.items = []
 
         self.filename = None
@@ -932,6 +942,7 @@ class Export(object):
                 'thumb': None,
                 'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
                 'title': None,
+                'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
                 'children': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
@@ -1045,25 +1056,25 @@ class Export(object):
 
         def show_levels():
             _media_type = 'show'
-            _child_type = self.CHILDREN[_media_type]
-            _child_attr = _child_type + 's.'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
             _child_levels = self.return_levels(_child_type)
 
             _show_levels = [
                 {
                     1: [
-                           'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
-                           'rating', 'userRating', 'contentRating',
-                           'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
+                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                        'rating', 'userRating', 'contentRating',
+                        'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
-                           'roles.tag', 'roles.role',
-                           'genres.tag', 'collections.tag', 'labels.tag',
-                           'fields.name', 'fields.locked'
+                        'roles.tag', 'roles.role',
+                        'genres.tag', 'collections.tag', 'labels.tag',
+                        'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
-                           'art', 'thumb', 'banner', 'theme', 'key',
-                           'updatedAt', 'lastViewedAt', 'viewCount'
+                        'art', 'thumb', 'banner', 'theme', 'key',
+                        'updatedAt', 'lastViewedAt', 'viewCount'
                        ] + [_child_attr + attr for attr in _child_levels[0][3]],
                     9: self._get_all_metadata_attr(_media_type)
                 },
@@ -1075,25 +1086,25 @@ class Export(object):
 
         def season_levels():
             _media_type = 'season'
-            _child_type = self.CHILDREN[_media_type]
-            _child_attr = _child_type + 's.'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
             _child_levels = self.return_levels(_child_type)
 
             _season_levels = [
                 {
                     1: [
-                           'ratingKey', 'title', 'titleSort', 'addedAt',
-                           'userRating',
-                           'summary', 'guid', 'type', 'index',
-                           'parentTitle', 'parentRatingKey', 'parentGuid'
+                        'ratingKey', 'title', 'titleSort', 'addedAt',
+                        'userRating',
+                        'summary', 'guid', 'type', 'index',
+                        'parentTitle', 'parentRatingKey', 'parentGuid'
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
-                           'fields.name', 'fields.locked'
+                        'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
-                           'art', 'thumb', 'key',
-                           'updatedAt', 'lastViewedAt', 'viewCount',
-                           'parentKey', 'parentTheme', 'parentThumb'
+                        'art', 'thumb', 'key',
+                        'updatedAt', 'lastViewedAt', 'viewCount',
+                        'parentKey', 'parentTheme', 'parentThumb'
                        ] + [_child_attr + attr for attr in _child_levels[0][3]],
                     9: self._get_all_metadata_attr(_media_type)
                 },
@@ -1172,24 +1183,24 @@ class Export(object):
 
         def artist_levels():
             _media_type = 'artist'
-            _child_type = self.CHILDREN[_media_type]
-            _child_attr = _child_type + 's.'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
             _child_levels = self.return_levels(_child_type)
 
             _artist_levels = [
                 {
                     1: [
-                           'ratingKey', 'title', 'titleSort', 'addedAt',
-                           'rating', 'userRating',
-                           'summary', 'guid', 'type',
+                        'ratingKey', 'title', 'titleSort', 'addedAt',
+                        'rating', 'userRating',
+                        'summary', 'guid', 'type',
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
-                           'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
-                           'fields.name', 'fields.locked'
+                        'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
+                        'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
-                           'art', 'thumb', 'key',
-                           'updatedAt', 'lastViewedAt', 'viewCount'
+                        'art', 'thumb', 'key',
+                        'updatedAt', 'lastViewedAt', 'viewCount'
                        ] + [_child_attr + attr for attr in _child_levels[0][3]],
                     9: self._get_all_metadata_attr(_media_type)
                 },
@@ -1201,26 +1212,26 @@ class Export(object):
 
         def album_levels():
             _media_type = 'album'
-            _child_type = self.CHILDREN[_media_type]
-            _child_attr = _child_type + 's.'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
             _child_levels = self.return_levels(_child_type)
 
             _album_levels = [
                 {
                     1: [
-                           'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
-                           'rating', 'userRating',
-                           'summary', 'guid', 'type', 'index',
-                           'parentTitle', 'parentRatingKey', 'parentGuid'
+                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
+                        'rating', 'userRating',
+                        'summary', 'guid', 'type', 'index',
+                        'parentTitle', 'parentRatingKey', 'parentGuid'
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
-                           'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
-                           'fields.name', 'fields.locked'
+                        'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
+                        'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
-                           'art', 'thumb', 'key',
-                           'updatedAt', 'lastViewedAt', 'viewCount',
-                           'parentKey', 'parentThumb'
+                        'art', 'thumb', 'key',
+                        'updatedAt', 'lastViewedAt', 'viewCount',
+                        'parentKey', 'parentThumb'
                        ] + [_child_attr + attr for attr in _child_levels[0][3]],
                     9: self._get_all_metadata_attr(_media_type)
                 },
@@ -1293,22 +1304,22 @@ class Export(object):
 
         def photo_album_levels():
             _media_type = 'photo album'
-            _child_type = self.CHILDREN[_media_type]
-            _child_attr = _child_type + 's.'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
             _child_levels = self.return_levels(_child_type)
 
             _photo_album_levels = [
                 {
                     1: [
-                           'ratingKey', 'title', 'titleSort', 'addedAt',
-                           'summary', 'guid', 'type', 'index',
+                        'ratingKey', 'title', 'titleSort', 'addedAt',
+                        'summary', 'guid', 'type', 'index',
                        ] + [_child_attr + attr for attr in _child_levels[0][1]],
                     2: [
-                           'fields.name', 'fields.locked'
+                        'fields.name', 'fields.locked'
                        ] + [_child_attr + attr for attr in _child_levels[0][2]],
                     3: [
-                           'art', 'thumb', 'key',
-                           'updatedAt'
+                        'art', 'thumb', 'key',
+                        'updatedAt'
                        ] + [_child_attr + attr for attr in _child_levels[0][3]],
                     9: self._get_all_metadata_attr(_media_type)
                 },
@@ -1359,7 +1370,32 @@ class Export(object):
             return _photo_levels
 
         def collection_levels():
-            _collection_levels = []
+            _media_type = 'collection'
+            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
+            _child_attr = self.CHILD_ATTR_KEY[_media_type]
+            _child_levels = self.return_levels(self.sub_media_type)
+
+            _collection_levels = [
+                {
+                    1: [
+                        'ratingKey', 'title', 'titleSort', 'minYear', 'maxYear', 'addedAt',
+                        'contentRating',
+                        'summary', 'guid', 'type', 'subtype', 'childCount',
+                        'collectionMode', 'collectionSort'
+                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
+                    2: [
+                        'fields.name', 'fields.locked'
+                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
+                    3: [
+                        'art', 'thumb', 'key',
+                        'updatedAt'
+                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
+                    9: self._get_all_metadata_attr(_media_type)
+                },
+                {
+                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
+                }
+            ]
             return _collection_levels
 
         def playlist_levels():
@@ -1412,6 +1448,9 @@ class Export(object):
 
             item = plex.get_item(self.rating_key)
             self.media_type = item.type
+
+            if self.media_type == 'collection':
+                self.sub_media_type = item.subtype
 
             if self.media_type != 'playlist':
                 self.section_id = item.librarySectionID
@@ -1477,12 +1516,13 @@ class Export(object):
             for image_attr in ('artFile', 'thumbFile'):
                 if image_attr in media_attrs:
                     export_attrs_set.add(image_attr)
-            if self.media_type in ('show', 'artist'):
-                child_media_type = self.CHILDREN[self.media_type]
-                child_media_attrs = self.return_attrs(child_media_type)
+            if self.media_type in ('show', 'artist', 'collection'):
+                child_media_type = self.CHILD_MEDIA_TYPES[self.media_type]
+                child_attr_key = self.CHILD_ATTR_KEY[self.media_type]
+                child_media_attrs = self.return_attrs(self.sub_media_type or child_media_type)
                 for image_attr in ('artFile', 'thumbFile'):
                     if image_attr in child_media_attrs:
-                        export_attrs_set.add(child_media_type + 's.' + image_attr)
+                        export_attrs_set.add(child_attr_key + image_attr)
 
         for attr in export_attrs_set:
             value = self._get_attr_value(media_attrs, attr)
@@ -1543,9 +1583,7 @@ class Export(object):
             logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
 
         except Exception as e:
-            logger.error("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
-            import traceback
-            traceback.print_exc()
+            logger.exception("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
 
         finally:
             pool.close()
@@ -1591,8 +1629,13 @@ class Export(object):
         except TypeError:
             if '.' in attr:
                 sub_media_type, sub_attr = attr.split('.', maxsplit=1)
-                if sub_media_type[:-1] in self.MEDIA_TYPES:
-                    sub_media_attrs = self.return_attrs(sub_media_type[:-1])
+                if sub_media_type == 'children':
+                    _sub_media_type = self.sub_media_type
+                else:
+                    _sub_media_type = sub_media_type[:-1]
+
+                if _sub_media_type in self.MEDIA_TYPES:
+                    sub_media_attrs = self.return_attrs(_sub_media_type)
                     return {sub_media_type: self._get_attr_value(sub_media_attrs, sub_attr)}
 
         logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
