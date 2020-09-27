@@ -48,6 +48,7 @@ class Photoalbum(PlexPartialObject):
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
+        self.fields = self.findItems(data, media.Field)
 
     def albums(self, **kwargs):
         """ Returns a list of :class:`~plexapi.photo.Photoalbum` objects in this album. """
@@ -136,6 +137,7 @@ class Photo(PlexPartialObject):
         self.year = utils.cast(int, data.attrib.get('year'))
         self.media = self.findItems(data, media.Media)
         self.tag = self.findItems(data, media.Tag)
+        self.fields = self.findItems(data, media.Field)
 
     def photoalbum(self):
         """ Return this photo's :class:`~plexapi.photo.Photoalbum`. """
