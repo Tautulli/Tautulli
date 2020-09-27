@@ -53,23 +53,8 @@ class Export(object):
         'collection',
         'playlist'
     )
-    CHILD_MEDIA_TYPES = {
-        'show': 'season',
-        'season': 'episode',
-        'artist': 'album',
-        'album': 'track',
-        'photo album': 'photo',
-        'collection': 'children'
-    }
-    CHILD_ATTR_KEY = {
-        'show': 'seasons.',
-        'season': 'episodes.',
-        'artist': 'albums.',
-        'album': 'tracks.',
-        'photo album': 'photos.',
-        'collection': 'children.'
-    }
-    LEVELS = (1, 2, 3, 9)
+    METADATA_LEVELS = (1, 2, 3, 9)
+    MEDIA_INFO_LEVELS = (1, 2, 3, 9)
 
     def __init__(self, section_id=None, rating_key=None, file_format='json',
                  metadata_level=1, media_info_level=1, include_images=False):
@@ -91,17 +76,15 @@ class Export(object):
         self.file_size = None
         self.success = False
 
-    def _get_all_metadata_attr(self, media_type):
-        exclude_attrs = ('media', 'artFile', 'thumbFile')
-        all_attrs = self.return_attrs(media_type)
-        return [attr for attr in all_attrs if attr not in exclude_attrs]
-
     def return_attrs(self, media_type):
+        # o: current object
+        # e: element in object attribute value list
+
         def movie_attrs():
             _movie_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'art', self.filename),
+                'artFile': lambda o: get_image(o, 'art', self.filename),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'chapters': {
@@ -127,7 +110,7 @@ class Export(object):
                     'tag': None
                 },
                 'duration': None,
-                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -167,7 +150,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda i: get_any_hdr(i, self.return_attrs('movie')['media']),
+                    'hdr': lambda o: get_any_hdr(o, self.return_attrs('movie')['media']),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -181,7 +164,7 @@ class Export(object):
                         'indexes': None,
                         'key': None,
                         'size': None,
-                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'optimizedForStreaming': None,
                         'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
                         'syncItemId': None,
@@ -214,7 +197,7 @@ class Export(object):
                             'frameRate': None,
                             'frameRateMode': None,
                             'hasScalingMatrix': None,
-                            'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
+                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorSpace', '')),
                             'height': None,
                             'level': None,
                             'pixelAspectRatio': None,
@@ -292,7 +275,7 @@ class Export(object):
                 'summary': None,
                 'tagline': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -311,7 +294,7 @@ class Export(object):
             _show_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'art', self.filename),
+                'artFile': lambda o: get_image(o, 'art', self.filename),
                 'banner': None,
                 'childCount': None,
                 'collections': {
@@ -320,7 +303,7 @@ class Export(object):
                 },
                 'contentRating': None,
                 'duration': None,
-                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -355,7 +338,7 @@ class Export(object):
                 'summary': None,
                 'theme': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -364,8 +347,7 @@ class Export(object):
                 'viewCount': None,
                 'viewedLeafCount': None,
                 'year': None,
-                'seasons': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                               self.return_attrs(e.type)[0])
+                'seasons': lambda e: self._export_obj(e)
             }
             return _show_attrs
 
@@ -395,7 +377,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -403,8 +385,7 @@ class Export(object):
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
-                'episodes': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                                self.return_attrs(e.type)[0])
+                'episodes': lambda e: self._export_obj(e)
             }
             return _season_attrs
 
@@ -419,7 +400,7 @@ class Export(object):
                     'tag': None
                 },
                 'duration': None,
-                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -459,7 +440,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda i: get_any_hdr(i, self.return_attrs('episode')['media']),
+                    'hdr': lambda o: get_any_hdr(o, self.return_attrs('episode')['media']),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -473,7 +454,7 @@ class Export(object):
                         'indexes': None,
                         'key': None,
                         'size': None,
-                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'optimizedForStreaming': None,
                         'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
                         'syncItemId': None,
@@ -506,7 +487,7 @@ class Export(object):
                             'frameRate': None,
                             'frameRateMode': None,
                             'hasScalingMatrix': None,
-                            'hdr': lambda i: helpers.is_hdr(getattr(i, 'bitDepth', 0), getattr(i, 'colorSpace', '')),
+                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorSpace', '')),
                             'height': None,
                             'level': None,
                             'pixelAspectRatio': None,
@@ -594,7 +575,7 @@ class Export(object):
             _artist_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'art', self.filename),
+                'artFile': lambda o: get_image(o, 'art', self.filename),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -631,15 +612,14 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
                 'userRating': None,
                 'viewCount': None,
-                'albums': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                              self.return_attrs(e.type))
+                'albums': lambda e: self._export_obj(e)
             }
             return _artist_attrs
 
@@ -647,7 +627,7 @@ class Export(object):
             _album_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'art', self.filename),
+                'artFile': lambda o: get_image(o, 'art', self.filename),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -691,7 +671,7 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -699,8 +679,7 @@ class Export(object):
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
-                'tracks': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                              self.return_attrs(e.type))
+                'tracks': lambda e: self._export_obj(e)
             }
             return _album_attrs
 
@@ -709,7 +688,7 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'duration': None,
-                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -749,7 +728,7 @@ class Export(object):
                         'id': None,
                         'key': None,
                         'size': None,
-                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'requiredBandwidths': lambda e: [int(b) for b in e.split(',')] if e else None,
                         'syncItemId': None,
                         'syncState': None,
@@ -830,8 +809,7 @@ class Export(object):
                 # For some reason photos needs to be first,
                 # otherwise the photo album ratingKey gets
                 # clobbered by the first photo's ratingKey
-                'photos': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                              self.return_attrs(e.type)),
+                'photos': lambda e: self._export_obj(e),
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'composite': None,
@@ -904,7 +882,7 @@ class Export(object):
                         'id': None,
                         'key': None,
                         'size': None,
-                        'sizeHuman': lambda i: helpers.human_file_size(getattr(i, 'size', 0)),
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                     }
                 },
                 'tag': {
@@ -919,7 +897,7 @@ class Export(object):
             _collection_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda i: get_image(i, 'art', self.filename),
+                'artFile': lambda o: get_image(o, 'art', self.filename),
                 'childCount': None,
                 'collectionMode': None,
                 'collectionSort': None,
@@ -940,13 +918,12 @@ class Export(object):
                 'subtype': None,
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda i: get_image(i, 'thumb', self.filename),
+                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
                 'title': None,
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
-                'children': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                                self.return_attrs(e.type))
+                'children': lambda e: self._export_obj(e)
             }
             return _collection_attrs
 
@@ -955,7 +932,7 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'composite': None,
                 'duration': None,
-                'durationHuman': lambda i: helpers.human_duration(getattr(i, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
                 'guid': None,
                 'key': None,
                 'leafCount': None,
@@ -966,8 +943,7 @@ class Export(object):
                 'title': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
-                'items': lambda e: helpers.get_attrs_to_dict(e.reload() if e.isPartialObject() else e,
-                                                             self.return_attrs(e.type))
+                'items': lambda e: self._export_obj(e)
             }
             return _playlist_attrs
 
@@ -988,6 +964,7 @@ class Export(object):
         return _media_types[media_type]()
 
     def return_levels(self, media_type):
+        empty_media_info_levels = {level: [] for level in self.MEDIA_INFO_LEVELS}
 
         def movie_levels():
             _media_type = 'movie'
@@ -1056,351 +1033,315 @@ class Export(object):
 
         def show_levels():
             _media_type = 'show'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(_child_type)
-
-            _show_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
-                        'rating', 'userRating', 'contentRating',
-                        'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'roles.tag', 'roles.role',
-                        'genres.tag', 'collections.tag', 'labels.tag',
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'banner', 'theme', 'key',
-                        'updatedAt', 'lastViewedAt', 'viewCount'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _show_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                    'rating', 'userRating', 'contentRating',
+                    'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
+                    'seasons'
+                ],
+                2: [
+                    'roles.tag', 'roles.role',
+                    'genres.tag', 'collections.tag', 'labels.tag',
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'banner', 'theme', 'key',
+                    'updatedAt', 'lastViewedAt', 'viewCount'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def season_levels():
             _media_type = 'season'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(_child_type)
-
-            _season_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'addedAt',
-                        'userRating',
-                        'summary', 'guid', 'type', 'index',
-                        'parentTitle', 'parentRatingKey', 'parentGuid'
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt', 'lastViewedAt', 'viewCount',
-                        'parentKey', 'parentTheme', 'parentThumb'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _season_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'addedAt',
+                    'userRating',
+                    'summary', 'guid', 'type', 'index',
+                    'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'episodes'
+                ],
+                2: [
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt', 'lastViewedAt', 'viewCount',
+                    'parentKey', 'parentTheme', 'parentThumb'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def episode_levels():
             _media_type = 'episode'
-
-            _episode_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
-                        'rating', 'userRating', 'contentRating',
-                        'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
-                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                        'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
-                    ],
-                    2: [
-                        'directors.tag', 'writers.tag',
-                        'fields.name', 'fields.locked'
-                    ],
-                    3: [
-                        'art', 'thumb', 'key', 'chapterSource',
-                        'updatedAt', 'lastViewedAt', 'viewCount',
-                        'parentThumb', 'parentKey',
-                        'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
-                    ],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    1: [
-                        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
-                        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
-                        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-                        'media.optimizedVersion', 'media.hdr'
-                    ],
-                    2: [
-                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
-                        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
-                        'media.parts.audioProfile', 'media.parts.videoProfile',
-                        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
-                    ],
-                    3: [
-                        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
-                        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
-                        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
-                        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
-                        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
-                        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
-                        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
-                        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
-                        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
-                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
-                        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
-                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
-                        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
-                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
-                        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
-                        'media.parts.audioStreams.default',
-                        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
-                        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
-                        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
-                        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-                        'media.parts.subtitleStreams.default'
-                    ],
-                    9: [
-                        'locations', 'media'
-                    ]
-                }
-            ]
-            return _episode_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                    'rating', 'userRating', 'contentRating',
+                    'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
+                    'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                ],
+                2: [
+                    'directors.tag', 'writers.tag',
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key', 'chapterSource',
+                    'updatedAt', 'lastViewedAt', 'viewCount',
+                    'parentThumb', 'parentKey',
+                    'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = {
+                1: [
+                    'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+                    'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+                    'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+                    'media.optimizedVersion', 'media.hdr'
+                ],
+                2: [
+                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+                    'media.parts.audioProfile', 'media.parts.videoProfile',
+                    'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+                ],
+                3: [
+                    'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+                    'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+                    'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+                    'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+                    'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+                    'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+                    'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+                    'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+                    'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+                    'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                    'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+                    'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                    'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+                    'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                    'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+                    'media.parts.audioStreams.default',
+                    'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+                    'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+                    'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+                    'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+                    'media.parts.subtitleStreams.default'
+                ],
+                9: [
+                    'locations', 'media'
+                ]
+            }
+            return _metadata_levels, _media_info_levels
 
         def artist_levels():
             _media_type = 'artist'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(_child_type)
-
-            _artist_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'addedAt',
-                        'rating', 'userRating',
-                        'summary', 'guid', 'type',
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt', 'lastViewedAt', 'viewCount'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _artist_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'addedAt',
+                    'rating', 'userRating',
+                    'summary', 'guid', 'type',
+                    'albums'
+                ],
+                2: [
+                    'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt', 'lastViewedAt', 'viewCount'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def album_levels():
             _media_type = 'album'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(_child_type)
-
-            _album_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
-                        'rating', 'userRating',
-                        'summary', 'guid', 'type', 'index',
-                        'parentTitle', 'parentRatingKey', 'parentGuid'
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt', 'lastViewedAt', 'viewCount',
-                        'parentKey', 'parentThumb'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _album_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
+                    'rating', 'userRating',
+                    'summary', 'guid', 'type', 'index',
+                    'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'tracks'
+                ],
+                2: [
+                    'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt', 'lastViewedAt', 'viewCount',
+                    'parentKey', 'parentThumb'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def track_levels():
             _media_type = 'track'
-
-            _track_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'originalTitle', 'year', 'addedAt',
-                        'userRating', 'ratingCount',
-                        'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
-                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                        'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
-                    ],
-                    2: [
-                        'moods.tag', 'writers.tag',
-                        'fields.name', 'fields.locked'
-                    ],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt', 'lastViewedAt', 'viewCount',
-                        'parentThumb', 'parentKey',
-                        'grandparentArt', 'grandparentThumb', 'grandparentKey'
-                    ],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    1: [
-                        'locations', 'media.audioChannels', 'media.audioCodec',
-                        'media.audioProfile',
-                        'media.bitrate', 'media.container', 'media.duration'
-                    ],
-                    2: [
-                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
-                        'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman',
-                        'media.parts.audioProfile',
-                        'media.parts.deepAnalysisVersion', 'media.parts.hasThumbnail'
-                    ],
-                    3: [
-                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
-                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
-                        'media.parts.audioStreams.extendedDisplayTitle',
-                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
-                        'media.parts.audioStreams.samplingRate',
-                        'media.parts.audioStreams.default',
-                        'media.parts.audioStreams.albumGain', 'media.parts.audioStreams.albumPeak',
-                        'media.parts.audioStreams.albumRange',
-                        'media.parts.audioStreams.loudness', 'media.parts.audioStreams.gain',
-                        'media.parts.audioStreams.lra', 'media.parts.audioStreams.peak',
-                        'media.parts.audioStreams.startRamp', 'media.parts.audioStreams.endRamp',
-                        'media.parts.lyricStreams.codec', 'media.parts.lyricStreams.format',
-                        'media.parts.lyricStreams.title', 'media.parts.lyricStreams.displayTitle',
-                        'media.parts.lyricStreams.extendedDisplayTitle',
-                        'media.parts.lyricStreams.default', 'media.parts.lyricStreams.minLines',
-                        'media.parts.lyricStreams.provider', 'media.parts.lyricStreams.timed',
-                    ],
-                    9: [
-                        'locations', 'media'
-                    ]
-                }
-            ]
-            return _track_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'year', 'addedAt',
+                    'userRating', 'ratingCount',
+                    'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
+                    'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                ],
+                2: [
+                    'moods.tag', 'writers.tag',
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt', 'lastViewedAt', 'viewCount',
+                    'parentThumb', 'parentKey',
+                    'grandparentArt', 'grandparentThumb', 'grandparentKey'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = {
+                1: [
+                    'locations', 'media.audioChannels', 'media.audioCodec',
+                    'media.audioProfile',
+                    'media.bitrate', 'media.container', 'media.duration'
+                ],
+                2: [
+                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman',
+                    'media.parts.audioProfile',
+                    'media.parts.deepAnalysisVersion', 'media.parts.hasThumbnail'
+                ],
+                3: [
+                    'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                    'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                    'media.parts.audioStreams.extendedDisplayTitle',
+                    'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                    'media.parts.audioStreams.samplingRate',
+                    'media.parts.audioStreams.default',
+                    'media.parts.audioStreams.albumGain', 'media.parts.audioStreams.albumPeak',
+                    'media.parts.audioStreams.albumRange',
+                    'media.parts.audioStreams.loudness', 'media.parts.audioStreams.gain',
+                    'media.parts.audioStreams.lra', 'media.parts.audioStreams.peak',
+                    'media.parts.audioStreams.startRamp', 'media.parts.audioStreams.endRamp',
+                    'media.parts.lyricStreams.codec', 'media.parts.lyricStreams.format',
+                    'media.parts.lyricStreams.title', 'media.parts.lyricStreams.displayTitle',
+                    'media.parts.lyricStreams.extendedDisplayTitle',
+                    'media.parts.lyricStreams.default', 'media.parts.lyricStreams.minLines',
+                    'media.parts.lyricStreams.provider', 'media.parts.lyricStreams.timed',
+                ],
+                9: [
+                    'locations', 'media'
+                ]
+            }
+            return _metadata_levels, _media_info_levels
 
         def photo_album_levels():
             _media_type = 'photo album'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(_child_type)
-
-            _photo_album_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'addedAt',
-                        'summary', 'guid', 'type', 'index',
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _photo_album_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'addedAt',
+                    'summary', 'guid', 'type', 'index',
+                ],
+                2: [
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def photo_levels():
             _media_type = 'photo'
-
-            _photo_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'year', 'originallyAvailableAt', 'addedAt',
-                        'summary', 'guid', 'type', 'index',
-                        'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                        'createdAtAccuracy', 'createdAtTZOffset'
-                    ],
-                    2: [
-                        'tag.tag', 'tag.title'
-                    ],
-                    3: [
-                        'thumb', 'key',
-                        'updatedAt',
-                        'parentThumb', 'parentKey'
-                    ],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    1: [
-                        'media.aspectRatio', 'media.aperture',
-                        'media.container', 'media.height', 'media.width',
-                        'media.iso', 'media.lens', 'media.make', 'media.model'
-                    ],
-                    2: [
-                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file',
-                        'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman'
-                    ],
-                    3: [
-                    ],
-                    9: [
-                        'media'
-                    ]
-                }
-            ]
-            return _photo_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'year', 'originallyAvailableAt', 'addedAt',
+                    'summary', 'guid', 'type', 'index',
+                    'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
+                    'createdAtAccuracy', 'createdAtTZOffset'
+                ],
+                2: [
+                    'tag.tag', 'tag.title'
+                ],
+                3: [
+                    'thumb', 'key',
+                    'updatedAt',
+                    'parentThumb', 'parentKey'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = {
+                1: [
+                    'media.aspectRatio', 'media.aperture',
+                    'media.container', 'media.height', 'media.width',
+                    'media.iso', 'media.lens', 'media.make', 'media.model'
+                ],
+                2: [
+                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file',
+                    'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman'
+                ],
+                3: [
+                ],
+                9: [
+                    'media'
+                ]
+            }
+            return _metadata_levels, _media_info_levels
 
         def collection_levels():
             _media_type = 'collection'
-            _child_type = self.CHILD_MEDIA_TYPES[_media_type]
-            _child_attr = self.CHILD_ATTR_KEY[_media_type]
-            _child_levels = self.return_levels(self.sub_media_type)
-
-            _collection_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'minYear', 'maxYear', 'addedAt',
-                        'contentRating',
-                        'summary', 'guid', 'type', 'subtype', 'childCount',
-                        'collectionMode', 'collectionSort'
-                       ] + [_child_attr + attr for attr in _child_levels[0][1]],
-                    2: [
-                        'fields.name', 'fields.locked'
-                       ] + [_child_attr + attr for attr in _child_levels[0][2]],
-                    3: [
-                        'art', 'thumb', 'key',
-                        'updatedAt'
-                       ] + [_child_attr + attr for attr in _child_levels[0][3]],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    l: [_child_attr + attr for attr in _child_levels[1][l]] for l in self.LEVELS
-                }
-            ]
-            return _collection_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'minYear', 'maxYear', 'addedAt',
+                    'contentRating',
+                    'summary', 'guid', 'type', 'subtype', 'childCount',
+                    'collectionMode', 'collectionSort',
+                    'children'
+                ],
+                2: [
+                    'fields.name', 'fields.locked'
+                ],
+                3: [
+                    'art', 'thumb', 'key',
+                    'updatedAt'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         def playlist_levels():
-            _playlist_levels = []
-            return _playlist_levels
+            _media_type = 'playlist'
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'addedAt',
+                    'summary', 'guid', 'type', 'duration', 'durationHuman',
+                    'playlistType', 'smart',
+                    'items'
+                ],
+                2: [
+                ],
+                3: [
+                    'composite', 'key',
+                    'updatedAt'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = empty_media_info_levels
+            return _metadata_levels, _media_info_levels
 
         _media_types = {
             'movie': movie_levels,
@@ -1491,104 +1432,23 @@ class Export(object):
             logger.error("Tautulli Exporter :: Cannot export media type '%s'", self.media_type)
             return
 
-        media_attrs = self.return_attrs(self.media_type)
-        metadata_level_attrs, media_info_level_attrs = self.return_levels(self.media_type)
-
-        if self.metadata_level not in metadata_level_attrs:
+        if self.metadata_level not in self.METADATA_LEVELS:
             logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
             return
-        elif self.media_info_level not in media_info_level_attrs:
+        elif self.media_info_level not in self.METADATA_LEVELS:
             logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
             return
-
-        export_attrs_list = []
-        export_attrs_set = set()
-
-        for level, attrs in metadata_level_attrs.items():
-            if level <= self.metadata_level:
-                export_attrs_set.update(attrs)
-
-        for level, attrs in media_info_level_attrs.items():
-            if level <= self.media_info_level:
-                export_attrs_set.update(attrs)
-
-        if self.include_images:
-            for image_attr in ('artFile', 'thumbFile'):
-                if image_attr in media_attrs:
-                    export_attrs_set.add(image_attr)
-            if self.media_type in ('show', 'artist', 'collection'):
-                child_media_type = self.CHILD_MEDIA_TYPES[self.media_type]
-                child_attr_key = self.CHILD_ATTR_KEY[self.media_type]
-                child_media_attrs = self.return_attrs(self.sub_media_type or child_media_type)
-                for image_attr in ('artFile', 'thumbFile'):
-                    if image_attr in child_media_attrs:
-                        export_attrs_set.add(child_attr_key + image_attr)
-
-        for attr in export_attrs_set:
-            value = self._get_attr_value(media_attrs, attr)
-            if not value:
-                continue
-            export_attrs_list.append(value)
-
-        export_attrs = reduce(helpers.dict_merge, export_attrs_list)
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
 
         self.export_id = self.add_export()
-
         if not self.export_id:
             logger.error("Tautulli Exporter :: Failed to export '%s'", self.filename)
             return
 
-        threading.Thread(target=self._real_export,
-                         kwargs={'attrs': export_attrs}).start()
+        threading.Thread(target=self._real_export).start()
 
         return True
-
-    def _real_export(self, attrs):
-        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename)
-
-        filepath = get_export_filepath(self.filename)
-
-        part = partial(helpers.get_attrs_to_dict, attrs=attrs)
-        pool = ThreadPool(processes=4)
-
-        try:
-            result = pool.map(part, self.items)
-
-            if self.file_format == 'json':
-                json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
-                with open(filepath, 'w', encoding='utf-8') as outfile:
-                    outfile.write(json_data)
-
-            elif self.file_format == 'csv':
-                flatten_result = helpers.flatten_dict(result)
-                flatten_attrs = set().union(*flatten_result)
-                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-                    writer = csv.DictWriter(outfile, sorted(flatten_attrs))
-                    writer.writeheader()
-                    writer.writerows(flatten_result)
-
-            self.file_size = os.path.getsize(filepath)
-
-            if self.include_images:
-                images_folder = get_export_filepath(self.filename, images=True)
-                if os.path.exists(images_folder):
-                    for f in os.listdir(images_folder):
-                        image_path = os.path.join(images_folder, f)
-                        if os.path.isfile(image_path):
-                            self.file_size += os.path.getsize(image_path)
-
-            self.success = True
-            logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
-
-        except Exception as e:
-            logger.exception("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
-
-        finally:
-            pool.close()
-            pool.join()
-            self.set_export_state()
 
     def add_export(self):
         keys = {'timestamp': self.timestamp,
@@ -1621,24 +1481,92 @@ class Export(object):
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
-    def _get_attr_value(self, media_attrs, attr):
+    def _real_export(self):
+        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename)
+
+        filepath = get_export_filepath(self.filename)
+        images_folder = get_export_filepath(self.filename, images=True)
+
+        pool = ThreadPool(processes=4)
+
         try:
-            return helpers.get_dict_value_by_path(media_attrs, attr)
-        except KeyError:
-            pass
-        except TypeError:
-            if '.' in attr:
-                sub_media_type, sub_attr = attr.split('.', maxsplit=1)
-                if sub_media_type == 'children':
-                    _sub_media_type = self.sub_media_type
-                else:
-                    _sub_media_type = sub_media_type[:-1]
+            result = pool.map(self._export_obj, self.items)
 
-                if _sub_media_type in self.MEDIA_TYPES:
-                    sub_media_attrs = self.return_attrs(_sub_media_type)
-                    return {sub_media_type: self._get_attr_value(sub_media_attrs, sub_attr)}
+            if self.file_format == 'json':
+                json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
+                with open(filepath, 'w', encoding='utf-8') as outfile:
+                    outfile.write(json_data)
 
-        logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+            elif self.file_format == 'csv':
+                flatten_result = helpers.flatten_dict(result)
+                flatten_attrs = set().union(*flatten_result)
+                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
+                    writer = csv.DictWriter(outfile, sorted(flatten_attrs))
+                    writer.writeheader()
+                    writer.writerows(flatten_result)
+
+            self.file_size = os.path.getsize(filepath)
+
+            if self.include_images and os.path.exists(images_folder):
+                for f in os.listdir(images_folder):
+                    image_path = os.path.join(images_folder, f)
+                    if os.path.isfile(image_path):
+                        self.file_size += os.path.getsize(image_path)
+
+            self.success = True
+            logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+
+        except Exception as e:
+            logger.exception("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
+
+        finally:
+            pool.close()
+            pool.join()
+            self.set_export_state()
+
+    def _export_obj(self, obj):
+        # Reload ~plexapi.base.PlexPartialObject
+        if obj.isPartialObject():
+            obj = obj.reload()
+
+        export_attrs = self._get_level_attrs(obj.type)
+        return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
+
+    def _get_all_metadata_attr(self, media_type):
+        exclude_attrs = ('media', 'artFile', 'thumbFile')
+        all_attrs = self.return_attrs(media_type)
+        return [attr for attr in all_attrs if attr not in exclude_attrs]
+
+    def _get_level_attrs(self, media_type):
+        media_attrs = self.return_attrs(media_type)
+        metadata_level_attrs, media_info_level_attrs = self.return_levels(media_type)
+
+        export_attrs_list = []
+        export_attrs_set = set()
+
+        for level, attrs in metadata_level_attrs.items():
+            if level <= self.metadata_level:
+                export_attrs_set.update(attrs)
+
+        for level, attrs in media_info_level_attrs.items():
+            if level <= self.media_info_level:
+                export_attrs_set.update(attrs)
+
+        if self.include_images:
+            for image_attr in ('artFile', 'thumbFile'):
+                if image_attr in media_attrs:
+                    export_attrs_set.add(image_attr)
+
+        for attr in export_attrs_set:
+            try:
+                value = helpers.get_dict_value_by_path(media_attrs, attr)
+            except (KeyError, TypeError):
+                logger.warn("Tautulli Exporter :: Unknown export attribute '%s', skipping...", attr)
+                continue
+
+            export_attrs_list.append(value)
+
+        return reduce(helpers.dict_merge, export_attrs_list)
 
 
 def get_any_hdr(obj, root):

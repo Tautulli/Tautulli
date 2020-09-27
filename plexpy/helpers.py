@@ -1176,10 +1176,6 @@ def bool_true(value, return_none=False):
 
 
 def get_attrs_to_dict(obj, attrs):
-    # Reload ~plexapi.base.PlexPartialObject
-    if hasattr(obj, 'isPartialObject'):
-        obj = obj.reload() if obj.isPartialObject() else obj
-
     d = {}
 
     for attr, sub in attrs.items():
