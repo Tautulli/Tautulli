@@ -84,7 +84,7 @@ class Export(object):
             _movie_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda o: get_image(o, 'art', self.filename),
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'chapters': {
@@ -150,7 +150,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda o: get_any_hdr(o, self.return_attrs('movie')['media']),
+                    'hdr': lambda o: self.get_any_hdr(o),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -275,7 +275,7 @@ class Export(object):
                 'summary': None,
                 'tagline': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -294,7 +294,7 @@ class Export(object):
             _show_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda o: get_image(o, 'art', self.filename),
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'banner': None,
                 'childCount': None,
                 'collections': {
@@ -338,7 +338,7 @@ class Export(object):
                 'summary': None,
                 'theme': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -377,7 +377,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -440,7 +440,7 @@ class Export(object):
                     'videoProfile': None,
                     'videoResolution': None,
                     'width': None,
-                    'hdr': lambda o: get_any_hdr(o, self.return_attrs('episode')['media']),
+                    'hdr': lambda o: self.get_any_hdr(o),
                     'parts': {
                         'accessible': None,
                         'audioProfile': None,
@@ -575,7 +575,7 @@ class Export(object):
             _artist_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda o: get_image(o, 'art', self.filename),
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -612,7 +612,7 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -627,7 +627,7 @@ class Export(object):
             _album_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda o: get_image(o, 'art', self.filename),
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -671,7 +671,7 @@ class Export(object):
                 },
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -897,7 +897,7 @@ class Export(object):
             _collection_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
-                'artFile': lambda o: get_image(o, 'art', self.filename),
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'childCount': None,
                 'collectionMode': None,
                 'collectionSort': None,
@@ -918,7 +918,7 @@ class Export(object):
                 'subtype': None,
                 'summary': None,
                 'thumb': None,
-                'thumbFile': lambda o: get_image(o, 'thumb', self.filename),
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -1568,45 +1568,49 @@ class Export(object):
 
         return reduce(helpers.dict_merge, export_attrs_list)
 
+    def get_any_hdr(self, item):
+        if self.media_type in ('show', 'season'):
+            _media_type = 'episode'
+        else:
+            _media_type = self.media_type
 
-def get_any_hdr(obj, root):
-    attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
-    media = helpers.get_attrs_to_dict(obj, attrs)
-    return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
-
-
-def get_image(item, image, export_filename):
-    media_type = item.type
-    rating_key = item.ratingKey
-
-    if media_type in ('season', 'episode', 'album', 'track'):
-        item_title = item._defaultSyncTitle()
-    else:
-        item_title = item.title
-
-    folder = get_export_filepath(export_filename, images=True)
-    filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
-    filepath = os.path.join(folder, filename)
-
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
-    image_url = None
-    if image == 'art':
-        image_url = item.artUrl
-    elif image == 'thumb':
-        image_url = item.thumbUrl
-
-    if not image_url:
-        return
-
-    r = requests.get(image_url, stream=True)
-    if r.status_code == 200:
-        with open(filepath, 'wb') as outfile:
-            for chunk in r:
-                outfile.write(chunk)
-
-        return filepath
+        root = self.return_attrs(_media_type)['media']
+        attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
+        media = helpers.get_attrs_to_dict(item, attrs)
+        return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
+    
+    def get_image(self, item, image):
+        media_type = item.type
+        rating_key = item.ratingKey
+    
+        if media_type in ('season', 'episode', 'album', 'track'):
+            item_title = item._defaultSyncTitle()
+        else:
+            item_title = item.title
+    
+        folder = get_export_filepath(self.filename, images=True)
+        filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
+        filepath = os.path.join(folder, filename)
+    
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+    
+        image_url = None
+        if image == 'art':
+            image_url = item.artUrl
+        elif image == 'thumb':
+            image_url = item.thumbUrl
+    
+        if not image_url:
+            return
+    
+        r = requests.get(image_url, stream=True)
+        if r.status_code == 200:
+            with open(filepath, 'wb') as outfile:
+                for chunk in r:
+                    outfile.write(chunk)
+    
+            return filepath
 
 
 def get_export(export_id):
