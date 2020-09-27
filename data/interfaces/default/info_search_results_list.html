@@ -65,7 +65,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['collection']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -90,7 +90,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['movie']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -115,7 +115,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['show']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -140,7 +140,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['season']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -165,7 +165,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['episode']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -191,7 +191,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['artist']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -215,7 +215,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['album']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
                     % if _session['user_group'] == 'admin':
@@ -240,7 +240,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['track']:
         <li>
-            <a href="${page('info', child['rating_key'])}" id="${child['rating_key']}">
+            <a href="${page('info', child['rating_key'])}" data-rating_key="${child['rating_key']}" data-library_name="${child['library_name']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')});">
                         <div class="item-children-card-overlay">

@@ -171,6 +171,7 @@ DOCUMENTATION :: END
                 </p>
                 <p> with </p>
                 <p><span id="new_title"></span></p>
+                <p>from the <strong><span id="new_library"></span></strong> library?</p>
                 % if query['media_type'] != 'movie':
                 <p>All items for <strong>${query['grandparent_title']}</strong> will also be updated.</p>
                 % endif
@@ -211,10 +212,12 @@ DOCUMENTATION :: END
 
     $(document).on('click', '#search-results-list a', function (e) {
         e.preventDefault();
-        var new_rating_key = $(this).attr('id');
+        var new_rating_key = $(this).data('rating_key');
+        var new_library_section = $(this).data('library_name');
         var new_href = $(this).attr('href');
 
         $('#new_title').html($(this).find('.item-children-instance-text-wrapper').html());
+        $('#new_library').text(new_library_section);
 
         $('#confirm-modal-update').modal();
         $('#confirm-modal-update').one('click', '#confirm-update', function () {
