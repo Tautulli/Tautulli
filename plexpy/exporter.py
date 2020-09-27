@@ -1378,6 +1378,12 @@ class Export(object):
         elif self.file_format not in ('json', 'csv'):
             logger.error("Tautulli Exporter :: Export called but invalid file_format '%s' provided.", self.file_format)
             return
+        elif self.metadata_level not in self.METADATA_LEVELS:
+            logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
+            return
+        elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
+            logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
+            return
 
         plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
 
@@ -1412,8 +1418,9 @@ class Export(object):
 
         elif self.section_id:
             logger.debug(
-                "Tautulli Exporter :: Export called with section_id %s, metadata_level %d, media_info_level %d",
-                self.section_id, self.metadata_level, self.media_info_level)
+                "Tautulli Exporter :: Export called with section_id %s, "
+                "metadata_level %d, media_info_level %d, include_images %s",
+                self.section_id, self.metadata_level, self.media_info_level, self.include_images)
 
             library = plex.get_library(str(self.section_id))
             self.media_type = library.type
@@ -1432,15 +1439,10 @@ class Export(object):
             logger.error("Tautulli Exporter :: Cannot export media type '%s'", self.media_type)
             return
 
-        if self.metadata_level not in self.METADATA_LEVELS:
-            logger.error("Tautulli Exporter :: Export called with invalid metadata_level '%s'.", self.metadata_level)
-            return
-        elif self.media_info_level not in self.METADATA_LEVELS:
-            logger.error("Tautulli Exporter :: Export called with invalid media_info_level '%s'.", self.media_info_level)
-            return
+        if self.include_images and self.media_type not in ('movie', 'show', 'season', 'artist', 'album'):
+            self.include_images = False
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
-
         self.export_id = self.add_export()
         if not self.export_id:
             logger.error("Tautulli Exporter :: Failed to export '%s'", self.filename)
