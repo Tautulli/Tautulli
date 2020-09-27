@@ -366,6 +366,7 @@ class Track(Audio, Playable):
         self.year = utils.cast(int, data.attrib.get('year'))
         self.media = self.findItems(data, media.Media)
         self.moods = self.findItems(data, media.Mood)
+        self.fields = self.findItems(data, media.Field)
 
     def _prettyfilename(self):
         """ Returns a filename for use in download. """
