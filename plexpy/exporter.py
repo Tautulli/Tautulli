@@ -1471,6 +1471,8 @@ class Export(object):
 
         for field in self.custom_fields.split(','):
             field = field.strip()
+            if not field:
+                continue
 
             media_type = self.media_type
             for key in self.CUSTOM_FIELD_KEYS:
