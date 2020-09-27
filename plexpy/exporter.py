@@ -1325,10 +1325,11 @@ class Export(object):
 
             if self.include_images:
                 images_folder = get_export_filepath(self.filename, images=True)
-                for f in os.listdir(images_folder):
-                    image_path = os.path.join(images_folder, f)
-                    if os.path.isfile(image_path):
-                        self.file_size += os.path.getsize(image_path)
+                if os.path.exists(images_folder):
+                    for f in os.listdir(images_folder):
+                        image_path = os.path.join(images_folder, f)
+                        if os.path.isfile(image_path):
+                            self.file_size += os.path.getsize(image_path)
 
             self.success = True
             logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
