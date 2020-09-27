@@ -986,68 +986,65 @@ class Export(object):
 
         def movie_levels():
             _media_type = 'movie'
-
-            _movie_levels = [
-                {
-                    1: [
-                        'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
-                        'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-                        'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
-                    ],
-                    2: [
-                        'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
-                        'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
-                        'fields.name', 'fields.locked', 'guids.id'
-                    ],
-                    3: [
-                        'art', 'thumb', 'key', 'chapterSource',
-                        'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                        'updatedAt', 'lastViewedAt', 'viewCount'
-                    ],
-                    9: self._get_all_metadata_attr(_media_type)
-                },
-                {
-                    1: [
-                        'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
-                        'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
-                        'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-                        'media.optimizedVersion', 'media.hdr'
-                    ],
-                    2: [
-                        'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
-                        'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
-                        'media.parts.audioProfile', 'media.parts.videoProfile',
-                        'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
-                    ],
-                    3: [
-                        'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
-                        'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
-                        'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
-                        'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
-                        'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
-                        'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
-                        'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
-                        'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
-                        'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
-                        'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
-                        'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
-                        'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
-                        'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
-                        'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
-                        'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
-                        'media.parts.audioStreams.default',
-                        'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
-                        'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
-                        'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
-                        'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-                        'media.parts.subtitleStreams.default'
-                    ],
-                    9: [
-                        'locations', 'media'
-                    ]
-                }
-            ]
-            return _movie_levels
+            _metadata_levels = {
+                1: [
+                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
+                    'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
+                ],
+                2: [
+                    'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
+                    'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
+                    'fields.name', 'fields.locked', 'guids.id'
+                ],
+                3: [
+                    'art', 'thumb', 'key', 'chapterSource',
+                    'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
+                    'updatedAt', 'lastViewedAt', 'viewCount'
+                ],
+                9: self._get_all_metadata_attr(_media_type)
+            }
+            _media_info_levels = {
+                1: [
+                    'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
+                    'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
+                    'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
+                    'media.optimizedVersion', 'media.hdr'
+                ],
+                2: [
+                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
+                    'media.parts.audioProfile', 'media.parts.videoProfile',
+                    'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
+                ],
+                3: [
+                    'media.parts.videoStreams.codec', 'media.parts.videoStreams.bitrate',
+                    'media.parts.videoStreams.language', 'media.parts.videoStreams.languageCode',
+                    'media.parts.videoStreams.title', 'media.parts.videoStreams.displayTitle',
+                    'media.parts.videoStreams.extendedDisplayTitle', 'media.parts.videoStreams.hdr',
+                    'media.parts.videoStreams.bitDepth', 'media.parts.videoStreams.colorSpace',
+                    'media.parts.videoStreams.frameRate', 'media.parts.videoStreams.level',
+                    'media.parts.videoStreams.profile', 'media.parts.videoStreams.refFrames',
+                    'media.parts.videoStreams.scanType', 'media.parts.videoStreams.default',
+                    'media.parts.videoStreams.height', 'media.parts.videoStreams.width',
+                    'media.parts.audioStreams.codec', 'media.parts.audioStreams.bitrate',
+                    'media.parts.audioStreams.language', 'media.parts.audioStreams.languageCode',
+                    'media.parts.audioStreams.title', 'media.parts.audioStreams.displayTitle',
+                    'media.parts.audioStreams.extendedDisplayTitle', 'media.parts.audioStreams.bitDepth',
+                    'media.parts.audioStreams.channels', 'media.parts.audioStreams.audioChannelLayout',
+                    'media.parts.audioStreams.profile', 'media.parts.audioStreams.samplingRate',
+                    'media.parts.audioStreams.default',
+                    'media.parts.subtitleStreams.codec', 'media.parts.subtitleStreams.format',
+                    'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
+                    'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
+                    'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
+                    'media.parts.subtitleStreams.default'
+                ],
+                9: [
+                    'locations', 'media'
+                ]
+            }
+            return _metadata_levels, _media_info_levels
 
         def show_levels():
             _media_type = 'show'
