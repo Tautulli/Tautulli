@@ -1670,7 +1670,7 @@ class Export(object):
                 for chunk in r:
                     outfile.write(chunk)
     
-            return filepath
+            return os.path.join(os.path.basename(folder), filename)
 
 
 def get_export(export_id):
