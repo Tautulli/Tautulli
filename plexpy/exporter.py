@@ -45,14 +45,20 @@ else:
 
 
 class Export(object):
-    MEDIA_TYPES = (
-        'movie',
-        'show', 'season', 'episode',
-        'artist', 'album', 'track',
-        'photoalbum', 'photo',
-        'collection',
-        'playlist'
-    )
+    # True/False for allowed image export
+    MEDIA_TYPES = {
+        'movie': True,
+        'show': True,
+        'season': True,
+        'episode': False,
+        'artist': True,
+        'album': True,
+        'track': True,
+        'photoalbum': False,
+        'photo': False,
+        'collection': True,
+        'playlist': True
+    }
     PLURAL_MEDIA_TYPES = {
         'movie': 'movies',
         'show': 'shows',
@@ -1463,9 +1469,7 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        if self.include_images and self.media_type not in ('movie', 'show', 'season', 'artist', 'album'):
-            self.include_images = False
-
+        self.include_images = self.include_images and self.MEDIA_TYPES[self.media_type]
         self._process_custom_fields()
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
