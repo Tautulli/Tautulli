@@ -535,6 +535,12 @@ class ReachabilityHandler(object):
         pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
         return helpers.bool_true(pref)
 
+    def on_down(self, server_response):
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
+
+    def on_up(self, server_response):
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
+
     def process(self):
         # Check if remote access is enabled
         if not self.remote_access_enabled():
@@ -550,20 +556,30 @@ class ReachabilityHandler(object):
         if server_response:
             # Waiting for port mapping
             if server_response['mapping_state'] == 'waiting':
-                logger.warn("Tautulli Monitor :: Remote access waiting for port mapping.")
+                logger.warn("Tautulli ReachabilityHandler :: Remote access waiting for port mapping.")
 
             elif plexpy.PLEX_REMOTE_ACCESS_UP is not False and server_response['reason']:
-                logger.warn("Tautulli Monitor :: Remote access failed: %s" % server_response['reason'])
-                logger.info("Tautulli Monitor :: Plex remote access is down.")
+                logger.warn("Tautulli ReachabilityHandler :: Remote access failed: %s" % server_response['reason'])
+                logger.info("Tautulli ReachabilityHandler :: Plex remote access is down.")
 
                 plexpy.PLEX_REMOTE_ACCESS_UP = False
-                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
+
+                if not ACTIVITY_SCHED.get_job('on_extdown'):
+                    logger.debug("Tautulli ReachabilityHandler :: Schedule remote access down callback in %d seconds.",
+                                 plexpy.CONFIG.NOTIFY_REMOTE_ACCESS_THRESHOLD)
+                    schedule_callback('on_extdown', func=self.on_down, args=[server_response],
+                                      seconds=plexpy.CONFIG.NOTIFY_REMOTE_ACCESS_THRESHOLD)
 
             elif plexpy.PLEX_REMOTE_ACCESS_UP is False and not server_response['reason']:
-                logger.info("Tautulli Monitor :: Plex remote access is back up.")
+                logger.info("Tautulli ReachabilityHandler :: Plex remote access is back up.")
 
                 plexpy.PLEX_REMOTE_ACCESS_UP = True
-                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
+
+                if ACTIVITY_SCHED.get_job('on_extdown'):
+                    logger.debug("Tautulli ReachabilityHandler :: Cancelling scheduled remote access down callback.")
+                    schedule_callback('on_extdown', remove_job=True)
+                else:
+                    self.on_up(server_response)
 
             elif plexpy.PLEX_REMOTE_ACCESS_UP is None:
                 plexpy.PLEX_REMOTE_ACCESS_UP = self.is_reachable()

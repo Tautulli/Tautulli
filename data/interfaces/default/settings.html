@@ -1037,7 +1037,7 @@
                             </p>
                         </div>
                         <div class="form-group">
-                            <label for="notify_recently_added_delay">Notification Delay</label>
+                            <label for="notify_recently_added_delay">Recently Added Notification Delay</label>
                             <div class="row">
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
@@ -1069,6 +1069,21 @@
                                 Note: If multiple versions are available, Tautulli will assume the higher quality one is newer.
                             </p>
                         </div>-->
+
+                        <div class="padded-header">
+                            <h3>Remote Access Notifications</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notify_remote_access_threshold">Remote Access Down Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_remote_access_threshold" name="notify_remote_access_threshold" value="${config['notify_remote_access_threshold']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_remote_access_threshold_error" required>
+                                </div>
+                                <div id="notify_remote_access_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The duration (in seconds) for Plex remote access to be down before sending a notification. Minimum 60, default 60.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Newsletters</h3>

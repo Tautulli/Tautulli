@@ -161,6 +161,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 300),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
+    'NOTIFY_REMOTE_ACCESS_THRESHOLD': (int, 'Monitoring', 60),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'PLEXPY_AUTO_UPDATE': (int, 'General', 0),

@@ -3026,6 +3026,7 @@ class WebInterface(object):
             "notify_group_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT),
             "notify_group_recently_added_parent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
+            "notify_remote_access_threshold": plexpy.CONFIG.NOTIFY_REMOTE_ACCESS_THRESHOLD,
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
             "notify_continued_session_threshold": plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD,
