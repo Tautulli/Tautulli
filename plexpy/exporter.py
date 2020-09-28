@@ -86,7 +86,7 @@ class Export(object):
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
         self.include_images = include_images
-        self.custom_fields = custom_fields
+        self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
 
         self.timestamp = helpers.timestamp()
@@ -1492,11 +1492,10 @@ class Export(object):
             if not field:
                 continue
 
-            media_type = self.media_type
+            media_type = self.PLURAL_MEDIA_TYPES[self.media_type]
             for key in self.PLURAL_MEDIA_TYPES.values():
                 if field.startswith(key + '.'):
-                    _, field = field.split('.', maxsplit=1)
-                    media_type = key
+                    media_type, field = field.split('.', maxsplit=1)
 
             if media_type in self._custom_fields:
                 self._custom_fields[media_type].add(field)
