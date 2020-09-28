@@ -403,9 +403,9 @@ class Newsletter(object):
 
         if self.start_date is None:
             if self.config['time_frame_units'] == 'days':
-                self.start_date = self.end_date.shift(days=-self.config['time_frame']+1).floor('day')
+                self.start_date = self.end_date.shift(days=-self.config['time_frame'])
             else:
-                self.start_date = self.end_date.shift(hours=-self.config['time_frame']).floor('hour')
+                self.start_date = self.end_date.shift(hours=-self.config['time_frame'])
 
         self.end_time = self.end_date.timestamp
         self.start_time = self.start_date.timestamp
