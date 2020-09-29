@@ -163,16 +163,18 @@ export_table_options = {
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
 
-        if (timer) {
-            clearTimeout(timer);
+        if (export_processing_timer) {
+            clearTimeout(export_processing_timer);
         }
         if ($('.export-processing').length) {
-            timer = setTimeout(redrawExportTable.bind(null, false), 2000);
+            export_processing_timer = setTimeout(redrawExportTable.bind(null, false), 2000);
         }
     },
     "preDrawCallback": function(settings) {
-        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
-        showMsg(msg, false, false, 0)
+        if (!export_processing_timer) {
+            var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
+            showMsg(msg, false, false, 0)
+        }
     },
     "rowCallback": function (row, rowData, rowIndex) {
         if (rowData['complete'] === 0) {
@@ -204,4 +206,4 @@ function redrawExportTable(paging) {
     export_table.draw(paging);
 }
 
-var timer;
+var export_processing_timer;
