@@ -94,7 +94,7 @@ class Export(object):
         self.timestamp = helpers.timestamp()
 
         self.media_type = None
-        self.items = []
+        self.obj = None
 
         self.filename = None
         self.export_id = None
@@ -1426,25 +1426,23 @@ class Export(object):
                 self.rating_key, self.metadata_level, self.media_info_level,
                 self.include_thumb, self.include_art)
 
-            item = plex.get_item(self.rating_key)
-            self.media_type = item.type
+            self.obj = plex.get_item(self.rating_key)
+            self.media_type = self.obj.type
 
             if self.media_type != 'playlist':
-                self.section_id = item.librarySectionID
+                self.section_id = self.obj.librarySectionID
 
             if self.media_type in ('season', 'episode', 'album', 'track'):
-                item_title = item._defaultSyncTitle()
+                item_title = self.obj._defaultSyncTitle()
             else:
-                item_title = item.title
+                item_title = self.obj.title
 
-            if self.media_type == 'photo' and item.TAG == 'Directory':
+            if self.media_type == 'photo' and self.obj.TAG == 'Directory':
                 self.media_type = 'photoalbum'
 
             filename = '{} - {} [{}].{}'.format(
                 self.media_type.title(), item_title, self.rating_key,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
-
-            self.items = [item]
 
         elif self.section_id:
             logger.debug(
@@ -1453,15 +1451,13 @@ class Export(object):
                 self.section_id, self.metadata_level, self.media_info_level,
                 self.include_thumb, self.include_art)
 
-            library = plex.get_library(str(self.section_id))
-            self.media_type = library.type
-            library_title = library.title
+            self.obj = plex.get_library(str(self.section_id))
+            self.media_type = self.obj.type
+            library_title = self.obj.title
 
             filename = 'Library - {} [{}].{}'.format(
                 library_title, self.section_id,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
-
-            self.items = library.all()
 
         else:
             msg = "Export called but no section_id or rating_key provided."
@@ -1487,25 +1483,6 @@ class Export(object):
         threading.Thread(target=self._real_export).start()
 
         return True
-
-    def _process_custom_fields(self):
-        if self.custom_fields:
-            logger.debug("Tautulli Exporter :: Processing custom fields: %s", self.custom_fields)
-
-        for field in self.custom_fields.split(','):
-            field = field.strip()
-            if not field:
-                continue
-
-            media_type = self.PLURAL_MEDIA_TYPES[self.media_type]
-            for key in self.PLURAL_MEDIA_TYPES.values():
-                if field.startswith(key + '.'):
-                    media_type, field = field.split('.', maxsplit=1)
-
-            if media_type in self._custom_fields:
-                self._custom_fields[media_type].add(field)
-            else:
-                self._custom_fields[media_type] = {field}
 
     def add_export(self):
         keys = {'timestamp': self.timestamp,
@@ -1550,10 +1527,15 @@ class Export(object):
         filepath = get_export_filepath(self.filename)
         images_folder = get_export_filepath(self.filename, images=True)
 
+        if hasattr(self.obj, 'all'):
+            items = self.obj.all()
+        else:
+            items = [self.obj]
+
         pool = ThreadPool(processes=4)
 
         try:
-            result = pool.map(self._export_obj, self.items)
+            result = pool.map(self._export_obj, items)
 
             if self.file_format == 'json':
                 json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
@@ -1599,6 +1581,25 @@ class Export(object):
 
         export_attrs = self._get_level_attrs(obj.type)
         return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
+
+    def _process_custom_fields(self):
+        if self.custom_fields:
+            logger.debug("Tautulli Exporter :: Processing custom fields: %s", self.custom_fields)
+
+        for field in self.custom_fields.split(','):
+            field = field.strip()
+            if not field:
+                continue
+
+            media_type = self.PLURAL_MEDIA_TYPES[self.media_type]
+            for key in self.PLURAL_MEDIA_TYPES.values():
+                if field.startswith(key + '.'):
+                    media_type, field = field.split('.', maxsplit=1)
+
+            if media_type in self._custom_fields:
+                self._custom_fields[media_type].add(field)
+            else:
+                self._custom_fields[media_type] = {field}
 
     def _get_all_metadata_attr(self, media_type):
         exclude_attrs = ('media', 'artFile', 'thumbFile')
