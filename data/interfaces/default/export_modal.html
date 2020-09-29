@@ -70,12 +70,19 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="export_include_images" name="export_include_images" value="1"> Export artwork and posters
+                        <input type="checkbox" id="export_include_thumb" name="export_include_thumb" value="1"> Export poster / cover images
                     </label>
-                    <p class="help-block">
-                        Enable to export artwork and poster image files. Warning: This will take a long time!<br>
-                        Note: Only applies to movies, shows, seasons, artists, albums, collections, and playlists.
-                    </p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="export_include_art" name="export_include_art" value="1"> Export background artwork images
+                    </label>
+                </div>
+                <p class="help-block">
+                    Enable to export posters and covers or background artwork image files.<br>
+                    Warning: Exporting images may take a long time!<br>
+                    Note: Only applies to movies, shows, seasons, artists, albums, collections, and playlists.
+                </p>
                 </div>
             </form>
         </div>
@@ -93,7 +100,8 @@ DOCUMENTATION :: END
         var metadata_export_level = $('#metadata_export_level_select option:selected').val();
         var media_info_export_level = $('#media_info_export_level_select option:selected').val();
         var file_format = $('#file_format_select option:selected').val();
-        var include_images = $("#export_include_images").is(':checked') ? 1 : 0;
+        var include_thumb = $("#export_include_thumb").is(':checked') ? 1 : 0;
+        var include_art = $("#export_include_art").is(':checked') ? 1 : 0;
 
         $.ajax({
             url: 'export_metadata',
@@ -103,7 +111,8 @@ DOCUMENTATION :: END
                 metadata_level: metadata_export_level,
                 media_info_level: media_info_export_level,
                 file_format: file_format,
-                include_images: include_images
+                include_thumb: include_thumb,
+                include_art: include_art
             },
             async: true,
             success: function (data) {

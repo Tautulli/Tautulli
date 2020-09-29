@@ -85,7 +85,7 @@ export_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var images = '';
-                    if (rowData['include_images']) {
+                    if (rowData['include_thumb'] || rowData['include_art']) {
                         images = ' + images';
                     }
                     $(td).html(cellData + images);

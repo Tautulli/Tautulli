@@ -78,14 +78,16 @@ class Export(object):
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
 
     def __init__(self, section_id=None, rating_key=None, file_format='json',
-                 metadata_level=1, media_info_level=1, include_images=False,
+                 metadata_level=1, media_info_level=1,
+                 include_thumb=False, include_art=False,
                  custom_fields=''):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
         self.file_format = file_format
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
-        self.include_images = include_images
+        self.include_thumb = include_thumb
+        self.include_art = include_art
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
 
@@ -1420,8 +1422,9 @@ class Export(object):
         if self.rating_key:
             logger.debug(
                 "Tautulli Exporter :: Export called with rating_key %s, "
-                "metadata_level %d, media_info_level %d, include_images %s",
-                self.rating_key, self.metadata_level, self.media_info_level, self.include_images)
+                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s",
+                self.rating_key, self.metadata_level, self.media_info_level,
+                self.include_thumb, self.include_art)
 
             item = plex.get_item(self.rating_key)
             self.media_type = item.type
@@ -1446,8 +1449,9 @@ class Export(object):
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
-                "metadata_level %d, media_info_level %d, include_images %s",
-                self.section_id, self.metadata_level, self.media_info_level, self.include_images)
+                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s",
+                self.section_id, self.metadata_level, self.media_info_level,
+                self.include_thumb, self.include_art)
 
             library = plex.get_library(str(self.section_id))
             self.media_type = library.type
@@ -1469,7 +1473,8 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        self.include_images = self.include_images and self.MEDIA_TYPES[self.media_type]
+        self.include_thumb = self.include_thumb and self.MEDIA_TYPES[self.media_type]
+        self.include_art = self.include_art and self.MEDIA_TYPES[self.media_type]
         self._process_custom_fields()
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
@@ -1512,7 +1517,8 @@ class Export(object):
                   'filename': self.filename,
                   'metadata_level': self.metadata_level,
                   'media_info_level': self.media_info_level,
-                  'include_images': self.include_images,
+                  'include_thumb': self.include_thumb,
+                  'include_art': self.include_art,
                   'custom_fields': self.custom_fields}
 
         db = database.MonitorDatabase()
@@ -1532,7 +1538,8 @@ class Export(object):
         keys = {'id': self.export_id}
         values = {'complete': complete,
                   'file_size': self.file_size,
-                  'include_images': self.include_images}
+                  'include_thumb': self.include_thumb,
+                  'include_art': self.include_art}
 
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
@@ -1564,8 +1571,12 @@ class Export(object):
             self.file_size = os.path.getsize(filepath)
 
             if os.path.exists(images_folder):
-                self.include_images = True
                 for f in os.listdir(images_folder):
+                    if self.include_thumb is False and f.endswith('.thumb.jpg'):
+                        self.include_thumb = True
+                    if self.include_art is False and f.endswith('.art.jpg'):
+                        self.include_art = True
+
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
                         self.file_size += os.path.getsize(image_path)
@@ -1609,10 +1620,12 @@ class Export(object):
             if level <= self.media_info_level:
                 export_attrs_set.update(attrs)
 
-        if self.include_images:
-            for image_attr in ('artFile', 'thumbFile'):
-                if image_attr in media_attrs:
-                    export_attrs_set.add(image_attr)
+        if self.include_thumb:
+            if 'thumbFile' in media_attrs:
+                export_attrs_set.add('thumbFile')
+        if self.include_art:
+            if 'artFile' in media_attrs:
+                export_attrs_set.add('artFile')
 
         plural_media_type = self.PLURAL_MEDIA_TYPES.get(media_type)
         if plural_media_type in self._custom_fields:
@@ -1675,7 +1688,7 @@ class Export(object):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT filename, file_format, include_images, complete '
+    result = db.select_single('SELECT filename, file_format, include_thumb, include_art, complete '
                               'FROM exports WHERE id = ?',
                               [export_id])
 
@@ -1698,7 +1711,7 @@ def delete_export(export_id):
             logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
-                if export_data['include_images']:
+                if export_data['include_thumb'] or export_data['include_art']:
                     images_folder = get_export_filepath(export_data['filename'], images=True)
                     if os.path.exists(images_folder):
                         shutil.rmtree(images_folder)
@@ -1711,7 +1724,7 @@ def delete_export(export_id):
 
 def delete_all_exports():
     db = database.MonitorDatabase()
-    result = db.select('SELECT filename, include_images FROM exports')
+    result = db.select('SELECT filename, include_thumb, include_art FROM exports')
 
     logger.info("Tautulli Exporter :: Deleting all exports from the database.")
 
@@ -1721,7 +1734,7 @@ def delete_all_exports():
             filepath = get_export_filepath(row['filename'])
             try:
                 os.remove(filepath)
-                if row['include_images']:
+                if row['include_thumb'] or row['include_art']:
                     images_folder = get_export_filepath(row['filename'], images=True)
                     if os.path.exists(images_folder):
                         shutil.rmtree(images_folder)
@@ -1764,7 +1777,8 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'exports.file_format',
                'exports.metadata_level',
                'exports.media_info_level',
-               'exports.include_images',
+               'exports.include_thumb',
+               'exports.include_art',
                'exports.custom_fields',
                'exports.file_size',
                'exports.complete'
@@ -1799,7 +1813,8 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
                'file_format': item['file_format'],
                'metadata_level': item['metadata_level'],
                'media_info_level': item['media_info_level'],
-               'include_images': item['include_images'],
+               'include_thumb': item['include_thumb'],
+               'include_art': item['include_art'],
                'custom_fields': item['custom_fields'],
                'file_size': item['file_size'],
                'complete': item['complete'],

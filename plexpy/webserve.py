@@ -6492,7 +6492,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def export_metadata(self, section_id=None, rating_key=None, file_format='json',
-                        metadata_level=1, media_info_level=1, include_images=False,
+                        metadata_level=1, media_info_level=1,
+                        include_thumb=False, include_art=False,
                         custom_fields='', **kwargs):
         """ Export library or media metadata to a file
 
@@ -6505,7 +6506,8 @@ class WebInterface(object):
                 file_format (str):         'json' (default) or 'csv'
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
-                include_images (bool):     True or False to export artwork and posters images
+                include_thumb (bool):      True to export poster/cover images
+                include_art (bool):        True to export background artwork images
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
 
@@ -6521,7 +6523,8 @@ class WebInterface(object):
                                  file_format=file_format,
                                  metadata_level=metadata_level,
                                  media_info_level=media_info_level,
-                                 include_images=helpers.bool_true(include_images),
+                                 include_thumb=helpers.bool_true(include_thumb),
+                                 include_art=helpers.bool_true(include_art),
                                  custom_fields=custom_fields).export()
 
         if result is True:
@@ -6602,7 +6605,7 @@ class WebInterface(object):
         if result and result['complete'] == 1 and result['exists']:
             export_filepath = exporter.get_export_filepath(result['filename'])
 
-            if result['include_images']:
+            if result['include_thumb'] or result['include_art']:
                 zip_filename = '{}.zip'.format(os.path.splitext(result['filename'])[0])
                 images_folder = exporter.get_export_filepath(result['filename'], images=True)
 

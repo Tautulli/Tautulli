@@ -419,7 +419,8 @@ Optional parameters:
     file_format (str):         'json' (default) or 'csv'
     metadata_level (int):      The level of metadata to export (default 1)
     media_info_level (int):    The level of media info to export (default 1)
-    include_images (bool):     True or False to export artwork and posters images
+    include_thumb (bool):      True to export poster/cover images
+    include_art (bool):        True to export background artwork images
     custom_fields (str):       Comma separated list of custom fields to export
                                in addition to the export level selected
 
