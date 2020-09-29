@@ -475,6 +475,10 @@ fieldset[disabled] .btn-bright.active {
 }
 .btn-group select {
     margin-top: 0;
+    height: 34px;
+}
+.btn-group label {
+    margin-bottom: 0;
 }
 .input-group-addon-form {
     display: inline-block;
@@ -487,9 +491,6 @@ fieldset[disabled] .btn-bright.active {
     height: 32px;
     width: 100%;
     margin-top: 5px;
-}
-#user-selection label {
-    margin-bottom: 0;
 }
 .alert-edit {
     display: none;
@@ -2361,9 +2362,6 @@ a .library-user-instance-box:hover {
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
-#watched-stats-days-selection label {
-    margin-bottom: 0;
-}
 .home-padded-header {
     margin: 25px 0;
     height: 34px;
@@ -3454,10 +3452,6 @@ pre::-webkit-scrollbar-thumb {
 .activity-queue tr:nth-child(even) td {
     background-color: rgba(255,255,255,0.010);
 }
-#days-selection label,
-#months-selection label {
-    margin-bottom: 0;
-}
 .card-sortable {
     height: 36px;
     padding: 0 20px 0 0;
@@ -3719,10 +3713,6 @@ a:hover .overlay-refresh-image:hover {
     text-align: center;
     padding-top: 10px;
     padding-bottom: 10px;
-}
-#plexpy-log-levels label,
-#plex-log-levels label {
-    margin-bottom: 0;
 }
 #plexpy-notifiers-table .friendly_name,
 #notifier-config-modal span.notifier_id,
