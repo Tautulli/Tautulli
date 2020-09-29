@@ -1841,3 +1841,37 @@ def get_export_filepath(filename, images=False):
 
 def check_export_exists(filename):
     return os.path.isfile(get_export_filepath(filename))
+
+
+def get_custom_fields(media_type):
+    export = Export()
+
+    if media_type not in export.MEDIA_TYPES:
+        return {'metadata_fields': [], 'media_info_fields': []}
+
+    media_attrs = export.return_attrs(media_type)
+    metadata_levels, media_info_levels = export.return_levels(media_type)
+
+    metadata_levels_dict = {attr: level for level, attrs in reversed(sorted(metadata_levels.items()))
+                            for attr in attrs}
+    media_info_levels_dict = {attr: level for level, attrs in reversed(sorted(media_info_levels.items()))
+                              for attr in attrs}
+
+    flatten_attrs = helpers.flatten_dict(media_attrs)[0]
+
+    custom_metadata_fields = []
+    custom_media_info_fields = []
+    for attr in sorted(flatten_attrs):
+        metadata_level = metadata_levels_dict.get(attr, 9 if not attr.startswith('media.') else None)
+        media_info_level = media_info_levels_dict.get(attr, 9 if attr.startswith('media.') else None)
+
+        if metadata_level is not None:
+            custom_metadata_fields.append({'field': attr, 'level': metadata_level})
+        elif media_info_level is not None:
+            custom_media_info_fields.append({'field': attr, 'level': media_info_level})
+
+    custom_fields = {
+        'metadata_fields': custom_metadata_fields,
+        'media_info_fields': custom_media_info_fields
+    }
+    return custom_fields

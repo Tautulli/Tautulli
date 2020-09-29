@@ -1300,6 +1300,18 @@ def dict_merge(a, b, path=None):
     return a
 
 
+#https://stackoverflow.com/a/26853961
+def dict_update(*dict_args):
+    """
+    Given any number of dictionaries, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dictionaries.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
+
 def is_hdr(bit_depth, color_space):
     bit_depth = cast_to_int(bit_depth)
     return bit_depth > 8 and color_space == 'bt2020nc'

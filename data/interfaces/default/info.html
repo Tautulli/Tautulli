@@ -541,17 +541,16 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if _session['user_group'] == 'admin':
+                % if not data['live'] and _session['user_group'] == 'admin':
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
                             <span>Metadata Exports for <strong>${data['title']}</strong></span>
                         </div>
                         <div class="button-bar">
-                            % if _session['user_group'] == 'admin':
                             <div class="btn-group">
                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}">
+                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}" data-media_type="${data['media_type']}">
                                     <i class="fa fa-file-export"></i> Export Metadata
                                 </button>
                             </div>
@@ -560,7 +559,6 @@ DOCUMENTATION :: END
                                     <i class="fa fa-refresh"></i> Refresh exports
                                 </button>
                             </div>
-                            % endif
                             <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
                         </div>
                     </div>
@@ -885,7 +883,8 @@ DOCUMENTATION :: END
             url: 'export_metadata_modal',
             data: {
                 section_id: $(this).data('section_id'),
-                rating_key: $(this).data('rating_key')
+                rating_key: $(this).data('rating_key'),
+                media_type: $(this).data('media_type')
             },
             cache: false,
             async: true,

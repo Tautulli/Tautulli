@@ -6482,10 +6482,41 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def export_metadata_modal(self, section_id=None, rating_key=None, **kwargs):
+    def export_metadata_modal(self, section_id=None, rating_key=None, media_type=None, **kwargs):
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
-                              section_id=section_id, rating_key=rating_key)
+                              section_id=section_id, rating_key=rating_key, media_type=media_type)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_export_fields(self, media_type=None, **kwargs):
+        """ Get a list of available custom export fields.
+
+            ```
+            Required parameters:
+                media_type (str):          The media type of the fields to return
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"metadata_fields":
+                        [{"field": "addedAt", "level": 1},
+                         ...
+                         ],
+                     "media_info_fields":
+                        [{"field": "media.aspectRatio", "level": 1},
+                         ...
+                         ]
+                    }
+            ```
+        """
+        custom_fields = exporter.get_custom_fields(media_type=media_type)
+
+        return custom_fields
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
