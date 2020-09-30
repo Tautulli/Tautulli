@@ -104,7 +104,7 @@ DOCUMENTATION :: END
             </div>
             % elif stat_id == 'top_users':
             <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
-            <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['friendly_name']}" class="hidden-xs">
+            <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['user']}" class="hidden-xs">
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
             </a>
             % elif stat_id == 'top_platforms':
@@ -122,7 +122,7 @@ DOCUMENTATION :: END
                     % elif stat_id.startswith('popular'):
                     <span class="dashboard-stats-stats-units">users</span>
                     % elif stat_id == 'last_watched':
-                    <span class="dashboard-stats-stats-units" id="last-watched-header-info">${row0['friendly_name']}</span>
+                    <span class="dashboard-stats-stats-units" id="last-watched-header-info" title="${row0['user']}">${row0['friendly_name']}</span>
                     % elif stat_id == 'most_concurrent':
                     <span class="dashboard-stats-stats-units" id="most-concurrent-header-info">streams</span>
                     % endif
@@ -134,7 +134,7 @@ DOCUMENTATION :: END
                             <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}"
                                 data-rating_key="${row.get('rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
-                                data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
+                                data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
@@ -152,7 +152,7 @@ DOCUMENTATION :: END
                                     </a>
                                     % elif stat_id == 'top_users':
                                     <% user_href = page('user', row['user_id']) if row['user_id'] else '#' %>
-                                    <a href="${user_href}" title="${row['friendly_name']}">
+                                    <a href="${user_href}" title="${row['user']}">
                                         ${row['friendly_name']}
                                     </a>
                                     % elif stat_id == 'top_platforms':

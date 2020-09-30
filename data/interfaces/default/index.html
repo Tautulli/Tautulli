@@ -759,7 +759,7 @@
                 if (user_id) {
                     href = page('user', user_id);
                 }
-                $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('friendly_name'));
+                $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('user'));
             } else if (stat_id === 'top_platforms') {
                 $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
                     return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
