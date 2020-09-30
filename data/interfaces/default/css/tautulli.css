@@ -217,6 +217,10 @@ select.form-control:focus,
 .selectize-dropdown .optgroup-header {
     font-weight: bold;
 }
+.selectize-dropdown [data-selectable].option-disabled {
+  color: #aaa;
+  cursor: default;
+}
 select.form-control option {
     color: #555;
     background-color: #eee;
