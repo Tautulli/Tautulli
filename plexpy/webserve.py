@@ -982,12 +982,14 @@ class WebInterface(object):
                     [{"friendly_name": "Jon Snow",
                       "total_plays": 170,
                       "user_id": 133788,
-                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar"
+                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+                      "username": "LordCommanderSnow"
                       },
-                     {"platform_type": "DanyKhaleesi69",
+                     {"friendly_name": "DanyKhaleesi69",
                       "total_plays": 42,
                       "user_id": 8008135,
-                      "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar"
+                      "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
+                      "username: "DanyKhaleesi69"
                       },
                      {...},
                      {...}
@@ -1200,6 +1202,7 @@ class WebInterface(object):
                           "transcode_decision": "transcode",
                           "user_id": 133788,
                           "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
+                          "username": "LordCommanderSnow",
                           "year": 2016
                           },
                          {...},

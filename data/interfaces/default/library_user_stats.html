@@ -25,11 +25,11 @@ DOCUMENTATION :: END
     <div class="user-player-instance">
         <li>
             % if a['user_id']:
-            <a href="${page('user', a['user_id'])}" title="${a['friendly_name']}">
+            <a href="${page('user', a['user_id'])}" title="${a['username']}">
                 <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>
             </a>
             <div class=" user-player-instance-name">
-                <a href="${page('user', a['user_id'])}" title="${a['friendly_name']}">${a['friendly_name']}</a>
+                <a href="${page('user', a['user_id'])}" title="${a['username']}">${a['friendly_name']}</a>
             </div>
             % else:
             <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>

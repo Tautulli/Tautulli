@@ -791,7 +791,7 @@ class Libraries(object):
             if str(section_id).isdigit():
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
                         'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
-                        'users.user_id, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
+                        'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
                         'COUNT(DISTINCT %s) AS user_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
@@ -817,6 +817,7 @@ class Libraries(object):
             row = {'friendly_name': item['friendly_name'],
                    'user_id': item['user_id'],
                    'user_thumb': user_thumb,
+                   'username': item['username'],
                    'total_plays': item['user_count']
                    }
             user_stats.append(row)

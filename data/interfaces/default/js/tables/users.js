@@ -78,7 +78,7 @@ users_list_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html('<div class="edit-user-name" data-id="' + rowData['row_id'] + '">' +
-                        '<a href="' + page('user', rowData['user_id']) + '">' + cellData + '</a>' +
+                        '<a href="' + page('user', rowData['user_id']) + '" title="' + rowData['username'] + '">' + cellData + '</a>' +
                         '<input type="text" class="hidden" value="' + cellData + '">' +
                         '</div>');
                 } else {

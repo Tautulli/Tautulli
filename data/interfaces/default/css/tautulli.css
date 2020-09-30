@@ -1031,7 +1031,7 @@ a .users-poster-face:hover {
     height: 249px;
 }
 .dashboard-activity-container:hover .dashboard-activity-progress {
-	height: 14px;
+    height: 14px;
 }
 .dashboard-activity-container:hover .progress-bar {
     color: rgba(255, 255, 255, 1);
