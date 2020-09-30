@@ -726,6 +726,30 @@ Returns:
 ```
 
 
+### get_export_fields
+Get a list of available custom export fields.
+
+```
+Required parameters:
+    media_type (str):          The media type of the fields to return
+
+Optional parameters:
+    sub_media_type (str):      The child media type for collections or playlists
+
+Returns:
+    json:
+        {"metadata_fields":
+            [{"field": "addedAt", "level": 1},
+             ...
+             ],
+         "media_info_fields":
+            [{"field": "media.aspectRatio", "level": 1},
+             ...
+             ]
+        }
+```
+
+
 ### get_exports_table
 Get the data on the Tautulli export tables.
 
