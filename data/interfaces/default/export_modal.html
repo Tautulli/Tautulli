@@ -47,8 +47,7 @@ DOCUMENTATION :: END
                     <label for="export_custom_metadata_fields">Custom Metadata Fields</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="export_custom_metadata_fields" name="export_custom_metadata_fields" data-field_type="Metadata">
-                            </select>
+                            <input type="text" class="form-control" id="export_custom_metadata_fields" name="export_custom_metadata_fields" data-field_type="Metadata">
                         </div>
                     </div>
                     <p class="help-block">Add additional fields to the selected metadata export level.</p>
@@ -72,8 +71,7 @@ DOCUMENTATION :: END
                     <label for="export_custom_media_info_fields">Custom Media Info Fields</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="export_custom_media_info_fields" name="export_custom_media_info_fields" data-field_type="Media Info">
-                            </select>
+                            <input type="text" class="form-control" id="export_custom_media_info_fields" name="export_custom_media_info_fields" data-field_type="Media Info">
                         </div>
                     </div>
                     <p class="help-block">Add additional fields to the selected media info export level.</p>
@@ -191,8 +189,10 @@ DOCUMENTATION :: END
         var file_format = $('#file_format_select option:selected').val();
         var include_thumb = $("#export_include_thumb").is(':checked') ? 1 : 0;
         var include_art = $("#export_include_art").is(':checked') ? 1 : 0;
-        var custom_fields = $.merge($('#export_custom_metadata_fields').val() || [],
-                                    $('#export_custom_media_info_fields').val() || []).join(',')
+        var custom_fields = [
+            $('#export_custom_metadata_fields').val(),
+            $('#export_custom_media_info_fields').val()
+        ].filter(Boolean).join(',');
 
         $.ajax({
             url: 'export_metadata',
