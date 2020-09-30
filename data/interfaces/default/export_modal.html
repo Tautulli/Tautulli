@@ -81,8 +81,9 @@ DOCUMENTATION :: END
                     <div class="row">
                         <div class="col-md-12">
                             <select class="form-control" id="file_format_select" name="file_format_select">
-                                <option value="csv">CSV</option>
-                                <option value="json">JSON</option>
+                                % for format in file_formats:
+                                <option value="${format}">${format.upper()}</option>
+                                % endfor
                             </select>
                         </div>
                     </div>

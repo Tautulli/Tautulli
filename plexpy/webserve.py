@@ -6484,10 +6484,12 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def export_metadata_modal(self, section_id=None, rating_key=None,
                               media_type=None, sub_media_type=None, **kwargs):
+        file_formats = exporter.Export.FILE_FORMATS
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
                               section_id=section_id, rating_key=rating_key,
-                              media_type=media_type, sub_media_type=sub_media_type)
+                              media_type=media_type, sub_media_type=sub_media_type,
+                              file_formats=file_formats)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6525,7 +6527,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def export_metadata(self, section_id=None, rating_key=None, file_format='json',
+    def export_metadata(self, section_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
                         include_thumb=False, include_art=False,
                         custom_fields='', **kwargs):
@@ -6537,7 +6539,7 @@ class WebInterface(object):
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
-                file_format (str):         'json' (default) or 'csv'
+                file_format (str):         csv (default), json, or xml
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
                 include_thumb (bool):      True to export poster/cover images
@@ -6585,11 +6587,10 @@ class WebInterface(object):
         result = exporter.get_export(export_id=export_id)
 
         if result and result['complete'] == 1 and result['exists']:
-            if result['file_format'] == 'json':
-                return serve_file(exporter.get_export_filepath(result['filename']), name=result['filename'],
-                                  content_type='application/json')
-            elif result['file_format'] == 'csv':
-                with open(exporter.get_export_filepath(result['filename']), 'r', encoding='utf-8') as infile:
+            filepath = exporter.get_export_filepath(result['filename'])
+
+            if result['file_format'] == 'csv':
+                with open(filepath, 'r', encoding='utf-8') as infile:
                     reader = csv.DictReader(infile)
                     table = '<table><tr><th>' + \
                             '</th><th>'.join(reader.fieldnames) + \
@@ -6605,6 +6606,13 @@ class WebInterface(object):
                             'th, td {padding: 3px; white-space: nowrap;}' \
                             '</style>'
                 return '{style}<pre>{table}</pre>'.format(style=style, table=table)
+
+            elif result['file_format'] == 'json':
+                return serve_file(filepath, name=result['filename'], content_type='application/json;charset=UTF-8')
+
+            elif result['file_format'] == 'xml':
+                return serve_file(filepath, name=result['filename'], content_type='application/xml;charset=UTF-8')
+
         else:
             if result and result.get('complete') == 0:
                 msg = 'Export is still being processed.'

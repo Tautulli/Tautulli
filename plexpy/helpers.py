@@ -1312,6 +1312,57 @@ def dict_update(*dict_args):
     return result
 
 
+# https://stackoverflow.com/a/28703510
+def escape_xml(value):
+    if value is None:
+        return ''
+
+    value = str(value) \
+        .replace("&", "&amp;") \
+        .replace("<", "&lt;") \
+        .replace(">", "&gt;") \
+        .replace('"', "&quot;") \
+        .replace("'", "&apos;")
+    return value
+
+
+# https://gist.github.com/reimund/5435343/
+def dict2xml(d, root_node=None):
+    wrap = not bool(root_node is None or isinstance(d, list))
+    root = root_node or 'objects'
+    root_singular = root[:-1] if root.endswith('s') and isinstance(d, list) else root
+    xml = ''
+    children = []
+
+    if isinstance(d, dict):
+        for key, value in sorted(d.items()):
+            if isinstance(value, dict):
+                children.append(dict2xml(value, key))
+            elif isinstance(value, list):
+                children.append(dict2xml(value, key))
+            else:
+                xml = '{} {}="{}"'.format(xml, key, escape_xml(value))
+    elif isinstance(d, list):
+        for value in d:
+            children.append(dict2xml(value, root_singular))
+    else:
+        children.append(escape_xml(d))
+
+    end_tag = '>' if len(children) > 0 else '/>'
+
+    if wrap or isinstance(d, dict):
+        xml = '<{}{}{}'.format(root, xml, end_tag)
+
+    if len(children) > 0:
+        for child in children:
+            xml = '{}{}'.format(xml, child)
+
+        if wrap or isinstance(d, dict):
+            xml = '{}</{}>'.format(xml, root)
+
+    return xml
+
+
 def is_hdr(bit_depth, color_space):
     bit_depth = cast_to_int(bit_depth)
     return bit_depth > 8 and color_space == 'bt2020nc'

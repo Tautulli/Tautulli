@@ -89,8 +89,9 @@ class Export(object):
     }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
+    FILE_FORMATS = ('csv', 'json', 'xml')
 
-    def __init__(self, section_id=None, rating_key=None, file_format='json',
+    def __init__(self, section_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
                  include_thumb=False, include_art=False,
                  custom_fields=''):
@@ -1456,7 +1457,7 @@ class Export(object):
             msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
             msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
-        elif self.file_format not in ('json', 'csv'):
+        elif self.file_format not in self.FILE_FORMATS:
             msg = "Export called with invalid file_format '{}'.".format(self.file_format)
 
         if msg:
@@ -1583,18 +1584,23 @@ class Export(object):
         try:
             result = pool.map(self._export_obj, items)
 
-            if self.file_format == 'json':
+            if self.file_format == 'csv':
+                csv_data = helpers.flatten_dict(result)
+                csv_headers = set().union(*csv_data)
+                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
+                    writer = csv.DictWriter(outfile, sorted(csv_headers))
+                    writer.writeheader()
+                    writer.writerows(csv_data)
+
+            elif self.file_format == 'json':
                 json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
                 with open(filepath, 'w', encoding='utf-8') as outfile:
                     outfile.write(json_data)
 
-            elif self.file_format == 'csv':
-                flatten_result = helpers.flatten_dict(result)
-                flatten_attrs = set().union(*flatten_result)
-                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-                    writer = csv.DictWriter(outfile, sorted(flatten_attrs))
-                    writer.writeheader()
-                    writer.writerows(flatten_result)
+            elif self.file_format == 'xml':
+                xml_data = helpers.dict2xml(result, root_node=self.media_type)
+                with open(filepath, 'w', encoding='utf-8') as outfile:
+                    outfile.write(xml_data)
 
             self.file_size = os.path.getsize(filepath)
 

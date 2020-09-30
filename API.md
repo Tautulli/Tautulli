@@ -416,7 +416,7 @@ Required parameters:
     rating_key (int):          The rating key of the media item to export
 
 Optional parameters:
-    file_format (str):         'json' (default) or 'csv'
+    file_format (str):         csv (default), json, or xml
     metadata_level (int):      The level of metadata to export (default 1)
     media_info_level (int):    The level of media info to export (default 1)
     include_thumb (bool):      True to export poster/cover images
