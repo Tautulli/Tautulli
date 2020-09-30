@@ -24,7 +24,7 @@ playlists_table_options = {
             "data": "title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '">' + cellData + '</a>');
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '&section_id=' + rowData['librarySectionID'] +'">' + cellData + '</a>');
                 }
             },
             "width": "50%",

@@ -4399,7 +4399,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, guid=None, source=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, section_id=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -4413,7 +4413,7 @@ class WebInterface(object):
         # Try to get metadata from the Plex server first
         if rating_key:
             pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+            metadata = pms_connect.get_metadata_details(rating_key=rating_key, section_id=section_id)
 
         # If the item is not found on the Plex server, get the metadata from history
         if not metadata and source == 'history':

@@ -112,7 +112,7 @@ DOCUMENTATION :: END
                             <li class="active metadata-xml">${data['title']}</li>
                             % endif
                             % endif
-                        % elif data['media_type'] in ('movie', 'collection'):
+                        % elif data['media_type'] in ('movie', 'collection', 'playlist'):
                         <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
@@ -152,8 +152,6 @@ DOCUMENTATION :: END
                         <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
-                        % elif data['media_type'] == 'playlist':
-                        <li class="active metadata-xml">${data['title']}</li>
                         % endif
                         </ul>
                     </div>

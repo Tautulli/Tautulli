@@ -31,6 +31,7 @@ if plexpy.PYTHON2:
     import common
     import helpers
     import http_handler
+    import libraries
     import logger
     import plextv
     import session
@@ -40,6 +41,7 @@ else:
     from plexpy import common
     from plexpy import helpers
     from plexpy import http_handler
+    from plexpy import libraries
     from plexpy import logger
     from plexpy import plextv
     from plexpy import session
@@ -610,7 +612,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='',
+    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', section_id='',
                              skip_cache=False, cache_key=None, return_cache=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
@@ -687,8 +689,12 @@ class PmsConnect(object):
             if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
                 metadata_type = 'photo_album'
 
-            section_id = helpers.get_xml_attr(a, 'librarySectionID')
+            section_id = helpers.get_xml_attr(a, 'librarySectionID') or section_id
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
+
+            if not library_name and section_id:
+                library_data = libraries.Libraries().get_details(section_id)
+                library_name = library_data['section_name']
 
         directors = []
         writers = []
