@@ -74,6 +74,18 @@ class Export(object):
         'playlist': 'playlists',
         'item': 'items'
     }
+    CHILD_MEDIA_TYPES = {
+        'movie': '',
+        'show': 'season',
+        'season': 'episode',
+        'episode': '',
+        'artist': 'album',
+        'album': 'track',
+        'track': '',
+        'photoalbum': 'photo',
+        'collection': 'children',
+        'playlist': 'items'
+    }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
 
@@ -101,7 +113,7 @@ class Export(object):
         self.file_size = None
         self.success = False
 
-    def return_attrs(self, media_type):
+    def return_attrs(self, media_type, flatten=False):
         # o: current object
         # e: element in object attribute value list
 
@@ -993,9 +1005,14 @@ class Export(object):
             'playlist': playlist_attrs,
         }
 
-        return _media_types[media_type]()
+        media_attrs = _media_types[media_type]()
 
-    def return_levels(self, media_type):
+        if flatten:
+            media_attrs = helpers.flatten_dict(media_attrs)[0]
+
+        return media_attrs
+
+    def return_levels(self, media_type, reverse_map=False):
         def movie_levels():
             _media_type = 'movie'
             _metadata_levels = {
@@ -1014,7 +1031,7 @@ class Export(object):
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
                     'updatedAt', 'lastViewedAt', 'viewCount'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {
                 1: [
@@ -1078,7 +1095,7 @@ class Export(object):
                     'art', 'thumb', 'banner', 'theme', 'key',
                     'updatedAt', 'lastViewedAt', 'viewCount'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1103,7 +1120,7 @@ class Export(object):
                     'updatedAt', 'lastViewedAt', 'viewCount',
                     'parentKey', 'parentTheme', 'parentThumb'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1128,7 +1145,7 @@ class Export(object):
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {
                 1: [
@@ -1191,7 +1208,7 @@ class Export(object):
                     'art', 'thumb', 'key',
                     'updatedAt', 'lastViewedAt', 'viewCount'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1217,7 +1234,7 @@ class Export(object):
                     'updatedAt', 'lastViewedAt', 'viewCount',
                     'parentKey', 'parentThumb'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1242,7 +1259,7 @@ class Export(object):
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentKey'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {
                 1: [
@@ -1297,7 +1314,7 @@ class Export(object):
                     'art', 'thumb', 'key',
                     'updatedAt'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1319,7 +1336,7 @@ class Export(object):
                     'updatedAt',
                     'parentThumb', 'parentKey'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {
                 1: [
@@ -1359,7 +1376,7 @@ class Export(object):
                     'art', 'thumb', 'key',
                     'updatedAt'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1381,7 +1398,7 @@ class Export(object):
                     'composite', 'key',
                     'updatedAt'
                 ],
-                9: self._get_all_metadata_attr(_media_type)
+                9: self._get_all_metadata_attrs(_media_type)
             }
             _media_info_levels = {}
             return _metadata_levels, _media_info_levels
@@ -1400,7 +1417,35 @@ class Export(object):
             'playlist': playlist_levels
         }
 
-        return _media_types[media_type]()
+        metadata_levels, media_info_levels = _media_types[media_type]()
+
+        if reverse_map:
+            metadata_levels = {attr: level for level, attrs in reversed(sorted(metadata_levels.items()))
+                               for attr in attrs}
+            media_info_levels = {attr: level for level, attrs in reversed(sorted(media_info_levels.items()))
+                                 for attr in attrs}
+
+        return metadata_levels, media_info_levels
+
+    def return_attrs_level_map(self, media_type, prefix=''):
+        media_attrs = self.return_attrs(media_type, flatten=True)
+        metadata_levels, media_info_levels = self.return_levels(media_type, reverse_map=True)
+
+        metadata_levels_map = {}
+        media_info_levels_map = {}
+
+        for attr in media_attrs:
+            metadata_level = metadata_levels.get(
+                attr, max(self.METADATA_LEVELS) if not attr.startswith('media.') else None)
+            media_info_level = media_info_levels.get(
+                attr, max(self.MEDIA_INFO_LEVELS) if attr.startswith('media.') else None)
+
+            if metadata_level is not None:
+                metadata_levels_map[prefix + attr] = metadata_level
+            elif media_info_level is not None:
+                media_info_levels_map[prefix + attr] = media_info_level
+
+        return metadata_levels_map, media_info_levels_map
 
     def export(self):
         msg = ''
@@ -1579,7 +1624,7 @@ class Export(object):
         if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
             obj = obj.reload()
 
-        export_attrs = self._get_level_attrs(obj.type)
+        export_attrs = self._get_export_attrs(obj.type)
         return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
 
     def _process_custom_fields(self):
@@ -1601,12 +1646,12 @@ class Export(object):
             else:
                 self._custom_fields[media_type] = {field}
 
-    def _get_all_metadata_attr(self, media_type):
+    def _get_all_metadata_attrs(self, media_type):
         exclude_attrs = ('media', 'artFile', 'thumbFile')
         all_attrs = self.return_attrs(media_type)
         return [attr for attr in all_attrs if attr not in exclude_attrs]
 
-    def _get_level_attrs(self, media_type):
+    def _get_export_attrs(self, media_type):
         media_attrs = self.return_attrs(media_type)
         metadata_level_attrs, media_info_level_attrs = self.return_levels(media_type)
 
@@ -1850,26 +1895,26 @@ def get_custom_fields(media_type):
     if media_type not in export.MEDIA_TYPES:
         return {'metadata_fields': [], 'media_info_fields': []}
 
-    media_attrs = export.return_attrs(media_type)
-    metadata_levels, media_info_levels = export.return_levels(media_type)
+    metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
 
-    metadata_levels_dict = {attr: level for level, attrs in reversed(sorted(metadata_levels.items()))
-                            for attr in attrs}
-    media_info_levels_dict = {attr: level for level, attrs in reversed(sorted(media_info_levels.items()))
-                              for attr in attrs}
+    prefix = ''
+    child_media_type = export.CHILD_MEDIA_TYPES[media_type]
 
-    flatten_attrs = helpers.flatten_dict(media_attrs)[0]
+    while child_media_type:
+        prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
 
-    custom_metadata_fields = []
-    custom_media_info_fields = []
-    for attr in sorted(flatten_attrs):
-        metadata_level = metadata_levels_dict.get(attr, 9 if not attr.startswith('media.') else None)
-        media_info_level = media_info_levels_dict.get(attr, 9 if attr.startswith('media.') else None)
+        child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
+            child_media_type, prefix=prefix)
 
-        if metadata_level is not None:
-            custom_metadata_fields.append({'field': attr, 'level': metadata_level})
-        elif media_info_level is not None:
-            custom_media_info_fields.append({'field': attr, 'level': media_info_level})
+        metadata_levels_map.update(child_metadata_levels_map)
+        media_info_levels_map.update(child_media_info_levels_map)
+
+        child_media_type = export.CHILD_MEDIA_TYPES[child_media_type]
+
+    custom_metadata_fields = [{'field': attr, 'level': level}
+                              for attr, level in sorted(metadata_levels_map.items()) if level]
+    custom_media_info_fields = [{'field': attr, 'level': level}
+                                for attr, level in sorted(media_info_levels_map.items()) if level]
 
     custom_fields = {
         'metadata_fields': custom_metadata_fields,
