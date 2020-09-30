@@ -93,6 +93,8 @@ DOCUMENTATION :: END
                                     % if _session['user_group'] == 'admin':
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
                                     <li><a id="media-info-tab-btn" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    <li><a id="collections-tab-btn" href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
+                                    <li><a id="playlists-tab-btn" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
                                     <li><a id="export-tab-btn" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
@@ -259,7 +261,7 @@ DOCUMENTATION :: END
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
-                                                <i class="fa fa-history"></i> Media Info for <strong>
+                                                <i class="fa fa-info-circle"></i> Media Info for <strong>
                                                     <span class="set-username">${data['section_name']}</span>
                                                 </strong>
                                             </span>
@@ -297,6 +299,86 @@ DOCUMENTATION :: END
                                                     <th align="left" id="file_size">File Size</th>
                                                     <th align="left" id="last_played">Last Played</th>
                                                     <th align="left" id="total_plays">Total Plays</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-collections">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-folder-open"></i> Collections for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-collections-table-button" id="refresh-collections-table">
+                                                    <i class="fa fa-refresh"></i> Refresh collections
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group colvis-button-bar" id="button-bar-collections"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display collections_table" id="collections_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="collectionMode">Collection Mode</th>
+                                                    <th align="left" id="collectionSort">Collection Sort</th>
+                                                    <th align="left" id="items">Items</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-playlists">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-list-alt"></i> Playlists for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-playlists-table-button" id="refresh-playlists-table">
+                                                    <i class="fa fa-refresh"></i> Refresh playlists
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display playlists_table" id="playlists_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="leafCount">Items</th>
+                                                    <th align="left" id="duration">Duration</th>
+                                                    <th align="left" id="smart">Smart</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -442,6 +524,8 @@ DOCUMENTATION :: END
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/media_info_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/collections_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
 <script>
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
@@ -514,6 +598,66 @@ DOCUMENTATION :: END
         refresh_child_tables = true;
         media_info_table.draw();
         refresh_table = false;
+    });
+
+    function loadCollectionsTable() {
+        // Build collections table
+        collections_table_options.ajax = {
+            url: 'get_collections_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
+            }
+        };
+        collections_table = $('#collections_table-SID-${data["section_id"]}').DataTable(collections_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(collections_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-collections');
+
+        clearSearchButton('collections_table-SID-${data["section_id"]}', collections_table);
+    }
+
+    $('a[href="#tabs-collections"]').on('shown.bs.tab', function() {
+        if (typeof(collections_table) === 'undefined') {
+            loadCollectionsTable();
+        }
+    });
+
+    $("#refresh-collections-table").click(function () {
+        collections_table.draw();
+    });
+
+    function loadPlaylistsTable() {
+        // Build playlists table
+        playlists_table_options.ajax = {
+            url: 'get_playlists_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
+            }
+        };
+        playlists_table = $('#playlists_table-SID-${data["section_id"]}').DataTable(playlists_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-playlists');
+
+        clearSearchButton('playlists_table-SID-${data["section_id"]}', playlists_table);
+    }
+
+    $('a[href="#tabs-playlists"]').on('shown.bs.tab', function() {
+        if (typeof(playlists_table) === 'undefined') {
+            loadPlaylistsTable();
+        }
+    });
+
+    $("#refresh-playlists-table").click(function () {
+        playlists_table.draw();
     });
 
     function loadExportTable() {

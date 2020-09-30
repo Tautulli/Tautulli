@@ -33,6 +33,7 @@ if plexpy.PYTHON2:
     import plextv
     import pmsconnect
     import session
+    from plex import Plex
 else:
     from plexpy import common
     from plexpy import database
@@ -42,6 +43,7 @@ else:
     from plexpy import plextv
     from plexpy import pmsconnect
     from plexpy import session
+    from plexpy.plex import Plex
 
 
 def refresh_libraries():
@@ -138,6 +140,117 @@ def has_library_type(section_type):
     args = [section_type]
     result = monitor_db.select_single(query=query, args=args)
     return bool(result)
+
+
+def get_collections(section_id):
+    plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
+    library = plex.get_library(section_id)
+
+    if library.type not in ('movie', 'show', 'artist'):
+        return []
+
+    collections = library.collection()
+
+    collections_list = []
+    for collection in collections:
+        collection_dict = {
+            'addedAt': helpers.datetime_to_iso(collection.addedAt),
+            'art': collection.art,
+            'childCount': collection.childCount,
+            'collectionMode': collection.collectionMode,
+            'collectionSort': collection.collectionSort,
+            'contentRating': collection.contentRating,
+            'guid': collection.guid,
+            'librarySectionID': collection.librarySectionID,
+            'librarySectionTitle': collection.librarySectionTitle,
+            'maxYear': collection.maxYear,
+            'minYear': collection.minYear,
+            'ratingKey': collection.ratingKey,
+            'subtype': collection.subtype,
+            'summary': collection.summary,
+            'thumb': collection.thumb,
+            'title': collection.title,
+            'titleSort': collection.titleSort,
+            'type': collection.type,
+            'updatedAt': helpers.datetime_to_iso(collection.updatedAt)
+        }
+        collections_list.append(collection_dict)
+
+    return collections_list
+
+
+def get_collections_list(section_id=None, **kwargs):
+    if not section_id:
+        default_return = {'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+        return default_return
+
+    collections = get_collections(section_id)
+
+    data = {'recordsTotal': len(collections),
+            'data': collections,
+            'draw': kwargs.get('draw', 0)
+            }
+
+    return data
+
+
+def get_playlists(section_id):
+    plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
+
+    library = Libraries().get_details(section_id=section_id)
+
+    if library['section_type'] == 'artist':
+        playlist_type = 'audio'
+    elif library['section_type'] == 'photo':
+        playlist_type = 'photo'
+    else:
+        playlist_type = 'video'
+
+    playlists = plex.plex.fetchItems(
+        '/playlists?type=15&playlistType={}&sectionID={}'.format(playlist_type, section_id))
+
+    playlists_list = []
+    for playlist in playlists:
+        playlist_dict = {
+            'addedAt': helpers.datetime_to_iso(playlist.addedAt),
+            'composite': playlist.composite,
+            'duration': playlist.duration,
+            'guid': playlist.guid,
+            'leafCount': playlist.leafCount,
+            'librarySectionID': section_id,
+            'librarySectionTitle': library['section_name'],
+            'playlistType': playlist.playlistType,
+            'ratingKey': playlist.ratingKey,
+            'smart': playlist.smart,
+            'summary': playlist.summary,
+            'title': playlist.title,
+            'type': playlist.type,
+            'updatedAt': helpers.datetime_to_iso(playlist.updatedAt)
+        }
+        playlists_list.append(playlist_dict)
+
+    return playlists_list
+
+
+def get_playlists_list(section_id=None, **kwargs):
+    if not section_id:
+        default_return = {'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+        return default_return
+
+    playlists = get_playlists(section_id)
+
+    data = {'recordsTotal': len(playlists),
+            'data': playlists,
+            'draw': kwargs.get('draw', 0)
+            }
+
+    return data
 
 
 class Libraries(object):

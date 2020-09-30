@@ -846,6 +846,106 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_collections_list(self, section_id=None, **kwargs):
+        """ Get the data on the Tautulli media info tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section, OR
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 5,
+                     "data":
+                        [...]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # Alias 'title' to 'sort_title'
+            if kwargs.get('order_column') == 'title':
+                kwargs['order_column'] = 'sort_title'
+
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("added_at", True, False),
+                          ("sort_title", True, True),
+                          ("container", True, True),
+                          ("bitrate", True, True),
+                          ("video_codec", True, True),
+                          ("video_resolution", True, True),
+                          ("video_framerate", True, True),
+                          ("audio_codec", True, True),
+                          ("audio_channels", True, True),
+                          ("file_size", True, False),
+                          ("last_played", True, False),
+                          ("play_count", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
+
+        result = libraries.get_collections_list(section_id=section_id,
+                                                kwargs=kwargs)
+
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_playlists_list(self, section_id=None, **kwargs):
+        """ Get the data on the Tautulli media info tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section, OR
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 5,
+                     "data":
+                        [...]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # Alias 'title' to 'sort_title'
+            if kwargs.get('order_column') == 'title':
+                kwargs['order_column'] = 'sort_title'
+
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("added_at", True, False),
+                          ("sort_title", True, True),
+                          ("container", True, True),
+                          ("bitrate", True, True),
+                          ("video_codec", True, True),
+                          ("video_resolution", True, True),
+                          ("video_framerate", True, True),
+                          ("audio_codec", True, True),
+                          ("audio_channels", True, True),
+                          ("file_size", True, False),
+                          ("last_played", True, False),
+                          ("play_count", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
+
+        result = libraries.get_playlists_list(section_id=section_id,
+                                              kwargs=kwargs)
+
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     def get_media_info_file_sizes(self, section_id=None, rating_key=None, **kwargs):
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
