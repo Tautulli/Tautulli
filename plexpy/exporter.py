@@ -1437,9 +1437,9 @@ class Export(object):
 
         for attr in media_attrs:
             metadata_level = metadata_levels.get(
-                attr, max(self.METADATA_LEVELS) if not attr.startswith('media.') else None)
+                attr, max(self.METADATA_LEVELS) if not self.is_media_info_attr(attr) else None)
             media_info_level = media_info_levels.get(
-                attr, max(self.MEDIA_INFO_LEVELS) if attr.startswith('media.') else None)
+                attr, max(self.MEDIA_INFO_LEVELS) if self.is_media_info_attr(attr) else None)
 
             if metadata_level is not None:
                 metadata_levels_map[prefix + attr] = metadata_level
@@ -1648,7 +1648,7 @@ class Export(object):
                 self._custom_fields[media_type] = {field}
 
     def _get_all_metadata_attrs(self, media_type):
-        exclude_attrs = ('media', 'artFile', 'thumbFile')
+        exclude_attrs = ('locations', 'media', 'artFile', 'thumbFile')
         all_attrs = self.return_attrs(media_type)
         return [attr for attr in all_attrs if attr not in exclude_attrs]
 
@@ -1731,6 +1731,10 @@ class Export(object):
                     outfile.write(chunk)
     
             return os.path.join(os.path.basename(folder), filename)
+
+    @staticmethod
+    def is_media_info_attr(attr):
+        return attr.startswith('media.') or attr == 'locations'
 
 
 def get_export(export_id):
