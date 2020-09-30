@@ -6482,16 +6482,18 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def export_metadata_modal(self, section_id=None, rating_key=None, media_type=None, **kwargs):
+    def export_metadata_modal(self, section_id=None, rating_key=None,
+                              media_type=None, sub_media_type=None, **kwargs):
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
-                              section_id=section_id, rating_key=rating_key, media_type=media_type)
+                              section_id=section_id, rating_key=rating_key,
+                              media_type=media_type, sub_media_type=sub_media_type)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_export_fields(self, media_type=None, **kwargs):
+    def get_export_fields(self, media_type=None, sub_media_type=None, **kwargs):
         """ Get a list of available custom export fields.
 
             ```
@@ -6499,7 +6501,7 @@ class WebInterface(object):
                 media_type (str):          The media type of the fields to return
 
             Optional parameters:
-                None
+                sub_media_type (str):      The child media type for collections or playlists
 
             Returns:
                 json:
@@ -6514,7 +6516,8 @@ class WebInterface(object):
                     }
             ```
         """
-        custom_fields = exporter.get_custom_fields(media_type=media_type)
+        custom_fields = exporter.get_custom_fields(media_type=media_type,
+                                                   sub_media_type=sub_media_type)
 
         return custom_fields
 

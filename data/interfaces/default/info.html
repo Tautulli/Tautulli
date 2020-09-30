@@ -550,7 +550,8 @@ DOCUMENTATION :: END
                         <div class="button-bar">
                             <div class="btn-group">
                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}" data-media_type="${data['media_type']}">
+                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}"
+                                        data-media_type="${data['media_type']}" data-sub_media_type="${data['sub_media_type'] or ''}">
                                     <i class="fa fa-file-export"></i> Export Metadata
                                 </button>
                             </div>
@@ -884,7 +885,8 @@ DOCUMENTATION :: END
             data: {
                 section_id: $(this).data('section_id'),
                 rating_key: $(this).data('rating_key'),
-                media_type: $(this).data('media_type')
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type')
             },
             cache: false,
             async: true,

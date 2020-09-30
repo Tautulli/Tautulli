@@ -83,8 +83,9 @@ class Export(object):
         'album': 'track',
         'track': '',
         'photoalbum': 'photo',
+        'photo': '',
         'collection': 'children',
-        'playlist': 'items'
+        'playlist': 'item'
     }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
@@ -1889,11 +1890,18 @@ def check_export_exists(filename):
     return os.path.isfile(get_export_filepath(filename))
 
 
-def get_custom_fields(media_type):
+def get_custom_fields(media_type, sub_media_type=None):
+    custom_fields = {
+        'metadata_fields': [],
+        'media_info_fields': []
+    }
+
     export = Export()
 
     if media_type not in export.MEDIA_TYPES:
-        return {'metadata_fields': [], 'media_info_fields': []}
+        return custom_fields
+    elif media_type in ('collection', 'playlist') and sub_media_type not in export.MEDIA_TYPES:
+        return custom_fields
 
     metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
 
@@ -1901,23 +1909,24 @@ def get_custom_fields(media_type):
     child_media_type = export.CHILD_MEDIA_TYPES[media_type]
 
     while child_media_type:
+        if child_media_type in ('children', 'item'):
+            fields_child_media_type = sub_media_type
+        else:
+            fields_child_media_type = child_media_type
+
         prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
 
         child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
-            child_media_type, prefix=prefix)
+            fields_child_media_type, prefix=prefix)
 
         metadata_levels_map.update(child_metadata_levels_map)
         media_info_levels_map.update(child_media_info_levels_map)
 
-        child_media_type = export.CHILD_MEDIA_TYPES[child_media_type]
+        child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
 
-    custom_metadata_fields = [{'field': attr, 'level': level}
-                              for attr, level in sorted(metadata_levels_map.items()) if level]
-    custom_media_info_fields = [{'field': attr, 'level': level}
-                                for attr, level in sorted(media_info_levels_map.items()) if level]
+    custom_fields['metadata_fields'] = [{'field': attr, 'level': level}
+                                        for attr, level in sorted(metadata_levels_map.items()) if level]
+    custom_fields['media_info_fields'] = [{'field': attr, 'level': level}
+                                          for attr, level in sorted(media_info_levels_map.items()) if level]
 
-    custom_fields = {
-        'metadata_fields': custom_metadata_fields,
-        'media_info_fields': custom_media_info_fields
-    }
     return custom_fields

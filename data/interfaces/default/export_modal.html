@@ -27,6 +27,7 @@ DOCUMENTATION :: END
                 <input type="hidden" id="export_section_id" name="export_section_id" value="${section_id or ''}" />
                 <input type="hidden" id="export_rating_key" name="export_rating_key" value="${rating_key or ''}" />
                 <input type="hidden" id="export_media_type" name="export_media_type" value="${media_type or ''}" />
+                <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
                 <div class="form-group">
                     <label for="metadata_export_level_select">Metadata Export Level</label>
                     <div class="row">
@@ -168,7 +169,8 @@ DOCUMENTATION :: END
             url: 'get_export_fields',
             async: true,
             data: {
-                media_type: $('#export_media_type').val()
+                media_type: $('#export_media_type').val(),
+                sub_media_type: $('#export_sub_media_type').val()
             },
             success: function (result) {
                 if (result) {
