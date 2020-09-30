@@ -84,8 +84,10 @@ DOCUMENTATION :: END
 %>
 <div class="container-fluid">
     <div class="row">
+        % if data['media_type'] != 'playlist':
         <% fallback = 'art-live-full' if data['live'] else None %>
         <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, fallback=fallback)})"></div>
+        % endif
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
@@ -150,6 +152,8 @@ DOCUMENTATION :: END
                         <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
+                        % elif data['media_type'] == 'playlist':
+                        <li class="active metadata-xml">${data['title']}</li>
                         % endif
                         </ul>
                     </div>
@@ -160,6 +164,8 @@ DOCUMENTATION :: END
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View on Plex Web">
+                        % elif data['media_type'] == 'playlist':
+                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/playlist?key=%2Fplaylists%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % elif not data['live']:
                         <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
                         % endif
@@ -179,11 +185,14 @@ DOCUMENTATION :: END
                             % if _session['user_group'] == 'admin':
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
-                            % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                            % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track' or data['media_type'] == 'playlist':
                             <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 500, fallback='cover')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
+                                    % if data['media_type'] == 'playlist' and data['smart']:
+                                    <span class="smart-playlist-image" title="Smart Playlist"><i class="fa fa-gear"></i></span>
+                                    % endif
                             </div>
                             % if _session['user_group'] == 'admin':
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
@@ -214,7 +223,7 @@ DOCUMENTATION :: END
                             <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
                             % endif
                             % endif
-                        % elif data['media_type'] in ('movie', 'show', 'artist', 'collection'):
+                        % elif data['media_type'] in ('movie', 'show', 'artist', 'collection', 'playlist'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
@@ -242,7 +251,7 @@ DOCUMENTATION :: END
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
                     % elif data['media_type'] == 'episode':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 70px;">
-                    % elif data['media_type'] == 'artist' or data['media_type'] == 'album':
+                    % elif data['media_type'] in ('artist', 'album', 'playlist'):
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;">
                     % elif data['media_type'] == 'track':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 180px;">
@@ -323,7 +332,12 @@ DOCUMENTATION :: END
                             </div>
                             <div class="summary-content-details-tag">
                                 % if data['duration']:
-                                Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
+                                Items <strong> ${data['children_count']} ${'track' if data['playlist_type'] == 'audio' else 'video'}${'s' if data['children_count'] > 1 else ''} </strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-details-tag">
+                                % if data['duration']:
+                                Runtime <strong> <span id="runtime">${data['duration']}</span></strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -452,8 +466,19 @@ DOCUMENTATION :: END
                 </div>
                 <div id="collection-related-list-container" style="display: none;">
                 </div>
+                % elif data['media_type'] == 'playlist':
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span>${'Track' if data['playlist_type'] == 'audio' else 'Video'} List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading ${'track' if data['playlist_type'] == 'audio' else 'video'} list...</div>
+                    </div>
+                </div>
                 % endif
-                % if data['media_type'] != 'collection':
+                % if data['media_type'] not in ('collection', 'playlist'):
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -754,7 +779,7 @@ DOCUMENTATION :: END
     }
 </script>
 % endif
-% if data['media_type'] != 'collection':
+% if data['media_type'] not in ('collection', 'playlist'):
 <script>
     $(document).ready(function () {
         get_history();
@@ -830,13 +855,16 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('show', 'season', 'artist', 'album', 'collection'):
+% if data['media_type'] in ('show', 'season', 'artist', 'album', 'collection', 'playlist'):
 <script>
     $.ajax({
         url: 'get_item_children',
         type: 'GET',
         async: true,
-        data: { rating_key : "${data['rating_key']}" },
+        data: {
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"
+        },
         complete: function(xhr, status) {
             $("#children-list").html(xhr.responseText);
         }
@@ -850,7 +878,7 @@ DOCUMENTATION :: END
         type: 'GET',
         async: true,
         data: {
-            rating_key : "${data['rating_key']}",
+            rating_key: "${data['rating_key']}",
             title: "${data['title']}"
         },
         complete: function(xhr, status) {
@@ -865,7 +893,7 @@ DOCUMENTATION :: END
     });
 
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
-    $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
+    $("#runtime").html(humanDuration($("#runtime").text(), 'dhm'));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
     $('#channel-icon').popover({
         selector: '[data-toggle=popover]',

@@ -330,25 +330,6 @@ function humanTime(seconds) {
     }
 }
 
-function humanTimeClean(seconds) {
-    var text;
-    if (seconds >= 86400) {
-        text = Math.floor(moment.duration(seconds, 'seconds').asDays()) + ' days ' + Math.floor(moment.duration((
-            seconds % 86400), 'seconds').asHours()) + ' hrs ' + Math.floor(moment.duration(
-            ((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
-        return text;
-    } else if (seconds >= 3600) {
-        text = Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + ' hrs ' + Math.floor(moment.duration(
-            ((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
-        return text;
-    } else if (seconds >= 60) {
-        text = Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
-        return text;
-    } else {
-        text = '0';
-        return text;
-    }
-}
 String.prototype.toProperCase = function () {
     return this.replace(/\w\S*/g, function (txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -372,6 +353,57 @@ function millisecondsToMinutes(ms, roundToMinute) {
         }
     }
 }
+
+function humanDuration(ms, sig='dhms', units='ms') {
+    var factors = {
+        d: 86400000,
+        h: 3600000,
+        m: 60000,
+        s: 1000,
+        ms: 1
+    }
+
+    ms = parseInt(ms);
+    var d, h, m, s;
+
+    if (ms > 0) {
+        ms = ms * factors[units];
+
+        h =  ms % factors['d'];
+        d = Math.trunc(ms / factors['d']);
+
+        m = h % factors['h'];
+        h = Math.trunc(h / factors['h']);
+
+        s = m % factors['m'];
+        m = Math.trunc(m / factors['m']);
+
+        ms = s % factors['s'];
+        s = Math.trunc(s / factors['s']);
+
+        var hd_list = [];
+        if (sig >= 'd' && d > 0) {
+            d = (sig === 'd' && h >= 12) ? d + 1 : d;
+            hd_list.push(d.toString() + ' day' + ((d > 1) ? 's' : ''));
+        }
+        if (sig >= 'dh' && h > 0) {
+            h = (sig === 'dh' && m >= 30) ? h + 1 : h;
+            hd_list.push(h.toString() + ' hr' + ((h > 1) ? 's' : ''));
+        }
+        if (sig >= 'dhm' && m > 0) {
+            m = (sig === 'dhm' && s >= 30) ? m + 1 : m;
+            hd_list.push(m.toString() + ' min' + ((m > 1) ? 's' : ''));
+        }
+        if (sig >= 'dhms' && s > 0) {
+            hd_list.push(s.toString() + ' sec' + ((s > 1) ? 's' : ''));
+        }
+
+        return hd_list.join(' ')
+    } else {
+        return '0'
+    }
+}
+
 // Our countdown plugin takes a callback, a duration, and an optional message
 $.fn.countdown = function (callback, duration, message) {
     // If no message is provided, we use an empty string

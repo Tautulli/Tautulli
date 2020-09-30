@@ -1753,6 +1753,7 @@ a:hover .dashboard-recent-media-cover {
     box-shadow: inset 0 0 0 2px #e9a049;
     opacity: 0;
     transition: opacity .2s;
+    z-index: 2;
 }
 .summary-poster-face-overlay span {
     display: block;
@@ -1966,7 +1967,8 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
 .item-children-instance {
     list-style: none;
     margin: 0;
-    overflow: hidden;
+    overflow: auto;
+    max-height: 875px;
 }
 .item-children-instance li {
     float: left;
@@ -2102,7 +2104,7 @@ a:hover .item-children-poster {
 }
 .item-children-list-item-title {
     display: inline-block;
-    width: calc(100% - 110px);
+    /*width: calc(100% - 110px);*/
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -2112,7 +2114,7 @@ a:hover .item-children-poster {
     color: #777;
     text-align: right;
     display: inline-block;
-    width: 40px;
+    width: 60px;
     margin-right: 20px;
 }
 #new_title h3 {
@@ -3716,6 +3718,20 @@ a:hover .overlay-refresh-image {
 }
 a:hover .overlay-refresh-image:hover {
     opacity: .9;
+}
+.smart-playlist-image {
+    float: left;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: #8e6191;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 16px;
+    z-index: 1;
+    width: 32px;
+    padding: 5px;
+    text-align: center;
 }
 #ip_error, #isp_error {
     color: #aaa;

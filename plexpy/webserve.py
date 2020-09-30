@@ -4341,13 +4341,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children(self, rating_key='', **kwargs):
+    def get_item_children(self, rating_key='', media_type=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children(rating_key=rating_key)
+        result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
 
         if result:
-            return serve_template(templatename="info_children_list.html", data=result, title="Children List")
+            return serve_template(templatename="info_children_list.html", data=result,
+                                  media_type=media_type, title="Children List")
         else:
             logger.warn("Unable to retrieve data for get_item_children.")
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")

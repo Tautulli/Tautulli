@@ -28,14 +28,14 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import page
+    from plexpy.helpers import cast_to_int, page
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
     <ul class="item-children-instance list-unstyled">
         % for child in data['children_list']:
         % if child['rating_key']:
-        % if data['children_type'] == 'track':
+        % if data['children_type'] == 'track' or media_type == 'playlist':
         <li class="item-children-list-item">
         % else:
         <li>
@@ -122,32 +122,21 @@ DOCUMENTATION :: END
                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
-            % elif data['children_type'] == 'track':
-                % if loop.index % 2 == 0:
-                <div class="item-children-list-item-even">
-                    <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
-                    <span class="item-children-list-item-title"><a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                    % if child['original_title']:
+            % elif data['children_type'] == 'track' or media_type == 'playlist':
+                <% i = 'even' if loop.index % 2 == 0 else 'odd' %>
+                <div class="item-children-list-item-${i}">
+                    <span class="item-children-list-item-index">&nbsp;${child['media_index'] or loop.index + 1}</span>
+                    <span class="item-children-list-item-title">
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                        % if child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
-                    % endif
+                        % endif
                     </span>
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
+                        <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
+                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
                     </span>
                 </div>
-                % else:
-                <div class="item-children-list-item-odd">
-                    <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
-                    <span class="item-children-list-item-title"><a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                    % if child['original_title']:
-                        <span class="text-muted"> - ${child['original_title']}</span>
-                    % endif
-                    </span>
-                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
-                    </span>
-                </div>
-                % endif
             % endif
         </li>
         % endif
