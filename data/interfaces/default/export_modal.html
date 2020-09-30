@@ -40,7 +40,7 @@ DOCUMENTATION :: END
                             </select>
                         </div>
                     </div>
-                    <p class="help-block">Select the metadata export level.</p>
+                    <p class="help-block">Select the metadata export level. Higher levels include all fields from the lower levels.</p>
                 </div>
                 <div class="form-group">
                     <label for="export_custom_metadata_fields">Custom Metadata Fields</label>
@@ -65,7 +65,7 @@ DOCUMENTATION :: END
                             </select>
                         </div>
                     </div>
-                    <p class="help-block">Select the media info export level.</p>
+                    <p class="help-block">Select the media info export level. Higher levels include all fields from the lower levels.</p>
                 </div>
                 <div class="form-group">
                     <label for="export_custom_media_info_fields">Custom Media Info Fields</label>
@@ -100,7 +100,7 @@ DOCUMENTATION :: END
                     </label>
                 </div>
                 <p class="help-block">
-                    Enable to export posters and covers or background artwork image files.<br>
+                    Enable to export posters and covers or background artwork image files. Images will be saved to a folder alongside the data file.<br>
                     Warning: Exporting images may take a long time!<br>
                     Note: Only applies to movies, shows, seasons, artists, albums, collections, and playlists.
                 </p>
@@ -113,6 +113,7 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+<script src="${http_root}js/selectize.plugin.disable-options.js"></script>
 <script>
     $('#export_metadata_form').submit(function(e) {
         e.preventDefault();
@@ -121,13 +122,18 @@ DOCUMENTATION :: END
     var optgroups = (function () {
         var optgroups = [];
         for (var i = 0; i <= 9; i++) {
-            optgroups.push({$order: i, value: i});
+            optgroups.push({$order: i+1, value: i});
         }
         return optgroups
     })()
 
     var $export_custom_fields = $('#export_custom_metadata_fields, #export_custom_media_info_fields').selectize({
-        plugins: ['remove_button'],
+        plugins: {
+            'remove_button': {},
+            'disable_options': {
+                disableField: 'level'
+            }
+        },
         maxItems: null,
         valueField: 'field',
         labelField: 'field',
@@ -148,9 +154,19 @@ DOCUMENTATION :: END
     var export_custom_metadata_fields = $export_custom_fields[0].selectize;
     var export_custom_media_info_fields = $export_custom_fields[1].selectize;
 
+    function setDisabledFields() {
+        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
+        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
+        export_custom_metadata_fields.setDisabledOptions([...Array(parseInt(metadata_export_level) + 1).keys()]);
+        export_custom_media_info_fields.setDisabledOptions([...Array(parseInt(media_info_export_level) + 1).keys()]);
+    }
+
+    $('#metadata_export_level_select, #media_info_export_level_select').on('change', setDisabledFields);
+
     function getExportFields() {
         $.ajax({
             url: 'get_export_fields',
+            async: true,
             data: {
                 media_type: $('#export_media_type').val()
             },
@@ -158,6 +174,7 @@ DOCUMENTATION :: END
                 if (result) {
                     export_custom_metadata_fields.addOption(result.metadata_fields);
                     export_custom_media_info_fields.addOption(result.media_info_fields);
+                    setDisabledFields();
                 }
             }
         })
