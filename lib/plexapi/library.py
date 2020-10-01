@@ -769,6 +769,11 @@ class MovieSection(LibrarySection):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
 
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
+
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Movie library section as sync item for specified device.
             See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting and
@@ -848,6 +853,11 @@ class ShowSection(LibrarySection):
     def collection(self, **kwargs):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
+
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
 
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Show library section as sync item for specified device.
@@ -930,6 +940,11 @@ class MusicSection(LibrarySection):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
 
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
+
     def sync(self, bitrate, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
             See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting and
@@ -990,6 +1005,11 @@ class PhotoSection(LibrarySection):
     def searchPhotos(self, title, **kwargs):
         """ Search for a photo. See :func:`~plexapi.library.LibrarySection.search()` for usage. """
         return self.search(libtype='photo', title=title, **kwargs)
+
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
 
     def sync(self, resolution, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
