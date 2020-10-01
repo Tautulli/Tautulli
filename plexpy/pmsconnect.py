@@ -2350,7 +2350,11 @@ class PmsConnect(object):
                         for label in m.getElementsByTagName('Label'):
                             labels.append(helpers.get_xml_attr(label, 'tag'))
 
-                    children_output = {'media_type': helpers.get_xml_attr(m, 'type'),
+                    media_type = helpers.get_xml_attr(m, 'type')
+                    if m.nodeName == 'Directory' and media_type == 'photo':
+                        media_type = 'photo_album'
+
+                    children_output = {'media_type': media_type,
                                        'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
                                        'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
                                        'rating_key': helpers.get_xml_attr(m, 'ratingKey'),
