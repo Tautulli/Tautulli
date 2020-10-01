@@ -708,6 +708,26 @@ Returns:
 ```
 
 
+### get_collections_table
+Get the data on the Tautulli collections tables.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section, OR
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 5,
+         "data":
+            [...]
+         }
+```
+
+
 ### get_date_formats
 Get the date and time formats used by Tautulli.
 
@@ -1669,6 +1689,26 @@ Optional parameters:
 Returns:
     json:
         {}
+```
+
+
+### get_playlists_table
+Get the data on the Tautulli playlists tables.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section, OR
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 5,
+         "data":
+            [...]
+         }
 ```
 
 
