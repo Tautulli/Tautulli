@@ -412,7 +412,7 @@ Export library or media metadata to a file
 
 ```
 Required parameters:
-    section_id (int):          The section id of the library to export, OR
+    section_id (int):          The section id of the library items to export, OR
     rating_key (int):          The rating key of the media item to export
 
 Optional parameters:
@@ -423,6 +423,8 @@ Optional parameters:
     include_art (bool):        True to export background artwork images
     custom_fields (str):       Comma separated list of custom fields to export
                                in addition to the export level selected
+    library_export (str):      collection or playlist for library export,
+                               otherwise default to all library items
 
 Returns:
     json:
@@ -754,7 +756,9 @@ Required parameters:
     media_type (str):          The media type of the fields to return
 
 Optional parameters:
-    sub_media_type (str):      The child media type for collections or playlists
+    sub_media_type (str):      The child media type for
+                               collections (movie, show, artist, album, photoalbum),
+                               or playlists (video, audio, photo)
 
 Returns:
     json:
