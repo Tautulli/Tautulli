@@ -323,6 +323,13 @@ DOCUMENTATION :: END
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-media_type="collection" data-sub_media_type="${data['section_type']}"
+                                                        data-library_export="collection">
+                                                    <i class="fa fa-file-export"></i> Export collections
+                                                </button>
+                                            </div>
+                                            <div class="btn-group">
                                                 <button class="btn btn-dark refresh-collections-table-button" id="refresh-collections-table">
                                                     <i class="fa fa-refresh"></i> Refresh collections
                                                 </button>
@@ -362,6 +369,14 @@ DOCUMENTATION :: END
                                         </div>
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
+                                            <% playlist_sub_media_type = {'movie': 'video', 'show': 'video', 'artist': 'audio', 'photo': 'photo'} %>
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-media_type="playlist" data-sub_media_type="${playlist_sub_media_type[data['section_type']]}"
+                                                        data-library_export="playlist">
+                                                    <i class="fa fa-file-export"></i> Export playlists
+                                                </button>
+                                            </div>
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-playlists-table-button" id="refresh-playlists-table">
                                                     <i class="fa fa-refresh"></i> Refresh playlists
@@ -403,8 +418,9 @@ DOCUMENTATION :: END
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                                        data-section_id="${data['section_id']}" data-media_type="${'photoalbum' if data['section_type'] == 'photo' else data['section_type']}">
-                                                    <i class="fa fa-file-export"></i> Export Metadata
+                                                        data-section_id="${data['section_id']}" data-media_type="${'photoalbum' if data['section_type'] == 'photo' else data['section_type']}"
+                                                        data-library_export="all">
+                                                    <i class="fa fa-file-export"></i> Export metadata
                                                 </button>
                                             </div>
                                             <div class="btn-group">
@@ -705,12 +721,14 @@ DOCUMENTATION :: END
         });
     });
 
-    $("#toggle-export-modal").click(function() {
+    $(".export-button").click(function() {
         $.ajax({
             url: 'export_metadata_modal',
             data: {
                 section_id: $(this).data('section_id'),
-                media_type: $(this).data('media_type')
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type'),
+                library_export: $(this).data('library_export')
             },
             cache: false,
             async: true,

@@ -6557,13 +6557,14 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def export_metadata_modal(self, section_id=None, rating_key=None,
-                              media_type=None, sub_media_type=None, **kwargs):
+                              media_type=None, sub_media_type=None,
+                              library_export=None, **kwargs):
         file_formats = exporter.Export.FILE_FORMATS
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
                               section_id=section_id, rating_key=rating_key,
                               media_type=media_type, sub_media_type=sub_media_type,
-                              file_formats=file_formats)
+                              library_export=library_export, file_formats=file_formats)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6577,7 +6578,9 @@ class WebInterface(object):
                 media_type (str):          The media type of the fields to return
 
             Optional parameters:
-                sub_media_type (str):      The child media type for collections or playlists
+                sub_media_type (str):      The child media type for
+                                           collections (movie, show, artist, album, photoalbum),
+                                           or playlists (video, audio, photo)
 
             Returns:
                 json:
@@ -6604,12 +6607,12 @@ class WebInterface(object):
     def export_metadata(self, section_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
                         include_thumb=False, include_art=False,
-                        custom_fields='', **kwargs):
+                        custom_fields='', library_export=None, **kwargs):
         """ Export library or media metadata to a file
 
             ```
             Required parameters:
-                section_id (int):          The section id of the library to export, OR
+                section_id (int):          The section id of the library items to export, OR
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
@@ -6620,6 +6623,8 @@ class WebInterface(object):
                 include_art (bool):        True to export background artwork images
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
+                library_export (str):      collection or playlist for library export,
+                                           otherwise default to all library items
 
             Returns:
                 json:
@@ -6635,7 +6640,8 @@ class WebInterface(object):
                                  media_info_level=media_info_level,
                                  include_thumb=helpers.bool_true(include_thumb),
                                  include_art=helpers.bool_true(include_art),
-                                 custom_fields=custom_fields).export()
+                                 custom_fields=custom_fields,
+                                 library_export=library_export).export()
 
         if result is True:
             return {'result': 'success', 'message': 'Metadata export has started.'}

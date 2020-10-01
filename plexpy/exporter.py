@@ -90,11 +90,12 @@ class Export(object):
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
     FILE_FORMATS = ('csv', 'json', 'xml')
+    LIBRARY_EXPORTS = ('all', 'collection', 'playlist')
 
     def __init__(self, section_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
                  include_thumb=False, include_art=False,
-                 custom_fields=''):
+                 custom_fields='', library_export=None):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
         self.file_format = file_format
@@ -104,6 +105,7 @@ class Export(object):
         self.include_art = include_art
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
+        self.library_export = library_export or 'all'
 
         self.timestamp = helpers.timestamp()
 
@@ -1080,13 +1082,11 @@ class Export(object):
         def show_levels():
             _media_type = 'show'
             _metadata_levels = {
-                0: [
-                    'seasons'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
                     'rating', 'userRating', 'contentRating',
-                    'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount'
+                    'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
+                    'seasons'
                 ],
                 2: [
                     'roles.tag', 'roles.role',
@@ -1105,14 +1105,12 @@ class Export(object):
         def season_levels():
             _media_type = 'season'
             _metadata_levels = {
-                0: [
-                    'episodes'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
                     'userRating',
                     'summary', 'guid', 'type', 'index',
-                    'parentTitle', 'parentRatingKey', 'parentGuid'
+                    'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'episodes'
                 ],
                 2: [
                     'fields.name', 'fields.locked'
@@ -1194,13 +1192,11 @@ class Export(object):
         def artist_levels():
             _media_type = 'artist'
             _metadata_levels = {
-                0: [
-                    'albums'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
                     'rating', 'userRating',
-                    'summary', 'guid', 'type'
+                    'summary', 'guid', 'type',
+                    'albums'
                 ],
                 2: [
                     'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
@@ -1218,14 +1214,12 @@ class Export(object):
         def album_levels():
             _media_type = 'album'
             _metadata_levels = {
-                0: [
-                    'tracks'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
                     'rating', 'userRating',
                     'summary', 'guid', 'type', 'index',
-                    'parentTitle', 'parentRatingKey', 'parentGuid'
+                    'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'tracks'
                 ],
                 2: [
                     'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
@@ -1302,12 +1296,10 @@ class Export(object):
         def photo_album_levels():
             _media_type = 'photoalbum'
             _metadata_levels = {
-                0: [
-                    'photos'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
                     'summary', 'guid', 'type', 'index',
+                    'photos'
                 ],
                 2: [
                     'fields.name', 'fields.locked'
@@ -1361,14 +1353,12 @@ class Export(object):
         def collection_levels():
             _media_type = 'collection'
             _metadata_levels = {
-                0: [
-                    'children'
-                ],
                 1: [
                     'ratingKey', 'title', 'titleSort', 'minYear', 'maxYear', 'addedAt',
                     'contentRating',
                     'summary', 'guid', 'type', 'subtype', 'childCount',
-                    'collectionMode', 'collectionSort'
+                    'collectionMode', 'collectionSort',
+                    'children'
                 ],
                 2: [
                     'labels.tag',
@@ -1386,13 +1376,11 @@ class Export(object):
         def playlist_levels():
             _media_type = 'playlist'
             _metadata_levels = {
-                0: [
-                    'items'
-                ],
                 1: [
                     'ratingKey', 'title', 'addedAt',
                     'summary', 'guid', 'type', 'duration', 'durationHuman',
-                    'playlistType', 'smart'
+                    'playlistType', 'smart',
+                    'items'
                 ],
                 2: [
                 ],
@@ -1459,6 +1447,8 @@ class Export(object):
             msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
         elif self.file_format not in self.FILE_FORMATS:
             msg = "Export called with invalid file_format '{}'.".format(self.file_format)
+        elif self.library_export not in self.LIBRARY_EXPORTS:
+            msg = "Export called with invalid library_export '{}'.".format(self.library_export)
 
         if msg:
             logger.error("Tautulli Exporter :: %s", msg)
@@ -1494,12 +1484,17 @@ class Export(object):
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
-                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s",
+                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s, "
+                "library_export %s",
                 self.section_id, self.metadata_level, self.media_info_level,
-                self.include_thumb, self.include_art)
+                self.include_thumb, self.include_art, self.library_export)
 
             self.obj = plex.get_library(str(self.section_id))
-            self.media_type = self.obj.type
+            if self.library_export == 'all':
+                self.media_type = self.obj.type
+            else:
+                self.media_type = self.library_export
+
             library_title = self.obj.title
 
             filename = 'Library - {} [{}].{}'.format(
@@ -1574,10 +1569,15 @@ class Export(object):
         filepath = get_export_filepath(self.filename)
         images_folder = get_export_filepath(self.filename, images=True)
 
-        if hasattr(self.obj, 'all'):
-            items = self.obj.all()
-        else:
+        if self.rating_key:
             items = [self.obj]
+        else:
+            if self.library_export == 'collection':
+                items = self.obj.collection()
+            elif self.library_export == 'playlist':
+                items = self.obj.playlist()
+            else:
+                items = self.obj.all()
 
         pool = ThreadPool(processes=4)
 
@@ -1910,29 +1910,39 @@ def get_custom_fields(media_type, sub_media_type=None):
 
     if media_type not in export.MEDIA_TYPES:
         return custom_fields
-    elif media_type in ('collection', 'playlist') and sub_media_type not in export.MEDIA_TYPES:
+    elif media_type == 'collection' and sub_media_type not in ('movie', 'show', 'artist', 'album', 'photoalbum'):
         return custom_fields
+    elif media_type == 'playlist' and sub_media_type not in ('video', 'audio', 'photo'):
+        return custom_fields
+
+    if media_type == 'playlist' and sub_media_type == 'video':
+        sub_media_types = ['movie', 'episode']
+    elif media_type == 'playlist' and sub_media_type == 'audio':
+        sub_media_types = ['track']
+    else:
+        sub_media_types = [sub_media_type]
 
     metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
 
-    prefix = ''
-    child_media_type = export.CHILD_MEDIA_TYPES[media_type]
+    for sub_media_type in sub_media_types:
+        prefix = ''
+        child_media_type = export.CHILD_MEDIA_TYPES[media_type]
 
-    while child_media_type:
-        if child_media_type in ('children', 'item'):
-            fields_child_media_type = sub_media_type
-        else:
-            fields_child_media_type = child_media_type
+        while child_media_type:
+            if child_media_type in ('children', 'item'):
+                fields_child_media_type = sub_media_type
+            else:
+                fields_child_media_type = child_media_type
 
-        prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
+            prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
 
-        child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
-            fields_child_media_type, prefix=prefix)
+            child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
+                fields_child_media_type, prefix=prefix)
 
-        metadata_levels_map.update(child_metadata_levels_map)
-        media_info_levels_map.update(child_media_info_levels_map)
+            metadata_levels_map.update(child_metadata_levels_map)
+            media_info_levels_map.update(child_media_info_levels_map)
 
-        child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
+            child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
 
     custom_fields['metadata_fields'] = [{'field': attr, 'level': level}
                                         for attr, level in sorted(metadata_levels_map.items()) if level]

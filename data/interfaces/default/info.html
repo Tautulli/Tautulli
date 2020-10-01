@@ -614,8 +614,8 @@ DOCUMENTATION :: END
                             <div class="btn-group">
                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
                                         data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}"
-                                        data-media_type="${data['media_type']}" data-sub_media_type="${data['sub_media_type'] or ''}">
-                                    <i class="fa fa-file-export"></i> Export Metadata
+                                        data-media_type="${data['media_type']}" data-sub_media_type="${data['sub_media_type'] or data['playlist_type'] or ''}">
+                                    <i class="fa fa-file-export"></i> Export metadata
                                 </button>
                             </div>
                             <div class="btn-group">

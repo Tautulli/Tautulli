@@ -28,6 +28,7 @@ DOCUMENTATION :: END
                 <input type="hidden" id="export_rating_key" name="export_rating_key" value="${rating_key or ''}" />
                 <input type="hidden" id="export_media_type" name="export_media_type" value="${media_type or ''}" />
                 <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
+                <input type="hidden" id="export_library_export" name="export_library_export" value="${library_export or ''}" />
                 <div class="form-group">
                     <label for="metadata_export_level_select">Metadata Export Level</label>
                     <div class="row">
@@ -194,6 +195,7 @@ DOCUMENTATION :: END
             $('#export_custom_metadata_fields').val(),
             $('#export_custom_media_info_fields').val()
         ].filter(Boolean).join(',');
+        var library_export = $('#export_library_export').val()
 
         $.ajax({
             url: 'export_metadata',
@@ -205,7 +207,8 @@ DOCUMENTATION :: END
                 file_format: file_format,
                 include_thumb: include_thumb,
                 include_art: include_art,
-                custom_fields: custom_fields
+                custom_fields: custom_fields,
+                library_export: library_export
             },
             async: true,
             success: function (data) {
