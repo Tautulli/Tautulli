@@ -73,6 +73,9 @@ MEDIA_TYPE_HEADERS = {
     'artist': 'Artists',
     'album': 'Albums',
     'track': 'Tracks',
+    'video': 'Videos',
+    'audio': 'Tracks',
+    'photo': 'Photos'
 }
 
 PLATFORM_NAME_OVERRIDES = {

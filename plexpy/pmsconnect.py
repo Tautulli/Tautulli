@@ -1271,7 +1271,7 @@ class PmsConnect(object):
                         'collections': collections,
                         'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'childCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
                         }
 

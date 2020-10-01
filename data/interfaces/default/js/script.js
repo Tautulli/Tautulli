@@ -835,3 +835,16 @@ function user_page(user_id, user) {
 
     return params;
 }
+
+MEDIA_TYPE_HEADERS = {
+    'movie': 'Movies',
+    'show': 'TV Shows',
+    'season': 'Seasons',
+    'episode': 'Episodes',
+    'artist': 'Artists',
+    'album': 'Albums',
+    'track': 'Tracks',
+    'video': 'Videos',
+    'audio': 'Tracks',
+    'photo': 'Photos'
+}

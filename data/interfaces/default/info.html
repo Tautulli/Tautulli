@@ -304,6 +304,19 @@ DOCUMENTATION :: END
                             % endif
                             % endif
                             <div class="summary-content-details-tag">
+                                % if data['media_type'] in ('collection', 'playlist') and data['children_count']:
+                                <%
+                                    if data['media_type'] == 'collection':
+                                        suffix = MEDIA_TYPE_HEADERS[data['sub_media_type']]
+                                    elif data['media_type'] == 'playlist':
+                                        suffix = MEDIA_TYPE_HEADERS[data['playlist_type']]
+                                    if data['children_count'] == 1:
+                                        suffix = suffix[:-1]
+                                %>
+                                Items <strong> ${data['children_count']} ${suffix} </strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-details-tag">
                                 % if data['directors']:
                                 Directed by <strong> ${data['directors'][0]}</strong>
                                 % endif
@@ -326,11 +339,6 @@ DOCUMENTATION :: END
                                 Year <strong> ${data['min_year']} - ${data['max_year']}</strong>
                                 % elif data['year']:
                                 Year <strong> ${data['year']}</strong>
-                                % endif
-                            </div>
-                            <div class="summary-content-details-tag">
-                                % if data['duration']:
-                                Items <strong> ${data['children_count']} ${'track' if data['playlist_type'] == 'audio' else 'video'}${'s' if data['children_count'] > 1 else ''} </strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -459,7 +467,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class="table-card-back">
-                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading movies list...</div>
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading collection items...</div>
                     </div>
                 </div>
                 <div id="collection-related-list-container" style="display: none;">
@@ -468,11 +476,11 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
-                            <span>${'Track' if data['playlist_type'] == 'audio' else 'Video'} List for <strong>${data['title']}</strong></span>
+                            <span>${MEDIA_TYPE_HEADERS[data['playlist_type']]} List for <strong>${data['title']}</strong></span>
                         </div>
                     </div>
                     <div class="table-card-back">
-                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading ${'track' if data['playlist_type'] == 'audio' else 'video'} list...</div>
+                        <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading playlist items...</div>
                     </div>
                 </div>
                 % endif

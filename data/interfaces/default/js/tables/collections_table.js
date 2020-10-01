@@ -73,7 +73,11 @@ collections_table_options = {
             "data": "childCount",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    var type = MEDIA_TYPE_HEADERS[rowData['subtype']] || '';
+                    if (rowData['childCount'] == 1) {
+                        type = type.slice(0, -1);
+                    }
+                    $(td).html(cellData + ' ' + type);
                 }
             },
             "width": "10%",
