@@ -595,7 +595,12 @@ def process_datatable_rows(rows, json_data, default_sort, sort_keys=None):
         searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
         for row in rows:
             for k, v in row.items():
-                if k in searchable_columns and search_value in v.lower():
+                if k in sort_keys:
+                    value = sort_keys[k].get(v, v)
+                else:
+                    value = v
+                value = str(value).lower()
+                if k in searchable_columns and search_value in value:
                     results.append(row)
                     break
     else:
