@@ -24,6 +24,7 @@ import json
 import os
 import time
 from future.moves.urllib.parse import quote, quote_plus, urlencode
+from xml.dom.minidom import Node
 
 import plexpy
 if plexpy.PYTHON2:
@@ -2317,12 +2318,9 @@ class PmsConnect(object):
 
             result_data = []
 
-            if a.getElementsByTagName('Directory'):
-                result_data = a.getElementsByTagName('Directory')
-            if a.getElementsByTagName('Video'):
-                result_data = a.getElementsByTagName('Video')
-            if a.getElementsByTagName('Track'):
-                result_data = a.getElementsByTagName('Track')
+            for x in a.childNodes:
+                if x.nodeType == Node.ELEMENT_NODE and x.tagName in ('Directory', 'Video', 'Track', 'Photo'):
+                    result_data.append(x)
 
             if result_data:
                 for m in result_data:

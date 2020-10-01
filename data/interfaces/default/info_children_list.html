@@ -125,7 +125,7 @@ DOCUMENTATION :: END
             % elif data['children_type'] == 'track':
                 <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
                 <div class="item-children-list-item-${e}">
-                    <span class="item-children-list-item-index">&nbsp;${child['media_index']}</span>
+                    <span class="item-children-list-item-index">${child['media_index']}</span>
                     <span class="item-children-list-item-title">
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                         % if child['original_title']:
@@ -140,16 +140,16 @@ DOCUMENTATION :: END
             % elif media_type == 'playlist':
                 <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
                 <div class="item-children-list-item-${e}">
-                    <span class="item-children-list-item-index">&nbsp;${loop.index + 1}</span>
+                    <span class="item-children-list-item-index">${loop.index + 1}</span>
                     <span class="item-children-list-item-title">
                         % if child['media_type'] == 'movie':
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>&nbsp;
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
                             ${child['title']}
                         </a>
                         <span class="text-muted"> (${child['year']})</span>
                         % elif child['media_type'] == 'episode':
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>&nbsp;
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>
                         <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
                             ${child['grandparent_title']}
                         </a> -
@@ -158,7 +158,7 @@ DOCUMENTATION :: END
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">S${child['parent_media_index']}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
                         % elif child['media_type'] == 'track':
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>&nbsp;
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
                             ${child['title']}
                         </a> -
@@ -166,12 +166,31 @@ DOCUMENTATION :: END
                             ${child['grandparent_title']}
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        % elif child['media_type'] == 'photo':
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            ${child['title']}
+                        </a>
+                            % if child['grandparent_title']:
+                            - <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
+                                ${child['grandparent_title']}
+                            </a>
+                            % endif
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        % elif child['media_type'] == 'clip':
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Video"><i class="fa fa-video-camera fa-fw"></i></span>
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            ${child['title']}
+                        </a>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % endif
                     </span>
+                    % if child['duration']:
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
                         <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
                         <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
                     </span>
+                    % endif
                 </div>
             % endif
         </li>
