@@ -24,10 +24,14 @@ playlists_table_options = {
             "data": "title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '&section_id=' + rowData['librarySectionID'] +'">' + cellData + '</a>');
+                    var smart = '<i class="fa fa-blank fa-fw"></i>';
+                    if (rowData['smart']) {
+                        smart = '<span class="media-type-tooltip" data-toggle="tooltip" title="Smart Playlist"><i class="fa fa-cog fa-fw"></i></span>&nbsp;'
+                    }
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '&section_id=' + rowData['librarySectionID'] +'">' + smart + cellData + '</a>');
                 }
             },
-            "width": "50%",
+            "width": "60%",
             "className": "no-wrap"
         },
         {
@@ -51,27 +55,23 @@ playlists_table_options = {
             },
             "width": "20%",
             "className": "no-wrap"
-        },
-        {
-            "targets": [3],
-            "data": "smart",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html(cellData);
-                }
-            },
-            "width": "10%",
-            "className": "no-wrap"
         }
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        // Create the tooltips.
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
         showMsg(msg, false, false, 0);
+        $('[data-toggle="tooltip"]').tooltip('destroy');
     },
     "rowCallback": function (row, rowData, rowIndex) {
     }

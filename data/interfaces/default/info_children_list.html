@@ -32,7 +32,7 @@ DOCUMENTATION :: END
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
-    <ul class="item-children-instance list-unstyled">
+    <ul class="item-children-instance ${'max-height' if media_type == 'playlist' else ''} list-unstyled">
         % for child in data['children_list']:
         % if child['rating_key']:
         % if data['children_type'] == 'track' or media_type == 'playlist':

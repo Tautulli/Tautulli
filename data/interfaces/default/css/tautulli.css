@@ -1968,6 +1968,8 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     list-style: none;
     margin: 0;
     overflow: auto;
+}
+.item-children-instance.max-height {
     max-height: 875px;
 }
 .item-children-instance li {

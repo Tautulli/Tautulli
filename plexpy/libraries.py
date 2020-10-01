@@ -153,12 +153,20 @@ def get_collections(section_id):
 
     collections_list = []
     for collection in collections:
+        collection_mode = collection.collectionMode
+        if collection_mode is None:
+            collection_mode = -1
+
+        collection_sort = collection.collectionSort
+        if collection_sort is None:
+            collection_sort = 0
+
         collection_dict = {
             'addedAt': helpers.datetime_to_iso(collection.addedAt),
             'art': collection.art,
             'childCount': collection.childCount,
-            'collectionMode': collection.collectionMode,
-            'collectionSort': collection.collectionSort,
+            'collectionMode': helpers.cast_to_int(collection_mode),
+            'collectionSort': helpers.cast_to_int(collection_sort),
             'contentRating': collection.contentRating,
             'guid': collection.guid,
             'librarySectionID': collection.librarySectionID,
@@ -181,7 +189,8 @@ def get_collections(section_id):
 
 def get_collections_list(section_id=None, **kwargs):
     if not section_id:
-        default_return = {'recordsTotal': 0,
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
                           'draw': 0,
                           'data': 'null',
                           'error': 'Unable to execute database query.'}
@@ -189,7 +198,8 @@ def get_collections_list(section_id=None, **kwargs):
 
     collections = get_collections(section_id)
 
-    data = {'recordsTotal': len(collections),
+    data = {'recordsFiltered': len(collections),
+            'recordsTotal': len(collections),
             'data': collections,
             'draw': kwargs.get('draw', 0)
             }
@@ -237,7 +247,8 @@ def get_playlists(section_id):
 
 def get_playlists_list(section_id=None, **kwargs):
     if not section_id:
-        default_return = {'recordsTotal': 0,
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
                           'draw': 0,
                           'data': 'null',
                           'error': 'Unable to execute database query.'}
@@ -245,7 +256,8 @@ def get_playlists_list(section_id=None, **kwargs):
 
     playlists = get_playlists(section_id)
 
-    data = {'recordsTotal': len(playlists),
+    data = {'recordsFiltered': len(playlists),
+            'recordsTotal': len(playlists),
             'data': playlists,
             'draw': kwargs.get('draw', 0)
             }

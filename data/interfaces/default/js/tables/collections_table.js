@@ -24,7 +24,7 @@ collections_table_options = {
             "data": "title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '">' + cellData + '</a>');
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + cellData + '</a>');
                 }
             },
             "width": "50%",
@@ -35,7 +35,17 @@ collections_table_options = {
             "data": "collectionMode",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    var mode = '';
+                    if (cellData === -1) {
+                        mode = 'Library default';
+                    } else if (cellData === 0) {
+                        mode = 'Hide collection';
+                    } else if (cellData === 1) {
+                        mode = 'Hide items in this collection';
+                    } else if (cellData === 2) {
+                        mode = 'Show this collection and its items';
+                    }
+                    $(td).html(mode);
                 }
             },
             "width": "20%",
@@ -46,7 +56,13 @@ collections_table_options = {
             "data": "collectionSort",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html(cellData);
+                    var sort = '';
+                    if (cellData === 0) {
+                        sort = 'Release date';
+                    } else if (cellData === 1) {
+                        sort = 'Alphabetical';
+                    }
+                    $(td).html(sort);
                 }
             },
             "width": "20%",
