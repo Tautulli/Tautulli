@@ -846,9 +846,9 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
+    @addtoapi("get_collections_table")
     def get_collections_list(self, section_id=None, **kwargs):
-        """ Get the data on the Tautulli media info tables.
+        """ Get the data on the Tautulli collections tables.
 
             ```
             Required parameters:
@@ -869,36 +869,23 @@ class WebInterface(object):
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
-            # Alias 'title' to 'sort_title'
-            if kwargs.get('order_column') == 'title':
-                kwargs['order_column'] = 'sort_title'
-
             # TODO: Find some one way to automatically get the columns
-            dt_columns = [("added_at", True, False),
-                          ("sort_title", True, True),
-                          ("container", True, True),
-                          ("bitrate", True, True),
-                          ("video_codec", True, True),
-                          ("video_resolution", True, True),
-                          ("video_framerate", True, True),
-                          ("audio_codec", True, True),
-                          ("audio_channels", True, True),
-                          ("file_size", True, False),
-                          ("last_played", True, False),
-                          ("play_count", True, False)]
-            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
+            dt_columns = [("titleSort", True, True),
+                          ("collectionMode", True, True),
+                          ("collectionSort", True, True),
+                          ("childCount", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "titleSort")
 
-        result = libraries.get_collections_list(section_id=section_id,
-                                                kwargs=kwargs)
+        result = libraries.get_collections_list(section_id=section_id, **kwargs)
 
         return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
+    @addtoapi("get_playlists_table")
     def get_playlists_list(self, section_id=None, **kwargs):
-        """ Get the data on the Tautulli media info tables.
+        """ Get the data on the Tautulli playlists tables.
 
             ```
             Required parameters:
@@ -919,27 +906,13 @@ class WebInterface(object):
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
-            # Alias 'title' to 'sort_title'
-            if kwargs.get('order_column') == 'title':
-                kwargs['order_column'] = 'sort_title'
-
             # TODO: Find some one way to automatically get the columns
-            dt_columns = [("added_at", True, False),
-                          ("sort_title", True, True),
-                          ("container", True, True),
-                          ("bitrate", True, True),
-                          ("video_codec", True, True),
-                          ("video_resolution", True, True),
-                          ("video_framerate", True, True),
-                          ("audio_codec", True, True),
-                          ("audio_channels", True, True),
-                          ("file_size", True, False),
-                          ("last_played", True, False),
-                          ("play_count", True, False)]
-            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "sort_title")
+            dt_columns = [("title", True, True),
+                          ("leafCount", True, True),
+                          ("duration", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "title")
 
-        result = libraries.get_playlists_list(section_id=section_id,
-                                              kwargs=kwargs)
+        result = libraries.get_playlists_list(section_id=section_id, **kwargs)
 
         return result
 

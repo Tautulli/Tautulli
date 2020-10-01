@@ -581,6 +581,57 @@ def process_json_kwargs(json_kwargs):
     return params
 
 
+def process_datatable_rows(rows, json_data, default_sort, sort_keys=None):
+    if sort_keys is None:
+        sort_keys = {}
+
+    results = []
+
+    total_count = len(rows)
+
+    # Search results
+    search_value = json_data['search']['value'].lower()
+    if search_value:
+        searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
+        for row in rows:
+            for k, v in row.items():
+                if k in searchable_columns and search_value in v.lower():
+                    results.append(row)
+                    break
+    else:
+        results = rows
+
+    filtered_count = len(results)
+
+    # Sort results
+    results = sorted(results, key=lambda k: k[default_sort].lower())
+    sort_order = json_data['order']
+    for order in reversed(sort_order):
+        sort_key = json_data['columns'][int(order['column'])]['data']
+        reverse = True if order['dir'] == 'desc' else False
+        results = sorted(results, key=lambda k: sort_helper(k, sort_key, sort_keys), reverse=reverse)
+
+    # Paginate results
+    results = results[json_data['start']:(json_data['start'] + json_data['length'])]
+
+    data = {
+        'results': results,
+        'total_count': total_count,
+        'filtered_count': filtered_count
+    }
+
+    return data
+
+
+def sort_helper(k, sort_key, sort_keys):
+    v = k[sort_key]
+    if sort_key in sort_keys:
+        v = sort_keys[sort_key].get(k[sort_key], v)
+    if isinstance(v, str):
+        v = v.lower()
+    return v
+
+
 def sanitize_out(*dargs, **dkwargs):
     """ Helper decorator that sanitized the output
     """

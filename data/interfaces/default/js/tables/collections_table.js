@@ -21,10 +21,10 @@ collections_table_options = {
     "columnDefs": [
         {
             "targets": [0],
-            "data": "title",
+            "data": "titleSort",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + cellData + '</a>');
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + rowData['title'] + '</a>');
                 }
             },
             "width": "50%",

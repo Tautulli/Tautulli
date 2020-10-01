@@ -193,16 +193,36 @@ def get_collections_list(section_id=None, **kwargs):
                           'recordsTotal': 0,
                           'draw': 0,
                           'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'error': 'Unable to get collections: missing section_id.'}
         return default_return
 
     collections = get_collections(section_id)
 
-    data = {'recordsFiltered': len(collections),
-            'recordsTotal': len(collections),
-            'data': collections,
-            'draw': kwargs.get('draw', 0)
-            }
+    # Get datatables JSON data
+    json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
+
+    sort_keys = {
+        'collectionMode': {
+            -1: 'Library Default',
+            0: 'Hide collection',
+            1: 'Hide items in this collection',
+            2: 'Show this collection and its items'
+        },
+        'collectionSort': {
+            0: 'Release date',
+            1: 'Alphabetical'
+        }
+    }
+
+    results = helpers.process_datatable_rows(
+        collections, json_data, default_sort='titleSort', sort_keys=sort_keys)
+
+    data = {
+        'recordsFiltered': results['filtered_count'],
+        'recordsTotal': results['total_count'],
+        'data': results['results'],
+        'draw': int(json_data['draw'])
+    }
 
     return data
 
@@ -251,16 +271,23 @@ def get_playlists_list(section_id=None, **kwargs):
                           'recordsTotal': 0,
                           'draw': 0,
                           'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'error': 'Unable to get playlists: missing section_id.'}
         return default_return
 
     playlists = get_playlists(section_id)
 
-    data = {'recordsFiltered': len(playlists),
-            'recordsTotal': len(playlists),
-            'data': playlists,
-            'draw': kwargs.get('draw', 0)
-            }
+    # Get datatables JSON data
+    json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
+
+    results = helpers.process_datatable_rows(
+        playlists, json_data, default_sort='title')
+
+    data = {
+        'recordsFiltered': results['filtered_count'],
+        'recordsTotal': results['total_count'],
+        'data': results['results'],
+        'draw': int(json_data['draw'])
+    }
 
     return data
 
