@@ -4535,8 +4535,9 @@ class WebInterface(object):
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
         if img.startswith('/library/metadata'):
+            parts = 6 if 'composite' in img else 5
             img_split = img.split('/')
-            img = '/'.join(img_split[:5])
+            img = '/'.join(img_split[:parts])
             img_rating_key = img_split[3]
             if rating_key != img_rating_key:
                 rating_key = img_rating_key
