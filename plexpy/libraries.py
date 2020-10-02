@@ -142,7 +142,7 @@ def has_library_type(section_type):
     return bool(result)
 
 
-def get_collections(section_id):
+def get_collections(section_id=None):
     plex = Plex(plexpy.CONFIG.PMS_URL, session.get_session_user_token())
     library = plex.get_library(section_id)
 
@@ -196,7 +196,7 @@ def get_collections_list(section_id=None, **kwargs):
                           'error': 'Unable to get collections: missing section_id.'}
         return default_return
 
-    collections = get_collections(section_id)
+    collections = get_collections(section_id=section_id)
 
     # Get datatables JSON data
     json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
@@ -230,20 +230,21 @@ def get_collections_list(section_id=None, **kwargs):
     return data
 
 
-def get_playlists(section_id):
-    plex = Plex(plexpy.CONFIG.PMS_URL, session.get_session_user_token())
-
-    library = Libraries().get_details(section_id=section_id)
-
-    if library['section_type'] == 'artist':
-        playlist_type = 'audio'
-    elif library['section_type'] == 'photo':
-        playlist_type = 'photo'
+def get_playlists(section_id=None, user_id=None):
+    if user_id and not session.get_session_user_id():
+        import users
+        user_tokens = users.Users().get_tokens(user_id=user_id)
+        plex_token = user_tokens['server_token']
     else:
-        playlist_type = 'video'
+        plex_token = session.get_session_user_token()
 
-    playlists = plex.plex.fetchItems(
-        '/playlists?type=15&playlistType={}&sectionID={}'.format(playlist_type, section_id))
+    plex = Plex(plexpy.CONFIG.PMS_URL, plex_token)
+
+    if user_id:
+        playlists = plex.plex.playlists()
+    else:
+        library = plex.get_library(section_id)
+        playlists = library.playlist()
 
     playlists_list = []
     for playlist in playlists:
@@ -254,22 +255,22 @@ def get_playlists(section_id):
             'guid': playlist.guid,
             'leafCount': playlist.leafCount,
             'librarySectionID': section_id,
-            'librarySectionTitle': library['section_name'],
             'playlistType': playlist.playlistType,
             'ratingKey': playlist.ratingKey,
             'smart': playlist.smart,
             'summary': playlist.summary,
             'title': playlist.title,
             'type': playlist.type,
-            'updatedAt': helpers.datetime_to_iso(playlist.updatedAt)
+            'updatedAt': helpers.datetime_to_iso(playlist.updatedAt),
+            'userID': user_id
         }
         playlists_list.append(playlist_dict)
 
     return playlists_list
 
 
-def get_playlists_list(section_id=None, **kwargs):
-    if not section_id:
+def get_playlists_list(section_id=None, user_id=None, **kwargs):
+    if not section_id and not user_id:
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -277,7 +278,7 @@ def get_playlists_list(section_id=None, **kwargs):
                           'error': 'Unable to get playlists: missing section_id.'}
         return default_return
 
-    playlists = get_playlists(section_id)
+    playlists = get_playlists(section_id=section_id, user_id=user_id)
 
     # Get datatables JSON data
     json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])

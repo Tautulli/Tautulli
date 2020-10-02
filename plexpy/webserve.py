@@ -852,7 +852,7 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                section_id (str):               The id of the Plex library section, OR
+                section_id (str):               The id of the Plex library section
 
             Optional parameters:
                 None
@@ -884,12 +884,13 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi("get_playlists_table")
-    def get_playlists_list(self, section_id=None, **kwargs):
+    def get_playlists_list(self, section_id=None, user_id=None, **kwargs):
         """ Get the data on the Tautulli playlists tables.
 
             ```
             Required parameters:
-                section_id (str):               The id of the Plex library section, OR
+                section_id (str):               The section id of the Plex library, OR
+                user_id (str):                  The user id of the Plex user
 
             Optional parameters:
                 None
@@ -912,7 +913,9 @@ class WebInterface(object):
                           ("duration", True, True)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "title")
 
-        result = libraries.get_playlists_list(section_id=section_id, **kwargs)
+        result = libraries.get_playlists_list(section_id=section_id,
+                                              user_id=user_id,
+                                              **kwargs)
 
         return result
 
@@ -4372,7 +4375,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, guid=None, source=None, section_id=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, section_id=None, user_id=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -4382,6 +4385,12 @@ class WebInterface(object):
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
         }
+
+        if user_id:
+            user_data = users.Users()
+            user_info = user_data.get_details(user_id=user_id)
+        else:
+            user_info = {}
 
         # Try to get metadata from the Plex server first
         if rating_key:
@@ -4405,7 +4414,7 @@ class WebInterface(object):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
             return serve_template(templatename="info.html", metadata=metadata, title="Info",
-                                  config=config, source=source)
+                                  config=config, source=source, user_info=user_info)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)

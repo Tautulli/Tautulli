@@ -112,7 +112,7 @@ DOCUMENTATION :: END
                             <li class="active metadata-xml">${data['title']}</li>
                             % endif
                             % endif
-                        % elif data['media_type'] in ('movie', 'collection', 'playlist'):
+                        % elif data['media_type'] in ('movie', 'collection'):
                         <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
@@ -164,6 +164,14 @@ DOCUMENTATION :: END
                         <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
+                        <li class="active metadata-xml">${data['title']}</li>
+                        % elif data['media_type'] == 'playlist':
+                            % if user_info.get('user_id'):
+                            <li><a href="${page('user', user_info.get('user_id'))}">${user_info.get('friendly_name')}</a></li>
+                            % else:
+                            <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                            % endif
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % endif

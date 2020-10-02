@@ -28,7 +28,13 @@ playlists_table_options = {
                     if (rowData['smart']) {
                         smart = '<span class="media-type-tooltip" data-toggle="tooltip" title="Smart Playlist"><i class="fa fa-cog fa-fw"></i></span>&nbsp;'
                     }
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '&section_id=' + rowData['librarySectionID'] +'">' + smart + cellData + '</a>');
+                    var breadcrumb = '';
+                    if (rowData['userID']) {
+                        breadcrumb = '&user_id=' + rowData['userID'];
+                    } else if (rowData['librarySectionID']) {
+                        breadcrumb = '&section_id=' + rowData['librarySectionID'];
+                    }
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + breadcrumb +'">' + smart + cellData + '</a>');
                 }
             },
             "width": "60%",

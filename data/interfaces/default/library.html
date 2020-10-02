@@ -331,12 +331,12 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-file-export"></i> Export collections
                                                 </button>
                                             </div>
+                                            % endif
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-collections-table-button" id="refresh-collections-table">
                                                     <i class="fa fa-refresh"></i> Refresh collections
                                                 </button>
                                             </div>
-                                            % endif
                                             <div class="btn-group colvis-button-bar" id="button-bar-collections"></div>
                                         </div>
                                     </div>
@@ -379,12 +379,12 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-file-export"></i> Export playlists
                                                 </button>
                                             </div>
+                                            % endif
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-playlists-table-button" id="refresh-playlists-table">
                                                     <i class="fa fa-refresh"></i> Refresh playlists
                                                 </button>
                                             </div>
-                                            % endif
                                             <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
                                         </div>
                                     </div>
@@ -546,9 +546,9 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/media_info_table.js${cache_param}"></script>
-<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/collections_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script>
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
