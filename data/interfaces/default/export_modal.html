@@ -213,6 +213,7 @@ DOCUMENTATION :: END
             async: true,
             success: function (data) {
                 if (data.result === 'success') {
+                    $("a[href=#tabs-export]").click();
                     redrawExportTable();
                     showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
                 } else {
