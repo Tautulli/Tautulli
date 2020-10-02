@@ -790,6 +790,9 @@ ColVis.prototype = {
 		oStyle.top = oPos.top+"px";
 		oStyle.left = iDivX+"px";
 
+		var iDocWidth = $(document).width();
+		var iDocHeight = $(document).height();
+
 		document.body.appendChild( nBackground );
 		document.body.appendChild( nHidden );
 		document.body.appendChild( this.dom.catcher );
@@ -819,11 +822,16 @@ ColVis.prototype = {
 
 			var iDivWidth = $(nHidden).outerWidth();
 			var iDivHeight = $(nHidden).outerHeight();
-			var iDocWidth = $(document).width();
+			var iDivMarginTop = parseInt($(nHidden).css("marginTop"), 10);
+			var iDivMarginBottom = parseInt($(nHidden).css("marginBottom"), 10);
 
 			if ( iLeft + iDivWidth > iDocWidth )
 			{
 				nHidden.style.left = (iDocWidth-iDivWidth)+"px";
+			}
+			if ( iDivY + iDivHeight > iDocHeight )
+			{
+				nHidden.style.top = (oPos.top - iDivHeight - iDivMarginTop - iDivMarginBottom)+"px";
 			}
 		}
 
@@ -846,7 +854,8 @@ ColVis.prototype = {
 			this.s.hidden = true;
 
 			$(this.dom.collection).animate({"opacity": 0}, that.s.iOverlayFade, function (e) {
-				this.style.display = "none";
+				// this.style.display = "none";
+				document.body.removeChild( this );
 			} );
 
 			$(this.dom.background).animate({"opacity": 0}, that.s.iOverlayFade, function (e) {
