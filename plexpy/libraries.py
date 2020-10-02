@@ -238,6 +238,9 @@ def get_playlists(section_id=None, user_id=None):
     else:
         plex_token = session.get_session_user_token()
 
+    if not plex_token:
+        return []
+
     plex = Plex(plexpy.CONFIG.PMS_URL, plex_token)
 
     if user_id:
