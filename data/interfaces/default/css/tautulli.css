@@ -2123,6 +2123,9 @@ a:hover .item-children-poster {
     list-style: none;
     padding: 0;
 }
+.nav-list.nav-pills > li > a {
+    margin-bottom: 0;
+}
 #new_title h3 {
     color: #f9be03;
     font-size: 14px;
@@ -2196,11 +2199,12 @@ li.advanced-setting {
 .user-info-username {
     font-size: 24px;
     color: #eee;
-    padding-top: 27px;
+    padding-top: 15px;
     padding-left: 105px;
 }
 .user-info-nav {
     margin-top: 15px;
+    padding-left: 105px;
 }
 .nav-tabs > .active > a:hover,
 .nav-tabs > .active > a:focus {
