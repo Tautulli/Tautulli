@@ -261,19 +261,20 @@ DOCUMENTATION :: END
             </div>
             <div class="summary-content-wrapper">
                 <div class="col-md-9">
-                    % if data['media_type'] == 'movie' or data['live']:
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 305px;">
-                    % elif data['media_type'] in ('show', 'season', 'collection'):
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
-                    % elif data['media_type'] == 'episode':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 70px;">
-                    % elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo',):
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;">
-                    % elif data['media_type'] in ('track', 'clip'):
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 180px;">
-                    % else:
-                    <div class="summary-content-padding hidden-xs hidden-sm">
-                    % endif
+                    <%
+                        padding_height = ''
+                        if data['media_type'] == 'movie' or data['live']:
+                            padding_height = 'height: 305px;'
+                        elif data['media_type'] in ('show', 'season', 'collection'):
+                            padding_height = 'height: 270px;'
+                        elif data['media_type'] == 'episode':
+                            padding_height = 'height: 70px;'
+                        elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo'):
+                            padding_height = 'height: 150px;'
+                        elif data['media_type'] in ('track', 'clip'):
+                            padding_height = 'height: 180px;'
+                    %>
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="${padding_height}">
                         % if data['media_type'] in ('movie', 'episode', 'track', 'clip'):
                         <div class="summary-content-media-info-wrapper">
                             % if data['media_type'] != 'track' and media_info['video_codec']:
@@ -516,138 +517,169 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if data['media_type'] not in ('photo_album', 'photo', 'clip', 'collection', 'playlist'):
+                <%
+                    history_type = data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track')
+                    history_active = 'active' if history_type else ''
+                    export_active = 'active' if not history_type else ''
+                %>
+                % if history_type:
                 <div class="col-md-12">
                     <div class="table-card-header">
-                        <div class="header-bar">
-                            % if data['media_type'] in ('artist', 'album', 'track'):
-                            <span>Play History for <strong>${data['title']}</strong></span>
-                            % else:
-                            <span>Watch History for <strong>${data['title']}</strong></span>
-                            % endif
-                        </div>
-                        <div class="button-bar">
+                        <ul class="nav-list nav-pills" role="tablist">
+                            <li class="${history_active}"><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                             % if _session['user_group'] == 'admin':
-                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
-                            <div class="btn-group">
-                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                    <i class="fa fa-trash-o"></i> Delete mode
-                                </button>&nbsp;
-                            </div>
-                            % if source == 'history':
-                            <div class="btn-group">
-                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
-                                    <i class="fa fa-wrench"></i> Fix Metadata
-                                </a>
-                            </div>
+                            <li class="${export_active}"><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                             % endif
-                            % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
-                            <div class="btn-group">
-                                <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-lookup-info"
-                                        data-id="${data['grandparent_rating_key'] if data['media_type'] == 'episode' else data['parent_rating_key'] if data['media_type'] == 'season' else data['rating_key']}"
-                                        data-title="${data['grandparent_title'] if data['media_type'] == 'episode' else data['parent_title'] if data['media_type'] == 'season' else data['title']}">
-                                    <i class="fa fa-search"></i> Delete Lookup Info
-                                </button>
-                            </div>
-                            % endif
-                            % if data.get('poster_url'):
-                            <div class="btn-group" id="hosted-poster">
-                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
-                                % else:
-                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
-                                % endif
-                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-hosted-poster"
-                                            data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}"
-                                            data-title="${data["poster_title"]}">
-                                        <i class="fa fa-picture-o"></i> Delete ${data['img_service']} Poster
-                                    </button>
-                                </span>
-                            </div>
-                            % endif
-                            % if not data['live']:
-                            <div class="btn-group">
-                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
-                                        data-id="${data['rating_key']}">
-                                    <i class="fa fa-bell"></i> Recently Added Notification
-                                </button>
-                            </div>
-                            % endif
-                            % endif
-                            <div class="btn-group">
-                                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
-                            </div>
-                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <table class="display history_table" id="history_table-RK-${data['rating_key']}" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align="left" id="delete">Delete</th>
-                                    <th align="left" id="date">Date</th>
-                                    <th align="left" id="friendly_name">User</th>
-                                    <th align="left" id="ip_address">IP Address</th>
-                                    <th align="left" id="platform">Platform</th>
-                                    <th align="left" id="product">Product</th>
-                                    <th align="left" id="player">Player</th>
-                                    <th align="left" id="title">Title</th>
-                                    <th align="left" id="started">Started</th>
-                                    <th align="left" id="paused_counter">Paused</th>
-                                    <th align="left" id="stopped">Stopped</th>
-                                    <th align="left" id="duration">Duration</th>
-                                    <th align="left" id="percent_complete"></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        </ul>
                     </div>
                 </div>
                 % endif
-                % if not data['live'] and _session['user_group'] == 'admin':
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span>Metadata Exports for <strong>${data['title']}</strong></span>
-                        </div>
-                        <div class="button-bar">
-                            <div class="btn-group">
-                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}"
-                                        data-media_type="${data['media_type']}" data-sub_media_type="${data['sub_media_type'] or data['playlist_type'] or ''}">
-                                    <i class="fa fa-file-export"></i> Export metadata
-                                </button>
+                <div class="tab-content">
+                    % if history_type:
+                    <div role="tabpanel" class="tab-pane ${history_active}" id="tabs-history">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            % if data['media_type'] in ('artist', 'album', 'track'):
+                                            <span>Play History for <strong>${data['title']}</strong></span>
+                                            % else:
+                                            <span>Watch History for <strong>${data['title']}</strong></span>
+                                            % endif
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                    <i class="fa fa-trash-o"></i> Delete mode
+                                                </button>&nbsp;
+                                            </div>
+                                            % if source == 'history':
+                                            <div class="btn-group">
+                                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
+                                                    <i class="fa fa-wrench"></i> Fix Metadata
+                                                </a>
+                                            </div>
+                                            % endif
+                                            % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-lookup-info"
+                                                        data-id="${data['grandparent_rating_key'] if data['media_type'] == 'episode' else data['parent_rating_key'] if data['media_type'] == 'season' else data['rating_key']}"
+                                                        data-title="${data['grandparent_title'] if data['media_type'] == 'episode' else data['parent_title'] if data['media_type'] == 'season' else data['title']}">
+                                                    <i class="fa fa-search"></i> Delete Lookup Info
+                                                </button>
+                                            </div>
+                                            % endif
+                                            % if data.get('poster_url'):
+                                            <div class="btn-group" id="hosted-poster">
+                                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
+                                                % else:
+                                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                                                % endif
+                                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-hosted-poster"
+                                                            data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}"
+                                                            data-title="${data["poster_title"]}">
+                                                        <i class="fa fa-picture-o"></i> Delete ${data['img_service']} Poster
+                                                    </button>
+                                                </span>
+                                            </div>
+                                            % endif
+                                            % if not data['live']:
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
+                                                        data-id="${data['rating_key']}">
+                                                    <i class="fa fa-bell"></i> Recently Added Notification
+                                                </button>
+                                            </div>
+                                            % endif
+                                            % endif
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display history_table" id="history_table-RK-${data['rating_key']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="delete">Delete</th>
+                                                    <th align="left" id="date">Date</th>
+                                                    <th align="left" id="friendly_name">User</th>
+                                                    <th align="left" id="ip_address">IP Address</th>
+                                                    <th align="left" id="platform">Platform</th>
+                                                    <th align="left" id="product">Product</th>
+                                                    <th align="left" id="player">Player</th>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="started">Started</th>
+                                                    <th align="left" id="paused_counter">Paused</th>
+                                                    <th align="left" id="stopped">Stopped</th>
+                                                    <th align="left" id="duration">Duration</th>
+                                                    <th align="left" id="percent_complete"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="btn-group">
-                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
-                                    <i class="fa fa-refresh"></i> Refresh exports
-                                </button>
-                            </div>
-                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
                         </div>
                     </div>
-                    <div class="table-card-back">
-                        <table class="display export_table" id="export_table-RK-${data['rating_key']}" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align="left" id="timestamp">Exported At</th>
-                                    <th align="left" id="media_type_title">Media Type</th>
-                                    <th align="left" id="rating_key">Rating Key</th>
-                                    <th align="left" id="filename">Filename</th>
-                                    <th align="left" id="file_format">File Format</th>
-                                    <th align="left" id="metadata_level">Metadata Level</th>
-                                    <th align="left" id="media_info_level">Media Info Level</th>
-                                    <th align="left" id="media_info_level">Custom Fields</th>
-                                    <th align="left" id="file_size">File Size</th>
-                                    <th align="left" id="complete">Download</th>
-                                    <th align="left" id="delete">Delete</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    % endif
+                    % if not data['live'] and _session['user_group'] == 'admin':
+                    <div role="tabpanel" class="tab-pane ${export_active}" id="tabs-export">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span>Metadata Exports for <strong>${data['title']}</strong></span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-rating_key="${data['rating_key']}"
+                                                        data-media_type="${data['media_type']}" data-sub_media_type="${data['sub_media_type'] or data['playlist_type'] or ''}">
+                                                    <i class="fa fa-file-export"></i> Export metadata
+                                                </button>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                                    <i class="fa fa-refresh"></i> Refresh exports
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display export_table" id="export_table-RK-${data['rating_key']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="timestamp">Exported At</th>
+                                                    <th align="left" id="media_type_title">Media Type</th>
+                                                    <th align="left" id="rating_key">Rating Key</th>
+                                                    <th align="left" id="filename">Filename</th>
+                                                    <th align="left" id="file_format">File Format</th>
+                                                    <th align="left" id="metadata_level">Metadata Level</th>
+                                                    <th align="left" id="media_info_level">Media Info Level</th>
+                                                    <th align="left" id="media_info_level">Custom Fields</th>
+                                                    <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="complete">Download</th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    % endif
                 </div>
-                % endif
             </div>
         </div>
     </div>
@@ -818,55 +850,59 @@ DOCUMENTATION :: END
     }
 </script>
 % endif
-% if data['media_type'] not in ('photo_album', 'photo', 'clip', 'collection', 'playlist'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
 <script>
-    $(document).ready(function () {
+    function loadHistoryTable() {
         get_history();
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
         $(colvis.button()).appendTo('#button-bar-history');
 
         clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
+    }
 
-        $('#row-edit-mode').on('click', function() {
-            $('#row-edit-mode-alert').fadeIn(200);
-
-            if ($(this).hasClass('active')) {
-                if (history_to_delete.length > 0) {
-                    $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal-delete').modal();
-                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        $.ajax({
-                            url: 'delete_history_rows',
-                            type: 'POST',
-                            data: { row_ids: history_to_delete.join(',') },
-                            async: true,
-                            success: function (data) {
-                                var msg = "History deleted";
-                                showMsg(msg, false, true, 2000);
-                                history_table.draw();
-                            }
-                        });
-                    });
-                }
-
-                $('.delete-control').each(function () {
-                    $(this).addClass('hidden');
-                    $('#row-edit-mode-alert').fadeOut(200);
-                });
-
-            } else {
-                history_to_delete = [];
-                $('.delete-control').each(function() {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                    $(this).removeClass('hidden');
-                });
-            }
-        });
+    $(document).ready(function () {
+        loadHistoryTable();
     });
 
     $("#refresh-history-list").click(function () {
         history_table.draw();
+    });
+
+    $('#row-edit-mode').on('click', function() {
+        $('#row-edit-mode-alert').fadeIn(200);
+
+        if ($(this).hasClass('active')) {
+            if (history_to_delete.length > 0) {
+                $('#deleteCount').text(history_to_delete.length);
+                $('#confirm-modal-delete').modal();
+                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
+                    $.ajax({
+                        url: 'delete_history_rows',
+                        type: 'POST',
+                        data: { row_ids: history_to_delete.join(',') },
+                        async: true,
+                        success: function (data) {
+                            var msg = "History deleted";
+                            showMsg(msg, false, true, 2000);
+                            history_table.draw();
+                        }
+                    });
+                });
+            }
+
+            $('.delete-control').each(function () {
+                $(this).addClass('hidden');
+                $('#row-edit-mode-alert').fadeOut(200);
+            });
+
+        } else {
+            history_to_delete = [];
+            $('.delete-control').each(function() {
+                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                $(this).removeClass('hidden');
+            });
+        }
     });
 
     // Send recently added notification
@@ -927,6 +963,24 @@ DOCUMENTATION :: END
 </script>
 % endif
 <script>
+    $(document).ready(function () {
+        // Javascript to enable link to tab
+        var hash = document.location.hash;
+        var prefix = "tab_";
+        if (hash) {
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+        }
+
+        // Change hash for page-reload
+        $('.nav-list a').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash.replace("#", "#" + prefix);
+        });
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    });
+
     $('.metadata-xml').on('tripleclick', function () {
         openPlexXML("/library/metadata/${data['rating_key']}");
     });
@@ -987,12 +1041,20 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
     }
 
-    $("#refresh-export-table").click(function () {
-        export_table.draw();
+    $(document).ready(function () {
+        if ($('#tabs-history').length) {
+            $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+                if (typeof(export_table) === 'undefined') {
+                    loadExportTable();
+                }
+            });
+        } else {
+            loadExportTable();
+        }
     });
 
-    $(document).ready(function () {
-        loadExportTable();
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
     });
 </script>
 % if data.get('poster_url'):
