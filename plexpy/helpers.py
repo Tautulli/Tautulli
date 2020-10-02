@@ -1385,7 +1385,7 @@ def escape_xml(value):
 
 
 # https://gist.github.com/reimund/5435343/
-def dict2xml(d, root_node=None):
+def dict2xml(d, root_node=None, indent=4, level=0):
     wrap = not bool(root_node is None or isinstance(d, list))
     root = root_node or 'objects'
     root_singular = root[:-1] if root.endswith('s') and isinstance(d, list) else root
@@ -1395,28 +1395,34 @@ def dict2xml(d, root_node=None):
     if isinstance(d, dict):
         for key, value in sorted(d.items()):
             if isinstance(value, dict):
-                children.append(dict2xml(value, key))
+                children.append(dict2xml(value, key, level=level + 1))
             elif isinstance(value, list):
-                children.append(dict2xml(value, key))
+                children.append(dict2xml(value, key, level=level + 1))
             else:
                 xml = '{} {}="{}"'.format(xml, key, escape_xml(value))
     elif isinstance(d, list):
         for value in d:
-            children.append(dict2xml(value, root_singular))
+            # Custom tag replacement for collections/playlists
+            if isinstance(value, dict) and root in ('children', 'items'):
+                root_singular = value.get('type', root_singular)
+            children.append(dict2xml(value, root_singular, level=level))
     else:
         children.append(escape_xml(d))
 
     end_tag = '>' if len(children) > 0 else '/>'
+    end_tag += '\n' if isinstance(d, list) or isinstance(d, dict) else ''
+    spaces = ' ' * level * indent
 
     if wrap or isinstance(d, dict):
-        xml = '<{}{}{}'.format(root, xml, end_tag)
+        xml = '{}<{}{}{}'.format(spaces, root, xml, end_tag)
 
     if len(children) > 0:
         for child in children:
             xml = '{}{}'.format(xml, child)
 
         if wrap or isinstance(d, dict):
-            xml = '{}</{}>'.format(xml, root)
+            spaces = spaces if isinstance(d, dict) else ''
+            xml = '{}{}</{}>\n'.format(xml, spaces, root)
 
     return xml
 
