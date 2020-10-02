@@ -796,7 +796,7 @@ def dbcheck():
     # exports table :: This table keeps record of the exported files
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'timestamp INTEGER, section_id INTEGER, rating_key INTEGER, media_type TEXT, '
+        'timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, '
         'filename TEXT, file_format TEXT, '
         'metadata_level INTEGER, media_info_level INTEGER, '
         'include_thumb INTEGER DEFAULT 0, include_art INTEGER DEFAULT 0, '

@@ -169,10 +169,11 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'playlist':
                             % if user_info.get('user_id'):
                             <li><a href="${page('user', user_info.get('user_id'))}">${user_info.get('friendly_name')}</a></li>
-                            % else:
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
+                            % elif data['section_id']:
                             <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                            <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % endif
-                        <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % endif
                         </ul>

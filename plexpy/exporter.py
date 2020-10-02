@@ -35,12 +35,14 @@ if plexpy.PYTHON2:
     import datatables
     import helpers
     import logger
+    import users
     from plex import Plex
 else:
     from plexpy import database
     from plexpy import datatables
     from plexpy import helpers
     from plexpy import logger
+    from plexpy import users
     from plexpy.plex import Plex
 
 
@@ -90,13 +92,14 @@ class Export(object):
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
     FILE_FORMATS = ('csv', 'json', 'xml')
-    LIBRARY_EXPORTS = ('all', 'collection', 'playlist')
+    EXPORT_TYPES = ('all', 'collection', 'playlist')
 
-    def __init__(self, section_id=None, rating_key=None, file_format='csv',
+    def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
                  include_thumb=False, include_art=False,
-                 custom_fields='', library_export=None):
+                 custom_fields='', export_type=None):
         self.section_id = helpers.cast_to_int(section_id) or None
+        self.user_id = helpers.cast_to_int(user_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
         self.file_format = file_format
         self.metadata_level = helpers.cast_to_int(metadata_level)
@@ -105,7 +108,7 @@ class Export(object):
         self.include_art = include_art
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
-        self.library_export = library_export or 'all'
+        self.export_type = export_type or 'all'
 
         self.timestamp = helpers.timestamp()
 
@@ -1439,22 +1442,33 @@ class Export(object):
 
     def export(self):
         msg = ''
-        if not self.section_id and not self.rating_key:
-            msg = "Export called but no section_id or rating_key provided."
+        if not self.section_id and not self.user_id and not self.rating_key:
+            msg = "Export called but no section_id, user_id, or rating_key provided."
         elif self.metadata_level not in self.METADATA_LEVELS:
             msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
             msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
         elif self.file_format not in self.FILE_FORMATS:
             msg = "Export called with invalid file_format '{}'.".format(self.file_format)
-        elif self.library_export not in self.LIBRARY_EXPORTS:
-            msg = "Export called with invalid library_export '{}'.".format(self.library_export)
+        elif self.export_type not in self.EXPORT_TYPES:
+            msg = "Export called with invalid export_type '{}'.".format(self.export_type)
+        elif self.user_id and self.export_type != 'playlist':
+            msg = "Export called with invalid export_type '{}'. " \
+                  "Only export_type 'playlist' is allowed for user export."
 
         if msg:
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
+        if self.user_id:
+            user_data = users.Users()
+            user_info = user_data.get_details(user_id=self.user_id)
+            user_tokens = user_data.get_tokens(user_id=self.user_id)
+            plex_token = user_tokens['server_token']
+        else:
+            plex_token = plexpy.CONFIG.PMS_TOKEN
+
+        plex = Plex(plexpy.CONFIG.PMS_URL, plex_token)
 
         if self.rating_key:
             logger.debug(
@@ -1481,28 +1495,45 @@ class Export(object):
                 self.media_type.title(), item_title, self.rating_key,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
+        elif self.user_id:
+            logger.debug(
+                "Tautulli Exporter :: Export called with user_id %s, "
+                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s, "
+                "export_type %s",
+                self.user_id, self.metadata_level, self.media_info_level,
+                self.include_thumb, self.include_art, self.export_type)
+
+            self.obj = plex.plex
+            self.media_type = self.export_type
+
+            username = user_info['username']
+
+            filename = 'User - {} - {} [{}].{}'.format(
+                username, self.export_type.capitalize(), self.user_id,
+                helpers.timestamp_to_YMDHMS(self.timestamp))
+
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
                 "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s, "
-                "library_export %s",
+                "export_type %s",
                 self.section_id, self.metadata_level, self.media_info_level,
-                self.include_thumb, self.include_art, self.library_export)
+                self.include_thumb, self.include_art, self.export_type)
 
             self.obj = plex.get_library(str(self.section_id))
-            if self.library_export == 'all':
+            if self.export_type == 'all':
                 self.media_type = self.obj.type
             else:
-                self.media_type = self.library_export
+                self.media_type = self.export_type
 
             library_title = self.obj.title
 
-            filename = 'Library - {} [{}].{}'.format(
-                library_title, self.section_id,
+            filename = 'Library - {} - {} [{}].{}'.format(
+                library_title, self.export_type.capitalize(), self.section_id,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
         else:
-            msg = "Export called but no section_id or rating_key provided."
+            msg = "Export called but no section_id, user_id, or rating_key provided."
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
@@ -1529,6 +1560,7 @@ class Export(object):
     def add_export(self):
         keys = {'timestamp': self.timestamp,
                 'section_id': self.section_id,
+                'user_id': self.user_id,
                 'rating_key': self.rating_key,
                 'media_type': self.media_type}
 
@@ -1571,13 +1603,12 @@ class Export(object):
 
         if self.rating_key:
             items = [self.obj]
+        elif self.user_id:
+            # Only playlists export allowed for users
+            items = self.obj.playlists()
         else:
-            if self.library_export == 'collection':
-                items = self.obj.collection()
-            elif self.library_export == 'playlist':
-                items = self.obj.playlist()
-            else:
-                items = self.obj.all()
+            method = getattr(self.obj, self.export_type)
+            items = method()
 
         pool = ThreadPool(processes=4)
 
@@ -1810,7 +1841,7 @@ def cancel_exports():
     db.action('UPDATE exports SET complete = -1 WHERE complete = 0')
 
 
-def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
+def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=None):
     default_return = {'recordsFiltered': 0,
                       'recordsTotal': 0,
                       'draw': 0,
@@ -1822,12 +1853,15 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
     custom_where = []
     if section_id:
         custom_where.append(['exports.section_id', section_id])
+    if user_id:
+        custom_where.append(['exports.user_id', user_id])
     if rating_key:
         custom_where.append(['exports.rating_key', rating_key])
 
     columns = ['exports.id AS export_id',
                'exports.timestamp',
                'exports.section_id',
+               'exports.user_id',
                'exports.rating_key',
                'exports.media_type',
                'exports.filename',
@@ -1863,6 +1897,7 @@ def get_export_datatable(section_id=None, rating_key=None, kwargs=None):
         row = {'export_id': item['export_id'],
                'timestamp': item['timestamp'],
                'section_id': item['section_id'],
+               'user_id': item['user_id'],
                'rating_key': item['rating_key'],
                'media_type': item['media_type'],
                'media_type_title': media_type_title,
@@ -1906,21 +1941,26 @@ def get_custom_fields(media_type, sub_media_type=None):
         'media_info_fields': []
     }
 
+    collection_sub_media_types = {'movie', 'show', 'artist', 'album', 'photoalbum'}
+    playlist_sub_media_types = {'video', 'audio', 'photo'}
+    sub_media_type = {s.strip().lower() for s in sub_media_type.split(',')}
+
     export = Export()
 
     if media_type not in export.MEDIA_TYPES:
         return custom_fields
-    elif media_type == 'collection' and sub_media_type not in ('movie', 'show', 'artist', 'album', 'photoalbum'):
+    elif media_type == 'collection' and not sub_media_type.issubset(collection_sub_media_types):
         return custom_fields
-    elif media_type == 'playlist' and sub_media_type not in ('video', 'audio', 'photo'):
+    elif media_type == 'playlist' and not sub_media_type.issubset(playlist_sub_media_types):
         return custom_fields
 
-    if media_type == 'playlist' and sub_media_type == 'video':
-        sub_media_types = ['movie', 'episode']
-    elif media_type == 'playlist' and sub_media_type == 'audio':
-        sub_media_types = ['track']
-    else:
-        sub_media_types = [sub_media_type]
+    sub_media_types = list(sub_media_type.difference(playlist_sub_media_types))
+    if media_type == 'playlist' and 'video' in sub_media_type:
+        sub_media_types += ['movie', 'episode']
+    elif media_type == 'playlist' and 'audio' in sub_media_type:
+        sub_media_types += ['track']
+    elif media_type == 'playlist' and 'photo' in sub_media_type:
+        sub_media_types += ['photo']
 
     metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
 

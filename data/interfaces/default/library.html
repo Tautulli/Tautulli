@@ -327,7 +327,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
                                                         data-section_id="${data['section_id']}" data-media_type="collection" data-sub_media_type="${data['section_type']}"
-                                                        data-library_export="collection">
+                                                        data-export_type="collection">
                                                     <i class="fa fa-file-export"></i> Export collections
                                                 </button>
                                             </div>
@@ -375,7 +375,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
                                                         data-section_id="${data['section_id']}" data-media_type="playlist" data-sub_media_type="${playlist_sub_media_type.get(data['section_type'])}"
-                                                        data-library_export="playlist">
+                                                        data-export_type="playlist">
                                                     <i class="fa fa-file-export"></i> Export playlists
                                                 </button>
                                             </div>
@@ -418,11 +418,10 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
                                                         data-section_id="${data['section_id']}" data-media_type="${'photoalbum' if data['section_type'] == 'photo' else data['section_type']}"
-                                                        data-library_export="all">
+                                                        data-export_type="all">
                                                     <i class="fa fa-file-export"></i> Export metadata
                                                 </button>
                                             </div>
@@ -431,7 +430,6 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh exports
                                                 </button>
                                             </div>
-                                            % endif
                                             <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
                                         </div>
                                     </div>
@@ -888,7 +886,7 @@ DOCUMENTATION :: END
                 section_id: $(this).data('section_id'),
                 media_type: $(this).data('media_type'),
                 sub_media_type: $(this).data('sub_media_type'),
-                library_export: $(this).data('library_export')
+                export_type: $(this).data('export_type')
             },
             cache: false,
             async: true,

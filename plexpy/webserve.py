@@ -6508,12 +6508,13 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_exports_table")
-    def get_export_list(self, section_id=None, rating_key=None, **kwargs):
+    def get_export_list(self, section_id=None, user_id=None, rating_key=None, **kwargs):
         """ Get the data on the Tautulli export tables.
 
             ```
             Required parameters:
                 section_id (str):               The id of the Plex library section, OR
+                user_id (str):                  The id of the Plex user, OR
                 rating_key (str):               The rating key of the exported item
 
             Optional parameters:
@@ -6559,6 +6560,7 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
 
         result = exporter.get_export_datatable(section_id=section_id,
+                                               user_id=user_id,
                                                rating_key=rating_key,
                                                kwargs=kwargs)
 
@@ -6566,15 +6568,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def export_metadata_modal(self, section_id=None, rating_key=None,
+    def export_metadata_modal(self, section_id=None, user_id=None, rating_key=None,
                               media_type=None, sub_media_type=None,
-                              library_export=None, **kwargs):
+                              export_type=None, **kwargs):
         file_formats = exporter.Export.FILE_FORMATS
 
         return serve_template(templatename="export_modal.html", title="Export Metadata",
-                              section_id=section_id, rating_key=rating_key,
+                              section_id=section_id, user_id=user_id, rating_key=rating_key,
                               media_type=media_type, sub_media_type=sub_media_type,
-                              library_export=library_export, file_formats=file_formats)
+                              export_type=export_type, file_formats=file_formats)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6614,15 +6616,16 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def export_metadata(self, section_id=None, rating_key=None, file_format='csv',
+    def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
                         include_thumb=False, include_art=False,
-                        custom_fields='', library_export=None, **kwargs):
+                        custom_fields='', export_type=None, **kwargs):
         """ Export library or media metadata to a file
 
             ```
             Required parameters:
                 section_id (int):          The section id of the library items to export, OR
+                user_id (int):             The user id of the playlist items to export,
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
@@ -6633,7 +6636,7 @@ class WebInterface(object):
                 include_art (bool):        True to export background artwork images
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
-                library_export (str):      collection or playlist for library export,
+                export_type (str):         collection or playlist for library/user export,
                                            otherwise default to all library items
 
             Returns:
@@ -6644,6 +6647,7 @@ class WebInterface(object):
             ```
         """
         result = exporter.Export(section_id=section_id,
+                                 user_id=user_id,
                                  rating_key=rating_key,
                                  file_format=file_format,
                                  metadata_level=metadata_level,
@@ -6651,7 +6655,7 @@ class WebInterface(object):
                                  include_thumb=helpers.bool_true(include_thumb),
                                  include_art=helpers.bool_true(include_art),
                                  custom_fields=custom_fields,
-                                 library_export=library_export).export()
+                                 export_type=export_type).export()
 
         if result is True:
             return {'result': 'success', 'message': 'Metadata export has started.'}

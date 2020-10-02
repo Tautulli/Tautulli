@@ -73,6 +73,9 @@ DOCUMENTATION :: END
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
                                     <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    % if _session['user_group'] == 'admin':
+                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                                    % endif
                                     <li><a href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
                                     <li><a href="#tabs-ipaddresses" role="tab" data-toggle="tab">IP Addresses</a></li>
                                     <li><a href="#tabs-tautullilogins" role="tab" data-toggle="tab">Tautulli Logins</a></li>
@@ -227,11 +230,10 @@ DOCUMENTATION :: END
                                         </div>
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
-                                            <% playlist_sub_media_type = {'movie': 'video', 'show': 'video', 'artist': 'audio', 'photo': 'photo'} %>
                                             <div class="btn-group">
                                                 <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
-                                                        data-media_type="playlist" data-sub_media_type=""
-                                                        data-library_export="playlist">
+                                                        data-user_id="${data['user_id']}" data-media_type="playlist" data-sub_media_type="video,audio,photo"
+                                                        data-export_type="playlist">
                                                     <i class="fa fa-file-export"></i> Export playlists
                                                 </button>
                                             </div>
@@ -260,6 +262,53 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
+                    <div role="tabpanel" class="tab-pane" id="tabs-export">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-file-export"></i> Metadata Exports for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                                    <i class="fa fa-refresh"></i> Refresh exports
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display export_table" id="export_table-SID-${data['user_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="timestamp">Exported At</th>
+                                                    <th align="left" id="media_type_title">Media Type</th>
+                                                    <th align="left" id="rating_key">Rating Key</th>
+                                                    <th align="left" id="filename">Filename</th>
+                                                    <th align="left" id="file_format">File Format</th>
+                                                    <th align="left" id="metadata_level">Metadata Level</th>
+                                                    <th align="left" id="media_info_level">Media Info Level</th>
+                                                    <th align="left" id="media_info_level">Custom Fields</th>
+                                                    <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="complete">Download</th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    % endif
                     <div role="tabpanel" class="tab-pane" id="tabs-synceditems">
                         <div class="container-fluid">
                             <div class="row">
@@ -443,6 +492,8 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+<div id="export-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="export-modal">
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -463,6 +514,7 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/user_ips.js${cache_param}"></script>
 <script src="${http_root}js/tables/sync_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/login_logs.js${cache_param}"></script>
@@ -725,6 +777,37 @@ DOCUMENTATION :: END
 </script>
 % if _session['user_group'] == 'admin':
 <script>
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_export_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    user_id: user_id
+                };
+            }
+        };
+        export_table = $('#export_table-SID-${data["user_id"]}').DataTable(export_table_options);
+        export_table.columns([2, 7]).visible(false);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-SID-${data["user_id"]}', export_table);
+    }
+
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
+    });
+
     $("#edit-user-tooltip").tooltip();
 
     // Load edit user modal
@@ -737,6 +820,23 @@ DOCUMENTATION :: END
             async: true,
             complete: function(xhr, status) {
                 $("#edit-user-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $(".export-button").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: {
+                user_id: $(this).data('user_id'),
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type'),
+                export_type: $(this).data('export_type')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
             }
         });
     });

@@ -25,10 +25,11 @@ DOCUMENTATION :: END
         <div class="modal-body">
             <form method="post" class="form" id="export_metadata_form">
                 <input type="hidden" id="export_section_id" name="export_section_id" value="${section_id or ''}" />
+                <input type="hidden" id="export_user_id" name="export_user_id" value="${user_id or ''}" />
                 <input type="hidden" id="export_rating_key" name="export_rating_key" value="${rating_key or ''}" />
                 <input type="hidden" id="export_media_type" name="export_media_type" value="${media_type or ''}" />
                 <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
-                <input type="hidden" id="export_library_export" name="export_library_export" value="${library_export or ''}" />
+                <input type="hidden" id="export_export_type" name="export_export_type" value="${export_type or ''}" />
                 <div class="form-group">
                     <label for="metadata_export_level_select">Metadata Export Level</label>
                     <div class="row">
@@ -185,6 +186,7 @@ DOCUMENTATION :: END
 
     $("#export_metadata").click(function() {
         var section_id = $('#export_section_id').val();
+        var user_id = $('#export_user_id').val();
         var rating_key = $('#export_rating_key').val();
         var metadata_export_level = $('#metadata_export_level_select option:selected').val();
         var media_info_export_level = $('#media_info_export_level_select option:selected').val();
@@ -195,12 +197,13 @@ DOCUMENTATION :: END
             $('#export_custom_metadata_fields').val(),
             $('#export_custom_media_info_fields').val()
         ].filter(Boolean).join(',');
-        var library_export = $('#export_library_export').val()
+        var export_type = $('#export_export_type').val()
 
         $.ajax({
             url: 'export_metadata',
             data: {
                 section_id: section_id,
+                user_id: user_id,
                 rating_key: rating_key,
                 metadata_level: metadata_export_level,
                 media_info_level: media_info_export_level,
@@ -208,7 +211,7 @@ DOCUMENTATION :: END
                 include_thumb: include_thumb,
                 include_art: include_art,
                 custom_fields: custom_fields,
-                library_export: library_export
+                export_type: export_type
             },
             async: true,
             success: function (data) {
