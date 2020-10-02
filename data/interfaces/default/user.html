@@ -549,7 +549,101 @@ DOCUMENTATION :: END
 
     $(".inactive-user-tooltip").tooltip();
 
-    % if _session['user_group'] == 'admin':
+    function recentlyWatched() {
+        // Populate recently watched
+        $.ajax({
+            url: 'get_user_recently_watched',
+            async: true,
+            data: {
+                user_id: user_id,
+                limit: 50
+            },
+            complete: function(xhr, status) {
+                $("#user-recently-watched").html(xhr.responseText);
+                highlightWatchedScrollerButton();
+            }
+        });
+    }
+
+    recentlyWatched();
+
+    function highlightWatchedScrollerButton() {
+        var scroller = $("#recently-watched-row-scroller");
+        var numElems = scroller.find("li").length;
+        scroller.width(numElems * 175);
+        if (scroller.width() > $("#user-recently-watched").width()) {
+            $("#recently-watched-page-right").removeClass("disabled");
+        } else {
+            $("#recently-watched-page-right").addClass("disabled");
+        }
+    }
+
+    $(window).resize(function() {
+        highlightWatchedScrollerButton();
+    });
+
+    var leftTotal = 0;
+    $(".paginate").click(function (e) {
+        e.preventDefault();
+        var scroller = $("#recently-watched-row-scroller");
+        var containerWidth = $("#user-recently-watched").width();
+        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
+
+        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
+        scroller.animate({ left: leftTotal }, 250);
+
+        if (leftTotal == 0) {
+            $("#recently-watched-page-left").addClass("disabled").blur();
+        } else {
+            $("#recently-watched-page-left").removeClass("disabled");
+        }
+
+        if (leftTotal == leftMax) {
+            $("#recently-watched-page-right").addClass("disabled").blur();
+        } else {
+            $("#recently-watched-page-right").removeClass("disabled");
+        }
+    });
+
+    $(document).ready(function () {
+
+        // Javascript to enable link to tab
+        var hash = document.location.hash;
+        var prefix = "tab_";
+        if (hash) {
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+        }
+
+        // Change hash for page-reload
+        $('.nav-list a').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash.replace("#", "#" + prefix);
+        });
+
+        // Populate watch time stats
+        $.ajax({
+            url: 'user_watch_time_stats',
+            async: true,
+            data: { user_id: user_id, user: username },
+            complete: function(xhr, status) {
+                $("#user-time-stats").html(xhr.responseText);
+            }
+        });
+
+        // Populate platform stats
+        $.ajax({
+            url: 'user_player_stats',
+            async: true,
+            data: { user_id: user_id, user: username },
+            complete: function(xhr, status) {
+                $("#user-player-stats").html(xhr.responseText);
+            }
+        });
+
+    });
+</script>
+% if _session['user_group'] == 'admin':
+<script>
     $("#edit-user-tooltip").tooltip();
 
     // Load edit user modal
@@ -644,100 +738,7 @@ DOCUMENTATION :: END
             });
         }
     });
-    % endif
-
-    function recentlyWatched() {
-        // Populate recently watched
-        $.ajax({
-            url: 'get_user_recently_watched',
-            async: true,
-            data: {
-                user_id: user_id,
-                limit: 50
-            },
-            complete: function(xhr, status) {
-                $("#user-recently-watched").html(xhr.responseText);
-                highlightWatchedScrollerButton();
-            }
-        });
-    }
-
-    recentlyWatched();
-
-    function highlightWatchedScrollerButton() {
-        var scroller = $("#recently-watched-row-scroller");
-        var numElems = scroller.find("li").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("#user-recently-watched").width()) {
-            $("#recently-watched-page-right").removeClass("disabled");
-        } else {
-            $("#recently-watched-page-right").addClass("disabled");
-        }
-    }
-
-    $(window).resize(function() {
-        highlightWatchedScrollerButton();
-    });
-
-    var leftTotal = 0;
-    $(".paginate").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-watched-row-scroller");
-        var containerWidth = $("#user-recently-watched").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
-        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
-
-        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
-        scroller.animate({ left: leftTotal }, 250);
-
-        if (leftTotal == 0) {
-            $("#recently-watched-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-left").removeClass("disabled");
-        }
-
-        if (leftTotal == leftMax) {
-            $("#recently-watched-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-right").removeClass("disabled");
-        }
-    });
-
-    $(document).ready(function () {
-
-        // Javascript to enable link to tab
-        var hash = document.location.hash;
-        var prefix = "tab_";
-        if (hash) {
-            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
-        }
-
-        // Change hash for page-reload
-        $('.nav-list a').on('shown.bs.tab', function (e) {
-            window.location.hash = e.target.hash.replace("#", "#" + prefix);
-        });
-
-        // Populate watch time stats
-        $.ajax({
-            url: 'user_watch_time_stats',
-            async: true,
-            data: { user_id: user_id, user: username },
-            complete: function(xhr, status) {
-                $("#user-time-stats").html(xhr.responseText);
-            }
-        });
-
-        // Populate platform stats
-        $.ajax({
-            url: 'user_player_stats',
-            async: true,
-            data: { user_id: user_id, user: username },
-            complete: function(xhr, status) {
-                $("#user-player-stats").html(xhr.responseText);
-            }
-        });
-
-    });
 </script>
+% endif
 % endif
 </%def>

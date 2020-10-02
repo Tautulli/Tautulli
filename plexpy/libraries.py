@@ -143,7 +143,7 @@ def has_library_type(section_type):
 
 
 def get_collections(section_id):
-    plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
+    plex = Plex(plexpy.CONFIG.PMS_URL, session.get_session_user_token())
     library = plex.get_library(section_id)
 
     if library.type not in ('movie', 'show', 'artist'):
@@ -231,7 +231,7 @@ def get_collections_list(section_id=None, **kwargs):
 
 
 def get_playlists(section_id):
-    plex = Plex(plexpy.CONFIG.PMS_URL, plexpy.CONFIG.PMS_TOKEN)
+    plex = Plex(plexpy.CONFIG.PMS_URL, session.get_session_user_token())
 
     library = Libraries().get_details(section_id=section_id)
 

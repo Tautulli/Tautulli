@@ -787,6 +787,12 @@ class Users(object):
         return session.friendly_name_to_username(result)
 
     def get_tokens(self, user_id=None):
+        tokens = {
+            'allow_guest': 0,
+            'user_token': '',
+            'server_token': ''
+        }
+
         if user_id:
             try:
                 monitor_db = database.MonitorDatabase()
@@ -800,11 +806,11 @@ class Users(object):
                               }
                     return tokens
                 else:
-                    return None
+                    return tokens
             except:
-                return None
+                return tokens
 
-        return None
+        return tokens
 
     def get_filters(self, user_id=None):
         if not user_id:

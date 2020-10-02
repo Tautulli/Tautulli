@@ -845,7 +845,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi("get_collections_table")
     def get_collections_list(self, section_id=None, **kwargs):
         """ Get the data on the Tautulli collections tables.
@@ -882,7 +882,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi("get_playlists_table")
     def get_playlists_list(self, section_id=None, **kwargs):
         """ Get the data on the Tautulli playlists tables.

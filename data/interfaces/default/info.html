@@ -782,6 +782,7 @@ DOCUMENTATION :: END
 % if metadata:
 <%
     data = defaultdict(None, **metadata)
+    history_user_id = '' if _session['user_group'] == 'admin' else _session['user_id']
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
@@ -795,7 +796,7 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     guid: "${data['guid']}",
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         }
@@ -811,7 +812,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     grandparent_rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         }
@@ -827,7 +828,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     parent_rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         }
@@ -843,7 +844,7 @@ DOCUMENTATION :: END
                 return { 
                     json_data: JSON.stringify( d ),
                     rating_key: "${data['rating_key']}",
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         }
@@ -867,6 +868,132 @@ DOCUMENTATION :: END
 
     $("#refresh-history-list").click(function () {
         history_table.draw();
+    });
+</script>
+% endif
+% if data['media_type'] in ('show', 'season', 'artist', 'album', 'photo_album', 'collection', 'playlist'):
+<script>
+    $.ajax({
+        url: 'get_item_children',
+        type: 'GET',
+        async: true,
+        data: {
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"
+        },
+        complete: function(xhr, status) {
+            $("#children-list").html(xhr.responseText);
+        }
+    });
+</script>
+% endif
+% if data['media_type'] == 'collection':
+<script>
+    $.ajax({
+        url: 'get_item_children_related',
+        type: 'GET',
+        async: true,
+        data: {
+            rating_key: "${data['rating_key']}",
+            title: "${data['title']}"
+        },
+        complete: function(xhr, status) {
+            $("#collection-related-list-container").html(xhr.responseText).show();
+        }
+    });
+</script>
+% endif
+<script>
+    $(document).ready(function () {
+        // Javascript to enable link to tab
+        var hash = document.location.hash;
+        var prefix = "tab_";
+        if (hash) {
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+        }
+
+        // Change hash for page-reload
+        $('.nav-list a').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash.replace("#", "#" + prefix);
+        });
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    });
+
+    var airdate = $("#airdate")
+    var runtime = $("#runtime")
+    airdate.html(moment(airdate.text()).format('MMM DD, YYYY'));
+    runtime.html(humanDuration(runtime.text(), runtime.data('sig')));
+
+    $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
+    $('#channel-icon').popover({
+        selector: '[data-toggle=popover]',
+        html: true,
+        container: 'body',
+        trigger: 'hover',
+        placement: 'right',
+        template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+        content: function () {
+            return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
+        }
+    });
+</script>
+% if _session['user_group'] == 'admin':
+<script>
+    $("#toggle-export-modal").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: {
+                section_id: $(this).data('section_id'),
+                rating_key: $(this).data('rating_key'),
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_export_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    rating_key: "${data['rating_key']}"
+                };
+            }
+        };
+        export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);
+        export_table.columns([2, 7]).visible(false);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
+    }
+
+    $(document).ready(function () {
+        if ($('#tabs-history').length) {
+            $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+                if (typeof(export_table) === 'undefined') {
+                    loadExportTable();
+                }
+            });
+        } else {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
     });
 
     $('#row-edit-mode').on('click', function() {
@@ -928,135 +1055,12 @@ DOCUMENTATION :: END
             });
         });
     });
-</script>
-% endif
-% if data['media_type'] in ('show', 'season', 'artist', 'album', 'photo_album', 'collection', 'playlist'):
-<script>
-    $.ajax({
-        url: 'get_item_children',
-        type: 'GET',
-        async: true,
-        data: {
-            rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"
-        },
-        complete: function(xhr, status) {
-            $("#children-list").html(xhr.responseText);
-        }
-    });
-</script>
-% endif
-% if data['media_type'] == 'collection':
-<script>
-    $.ajax({
-        url: 'get_item_children_related',
-        type: 'GET',
-        async: true,
-        data: {
-            rating_key: "${data['rating_key']}",
-            title: "${data['title']}"
-        },
-        complete: function(xhr, status) {
-            $("#collection-related-list-container").html(xhr.responseText).show();
-        }
-    });
-</script>
-% endif
-<script>
-    $(document).ready(function () {
-        // Javascript to enable link to tab
-        var hash = document.location.hash;
-        var prefix = "tab_";
-        if (hash) {
-            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
-        }
-
-        // Change hash for page-reload
-        $('.nav-list a').on('shown.bs.tab', function (e) {
-            window.location.hash = e.target.hash.replace("#", "#" + prefix);
-        });
-    });
-
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-    });
 
     $('.metadata-xml').on('tripleclick', function () {
         openPlexXML("/library/metadata/${data['rating_key']}");
     });
-
-    var airdate = $("#airdate")
-    var runtime = $("#runtime")
-    airdate.html(moment(airdate.text()).format('MMM DD, YYYY'));
-    runtime.html(humanDuration(runtime.text(), runtime.data('sig')));
-
-    $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
-    $('#channel-icon').popover({
-        selector: '[data-toggle=popover]',
-        html: true,
-        container: 'body',
-        trigger: 'hover',
-        placement: 'right',
-        template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
-        content: function () {
-            return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
-        }
-    });
-
-    $("#toggle-export-modal").click(function() {
-        $.ajax({
-            url: 'export_metadata_modal',
-            data: {
-                section_id: $(this).data('section_id'),
-                rating_key: $(this).data('rating_key'),
-                media_type: $(this).data('media_type'),
-                sub_media_type: $(this).data('sub_media_type')
-            },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#export-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    function loadExportTable() {
-        // Build export table
-        export_table_options.ajax = {
-            url: 'get_export_list',
-            type: 'POST',
-            data: function ( d ) {
-                return {
-                    json_data: JSON.stringify( d ),
-                    rating_key: "${data['rating_key']}"
-                };
-            }
-        };
-        export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);
-        export_table.columns([2, 7]).visible(false);
-
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export');
-
-        clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
-    }
-
-    $(document).ready(function () {
-        if ($('#tabs-history').length) {
-            $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
-                if (typeof(export_table) === 'undefined') {
-                    loadExportTable();
-                }
-            });
-        } else {
-            loadExportTable();
-        }
-    });
-
-    $("#refresh-export-table").click(function () {
-        export_table.draw();
-    });
 </script>
+% endif
 % if data.get('poster_url'):
 <script>
     $('#hosted-poster').popover({

@@ -57,6 +57,22 @@ def get_session_user_id():
     _session = get_session_info()
     return str(_session['user_id']) if _session['user_group'] == 'guest' and _session['user_id'] else None
 
+
+def get_session_user_token():
+    """
+    Returns the user's server_token for the current logged in session
+    """
+    _session = get_session_info()
+
+    if _session['user_group'] == 'guest' and _session['user_id']:
+        session_user_tokens = users.Users().get_tokens(_session['user_id'])
+        user_token = session_user_tokens['server_token']
+    else:
+        user_token = plexpy.CONFIG.PMS_TOKEN
+
+    return user_token
+
+
 def get_session_shared_libraries():
     """
     Returns a tuple of section_id for the current logged in session

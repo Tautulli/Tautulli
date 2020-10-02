@@ -90,11 +90,13 @@ DOCUMENTATION :: END
                                 <ul class="nav nav-list nav-pills" role="tablist">
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
                                     <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                                    % if _session['user_group'] == 'admin':
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
+                                    % if _session['user_group'] == 'admin':
                                     <li><a href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    % endif
                                     <li><a href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
                                     <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    % if _session['user_group'] == 'admin':
                                     <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
@@ -307,6 +309,7 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % endif
                     <div role="tabpanel" class="tab-pane" id="tabs-collections">
                         <div class="container-fluid">
                             <div class="row">
@@ -401,6 +404,7 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
                     <div role="tabpanel" class="tab-pane" id="tabs-export">
                         <div class="container-fluid">
                             <div class="row">
@@ -521,6 +525,9 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <% from plexpy.common import LIVE_TV_SECTION_ID %>
+<%
+    history_user_id = '' if _session['user_group'] == 'admin' else _session['user_id']
+%>
 <script>
     % if str(data['section_id']).isdigit():
     var section_id = ${data['section_id']};
@@ -547,6 +554,8 @@ DOCUMENTATION :: END
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
     });
 
+    $(".inactive-library-tooltip").tooltip();
+
     function loadHistoryTable() {
         // Build watch history table
         history_table_options.ajax = {
@@ -556,7 +565,7 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         };
@@ -576,44 +585,6 @@ DOCUMENTATION :: END
 
     $("#refresh-history-list").click(function () {
         history_table.draw();
-    });
-
-    $(".inactive-library-tooltip").tooltip();
-
-    % if _session['user_group'] == 'admin':
-    function loadMediaInfoTable() {
-        // Build media info table
-        media_info_table_options.ajax = {
-            url: 'get_library_media_info',
-            type: 'POST',
-            data: function ( d ) {
-                return {
-                    json_data: JSON.stringify( d ),
-                    section_id: section_id,
-                    refresh: refresh_table
-                };
-            }
-        };
-        media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
-
-        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-media-info');
-
-        clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
-    }
-
-    $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
-        if (typeof(media_info_table) === 'undefined') {
-            loadMediaInfoTable();
-        }
-    });
-
-    $("#refresh-media-info-table").click(function () {
-        media_info_child_table = {};
-        refresh_table = true;
-        refresh_child_tables = true;
-        media_info_table.draw();
-        refresh_table = false;
     });
 
     function loadCollectionsTable() {
@@ -675,107 +646,6 @@ DOCUMENTATION :: END
     $("#refresh-playlists-table").click(function () {
         playlists_table.draw();
     });
-
-    function loadExportTable() {
-        // Build export table
-        export_table_options.ajax = {
-            url: 'get_export_list',
-            type: 'POST',
-            data: function ( d ) {
-                return {
-                    json_data: JSON.stringify( d ),
-                    section_id: section_id
-                };
-            }
-        };
-        export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
-        export_table.columns([7]).visible(false);
-
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export');
-
-        clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
-    }
-
-    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
-        if (typeof(export_table) === 'undefined') {
-            loadExportTable();
-        }
-    });
-
-    $("#refresh-export-table").click(function () {
-        export_table.draw();
-    });
-
-    $("#edit-library-tooltip").tooltip();
-
-    // Load edit library modal
-    $("#toggle-edit-library-modal").click(function() {
-        $("#edit-library-tooltip").tooltip('hide');
-        $.ajax({
-            url: 'edit_library_dialog',
-            data: { section_id: section_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#edit-library-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    $(".export-button").click(function() {
-        $.ajax({
-            url: 'export_metadata_modal',
-            data: {
-                section_id: $(this).data('section_id'),
-                media_type: $(this).data('media_type'),
-                sub_media_type: $(this).data('sub_media_type'),
-                library_export: $(this).data('library_export')
-            },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#export-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    $('#row-edit-mode').on('click', function() {
-        $('#row-edit-mode-alert').fadeIn(200);
-
-        if ($(this).hasClass('active')) {
-            if (history_to_delete.length > 0) {
-                $('#deleteCount').text(history_to_delete.length);
-                $('#confirm-modal-delete').modal();
-                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                    $.ajax({
-                        url: 'delete_history_rows',
-                        type: 'POST',
-                        data: { row_ids: history_to_delete.join(',') },
-                        async: true,
-                        success: function (data) {
-                            var msg = "History deleted";
-                            showMsg(msg, false, true, 2000);
-                            history_table.draw();
-                        }
-                    });
-                });
-            }
-
-            $('.delete-control').each(function () {
-                $(this).addClass('hidden');
-                $('#row-edit-mode-alert').fadeOut(200);
-            });
-
-        } else {
-            history_to_delete = [];
-            $('.delete-control').each(function() {
-                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                $(this).removeClass('hidden');
-            });
-        }
-    });
-    % endif
 
     function recentlyWatched() {
         // Populate recently watched
@@ -927,5 +797,143 @@ DOCUMENTATION :: END
 
     });
 </script>
+% if _session['user_group'] == 'admin':
+<script>
+    function loadMediaInfoTable() {
+        // Build media info table
+        media_info_table_options.ajax = {
+            url: 'get_library_media_info',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id,
+                    refresh: refresh_table
+                };
+            }
+        };
+        media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-media-info');
+
+        clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
+    }
+
+    $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
+        if (typeof(media_info_table) === 'undefined') {
+            loadMediaInfoTable();
+        }
+    });
+
+    $("#refresh-media-info-table").click(function () {
+        media_info_child_table = {};
+        refresh_table = true;
+        refresh_child_tables = true;
+        media_info_table.draw();
+        refresh_table = false;
+    });
+
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_export_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
+            }
+        };
+        export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
+        export_table.columns([7]).visible(false);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
+    }
+
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
+    });
+
+    $("#edit-library-tooltip").tooltip();
+
+    // Load edit library modal
+    $("#toggle-edit-library-modal").click(function() {
+        $("#edit-library-tooltip").tooltip('hide');
+        $.ajax({
+            url: 'edit_library_dialog',
+            data: { section_id: section_id },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#edit-library-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $(".export-button").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: {
+                section_id: $(this).data('section_id'),
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type'),
+                library_export: $(this).data('library_export')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $('#row-edit-mode').on('click', function() {
+        $('#row-edit-mode-alert').fadeIn(200);
+
+        if ($(this).hasClass('active')) {
+            if (history_to_delete.length > 0) {
+                $('#deleteCount').text(history_to_delete.length);
+                $('#confirm-modal-delete').modal();
+                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
+                    $.ajax({
+                        url: 'delete_history_rows',
+                        type: 'POST',
+                        data: { row_ids: history_to_delete.join(',') },
+                        async: true,
+                        success: function (data) {
+                            var msg = "History deleted";
+                            showMsg(msg, false, true, 2000);
+                            history_table.draw();
+                        }
+                    });
+                });
+            }
+
+            $('.delete-control').each(function () {
+                $(this).addClass('hidden');
+                $('#row-edit-mode-alert').fadeOut(200);
+            });
+
+        } else {
+            history_to_delete = [];
+            $('.delete-control').each(function() {
+                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                $(this).removeClass('hidden');
+            });
+        }
+    });
+</script>
+% endif
 % endif
 </%def>
