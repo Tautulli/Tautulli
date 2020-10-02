@@ -40,7 +40,7 @@ playlists_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var type = MEDIA_TYPE_HEADERS[rowData['playlistType']] || '';
-                    if (rowData['leafCount'] == 1) {
+                    if (rowData['leafCount'] === 1) {
                         type = type.slice(0, -1);
                     }
                     $(td).html(cellData + ' ' + type);

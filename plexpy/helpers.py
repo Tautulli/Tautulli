@@ -581,7 +581,9 @@ def process_json_kwargs(json_kwargs):
     return params
 
 
-def process_datatable_rows(rows, json_data, default_sort, sort_keys=None):
+def process_datatable_rows(rows, json_data, default_sort, search_cols=None, sort_keys=None):
+    if search_cols is None:
+        search_cols = []
     if sort_keys is None:
         sort_keys = {}
 
@@ -592,7 +594,7 @@ def process_datatable_rows(rows, json_data, default_sort, sort_keys=None):
     # Search results
     search_value = json_data['search']['value'].lower()
     if search_value:
-        searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
+        searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']] + search_cols
         for row in rows:
             for k, v in row.items():
                 if k in sort_keys:

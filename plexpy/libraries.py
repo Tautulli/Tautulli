@@ -201,6 +201,8 @@ def get_collections_list(section_id=None, **kwargs):
     # Get datatables JSON data
     json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
 
+    search_cols = ['title']
+
     sort_keys = {
         'collectionMode': {
             -1: 'Library Default',
@@ -215,7 +217,8 @@ def get_collections_list(section_id=None, **kwargs):
     }
 
     results = helpers.process_datatable_rows(
-        collections, json_data, default_sort='titleSort', sort_keys=sort_keys)
+        collections, json_data, default_sort='titleSort',
+        search_cols=search_cols, sort_keys=sort_keys)
 
     data = {
         'recordsFiltered': results['filtered_count'],
