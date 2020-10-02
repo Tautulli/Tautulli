@@ -443,6 +443,7 @@ DOCUMENTATION :: END
                                                     <th align="left" id="file_format">File Format</th>
                                                     <th align="left" id="metadata_level">Metadata Level</th>
                                                     <th align="left" id="media_info_level">Media Info Level</th>
+                                                    <th align="left" id="media_info_level">Custom Fields</th>
                                                     <th align="left" id="file_size">File Size</th>
                                                     <th align="left" id="complete">Download</th>
                                                     <th align="left" id="delete">Delete</th>
@@ -688,6 +689,7 @@ DOCUMENTATION :: END
             }
         };
         export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
+        export_table.columns([7]).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('#button-bar-export');

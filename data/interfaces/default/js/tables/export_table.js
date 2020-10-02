@@ -118,6 +118,17 @@ export_table_options = {
         },
         {
             "targets": [7],
+            "data": "custom_fields",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData.replace(/,/g, ', '));
+                }
+            },
+            "width": "6%",
+            "className": "datatable-wrap"
+        },
+        {
+            "targets": [8],
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '' && cellData !== null) {
@@ -128,7 +139,7 @@ export_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": [9],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1 && rowData['exists']) {
@@ -145,7 +156,7 @@ export_table_options = {
             "className": "export_download"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['complete'] !== 0) {
