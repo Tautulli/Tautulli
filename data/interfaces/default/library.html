@@ -87,15 +87,15 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="user-info-nav" role="tablist">
+                                <ul class="nav-list nav-pills" role="tablist">
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
-                                    <li><a id="history-tab-btn" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
+                                    <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     % if _session['user_group'] == 'admin':
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
-                                    <li><a id="media-info-tab-btn" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
-                                    <li><a id="collections-tab-btn" href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
-                                    <li><a id="playlists-tab-btn" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
-                                    <li><a id="export-tab-btn" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                                    <li><a href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    <li><a href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
+                                    <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
                                 </ul>
@@ -245,19 +245,18 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
                     <div role="tabpanel" class="tab-pane" id="tabs-mediainfo">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-12">
                                     % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                     <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px;">
-                                    % else:
-                                    <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px; display: none;">
-                                    % endif
                                         <i class="fa fa-refresh fa-spin"></i>&nbsp; Tautulli is calculating the file sizes for the library's media info. This could take a few minutes depending on the size of your library.
                                         <br />
                                         You may leave this page and check back later.
                                     </div>
+                                    % endif
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
@@ -456,6 +455,7 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % endif
                 </div>
             </div>
         </div>
@@ -897,11 +897,11 @@ DOCUMENTATION :: END
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.user-info-nav a[href='+hash.replace(prefix,"")+']').tab('show').trigger('show.bs.tab');
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
-        $('.user-info-nav a').on('shown.bs.tab', function (e) {
+        $('.nav-list a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash.replace("#", "#" + prefix);
         });
 

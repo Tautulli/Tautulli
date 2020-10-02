@@ -67,7 +67,7 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="user-info-nav" role="tablist">
+                                <ul class="nav-list nav-pills" role="tablist">
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
                                     <li><a id="history-tab-btn" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     <li><a id="sync-tab-btn" href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
@@ -709,11 +709,11 @@ DOCUMENTATION :: END
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.user-info-nav a[href='+hash.replace(prefix,"")+']').tab('show').trigger('show.bs.tab');
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
-        $('.user-info-nav a').on('shown.bs.tab', function (e) {
+        $('.nav-list a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash.replace("#", "#" + prefix);
         });
 

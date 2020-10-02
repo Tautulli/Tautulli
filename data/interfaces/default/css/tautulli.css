@@ -2119,6 +2119,10 @@ a:hover .item-children-poster {
     width: 60px;
     margin-right: 20px;
 }
+.nav-list {
+    list-style: none;
+    padding: 0;
+}
 #new_title h3 {
     color: #f9be03;
     font-size: 14px;
@@ -2198,25 +2202,9 @@ li.advanced-setting {
 .user-info-nav {
     margin-top: 15px;
 }
-.user-info-nav > .active > a {
-    color: #cc7b19;
-}
 .nav-tabs > .active > a:hover,
 .nav-tabs > .active > a:focus {
     color: #e9a049;
-}
-.user-info-nav a:hover {
-    color: #e9a049;
-    text-decoration: none;
-}
-.user-info-nav ul {
-    list-style: none;
-    padding: 0;
-}
-.user-info-nav li {
-    float: left;
-    margin-left: 10px;
-    margin-right: 10px;
 }
 .user-overview-stats-wrapper {
 }
