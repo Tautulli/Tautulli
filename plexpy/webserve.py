@@ -2549,7 +2549,10 @@ class WebInterface(object):
         if user_id == 'null':
             user_id = None
 
-        plex_tv = plextv.PlexTV()
+        if get_session_user_id():
+            user_id = get_session_user_id()
+
+        plex_tv = plextv.PlexTV(token=plexpy.CONFIG.PMS_TOKEN)
         result = plex_tv.get_synced_items(machine_id=machine_id, user_id_filter=user_id)
 
         if result:
