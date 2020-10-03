@@ -47,19 +47,19 @@ else:
 
 
 class Export(object):
-    # True/False for allowed image export
+    # True/False for allowed (thumb, art) image export
     MEDIA_TYPES = {
-        'movie': True,
-        'show': True,
-        'season': True,
-        'episode': False,
-        'artist': True,
-        'album': True,
-        'track': True,
-        'photoalbum': False,
-        'photo': False,
-        'collection': True,
-        'playlist': True
+        'movie': (True, True),
+        'show': (True, True),
+        'season': (True, False),
+        'episode': (False, False),
+        'artist': (True, True),
+        'album': (True, False),
+        'track': (False, False),
+        'photoalbum': (False, False),
+        'photo': (False, False),
+        'collection': (True, True),
+        'playlist': (True, True)
     }
     PLURAL_MEDIA_TYPES = {
         'movie': 'movies',
@@ -410,6 +410,7 @@ class Export(object):
             _season_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -448,6 +449,7 @@ class Export(object):
             _episode_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artFile': lambda o: self.get_image(o, 'art'),
                 'chapterSource': None,
                 'contentRating': None,
                 'directors': {
@@ -612,6 +614,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
+                'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -1550,8 +1553,8 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        self.include_thumb = self.include_thumb and self.MEDIA_TYPES[self.media_type]
-        self.include_art = self.include_art and self.MEDIA_TYPES[self.media_type]
+        self.include_thumb = self.include_thumb and self.MEDIA_TYPES[self.media_type][0]
+        self.include_art = self.include_art and self.MEDIA_TYPES[self.media_type][1]
         self._process_custom_fields()
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
@@ -1718,10 +1721,10 @@ class Export(object):
                 export_attrs_set.update(attrs)
 
         if self.include_thumb:
-            if 'thumbFile' in media_attrs:
+            if 'thumbFile' in media_attrs and self.MEDIA_TYPES[media_type][0]:
                 export_attrs_set.add('thumbFile')
         if self.include_art:
-            if 'artFile' in media_attrs:
+            if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
 
         plural_media_type = self.PLURAL_MEDIA_TYPES.get(media_type)
