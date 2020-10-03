@@ -32,6 +32,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 [![Python](https://img.shields.io/badge/python-2.7.17,%203.6,%203.7,%203.8-blue?style=flat-square)](https://python.org/downloads)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
 [![Docker Stars](https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
+[![Downloads](https://img.shields.io/github/downloads/Tautulli/Tautulli/total?style=flat-square)](https://github.com/Tautulli/Tautulli/releases/latest)
 
 | Status | Branch: `master` | Branch: `beta` | Branch: `nightly` |
 | --- | --- | --- | --- |
