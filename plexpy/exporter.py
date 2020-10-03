@@ -91,7 +91,7 @@ class Export(object):
     }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
-    FILE_FORMATS = ('csv', 'json', 'xml')
+    FILE_FORMATS = ('csv', 'json', 'xml', 'm3u8')
     EXPORT_TYPES = ('all', 'collection', 'playlist')
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
@@ -101,7 +101,7 @@ class Export(object):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
-        self.file_format = file_format
+        self.file_format = str(file_format).lower()
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
         self.include_thumb = include_thumb
@@ -119,6 +119,14 @@ class Export(object):
         self.export_id = None
         self.file_size = None
         self.success = False
+
+        # Reset export options for m3u8
+        if self.file_format == 'm3u8':
+            self.metadata_level = 1
+            self.media_info_level = 1
+            self.include_thumb = False
+            self.include_art = False
+            self.custom_fields = ''
 
     def return_attrs(self, media_type, flatten=False):
         # o: current object
@@ -1629,9 +1637,14 @@ class Export(object):
                     outfile.write(json_data)
 
             elif self.file_format == 'xml':
-                xml_data = helpers.dict2xml({self.media_type: result}, root_node='export')
+                xml_data = helpers.dict_to_xml({self.media_type: result}, root_node='export')
                 with open(filepath, 'w', encoding='utf-8') as outfile:
                     outfile.write(xml_data)
+
+            elif self.file_format == 'm3u8':
+                m3u8_data = self.dict_to_m3u8(result)
+                with open(filepath, 'w', encoding='utf-8') as outfile:
+                    outfile.write(m3u8_data)
 
             self.file_size = os.path.getsize(filepath)
 
@@ -1772,6 +1785,41 @@ class Export(object):
     @staticmethod
     def is_media_info_attr(attr):
         return attr.startswith('media.') or attr == 'locations'
+
+    def dict_to_m3u8(self, data):
+        items = self._get_m3u8_items(data)
+
+        m3u8 = '#EXTM3U\n'
+        m3u8 += '# Playlist: {}\n\n'.format(self.filename)
+        m3u8_item_template = '# ratingKey: {ratingKey}\n#EXTINF:{duration},{title}\n{location}\n'
+        m3u8_items = []
+
+        for item in items:
+            m3u8_items.append(m3u8_item_template.format(**item))
+
+        m3u8 = m3u8 + '\n'.join(m3u8_items)
+
+        return m3u8
+
+    def _get_m3u8_items(self, data):
+        items = []
+
+        for d in data:
+            if 'locations' in d:
+                location = {
+                    'ratingKey': d['ratingKey'],
+                    'duration': d['duration'],
+                    'title': d['title'],
+                    'location': d['locations'][0]
+                }
+                items.append(location)
+
+            child_media_type = self.CHILD_MEDIA_TYPES[d['type']]
+            if child_media_type:
+                child_locations = self._get_m3u8_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
+                items.extend(child_locations)
+
+        return items
 
 
 def get_export(export_id):

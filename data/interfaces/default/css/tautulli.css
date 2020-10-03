@@ -3491,6 +3491,9 @@ pre::-webkit-scrollbar-thumb {
 .selectize-input input[type='text'] {
     height: 20px;
 }
+.selectize-input.disabled, .selectize-input.disabled * {
+    cursor: not-allowed !important;
+}
 .small-muted {
     font-size: small;
     color: #777;

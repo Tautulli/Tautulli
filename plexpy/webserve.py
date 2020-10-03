@@ -6707,6 +6707,9 @@ class WebInterface(object):
             elif result['file_format'] == 'xml':
                 return serve_file(filepath, name=result['filename'], content_type='application/xml;charset=UTF-8')
 
+            elif result['file_format'] == 'm3u8':
+                return serve_file(filepath, name=result['filename'], content_type='text/plain;charset=UTF-8')
+
         else:
             if result and result.get('complete') == 0:
                 msg = 'Export is still being processed.'

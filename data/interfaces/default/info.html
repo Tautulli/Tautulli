@@ -989,14 +989,14 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
     }
 
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
     $(document).ready(function () {
-        if ($('#tabs-history').length) {
-            $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
-                if (typeof(export_table) === 'undefined') {
-                    loadExportTable();
-                }
-            });
-        } else {
+        if (!($('#tabs-history').length)) {
             loadExportTable();
         }
     });
