@@ -2121,6 +2121,7 @@ a:hover .item-children-poster {
     margin-right: 20px;
 }
 .nav-list {
+    float: left;
     list-style: none;
     padding: 0;
 }

@@ -540,6 +540,49 @@ DOCUMENTATION :: END
                             <li class="${export_active}"><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                             % endif
                         </ul>
+                        <div class="button-bar">
+                            % if _session['user_group'] == 'admin':
+                            % if source == 'history':
+                            <div class="btn-group">
+                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
+                                    <i class="fa fa-wrench"></i> Fix Metadata
+                                </a>
+                            </div>
+                            % endif
+                            % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
+                            <div class="btn-group">
+                                <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-lookup-info"
+                                        data-id="${data['grandparent_rating_key'] if data['media_type'] == 'episode' else data['parent_rating_key'] if data['media_type'] == 'season' else data['rating_key']}"
+                                        data-title="${data['grandparent_title'] if data['media_type'] == 'episode' else data['parent_title'] if data['media_type'] == 'season' else data['title']}">
+                                    <i class="fa fa-search"></i> Delete Lookup Info
+                                </button>
+                            </div>
+                            % endif
+                            % if data.get('poster_url'):
+                            <div class="btn-group" id="hosted-poster">
+                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
+                                % else:
+                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                                % endif
+                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-hosted-poster"
+                                            data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}"
+                                            data-title="${data["poster_title"]}">
+                                        <i class="fa fa-picture-o"></i> Delete ${data['img_service']} Poster
+                                    </button>
+                                </span>
+                            </div>
+                            % endif
+                            % if not data['live']:
+                            <div class="btn-group">
+                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
+                                        data-id="${data['rating_key']}">
+                                    <i class="fa fa-bell"></i> Recently Added Notification
+                                </button>
+                            </div>
+                            % endif
+                            % endif
+                        </div>
                     </div>
                 </div>
                 % endif
@@ -565,45 +608,6 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-trash-o"></i> Delete mode
                                                 </button>&nbsp;
                                             </div>
-                                            % if source == 'history':
-                                            <div class="btn-group">
-                                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
-                                                    <i class="fa fa-wrench"></i> Fix Metadata
-                                                </a>
-                                            </div>
-                                            % endif
-                                            % if data.get('tvmaze_id') or data.get('themoviedb_id') or data.get('musicbrainz_id'):
-                                            <div class="btn-group">
-                                                <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-lookup-info"
-                                                        data-id="${data['grandparent_rating_key'] if data['media_type'] == 'episode' else data['parent_rating_key'] if data['media_type'] == 'season' else data['rating_key']}"
-                                                        data-title="${data['grandparent_title'] if data['media_type'] == 'episode' else data['parent_title'] if data['media_type'] == 'season' else data['title']}">
-                                                    <i class="fa fa-search"></i> Delete Lookup Info
-                                                </button>
-                                            </div>
-                                            % endif
-                                            % if data.get('poster_url'):
-                                            <div class="btn-group" id="hosted-poster">
-                                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
-                                                % else:
-                                                <span class="hosted-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
-                                                % endif
-                                                    <button class="btn btn-danger btn-edit" data-toggle="modal" aria-pressed="false" autocomplete="off" id="delete-hosted-poster"
-                                                            data-id="${data['parent_rating_key'] if data['media_type'] in ('episode', 'track') else data['rating_key']}"
-                                                            data-title="${data["poster_title"]}">
-                                                        <i class="fa fa-picture-o"></i> Delete ${data['img_service']} Poster
-                                                    </button>
-                                                </span>
-                                            </div>
-                                            % endif
-                                            % if not data['live']:
-                                            <div class="btn-group">
-                                                <button class="btn btn-dark" data-toggle="modal" aria-pressed="false" autocomplete="off" id="send-recently-added-notification"
-                                                        data-id="${data['rating_key']}">
-                                                    <i class="fa fa-bell"></i> Recently Added Notification
-                                                </button>
-                                            </div>
-                                            % endif
                                             % endif
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
