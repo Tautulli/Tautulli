@@ -772,7 +772,7 @@ class MovieSection(LibrarySection):
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
         key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key)
+        return self.fetchItems(key, **kwargs)
 
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Movie library section as sync item for specified device.
@@ -857,7 +857,7 @@ class ShowSection(LibrarySection):
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
         key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key)
+        return self.fetchItems(key, **kwargs)
 
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Show library section as sync item for specified device.
@@ -943,7 +943,7 @@ class MusicSection(LibrarySection):
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
         key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key)
+        return self.fetchItems(key, **kwargs)
 
     def sync(self, bitrate, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
@@ -1009,7 +1009,7 @@ class PhotoSection(LibrarySection):
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
         key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key)
+        return self.fetchItems(key, **kwargs)
 
     def sync(self, resolution, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
