@@ -413,6 +413,7 @@ Export library or media metadata to a file
 ```
 Required parameters:
     section_id (int):          The section id of the library items to export, OR
+    user_id (int):             The user id of the playlist items to export, OR
     rating_key (int):          The rating key of the media item to export
 
 Optional parameters:
@@ -423,7 +424,7 @@ Optional parameters:
     include_art (bool):        True to export background artwork images
     custom_fields (str):       Comma separated list of custom fields to export
                                in addition to the export level selected
-    library_export (str):      collection or playlist for library export,
+    export_type (str):         collection or playlist for library/user export,
                                otherwise default to all library items
 
 Returns:
@@ -716,7 +717,7 @@ Get the data on the Tautulli collections tables.
 
 ```
 Required parameters:
-    section_id (str):               The id of the Plex library section, OR
+    section_id (str):               The id of the Plex library section
 
 Optional parameters:
     None
@@ -781,6 +782,7 @@ Get the data on the Tautulli export tables.
 ```
 Required parameters:
     section_id (str):               The id of the Plex library section, OR
+    user_id (str):                  The id of the Plex user, OR
     rating_key (str):               The rating key of the exported item
 
 Optional parameters:
@@ -1211,7 +1213,7 @@ Returns:
           "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
           "username": "LordCommanderSnow"
           },
-         {"platform_type": "DanyKhaleesi69",
+         {"friendly_name": "DanyKhaleesi69",
           "total_plays": 42,
           "user_id": 8008135,
           "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
@@ -1704,7 +1706,8 @@ Get the data on the Tautulli playlists tables.
 
 ```
 Required parameters:
-    section_id (str):               The id of the Plex library section, OR
+    section_id (str):               The section id of the Plex library, OR
+    user_id (str):                  The user id of the Plex user
 
 Optional parameters:
     None

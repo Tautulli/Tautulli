@@ -6637,7 +6637,7 @@ class WebInterface(object):
             ```
             Required parameters:
                 section_id (int):          The section id of the library items to export, OR
-                user_id (int):             The user id of the playlist items to export,
+                user_id (int):             The user id of the playlist items to export, OR
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
