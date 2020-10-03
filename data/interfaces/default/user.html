@@ -377,6 +377,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-ip-address-button" id="refresh-ip-address-list"><i class="fa fa-refresh"></i> Refresh IP addresses</button>
                                             </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-ip-address"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -637,6 +638,9 @@ DOCUMENTATION :: END
             }
         };
         user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
+
+        var colvis_user_ip = new $.fn.dataTable.ColVis( user_ip_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark'} );
+        $( colvis_user_ip.button() ).appendTo('#button-bar-ip-address');
 
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
     }
