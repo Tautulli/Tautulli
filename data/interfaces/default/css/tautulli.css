@@ -1971,7 +1971,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     overflow: auto;
 }
 .item-children-instance.max-height {
-    max-height: 875px;
+    max-height: 700px;
 }
 .item-children-instance li {
     float: left;

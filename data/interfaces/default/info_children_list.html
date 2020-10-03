@@ -32,7 +32,7 @@ DOCUMENTATION :: END
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
-    <% max_height ='max-height' if data['children_type'] == 'photo' or media_type == 'playlist' else '' %>
+    <% max_height ='max-height' if data['children_type'] in ('track', 'photo') or media_type == 'playlist' else '' %>
     <ul class="item-children-instance ${max_height} list-unstyled">
         % for child in data['children_list']:
         % if child['rating_key']:
@@ -129,7 +129,11 @@ DOCUMENTATION :: END
                     <span class="item-children-list-item-index">${child['media_index']}</span>
                     <span class="item-children-list-item-title">
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
+                        </a>
                         % if child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
                         % endif
@@ -151,7 +155,11 @@ DOCUMENTATION :: END
                         % else:
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
                         % endif
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
+                        </a>
                     </span>
                     % if child['duration']:
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
@@ -168,42 +176,58 @@ DOCUMENTATION :: END
                         % if child['media_type'] == 'movie':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            ${child['title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                                ${child['title']}
+                            </span>
                         </a>
                         <span class="text-muted"> (${child['year']})</span>
                         % elif child['media_type'] == 'episode':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>
                         <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                            ${child['grandparent_title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                                ${child['grandparent_title']}
+                            </span>
                         </a> -
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            ${child['title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                                ${child['title']}
+                            </span>
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">S${child['parent_media_index']}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
                         % elif child['media_type'] == 'track':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            ${child['title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
                         </a> -
                         <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                            ${child['grandparent_title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['grandparent_title']}
+                            </span>
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % elif child['media_type'] == 'photo':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            ${child['title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
                         </a>
                             % if child['grandparent_title']:
                             - <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                                ${child['grandparent_title']}
+                                <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                    ${child['grandparent_title']}
+                                </span>
                             </a>
                             % endif
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % elif child['media_type'] == 'clip':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Video"><i class="fa fa-video-camera fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            ${child['title']}
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % endif
@@ -225,6 +249,17 @@ DOCUMENTATION :: END
     $('body').tooltip({
         selector: '[data-toggle="tooltip"]',
         container: 'body'
+    });
+    $('body').popover({
+        selector: '[data-toggle="popover"]',
+        html: true,
+        container: 'body',
+        trigger: 'hover',
+        placement: 'right',
+        template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+        content: function () {
+            return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
+        }
     });
 </script>
 % endif
