@@ -33,6 +33,7 @@ if plexpy.PYTHON2:
     import plextv
     import pmsconnect
     import session
+    import users
     from plex import Plex
 else:
     from plexpy import common
@@ -43,6 +44,7 @@ else:
     from plexpy import plextv
     from plexpy import pmsconnect
     from plexpy import session
+    from plexpy import users
     from plexpy.plex import Plex
 
 
@@ -234,7 +236,6 @@ def get_collections_list(section_id=None, **kwargs):
 
 def get_playlists(section_id=None, user_id=None):
     if user_id and not session.get_session_user_id():
-        import users
         user_tokens = users.Users().get_tokens(user_id=user_id)
         plex_token = user_tokens['server_token']
     else:
