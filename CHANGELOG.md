@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.5.6 (2020-10-02)
+
+* Activity:
+  * Change: Renamed container "Transcode" to "Converting" on activity cards.
+* Notifications:
+  * New: Added a silent notification option for Telegram. (Thanks @JohnnyKing94)
+  * New: Added container_decision notification parameter.
+  * New: Added notification trigger for Playback Error.
+  * New: Added remote access down notification threshold setting.
+* Newsletter:
+  * Change: Stop flooring newsletter start date.
+* UI:
+  * Fix: Unable to purge history from the library edit modal.
+  * Fix: QR code not showing up for localhost address when trying to register a device.
+  * New: Added library name to the fix metadata modal.
+* API:
+  * New: Added default thumb and art to the Live TV library.
+* Other:
+  * Fix: Synced items not loading for guest access.
+  * New: Schedule some more automatic database optimizations.
+  * Change: Added automatic uninstall before installing to the Windows installer.
+
+
 ## v2.5.5 (2020-09-06)
 
 * Activity:
