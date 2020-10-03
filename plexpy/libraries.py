@@ -33,6 +33,7 @@ if plexpy.PYTHON2:
     import plextv
     import pmsconnect
     import session
+    from plex import Plex
 else:
     from plexpy import common
     from plexpy import database
@@ -42,6 +43,7 @@ else:
     from plexpy import plextv
     from plexpy import pmsconnect
     from plexpy import session
+    from plexpy.plex import Plex
 
 
 def refresh_libraries():
@@ -140,6 +142,163 @@ def has_library_type(section_type):
     args = [section_type]
     result = monitor_db.select_single(query=query, args=args)
     return bool(result)
+
+
+def get_collections(section_id=None):
+    plex = Plex(plexpy.CONFIG.PMS_URL, session.get_session_user_token())
+    library = plex.get_library(section_id)
+
+    if library.type not in ('movie', 'show', 'artist'):
+        return []
+
+    collections = library.collection()
+
+    collections_list = []
+    for collection in collections:
+        collection_mode = collection.collectionMode
+        if collection_mode is None:
+            collection_mode = -1
+
+        collection_sort = collection.collectionSort
+        if collection_sort is None:
+            collection_sort = 0
+
+        collection_dict = {
+            'addedAt': helpers.datetime_to_iso(collection.addedAt),
+            'art': collection.art,
+            'childCount': collection.childCount,
+            'collectionMode': helpers.cast_to_int(collection_mode),
+            'collectionSort': helpers.cast_to_int(collection_sort),
+            'contentRating': collection.contentRating,
+            'guid': collection.guid,
+            'librarySectionID': collection.librarySectionID,
+            'librarySectionTitle': collection.librarySectionTitle,
+            'maxYear': collection.maxYear,
+            'minYear': collection.minYear,
+            'ratingKey': collection.ratingKey,
+            'subtype': collection.subtype,
+            'summary': collection.summary,
+            'thumb': collection.thumb,
+            'title': collection.title,
+            'titleSort': collection.titleSort,
+            'type': collection.type,
+            'updatedAt': helpers.datetime_to_iso(collection.updatedAt)
+        }
+        collections_list.append(collection_dict)
+
+    return collections_list
+
+
+def get_collections_list(section_id=None, **kwargs):
+    if not section_id:
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to get collections: missing section_id.'}
+        return default_return
+
+    collections = get_collections(section_id=section_id)
+
+    # Get datatables JSON data
+    json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
+
+    search_cols = ['title']
+
+    sort_keys = {
+        'collectionMode': {
+            -1: 'Library Default',
+            0: 'Hide collection',
+            1: 'Hide items in this collection',
+            2: 'Show this collection and its items'
+        },
+        'collectionSort': {
+            0: 'Release date',
+            1: 'Alphabetical'
+        }
+    }
+
+    results = helpers.process_datatable_rows(
+        collections, json_data, default_sort='titleSort',
+        search_cols=search_cols, sort_keys=sort_keys)
+
+    data = {
+        'recordsFiltered': results['filtered_count'],
+        'recordsTotal': results['total_count'],
+        'data': results['results'],
+        'draw': int(json_data['draw'])
+    }
+
+    return data
+
+
+def get_playlists(section_id=None, user_id=None):
+    if user_id and not session.get_session_user_id():
+        import users
+        user_tokens = users.Users().get_tokens(user_id=user_id)
+        plex_token = user_tokens['server_token']
+    else:
+        plex_token = session.get_session_user_token()
+
+    if not plex_token:
+        return []
+
+    plex = Plex(plexpy.CONFIG.PMS_URL, plex_token)
+
+    if user_id:
+        playlists = plex.plex.playlists()
+    else:
+        library = plex.get_library(section_id)
+        playlists = library.playlist()
+
+    playlists_list = []
+    for playlist in playlists:
+        playlist_dict = {
+            'addedAt': helpers.datetime_to_iso(playlist.addedAt),
+            'composite': playlist.composite,
+            'duration': playlist.duration,
+            'guid': playlist.guid,
+            'leafCount': playlist.leafCount,
+            'librarySectionID': section_id,
+            'playlistType': playlist.playlistType,
+            'ratingKey': playlist.ratingKey,
+            'smart': playlist.smart,
+            'summary': playlist.summary,
+            'title': playlist.title,
+            'type': playlist.type,
+            'updatedAt': helpers.datetime_to_iso(playlist.updatedAt),
+            'userID': user_id
+        }
+        playlists_list.append(playlist_dict)
+
+    return playlists_list
+
+
+def get_playlists_list(section_id=None, user_id=None, **kwargs):
+    if not section_id and not user_id:
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to get playlists: missing section_id.'}
+        return default_return
+
+    playlists = get_playlists(section_id=section_id, user_id=user_id)
+
+    # Get datatables JSON data
+    json_data = helpers.process_json_kwargs(json_kwargs=kwargs['json_data'])
+
+    results = helpers.process_datatable_rows(
+        playlists, json_data, default_sort='title')
+
+    data = {
+        'recordsFiltered': results['filtered_count'],
+        'recordsTotal': results['total_count'],
+        'data': results['results'],
+        'draw': int(json_data['draw'])
+    }
+
+    return data
 
 
 class Libraries(object):

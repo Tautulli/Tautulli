@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -28,7 +28,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 import datetime
-from functools import wraps
+from functools import reduce, wraps
 import hashlib
 import imghdr
 from future.moves.itertools import islice, zip_longest
@@ -38,6 +38,7 @@ import ipwhois.utils
 from IPy import IP
 import json
 import math
+import operator
 import os
 import re
 import shlex
@@ -242,30 +243,44 @@ def iso_to_datetime(iso):
     return arrow.get(iso).datetime
 
 
-def human_duration(s, sig='dhms'):
+def datetime_to_iso(dt, to_date=False):
+    if isinstance(dt, datetime.datetime):
+        if to_date:
+            dt = dt.date()
+        return dt.isoformat()
+    return dt
 
-    hd = ''
 
-    if str(s).isdigit() and s > 0:
-        d, h = divmod(s, 86400)
-        h, m = divmod(h, 3600)
-        m, s = divmod(m, 60)
+def human_duration(ms, sig='dhms', units='ms'):
+    factors = {'d': 86400000,
+               'h': 3600000,
+               'm': 60000,
+               's': 1000,
+               'ms': 1}
+
+    if str(ms).isdigit() and ms > 0:
+        ms = ms * factors[units]
+
+        d, h = divmod(ms, factors['d'])
+        h, m = divmod(h, factors['h'])
+        m, s = divmod(m, factors['m'])
+        s, ms = divmod(s, factors['s'])
 
         hd_list = []
         if sig >= 'd' and d > 0:
             d = d + 1 if sig == 'd' and h >= 12 else d
-            hd_list.append(str(d) + ' days')
+            hd_list.append(str(d) + ' day' + ('s' if d > 1 else ''))
 
         if sig >= 'dh' and h > 0:
             h = h + 1 if sig == 'dh' and m >= 30 else h
-            hd_list.append(str(h) + ' hrs')
+            hd_list.append(str(h) + ' hr' + ('s' if h > 1 else ''))
 
         if sig >= 'dhm' and m > 0:
             m = m + 1 if sig == 'dhm' and s >= 30 else m
-            hd_list.append(str(m) + ' mins')
+            hd_list.append(str(m) + ' min' + ('s' if m > 1 else ''))
 
         if sig >= 'dhms' and s > 0:
-            hd_list.append(str(s) + ' secs')
+            hd_list.append(str(s) + ' sec' + ('s' if s > 1 else ''))
 
         hd = ' '.join(hd_list)
     else:
@@ -380,6 +395,13 @@ def cleanTitle(title):
     title = title.title()
 
     return title
+
+
+def clean_filename(filename, replace='_'):
+    whitelist = "-_.()[] {}{}".format(string.ascii_letters, string.digits)
+    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+    cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
+    return cleaned_filename
 
 
 def split_path(f):
@@ -557,6 +579,64 @@ def process_json_kwargs(json_kwargs):
         params = json.loads(json_kwargs)
 
     return params
+
+
+def process_datatable_rows(rows, json_data, default_sort, search_cols=None, sort_keys=None):
+    if search_cols is None:
+        search_cols = []
+    if sort_keys is None:
+        sort_keys = {}
+
+    results = []
+
+    total_count = len(rows)
+
+    # Search results
+    search_value = json_data['search']['value'].lower()
+    if search_value:
+        searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']] + search_cols
+        for row in rows:
+            for k, v in row.items():
+                if k in sort_keys:
+                    value = sort_keys[k].get(v, v)
+                else:
+                    value = v
+                value = str(value).lower()
+                if k in searchable_columns and search_value in value:
+                    results.append(row)
+                    break
+    else:
+        results = rows
+
+    filtered_count = len(results)
+
+    # Sort results
+    results = sorted(results, key=lambda k: k[default_sort].lower())
+    sort_order = json_data['order']
+    for order in reversed(sort_order):
+        sort_key = json_data['columns'][int(order['column'])]['data']
+        reverse = True if order['dir'] == 'desc' else False
+        results = sorted(results, key=lambda k: sort_helper(k, sort_key, sort_keys), reverse=reverse)
+
+    # Paginate results
+    results = results[json_data['start']:(json_data['start'] + json_data['length'])]
+
+    data = {
+        'results': results,
+        'total_count': total_count,
+        'filtered_count': filtered_count
+    }
+
+    return data
+
+
+def sort_helper(k, sort_key, sort_keys):
+    v = k[sort_key]
+    if sort_key in sort_keys:
+        v = sort_keys[sort_key].get(k[sort_key], v)
+    if isinstance(v, str):
+        v = v.lower()
+    return v
 
 
 def sanitize_out(*dargs, **dkwargs):
@@ -897,7 +977,7 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     return json.dumps(json_data)
 
 
-def humanFileSize(bytes, si=True):
+def human_file_size(bytes, si=True):
     if str(bytes).isdigit():
         bytes = cast_to_float(bytes)
     else:
@@ -919,7 +999,7 @@ def humanFileSize(bytes, si=True):
         bytes /= thresh
         u += 1
 
-    return "{0:.1f} {1}".format(bytes, units[u])
+    return "{0:.2f} {1}".format(bytes, units[u])
 
 
 def parse_condition_logic_string(s, num_cond=0):
@@ -1151,6 +1231,205 @@ def bool_true(value, return_none=False):
     elif isinstance(value, str) and value.lower() in ('1', 'true', 't', 'yes', 'y', 'on'):
         return True
     return False
+
+
+def get_attrs_to_dict(obj, attrs):
+    d = {}
+
+    for attr, sub in attrs.items():
+        no_attr = False
+
+        if isinstance(obj, dict):
+            value = obj.get(attr, None)
+        else:
+            try:
+                value = getattr(obj, attr)
+            except AttributeError:
+                no_attr = True
+                value = None
+
+        if callable(value):
+            value = value()
+
+        if isinstance(sub, str):
+            if isinstance(value, list):
+                value = [getattr(o, sub, None) for o in value]
+            else:
+                value = getattr(value, sub, None)
+        elif isinstance(sub, dict):
+            if isinstance(value, list):
+                value = [get_attrs_to_dict(o, sub) for o in value]
+            else:
+                value = get_attrs_to_dict(value, sub)
+        elif callable(sub):
+            if isinstance(value, list):
+                value = [sub(o) for o in value]
+            else:
+                if no_attr:
+                    value = sub(obj)
+                else:
+                    value = sub(value)
+
+        d[attr] = value
+
+    return d
+
+
+def flatten_dict(obj):
+    return flatten_tree(flatten_keys(obj))
+
+
+def flatten_keys(obj, key='', sep='.'):
+    if isinstance(obj, list):
+        new_obj = [flatten_keys(o, key=key) for o in obj]
+    elif isinstance(obj, dict):
+        new_key = key + sep if key else ''
+        new_obj = {new_key + k: flatten_keys(v, key=new_key + k) for k, v in obj.items()}
+    else:
+        new_obj = obj
+
+    return new_obj
+
+
+def flatten_tree(obj, key=''):
+    if isinstance(obj, list):
+        new_rows = []
+
+        for o in obj:
+            if isinstance(o, dict):
+                new_rows.extend(flatten_tree(o))
+            else:
+                new_rows.append({key: o})
+
+    elif isinstance(obj, dict):
+        common_keys = {}
+        all_rows = [[common_keys]]
+
+        for k, v in obj.items():
+            if isinstance(v, list):
+                all_rows.append(flatten_tree(v, k))
+            elif isinstance(v, dict):
+                common_keys.update(*flatten_tree(v))
+            else:
+                common_keys[k] = v
+
+        new_rows = [{k: v for r in row for k, v in r.items()}
+                    for row in zip_longest(*all_rows, fillvalue={})]
+
+    else:
+        new_rows = []
+
+    return new_rows
+
+
+# https://stackoverflow.com/a/14692747
+def get_by_path(root, items):
+    """Access a nested object in root by item sequence."""
+    return reduce(operator.getitem, items, root)
+
+
+def set_by_path(root, items, value):
+    """Set a value in a nested object in root by item sequence."""
+    get_by_path(root, items[:-1])[items[-1]] = value
+
+
+def get_dict_value_by_path(root, attr):
+    split_attr = attr.split('.')
+    value = get_by_path(root, split_attr)
+    for _attr in reversed(split_attr):
+        value = {_attr: value}
+    return value
+
+
+# https://stackoverflow.com/a/7205107
+def dict_merge(a, b, path=None):
+    if path is None:
+        path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                dict_merge(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass
+            else:
+                pass
+        else:
+            a[key] = b[key]
+    return a
+
+
+#https://stackoverflow.com/a/26853961
+def dict_update(*dict_args):
+    """
+    Given any number of dictionaries, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dictionaries.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
+
+# https://stackoverflow.com/a/28703510
+def escape_xml(value):
+    if value is None:
+        return ''
+
+    value = str(value) \
+        .replace("&", "&amp;") \
+        .replace("<", "&lt;") \
+        .replace(">", "&gt;") \
+        .replace('"', "&quot;") \
+        .replace("'", "&apos;")
+    return value
+
+
+# https://gist.github.com/reimund/5435343/
+def dict_to_xml(d, root_node=None, indent=4, level=0):
+    wrap = not bool(root_node is None or isinstance(d, list))
+    root = root_node or 'objects'
+    root_singular = root[:-1] if root.endswith('s') and isinstance(d, list) else root
+    xml = ''
+    children = []
+
+    if isinstance(d, dict):
+        for key, value in sorted(d.items()):
+            if isinstance(value, dict):
+                children.append(dict_to_xml(value, key, level=level + 1))
+            elif isinstance(value, list):
+                children.append(dict_to_xml(value, key, level=level + 1))
+            else:
+                xml = '{} {}="{}"'.format(xml, key, escape_xml(value))
+    elif isinstance(d, list):
+        for value in d:
+            # Custom tag replacement for collections/playlists
+            if isinstance(value, dict) and root in ('children', 'items'):
+                root_singular = value.get('type', root_singular)
+            children.append(dict_to_xml(value, root_singular, level=level))
+    else:
+        children.append(escape_xml(d))
+
+    end_tag = '>' if len(children) > 0 else '/>'
+    end_tag += '\n' if isinstance(d, list) or isinstance(d, dict) else ''
+    spaces = ' ' * level * indent
+
+    if wrap or isinstance(d, dict):
+        xml = '{}<{}{}{}'.format(spaces, root, xml, end_tag)
+
+    if len(children) > 0:
+        for child in children:
+            xml = '{}{}'.format(xml, child)
+
+        if wrap or isinstance(d, dict):
+            spaces = spaces if isinstance(d, dict) else ''
+            xml = '{}{}</{}>\n'.format(xml, spaces, root)
+
+    return xml
+
+
+def is_hdr(bit_depth, color_space):
+    bit_depth = cast_to_int(bit_depth)
+    return bit_depth > 8 and color_space == 'bt2020nc'
 
 
 def page(endpoint, *args, **kwargs):

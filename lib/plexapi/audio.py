@@ -36,6 +36,8 @@ class Audio(PlexPartialObject):
         self.key = data.attrib.get('key')
         self.lastViewedAt = utils.toDatetime(data.attrib.get('lastViewedAt'))
         self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
@@ -120,17 +122,26 @@ class Artist(Audio):
     TAG = 'Directory'
     TYPE = 'artist'
 
+    _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
+                '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
+                '&includeMarkers=1&includeConcerts=1&includePreferences=1'
+                '&indcludeBandwidths=1&includeLoudnessRamps=1')
+                
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
+        self._details_key = self.key + self._include
         self.art = data.attrib.get('art')
         self.guid = data.attrib.get('guid')
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.locations = self.listAttrs(data, 'path', etag='Location')
         self.countries = self.findItems(data, media.Country)
+        self.fields = self.findItems(data, media.Field)
         self.genres = self.findItems(data, media.Genre)
         self.similar = self.findItems(data, media.Similar)
         self.collections = self.findItems(data, media.Collection)
+        self.moods = self.findItems(data, media.Mood)
+        self.styles = self.findItems(data, media.Style)
 
     def __iter__(self):
         for album in self.albums():
@@ -217,17 +228,26 @@ class Album(Audio):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
         self.art = data.attrib.get('art')
+        self.guid = data.attrib.get('guid')
+        self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
+        self.loudnessAnalysisVersion = utils.cast(int, data.attrib.get('loudnessAnalysisVersion'))
         self.key = self.key.replace('/children', '')  # fixes bug #50
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
+        self.parentGuid = data.attrib.get('parentGuid')
         self.parentKey = data.attrib.get('parentKey')
         self.parentRatingKey = data.attrib.get('parentRatingKey')
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
+        self.rating = utils.cast(float, data.attrib.get('rating'))
         self.studio = data.attrib.get('studio')
+        self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
-        self.genres = self.findItems(data, media.Genre)
         self.collections = self.findItems(data, media.Collection)
+        self.fields = self.findItems(data, media.Field)
+        self.genres = self.findItems(data, media.Genre)
         self.labels = self.findItems(data, media.Label)
+        self.moods = self.findItems(data, media.Mood)
+        self.styles = self.findItems(data, media.Style)
 
     def track(self, title):
         """ Returns the :class:`~plexapi.audio.Track` that matches the specified title.
@@ -312,20 +332,28 @@ class Track(Audio, Playable):
     TAG = 'Track'
     TYPE = 'track'
 
+    _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
+                '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
+                '&includeMarkers=1&includeConcerts=1&includePreferences=1'
+                '&indcludeBandwidths=1&includeLoudnessRamps=1')
+
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
         Playable._loadData(self, data)
+        self._details_key = self.key + self._include
         self.art = data.attrib.get('art')
         self.chapterSource = data.attrib.get('chapterSource')
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.grandparentArt = data.attrib.get('grandparentArt')
+        self.grandparentGuid = data.attrib.get('grandparentGuid')
         self.grandparentKey = data.attrib.get('grandparentKey')
         self.grandparentRatingKey = data.attrib.get('grandparentRatingKey')
         self.grandparentThumb = data.attrib.get('grandparentThumb')
         self.grandparentTitle = data.attrib.get('grandparentTitle')
         self.guid = data.attrib.get('guid')
         self.originalTitle = data.attrib.get('originalTitle')
+        self.parentGuid = data.attrib.get('parentGuid')
         self.parentIndex = data.attrib.get('parentIndex')
         self.parentKey = data.attrib.get('parentKey')
         self.parentRatingKey = data.attrib.get('parentRatingKey')
@@ -338,6 +366,7 @@ class Track(Audio, Playable):
         self.year = utils.cast(int, data.attrib.get('year'))
         self.media = self.findItems(data, media.Media)
         self.moods = self.findItems(data, media.Mood)
+        self.fields = self.findItems(data, media.Field)
 
     def _prettyfilename(self):
         """ Returns a filename for use in download. """
@@ -351,6 +380,13 @@ class Track(Audio, Playable):
         """ Return this track's :class:`~plexapi.audio.Artist`. """
         return self.fetchItem(self.grandparentKey)
 
+    @property
+    def locations(self):
+        """ This does not exist in plex xml response but is added to have a common
+            interface to get the location of the Artist
+        """
+        return [part.file for part in self.iterParts() if part]
+        
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
         return '%s - %s - %s' % (self.grandparentTitle, self.parentTitle, self.title)

@@ -35,6 +35,8 @@ class Video(PlexPartialObject):
         self.key = data.attrib.get('key', '')
         self.lastViewedAt = utils.toDatetime(data.attrib.get('lastViewedAt'))
         self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
@@ -264,6 +266,7 @@ class Movie(Playable, Video):
             directors (List<:class:`~plexapi.media.Director`>): List of director objects.
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             producers (List<:class:`~plexapi.media.Producer`>): List of producers objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
@@ -276,7 +279,8 @@ class Movie(Playable, Video):
     METADATA_TYPE = 'movie'
     _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
                 '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
-                '&includeConcerts=1&includePreferences=1')
+                '&includeConcerts=1&includePreferences=1'
+                '&indcludeBandwidths=1')
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
@@ -307,6 +311,7 @@ class Movie(Playable, Video):
         self.directors = self.findItems(data, media.Director)
         self.fields = self.findItems(data, media.Field)
         self.genres = self.findItems(data, media.Genre)
+        self.guids = self.findItems(data, media.Guid)
         self.media = self.findItems(data, media.Media)
         self.producers = self.findItems(data, media.Producer)
         self.roles = self.findItems(data, media.Role)
@@ -415,6 +420,7 @@ class Show(Video):
         self.theme = data.attrib.get('theme')
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
+        self.fields = self.findItems(data, media.Field)
         self.genres = self.findItems(data, media.Genre)
         self.roles = self.findItems(data, media.Role)
         self.labels = self.findItems(data, media.Label)
@@ -527,12 +533,19 @@ class Season(Video):
         Video._loadData(self, data)
         # fix key if loaded from search
         self.key = self.key.replace('/children', '')
+        self.art = data.attrib.get('art')
+        self.guid = data.attrib.get('guid')
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.index = utils.cast(int, data.attrib.get('index'))
+        self.parentGuid = data.attrib.get('parentGuid')
+        self.parentIndex = data.attrib.get('parentIndex')
         self.parentKey = data.attrib.get('parentKey')
         self.parentRatingKey = utils.cast(int, data.attrib.get('parentRatingKey'))
+        self.parentTheme = data.attrib.get('parentTheme')
+        self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
+        self.fields = self.findItems(data, media.Field)
 
     def __repr__(self):
         return '<%s>' % ':'.join([p for p in [
@@ -644,7 +657,8 @@ class Episode(Playable, Video):
 
     _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
                 '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
-                '&includeConcerts=1&includePreferences=1')
+                '&includeMarkers=1&includeConcerts=1&includePreferences=1'
+                '&indcludeBandwidths=1')
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
@@ -657,6 +671,7 @@ class Episode(Playable, Video):
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.grandparentArt = data.attrib.get('grandparentArt')
+        self.grandparentGuid = data.attrib.get('grandparentGuid')
         self.grandparentKey = data.attrib.get('grandparentKey')
         self.grandparentRatingKey = utils.cast(int, data.attrib.get('grandparentRatingKey'))
         self.grandparentTheme = data.attrib.get('grandparentTheme')
@@ -665,6 +680,7 @@ class Episode(Playable, Video):
         self.guid = data.attrib.get('guid')
         self.index = utils.cast(int, data.attrib.get('index'))
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
+        self.parentGuid = data.attrib.get('parentGuid')
         self.parentIndex = data.attrib.get('parentIndex')
         self.parentKey = data.attrib.get('parentKey')
         self.parentRatingKey = utils.cast(int, data.attrib.get('parentRatingKey'))
@@ -675,6 +691,7 @@ class Episode(Playable, Video):
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.year = utils.cast(int, data.attrib.get('year'))
         self.directors = self.findItems(data, media.Director)
+        self.fields = self.findItems(data, media.Field)
         self.media = self.findItems(data, media.Media)
         self.writers = self.findItems(data, media.Writer)
         self.labels = self.findItems(data, media.Label)

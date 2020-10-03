@@ -17,6 +17,7 @@ version.lock
 logs/*
 backups/*
 cache/*
+exports/*
 newsletters/*
 *.mmdb
 version.txt

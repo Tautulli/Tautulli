@@ -43,7 +43,9 @@ DOCUMENTATION :: END
             <div class="summary-navbar">
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
-                        <ul class="list-unstyled breadcrumb"></ul>
+                        <ul class="list-unstyled breadcrumb">
+                            <li class="active">${data['friendly_name']}</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -67,12 +69,16 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="user-info-nav" role="tablist">
+                                <ul class="nav nav-list nav-pills" role="tablist">
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
-                                    <li><a id="history-tab-btn" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                                    <li><a id="sync-tab-btn" href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
-                                    <li><a id="ip-tab-btn" href="#tabs-ipaddresses" role="tab" data-toggle="tab">IP Addresses</a></li>
-                                    <li><a id="login-tab-btn" href="#tabs-tautullilogins" role="tab" data-toggle="tab">Tautulli Logins</a></li>
+                                    <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
+                                    <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    % if _session['user_group'] == 'admin':
+                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                                    % endif
+                                    <li><a href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
+                                    <li><a href="#tabs-ipaddresses" role="tab" data-toggle="tab">IP Addresses</a></li>
+                                    <li><a href="#tabs-tautullilogins" role="tab" data-toggle="tab">Tautulli Logins</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -210,6 +216,99 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-playlists">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-list-alt"></i> Playlists for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-user_id="${data['user_id']}" data-media_type="playlist" data-sub_media_type="video,audio,photo"
+                                                        data-export_type="playlist">
+                                                    <i class="fa fa-file-export"></i> Export playlists
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-playlists-table-button" id="refresh-playlists-table">
+                                                    <i class="fa fa-refresh"></i> Refresh playlists
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display playlists_table" id="playlists_table-SID-${data['user_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="playlistTitle">Playlist Title</th>
+                                                    <th align="left" id="playlistLeafCount">Playlist Items</th>
+                                                    <th align="left" id="playlistDuration">Playlist Duration</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    % if _session['user_group'] == 'admin':
+                    <div role="tabpanel" class="tab-pane" id="tabs-export">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-file-export"></i> Metadata Exports for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                                    <i class="fa fa-refresh"></i> Refresh exports
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display export_table" id="export_table-SID-${data['user_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="timestamp">Exported At</th>
+                                                    <th align="left" id="media_type_title">Media Type</th>
+                                                    <th align="left" id="rating_key">Rating Key</th>
+                                                    <th align="left" id="filename">Filename</th>
+                                                    <th align="left" id="file_format">File Format</th>
+                                                    <th align="left" id="metadata_level">Metadata Level</th>
+                                                    <th align="left" id="media_info_level">Media Info Level</th>
+                                                    <th align="left" id="media_info_level">Custom Fields</th>
+                                                    <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="complete">Download</th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    % endif
                     <div role="tabpanel" class="tab-pane" id="tabs-synceditems">
                         <div class="container-fluid">
                             <div class="row">
@@ -393,6 +492,8 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+<div id="export-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="export-modal">
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -412,6 +513,8 @@ DOCUMENTATION :: END
 </script>
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/user_ips.js${cache_param}"></script>
 <script src="${http_root}js/tables/sync_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/login_logs.js${cache_param}"></script>
@@ -419,6 +522,8 @@ DOCUMENTATION :: END
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
     });
+
+    $(".inactive-user-tooltip").tooltip();
 
     function loadHistoryTable(media_type) {
         // Build watch history table
@@ -451,6 +556,49 @@ DOCUMENTATION :: END
         });
     }
 
+    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
+        if (typeof(history_table) === 'undefined') {
+            var media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
+            $('#history-' + media_type).prop('checked', true);
+            $('#history-' + media_type).closest('label').addClass('active');
+            loadHistoryTable(media_type);
+        }
+    });
+
+    $("#refresh-history-list").click(function () {
+        history_table.draw();
+    });
+
+    function loadPlaylistsTable() {
+        // Build playlists table
+        playlists_table_options.ajax = {
+            url: 'get_playlists_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    user_id: user_id
+                };
+            }
+        };
+        playlists_table = $('#playlists_table-SID-${data["user_id"]}').DataTable(playlists_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-playlists');
+
+        clearSearchButton('playlists_table-SID-${data["user_id"]}', playlists_table);
+    }
+
+    $('a[href="#tabs-playlists"]').on('shown.bs.tab', function() {
+        if (typeof(playlists_table) === 'undefined') {
+            loadPlaylistsTable();
+        }
+    });
+
+    $("#refresh-playlists-table").click(function () {
+        playlists_table.draw();
+    });
+
     function loadSyncTable() {
         // Build user sync table
         sync_table_options.ajax = {
@@ -465,6 +613,16 @@ DOCUMENTATION :: END
 
         clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
     }
+
+    $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
+        if (typeof(sync_table) === 'undefined') {
+            loadSyncTable(user_id);
+        }
+    });
+
+    $("#refresh-syncs-list").click(function() {
+        sync_table.ajax.reload();
+    });
 
     function loadIPAddressTable() {
         // Build user IP table
@@ -482,6 +640,16 @@ DOCUMENTATION :: END
 
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
     }
+
+    $('a[href="#tabs-ipaddresses"]').on('shown.bs.tab', function() {
+        if (typeof(user_ip_table) === 'undefined') {
+            loadIPAddressTable(user_id);
+        }
+    });
+
+    $("#refresh-ip-address-list").click(function () {
+        user_ip_table.draw();
+    });
 
     function loadLoginTable() {
         // Build user login table
@@ -504,52 +672,142 @@ DOCUMENTATION :: END
         clearSearchButton('login_log_table-UID-${data["user_id"]}', login_log_table);
     }
 
-    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
-        if (typeof(history_table) === 'undefined') {
-            var media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
-            $('#history-' + media_type).prop('checked', true);
-            $('#history-' + media_type).closest('label').addClass('active');
-            loadHistoryTable(media_type);
-        }
-    });
-
-    $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
-        if (typeof(sync_table) === 'undefined') {
-            loadSyncTable(user_id);
-        }
-    });
-
-    $('a[href="#tabs-ipaddresses"]').on('shown.bs.tab', function() {
-        if (typeof(user_ip_table) === 'undefined') {
-            loadIPAddressTable(user_id);
-        }
-    });
-
     $('a[href="#tabs-tautullilogins"]').on('shown.bs.tab', function() {
         if (typeof(login_log_table) === 'undefined') {
             loadLoginTable(user_id);
         }
     });
 
-    $("#refresh-history-list").click(function () {
-        history_table.draw();
-    });
-
-    $("#refresh-syncs-list").click(function() {
-        sync_table.ajax.reload();
-    });
-
-    $("#refresh-ip-address-list").click(function () {
-        user_ip_table.draw();
-    });
-
     $("#refresh-login-list").click(function () {
         login_log_table.draw();
     });
 
-    $(".inactive-user-tooltip").tooltip();
+    function recentlyWatched() {
+        // Populate recently watched
+        $.ajax({
+            url: 'get_user_recently_watched',
+            async: true,
+            data: {
+                user_id: user_id,
+                limit: 50
+            },
+            complete: function(xhr, status) {
+                $("#user-recently-watched").html(xhr.responseText);
+                highlightWatchedScrollerButton();
+            }
+        });
+    }
 
-    % if _session['user_group'] == 'admin':
+    recentlyWatched();
+
+    function highlightWatchedScrollerButton() {
+        var scroller = $("#recently-watched-row-scroller");
+        var numElems = scroller.find("li").length;
+        scroller.width(numElems * 175);
+        if (scroller.width() > $("#user-recently-watched").width()) {
+            $("#recently-watched-page-right").removeClass("disabled");
+        } else {
+            $("#recently-watched-page-right").addClass("disabled");
+        }
+    }
+
+    $(window).resize(function() {
+        highlightWatchedScrollerButton();
+    });
+
+    var leftTotal = 0;
+    $(".paginate").click(function (e) {
+        e.preventDefault();
+        var scroller = $("#recently-watched-row-scroller");
+        var containerWidth = $("#user-recently-watched").width();
+        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
+
+        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
+        scroller.animate({ left: leftTotal }, 250);
+
+        if (leftTotal == 0) {
+            $("#recently-watched-page-left").addClass("disabled").blur();
+        } else {
+            $("#recently-watched-page-left").removeClass("disabled");
+        }
+
+        if (leftTotal == leftMax) {
+            $("#recently-watched-page-right").addClass("disabled").blur();
+        } else {
+            $("#recently-watched-page-right").removeClass("disabled");
+        }
+    });
+
+    $(document).ready(function () {
+
+        // Javascript to enable link to tab
+        var hash = document.location.hash;
+        var prefix = "tab_";
+        if (hash) {
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+        }
+
+        // Change hash for page-reload
+        $('.nav-list a').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash.replace("#", "#" + prefix);
+        });
+
+        // Populate watch time stats
+        $.ajax({
+            url: 'user_watch_time_stats',
+            async: true,
+            data: { user_id: user_id, user: username },
+            complete: function(xhr, status) {
+                $("#user-time-stats").html(xhr.responseText);
+            }
+        });
+
+        // Populate platform stats
+        $.ajax({
+            url: 'user_player_stats',
+            async: true,
+            data: { user_id: user_id, user: username },
+            complete: function(xhr, status) {
+                $("#user-player-stats").html(xhr.responseText);
+            }
+        });
+
+    });
+</script>
+% if _session['user_group'] == 'admin':
+<script>
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_export_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    user_id: user_id
+                };
+            }
+        };
+        export_table = $('#export_table-SID-${data["user_id"]}').DataTable(export_table_options);
+        export_table.columns([2, 7]).visible(false);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-SID-${data["user_id"]}', export_table);
+    }
+
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
+    });
+
     $("#edit-user-tooltip").tooltip();
 
     // Load edit user modal
@@ -562,6 +820,23 @@ DOCUMENTATION :: END
             async: true,
             complete: function(xhr, status) {
                 $("#edit-user-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $(".export-button").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: {
+                user_id: $(this).data('user_id'),
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type'),
+                export_type: $(this).data('export_type')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
             }
         });
     });
@@ -644,100 +919,7 @@ DOCUMENTATION :: END
             });
         }
     });
-    % endif
-
-    function recentlyWatched() {
-        // Populate recently watched
-        $.ajax({
-            url: 'get_user_recently_watched',
-            async: true,
-            data: {
-                user_id: user_id,
-                limit: 50
-            },
-            complete: function(xhr, status) {
-                $("#user-recently-watched").html(xhr.responseText);
-                highlightWatchedScrollerButton();
-            }
-        });
-    }
-
-    recentlyWatched();
-
-    function highlightWatchedScrollerButton() {
-        var scroller = $("#recently-watched-row-scroller");
-        var numElems = scroller.find("li").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("#user-recently-watched").width()) {
-            $("#recently-watched-page-right").removeClass("disabled");
-        } else {
-            $("#recently-watched-page-right").addClass("disabled");
-        }
-    }
-
-    $(window).resize(function() {
-        highlightWatchedScrollerButton();
-    });
-
-    var leftTotal = 0;
-    $(".paginate").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-watched-row-scroller");
-        var containerWidth = $("#user-recently-watched").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
-        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
-
-        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
-        scroller.animate({ left: leftTotal }, 250);
-
-        if (leftTotal == 0) {
-            $("#recently-watched-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-left").removeClass("disabled");
-        }
-
-        if (leftTotal == leftMax) {
-            $("#recently-watched-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-right").removeClass("disabled");
-        }
-    });
-
-    $(document).ready(function () {
-
-        // Javascript to enable link to tab
-        var hash = document.location.hash;
-        var prefix = "tab_";
-        if (hash) {
-            $('.user-info-nav a[href='+hash.replace(prefix,"")+']').tab('show').trigger('show.bs.tab');
-        }
-
-        // Change hash for page-reload
-        $('.user-info-nav a').on('shown.bs.tab', function (e) {
-            window.location.hash = e.target.hash.replace("#", "#" + prefix);
-        });
-
-        // Populate watch time stats
-        $.ajax({
-            url: 'user_watch_time_stats',
-            async: true,
-            data: { user_id: user_id, user: username },
-            complete: function(xhr, status) {
-                $("#user-time-stats").html(xhr.responseText);
-            }
-        });
-
-        // Populate platform stats
-        $.ajax({
-            url: 'user_player_stats',
-            async: true,
-            data: { user_id: user_id, user: username },
-            complete: function(xhr, status) {
-                $("#user-player-stats").html(xhr.responseText);
-            }
-        });
-
-    });
 </script>
+% endif
 % endif
 </%def>

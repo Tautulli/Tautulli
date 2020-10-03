@@ -1,0 +1,246 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           export_modal.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+
+DOCUMENTATION :: END
+</%doc>
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="info-modal-title">
+                ${title}
+            </h4>
+        </div>
+        <div class="modal-body">
+            <form method="post" class="form" id="export_metadata_form">
+                <input type="hidden" id="export_section_id" name="export_section_id" value="${section_id or ''}" />
+                <input type="hidden" id="export_user_id" name="export_user_id" value="${user_id or ''}" />
+                <input type="hidden" id="export_rating_key" name="export_rating_key" value="${rating_key or ''}" />
+                <input type="hidden" id="export_media_type" name="export_media_type" value="${media_type or ''}" />
+                <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
+                <input type="hidden" id="export_export_type" name="export_export_type" value="${export_type or ''}" />
+                <div class="form-group">
+                    <label for="metadata_export_level_select">Metadata Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="metadata_export_level_select" name="metadata_export_level_select">
+                                <option value="0">Level 0 - Custom</option>
+                                <option value="1" selected>Level 1 - Basic Metadata</option>
+                                <option value="2">Level 2 - Extended Metadata</option>
+                                <option value="3">Level 3 - Advanced Metadata</option>
+                                <option value="9">Level 9 - All Metadata</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the metadata export level. Higher levels include all fields from the lower levels.</p>
+                </div>
+                <div class="form-group">
+                    <label for="export_custom_metadata_fields">Custom Metadata Fields</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="text" class="form-control" id="export_custom_metadata_fields" name="export_custom_metadata_fields" data-field_type="Metadata">
+                        </div>
+                    </div>
+                    <p class="help-block">Add additional fields to the selected metadata export level.</p>
+                </div>
+                <div class="form-group">
+                    <label for="media_info_export_level_select">Media Info Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="media_info_export_level_select" name="media_info_export_level_select">
+                                <option value="0">Level 0 - Custom</option>
+                                <option value="1" selected>Level 1 - Basic Media Info</option>
+                                <option value="2">Level 2 - Extended Media Info</option>
+                                <option value="3">Level 3 - Advanced Media Info</option>
+                                <option value="9">Level 9 - All Media Info</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the media info export level. Higher levels include all fields from the lower levels.</p>
+                </div>
+                <div class="form-group">
+                    <label for="export_custom_media_info_fields">Custom Media Info Fields</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="text" class="form-control" id="export_custom_media_info_fields" name="export_custom_media_info_fields" data-field_type="Media Info">
+                        </div>
+                    </div>
+                    <p class="help-block">Add additional fields to the selected media info export level.</p>
+                </div>
+                <div class="form-group">
+                    <label for="export_file_format">File Format</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="export_file_format" name="export_file_format">
+                                % for format in file_formats:
+                                <option value="${format}">${format.upper()}</option>
+                                % endfor
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the export file format.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="export_include_thumb" name="export_include_thumb" value="1"> Export poster / cover images
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="export_include_art" name="export_include_art" value="1"> Export background artwork images
+                    </label>
+                </div>
+                <p class="help-block">
+                    Enable to export posters and covers or background artwork image files. Images will be saved to a folder alongside the data file.<br>
+                    Warning: Exporting images may take a long time!<br>
+                    Note: Only applies to movies, shows, seasons, artists, albums, collections, and playlists.
+                </p>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <input type="button" class="btn btn-bright btn-ok" data-dismiss="modal" id="export_metadata" value="Export">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="${http_root}js/selectize.plugin.disable-options.js"></script>
+<script>
+    $('#export_metadata_form').submit(function(e) {
+        e.preventDefault();
+    })
+
+    var optgroups = (function () {
+        var optgroups = [];
+        for (var i = 0; i <= 9; i++) {
+            optgroups.push({$order: i+1, value: i});
+        }
+        return optgroups
+    })()
+
+    var $export_custom_fields = $('#export_custom_metadata_fields, #export_custom_media_info_fields').selectize({
+        plugins: {
+            'remove_button': {},
+            'disable_options': {
+                disableField: 'level'
+            }
+        },
+        maxItems: null,
+        valueField: 'field',
+        labelField: 'field',
+        sortField: 'field',
+        searchField: ['field'],
+        optgroupField: 'level',
+        optgroups: optgroups,
+        lockOptgroupOrder: true,
+        render: {
+            optgroup_header: function(data, escape) {
+                return '<div class="optgroup-header">' + escape(this.$input.data('field_type') + ' Level: ' + data.value) + '</div>';
+            },
+            option: function (item, escape) {
+                return '<div data-field="' + escape(item.field) + '" data-level="' + escape(item.level) + '">' + escape(item.field) +'</div>';
+            }
+        }
+    });
+    var export_custom_metadata_fields = $export_custom_fields[0].selectize;
+    var export_custom_media_info_fields = $export_custom_fields[1].selectize;
+
+    function setDisabledFields() {
+        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
+        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
+        export_custom_metadata_fields.setDisabledOptions([...Array(parseInt(metadata_export_level) + 1).keys()]);
+        export_custom_media_info_fields.setDisabledOptions([...Array(parseInt(media_info_export_level) + 1).keys()]);
+    }
+
+    $('#metadata_export_level_select, #media_info_export_level_select').on('change', setDisabledFields);
+
+    function getExportFields() {
+        $.ajax({
+            url: 'get_export_fields',
+            async: true,
+            data: {
+                media_type: $('#export_media_type').val(),
+                sub_media_type: $('#export_sub_media_type').val()
+            },
+            success: function (result) {
+                if (result) {
+                    export_custom_metadata_fields.addOption(result.metadata_fields);
+                    export_custom_media_info_fields.addOption(result.media_info_fields);
+                    setDisabledFields();
+                }
+            }
+        })
+    }
+    getExportFields();
+
+    $('#export_file_format').on('change', function() {
+        if ($(this).val() === 'm3u8') {
+            $('#metadata_export_level_select').prop('disabled', true);
+            $('#media_info_export_level_select').prop('disabled', true);
+            $("#export_include_thumb").prop('disabled', true);
+            $("#export_include_art").prop('disabled', true);
+            export_custom_metadata_fields.disable();
+            export_custom_media_info_fields.disable();
+        } else {
+            $('#metadata_export_level_select').prop('disabled', false);
+            $('#media_info_export_level_select').prop('disabled', false);
+            $("#export_include_thumb").prop('disabled', false);
+            $("#export_include_art").prop('disabled', false);
+            export_custom_metadata_fields.enable();
+            export_custom_media_info_fields.enable();
+        }
+    })
+
+    $("#export_metadata").click(function() {
+        var section_id = $('#export_section_id').val();
+        var user_id = $('#export_user_id').val();
+        var rating_key = $('#export_rating_key').val();
+        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
+        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
+        var file_format = $('#export_file_format option:selected').val();
+        var include_thumb = $("#export_include_thumb").is(':checked') ? 1 : 0;
+        var include_art = $("#export_include_art").is(':checked') ? 1 : 0;
+        var custom_fields = [
+            $('#export_custom_metadata_fields').val(),
+            $('#export_custom_media_info_fields').val()
+        ].filter(Boolean).join(',');
+        var export_type = $('#export_export_type').val()
+
+        $.ajax({
+            url: 'export_metadata',
+            data: {
+                section_id: section_id,
+                user_id: user_id,
+                rating_key: rating_key,
+                metadata_level: metadata_export_level,
+                media_info_level: media_info_export_level,
+                file_format: file_format,
+                include_thumb: include_thumb,
+                include_art: include_art,
+                custom_fields: custom_fields,
+                export_type: export_type
+            },
+            async: true,
+            success: function (data) {
+                if (data.result === 'success') {
+                    $("a[href=#tabs-export]").click();
+                    redrawExportTable();
+                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                } else {
+                    showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                }
+            }
+        });
+    });
+</script>

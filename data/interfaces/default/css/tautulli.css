@@ -217,6 +217,10 @@ select.form-control:focus,
 .selectize-dropdown .optgroup-header {
     font-weight: bold;
 }
+.selectize-dropdown [data-selectable].option-disabled {
+  color: #aaa;
+  cursor: default;
+}
 select.form-control option {
     color: #555;
     background-color: #eee;
@@ -1750,6 +1754,7 @@ a:hover .dashboard-recent-media-cover {
     box-shadow: inset 0 0 0 2px #e9a049;
     opacity: 0;
     transition: opacity .2s;
+    z-index: 2;
 }
 .summary-poster-face-overlay span {
     display: block;
@@ -1963,7 +1968,10 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
 .item-children-instance {
     list-style: none;
     margin: 0;
-    overflow: hidden;
+    overflow: auto;
+}
+.item-children-instance.max-height {
+    max-height: 875px;
 }
 .item-children-instance li {
     float: left;
@@ -2099,7 +2107,7 @@ a:hover .item-children-poster {
 }
 .item-children-list-item-title {
     display: inline-block;
-    width: calc(100% - 110px);
+    /*width: calc(100% - 110px);*/
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -2109,8 +2117,15 @@ a:hover .item-children-poster {
     color: #777;
     text-align: right;
     display: inline-block;
-    width: 40px;
+    width: 60px;
     margin-right: 20px;
+}
+.nav-list {
+    list-style: none;
+    padding: 0;
+}
+.nav-list.nav-pills > li > a {
+    margin-bottom: 0;
 }
 #new_title h3 {
     color: #E5A00D;
@@ -2185,31 +2200,16 @@ li.advanced-setting {
 .user-info-username {
     font-size: 24px;
     color: #eee;
-    padding-top: 27px;
+    padding-top: 15px;
     padding-left: 105px;
 }
 .user-info-nav {
     margin-top: 15px;
-}
-.user-info-nav > .active > a {
-    color: #cc7b19;
+    padding-left: 105px;
 }
 .nav-tabs > .active > a:hover,
 .nav-tabs > .active > a:focus {
     color: #e9a049;
-}
-.user-info-nav a:hover {
-    color: #e9a049;
-    text-decoration: none;
-}
-.user-info-nav ul {
-    list-style: none;
-    padding: 0;
-}
-.user-info-nav li {
-    float: left;
-    margin-left: 10px;
-    margin-right: 10px;
 }
 .user-overview-stats-wrapper {
 }
@@ -3485,6 +3485,9 @@ pre::-webkit-scrollbar-thumb {
 .selectize-input input[type='text'] {
     height: 20px;
 }
+.selectize-input.disabled, .selectize-input.disabled * {
+    cursor: not-allowed !important;
+}
 .small-muted {
     font-size: small;
     color: #777;
@@ -3706,6 +3709,20 @@ a:hover .overlay-refresh-image {
 }
 a:hover .overlay-refresh-image:hover {
     opacity: .9;
+}
+.smart-playlist-image {
+    float: left;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: #8e6191;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 16px;
+    z-index: 1;
+    width: 32px;
+    padding: 5px;
+    text-align: center;
 }
 #ip_error, #isp_error {
     color: #aaa;

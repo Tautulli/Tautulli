@@ -115,6 +115,21 @@ Returns:
 Delete and recreate the cache directory.
 
 
+### delete_export
+Delete exports from Tautulli.
+
+```
+Required parameters:
+    export_id (int):          The row id of the exported file to delete
+
+Optional parameters:
+    delete_all (bool):        'true' to delete all exported files
+
+Returns:
+    None
+```
+
+
 ### delete_history
 Delete history rows from Tautulli.
 
@@ -334,6 +349,21 @@ Download the Tautulli configuration file.
 Download the Tautulli database file.
 
 
+### download_export
+Download an exported metadata file
+
+```
+Required parameters:
+    export_id (int):          The row id of the exported file to download
+
+Optional parameters:
+    None
+
+Returns:
+    download
+```
+
+
 ### download_log
 Download the Tautulli log file.
 
@@ -374,6 +404,33 @@ Optional paramters:
 
 Returns:
     None
+```
+
+
+### export_metadata
+Export library or media metadata to a file
+
+```
+Required parameters:
+    section_id (int):          The section id of the library items to export, OR
+    rating_key (int):          The rating key of the media item to export
+
+Optional parameters:
+    file_format (str):         csv (default), json, or xml
+    metadata_level (int):      The level of metadata to export (default 1)
+    media_info_level (int):    The level of media info to export (default 1)
+    include_thumb (bool):      True to export poster/cover images
+    include_art (bool):        True to export background artwork images
+    custom_fields (str):       Comma separated list of custom fields to export
+                               in addition to the export level selected
+    library_export (str):      collection or playlist for library export,
+                               otherwise default to all library items
+
+Returns:
+    json:
+        {"result": "success",
+         "message": "Metadata export has started."
+         }
 ```
 
 
@@ -654,6 +711,26 @@ Returns:
 ```
 
 
+### get_collections_table
+Get the data on the Tautulli collections tables.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section, OR
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 5,
+         "data":
+            [...]
+         }
+```
+
+
 ### get_date_formats
 Get the date and time formats used by Tautulli.
 
@@ -668,6 +745,71 @@ Returns:
     json:
         {"date_format": "YYYY-MM-DD",
          "time_format": "HH:mm",
+         }
+```
+
+
+### get_export_fields
+Get a list of available custom export fields.
+
+```
+Required parameters:
+    media_type (str):          The media type of the fields to return
+
+Optional parameters:
+    sub_media_type (str):      The child media type for
+                               collections (movie, show, artist, album, photoalbum),
+                               or playlists (video, audio, photo)
+
+Returns:
+    json:
+        {"metadata_fields":
+            [{"field": "addedAt", "level": 1},
+             ...
+             ],
+         "media_info_fields":
+            [{"field": "media.aspectRatio", "level": 1},
+             ...
+             ]
+        }
+```
+
+
+### get_exports_table
+Get the data on the Tautulli export tables.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section, OR
+    rating_key (str):               The rating key of the exported item
+
+Optional parameters:
+    order_column (str):             "added_at", "sort_title", "container", "bitrate", "video_codec",
+                                    "video_resolution", "video_framerate", "audio_codec", "audio_channels",
+                                    "file_size", "last_played", "play_count"
+    order_dir (str):                "desc" or "asc"
+    start (int):                    Row to start from, 0
+    length (int):                   Number of items to return, 25
+    search (str):                   A string to search for, "Thrones"
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 10,
+         "recordsFiltered": 3,
+         "data":
+            [{"row_id": 2,
+              "timestamp": 1596484600,
+              "section_id": 1,
+              "rating_key": 270716,
+              "media_type": "movie",
+              "media_type_title": "Movie",
+              "filename": "Movie - Frozen II [270716].20200803125640.json",
+              "complete": 1
+              },
+             {...},
+             {...}
+             ]
          }
 ```
 
@@ -1554,6 +1696,26 @@ Optional parameters:
 Returns:
     json:
         {}
+```
+
+
+### get_playlists_table
+Get the data on the Tautulli playlists tables.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section, OR
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"draw": 1,
+         "recordsTotal": 5,
+         "data":
+            [...]
+         }
 ```
 
 

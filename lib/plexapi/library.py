@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from plexapi import X_PLEX_CONTAINER_SIZE, log, utils
+from plexapi import X_PLEX_CONTAINER_SIZE, log, utils, media
 from plexapi.base import PlexObject
 from plexapi.compat import quote, quote_plus, unquote, urlencode
 from plexapi.exceptions import BadRequest, NotFound
@@ -769,6 +769,11 @@ class MovieSection(LibrarySection):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
 
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
+
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Movie library section as sync item for specified device.
             See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting and
@@ -848,6 +853,11 @@ class ShowSection(LibrarySection):
     def collection(self, **kwargs):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
+
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
 
     def sync(self, videoQuality, limit=None, unwatched=False, **kwargs):
         """ Add current Show library section as sync item for specified device.
@@ -930,6 +940,11 @@ class MusicSection(LibrarySection):
         """ Returns a list of collections from this library section. """
         return self.search(libtype='collection', **kwargs)
 
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
+
     def sync(self, bitrate, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
             See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting and
@@ -990,6 +1005,11 @@ class PhotoSection(LibrarySection):
     def searchPhotos(self, title, **kwargs):
         """ Search for a photo. See :func:`~plexapi.library.LibrarySection.search()` for usage. """
         return self.search(libtype='photo', title=title, **kwargs)
+
+    def playlist(self, **kwargs):
+        """ Returns a list of playlists from this library section. """
+        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
+        return self.fetchItems(key)
 
     def sync(self, resolution, limit=None, **kwargs):
         """ Add current Music library section as sync item for specified device.
@@ -1092,9 +1112,16 @@ class Collections(PlexObject):
     def _loadData(self, data):
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self._details_key = "/library/metadata/%s%s" % (self.ratingKey, self._include)
+        self.art = data.attrib.get('art')
+        self.contentRating = data.attrib.get('contentRating')
+        self.guid = data.attrib.get('guid')
         self.key = data.attrib.get('key')
+        self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.type = data.attrib.get('type')
         self.title = data.attrib.get('title')
+        self.titleSort = data.attrib.get('titleSort')
         self.subtype = data.attrib.get('subtype')
         self.summary = data.attrib.get('summary')
         self.index = utils.cast(int, data.attrib.get('index'))
@@ -1106,10 +1133,22 @@ class Collections(PlexObject):
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
         self.collectionMode = data.attrib.get('collectionMode')
         self.collectionSort = data.attrib.get('collectionSort')
+        self.labels = self.findItems(data, media.Label)
+        self.fields = self.findItems(data, media.Field)
 
     @property
     def children(self):
         return self.fetchItems(self.key)
+
+    @property
+    def thumbUrl(self):
+        """ Return the thumbnail url for the collection."""
+        return self._server.url(self.thumb, includeToken=True) if self.thumb else None
+
+    @property
+    def artUrl(self):
+        """ Return the art url for the collection."""
+        return self._server.url(self.art, includeToken=True) if self.art else None
 
     def __len__(self):
         return self.childCount

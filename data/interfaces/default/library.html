@@ -87,12 +87,17 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="user-info-nav" role="tablist">
+                                <ul class="nav nav-list nav-pills" role="tablist">
                                     <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
-                                    <li><a id="history-tab-btn" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                                    % if _session['user_group'] == 'admin':
+                                    <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
-                                    <li><a id="media-info-tab-btn" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    % if _session['user_group'] == 'admin':
+                                    <li><a href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    % endif
+                                    <li><a href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
+                                    <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    % if _session['user_group'] == 'admin':
+                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
                                 </ul>
@@ -242,23 +247,22 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
                     <div role="tabpanel" class="tab-pane" id="tabs-mediainfo">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-12">
                                     % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                     <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px;">
-                                    % else:
-                                    <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px; display: none;">
-                                    % endif
                                         <i class="fa fa-refresh fa-spin"></i>&nbsp; Tautulli is calculating the file sizes for the library's media info. This could take a few minutes depending on the size of your library.
                                         <br />
                                         You may leave this page and check back later.
                                     </div>
+                                    % endif
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
-                                                <i class="fa fa-history"></i> Media Info for <strong>
+                                                <i class="fa fa-info-circle"></i> Media Info for <strong>
                                                     <span class="set-username">${data['section_name']}</span>
                                                 </strong>
                                             </span>
@@ -305,6 +309,155 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % endif
+                    <div role="tabpanel" class="tab-pane" id="tabs-collections">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-folder-open"></i> Collections for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-media_type="collection" data-sub_media_type="${data['section_type']}"
+                                                        data-export_type="collection">
+                                                    <i class="fa fa-file-export"></i> Export collections
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-collections-table-button" id="refresh-collections-table">
+                                                    <i class="fa fa-refresh"></i> Refresh collections
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-collections"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display collections_table" id="collections_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="collectionTitle">Collection Title</th>
+                                                    <th align="left" id="collectionMode">Collection Mode</th>
+                                                    <th align="left" id="collectionSort">Collection Sort</th>
+                                                    <th align="left" id="collectionItems">Collection Items</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-playlists">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-list-alt"></i> Playlists for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
+                                            <% playlist_sub_media_type = {'movie': 'video', 'show': 'video', 'artist': 'audio', 'photo': 'photo'} %>
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-media_type="playlist" data-sub_media_type="${playlist_sub_media_type.get(data['section_type'])}"
+                                                        data-export_type="playlist">
+                                                    <i class="fa fa-file-export"></i> Export playlists
+                                                </button>
+                                            </div>
+                                            % endif
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-playlists-table-button" id="refresh-playlists-table">
+                                                    <i class="fa fa-refresh"></i> Refresh playlists
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display playlists_table" id="playlists_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="playlistTitle">Playlist Title</th>
+                                                    <th align="left" id="playlistLeafCount">Playlist Items</th>
+                                                    <th align="left" id="playlistDuration">Playlist Duration</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    % if _session['user_group'] == 'admin':
+                    <div role="tabpanel" class="tab-pane" id="tabs-export">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-file-export"></i> Metadata Exports for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark export-button" id="toggle-export-modal" data-toggle="modal" data-target="#export-modal"
+                                                        data-section_id="${data['section_id']}" data-media_type="${'photoalbum' if data['section_type'] == 'photo' else data['section_type']}"
+                                                        data-export_type="all">
+                                                    <i class="fa fa-file-export"></i> Export metadata
+                                                </button>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark refresh-export-table-button" id="refresh-export-table">
+                                                    <i class="fa fa-refresh"></i> Refresh exports
+                                                </button>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display export_table" id="export_table-SID-${data['section_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="timestamp">Exported At</th>
+                                                    <th align="left" id="media_type_title">Media Type</th>
+                                                    <th align="left" id="rating_key">Rating Key</th>
+                                                    <th align="left" id="filename">Filename</th>
+                                                    <th align="left" id="file_format">File Format</th>
+                                                    <th align="left" id="metadata_level">Metadata Level</th>
+                                                    <th align="left" id="media_info_level">Media Info Level</th>
+                                                    <th align="left" id="media_info_level">Custom Fields</th>
+                                                    <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="complete">Download</th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    % endif
                 </div>
             </div>
         </div>
@@ -335,8 +488,7 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="modalIncludes()">
-<div id="edit-library-modal" class="modal fade" tabindex="-1" role="dialog"
-        aria-labelledby="edit-library-modal">
+<div id="edit-library-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-library-modal">
 </div>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
@@ -360,6 +512,8 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+<div id="export-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="export-modal">
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -369,6 +523,9 @@ DOCUMENTATION :: END
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <% from plexpy.common import LIVE_TV_SECTION_ID %>
+<%
+    history_user_id = '' if _session['user_group'] == 'admin' else _session['user_id']
+%>
 <script>
     % if str(data['section_id']).isdigit():
     var section_id = ${data['section_id']};
@@ -387,10 +544,15 @@ DOCUMENTATION :: END
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/media_info_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/collections_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script>
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
     });
+
+    $(".inactive-library-tooltip").tooltip();
 
     function loadHistoryTable() {
         // Build watch history table
@@ -401,7 +563,7 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
-                    user_id: "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}"
+                    user_id: "${history_user_id}"
                 };
             }
         };
@@ -423,96 +585,65 @@ DOCUMENTATION :: END
         history_table.draw();
     });
 
-    $(".inactive-library-tooltip").tooltip();
-
-    % if _session['user_group'] == 'admin':
-    function loadMediaInfoTable() {
-        // Build media info table
-        media_info_table_options.ajax = {
-            url: 'get_library_media_info',
+    function loadCollectionsTable() {
+        // Build collections table
+        collections_table_options.ajax = {
+            url: 'get_collections_list',
             type: 'POST',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    section_id: section_id,
-                    refresh: refresh_table
+                    section_id: section_id
                 };
             }
         };
-        media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
+        collections_table = $('#collections_table-SID-${data["section_id"]}').DataTable(collections_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-media-info');
+        var colvis = new $.fn.dataTable.ColVis(collections_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-collections');
 
-        clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
+        clearSearchButton('collections_table-SID-${data["section_id"]}', collections_table);
     }
 
-    $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
-        if (typeof(media_info_table) === 'undefined') {
-            loadMediaInfoTable();
+    $('a[href="#tabs-collections"]').on('shown.bs.tab', function() {
+        if (typeof(collections_table) === 'undefined') {
+            loadCollectionsTable();
         }
     });
 
-    $("#refresh-media-info-table").click(function () {
-        media_info_child_table = {};
-        refresh_table = true;
-        refresh_child_tables = true;
-        media_info_table.draw();
-        refresh_table = false;
+    $("#refresh-collections-table").click(function () {
+        collections_table.draw();
     });
 
-    $("#edit-library-tooltip").tooltip();
-
-    // Load edit library modal
-    $("#toggle-edit-library-modal").click(function() {
-        $("#edit-library-tooltip").tooltip('hide');
-        $.ajax({
-            url: 'edit_library_dialog',
-            data: { section_id: section_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#edit-library-modal").html(xhr.responseText);
+    function loadPlaylistsTable() {
+        // Build playlists table
+        playlists_table_options.ajax = {
+            url: 'get_playlists_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
             }
-        });
-    });
+        };
+        playlists_table = $('#playlists_table-SID-${data["section_id"]}').DataTable(playlists_table_options);
 
-    $('#row-edit-mode').on('click', function() {
-        $('#row-edit-mode-alert').fadeIn(200);
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-playlists');
 
-        if ($(this).hasClass('active')) {
-            if (history_to_delete.length > 0) {
-                $('#deleteCount').text(history_to_delete.length);
-                $('#confirm-modal-delete').modal();
-                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                    $.ajax({
-                        url: 'delete_history_rows',
-                        type: 'POST',
-                        data: { row_ids: history_to_delete.join(',') },
-                        async: true,
-                        success: function (data) {
-                            var msg = "History deleted";
-                            showMsg(msg, false, true, 2000);
-                            history_table.draw();
-                        }
-                    });
-                });
-            }
+        clearSearchButton('playlists_table-SID-${data["section_id"]}', playlists_table);
+    }
 
-            $('.delete-control').each(function () {
-                $(this).addClass('hidden');
-                $('#row-edit-mode-alert').fadeOut(200);
-            });
-
-        } else {
-            history_to_delete = [];
-            $('.delete-control').each(function() {
-                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                $(this).removeClass('hidden');
-            });
+    $('a[href="#tabs-playlists"]').on('shown.bs.tab', function() {
+        if (typeof(playlists_table) === 'undefined') {
+            loadPlaylistsTable();
         }
     });
-    % endif
+
+    $("#refresh-playlists-table").click(function () {
+        playlists_table.draw();
+    });
 
     function recentlyWatched() {
         // Populate recently watched
@@ -634,11 +765,11 @@ DOCUMENTATION :: END
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.user-info-nav a[href='+hash.replace(prefix,"")+']').tab('show').trigger('show.bs.tab');
+            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
-        $('.user-info-nav a').on('shown.bs.tab', function (e) {
+        $('.nav-list a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash.replace("#", "#" + prefix);
         });
 
@@ -664,5 +795,143 @@ DOCUMENTATION :: END
 
     });
 </script>
+% if _session['user_group'] == 'admin':
+<script>
+    function loadMediaInfoTable() {
+        // Build media info table
+        media_info_table_options.ajax = {
+            url: 'get_library_media_info',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id,
+                    refresh: refresh_table
+                };
+            }
+        };
+        media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-media-info');
+
+        clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
+    }
+
+    $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
+        if (typeof(media_info_table) === 'undefined') {
+            loadMediaInfoTable();
+        }
+    });
+
+    $("#refresh-media-info-table").click(function () {
+        media_info_child_table = {};
+        refresh_table = true;
+        refresh_child_tables = true;
+        media_info_table.draw();
+        refresh_table = false;
+    });
+
+    function loadExportTable() {
+        // Build export table
+        export_table_options.ajax = {
+            url: 'get_export_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify( d ),
+                    section_id: section_id
+                };
+            }
+        };
+        export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
+        export_table.columns([7]).visible(false);
+
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        $(colvis.button()).appendTo('#button-bar-export');
+
+        clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
+    }
+
+    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+        if (typeof(export_table) === 'undefined') {
+            loadExportTable();
+        }
+    });
+
+    $("#refresh-export-table").click(function () {
+        export_table.draw();
+    });
+
+    $("#edit-library-tooltip").tooltip();
+
+    // Load edit library modal
+    $("#toggle-edit-library-modal").click(function() {
+        $("#edit-library-tooltip").tooltip('hide');
+        $.ajax({
+            url: 'edit_library_dialog',
+            data: { section_id: section_id },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#edit-library-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $(".export-button").click(function() {
+        $.ajax({
+            url: 'export_metadata_modal',
+            data: {
+                section_id: $(this).data('section_id'),
+                media_type: $(this).data('media_type'),
+                sub_media_type: $(this).data('sub_media_type'),
+                export_type: $(this).data('export_type')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#export-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $('#row-edit-mode').on('click', function() {
+        $('#row-edit-mode-alert').fadeIn(200);
+
+        if ($(this).hasClass('active')) {
+            if (history_to_delete.length > 0) {
+                $('#deleteCount').text(history_to_delete.length);
+                $('#confirm-modal-delete').modal();
+                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
+                    $.ajax({
+                        url: 'delete_history_rows',
+                        type: 'POST',
+                        data: { row_ids: history_to_delete.join(',') },
+                        async: true,
+                        success: function (data) {
+                            var msg = "History deleted";
+                            showMsg(msg, false, true, 2000);
+                            history_table.draw();
+                        }
+                    });
+                });
+            }
+
+            $('.delete-control').each(function () {
+                $(this).addClass('hidden');
+                $('#row-edit-mode-alert').fadeOut(200);
+            });
+
+        } else {
+            history_to_delete = [];
+            $('.delete-control').each(function() {
+                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                $(this).removeClass('hidden');
+            });
+        }
+    });
+</script>
+% endif
 % endif
 </%def>

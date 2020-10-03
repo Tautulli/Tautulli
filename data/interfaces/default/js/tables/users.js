@@ -212,7 +212,7 @@ users_list_table_options = {
             "data": "duration",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html(humanTimeClean(cellData));
+                    $(td).html(humanDuration(cellData, 'dhm', 's'));
                 }
             },
             "searchable": false,

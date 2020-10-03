@@ -45,7 +45,7 @@ if PYTHON2:
     import common
     import database
     import datafactory
-    import helpers
+    import exporter
     import libraries
     import logger
     import mobile_app
@@ -65,7 +65,7 @@ else:
     from plexpy import common
     from plexpy import database
     from plexpy import datafactory
-    from plexpy import helpers
+    from plexpy import exporter
     from plexpy import libraries
     from plexpy import logger
     from plexpy import mobile_app
@@ -226,6 +226,8 @@ def initialize(config_file):
             CONFIG.BACKUP_DIR, os.path.join(DATA_DIR, 'backups'), 'backups')
         CONFIG.CACHE_DIR, _ = check_folder_writable(
             CONFIG.CACHE_DIR, os.path.join(DATA_DIR, 'cache'), 'cache')
+        CONFIG.EXPORT_DIR, _ = check_folder_writable(
+            CONFIG.EXPORT_DIR, os.path.join(DATA_DIR, 'exports'), 'exports')
         CONFIG.NEWSLETTER_DIR, _ = check_folder_writable(
             CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
 
@@ -533,6 +535,9 @@ def start():
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
 
+        # Cancel processing exports
+        exporter.cancel_exports()
+
         if CONFIG.FIRST_RUN_COMPLETE:
             activity_pinger.connect_server(log=True, startup=True)
 
@@ -787,6 +792,17 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS cloudinary_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'img_hash TEXT, cloudinary_title TEXT, cloudinary_url TEXT)'
+    )
+
+    # exports table :: This table keeps record of the exported files
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, '
+        'filename TEXT, file_format TEXT, '
+        'metadata_level INTEGER, media_info_level INTEGER, '
+        'include_thumb INTEGER DEFAULT 0, include_art INTEGER DEFAULT 0, '
+        'custom_fields TEXT, '
+        'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions

@@ -19,8 +19,9 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import object
 from future.builtins import str
+from backports import csv
 
-from io import open
+from io import open, BytesIO
 import base64
 import json
 import linecache
@@ -28,10 +29,11 @@ import os
 import shutil
 import sys
 import threading
+import zipfile
 from future.moves.urllib.parse import urlencode
 
 import cherrypy
-from cherrypy.lib.static import serve_file, serve_download
+from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
 from cherrypy._cperror import NotFound
 
 from hashing_passwords import make_hash
@@ -48,6 +50,7 @@ if plexpy.PYTHON2:
     import config
     import database
     import datafactory
+    import exporter
     import graphs
     import helpers
     import http_handler
@@ -81,6 +84,7 @@ else:
     from plexpy import config
     from plexpy import database
     from plexpy import datafactory
+    from plexpy import exporter
     from plexpy import graphs
     from plexpy import helpers
     from plexpy import http_handler
@@ -836,6 +840,82 @@ class WebInterface(object):
                                                         rating_key=rating_key,
                                                         refresh=refresh,
                                                         kwargs=kwargs)
+
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi("get_collections_table")
+    def get_collections_list(self, section_id=None, **kwargs):
+        """ Get the data on the Tautulli collections tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 5,
+                     "data":
+                        [...]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("titleSort", True, True),
+                          ("collectionMode", True, True),
+                          ("collectionSort", True, True),
+                          ("childCount", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "titleSort")
+
+        result = libraries.get_collections_list(section_id=section_id, **kwargs)
+
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi("get_playlists_table")
+    def get_playlists_list(self, section_id=None, user_id=None, **kwargs):
+        """ Get the data on the Tautulli playlists tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The section id of the Plex library, OR
+                user_id (str):                  The user id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 5,
+                     "data":
+                        [...]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("title", True, True),
+                          ("leafCount", True, True),
+                          ("duration", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "title")
+
+        result = libraries.get_playlists_list(section_id=section_id,
+                                              user_id=user_id,
+                                              **kwargs)
 
         return result
 
@@ -2997,6 +3077,7 @@ class WebInterface(object):
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "backup_interval": plexpy.CONFIG.BACKUP_INTERVAL,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "export_dir": plexpy.CONFIG.EXPORT_DIR,
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
@@ -4301,7 +4382,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, guid=None, source=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, section_id=None, user_id=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -4312,10 +4393,16 @@ class WebInterface(object):
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL
         }
 
+        if user_id:
+            user_data = users.Users()
+            user_info = user_data.get_details(user_id=user_id)
+        else:
+            user_info = {}
+
         # Try to get metadata from the Plex server first
         if rating_key:
             pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+            metadata = pms_connect.get_metadata_details(rating_key=rating_key, section_id=section_id)
 
         # If the item is not found on the Plex server, get the metadata from history
         if not metadata and source == 'history':
@@ -4334,7 +4421,7 @@ class WebInterface(object):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
             return serve_template(templatename="info.html", metadata=metadata, title="Info",
-                                  config=config, source=source)
+                                  config=config, source=source, user_info=user_info)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
@@ -4343,13 +4430,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children(self, rating_key='', **kwargs):
+    def get_item_children(self, rating_key='', media_type=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children(rating_key=rating_key)
+        result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
 
         if result:
-            return serve_template(templatename="info_children_list.html", data=result, title="Children List")
+            return serve_template(templatename="info_children_list.html", data=result,
+                                  media_type=media_type, title="Children List")
         else:
             logger.warn("Unable to retrieve data for get_item_children.")
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
@@ -4467,8 +4555,9 @@ class WebInterface(object):
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
         if img.startswith('/library/metadata'):
+            parts = 6 if 'composite' in img else 5
             img_split = img.split('/')
-            img = '/'.join(img_split[:5])
+            img = '/'.join(img_split[:parts])
             img_rating_key = img_split[3]
             if rating_key != img_rating_key:
                 rating_key = img_rating_key
@@ -6426,3 +6515,307 @@ class WebInterface(object):
                     status['message'] = 'Database not ok'
 
         return status
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi("get_exports_table")
+    def get_export_list(self, section_id=None, user_id=None, rating_key=None, **kwargs):
+        """ Get the data on the Tautulli export tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section, OR
+                user_id (str):                  The id of the Plex user, OR
+                rating_key (str):               The rating key of the exported item
+
+            Optional parameters:
+                order_column (str):             "added_at", "sort_title", "container", "bitrate", "video_codec",
+                                                "video_resolution", "video_framerate", "audio_codec", "audio_channels",
+                                                "file_size", "last_played", "play_count"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Thrones"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 10,
+                     "recordsFiltered": 3,
+                     "data":
+                        [{"row_id": 2,
+                          "timestamp": 1596484600,
+                          "section_id": 1,
+                          "rating_key": 270716,
+                          "media_type": "movie",
+                          "media_type_title": "Movie",
+                          "filename": "Movie - Frozen II [270716].20200803125640.json",
+                          "complete": 1
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("timestamp", True, False),
+                          ("media_type_title", True, True),
+                          ("rating_key", True, True),
+                          ("file_format", True, True),
+                          ("filename", True, True),
+                          ("complete", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
+
+        result = exporter.get_export_datatable(section_id=section_id,
+                                               user_id=user_id,
+                                               rating_key=rating_key,
+                                               kwargs=kwargs)
+
+        return result
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def export_metadata_modal(self, section_id=None, user_id=None, rating_key=None,
+                              media_type=None, sub_media_type=None,
+                              export_type=None, **kwargs):
+        file_formats = exporter.Export.FILE_FORMATS
+
+        return serve_template(templatename="export_modal.html", title="Export Metadata",
+                              section_id=section_id, user_id=user_id, rating_key=rating_key,
+                              media_type=media_type, sub_media_type=sub_media_type,
+                              export_type=export_type, file_formats=file_formats)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_export_fields(self, media_type=None, sub_media_type=None, **kwargs):
+        """ Get a list of available custom export fields.
+
+            ```
+            Required parameters:
+                media_type (str):          The media type of the fields to return
+
+            Optional parameters:
+                sub_media_type (str):      The child media type for
+                                           collections (movie, show, artist, album, photoalbum),
+                                           or playlists (video, audio, photo)
+
+            Returns:
+                json:
+                    {"metadata_fields":
+                        [{"field": "addedAt", "level": 1},
+                         ...
+                         ],
+                     "media_info_fields":
+                        [{"field": "media.aspectRatio", "level": 1},
+                         ...
+                         ]
+                    }
+            ```
+        """
+        custom_fields = exporter.get_custom_fields(media_type=media_type,
+                                                   sub_media_type=sub_media_type)
+
+        return custom_fields
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
+                        metadata_level=1, media_info_level=1,
+                        include_thumb=False, include_art=False,
+                        custom_fields='', export_type=None, **kwargs):
+        """ Export library or media metadata to a file
+
+            ```
+            Required parameters:
+                section_id (int):          The section id of the library items to export, OR
+                user_id (int):             The user id of the playlist items to export,
+                rating_key (int):          The rating key of the media item to export
+
+            Optional parameters:
+                file_format (str):         csv (default), json, or xml
+                metadata_level (int):      The level of metadata to export (default 1)
+                media_info_level (int):    The level of media info to export (default 1)
+                include_thumb (bool):      True to export poster/cover images
+                include_art (bool):        True to export background artwork images
+                custom_fields (str):       Comma separated list of custom fields to export
+                                           in addition to the export level selected
+                export_type (str):         collection or playlist for library/user export,
+                                           otherwise default to all library items
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "message": "Metadata export has started."
+                     }
+            ```
+        """
+        result = exporter.Export(section_id=section_id,
+                                 user_id=user_id,
+                                 rating_key=rating_key,
+                                 file_format=file_format,
+                                 metadata_level=metadata_level,
+                                 media_info_level=media_info_level,
+                                 include_thumb=helpers.bool_true(include_thumb),
+                                 include_art=helpers.bool_true(include_art),
+                                 custom_fields=custom_fields,
+                                 export_type=export_type).export()
+
+        if result is True:
+            return {'result': 'success', 'message': 'Metadata export has started.'}
+        else:
+            return {'result': 'error', 'message': result}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def view_export(self, export_id=None, **kwargs):
+        """ Download an exported metadata file
+
+            ```
+            Required parameters:
+                export_id (int):          The row id of the exported file to view
+
+            Optional parameters:
+                None
+
+            Returns:
+                download
+            ```
+        """
+        result = exporter.get_export(export_id=export_id)
+
+        if result and result['complete'] == 1 and result['exists']:
+            filepath = exporter.get_export_filepath(result['filename'])
+
+            if result['file_format'] == 'csv':
+                with open(filepath, 'r', encoding='utf-8') as infile:
+                    reader = csv.DictReader(infile)
+                    table = '<table><tr><th>' + \
+                            '</th><th>'.join(reader.fieldnames) + \
+                            '</th></tr><tr>' + \
+                            '</tr><tr>'.join(
+                                '<td>' + '</td><td>'.join(row.values()) + '</td>' for row in reader) + \
+                            '</tr></table>'
+                    style = '<style>' \
+                            'body {margin: 0;}' \
+                            'table {border-collapse: collapse; overflow-y: auto; height: 100px;} ' \
+                            'th {position: sticky; top: 0; background: #ddd; box-shadow: inset 1px 1px #000, 0 1px #000;}' \
+                            'td {box-shadow: inset 1px -1px #000;}' \
+                            'th, td {padding: 3px; white-space: nowrap;}' \
+                            '</style>'
+                return '{style}<pre>{table}</pre>'.format(style=style, table=table)
+
+            elif result['file_format'] == 'json':
+                return serve_file(filepath, name=result['filename'], content_type='application/json;charset=UTF-8')
+
+            elif result['file_format'] == 'xml':
+                return serve_file(filepath, name=result['filename'], content_type='application/xml;charset=UTF-8')
+
+            elif result['file_format'] == 'm3u8':
+                return serve_file(filepath, name=result['filename'], content_type='text/plain;charset=UTF-8')
+
+        else:
+            if result and result.get('complete') == 0:
+                msg = 'Export is still being processed.'
+            elif result and result.get('complete') == -1:
+                msg = 'Export failed to process.'
+            elif result and not result.get('exists'):
+                msg = 'Export file does not exist.'
+            else:
+                msg = 'Invalid export_id provided.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_export(self, export_id=None, **kwargs):
+        """ Download an exported metadata file
+
+            ```
+            Required parameters:
+                export_id (int):          The row id of the exported file to download
+
+            Optional parameters:
+                None
+
+            Returns:
+                download
+            ```
+        """
+        result = exporter.get_export(export_id=export_id)
+
+        if result and result['complete'] == 1 and result['exists']:
+            export_filepath = exporter.get_export_filepath(result['filename'])
+
+            if result['include_thumb'] or result['include_art']:
+                zip_filename = '{}.zip'.format(os.path.splitext(result['filename'])[0])
+                images_folder = exporter.get_export_filepath(result['filename'], images=True)
+
+                if os.path.exists(images_folder):
+                    buffer = BytesIO()
+                    temp_zip = zipfile.ZipFile(buffer, 'w')
+                    temp_zip.write(export_filepath, arcname=result['filename'])
+
+                    _images_folder = os.path.basename(images_folder)
+
+                    for f in os.listdir(images_folder):
+                        image_path = os.path.join(images_folder, f)
+                        temp_zip.write(image_path, arcname=os.path.join(_images_folder, f))
+
+                    temp_zip.close()
+                    return serve_fileobj(buffer.getvalue(), content_type='application/zip',
+                                         disposition='attachment', name=zip_filename)
+
+            return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
+        else:
+            if result and result.get('complete') == 0:
+                msg = 'Export is still being processed.'
+            elif result and result.get('complete') == -1:
+                msg = 'Export failed to process.'
+            elif result and not result.get('exists'):
+                msg = 'Export file does not exist.'
+            else:
+                msg = 'Invalid export_id provided.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_export(self, export_id=None, delete_all=False, **kwargs):
+        """ Delete exports from Tautulli.
+
+            ```
+            Required parameters:
+                export_id (int):          The row id of the exported file to delete
+
+            Optional parameters:
+                delete_all (bool):        'true' to delete all exported files
+
+            Returns:
+                None
+            ```
+        """
+        if helpers.bool_true(delete_all):
+            result = exporter.delete_all_exports()
+            if result:
+                return {'result': 'success', 'message': 'All exports deleted successfully.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete all exports.'}
+
+        else:
+            result = exporter.delete_export(export_id=export_id)
+            if result:
+                return {'result': 'success', 'message': 'Export deleted successfully.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete export.'}

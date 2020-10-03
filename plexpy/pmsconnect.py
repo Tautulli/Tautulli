@@ -24,6 +24,7 @@ import json
 import os
 import time
 from future.moves.urllib.parse import quote, quote_plus, urlencode
+from xml.dom.minidom import Node
 
 import plexpy
 if plexpy.PYTHON2:
@@ -31,6 +32,7 @@ if plexpy.PYTHON2:
     import common
     import helpers
     import http_handler
+    import libraries
     import logger
     import plextv
     import session
@@ -40,6 +42,7 @@ else:
     from plexpy import common
     from plexpy import helpers
     from plexpy import http_handler
+    from plexpy import libraries
     from plexpy import logger
     from plexpy import plextv
     from plexpy import session
@@ -167,6 +170,22 @@ class PmsConnect(object):
         Output: array
         """
         uri = '/library/metadata/' + rating_key + '/grandchildren'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_playlist_items(self, rating_key='', output_format=''):
+        """
+        Return metadata for items of the requested playlist.
+
+        Parameters required:    rating_key { Plex ratingKey }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/playlists/' + rating_key + '/items'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -594,7 +613,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='',
+    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', section_id='',
                              skip_cache=False, cache_key=None, return_cache=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
@@ -654,6 +673,8 @@ class PmsConnect(object):
                 metadata_main_list = a.getElementsByTagName('Track')
             elif a.getElementsByTagName('Photo'):
                 metadata_main_list = a.getElementsByTagName('Photo')
+            elif a.getElementsByTagName('Playlist'):
+                metadata_main_list = a.getElementsByTagName('Playlist')
             else:
                 logger.debug("Tautulli Pmsconnect :: Metadata failed")
                 return {}
@@ -669,8 +690,12 @@ class PmsConnect(object):
             if metadata_main.nodeName == 'Directory' and metadata_type == 'photo':
                 metadata_type = 'photo_album'
 
-            section_id = helpers.get_xml_attr(a, 'librarySectionID')
+            section_id = helpers.get_xml_attr(a, 'librarySectionID') or section_id
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
+
+            if not library_name and section_id:
+                library_data = libraries.Libraries().get_details(section_id)
+                library_name = library_data['section_name']
 
         directors = []
         writers = []
@@ -1247,7 +1272,27 @@ class PmsConnect(object):
                         'collections': collections,
                         'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'childCount')),
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        }
+
+        elif metadata_type == 'playlist':
+            metadata = {'media_type': metadata_type,
+                        'section_id': section_id,
+                        'library_name': library_name,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'composite': helpers.get_xml_attr(metadata_main, 'composite'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'composite'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
+                        'smart': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'smart')),
+                        'playlist_type': helpers.get_xml_attr(metadata_main, 'playlistType'),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
                         }
 
@@ -2242,13 +2287,15 @@ class PmsConnect(object):
             logger.warn("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
             return msg
 
-    def get_item_children(self, rating_key='', get_grandchildren=False):
+    def get_item_children(self, rating_key='', media_type=None, get_grandchildren=False):
         """
         Return processed and validated children list.
 
         Output: array
         """
-        if get_grandchildren:
+        if media_type == 'playlist':
+            children_data = self.get_playlist_items(rating_key, output_format='xml')
+        elif get_grandchildren:
             children_data = self.get_metadata_grandchildren(rating_key, output_format='xml')
         else:
             children_data = self.get_metadata_children(rating_key, output_format='xml')
@@ -2272,12 +2319,9 @@ class PmsConnect(object):
 
             result_data = []
 
-            if a.getElementsByTagName('Directory'):
-                result_data = a.getElementsByTagName('Directory')
-            if a.getElementsByTagName('Video'):
-                result_data = a.getElementsByTagName('Video')
-            if a.getElementsByTagName('Track'):
-                result_data = a.getElementsByTagName('Track')
+            for x in a.childNodes:
+                if x.nodeType == Node.ELEMENT_NODE and x.tagName in ('Directory', 'Video', 'Track', 'Photo'):
+                    result_data.append(x)
 
             if result_data:
                 for m in result_data:
@@ -2307,7 +2351,11 @@ class PmsConnect(object):
                         for label in m.getElementsByTagName('Label'):
                             labels.append(helpers.get_xml_attr(label, 'tag'))
 
-                    children_output = {'media_type': helpers.get_xml_attr(m, 'type'),
+                    media_type = helpers.get_xml_attr(m, 'type')
+                    if m.nodeName == 'Directory' and media_type == 'photo':
+                        media_type = 'photo_album'
+
+                    children_output = {'media_type': media_type,
                                        'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
                                        'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
                                        'rating_key': helpers.get_xml_attr(m, 'ratingKey'),

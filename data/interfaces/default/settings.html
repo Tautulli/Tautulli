@@ -17,8 +17,6 @@
 </%def>
 
 <%def name="headerIncludes()">
-<link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
-<link href="${http_root}css/selectize.min.css" rel="stylesheet" />
 </%def>
 
 <%def name="body()">
@@ -1457,6 +1455,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="export_dir">Export Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="export_dir" name="export_dir" value="${config['export_dir']}" ${docker_setting}>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="export_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#export_dir" ${docker_setting}>Browse</button>
+                                        </span>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_exports">Clear All Exports</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -1986,7 +2000,6 @@ Rating: {rating}/10   --> Rating: /10
 <%def name="javascriptIncludes()">
 <script src="${http_root}js/parsley.min.js"></script>
 <script src="${http_root}js/Sortable.min.js"></script>
-<script src="${http_root}js/selectize.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
 <script>
@@ -2304,6 +2317,12 @@ $(document).ready(function() {
     $("#clear_image_cache").click(function () {
         var msg = 'Are you sure you want to clear the Tautulli image cache?';
         var url = 'delete_image_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_exports").click(function () {
+        var msg = 'Are you sure you want to clear the Tautulli metadata exports?';
+        var url = 'delete_export?delete_all=true';
         confirmAjaxCall(url, msg);
     });
 

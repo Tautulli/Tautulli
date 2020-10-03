@@ -216,6 +216,11 @@ def delete_recently_added():
     return clear_table('recently_added')
 
 
+def delete_exports():
+    logger.info("Tautulli Database :: Clearing exported items from database.")
+    return clear_table('exports')
+
+
 def delete_rows_from_table(table, row_ids):
     if row_ids and isinstance(row_ids, str):
         row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
