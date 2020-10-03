@@ -531,17 +531,14 @@ DOCUMENTATION :: END
                     history_active = 'active' if history_type else ''
                     export_active = 'active' if not history_type else ''
                 %>
-                % if history_type:
+                % if history_type and _session['user_group'] == 'admin':
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <ul class="nav nav-list nav-pills" role="tablist">
                             <li class="${history_active}"><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                            % if _session['user_group'] == 'admin':
                             <li class="${export_active}"><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
-                            % endif
                         </ul>
                         <div class="button-bar">
-                            % if _session['user_group'] == 'admin':
                             % if source == 'history':
                             <div class="btn-group">
                                 <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
@@ -580,7 +577,6 @@ DOCUMENTATION :: END
                                     <i class="fa fa-bell"></i> Recently Added Notification
                                 </button>
                             </div>
-                            % endif
                             % endif
                         </div>
                     </div>
