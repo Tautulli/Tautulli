@@ -24,7 +24,8 @@ collections_table_options = {
             "data": "titleSort",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + rowData['title'] + '</a>');
+                    var thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['ratingKey'], 300, 450, null, null, null, 'poster') + '" data-height="120" data-width="80">' + rowData['title'] + '</span>';
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + thumb_popover + '</a>');
                 }
             },
             "width": "50%",
@@ -88,6 +89,18 @@ collections_table_options = {
         // Jump to top of page
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
+            html: true,
+            container: 'body',
+            trigger: 'hover',
+            placement: 'right',
+            template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+            content: function () {
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
+            }
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";

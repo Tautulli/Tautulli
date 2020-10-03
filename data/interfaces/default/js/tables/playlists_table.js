@@ -34,7 +34,8 @@ playlists_table_options = {
                     } else if (rowData['librarySectionID']) {
                         breadcrumb = '&section_id=' + rowData['librarySectionID'];
                     }
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + breadcrumb +'">' + smart + cellData + '</a>');
+                    var thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['composite'], rowData['ratingKey'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + smart + cellData + '</span>';
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + breadcrumb +'">' + thumb_popover + '</a>');
                 }
             },
             "width": "60%",
@@ -76,6 +77,17 @@ playlists_table_options = {
         $('body').tooltip({
             selector: '[data-toggle="tooltip"]',
             container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
+            html: true,
+            container: 'body',
+            trigger: 'hover',
+            placement: 'right',
+            template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
+            content: function () {
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
+            }
         });
     },
     "preDrawCallback": function(settings) {
