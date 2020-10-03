@@ -767,7 +767,8 @@ class MovieSection(LibrarySection):
 
     def collection(self, **kwargs):
         """ Returns a list of collections from this library section. """
-        return self.search(libtype='collection', **kwargs)
+        key = '/library/sections/%s/collections' % self.key
+        return self.fetchItems(key, **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
@@ -852,7 +853,8 @@ class ShowSection(LibrarySection):
 
     def collection(self, **kwargs):
         """ Returns a list of collections from this library section. """
-        return self.search(libtype='collection', **kwargs)
+        key = '/library/sections/%s/collections' % self.key
+        return self.fetchItems(key, **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
@@ -938,7 +940,8 @@ class MusicSection(LibrarySection):
 
     def collection(self, **kwargs):
         """ Returns a list of collections from this library section. """
-        return self.search(libtype='collection', **kwargs)
+        key = '/library/sections/%s/collections' % self.key
+        return self.fetchItems(key, **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
