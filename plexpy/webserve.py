@@ -6585,6 +6585,9 @@ class WebInterface(object):
                               export_type=None, **kwargs):
         file_formats = exporter.Export.FILE_FORMATS
 
+        if media_type == 'photo_album':
+            media_type = 'photoalbum'
+
         return serve_template(templatename="export_modal.html", title="Export Metadata",
                               section_id=section_id, user_id=user_id, rating_key=rating_key,
                               media_type=media_type, sub_media_type=sub_media_type,

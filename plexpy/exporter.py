@@ -58,6 +58,7 @@ class Export(object):
         'track': (False, False),
         'photoalbum': (False, False),
         'photo': (False, False),
+        'clip': (False, False),
         'collection': (True, True),
         'playlist': (True, True)
     }
@@ -71,6 +72,7 @@ class Export(object):
         'track': 'tracks',
         'phtoalbum': 'photoalbums',
         'photo': 'photos',
+        'clip': 'clips',
         'collection': 'collections',
         'children': 'children',
         'playlist': 'playlists',
@@ -84,7 +86,7 @@ class Export(object):
         'artist': 'album',
         'album': 'track',
         'track': '',
-        'photoalbum': 'photo',
+        'photoalbum': 'photo',  # TODO: photoalbum and clip can be children of photoalbum
         'photo': '',
         'collection': 'children',
         'playlist': 'item'
@@ -864,10 +866,6 @@ class Export(object):
 
         def photo_album_attrs():
             _photo_album_attrs = {
-                # For some reason photos needs to be first,
-                # otherwise the photo album ratingKey gets
-                # clobbered by the first photo's ratingKey
-                'photos': lambda e: self._export_obj(e),
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'composite': None,
@@ -887,7 +885,10 @@ class Export(object):
                 'title': None,
                 'titleSort': None,
                 'type': None,
-                'updatedAt': helpers.datetime_to_iso
+                'updatedAt': helpers.datetime_to_iso,
+                'albums': lambda e: self._export_obj(e),
+                'photos': lambda e: self._export_obj(e),
+                'clips': lambda e: self._export_obj(e)
             }
             return _photo_album_attrs
 
@@ -1019,6 +1020,7 @@ class Export(object):
             'track': track_attrs,
             'photoalbum': photo_album_attrs,
             'photo': photo_attrs,
+            'clip': episode_attrs,  # Assume clip is the same as an episode
             'collection': collection_attrs,
             'playlist': playlist_attrs,
         }
@@ -1313,7 +1315,7 @@ class Export(object):
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
                     'summary', 'guid', 'type', 'index',
-                    'photos'
+                    'albums', 'photos', 'clips'
                 ],
                 2: [
                     'fields.name', 'fields.locked'
@@ -1417,6 +1419,7 @@ class Export(object):
             'track': track_levels,
             'photoalbum': photo_album_levels,
             'photo': photo_levels,
+            'clip': episode_levels,  # Assume clip is the same as an episode
             'collection': collection_levels,
             'playlist': playlist_levels
         }
@@ -1489,7 +1492,7 @@ class Export(object):
                 self.include_thumb, self.include_art)
 
             self.obj = plex.get_item(self.rating_key)
-            self.media_type = self.obj.type
+            self.media_type = 'photoalbum' if self.is_photoalbum(self.obj) else self.obj.type
 
             if self.media_type != 'playlist':
                 self.section_id = self.obj.librarySectionID
@@ -1499,11 +1502,8 @@ class Export(object):
             else:
                 item_title = self.obj.title
 
-            if self.media_type == 'photo' and self.obj.TAG == 'Directory':
-                self.media_type = 'photoalbum'
-
             filename = '{} - {} [{}].{}'.format(
-                self.media_type.title(), item_title, self.rating_key,
+                self.media_type.capitalize(), item_title, self.rating_key,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
         elif self.user_id:
@@ -1678,7 +1678,8 @@ class Export(object):
         if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
             obj = obj.reload()
 
-        export_attrs = self._get_export_attrs(obj.type)
+        media_type = 'photoalbum' if self.is_photoalbum(obj) else obj.type
+        export_attrs = self._get_export_attrs(media_type)
         return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
 
     def _process_custom_fields(self):
@@ -1788,6 +1789,10 @@ class Export(object):
     @staticmethod
     def is_media_info_attr(attr):
         return attr.startswith('media.') or attr == 'locations'
+
+    @staticmethod
+    def is_photoalbum(obj):
+        return obj.type == 'photo' and obj.TAG == 'Directory'
 
     def dict_to_m3u8(self, data):
         items = self._get_m3u8_items(data)
