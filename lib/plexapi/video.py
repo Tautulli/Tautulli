@@ -750,12 +750,15 @@ class Clip(Playable, Video):
     METADATA_TYPE = 'clip'
 
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        Video._loadData(self, data)
+        Playable._loadData(self, data)
         self._data = data
         self.addedAt = data.attrib.get('addedAt')
-        self.duration = data.attrib.get('duration')
+        self.duration = utils.cast(int, data.attrib.get('duration'))
         self.guid = data.attrib.get('guid')
         self.key = data.attrib.get('key')
-        self.originallyAvailableAt = data.attrib.get('originallyAvailableAt')
+        self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.ratingKey = data.attrib.get('ratingKey')
         self.skipDetails = utils.cast(int, data.attrib.get('skipDetails'))
         self.subtype = data.attrib.get('subtype')
@@ -763,4 +766,5 @@ class Clip(Playable, Video):
         self.thumbAspectRatio = data.attrib.get('thumbAspectRatio')
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
-        self.year = data.attrib.get('year')
+        self.year = utils.cast(int, data.attrib.get('year'))
+        self.media = self.findItems(data, media.Media)

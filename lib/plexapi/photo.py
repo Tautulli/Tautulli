@@ -38,7 +38,7 @@ class Photoalbum(PlexPartialObject):
         self.composite = data.attrib.get('composite')
         self.guid = data.attrib.get('guid')
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.key = data.attrib.get('key')
+        self.key = data.attrib.get('key', '').replace('/children', '')
         self.librarySectionID = data.attrib.get('librarySectionID')
         self.librarySectionKey = data.attrib.get('librarySectionKey')
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
@@ -74,6 +74,11 @@ class Photoalbum(PlexPartialObject):
             if photo.title.lower() == title.lower():
                 return photo
         raise NotFound('Unable to find photo: %s' % title)
+
+    def clips(self, **kwargs):
+        """ Returns a list of :class:`~plexapi.video.Clip` objects in this album. """
+        key = '/library/metadata/%s/children' % self.ratingKey
+        return self.fetchItems(key, etag='Video', **kwargs)
 
 
 @utils.registerPlexObject
