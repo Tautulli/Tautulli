@@ -535,8 +535,8 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <ul class="nav nav-list nav-pills" role="tablist">
-                            <li class="${history_active}"><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                            <li class="${export_active}"><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                            <li class="${history_active}"><a id="nav-tabs-history" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
+                            <li class="${export_active}"><a id="nav-tabs-export" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                         </ul>
                         <div class="button-bar">
                             % if source == 'history':
@@ -918,7 +918,7 @@ DOCUMENTATION :: END
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+            $('.nav-list #nav-' + hash.replace('#' + prefix, "")).tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
@@ -989,7 +989,7 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
     }
 
-    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-export').on('shown.bs.tab', function() {
         if (typeof(export_table) === 'undefined') {
             loadExportTable();
         }

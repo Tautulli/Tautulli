@@ -70,15 +70,15 @@ DOCUMENTATION :: END
                             </div>
                             <div class="user-info-nav">
                                 <ul class="nav nav-list nav-pills" role="tablist">
-                                    <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
-                                    <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
-                                    <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    <li class="active"><a id="nav-tabs-profile" href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
+                                    <li><a id="nav-tabs-history" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
+                                    <li><a id="nav-tabs-playlists" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
                                     % if _session['user_group'] == 'admin':
-                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                                    <li><a id="nav-tabs-export" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
-                                    <li><a href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
-                                    <li><a href="#tabs-ipaddresses" role="tab" data-toggle="tab">IP Addresses</a></li>
-                                    <li><a href="#tabs-tautullilogins" role="tab" data-toggle="tab">Tautulli Logins</a></li>
+                                    <li><a id="nav-tabs-synceditems" href="#tabs-synceditems" role="tab" data-toggle="tab">Synced Items</a></li>
+                                    <li><a id="nav-tabs-ipaddresses" href="#tabs-ipaddresses" role="tab" data-toggle="tab">IP Addresses</a></li>
+                                    <li><a id="nav-tabs-tautullilogins" href="#tabs-tautullilogins" role="tab" data-toggle="tab">Tautulli Logins</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -557,7 +557,7 @@ DOCUMENTATION :: END
         });
     }
 
-    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-history').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
             var media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
             $('#history-' + media_type).prop('checked', true);
@@ -590,7 +590,7 @@ DOCUMENTATION :: END
         clearSearchButton('playlists_table-SID-${data["user_id"]}', playlists_table);
     }
 
-    $('a[href="#tabs-playlists"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-playlists').on('shown.bs.tab', function() {
         if (typeof(playlists_table) === 'undefined') {
             loadPlaylistsTable();
         }
@@ -615,7 +615,7 @@ DOCUMENTATION :: END
         clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
     }
 
-    $('a[href="#tabs-synceditems"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-synceditems').on('shown.bs.tab', function() {
         if (typeof(sync_table) === 'undefined') {
             loadSyncTable(user_id);
         }
@@ -645,7 +645,7 @@ DOCUMENTATION :: END
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
     }
 
-    $('a[href="#tabs-ipaddresses"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-ipaddresses').on('shown.bs.tab', function() {
         if (typeof(user_ip_table) === 'undefined') {
             loadIPAddressTable(user_id);
         }
@@ -676,7 +676,7 @@ DOCUMENTATION :: END
         clearSearchButton('login_log_table-UID-${data["user_id"]}', login_log_table);
     }
 
-    $('a[href="#tabs-tautullilogins"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-tautullilogins').on('shown.bs.tab', function() {
         if (typeof(login_log_table) === 'undefined') {
             loadLoginTable(user_id);
         }
@@ -744,12 +744,11 @@ DOCUMENTATION :: END
     });
 
     $(document).ready(function () {
-
         // Javascript to enable link to tab
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+            $('.nav-list #nav-' + hash.replace('#' + prefix, "")).tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
@@ -802,7 +801,7 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-SID-${data["user_id"]}', export_table);
     }
 
-    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-export').on('shown.bs.tab', function() {
         if (typeof(export_table) === 'undefined') {
             loadExportTable();
         }

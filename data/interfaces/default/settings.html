@@ -46,17 +46,17 @@
         <!-- Nav tabs -->
         <div class="col-md-3">
             <ul class="nav-settings list-unstyled" role="tablist">
-                <li role="presentation" class="active"><a href="#tabs-help_info" aria-controls="tabs-help_info" role="tab" data-toggle="tab">Help & Info</a></li>
-                <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
-                <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
-                <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
-                <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
-                <li role="presentation"><a href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
-                <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
+                <li role="presentation" class="active"><a id="nav-help_info" href="#tabs-help_info" aria-controls="tabs-help_info" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a id="nav-tabs-general" href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation"><a id="nav-tabs-homepage" href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a id="nav-tabs-web_interface" href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a id="nav-tabs-plex_media_server" href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a id="nav-tabs-notifications" href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
+                <li role="presentation"><a id="nav-tabs-notification_agents" href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a id="nav-tabs-newsletter_agents" href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
+                <li role="presentation"><a id="nav-tabs-3rd_party_apis" href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
+                <li role="presentation"><a id="nav-tabs-import_backups" href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
+                <li role="presentation"><a id="nav-tabs-android_app" href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -2153,9 +2153,9 @@ $(document).ready(function() {
 
     // Javascript to enable link to tab
     var hash = document.location.hash;
-    var prefix = "tab_";
+    var prefix = "tabs_";
     if (hash) {
-        $('.nav-settings a[href='+hash.replace(prefix,"")+']').tab('show');
+        $('.nav-settings #nav-' + hash.replace('#' + prefix, "")).tab('show');
     }
 
     // Change hash for page-reload
@@ -3047,7 +3047,7 @@ $(document).ready(function() {
     });
 
     function gotoSetting(tab, setting){
-        $("a[href=#tabs-" + tab + "]").click();
+        $("#nav-tabs-" + tab).click();
         if (setting) {
             _setting = '#' + setting;
             if ($(_setting).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {

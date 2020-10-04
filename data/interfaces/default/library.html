@@ -88,16 +88,16 @@ DOCUMENTATION :: END
                             </div>
                             <div class="user-info-nav">
                                 <ul class="nav nav-list nav-pills" role="tablist">
-                                    <li class="active"><a href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
-                                    <li><a href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
+                                    <li class="active"><a id="nav-tabs-profile" href="#tabs-profile" role="tab" data-toggle="tab">Profile</a></li>
+                                    <li><a id="nav-tabs-history" href="#tabs-history" role="tab" data-toggle="tab">History</a></li>
                                     % if data['section_id'] != LIVE_TV_SECTION_ID:
                                     % if _session['user_group'] == 'admin':
-                                    <li><a href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
+                                    <li><a id="nav-tabs-mediainfo" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
                                     % endif
-                                    <li><a href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
-                                    <li><a href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
+                                    <li><a id="nav-tabs-collections" href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
+                                    <li><a id="nav-tabs-playlists" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
                                     % if _session['user_group'] == 'admin':
-                                    <li><a href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
+                                    <li><a id="nav-tabs-export" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
                                     % endif
                                     % endif
                                 </ul>
@@ -575,7 +575,7 @@ DOCUMENTATION :: END
         clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
     }
 
-    $('a[href="#tabs-history"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-history').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
             loadHistoryTable();
         }
@@ -605,7 +605,7 @@ DOCUMENTATION :: END
         clearSearchButton('collections_table-SID-${data["section_id"]}', collections_table);
     }
 
-    $('a[href="#tabs-collections"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-collections').on('shown.bs.tab', function() {
         if (typeof(collections_table) === 'undefined') {
             loadCollectionsTable();
         }
@@ -635,7 +635,7 @@ DOCUMENTATION :: END
         clearSearchButton('playlists_table-SID-${data["section_id"]}', playlists_table);
     }
 
-    $('a[href="#tabs-playlists"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-playlists').on('shown.bs.tab', function() {
         if (typeof(playlists_table) === 'undefined') {
             loadPlaylistsTable();
         }
@@ -765,7 +765,7 @@ DOCUMENTATION :: END
         var hash = document.location.hash;
         var prefix = "tab_";
         if (hash) {
-            $('.nav-list a[href=' + hash.replace(prefix, "") + ']').tab('show').trigger('show.bs.tab');
+            $('.nav-list #nav-' + hash.replace('#' + prefix, "")).tab('show').trigger('show.bs.tab');
         }
 
         // Change hash for page-reload
@@ -818,7 +818,7 @@ DOCUMENTATION :: END
         clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
     }
 
-    $('a[href="#tabs-mediainfo"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-mediainfo').on('shown.bs.tab', function() {
         if (typeof(media_info_table) === 'undefined') {
             loadMediaInfoTable();
         }
@@ -853,7 +853,7 @@ DOCUMENTATION :: END
         clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
     }
 
-    $('a[href="#tabs-export"]').on('shown.bs.tab', function() {
+    $('#nav-tabs-export').on('shown.bs.tab', function() {
         if (typeof(export_table) === 'undefined') {
             loadExportTable();
         }

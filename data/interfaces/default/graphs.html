@@ -41,13 +41,13 @@
         </div>
     </div>
     <div class="table-card-back">
-        <ul class="nav nav-pills" role="tablist" id="graph-tabs">
-            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by Period</a></li>
-            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
-            <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
+        <ul class="nav nav-list nav-pills" role="tablist" id="graph-tabs">
+            <li role="presentation"><a id="nav-tabs-plays" href="#tabs-plays" aria-controls="tabs-plays" data-toggle="tab" role="tab">Plays by Period</a></li>
+            <li role="presentation"><a id="nav-tabs-stream" href="#tabs-stream" aria-controls="tabs-stream" data-toggle="tab" role="tab">Stream Info</a></li>
+            <li role="presentation"><a id="nav-tabs-total" href="#tabs-total" aria-controls="tabs-total" data-toggle="tab" role="tab">Play Totals</a></li>
         </ul>
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane" id="tabs-1">
+            <div role="tabpanel" class="tab-pane" id="tabs-plays">
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
@@ -123,7 +123,7 @@
                     </div>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="tabs-2">
+            <div role="tabpanel" class="tab-pane" id="tabs-stream">
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-video-camera"></i> Daily Stream type breakdown <small>Last <span class="days">30</span> days</small></h4>
@@ -195,7 +195,7 @@
                     </div>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="tabs-3">
+            <div role="tabpanel" class="tab-pane" id="tabs-total">
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-calendar"></i> Plays by month <small>Last <span class="months">12</span> months</small></h4>
@@ -341,14 +341,30 @@
         var yaxis = getLocalStorage('graph_type', 'plays');
         var current_day_range = getLocalStorage('graph_days', 30);
         var current_month_range = getLocalStorage('graph_months', 12);
-        var current_tab = '#' + getLocalStorage('graph_tab', 'tabs-1');
+        var current_tab = '#' + getLocalStorage('graph_tab', 'tabs-plays');
+
+        // Update tab values from upgrading
+        switch (current_tab) {
+            case '#tabs-1':
+                current_tab = '#tabs-plays'
+                break
+            case '#tabs-2':
+                current_tab = '#tabs-strea'
+                break
+            case '#tabs-3':
+                current_tab = '#tabs-total'
+                break
+            default:
+                current_tab = '#tabs-plays'
+                break
+        }
 
         $('#yaxis-' + yaxis).prop('checked', true);
         $('#yaxis-' + yaxis).closest('label').addClass('active');
         $('#graph-days').val(current_day_range);
         $('#graph-months').val(current_month_range);
-        $('#graph-tabs a[href="' + current_tab + '"]').closest('li').addClass('active');
-        $(current_tab).addClass('active');
+        $('#nav-' + current_tab.replace('#', "")).tab('show').trigger('show.bs.tab');
+        //$(current_tab).addClass('active');
 
 
         $('.days').html(current_day_range);
@@ -469,7 +485,7 @@
                 }
             });
 
-            $('#graph-tabs a[href="#tabs-1"]').tab('show')
+            $('#nav-tabs-plays').tab('show');
         }
 
         function loadGraphsTab2(time_range, yaxis) {
@@ -562,7 +578,7 @@
                 }
             });
 
-            $('#graph-tabs a[href="#tabs-2"]').tab('show')
+            $('#nav-tabs-2').tab('show');
         }
 
         function loadGraphsTab3(time_range, yaxis) {
@@ -586,16 +602,16 @@
                 }
             });
 
-            $('#graph-tabs a[href="#tabs-3"]').tab('show')
+            $('#nav-tabs-total').tab('show');
         }
 
         // Set initial state
-        if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-        if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-        if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+        if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+        if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+        if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
 
         // Tab1 opened
-        $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
+        $('#nav-tabs-plays').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
@@ -603,7 +619,7 @@
         });
 
         // Tab2 opened
-        $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
+        $('#nav-tabs-stream').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
@@ -611,7 +627,7 @@
         });
 
         // Tab3 opened
-        $('#graph-tabs a[href="#tabs-3"]').on('shown.bs.tab', function (e) {
+        $('#nav-tabs-total').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
             setLocalStorage('graph_tab', current_tab.replace('#',''));
@@ -624,8 +640,8 @@
             forceMinMax($(this));
             current_day_range = $(this).val();
             setLocalStorage('graph_days', current_day_range);
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
             $('.days').html(current_day_range);
         });
         
@@ -635,25 +651,25 @@
             forceMinMax($(this));
             current_month_range = $(this).val();
             setLocalStorage('graph_months', current_month_range);
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
             $('.months').html(current_month_range);
         });
 
         // User changed
         $('#graph-user').on('change', function() {
             selected_user_id = $(this).val() || null;
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
         });
         
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
             setLocalStorage('graph_type', yaxis);
-            if (current_tab === '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
-            if (current_tab === '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
-            if (current_tab === '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
         });
 
         function setGraphFormat(type) {
