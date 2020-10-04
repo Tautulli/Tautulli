@@ -70,7 +70,7 @@ class Export(object):
         'artist': 'artists',
         'album': 'albums',
         'track': 'tracks',
-        'phtoalbum': 'photoalbums',
+        'photoalbum': 'photoalbums',
         'photo': 'photos',
         'clip': 'clips',
         'collection': 'collections',
@@ -79,17 +79,17 @@ class Export(object):
         'item': 'items'
     }
     CHILD_MEDIA_TYPES = {
-        'movie': '',
-        'show': 'season',
-        'season': 'episode',
-        'episode': '',
-        'artist': 'album',
-        'album': 'track',
-        'track': '',
-        'photoalbum': 'photo',  # TODO: photoalbum and clip can be children of photoalbum
-        'photo': '',
-        'collection': 'children',
-        'playlist': 'item'
+        'movie': [],
+        'show': ['season'],
+        'season': ['episode'],
+        'episode': [],
+        'artist': ['album'],
+        'album': ['track'],
+        'track': [],
+        'photoalbum': ['photoalbum', 'photo', 'clip'],
+        'photo': [],
+        'collection': ['children'],
+        'playlist': ['item']
     }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
@@ -884,9 +884,9 @@ class Export(object):
                 'thumb': None,
                 'title': None,
                 'titleSort': None,
-                'type': None,
+                'type': lambda e: 'photoalbum' if e == 'photo' else e,
                 'updatedAt': helpers.datetime_to_iso,
-                'albums': lambda e: self._export_obj(e),
+                'photoalbums': lambda o: [self._export_obj(e) for e in getattr(o, 'albums')()],
                 'photos': lambda e: self._export_obj(e),
                 'clips': lambda e: self._export_obj(e)
             }
@@ -1315,7 +1315,7 @@ class Export(object):
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
                     'summary', 'guid', 'type', 'index',
-                    'albums', 'photos', 'clips'
+                    'photoalbums', 'photos', 'clips'
                 ],
                 2: [
                     'fields.name', 'fields.locked'
@@ -1813,7 +1813,7 @@ class Export(object):
         items = []
 
         for d in data:
-            if 'locations' in d:
+            if d.get('locations', []):
                 location = {
                     'ratingKey': d['ratingKey'],
                     'duration': d['duration'],
@@ -1822,8 +1822,7 @@ class Export(object):
                 }
                 items.append(location)
 
-            child_media_type = self.CHILD_MEDIA_TYPES[d['type']]
-            if child_media_type:
+            for child_media_type in self.CHILD_MEDIA_TYPES[d['type']]:
                 child_locations = self._get_m3u8_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
                 items.extend(child_locations)
 
@@ -2021,24 +2020,28 @@ def get_custom_fields(media_type, sub_media_type=None):
     metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
 
     for sub_media_type in sub_media_types:
-        prefix = ''
-        child_media_type = export.CHILD_MEDIA_TYPES[media_type]
+        for child_media_type in export.CHILD_MEDIA_TYPES[media_type]:
+            prefix = ''
 
-        while child_media_type:
-            if child_media_type in ('children', 'item'):
-                fields_child_media_type = sub_media_type
-            else:
-                fields_child_media_type = child_media_type
+            while child_media_type:
+                if child_media_type in ('children', 'item'):
+                    fields_child_media_type = sub_media_type
+                else:
+                    fields_child_media_type = child_media_type
 
-            prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
+                prefix = prefix + export.PLURAL_MEDIA_TYPES[child_media_type] + '.'
 
-            child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
-                fields_child_media_type, prefix=prefix)
+                child_metadata_levels_map, child_media_info_levels_map = export.return_attrs_level_map(
+                    fields_child_media_type, prefix=prefix)
 
-            metadata_levels_map.update(child_metadata_levels_map)
-            media_info_levels_map.update(child_media_info_levels_map)
+                metadata_levels_map.update(child_metadata_levels_map)
+                media_info_levels_map.update(child_media_info_levels_map)
 
-            child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
+                if child_media_type == 'photoalbum':
+                    # Don't recurse photoalbum again
+                    break
+
+                child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
 
     custom_fields['metadata_fields'] = [{'field': attr, 'level': level}
                                         for attr, level in sorted(metadata_levels_map.items()) if level]
