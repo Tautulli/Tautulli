@@ -1385,7 +1385,8 @@ def escape_xml(value):
 
 
 # https://gist.github.com/reimund/5435343/
-def dict_to_xml(d, root_node=None, indent=4, level=0):
+def dict_to_xml(d, root_node=None, indent=None, level=0):
+    line_break = '' if indent is None else '\n'
     wrap = not bool(root_node is None or isinstance(d, list))
     root = root_node or 'objects'
     root_singular = root[:-1] if root.endswith('s') and isinstance(d, list) else root
@@ -1395,9 +1396,9 @@ def dict_to_xml(d, root_node=None, indent=4, level=0):
     if isinstance(d, dict):
         for key, value in sorted(d.items()):
             if isinstance(value, dict):
-                children.append(dict_to_xml(value, key, level=level + 1))
+                children.append(dict_to_xml(value, key, indent, level + 1))
             elif isinstance(value, list):
-                children.append(dict_to_xml(value, key, level=level + 1))
+                children.append(dict_to_xml(value, key, indent, level + 1))
             else:
                 xml = '{} {}="{}"'.format(xml, key, escape_xml(value))
     elif isinstance(d, list):
@@ -1405,13 +1406,13 @@ def dict_to_xml(d, root_node=None, indent=4, level=0):
             # Custom tag replacement for collections/playlists
             if isinstance(value, dict) and root in ('children', 'items'):
                 root_singular = value.get('type', root_singular)
-            children.append(dict_to_xml(value, root_singular, level=level))
+            children.append(dict_to_xml(value, root_singular, indent, level))
     else:
         children.append(escape_xml(d))
 
     end_tag = '>' if len(children) > 0 else '/>'
-    end_tag += '\n' if isinstance(d, list) or isinstance(d, dict) else ''
-    spaces = ' ' * level * indent
+    end_tag += line_break if isinstance(d, list) or isinstance(d, dict) else ''
+    spaces = ' ' * level * (indent or 0)
 
     if wrap or isinstance(d, dict):
         xml = '{}<{}{}{}'.format(spaces, root, xml, end_tag)
@@ -1422,7 +1423,7 @@ def dict_to_xml(d, root_node=None, indent=4, level=0):
 
         if wrap or isinstance(d, dict):
             spaces = spaces if isinstance(d, dict) else ''
-            xml = '{}{}</{}>\n'.format(xml, spaces, root)
+            xml = '{}{}</{}>{}'.format(xml, spaces, root, line_break)
 
     return xml
 

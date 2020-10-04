@@ -1640,7 +1640,7 @@ class Export(object):
                     outfile.write(json_data)
 
             elif self.file_format == 'xml':
-                xml_data = helpers.dict_to_xml({self.media_type: result}, root_node='export')
+                xml_data = helpers.dict_to_xml({self.media_type: result}, root_node='export', indent=4)
                 with open(filepath, 'w', encoding='utf-8') as outfile:
                     outfile.write(xml_data)
 
