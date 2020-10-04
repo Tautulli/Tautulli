@@ -828,7 +828,7 @@
                             <p class="help-block">
                                 Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
                                 A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where Tautulli is installed.
-                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank" rel="noreferrer">Click here</a> for help.
                             </p>
                         </div>
                         <div class="checkbox advanced-setting">
@@ -1177,7 +1177,7 @@
                             Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
                         </p>
                         <p class="help-block">
-                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
+                            Please see the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">Notification Agents Guide</a> for instructions on setting up each notification agent.
                         </p>
                         <br />
                         <div id="plexpy-notifiers-table">
@@ -1239,7 +1239,7 @@
                         <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
-                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
+                                    Please see the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
                                     Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
                                 </p>
                             </div>
@@ -1262,7 +1262,7 @@
                         <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
-                                    Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
+                                    Please see the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
                                 </p>
                             </div>
                             <div class="form-group">
@@ -1485,9 +1485,9 @@
                         <div class="form-group">
                             <label>Get the App</label>
                             <p class="help-block">
-                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">Tautulli Remote</a> app on Google Play<sup>TM</sup> to access Tautulli from your Android device!<br />
+                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank" rel="noreferrer">Tautulli Remote</a> app on Google Play<sup>TM</sup> to access Tautulli from your Android device!<br />
                                 <span class="google-play-badge">
-                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
+                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank" rel="noreferrer"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
                                 </span>
                             </p>
                         </div>
@@ -1523,14 +1523,14 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Issues/blob/master/README.md' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">guidelines</a>
+                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Issues/blob/master/README.md' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">guidelines</a>
                         in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
                     <br /><br />
                     Your post may be removed for failure to follow the guidelines.
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
+                <a href="#" target="_blank" rel="noreferrer" id="guidelines-continue" class="btn btn-bright">Continue</a>
             </div>
         </div>
     </div>
@@ -1545,12 +1545,12 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">FAQ</a>
+                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">FAQ</a>
                         before asking for help!</strong>
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="#" target="_blank" id="support-continue" class="btn btn-bright">Continue</a>
+                <a href="#" target="_blank" rel="noreferrer" id="support-continue" class="btn btn-bright">Continue</a>
             </div>
         </div>
     </div>

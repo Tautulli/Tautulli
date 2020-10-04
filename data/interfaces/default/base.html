@@ -50,17 +50,17 @@
         % if plexpy.UPDATE_AVAILABLE is None:
         You are running an unknown version of Tautulli.<br />
         % elif plexpy.UPDATE_AVAILABLE == 'release':
-        A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">
+        A <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank" rel="noreferrer">
         new release (${plexpy.LATEST_RELEASE})</a> of Tautulli is available!<br />
         % elif plexpy.UPDATE_AVAILABLE == 'commit':
-        A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
+        A <a href="${anon_url('https://github.com/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank" rel="noreferrer">
         newer version</a> of Tautulli is available!<br />
         You are ${plexpy.COMMITS_BEHIND} commit${'s' if plexpy.COMMITS_BEHIND > 1 else ''} behind.<br />
         % endif
         % if plexpy.INSTALL_TYPE == 'docker':
         Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>
         % elif plexpy.INSTALL_TYPE in ('windows', 'macos'):
-        <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>
+        <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>
         % else:
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
         % endif
@@ -138,7 +138,7 @@
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
-                            <li><a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
+                            <li><a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
                             <li><a href="support"><i class="fa fa-fw fa-comment"></i> Support</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
@@ -241,7 +241,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to GitHub.
                         </p>
-                        <a href="${anon_url('https://github.com/sponsors/JonnyWong16')}" target="_blank" class="btn btn-sm btn-default" style="font-weight: 600;">
+                        <a href="${anon_url('https://github.com/sponsors/JonnyWong16')}" target="_blank" rel="noreferrer" class="btn btn-sm btn-default" style="font-weight: 600;">
                             <i class="fa fa-heart fa-sm" style="color: #ea4aaa;"></i>&nbsp; Sponsor
                         </a>
                     </div>
@@ -249,7 +249,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to Patreon.
                         </p>
-                        <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank">
+                        <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank" rel="noreferrer">
                             <img src="images/become_a_patron_button.png" alt="Become a Patron" height="40">
                         </a>
                     </div>
@@ -257,7 +257,7 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
-                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank">
+                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank" rel="noreferrer">
                             <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
                         </a>
                     </div>
@@ -329,15 +329,15 @@ ${next.modalIncludes()}
                     if (result.update === null) {
                         msg = 'You are running an unknown version of Tautulli.<br />';
                     } else if (result.update === true && result.release === true) {
-                        msg = 'A <a href="' + result.release_url + '" target="_blank">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />';
+                        msg = 'A <a href="' + result.release_url + '" target="_blank" rel="noreferrer">new release (' + result.latest_release + ')</a> of Tautulli is available!<br />';
                     } else if (result.update === true && result.release === false) {
-                        msg = 'A <a href="' + result.compare_url + '" target="_blank">newer version</a> of Tautulli is available!<br />' +
+                        msg = 'A <a href="' + result.compare_url + '" target="_blank" rel="noreferrer">newer version</a> of Tautulli is available!<br />' +
                             'You are '+ result.commits_behind + ' commit' + (result.commits_behind > 1 ? 's' : '') + ' behind.<br />';
                     }
                     if (result.install_type === 'docker') {
                         msg += 'Update your Docker container or <a href="#" id="updateDismiss">Dismiss</a>';
                     } else if (result.install_type === 'windows' || result.install_type === 'macos') {
-                        msg += '<a href="' + result.release_url + '" target="_blank">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>'
+                        msg += '<a href="' + result.release_url + '" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>'
                     } else {
                         msg += '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     }

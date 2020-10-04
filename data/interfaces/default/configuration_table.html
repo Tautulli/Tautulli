@@ -22,11 +22,11 @@ DOCUMENTATION :: END
         % if plexpy.CURRENT_VERSION:
         <tr>
             <td>Git Branch:</td>
-            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/tree/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH))}" target="_blank">${plexpy.CONFIG.GIT_BRANCH}</a></td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/tree/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CONFIG.GIT_BRANCH))}" target="_blank" rel="noreferrer">${plexpy.CONFIG.GIT_BRANCH}</a></td>
         </tr>
         <tr>
             <td>Git Commit Hash:</td>
-            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/commit/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION))}" target="_blank">${plexpy.CURRENT_VERSION}</a></td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/%s/%s/commit/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.CURRENT_VERSION))}" target="_blank" rel="noreferrer">${plexpy.CURRENT_VERSION}</a></td>
         </tr>
         % endif
         <tr>
@@ -78,19 +78,19 @@ DOCUMENTATION :: END
         <tr>
             <td class="top-line">Resources:</td>
             <td class="top-line">
-                <a class="no-highlight" href="${anon_url('https://tautulli.com')}" target="_blank">Tautulli Website</a> |
-                <a class="no-highlight" href="${anon_url('https://github.com/%s/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">GitHub Source</a> |
-                <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/%s/%s-Issues' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" data-id="issue">GitHub Issues</a> |
-                <a class="no-highlight" href="${anon_url('https://github.com/%s/%s-Wiki' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">GitHub Wiki</a> |
-                <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" data-id="feature request">FeatHub Feature Requests</a>
+                <a class="no-highlight" href="${anon_url('https://tautulli.com')}" target="_blank" rel="noreferrer">Tautulli Website</a> |
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">GitHub Source</a> |
+                <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/%s/%s-Issues' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" rel="noreferrer" data-id="issue">GitHub Issues</a> |
+                <a class="no-highlight" href="${anon_url('https://github.com/%s/%s-Wiki' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">GitHub Wiki</a> |
+                <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/%s/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" rel="noreferrer" data-id="feature request">FeatHub Feature Requests</a>
             </td>
         </tr>
         <tr>
             <td>Support:</td>
             <td>
-                <a class="no-highlight support-modal-link" href="${anon_url('https://tautulli.com/discord')}" target="_blank">Tautulli Discord Server</a> |
-                <a class="no-highlight support-modal-link" href="${anon_url('https://www.reddit.com/r/Tautulli')}" target="_blank">Tautulli Subreddit</a> | 
-                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242')}" target="_blank">Plex Forums</a>
+                <a class="no-highlight support-modal-link" href="${anon_url('https://tautulli.com/discord')}" target="_blank" rel="noreferrer">Tautulli Discord Server</a> |
+                <a class="no-highlight support-modal-link" href="${anon_url('https://www.reddit.com/r/Tautulli')}" target="_blank" rel="noreferrer">Tautulli Subreddit</a> |
+                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242')}" target="_blank" rel="noreferrer">Plex Forums</a>
             </td>
         </tr>
     </tbody>

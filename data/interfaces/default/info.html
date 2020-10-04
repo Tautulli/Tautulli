@@ -185,11 +185,11 @@ DOCUMENTATION :: END
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         <% legacy = '&legacy=1' if data['media_type'] in ('photo_album', 'photo', 'clip') else '' %>
                         % if data['media_type'] in ('track', 'photo'):
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}${legacy}" target="_blank" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % elif data['media_type'] == 'playlist':
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/playlist?key=%2Fplaylists%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/playlist?key=%2Fplaylists%2F${data['rating_key']}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % elif not data['live']:
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}${legacy}" target="_blank" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % endif
                         % if data['live']:
                             <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live')});">
