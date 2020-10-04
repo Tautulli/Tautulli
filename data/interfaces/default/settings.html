@@ -2001,6 +2001,7 @@ Rating: {rating}/10   --> Rating: /10
 <script src="${http_root}js/parsley.min.js"></script>
 <script src="${http_root}js/Sortable.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.inputaffix.min.js"></script>
 <script src="${http_root}js/jquery.qrcode.min.js"></script>
 <script>
     function getConfigurationTable() {
@@ -2179,6 +2180,7 @@ $(document).ready(function() {
 
     function preSaveChecks(_callback) {
         verifyPMSWebURL();
+        setBaseURLSuffix(true);
         if (serverChanged) {
             verifyServer(_callback);
         } else if (typeof _callback === "function") {
@@ -2198,6 +2200,7 @@ $(document).ready(function() {
         getNewslettersTable();
         getMobileDevicesTable();
         loadUpdateDistros();
+        setBaseURLSuffix();
         settingsChanged = false;
     }
 
@@ -2912,6 +2915,19 @@ $(document).ready(function() {
     $('#http_base_url').change(function () {
        $(this).val($(this).val().replace(/\/*$/, ''));
     });
+
+    $('#http_root').change(function() {
+        setBaseURLSuffix();
+    });
+
+    function setBaseURLSuffix(clear) {
+        if (clear){
+            $('#http_base_url').suffix("");
+        } else {
+            $('#http_base_url').suffix($('#http_root').val());
+        }
+    }
+    setBaseURLSuffix();
 
     function apiEnabled() {
         var api_enabled = $('#api_enabled').prop('checked');
