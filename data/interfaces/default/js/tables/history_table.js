@@ -55,15 +55,17 @@ history_table_options = {
                 if (rowData['state'] !== null) {
                     var state = '';
                     if (rowData['state'] === 'playing') {
-                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Playing"><i class="fa fa-play fa-fw"></i></span>';
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Playing"><i class="fa fa-fw fa-play"></i></span>';
                     } else if (rowData['state'] === 'paused') {
-                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Paused"><i class="fa fa-pause fa-fw"></i></span>';
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Paused"><i class="fa fa-fw fa-pause"></i></span>';
                     } else if (rowData['state'] === 'buffering') {
-                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Buffering"><i class="fa fa-spinner fa-fw"></i></span>';
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Buffering"><i class="fa fa-fw fa-spinner"></i></span>';
                     } else if (rowData['state'] === 'error') {
-                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Playback Error"><i class="fa fa-exclamation-triangle fa-fw"></i></span>';
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Playback Error"><i class="fa fa-fw fa-exclamation-triangle"></i></span>';
                     } else if (rowData['state'] === 'stopped') {
-                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Stopped"><i class="fa fa-stop fa-fw"></i></span>';
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Currently Stopped"><i class="fa fa-fw fa-stop"></i></span>';
+                    } else {
+                        state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Unknown"><i class="fa fa-fw fa-question-circle"></i></span>';
                     }
                     $(td).html('<div><div style="float: left;">' + state + '&nbsp;' + date + '</div></div>');
                 } else if (rowData['group_count'] > 1) {
