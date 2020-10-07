@@ -757,9 +757,8 @@ a .users-poster-face:hover {
     float: left;
     position: relative;
     height: 290px;
-    min-width: 350px;
     max-width: 500px;
-    margin-right: 25px;
+    margin-left: 25px;
     margin-bottom: 25px;
 }
 .dashboard-activity-container {
@@ -1160,9 +1159,8 @@ a .dashboard-activity-metadata-user-thumb:hover {
     float: left;
     position: relative;
     height: 160px;
-    min-width: 350px;
     max-width: 500px;
-    margin-right: 25px;
+    margin-left: 25px;
     margin-bottom: 25px;
 }
 .dashboard-stats-container {
@@ -3295,23 +3293,36 @@ pre::-webkit-scrollbar-track {
 pre::-webkit-scrollbar-thumb {
     background-color: rgba(0,0,0,.15);
 }
+#currentActivity,
+#home-stats,
+#library-stats {
+    margin-left: -25px;
+}
+#currentActivity > *,
+#home-stats > *,
+#library-stats > * {
+    margin-left: 25px;
+}
 
 @media only screen
-  and (min-device-width: 300px)
-  and (max-device-width: 450px) {
+  and (min-width: 300px)
+  and (max-width: 450px) {
     .home-platforms-instance {
         width: calc(100% - 20px);
     }
-    .dashboard-activity-instance {
-        width: 100%;
-    }
+    .dashboard-activity-instance,
     .dashboard-stats-instance {
         width: 100%;
     }
+    #currentActivity,
+    #home-stats,
+    #library-stats {
+        margin-right: 25px;
+    }
 }
 @media only screen
-  and (min-device-width: 300px)
-  and (max-device-width: 740px) {
+  and (min-width: 300px)
+  and (max-width: 740px) {
     .header-bar {
         display: block;
         float: none !important;
@@ -3338,8 +3349,8 @@ pre::-webkit-scrollbar-thumb {
     }
 }
 @media only screen
-  and (min-device-width: 740px)
-  and (max-device-width: 1024px) {
+  and (min-width: 740px)
+  and (max-width: 1024px) {
     .button-bar {
         float: right !important;
     }
