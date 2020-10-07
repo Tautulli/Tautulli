@@ -2042,6 +2042,8 @@ def get_custom_fields(media_type, sub_media_type=None):
                     break
 
                 child_media_type = export.CHILD_MEDIA_TYPES.get(fields_child_media_type)
+                if child_media_type:
+                    child_media_type = child_media_type[0]
 
     custom_fields['metadata_fields'] = [{'field': attr, 'level': level}
                                         for attr, level in sorted(metadata_levels_map.items()) if level]
