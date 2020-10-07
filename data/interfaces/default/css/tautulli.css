@@ -2107,7 +2107,7 @@ a:hover .item-children-poster {
 }
 .item-children-list-item-title {
     display: inline-block;
-    /*width: calc(100% - 110px);*/
+    width: calc(100% - 125px);
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
