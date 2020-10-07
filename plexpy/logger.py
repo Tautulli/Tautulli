@@ -21,6 +21,7 @@ from future.builtins import str
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
 
+import cherrypy
 import contextlib
 import errno
 import logging
@@ -78,6 +79,8 @@ class NoThreadFilter(logging.Filter):
     Log filter for the current thread
     """
     def __init__(self, threadName):
+        super(NoThreadFilter, self).__init__()
+        
         self.threadName = threadName
 
     def filter(self, record):
@@ -263,7 +266,11 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
     # Close and remove old handlers. This is required to reinit the loggers
     # at runtime
-    for handler in logger.handlers[:] + logger_api.handlers[:] + logger_plex_websocket.handlers[:]:
+    log_handlers = logger.handlers[:] + \
+                   logger_api.handlers[:] + \
+                   logger_plex_websocket.handlers[:] + \
+                   cherrypy.log.error_log.handlers[:]
+    for handler in log_handlers:
         # Just make sure it is cleaned up.
         if isinstance(handler, handlers.RotatingFileHandler):
             handler.close()
@@ -273,6 +280,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         logger.removeHandler(handler)
         logger_api.removeHandler(handler)
         logger_plex_websocket.removeHandler(handler)
+        cherrypy.log.error_log.removeHandler(handler)
 
     # Configure the logger to accept all messages
     logger.propagate = False
@@ -281,6 +289,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     logger_api.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger_plex_websocket.propagate = False
     logger_plex_websocket.setLevel(logging.DEBUG if verbose else logging.INFO)
+    cherrypy.log.error_log.propagate = False
 
     # Setup file logger
     if log_dir:
@@ -293,6 +302,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         file_handler.setFormatter(file_formatter)
 
         logger.addHandler(file_handler)
+        cherrypy.log.error_log.addHandler(file_handler)
 
         # Tautulli API logger
         filename = os.path.join(log_dir, FILENAME_API)
@@ -318,12 +328,17 @@ def initLogger(console=False, log_dir=False, verbose=False):
         console_handler.setLevel(logging.DEBUG)
 
         logger.addHandler(console_handler)
+        cherrypy.log.error_log.addHandler(console_handler)
 
     # Add filters to log handlers
     # Only add filters after the config file has been initialized
     # Nothing prior to initialization should contain sensitive information
     if not plexpy.DEV and plexpy.CONFIG:
-        for handler in logger.handlers + logger_api.handlers + logger_plex_websocket.handlers:
+        log_handlers = logger.handlers + \
+                       logger_api.handlers + \
+                       logger_plex_websocket.handlers + \
+                       cherrypy.log.error_log.handlers
+        for handler in log_handlers:
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
             handler.addFilter(EmailFilter())
