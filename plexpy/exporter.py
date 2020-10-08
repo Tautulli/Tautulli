@@ -1635,9 +1635,10 @@ class Export(object):
 
             if self.file_format == 'csv':
                 csv_data = helpers.flatten_dict(result)
-                csv_headers = set().union(*csv_data)
+                csv_headers = [field.split('.') for field in set().union(*csv_data)]
+                csv_headers = ['.'.join(field) for field in sorted(csv_headers, key=lambda s: (len(s), s))]
                 with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-                    writer = csv.DictWriter(outfile, sorted(csv_headers))
+                    writer = csv.DictWriter(outfile, csv_headers)
                     writer.writeheader()
                     writer.writerows(csv_data)
 
