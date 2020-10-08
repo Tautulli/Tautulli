@@ -1780,29 +1780,43 @@ class Export(object):
         return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
     
     def get_image(self, item, image):
+        export_image = False
+        if self.thumb_level == 1 or self.art_level == 1:
+            posters = item.arts() if image == 'art' else item.posters()
+            export_image = any(poster.selected and poster.ratingKey.startswith('upload://')
+                               for poster in posters)
+        elif self.thumb_level == 2 or self.art_level == 2:
+            export_image = any(field.locked and field.name == image
+                               for field in item.fields)
+        elif self.thumb_level >= 9 or self.art_level >= 9:
+            export_image = True
+
+        if not export_image:
+            return
+
+        image_url = None
+        if image == 'thumb':
+            image_url = item.thumbUrl
+        elif image == 'art':
+            image_url = item.artUrl
+
+        if not image_url:
+            return
+
         media_type = item.type
         rating_key = item.ratingKey
-    
+
         if media_type in ('season', 'episode', 'album', 'track'):
             item_title = item._defaultSyncTitle()
         else:
             item_title = item.title
-    
+
         folder = get_export_filepath(self.filename, images=True)
         filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
         filepath = os.path.join(folder, filename)
-    
+
         os.makedirs(folder, exist_ok=True)
-    
-        image_url = None
-        if image == 'art':
-            image_url = item.artUrl
-        elif image == 'thumb':
-            image_url = item.thumbUrl
-    
-        if not image_url:
-            return
-    
+
         r = requests.get(image_url, stream=True)
         if r.status_code == 200:
             with open(filepath, 'wb') as outfile:
