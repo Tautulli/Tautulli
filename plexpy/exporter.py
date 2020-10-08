@@ -51,10 +51,10 @@ class Export(object):
     MEDIA_TYPES = {
         'movie': (True, True),
         'show': (True, True),
-        'season': (True, False),
+        'season': (True, True),
         'episode': (False, False),
         'artist': (True, True),
-        'album': (True, False),
+        'album': (True, True),
         'track': (False, False),
         'photoalbum': (False, False),
         'photo': (False, False),
@@ -1747,10 +1747,10 @@ class Export(object):
             if level <= self.media_info_level:
                 export_attrs_set.update(attrs)
 
-        if 0 < self.thumb_level <= 9:
+        if self.thumb_level:
             if 'thumbFile' in media_attrs and self.MEDIA_TYPES[media_type][0]:
                 export_attrs_set.add('thumbFile')
-        if 0 < self.art_level <= 9:
+        if self.art_level:
             if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
 
