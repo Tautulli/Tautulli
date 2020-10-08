@@ -130,10 +130,10 @@ class Artist(Audio):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
+        self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self._details_key = self.key + self._include
         self.art = data.attrib.get('art')
         self.guid = data.attrib.get('guid')
-        self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.locations = self.listAttrs(data, 'path', etag='Location')
         self.countries = self.findItems(data, media.Country)
         self.fields = self.findItems(data, media.Field)
