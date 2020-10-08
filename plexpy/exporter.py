@@ -1439,10 +1439,16 @@ class Export(object):
         media_attrs = self.return_attrs(media_type, flatten=True)
         metadata_levels, media_info_levels = self.return_levels(media_type, reverse_map=True)
 
+        child_media_types = [self.PLURAL_MEDIA_TYPES[m] for m in self.CHILD_MEDIA_TYPES[media_type]]
+
         metadata_levels_map = {}
         media_info_levels_map = {}
 
         for attr in media_attrs:
+            # Skip the main child attribute
+            if attr in child_media_types:
+                continue
+
             metadata_level = metadata_levels.get(
                 attr, max(self.METADATA_LEVELS) if not self.is_media_info_attr(attr) else None)
             media_info_level = media_info_levels.get(
