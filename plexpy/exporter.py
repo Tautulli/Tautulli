@@ -1667,11 +1667,20 @@ class Export(object):
 
             self.file_size = os.path.getsize(filepath)
 
+            exported_thumb = exported_art = False
             if os.path.exists(images_folder):
                 for f in os.listdir(images_folder):
+                    if f.endswith('.thumb.jpg'):
+                        exported_thumb = True
+                    elif f.endswith('.art.jpg'):
+                        exported_art = True
+
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
                         self.file_size += os.path.getsize(image_path)
+
+            self.thumb_level = self.thumb_level if exported_thumb else 0
+            self.art_level = self.art_level if exported_art else 0
 
             self.success = True
             logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
