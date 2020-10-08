@@ -182,7 +182,7 @@ def get_collections(section_id=None):
             'summary': collection.summary,
             'thumb': collection.thumb,
             'title': collection.title,
-            'titleSort': collection.titleSort,
+            'titleSort': collection.titleSort or collection.title,
             'type': collection.type,
             'updatedAt': helpers.datetime_to_iso(collection.updatedAt)
         }
