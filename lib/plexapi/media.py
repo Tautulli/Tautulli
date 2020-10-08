@@ -731,7 +731,7 @@ class Poster(PlexObject):
         self._data = data
         self.key = data.attrib.get('key')
         self.ratingKey = data.attrib.get('ratingKey')
-        self.selected = data.attrib.get('selected')
+        self.selected = cast(bool, data.attrib.get('selected'))
         self.thumb = data.attrib.get('thumb')
 
     def select(self):
