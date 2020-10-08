@@ -88,6 +88,7 @@ class Export(object):
         'track': [],
         'photoalbum': ['photoalbum', 'photo', 'clip'],
         'photo': [],
+        'clip': [],
         'collection': ['children'],
         'playlist': ['item']
     }
@@ -1691,15 +1692,21 @@ class Export(object):
             if not field:
                 continue
 
-            media_type = self.PLURAL_MEDIA_TYPES[self.media_type]
-            for key in self.PLURAL_MEDIA_TYPES.values():
-                if field.startswith(key + '.'):
-                    media_type, field = field.split('.', maxsplit=1)
+            media_type, field = self._parse_custom_field(self.media_type, field)
 
             if media_type in self._custom_fields:
                 self._custom_fields[media_type].add(field)
             else:
                 self._custom_fields[media_type] = {field}
+
+    def _parse_custom_field(self, media_type, field):
+        for child_media_type in self.CHILD_MEDIA_TYPES.get(media_type, []):
+            plural_key = self.PLURAL_MEDIA_TYPES[child_media_type]
+            if field.startswith(plural_key + '.'):
+                media_type, field = field.split('.', maxsplit=1)
+                media_type, field = self._parse_custom_field(child_media_type, field)
+
+        return media_type, field
 
     def _get_all_metadata_attrs(self, media_type):
         exclude_attrs = ('locations', 'media', 'artFile', 'thumbFile')
@@ -1728,13 +1735,18 @@ class Export(object):
             if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
 
-        plural_media_type = self.PLURAL_MEDIA_TYPES.get(media_type)
-        if plural_media_type in self._custom_fields:
-            export_attrs_set.update(self._custom_fields[plural_media_type])
-        if self.media_type == 'collection' and 'children' in self._custom_fields:
-            export_attrs_set.update(self._custom_fields['children'])
-        elif self.media_type == 'playlist' and 'items' in self._custom_fields:
-            export_attrs_set.update(self._custom_fields['items'])
+        if media_type in self._custom_fields:
+            export_attrs_set.update(self._custom_fields[media_type])
+
+        for child_media_type in self.CHILD_MEDIA_TYPES.get(media_type):
+            if child_media_type in self._custom_fields:
+                export_attrs_set.add(self.PLURAL_MEDIA_TYPES[child_media_type])
+
+        if media_type != self.media_type:
+            if self.media_type == 'collection' and 'children' in self._custom_fields:
+                export_attrs_set.update(self._custom_fields['children'])
+            elif self.media_type == 'playlist' and 'item' in self._custom_fields:
+                export_attrs_set.update(self._custom_fields['item'])
 
         for attr in export_attrs_set:
             try:
