@@ -6633,7 +6633,7 @@ class WebInterface(object):
     @addtoapi()
     def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
-                        thumb_level=False, art_level=False,
+                        thumb_level=0, art_level=0,
                         custom_fields='', export_type=None, **kwargs):
         """ Export library or media metadata to a file
 
@@ -6667,8 +6667,8 @@ class WebInterface(object):
                                  file_format=file_format,
                                  metadata_level=metadata_level,
                                  media_info_level=media_info_level,
-                                 thumb_level=helpers.bool_true(thumb_level),
-                                 art_level=helpers.bool_true(art_level),
+                                 thumb_level=thumb_level,
+                                 art_level=art_level,
                                  custom_fields=custom_fields,
                                  export_type=export_type).export()
 

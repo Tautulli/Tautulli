@@ -94,12 +94,13 @@ class Export(object):
     }
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
+    IMAGE_LEVELS = (0, 1, 2, 9)
     FILE_FORMATS = ('csv', 'json', 'xml', 'm3u8')
     EXPORT_TYPES = ('all', 'collection', 'playlist')
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
-                 thumb_level=False, art_level=False,
+                 thumb_level=0, art_level=0,
                  custom_fields='', export_type=None):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
@@ -107,8 +108,8 @@ class Export(object):
         self.file_format = str(file_format).lower()
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
-        self.thumb_level = thumb_level
-        self.art_level = art_level
+        self.thumb_level = helpers.cast_to_int(thumb_level)
+        self.art_level = helpers.cast_to_int(art_level)
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
         self.export_type = export_type or 'all'
@@ -1469,6 +1470,10 @@ class Export(object):
             msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
             msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
+        elif self.thumb_level not in self.IMAGE_LEVELS:
+            msg = "Export called with invalid thumb_level '{}'.".format(self.thumb_level)
+        elif self.art_level not in self.IMAGE_LEVELS:
+            msg = "Export called with invalid art_level '{}'.".format(self.art_level)
         elif self.file_format not in self.FILE_FORMATS:
             msg = "Export called with invalid file_format '{}'.".format(self.file_format)
         elif self.export_type not in self.EXPORT_TYPES:
@@ -1560,8 +1565,15 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        self.thumb_level = int(self.thumb_level and self.MEDIA_TYPES[self.media_type][0])
-        self.art_level = int(self.art_level and self.MEDIA_TYPES[self.media_type][1])
+        if not self.thumb_level and 'thumbFile' in self.custom_fields:
+            self.thumb_level = 10  # Custom thumb level
+        elif not self.MEDIA_TYPES[self.media_type][0]:
+            self.thumb_level = 0
+        if not self.art_level and 'artFile' in self.custom_fields:
+            self.art_level = 10  # Custom art level
+        elif not self.MEDIA_TYPES[self.media_type][1]:
+            self.art_level = 0
+
         self._process_custom_fields()
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
@@ -1661,11 +1673,6 @@ class Export(object):
 
             if os.path.exists(images_folder):
                 for f in os.listdir(images_folder):
-                    if not self.thumb_level and f.endswith('.thumb.jpg'):
-                        self.thumb_level = 10  # Custom thumb level
-                    if not self.art_level and f.endswith('.art.jpg'):
-                        self.art_level = 10  # Custom art level
-
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
                         self.file_size += os.path.getsize(image_path)
@@ -1735,10 +1742,10 @@ class Export(object):
             if level <= self.media_info_level:
                 export_attrs_set.update(attrs)
 
-        if self.thumb_level:
+        if 0 < self.thumb_level <= 9:
             if 'thumbFile' in media_attrs and self.MEDIA_TYPES[media_type][0]:
                 export_attrs_set.add('thumbFile')
-        if self.art_level:
+        if 0 < self.art_level <= 9:
             if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
 
