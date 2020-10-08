@@ -533,7 +533,8 @@ class Season(Video):
         Video._loadData(self, data)
         # fix key if loaded from search
         self.key = self.key.replace('/children', '')
-        self.art = data.attrib.get('art')
+        art = data.attrib.get('art')
+        self.art = art if art and str(self.ratingKey) in art else None
         self.guid = data.attrib.get('guid')
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.index = utils.cast(int, data.attrib.get('index'))
@@ -666,7 +667,8 @@ class Episode(Playable, Video):
         Playable._loadData(self, data)
         self._details_key = self.key + self._include
         self._seasonNumber = None  # cached season number
-        self.art = data.attrib.get('art')
+        art = data.attrib.get('art')
+        self.art = art if art and str(self.ratingKey) in art else None
         self.chapterSource = data.attrib.get('chapterSource')
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
