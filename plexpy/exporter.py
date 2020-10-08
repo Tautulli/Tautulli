@@ -1784,8 +1784,7 @@ class Export(object):
         filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
         filepath = os.path.join(folder, filename)
     
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        os.makedirs(folder, exist_ok=True)
     
         image_url = None
         if image == 'art':
@@ -1872,10 +1871,8 @@ def delete_export(export_id):
             logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
             try:
                 os.remove(filepath)
-                if export_data['include_thumb'] or export_data['include_art']:
-                    images_folder = get_export_filepath(export_data['filename'], images=True)
-                    if os.path.exists(images_folder):
-                        shutil.rmtree(images_folder)
+                images_folder = get_export_filepath(export_data['filename'], images=True)
+                shutil.rmtree(images_folder, ignore_errors=True)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
         return True
@@ -1895,10 +1892,8 @@ def delete_all_exports():
             filepath = get_export_filepath(row['filename'])
             try:
                 os.remove(filepath)
-                if row['include_thumb'] or row['include_art']:
-                    images_folder = get_export_filepath(row['filename'], images=True)
-                    if os.path.exists(images_folder):
-                        shutil.rmtree(images_folder)
+                images_folder = get_export_filepath(row['filename'], images=True)
+                shutil.rmtree(images_folder, ignore_errors=True)
             except OSError as e:
                 logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
                 deleted_files = False
