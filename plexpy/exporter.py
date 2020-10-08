@@ -1565,13 +1565,9 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        if not self.thumb_level and 'thumbFile' in self.custom_fields:
-            self.thumb_level = 10  # Custom thumb level
-        elif not self.MEDIA_TYPES[self.media_type][0]:
+        if not self.MEDIA_TYPES[self.media_type][0]:
             self.thumb_level = 0
-        if not self.art_level and 'artFile' in self.custom_fields:
-            self.art_level = 10  # Custom art level
-        elif not self.MEDIA_TYPES[self.media_type][1]:
+        if not self.MEDIA_TYPES[self.media_type][1]:
             self.art_level = 0
 
         self._process_custom_fields()
@@ -1780,7 +1776,10 @@ class Export(object):
         return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
     
     def get_image(self, item, image):
-        export_image = False
+        media_type = item.type
+        rating_key = item.ratingKey
+
+        export_image = True
         if self.thumb_level == 1 or self.art_level == 1:
             posters = item.arts() if image == 'art' else item.posters()
             export_image = any(poster.selected and poster.ratingKey.startswith('upload://')
@@ -1788,7 +1787,10 @@ class Export(object):
         elif self.thumb_level == 2 or self.art_level == 2:
             export_image = any(field.locked and field.name == image
                                for field in item.fields)
-        elif self.thumb_level >= 9 or self.art_level >= 9:
+        elif self.thumb_level == 9 or self.art_level == 9:
+            export_image = True
+
+        if not export_image and image + 'File' in self._custom_fields.get(media_type, set()):
             export_image = True
 
         if not export_image:
@@ -1802,9 +1804,6 @@ class Export(object):
 
         if not image_url:
             return
-
-        media_type = item.type
-        rating_key = item.ratingKey
 
         if media_type in ('season', 'episode', 'album', 'track'):
             item_title = item._defaultSyncTitle()
