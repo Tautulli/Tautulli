@@ -94,7 +94,9 @@ DOCUMENTATION :: END
                                     % if _session['user_group'] == 'admin':
                                     <li><a id="nav-tabs-mediainfo" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
                                     % endif
+                                    % if data['section_type'] != 'artist':
                                     <li><a id="nav-tabs-collections" href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
+                                    % endif
                                     <li><a id="nav-tabs-playlists" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
                                     % if _session['user_group'] == 'admin':
                                     <li><a id="nav-tabs-export" href="#tabs-export" role="tab" data-toggle="tab">Export</a></li>
@@ -310,6 +312,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     % endif
+                    % if data['section_type'] != 'artist':
                     <div role="tabpanel" class="tab-pane" id="tabs-collections">
                         <div class="container-fluid">
                             <div class="row">
@@ -357,6 +360,7 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % endif
                     <div role="tabpanel" class="tab-pane" id="tabs-playlists">
                         <div class="container-fluid">
                             <div class="row">
@@ -583,7 +587,9 @@ DOCUMENTATION :: END
     $("#refresh-history-list").click(function () {
         history_table.draw();
     });
-
+</script>
+% if data['section_type'] != 'artist':
+<script>
     function loadCollectionsTable() {
         // Build collections table
         collections_table_options.ajax = {
@@ -613,7 +619,9 @@ DOCUMENTATION :: END
     $("#refresh-collections-table").click(function () {
         collections_table.draw();
     });
-
+</script>
+% endif
+<script>
     function loadPlaylistsTable() {
         // Build playlists table
         playlists_table_options.ajax = {
