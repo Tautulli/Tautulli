@@ -800,7 +800,7 @@ def dbcheck():
         'timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, '
         'filename TEXT, file_format TEXT, '
         'metadata_level INTEGER, media_info_level INTEGER, '
-        'include_thumb INTEGER DEFAULT 0, include_art INTEGER DEFAULT 0, '
+        'thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, '
         'custom_fields TEXT, '
         'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
     )
@@ -2159,6 +2159,24 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE notifiers SET agent_label = "macOS Notification Center" WHERE agent_label = "OSX Notify"'
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute('SELECT thumb_level FROM exports')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN thumb_level INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'UPDATE exports SET thumb_level = 9 WHERE include_thumb = 1'
+        )
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN art_level INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'UPDATE exports SET art_level = 9 WHERE include_art = 1'
         )
 
     # Add "Local" user to database as default unauthenticated user.

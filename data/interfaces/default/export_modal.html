@@ -84,7 +84,7 @@ DOCUMENTATION :: END
                     <p class="help-block">Add additional fields to the selected media info export level.</p>
                 </div>
                 <div class="form-group">
-                    <label for="export_file_format">File Format</label>
+                    <label for="export_file_format">Data File Format</label>
                     <div class="row">
                         <div class="col-md-12">
                             <select class="form-control" id="export_file_format" name="export_file_format">
@@ -94,22 +94,38 @@ DOCUMENTATION :: END
                             </select>
                         </div>
                     </div>
-                    <p class="help-block">Select the export file format.</p>
+                    <p class="help-block">Select the export data file format.</p>
                 </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="export_include_thumb" name="export_include_thumb" value="1"> Export poster / cover images
-                    </label>
+                <div class="form-group">
+                    <label for="export_thumb_level">Poster / Cover Image Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="export_thumb_level" name="export_thumb_level">
+                                <option value="0" selected>Level 0 - None</option>
+                                <option value="1">Level 1 - Custom Uploaded Posters / Covers Only</option>
+                                <option value="1">Level 2 - Locked Posters / Covers Only</option>
+                                <option value="1">Level 9 - All Posters / Covers</option>
+                            </select>
+                        </div>
+                    </div>
                     <p class="help-block">
-                        Enable to export poster and cover image files.<br>Note: Only applies to ${thumb_media_types}.
+                        Select the level to export poster and cover image files.<br>Note: Only applies to ${thumb_media_types}.
                     </p>
                 </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="export_include_art" name="export_include_art" value="1"> Export background artwork images
-                    </label>
+                <div class="form-group">
+                    <label for="export_art_level">Background Artwork Image Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="export_art_level" name="export_art_level">
+                                <option value="0" selected>Level 0 - None</option>
+                                <option value="1">Level 1 - Custom Uploaded Artwork Only</option>
+                                <option value="1">Level 2 - Locked Artwork Only</option>
+                                <option value="1">Level 9 - All Artwork</option>
+                            </select>
+                        </div>
+                    </div>
                     <p class="help-block">
-                        Enable to export background artwork image files.<br>Note: Only applies to ${art_media_types}.
+                        Select the level to export background artwork image files.<br>Note: Only applies to ${art_media_types}.
                     </p>
                 </div>
                 <p class="help-block">
@@ -197,15 +213,15 @@ DOCUMENTATION :: END
         if ($(this).val() === 'm3u8') {
             $('#metadata_export_level_select').prop('disabled', true);
             $('#media_info_export_level_select').prop('disabled', true);
-            $("#export_include_thumb").prop('disabled', true);
-            $("#export_include_art").prop('disabled', true);
+            $("#export_thumb_level").prop('disabled', true);
+            $("#export_art_level").prop('disabled', true);
             export_custom_metadata_fields.disable();
             export_custom_media_info_fields.disable();
         } else {
             $('#metadata_export_level_select').prop('disabled', false);
             $('#media_info_export_level_select').prop('disabled', false);
-            $("#export_include_thumb").prop('disabled', false);
-            $("#export_include_art").prop('disabled', false);
+            $("#export_thumb_level").prop('disabled', false);
+            $("#export_art_level").prop('disabled', false);
             export_custom_metadata_fields.enable();
             export_custom_media_info_fields.enable();
         }
@@ -218,8 +234,8 @@ DOCUMENTATION :: END
         var metadata_export_level = $('#metadata_export_level_select option:selected').val();
         var media_info_export_level = $('#media_info_export_level_select option:selected').val();
         var file_format = $('#export_file_format option:selected').val();
-        var include_thumb = $("#export_include_thumb").is(':checked') ? 1 : 0;
-        var include_art = $("#export_include_art").is(':checked') ? 1 : 0;
+        var thumb_level = $("#export_thumb_level option:selected").val();
+        var art_level = $("#export_art_level option:selected").val();
         var custom_fields = [
             $('#export_custom_metadata_fields').val(),
             $('#export_custom_media_info_fields').val()
@@ -235,8 +251,8 @@ DOCUMENTATION :: END
                 metadata_level: metadata_export_level,
                 media_info_level: media_info_export_level,
                 file_format: file_format,
-                include_thumb: include_thumb,
-                include_art: include_art,
+                thumb_level: thumb_level,
+                art_level: art_level,
                 custom_fields: custom_fields,
                 export_type: export_type
             },

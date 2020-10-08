@@ -99,7 +99,7 @@ class Export(object):
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
-                 include_thumb=False, include_art=False,
+                 thumb_level=False, art_level=False,
                  custom_fields='', export_type=None):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
@@ -107,8 +107,8 @@ class Export(object):
         self.file_format = str(file_format).lower()
         self.metadata_level = helpers.cast_to_int(metadata_level)
         self.media_info_level = helpers.cast_to_int(media_info_level)
-        self.include_thumb = include_thumb
-        self.include_art = include_art
+        self.thumb_level = thumb_level
+        self.art_level = art_level
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
         self.export_type = export_type or 'all'
@@ -127,8 +127,8 @@ class Export(object):
         if self.file_format == 'm3u8':
             self.metadata_level = 1
             self.media_info_level = 1
-            self.include_thumb = False
-            self.include_art = False
+            self.thumb_level = 0
+            self.art_level = 0
             self.custom_fields = ''
 
     def return_attrs(self, media_type, flatten=False):
@@ -1494,9 +1494,9 @@ class Export(object):
         if self.rating_key:
             logger.debug(
                 "Tautulli Exporter :: Export called with rating_key %s, "
-                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s",
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s",
                 self.rating_key, self.metadata_level, self.media_info_level,
-                self.include_thumb, self.include_art)
+                self.thumb_level, self.art_level)
 
             self.obj = plex.get_item(self.rating_key)
             self.media_type = 'photoalbum' if self.is_photoalbum(self.obj) else self.obj.type
@@ -1516,10 +1516,10 @@ class Export(object):
         elif self.user_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with user_id %s, "
-                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s, "
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
                 "export_type %s",
                 self.user_id, self.metadata_level, self.media_info_level,
-                self.include_thumb, self.include_art, self.export_type)
+                self.thumb_level, self.art_level, self.export_type)
 
             self.obj = plex.plex
             self.media_type = self.export_type
@@ -1533,10 +1533,10 @@ class Export(object):
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
-                "metadata_level %d, media_info_level %d, include_thumb %s, include_art %s, "
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
                 "export_type %s",
                 self.section_id, self.metadata_level, self.media_info_level,
-                self.include_thumb, self.include_art, self.export_type)
+                self.thumb_level, self.art_level, self.export_type)
 
             self.obj = plex.get_library(str(self.section_id))
             if self.export_type == 'all':
@@ -1560,8 +1560,8 @@ class Export(object):
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
-        self.include_thumb = self.include_thumb and self.MEDIA_TYPES[self.media_type][0]
-        self.include_art = self.include_art and self.MEDIA_TYPES[self.media_type][1]
+        self.thumb_level = int(self.thumb_level and self.MEDIA_TYPES[self.media_type][0])
+        self.art_level = int(self.art_level and self.MEDIA_TYPES[self.media_type][1])
         self._process_custom_fields()
 
         self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
@@ -1586,8 +1586,8 @@ class Export(object):
                   'filename': self.filename,
                   'metadata_level': self.metadata_level,
                   'media_info_level': self.media_info_level,
-                  'include_thumb': self.include_thumb,
-                  'include_art': self.include_art,
+                  'thumb_level': self.thumb_level,
+                  'art_level': self.art_level,
                   'custom_fields': self.custom_fields}
 
         db = database.MonitorDatabase()
@@ -1607,8 +1607,8 @@ class Export(object):
         keys = {'id': self.export_id}
         values = {'complete': complete,
                   'file_size': self.file_size,
-                  'include_thumb': self.include_thumb,
-                  'include_art': self.include_art}
+                  'thumb_level': self.thumb_level,
+                  'art_level': self.art_level}
 
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
@@ -1661,10 +1661,10 @@ class Export(object):
 
             if os.path.exists(images_folder):
                 for f in os.listdir(images_folder):
-                    if self.include_thumb is False and f.endswith('.thumb.jpg'):
-                        self.include_thumb = True
-                    if self.include_art is False and f.endswith('.art.jpg'):
-                        self.include_art = True
+                    if not self.thumb_level and f.endswith('.thumb.jpg'):
+                        self.thumb_level = 10  # Custom thumb level
+                    if not self.art_level and f.endswith('.art.jpg'):
+                        self.art_level = 10  # Custom art level
 
                     image_path = os.path.join(images_folder, f)
                     if os.path.isfile(image_path):
@@ -1735,10 +1735,10 @@ class Export(object):
             if level <= self.media_info_level:
                 export_attrs_set.update(attrs)
 
-        if self.include_thumb:
+        if self.thumb_level:
             if 'thumbFile' in media_attrs and self.MEDIA_TYPES[media_type][0]:
                 export_attrs_set.add('thumbFile')
-        if self.include_art:
+        if self.art_level:
             if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
 
@@ -1849,7 +1849,7 @@ class Export(object):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT filename, file_format, include_thumb, include_art, complete '
+    result = db.select_single('SELECT filename, file_format, thumb_level, art_level, complete '
                               'FROM exports WHERE id = ?',
                               [export_id])
 
@@ -1883,7 +1883,7 @@ def delete_export(export_id):
 
 def delete_all_exports():
     db = database.MonitorDatabase()
-    result = db.select('SELECT filename, include_thumb, include_art FROM exports')
+    result = db.select('SELECT filename FROM exports')
 
     logger.info("Tautulli Exporter :: Deleting all exports from the database.")
 
@@ -1937,8 +1937,8 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'exports.file_format',
                'exports.metadata_level',
                'exports.media_info_level',
-               'exports.include_thumb',
-               'exports.include_art',
+               'exports.thumb_level',
+               'exports.art_level',
                'exports.custom_fields',
                'exports.file_size',
                'exports.complete'
@@ -1974,8 +1974,8 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'file_format': item['file_format'],
                'metadata_level': item['metadata_level'],
                'media_info_level': item['media_info_level'],
-               'include_thumb': item['include_thumb'],
-               'include_art': item['include_art'],
+               'thumb_level': item['thumb_level'],
+               'art_level': item['art_level'],
                'custom_fields': item['custom_fields'],
                'file_size': item['file_size'],
                'complete': item['complete'],

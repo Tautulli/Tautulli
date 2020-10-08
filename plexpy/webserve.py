@@ -6633,7 +6633,7 @@ class WebInterface(object):
     @addtoapi()
     def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
-                        include_thumb=False, include_art=False,
+                        thumb_level=False, art_level=False,
                         custom_fields='', export_type=None, **kwargs):
         """ Export library or media metadata to a file
 
@@ -6647,8 +6647,8 @@ class WebInterface(object):
                 file_format (str):         csv (default), json, or xml
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
-                include_thumb (bool):      True to export poster/cover images
-                include_art (bool):        True to export background artwork images
+                thumb_level (int):         The level of poster/cover images to export (default 0)
+                art_level (int):           The level of background artwork images to export (default 0)
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
                 export_type (str):         collection or playlist for library/user export,
@@ -6667,8 +6667,8 @@ class WebInterface(object):
                                  file_format=file_format,
                                  metadata_level=metadata_level,
                                  media_info_level=media_info_level,
-                                 include_thumb=helpers.bool_true(include_thumb),
-                                 include_art=helpers.bool_true(include_art),
+                                 thumb_level=helpers.bool_true(thumb_level),
+                                 art_level=helpers.bool_true(art_level),
                                  custom_fields=custom_fields,
                                  export_type=export_type).export()
 
@@ -6759,7 +6759,7 @@ class WebInterface(object):
         if result and result['complete'] == 1 and result['exists']:
             export_filepath = exporter.get_export_filepath(result['filename'])
 
-            if result['include_thumb'] or result['include_art']:
+            if result['thumb_level'] or result['art_level']:
                 zip_filename = '{}.zip'.format(os.path.splitext(result['filename'])[0])
                 images_folder = exporter.get_export_filepath(result['filename'], images=True)
 
