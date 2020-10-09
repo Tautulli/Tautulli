@@ -354,7 +354,7 @@ function millisecondsToMinutes(ms, roundToMinute) {
     }
 }
 
-function humanDuration(ms, sig='dhms', units='ms') {
+function humanDuration(ms, sig='dhm', units='ms', return_seconds=300000) {
     var factors = {
         d: 86400000,
         h: 3600000,
@@ -367,6 +367,10 @@ function humanDuration(ms, sig='dhms', units='ms') {
     var d, h, m, s;
 
     if (ms > 0) {
+        if (return_seconds && ms < return_seconds) {
+            sig = 'dhms'
+        }
+
         ms = ms * factors[units];
 
         h =  ms % factors['d'];

@@ -166,7 +166,7 @@ class Export(object):
                     'tag': None
                 },
                 'duration': None,
-                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -362,7 +362,7 @@ class Export(object):
                 },
                 'contentRating': None,
                 'duration': None,
-                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -461,7 +461,7 @@ class Export(object):
                     'tag': None
                 },
                 'duration': None,
-                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -750,7 +750,7 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'duration': None,
-                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'fields': {
                     'name': None,
                     'locked': None
@@ -997,7 +997,7 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'composite': None,
                 'duration': None,
-                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0), sig='dhm'),
+                'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'guid': None,
                 'key': None,
                 'leafCount': None,

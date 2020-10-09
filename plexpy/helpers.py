@@ -251,7 +251,7 @@ def datetime_to_iso(dt, to_date=False):
     return dt
 
 
-def human_duration(ms, sig='dhms', units='ms'):
+def human_duration(ms, sig='dhm', units='ms', return_seconds=300000):
     factors = {'d': 86400000,
                'h': 3600000,
                'm': 60000,
@@ -259,6 +259,9 @@ def human_duration(ms, sig='dhms', units='ms'):
                'ms': 1}
 
     if str(ms).isdigit() and ms > 0:
+        if return_seconds and ms < return_seconds:
+            sig = 'dhms'
+
         ms = ms * factors[units]
 
         d, h = divmod(ms, factors['d'])

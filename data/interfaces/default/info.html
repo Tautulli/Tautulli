@@ -373,8 +373,7 @@ DOCUMENTATION :: END
                             </div>
                             <div class="summary-content-details-tag">
                                 % if data['duration']:
-                                <% sig = 'dhms' if cast_to_int(data['duration']) < 300000 else 'dhm' %>
-                                Runtime <strong> <span id="runtime" data-sig="${sig}">${data['duration']}</span></strong>
+                                Runtime <strong> <span id="runtime">${data['duration']}</span></strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -933,7 +932,7 @@ DOCUMENTATION :: END
     var airdate = $("#airdate")
     var runtime = $("#runtime")
     airdate.html(moment(airdate.text()).format('MMM DD, YYYY'));
-    runtime.html(humanDuration(runtime.text(), runtime.data('sig')));
+    runtime.html(humanDuration(runtime.text()));
 
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
     $('#channel-icon').popover({
