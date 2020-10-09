@@ -2093,3 +2093,121 @@ def get_custom_fields(media_type, sub_media_type=None):
                                           for attr, level in sorted(media_info_levels_map.items()) if level]
 
     return custom_fields
+
+
+def build_export_docs():
+    export = Export()
+
+    contents_row = '* [{section}](#{anchor})'
+    contents_images = '\n\n### Image Exports:\n\n' \
+                      '* [Image Exports](#image-export)\n\n---\n\n'
+
+    section_head = '### <a id="{anchor}">{section}</a>\n\n'
+    section_details = '<details>\n' \
+                      '<summary><strong>{field_type} Fields</strong></summary><br>\n\n' \
+                      '{table}\n' \
+                      '</details>'
+
+    table_head = '| {field_type} Field | Level 0 | Level 1 | Level 2 | Level 3 | Level 9 |\n' \
+                 '| :--- | :---: | :---: | :---: | :---: | :---: |\n'
+    table_row = '| `{attr}` | {level0} | {level1} | {level2} | {level3} | {level9} |'
+
+    def _child_rows(_media_type):
+        child_table_rows = []
+        for child_media_type in export.CHILD_MEDIA_TYPES[_media_type]:
+            child_plural_media_type = export.PLURAL_MEDIA_TYPES[child_media_type]
+            if child_media_type == 'photoalbum':
+                child_section_title = 'Photo Albums'
+            else:
+                child_section_title = child_plural_media_type.capitalize()
+            child_text = u'\u2713<br>Includes [{}](#{}) Level {{}}'.format(child_section_title, child_media_type)
+            child_row = {
+                'attr': child_plural_media_type,
+                'level0': '',
+                'level1': child_text.format(1),
+                'level2': child_text.format(2),
+                'level3': child_text.format(3),
+                'level9': child_text.format(9),
+            }
+            child_table_rows.append(table_row.format(**child_row))
+        return child_table_rows
+
+    contents = []
+    sections = []
+
+    for media_type, (thumb, art) in export.MEDIA_TYPES.items():
+        if media_type == 'photoalbum':
+            section_title = 'Photo Albums'
+        else:
+            section_title = export.PLURAL_MEDIA_TYPES[media_type].capitalize()
+
+        contents_link = contents_row.format(anchor=media_type, section=section_title)
+        contents.append(contents_link)
+
+        details = []
+        table_child_rows = _child_rows(media_type)
+
+        metadata_levels_map, media_info_levels_map = export.return_attrs_level_map(media_type)
+
+        # Metadata Fields table
+        table_rows = []
+        for attr, level in sorted(metadata_levels_map.items(), key=helpers.sort_attrs):
+            if thumb and attr == 'thumbFile' or art and attr == 'artFile':
+                text = 'Refer to [Image Exports](#image-export)'
+                row = {
+                    'attr': attr,
+                    'level0': text,
+                    'level1': '',
+                    'level2': '',
+                    'level3': '',
+                    'level9': ''
+                }
+            else:
+                row = {
+                    'attr': attr,
+                    'level0': u'\u2713' if level <= 0 else '',
+                    'level1': u'\u2713' if level <= 1 else '',
+                    'level2': u'\u2713' if level <= 2 else '',
+                    'level3': u'\u2713' if level <= 3 else '',
+                    'level9': u'\u2713' if level <= 9 else ''
+                }
+            table_rows.append(table_row.format(**row))
+        table_rows += table_child_rows
+        metadata_table = table_head.format(field_type='Metadata') + '\n'.join(table_rows)
+        details.append(section_details.format(field_type='Metadata', table=metadata_table))
+
+        # Media Info Fields table
+        table_rows = []
+        for attr, level in sorted(media_info_levels_map.items(), key=helpers.sort_attrs):
+            row = {
+                'attr': attr,
+                'level0': u'\u2713' if level <= 0 else '',
+                'level1': u'\u2713' if level <= 1 else '',
+                'level2': u'\u2713' if level <= 2 else '',
+                'level3': u'\u2713' if level <= 3 else '',
+                'level9': u'\u2713' if level <= 9 else ''
+            }
+            table_rows.append(table_row.format(**row))
+        table_rows += table_child_rows
+        media_info_table = table_head.format(field_type='Media Info') + '\n'.join(table_rows)
+        details.append(section_details.format(field_type='Media Info', table=media_info_table))
+
+        section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
+
+        if media_type == 'collection':
+            section += '\n\n* **Note:** `children` can be [Movies](#movie) or [Shows](#show) ' \
+                       'depending on the collection'
+        elif media_type == 'playlist':
+            section += '\n\n* **Note:** `items` can be [Movies](#movie), [Episodes](#episode), ' \
+                       '[Tracks](#track), or [Photos](#photo) depending on the playlist'
+
+        sections.append(section)
+
+    docs = '## Exporter Guide\n\n' \
+           '### Media Type Fields:\n\n' + \
+           '\n'.join(contents) + \
+           contents_images + \
+           '\n\n---\n\n'.join(sections) + \
+           '\n\n---\n\n'
+
+    return helpers.sanitize(docs)

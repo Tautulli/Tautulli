@@ -6822,3 +6822,9 @@ class WebInterface(object):
                 return {'result': 'success', 'message': 'Export deleted successfully.'}
             else:
                 return {'result': 'error', 'message': 'Failed to delete export.'}
+
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def export_docs(self, **kwargs):
+        return '<pre>' + exporter.build_export_docs() + '</pre>'
