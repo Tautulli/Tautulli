@@ -1236,6 +1236,14 @@ def bool_true(value, return_none=False):
     return False
 
 
+def sort_attrs(attr):
+    if isinstance(attr, (list, tuple)):
+        a = attr[0].split('.')
+    else:
+        a = attr.split('.')
+    return len(a), a
+
+
 def get_attrs_to_dict(obj, attrs):
     d = {}
 
