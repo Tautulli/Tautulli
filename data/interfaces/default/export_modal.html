@@ -36,10 +36,23 @@ DOCUMENTATION :: END
                 <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
                 <input type="hidden" id="export_export_type" name="export_export_type" value="${export_type or ''}" />
                 <div class="form-group">
-                    <label for="metadata_export_level_select">Metadata Export Level</label>
+                    <label for="export_file_format">Data File Format</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="metadata_export_level_select" name="metadata_export_level_select">
+                            <select class="form-control" id="export_file_format" name="export_file_format">
+                                % for format in file_formats:
+                                <option value="${format}">${format.upper()}</option>
+                                % endfor
+                            </select>
+                        </div>
+                    </div>
+                    <p class="help-block">Select the export data file format.</p>
+                </div>
+                <div class="form-group">
+                    <label for="export_metadata_level">Metadata Export Level</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <select class="form-control" id="export_metadata_level" name="export_metadata_level">
                                 <option value="0">Level 0 - None / Custom</option>
                                 <option value="1" selected>Level 1 - Basic Metadata</option>
                                 <option value="2">Level 2 - Extended Metadata</option>
@@ -60,10 +73,10 @@ DOCUMENTATION :: END
                     <p class="help-block">Add additional fields to the selected metadata export level.</p>
                 </div>
                 <div class="form-group">
-                    <label for="media_info_export_level_select">Media Info Export Level</label>
+                    <label for="export_media_info_level">Media Info Export Level</label>
                     <div class="row">
                         <div class="col-md-12">
-                            <select class="form-control" id="media_info_export_level_select" name="media_info_export_level_select">
+                            <select class="form-control" id="export_media_info_level" name="export_media_info_level">
                                 <option value="0">Level 0 - None / Custom</option>
                                 <option value="1" selected>Level 1 - Basic Media Info</option>
                                 <option value="2">Level 2 - Extended Media Info</option>
@@ -82,19 +95,6 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <p class="help-block">Add additional fields to the selected media info export level.</p>
-                </div>
-                <div class="form-group">
-                    <label for="export_file_format">Data File Format</label>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <select class="form-control" id="export_file_format" name="export_file_format">
-                                % for format in file_formats:
-                                <option value="${format}">${format.upper()}</option>
-                                % endfor
-                            </select>
-                        </div>
-                    </div>
-                    <p class="help-block">Select the export data file format.</p>
                 </div>
                 <div class="form-group">
                     <label for="export_thumb_level">Poster and Cover Image Export Level</label>
@@ -182,13 +182,13 @@ DOCUMENTATION :: END
     var export_custom_media_info_fields = $export_custom_fields[1].selectize;
 
     function setDisabledFields() {
-        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
-        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
+        var metadata_export_level = $('#export_metadata_level option:selected').val();
+        var media_info_export_level = $('#export_media_info_level option:selected').val();
         export_custom_metadata_fields.setDisabledOptions([...Array(parseInt(metadata_export_level) + 1).keys()]);
         export_custom_media_info_fields.setDisabledOptions([...Array(parseInt(media_info_export_level) + 1).keys()]);
     }
 
-    $('#metadata_export_level_select, #media_info_export_level_select').on('change', setDisabledFields);
+    $('#export_metadata_level, #export_media_info_level').on('change', setDisabledFields);
 
     function getExportFields() {
         $.ajax({
@@ -211,15 +211,15 @@ DOCUMENTATION :: END
 
     $('#export_file_format').on('change', function() {
         if ($(this).val() === 'm3u8') {
-            $('#metadata_export_level_select').prop('disabled', true);
-            $('#media_info_export_level_select').prop('disabled', true);
+            $('#export_metadata_level').prop('disabled', true);
+            $('#export_media_info_level').prop('disabled', true);
             $("#export_thumb_level").prop('disabled', true);
             $("#export_art_level").prop('disabled', true);
             export_custom_metadata_fields.disable();
             export_custom_media_info_fields.disable();
         } else {
-            $('#metadata_export_level_select').prop('disabled', false);
-            $('#media_info_export_level_select').prop('disabled', false);
+            $('#export_metadata_level').prop('disabled', false);
+            $('#export_media_info_level').prop('disabled', false);
             $("#export_thumb_level").prop('disabled', false);
             $("#export_art_level").prop('disabled', false);
             export_custom_metadata_fields.enable();
@@ -231,8 +231,8 @@ DOCUMENTATION :: END
         var section_id = $('#export_section_id').val();
         var user_id = $('#export_user_id').val();
         var rating_key = $('#export_rating_key').val();
-        var metadata_export_level = $('#metadata_export_level_select option:selected').val();
-        var media_info_export_level = $('#media_info_export_level_select option:selected').val();
+        var metadata_export_level = $('#export_metadata_level option:selected').val();
+        var media_info_export_level = $('#export_media_info_level option:selected').val();
         var file_format = $('#export_file_format option:selected').val();
         var thumb_level = $("#export_thumb_level option:selected").val();
         var art_level = $("#export_art_level option:selected").val();
