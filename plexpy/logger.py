@@ -74,6 +74,14 @@ def blacklist_config(config):
     _BLACKLIST_WORDS.update(blacklist)
 
 
+class CherrypyEngineFilter(logging.Filter):
+    """
+    Log filter for the Cherrypy Engine serving message
+    """
+    def filter(self, record):
+        return 'ENGINE Serving on' not in record.msg
+
+
 class NoThreadFilter(logging.Filter):
     """
     Log filter for the current thread
@@ -343,6 +351,9 @@ def initLogger(console=False, log_dir=False, verbose=False):
             handler.addFilter(PublicIPFilter())
             handler.addFilter(EmailFilter())
             handler.addFilter(PlexTokenFilter())
+
+        for handler in cherrypy.log.error_log.handlers:
+            handler.addFilter(CherrypyEngineFilter())
 
     # Install exception hooks
     initHooks()
