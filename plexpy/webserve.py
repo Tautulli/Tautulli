@@ -6826,5 +6826,5 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def export_docs(self, **kwargs):
+    def exporter_docs(self, **kwargs):
         return '<pre>' + exporter.build_export_docs() + '</pre>'

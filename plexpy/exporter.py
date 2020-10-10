@@ -2098,10 +2098,6 @@ def get_custom_fields(media_type, sub_media_type=None):
 def build_export_docs():
     export = Export()
 
-    contents_row = '* [{section}](#{anchor})'
-    contents_images = '\n\n### Image Exports:\n\n' \
-                      '* [Image Exports](#image-export)\n\n---\n\n'
-
     section_head = '### <a id="{anchor}">{section}</a>\n\n'
     section_details = '<details>\n' \
                       '<summary><strong>{field_type} Fields</strong></summary><br>\n\n' \
@@ -2140,9 +2136,6 @@ def build_export_docs():
             section_title = 'Photo Albums'
         else:
             section_title = export.PLURAL_MEDIA_TYPES[media_type].capitalize()
-
-        contents_link = contents_row.format(anchor=media_type, section=section_title)
-        contents.append(contents_link)
 
         details = []
         table_child_rows = _child_rows(media_type)
@@ -2196,18 +2189,12 @@ def build_export_docs():
 
         if media_type == 'collection':
             section += '\n\n* **Note:** `children` can be [Movies](#movie) or [Shows](#show) ' \
-                       'depending on the collection'
+                       'depending on the collection.'
         elif media_type == 'playlist':
             section += '\n\n* **Note:** `items` can be [Movies](#movie), [Episodes](#episode), ' \
-                       '[Tracks](#track), or [Photos](#photo) depending on the playlist'
+                       '[Tracks](#track), or [Photos](#photo) depending on the playlist.'
 
         sections.append(section)
 
-    docs = '## Exporter Guide\n\n' \
-           '### Media Type Fields:\n\n' + \
-           '\n'.join(contents) + \
-           contents_images + \
-           '\n\n---\n\n'.join(sections) + \
-           '\n\n---\n\n'
-
+    docs = '\n\n---\n\n'.join(sections)
     return helpers.sanitize(docs)
