@@ -591,16 +591,18 @@ function PopupCenter(url, title, w, h) {
 
 
 function setLocalStorage(key, value, path) {
+    var key_path = key;
     if (path !== false) {
-        key = key + '_' + window.location.pathname;
+        key_path = key_path + '_' + window.location.pathname;
     }
-    localStorage.setItem(key, value);
+    localStorage.setItem(key_path, value);
 }
 function getLocalStorage(key, default_value, path) {
+    var key_path = key;
     if (path !== false) {
-        key = key + '_' + window.location.pathname;
+        key_path = key_path + '_' + window.location.pathname;
     }
-    var value = localStorage.getItem(key);
+    var value = localStorage.getItem(key_path);
     if (value !== null) {
         return value
     } else if (default_value !== undefined) {

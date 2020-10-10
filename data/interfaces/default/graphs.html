@@ -347,13 +347,12 @@
                 current_tab = '#tabs-plays'
                 break
             case '#tabs-2':
-                current_tab = '#tabs-strea'
+                current_tab = '#tabs-stream'
                 break
             case '#tabs-3':
                 current_tab = '#tabs-total'
                 break
             default:
-                current_tab = '#tabs-plays'
                 break
         }
 
@@ -361,7 +360,7 @@
         $('#yaxis-' + yaxis).closest('label').addClass('active');
         $('#graph-days').val(current_day_range);
         $('#graph-months').val(current_month_range);
-        $('#nav-' + current_tab.replace('#', "")).tab('show').trigger('show.bs.tab');
+        $('#nav-' + current_tab.replace('#', '')).tab('show').trigger('show.bs.tab');
         //$(current_tab).addClass('active');
 
 
