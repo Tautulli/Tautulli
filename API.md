@@ -2905,7 +2905,8 @@ Optional parameters:
 Returns:
     json:
         {"pms_name": "Winterfell-Server",
-         "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
+         "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
+         "tautulli_version": "v2.5.6"
          }
 ```
 
