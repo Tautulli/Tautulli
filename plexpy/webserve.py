@@ -6653,7 +6653,7 @@ class WebInterface(object):
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
-                file_format (str):         csv (default), json, or xml
+                file_format (str):         csv (default), json, xml, or m3u8
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
                 thumb_level (int):         The level of poster/cover images to export (default 0)
