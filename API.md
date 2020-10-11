@@ -240,7 +240,8 @@ Remove a mobile device from the database.
 
 ```
 Required parameters:
-    mobile_device_id (int):        The device id to delete
+    mobile_device_id (int):        The mobile device database id to delete, OR
+    device_id (str):               The unique device identifier for the mobile device
 
 Optional parameters:
     None

@@ -3823,12 +3823,13 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_mobile_device(self, mobile_device_id=None, **kwargs):
+    def delete_mobile_device(self, mobile_device_id=None, device_id=None, **kwargs):
         """ Remove a mobile device from the database.
 
             ```
             Required parameters:
-                mobile_device_id (int):        The device id to delete
+                mobile_device_id (int):        The mobile device database id to delete, OR
+                device_id (str):               The unique device identifier for the mobile device
 
             Optional parameters:
                 None
@@ -3837,7 +3838,8 @@ class WebInterface(object):
                 None
             ```
         """
-        result = mobile_app.delete_mobile_device(mobile_device_id=mobile_device_id)
+        result = mobile_app.delete_mobile_device(mobile_device_id=mobile_device_id,
+                                                 device_id=device_id)
         if result:
             return {'result': 'success', 'message': 'Deleted mobile device.'}
         else:

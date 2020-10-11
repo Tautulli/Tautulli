@@ -149,12 +149,16 @@ def set_mobile_device_config(mobile_device_id=None, **kwargs):
         return False
 
 
-def delete_mobile_device(mobile_device_id=None):
+def delete_mobile_device(mobile_device_id=None, device_id=None):
     db = database.MonitorDatabase()
 
     if mobile_device_id:
-        logger.debug("Tautulli MobileApp :: Deleting device_id %s from the database." % mobile_device_id)
+        logger.debug("Tautulli MobileApp :: Deleting mobile_device_id %s from the database." % mobile_device_id)
         result = db.action('DELETE FROM mobile_devices WHERE id = ?', args=[mobile_device_id])
+        return True
+    elif device_id:
+        logger.debug("Tautulli MobileApp :: Deleting device_id %s from the database." % device_id)
+        result = db.action('DELETE FROM mobile_devices WHERE device_id = ?', args=[device_id])
         return True
     else:
         return False
