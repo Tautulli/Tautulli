@@ -27,6 +27,7 @@ import cloudinary
 from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
+from collections import OrderedDict
 import datetime
 from functools import reduce, wraps
 import hashlib
@@ -1242,6 +1243,31 @@ def sort_attrs(attr):
     else:
         a = attr.split('.')
     return len(a), a
+
+
+def sort_obj(obj):
+    if isinstance(obj, list):
+        result_obj = []
+        for item in obj:
+            result_obj.append(sort_obj(item))
+    elif isinstance(obj, dict):
+        result_start = []
+        result_end = []
+        for k, v in obj.items():
+            if isinstance(v, list):
+                for item in v:
+                    if isinstance(item, dict):
+                        result_end.append([k, sort_obj(v)])
+                    else:
+                        result_start.append([k, sort_obj(v)])
+            else:
+                result_start.append([k, sort_obj(v)])
+
+        result_obj = OrderedDict(sorted(result_start) + sorted(result_end))
+    else:
+        result_obj = obj
+
+    return result_obj
 
 
 def get_attrs_to_dict(obj, attrs):

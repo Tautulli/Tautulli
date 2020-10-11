@@ -1650,12 +1650,14 @@ class Export(object):
                     writer.writerows(csv_data)
 
             elif self.file_format == 'json':
-                json_data = json.dumps(result, indent=4, ensure_ascii=False, sort_keys=True)
+                json_data = json.dumps(helpers.sort_obj(result),
+                                       indent=4, ensure_ascii=False)
                 with open(filepath, 'w', encoding='utf-8') as outfile:
                     outfile.write(json_data)
 
             elif self.file_format == 'xml':
-                xml_data = helpers.dict_to_xml({self.media_type: result}, root_node='export', indent=4)
+                xml_data = helpers.dict_to_xml({self.media_type: helpers.sort_obj(result)},
+                                               root_node='export', indent=4)
                 with open(filepath, 'w', encoding='utf-8') as outfile:
                     outfile.write(xml_data)
 
