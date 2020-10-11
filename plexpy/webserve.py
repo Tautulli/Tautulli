@@ -5911,7 +5911,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_home_stats(self, time_range=30, stats_type='plays', stats_count=10, grouping=None, **kwargs):
+    def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
+                       stats_start=0, stats_count=10, stat_id='', **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -5920,9 +5921,13 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
-                time_range (str):       The time range to calculate statistics, '30'
-                stats_type (str):       plays or duration
-                stats_count (str):      The number of top items to list, '5'
+                time_range (int):       The time range to calculate statistics, 30
+                stats_type (str):       'plays' or 'duration'
+                stats_start (int)       The row number of the stat item to start at, 0
+                stats_count (int):      The number of stat items to return, 5
+                stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
+                                        'top_tv', 'popular_tv', 'top_music', 'popular_music',
+                                        'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
 
             Returns:
                 json:
@@ -5999,7 +6004,9 @@ class WebInterface(object):
         result = data_factory.get_home_stats(grouping=grouping,
                                              time_range=time_range,
                                              stats_type=stats_type,
-                                             stats_count=stats_count)
+                                             stats_start=stats_start,
+                                             stats_count=stats_count,
+                                             stat_id=stat_id)
 
         if result:
             return result

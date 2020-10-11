@@ -930,9 +930,13 @@ Required parameters:
 
 Optional parameters:
     grouping (int):         0 or 1
-    time_range (str):       The time range to calculate statistics, '30'
-    stats_type (str):       plays or duration
-    stats_count (str):      The number of top items to list, '5'
+    time_range (int):       The time range to calculate statistics, 30
+    stats_type (str):       'plays' or 'duration'
+    stats_start (int)       The row number of the stat item to start at, 0
+    stats_count (int):      The number of stat items to return, 5
+    stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
+                            'top_tv', 'popular_tv', 'top_music', 'popular_music',
+                            'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
 
 Returns:
     json:
