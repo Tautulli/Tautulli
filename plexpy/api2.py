@@ -555,8 +555,7 @@ class API2(object):
     def _api_make_md(self):
         """ Tries to make a API.md to simplify the api docs. """
 
-        head = '''# API Reference\n
-## General structure
+        head = '''## General structure
 The API endpoint is
 ```
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
