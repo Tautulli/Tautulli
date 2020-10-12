@@ -2190,10 +2190,10 @@ def build_export_docs():
         section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
 
         if media_type == 'collection':
-            section += '\n\n* **Note:** `children` can be [Movies](#movie) or [Shows](#show) ' \
+            section += '\n\n* <a id="children">**Note:**</a> `children` can be [Movies](#movie) or [Shows](#show) ' \
                        'depending on the collection.'
         elif media_type == 'playlist':
-            section += '\n\n* **Note:** `items` can be [Movies](#movie), [Episodes](#episode), ' \
+            section += '\n\n* <a id="item">**Note:**</a> `items` can be [Movies](#movie), [Episodes](#episode), ' \
                        '[Tracks](#track), or [Photos](#photo) depending on the playlist.'
 
         sections.append(section)
