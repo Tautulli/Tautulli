@@ -3779,8 +3779,8 @@ class WebInterface(object):
             mobile_app.set_temp_device_token(None)
             return {'result': 'error', 'message': 'Device registration cancelled.'}
 
-        result = mobile_app.get_mobile_device_by_token(device_token)
-        if result:
+        result = mobile_app.get_temp_device_token()
+        if result is True:
             mobile_app.set_temp_device_token(None)
             return {'result': 'success', 'message': 'Device registered successfully.', 'data': result}
         else:

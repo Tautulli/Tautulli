@@ -440,7 +440,7 @@ class API2(object):
             self._api_msg = 'Device registration successful.'
             self._api_result_type = 'success'
 
-            mobile_app.set_temp_device_token(None)
+            mobile_app.set_temp_device_token(True)
 
             data = {
                 "pms_name": plexpy.CONFIG.PMS_NAME,
