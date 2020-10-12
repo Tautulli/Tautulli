@@ -2906,12 +2906,12 @@ Required parameters:
 Optional parameters:
     friendly_name (str):      A friendly name to identify the mobile device
     onesignal_id (str):       The OneSignal id for the mobile device
+    min_version (str):        The minimum Tautulli version supported by the mobile device, e.g. v2.5.6
 
 Returns:
     json:
         {"pms_name": "Winterfell-Server",
-         "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
-         "tautulli_version": "v2.5.6"
+         "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
          }
 ```
 

@@ -1470,6 +1470,10 @@ def is_hdr(bit_depth, color_space):
     return bit_depth > 8 and color_space == 'bt2020nc'
 
 
+def version_to_tuple(version):
+    return tuple(cast_to_int(v) for v in version.strip('v').split('.'))
+
+
 def page(endpoint, *args, **kwargs):
     endpoints = {
         'pms_image_proxy': pms_image_proxy,

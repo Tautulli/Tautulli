@@ -396,7 +396,8 @@ class API2(object):
 
         return data
 
-    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id=None, **kwargs):
+    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id=None,
+                        min_version='', **kwargs):
         """ Registers the Tautulli Android App for notifications.
 
             ```
@@ -407,12 +408,12 @@ class API2(object):
             Optional parameters:
                 friendly_name (str):      A friendly name to identify the mobile device
                 onesignal_id (str):       The OneSignal id for the mobile device
+                min_version (str):        The minimum Tautulli version supported by the mobile device, e.g. v2.5.6
 
             Returns:
                 json:
                     {"pms_name": "Winterfell-Server",
-                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
-                     "tautulli_version": "v2.5.6"
+                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
                      }
             ```
         """
@@ -423,6 +424,12 @@ class API2(object):
 
         elif not device_name:
             self._api_msg = 'Device registration failed: no device name provided.'
+            self._api_result_type = 'error'
+            return
+
+        elif min_version and helpers.version_to_tuple(min_version) > helpers.version_to_tuple(common.RELEASE):
+            self._api_msg = 'Device registration failed: Tautulli version {} ' \
+                            'does not meet the minimum requirement of {}.'.format(common.RELEASE, min_version)
             self._api_result_type = 'error'
             return
 
@@ -444,8 +451,7 @@ class API2(object):
 
             data = {
                 "pms_name": plexpy.CONFIG.PMS_NAME,
-                "server_id": plexpy.CONFIG.PMS_UUID,
-                "tautulli_version": common.RELEASE
+                "server_id": plexpy.CONFIG.PMS_UUID
             }
 
             return data
