@@ -14,7 +14,9 @@ data :: Usable parameters
 DOCUMENTATION :: END
 </%doc>
 <%
+    import plexpy
     from plexpy import exporter
+    from plexpy.helpers import anon_url
     export = exporter.Export()
     thumb_media_types = ', '.join([export.PLURAL_MEDIA_TYPES[k] for k, v in export.MEDIA_TYPES.items() if v[0]])
     art_media_types = ', '.join([export.PLURAL_MEDIA_TYPES[k] for k, v in export.MEDIA_TYPES.items() if v[1]])
@@ -35,6 +37,12 @@ DOCUMENTATION :: END
                 <input type="hidden" id="export_media_type" name="export_media_type" value="${media_type or ''}" />
                 <input type="hidden" id="export_sub_media_type" name="export_sub_media_type" value="${sub_media_type or ''}" />
                 <input type="hidden" id="export_export_type" name="export_export_type" value="${export_type or ''}" />
+                <div class="form-group">
+                    <label>Instructions</label>
+                    <p class="help-block">
+                        Please see the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Exporter-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">Exporter Guide</a> for more details about each option.
+                    </p>
+                </div>
                 <div class="form-group">
                     <label for="export_file_format">Data File Format</label>
                     <div class="row">
