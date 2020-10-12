@@ -413,7 +413,8 @@ class API2(object):
             Returns:
                 json:
                     {"pms_name": "Winterfell-Server",
-                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w"
+                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
+                     "tautulli_version": "v2.5.6"
                      }
             ```
         """
@@ -451,7 +452,8 @@ class API2(object):
 
             data = {
                 "pms_name": plexpy.CONFIG.PMS_NAME,
-                "server_id": plexpy.CONFIG.PMS_UUID
+                "server_id": plexpy.CONFIG.PMS_UUID,
+                "tautulli_version": common.RELEASE
             }
 
             return data
