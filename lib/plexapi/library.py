@@ -1134,8 +1134,8 @@ class Collections(PlexObject):
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.minYear = utils.cast(int, data.attrib.get('minYear'))
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
-        self.collectionMode = data.attrib.get('collectionMode')
-        self.collectionSort = data.attrib.get('collectionSort')
+        self.collectionMode = utils.cast(int, data.attrib.get('collectionMode'))
+        self.collectionSort = utils.cast(int, data.attrib.get('collectionSort'))
         self.labels = self.findItems(data, media.Label)
         self.fields = self.findItems(data, media.Field)
 
