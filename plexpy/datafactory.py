@@ -51,14 +51,17 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None):
+    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None, include_activity=None):
         data_tables = datatables.DataTables()
 
         if custom_where is None:
-            custon_where = []
+            custom_where = []
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        if include_activity is None:
+            include_activity = plexpy.CONFIG.HISTORY_TABLE_ACTIVITY
 
         if session.get_session_user_id():
             session_user_id = str(session.get_session_user_id())
@@ -125,7 +128,7 @@ class DataFactory(object):
             'NULL AS session_key'
             ]
 
-        if plexpy.CONFIG.HISTORY_TABLE_ACTIVITY:
+        if include_activity:
             table_name_union = 'sessions'
             # Very hacky way to match the custom where parameters for the unioned table
             custom_where_union = [[c[0].split('.')[-1], c[1]] for c in custom_where]

@@ -1824,7 +1824,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None, **kwargs):
         """ Get the Tautulli history.
 
             ```
@@ -1833,6 +1833,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):                 0 or 1
+                include_activity (int):         0 or 1
                 user (str):                     "Jon Snow"
                 user_id (int):                  133788
                 rating_key (int):               4348
@@ -1921,6 +1922,7 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "date")
 
         grouping = helpers.bool_true(grouping, return_none=True)
+        include_activity = helpers.bool_true(include_activity, return_none=True)
 
         custom_where = []
         if user_id:
@@ -1961,7 +1963,8 @@ class WebInterface(object):
             custom_where.append(['session_history_metadata.guid', 'LIKE ' + guid + '%'])  # SQLite LIKE wildcard
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
+        history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
+                                                      grouping=grouping, include_activity=include_activity)
 
         return history
 
