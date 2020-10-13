@@ -1880,10 +1880,14 @@ class Export(object):
 
         for d in data:
             if d.get('locations', []):
+                if 'grandparentTitle' in d:
+                    full_title = '{} - {}'.format(d.get('originalTitle') or d['grandparentTitle'], d['title'])
+                else:
+                    full_title = d['title']
                 location = {
                     'ratingKey': d['ratingKey'],
                     'duration': d['duration'],
-                    'title': d['title'],
+                    'title': full_title,
                     'location': d['locations'][0]
                 }
                 items.append(location)
