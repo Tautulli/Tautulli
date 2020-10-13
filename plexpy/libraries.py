@@ -169,8 +169,8 @@ def get_collections(section_id=None):
             'addedAt': helpers.datetime_to_iso(collection.addedAt),
             'art': collection.art,
             'childCount': collection.childCount,
-            'collectionMode': helpers.cast_to_int(collection_mode),
-            'collectionSort': helpers.cast_to_int(collection_sort),
+            'collectionMode': collection_mode,
+            'collectionSort': collection_sort,
             'contentRating': collection.contentRating,
             'guid': collection.guid,
             'librarySectionID': collection.librarySectionID,
@@ -216,7 +216,8 @@ def get_collections_list(section_id=None, **kwargs):
         },
         'collectionSort': {
             0: 'Release date',
-            1: 'Alphabetical'
+            1: 'Alphabetical',
+            2: 'Custom'
         }
     }
 
