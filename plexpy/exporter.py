@@ -2196,7 +2196,7 @@ def get_export_filepath(title, timestamp, filename):
     return os.path.join(dirpath, filename)
 
 
-def check_export_exists(title, timestamp=None, filename=None):
+def check_export_exists(title, timestamp, filename=None):
     if filename:
         return os.path.isfile(get_export_filepath(title, timestamp, filename))
     return os.path.isdir(get_export_dirpath(title, timestamp))
