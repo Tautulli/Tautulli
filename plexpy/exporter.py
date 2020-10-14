@@ -119,7 +119,7 @@ class Export(object):
 
         self.media_type = None
         self.obj = None
-        self.obj_title = ''
+        self.obj_title = None
 
         self.directory = None
         self.filename = None
@@ -1668,11 +1668,11 @@ class Export(object):
 
             if self.individual_files:
                 for item, item_result in zip(items, result):
-                    self._save_file([item_result], item.filename)
+                    self._save_file([item_result], obj=item)
                     self._exported_images(item.title)
 
             else:
-                self._save_file(result, self.filename)
+                self._save_file(result, obj=self)
                 self._exported_images(self.title)
 
             self.thumb_level = self.thumb_level or 10 if self.exported_thumb else 0
@@ -1697,7 +1697,8 @@ class Export(object):
     def _export_obj(export_obj):
         return export_obj.export_obj(export_obj)
 
-    def _save_file(self, result, filename):
+    def _save_file(self, result, obj=None):
+        filename = obj.filename
         dirpath = get_export_dirpath(self.directory)
         filepath = os.path.join(dirpath, filename)
 
@@ -1713,19 +1714,17 @@ class Export(object):
                 writer.writerows(csv_data)
 
         elif self.file_format == 'json':
-            json_data = json.dumps(helpers.sort_obj(result),
-                                   indent=4, ensure_ascii=False)
+            json_data = json.dumps(helpers.sort_obj(result), indent=4, ensure_ascii=False)
             with open(filepath, 'w', encoding='utf-8') as outfile:
                 outfile.write(json_data)
 
         elif self.file_format == 'xml':
-            xml_data = helpers.dict_to_xml({self.media_type: helpers.sort_obj(result)},
-                                           root_node='export', indent=4)
+            xml_data = self.data_to_xml(result, obj)
             with open(filepath, 'w', encoding='utf-8') as outfile:
                 outfile.write(xml_data)
 
         elif self.file_format == 'm3u8':
-            m3u8_data = self.dict_to_m3u8(result)
+            m3u8_data = self.data_to_m3u8(result, obj)
             with open(filepath, 'w', encoding='utf-8') as outfile:
                 outfile.write(m3u8_data)
 
@@ -1860,19 +1859,30 @@ class Export(object):
     def is_photoalbum(obj):
         return obj.type == 'photo' and obj.TAG == 'Directory'
 
-    def dict_to_m3u8(self, data):
+    def data_to_xml(self, data, obj):
+        xml_metadata = {obj.media_type: helpers.sort_obj(data), 'title': obj.title, 'type': obj.media_type}
+        if obj.rating_key:
+            xml_metadata['ratingKey'] = obj.rating_key
+        if obj.user_id:
+            xml_metadata['userID'] = obj.user_id
+        if obj.section_id:
+            xml_metadata['sectionID'] = obj.section_id
+
+        return helpers.dict_to_xml(xml_metadata, root_node='export', indent=4)
+
+    def data_to_m3u8(self, data, obj):
         items = self._get_m3u8_items(data)
 
-        m3u8_metadata = {'type': self.media_type}
-        if self.rating_key:
-            m3u8_metadata['ratingKey'] = self.rating_key
-        if self.user_id:
-            m3u8_metadata['userID'] = self.user_id
-        if self.section_id:
-            m3u8_metadata['sectionID'] = self.section_id
+        m3u8_metadata = {'title': obj.title, 'type': obj.media_type}
+        if obj.rating_key:
+            m3u8_metadata['ratingKey'] = obj.rating_key
+        if obj.user_id:
+            m3u8_metadata['userID'] = obj.user_id
+        if obj.section_id:
+            m3u8_metadata['sectionID'] = obj.section_id
 
         m3u8 = '#EXTM3U\n'
-        m3u8 += '# Playlist: {title}\n# {metadata}\n\n'.format(title=self.title, metadata=json.dumps(m3u8_metadata))
+        m3u8 += '# Playlist: {title}\n# {metadata}\n\n'.format(title=obj.title, metadata=json.dumps(m3u8_metadata))
         m3u8_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
         m3u8_items = []
 
@@ -1929,6 +1939,7 @@ class ExportObject(Export):
         self.__dict__.update(export.__dict__)
 
         self.obj = obj
+        self.rating_key = self.obj.ratingKey
         self.filename = self._filename(obj=self.obj)
         self.title = self._filename(obj=self.obj, extension=False)
 
