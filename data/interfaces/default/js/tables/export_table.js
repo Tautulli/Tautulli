@@ -40,7 +40,8 @@ export_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap"
+            "className": "no-wrap",
+            "searchable": false
         },
         {
             "targets": [1],
@@ -66,13 +67,23 @@ export_table_options = {
         },
         {
             "targets": [3],
-            "data": "filename",
+            "data": "title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['complete'] === 1 && rowData['exists']) {
-                        $(td).html('<a href="view_export?export_id=' + rowData['export_id'] + '" target="_blank">' + cellData + '</a>');
+                    var tooltip;
+                    var filename;
+                    if (!rowData['individual_files']) {
+                        tooltip = '<span data-toggle="tooltip" title="Single File"><i class="fa fa-file-alt fa-fw"></i></span>';
+                        filename = cellData + '.' + rowData['file_format']
                     } else {
-                        $(td).html(cellData);
+                        tooltip = '<span data-toggle="tooltip" title="Multiple Files"><i class="fa fa-folder fa-fw"></i></span>';
+                        filename = cellData
+                    }
+
+                    if (rowData['complete'] === 1 && rowData['exists'] && !rowData['individual_files']) {
+                        $(td).html('<a href="view_export?export_id=' + rowData['export_id'] + '" target="_blank">' + tooltip + '&nbsp;' + filename + '</a>');
+                    } else {
+                        $(td).html(tooltip + '&nbsp;' + filename);
                     }
                 }
             },
@@ -136,14 +147,25 @@ export_table_options = {
                 }
             },
             "width": "6%",
-            "className": "no-wrap"
+            "className": "no-wrap",
+            "searchable": false
         },
         {
             "targets": [9],
             "data": "complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === 1 && rowData['exists']) {
-                    $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['export_id'] + '"><i class="fa fa-file-download fa-fw"></i> Download</button>');
+                    var tooltip_title = '';
+                    var icon = '';
+                    if (rowData['thumb_level'] || rowData['art_level'] || rowData['individual_files']) {
+                        tooltip_title = 'Zip Archive';
+                        icon = 'fa-file-archive';
+                    } else {
+                        tooltip_title = rowData['file_format'].toUpperCase() + ' File';
+                        icon = 'fa-file-download';
+                    }
+                    var icon = (rowData['thumb_level'] || rowData['art_level'] || rowData['individual_files']) ? 'fa-file-archive' : 'fa-file-download';
+                    $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['export_id'] + '"><span data-toggle="tooltip" data-placement="left"  title="' + tooltip_title + '"><i class="fa ' + icon + ' fa-fw"></i> Download</span></button>');
                 } else if (cellData === 0) {
                     $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
                 } else if (cellData === -1) {
@@ -153,7 +175,8 @@ export_table_options = {
                 }
             },
             "width": "7%",
-            "className": "export_download"
+            "className": "export_download",
+            "searchable": false
         },
         {
             "targets": [10],
@@ -166,13 +189,20 @@ export_table_options = {
                 }
             },
             "width": "7%",
-            "className": "export_delete"
+            "className": "export_delete",
+            "searchable": false
         }
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        // Create the tooltips.
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
 
         if (export_processing_timer) {
             clearTimeout(export_processing_timer);
@@ -208,7 +238,7 @@ $('.export_table').on('click', '> tbody > tr > td.export_delete > button', funct
     var row = export_table.row(tr);
     var rowData = row.data();
 
-    var msg = 'Are you sure you want to delete the following export?<br /><br /><strong>' + rowData['filename'] + '</strong>';
+    var msg = 'Are you sure you want to delete the following export?<br /><br /><strong>' + rowData['title'] + '</strong>';
     var url = 'delete_export?export_id=' + rowData['export_id'];
     confirmAjaxCall(url, msg, null, null, redrawExportTable);
 });

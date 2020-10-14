@@ -798,10 +798,10 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, '
-        'filename TEXT, file_format TEXT, '
+        'title TEXT, file_format TEXT, '
         'metadata_level INTEGER, media_info_level INTEGER, '
         'thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, '
-        'custom_fields TEXT, '
+        'custom_fields TEXT, individual_files INTEGER DEFAULT 0, '
         'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
     )
 
@@ -2177,6 +2177,18 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE exports SET art_level = 9 WHERE include_art = 1'
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute('SELECT title FROM exports')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN individual_files INTEGER DEFAULT 0'
         )
 
     # Add "Local" user to database as default unauthenticated user.

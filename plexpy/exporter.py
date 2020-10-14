@@ -101,7 +101,7 @@ class Export(object):
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
                  thumb_level=0, art_level=0,
-                 custom_fields='', export_type=None):
+                 custom_fields='', export_type=None, individual_files=False):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
@@ -112,17 +112,22 @@ class Export(object):
         self.art_level = helpers.cast_to_int(art_level)
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
-        self.export_type = export_type or 'all'
+        self.export_type = str(export_type).lower() or 'all'
+        self.individual_files = individual_files
 
         self.timestamp = helpers.timestamp()
 
         self.media_type = None
         self.obj = None
-        self.title = ''
+        self.obj_title = ''
 
+        self.directory = None
         self.filename = None
+        self.title = None
         self.export_id = None
-        self.file_size = None
+        self.file_size = 0
+        self.exported_thumb = False
+        self.exported_art = False
         self.success = False
 
         # Reset export options for m3u8
@@ -416,7 +421,7 @@ class Export(object):
                 'viewCount': None,
                 'viewedLeafCount': None,
                 'year': None,
-                'seasons': lambda e: self._export_obj(e)
+                'seasons': lambda e: self.export_obj(e)
             }
             return _show_attrs
 
@@ -455,7 +460,7 @@ class Export(object):
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
-                'episodes': lambda e: self._export_obj(e)
+                'episodes': lambda e: self.export_obj(e)
             }
             return _season_attrs
 
@@ -700,7 +705,7 @@ class Export(object):
                 'updatedAt': helpers.datetime_to_iso,
                 'userRating': None,
                 'viewCount': None,
-                'albums': lambda e: self._export_obj(e)
+                'albums': lambda e: self.export_obj(e)
             }
             return _artist_attrs
 
@@ -760,7 +765,7 @@ class Export(object):
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
-                'tracks': lambda e: self._export_obj(e)
+                'tracks': lambda e: self.export_obj(e)
             }
             return _album_attrs
 
@@ -907,9 +912,9 @@ class Export(object):
                 'titleSort': None,
                 'type': lambda e: 'photoalbum' if e == 'photo' else e,
                 'updatedAt': helpers.datetime_to_iso,
-                'photoalbums': lambda o: [self._export_obj(e) for e in getattr(o, 'albums')()],
-                'photos': lambda e: self._export_obj(e),
-                'clips': lambda e: self._export_obj(e)
+                'photoalbums': lambda o: [self.export_obj(e) for e in getattr(o, 'albums')()],
+                'photos': lambda e: self.export_obj(e),
+                'clips': lambda e: self.export_obj(e)
             }
             return _photo_album_attrs
 
@@ -1007,7 +1012,7 @@ class Export(object):
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
-                'children': lambda e: self._export_obj(e)
+                'children': lambda e: self.export_obj(e)
             }
             return _collection_attrs
 
@@ -1027,7 +1032,7 @@ class Export(object):
                 'title': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
-                'items': lambda e: self._export_obj(e)
+                'items': lambda e: self.export_obj(e)
             }
             return _playlist_attrs
 
@@ -1500,6 +1505,8 @@ class Export(object):
         elif self.user_id and self.export_type != 'playlist':
             msg = "Export called with invalid export_type '{}'. " \
                   "Only export_type 'playlist' is allowed for user export."
+        elif self.individual_files and self.rating_key:
+            msg = "Individual file export is only allowed for library or user export."
 
         if msg:
             logger.error("Tautulli Exporter :: %s", msg)
@@ -1518,49 +1525,42 @@ class Export(object):
         if self.rating_key:
             logger.debug(
                 "Tautulli Exporter :: Export called with rating_key %s, "
-                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s",
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
+                "file_format %s",
                 self.rating_key, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level)
+                self.thumb_level, self.art_level, self.file_format)
 
             self.obj = plex.get_item(self.rating_key)
-            self.media_type = 'photoalbum' if self.is_photoalbum(self.obj) else self.obj.type
+            self.media_type = self._media_type(self.obj)
 
             if self.media_type != 'playlist':
                 self.section_id = self.obj.librarySectionID
 
             if self.media_type in ('season', 'episode', 'album', 'track'):
-                self.title = self.obj._defaultSyncTitle()
+                self.obj_title = self.obj._defaultSyncTitle()
             else:
-                self.title = self.obj.title
-
-            filename = '{} - {} [{}].{}'.format(
-                self.media_type.capitalize(), self.title, self.rating_key,
-                helpers.timestamp_to_YMDHMS(self.timestamp))
+                self.obj_title = self.obj.title
 
         elif self.user_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with user_id %s, "
                 "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
-                "export_type %s",
+                "export_type %s, file_format %s",
                 self.user_id, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level, self.export_type)
+                self.thumb_level, self.art_level, self.export_type, self.file_format)
 
             self.obj = plex.plex
             self.media_type = self.export_type
 
-            self.title = user_info['username']
-
-            filename = 'User - {} - {} [{}].{}'.format(
-                self.title, self.export_type.capitalize(), self.user_id,
-                helpers.timestamp_to_YMDHMS(self.timestamp))
+            self.obj_title = user_info['username']
 
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
                 "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
-                "export_type %s",
+                "export_type %s, file_format %s",
                 self.section_id, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level, self.export_type)
+                self.thumb_level, self.art_level, self.export_type, self.file_format)
 
             self.obj = plex.get_library(str(self.section_id))
             if self.export_type == 'all':
@@ -1568,11 +1568,7 @@ class Export(object):
             else:
                 self.media_type = self.export_type
 
-            self.title = self.obj.title
-
-            filename = 'Library - {} - {} [{}].{}'.format(
-                self.title, self.export_type.capitalize(), self.section_id,
-                helpers.timestamp_to_YMDHMS(self.timestamp))
+            self.obj_title = self.obj.title
 
         else:
             msg = "Export called but no section_id, user_id, or rating_key provided."
@@ -1591,10 +1587,13 @@ class Export(object):
 
         self._process_custom_fields()
 
-        self.filename = '{}.{}'.format(helpers.clean_filename(filename), self.file_format)
+        self.directory = self._filename(directory=True)
+        self.filename = self._filename()
+        self.title = self._filename(extension=False)
+
         self.export_id = self.add_export()
         if not self.export_id:
-            msg = "Failed to export '{}'.".format(self.filename)
+            msg = "Failed to export '{}'.".format(self.directory)
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
@@ -1603,19 +1602,24 @@ class Export(object):
         return True
 
     def add_export(self):
-        keys = {'timestamp': self.timestamp,
-                'section_id': self.section_id,
-                'user_id': self.user_id,
-                'rating_key': self.rating_key,
-                'media_type': self.media_type}
+        keys = {
+            'timestamp': self.timestamp,
+            'section_id': self.section_id,
+            'user_id': self.user_id,
+            'rating_key': self.rating_key,
+            'media_type': self.media_type
+        }
 
-        values = {'file_format': self.file_format,
-                  'filename': self.filename,
-                  'metadata_level': self.metadata_level,
-                  'media_info_level': self.media_info_level,
-                  'thumb_level': self.thumb_level,
-                  'art_level': self.art_level,
-                  'custom_fields': self.custom_fields}
+        values = {
+            'title': self.title,
+            'file_format': self.file_format,
+            'metadata_level': self.metadata_level,
+            'media_info_level': self.media_info_level,
+            'thumb_level': self.thumb_level,
+            'art_level': self.art_level,
+            'custom_fields': self.custom_fields,
+            'individual_files': self.individual_files
+        }
 
         db = database.MonitorDatabase()
         try:
@@ -1631,20 +1635,21 @@ class Export(object):
         else:
             complete = -1
 
-        keys = {'id': self.export_id}
-        values = {'complete': complete,
-                  'file_size': self.file_size,
-                  'thumb_level': self.thumb_level,
-                  'art_level': self.art_level}
+        keys = {
+            'id': self.export_id
+        }
+        values = {
+            'thumb_level': self.thumb_level,
+            'art_level': self.art_level,
+            'complete': complete,
+            'file_size': self.file_size
+        }
 
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
     def _real_export(self):
-        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.filename)
-
-        filepath = get_export_filepath(self.filename)
-        images_folder = get_export_filepath(self.filename, images=True)
+        logger.info("Tautulli Exporter :: Starting export for '%s'...", self.title)
 
         if self.rating_key:
             items = [self.obj]
@@ -1656,71 +1661,120 @@ class Export(object):
             items = method()
 
         pool = ThreadPool(processes=4)
+        items = [ExportObject(self, item) for item in items]
 
         try:
             result = pool.map(self._export_obj, items)
 
-            if self.file_format == 'csv':
-                csv_data = helpers.flatten_dict(result)
-                csv_headers = sorted(set().union(*csv_data), key=helpers.sort_attrs)
-                with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
-                    writer = csv.DictWriter(outfile, csv_headers)
-                    writer.writeheader()
-                    writer.writerows(csv_data)
+            if self.individual_files:
+                for item, item_result in zip(items, result):
+                    self._save_file([item_result], item.filename)
+                    self._exported_images(item.title)
 
-            elif self.file_format == 'json':
-                json_data = json.dumps(helpers.sort_obj(result),
-                                       indent=4, ensure_ascii=False)
-                with open(filepath, 'w', encoding='utf-8') as outfile:
-                    outfile.write(json_data)
+            else:
+                self._save_file(result, self.filename)
+                self._exported_images(self.title)
 
-            elif self.file_format == 'xml':
-                xml_data = helpers.dict_to_xml({self.media_type: helpers.sort_obj(result)},
-                                               root_node='export', indent=4)
-                with open(filepath, 'w', encoding='utf-8') as outfile:
-                    outfile.write(xml_data)
+            self.thumb_level = self.thumb_level or 10 if self.exported_thumb else 0
+            self.art_level = self.art_level or 10 if self.exported_art else 0
 
-            elif self.file_format == 'm3u8':
-                m3u8_data = self.dict_to_m3u8(result)
-                with open(filepath, 'w', encoding='utf-8') as outfile:
-                    outfile.write(m3u8_data)
-
-            self.file_size = os.path.getsize(filepath)
-
-            exported_thumb = exported_art = False
-            if os.path.exists(images_folder):
-                for f in os.listdir(images_folder):
-                    if f.endswith('.thumb.jpg'):
-                        exported_thumb = True
-                    elif f.endswith('.art.jpg'):
-                        exported_art = True
-
-                    image_path = os.path.join(images_folder, f)
-                    if os.path.isfile(image_path):
-                        self.file_size += os.path.getsize(image_path)
-
-            self.thumb_level = self.thumb_level if exported_thumb else 0
-            self.art_level = self.art_level if exported_art else 0
+            self.file_size += sum(item.file_size for item in items)
 
             self.success = True
-            logger.info("Tautulli Exporter :: Successfully exported to '%s'", filepath)
+
+            dirpath = get_export_dirpath(self.directory)
+            logger.info("Tautulli Exporter :: Successfully exported to '%s'", dirpath)
 
         except Exception as e:
-            logger.exception("Tautulli Exporter :: Failed to export '%s': %s", self.filename, e)
+            logger.exception("Tautulli Exporter :: Failed to export '%s': %s", self.title, e)
 
         finally:
             pool.close()
             pool.join()
             self.set_export_state()
 
-    def _export_obj(self, obj):
-        # Reload ~plexapi.base.PlexPartialObject
-        if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
-            obj = obj.reload()
+    @staticmethod
+    def _export_obj(export_obj):
+        return export_obj.export_obj(export_obj)
 
-        media_type = 'photoalbum' if self.is_photoalbum(obj) else obj.type
-        export_attrs = self._get_export_attrs(media_type)
-        return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
+    def _save_file(self, result, filename):
+        dirpath = get_export_dirpath(self.directory)
+        filepath = os.path.join(dirpath, filename)
+
+        if not os.path.exists(dirpath):
+            os.makedirs(dirpath)
+
+        if self.file_format == 'csv':
+            csv_data = helpers.flatten_dict(result)
+            csv_headers = sorted(set().union(*csv_data), key=helpers.sort_attrs)
+            with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
+                writer = csv.DictWriter(outfile, csv_headers)
+                writer.writeheader()
+                writer.writerows(csv_data)
+
+        elif self.file_format == 'json':
+            json_data = json.dumps(helpers.sort_obj(result),
+                                   indent=4, ensure_ascii=False)
+            with open(filepath, 'w', encoding='utf-8') as outfile:
+                outfile.write(json_data)
+
+        elif self.file_format == 'xml':
+            xml_data = helpers.dict_to_xml({self.media_type: helpers.sort_obj(result)},
+                                           root_node='export', indent=4)
+            with open(filepath, 'w', encoding='utf-8') as outfile:
+                outfile.write(xml_data)
+
+        elif self.file_format == 'm3u8':
+            m3u8_data = self.dict_to_m3u8(result)
+            with open(filepath, 'w', encoding='utf-8') as outfile:
+                outfile.write(m3u8_data)
+
+        self.file_size += os.path.getsize(filepath)
+
+    def _exported_images(self, title):
+        images_dirpath = get_export_dirpath(self.directory, images_directory=title)
+
+        if os.path.exists(images_dirpath):
+            for f in os.listdir(images_dirpath):
+                if f.endswith('.thumb.jpg'):
+                    self.exported_thumb = True
+                elif f.endswith('.art.jpg'):
+                    self.exported_art = True
+
+    def _media_type(self, obj):
+        return 'photoalbum' if self.is_photoalbum(obj) else obj.type
+
+    def _filename(self, obj=None, directory=False, extension=True):
+        if obj:
+            media_type = self._media_type(obj)
+            if media_type in ('season', 'episode', 'album', 'track'):
+                title = obj._defaultSyncTitle()
+            else:
+                title = obj.title
+            filename = '{} - {} [{}]'.format(
+                media_type.capitalize(), title, obj.ratingKey)
+
+        elif self.rating_key:
+            filename = '{} - {} [{}]'.format(
+                self.media_type.capitalize(), self.obj_title, self.rating_key)
+
+        elif self.user_id:
+            filename = 'User - {} - {} [{}]'.format(
+                self.obj_title, self.export_type.capitalize(), self.user_id)
+
+        elif self.section_id:
+            filename = 'Library - {} - {} [{}]'.format(
+                self.obj_title, self.export_type.capitalize(), self.section_id)
+
+        else:
+            filename = 'Export - Unknown'
+
+        filename = helpers.clean_filename(filename)
+        if directory:
+            return format_export_directory(filename, self.timestamp)
+        elif extension:
+            return format_export_filename(filename, self.file_format)
+        return filename
 
     def _process_custom_fields(self):
         if self.custom_fields:
@@ -1798,61 +1852,6 @@ class Export(object):
 
         return reduce(helpers.dict_merge, export_attrs_list, {})
 
-    def get_any_hdr(self, item, media_type):
-        root = self.return_attrs(media_type)['media']
-        attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
-        media = helpers.get_attrs_to_dict(item, attrs)
-        return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
-    
-    def get_image(self, item, image):
-        media_type = item.type
-        rating_key = item.ratingKey
-
-        export_image = True
-        if self.thumb_level == 1 or self.art_level == 1:
-            posters = item.arts() if image == 'art' else item.posters()
-            export_image = any(poster.selected and poster.ratingKey.startswith('upload://')
-                               for poster in posters)
-        elif self.thumb_level == 2 or self.art_level == 2:
-            export_image = any(field.locked and field.name == image
-                               for field in item.fields)
-        elif self.thumb_level == 9 or self.art_level == 9:
-            export_image = True
-
-        if not export_image and image + 'File' in self._custom_fields.get(media_type, set()):
-            export_image = True
-
-        if not export_image:
-            return
-
-        image_url = None
-        if image == 'thumb':
-            image_url = item.thumbUrl
-        elif image == 'art':
-            image_url = item.artUrl
-
-        if not image_url:
-            return
-
-        if media_type in ('season', 'episode', 'album', 'track'):
-            item_title = item._defaultSyncTitle()
-        else:
-            item_title = item.title
-
-        folder = get_export_filepath(self.filename, images=True)
-        filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
-        filepath = os.path.join(folder, filename)
-
-        os.makedirs(folder, exist_ok=True)
-
-        r = requests.get(image_url, stream=True)
-        if r.status_code == 200:
-            with open(filepath, 'wb') as outfile:
-                for chunk in r:
-                    outfile.write(chunk)
-    
-            return os.path.join(os.path.basename(folder), filename)
-
     @staticmethod
     def is_media_info_attr(attr):
         return attr.startswith('media.') or attr == 'locations'
@@ -1863,10 +1862,8 @@ class Export(object):
 
     def dict_to_m3u8(self, data):
         items = self._get_m3u8_items(data)
-        m3u8_metadata = {
-            'filename': self.filename,
-            'type': self.media_type
-        }
+
+        m3u8_metadata = {'type': self.media_type}
         if self.rating_key:
             m3u8_metadata['ratingKey'] = self.rating_key
         if self.user_id:
@@ -1916,63 +1913,156 @@ class Export(object):
 
         return items
 
+    def export_obj(self, export_obj):
+        pass
+
+    def get_any_hdr(self, item, media_type):
+        pass
+
+    def get_image(self, item, image):
+        pass
+
+
+class ExportObject(Export):
+    def __init__(self, export, obj):
+        super(ExportObject, self).__init__()
+        self.__dict__.update(export.__dict__)
+
+        self.obj = obj
+        self.filename = self._filename(obj=self.obj)
+        self.title = self._filename(obj=self.obj, extension=False)
+
+    def export_obj(self, export_obj):
+        if isinstance(export_obj, ExportObject):
+            obj = export_obj.obj
+        else:
+            obj = export_obj
+
+        # Reload ~plexapi.base.PlexPartialObject
+        if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
+            obj = obj.reload()
+
+        media_type = self._media_type(obj)
+        export_attrs = self._get_export_attrs(media_type)
+        return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
+
+    def get_any_hdr(self, item, media_type):
+        root = self.return_attrs(media_type)['media']
+        attrs = helpers.get_dict_value_by_path(root, 'parts.videoStreams.hdr')
+        media = helpers.get_attrs_to_dict(item, attrs)
+        return any(vs.get('hdr') for p in media.get('parts', []) for vs in p.get('videoStreams', []))
+
+    def get_image(self, item, image):
+        media_type = item.type
+        rating_key = item.ratingKey
+
+        export_image = True
+        if self.thumb_level == 1 or self.art_level == 1:
+            posters = item.arts() if image == 'art' else item.posters()
+            export_image = any(poster.selected and poster.ratingKey.startswith('upload://')
+                               for poster in posters)
+        elif self.thumb_level == 2 or self.art_level == 2:
+            export_image = any(field.locked and field.name == image
+                               for field in item.fields)
+        elif self.thumb_level == 9 or self.art_level == 9:
+            export_image = True
+
+        if not export_image and image + 'File' in self._custom_fields.get(media_type, set()):
+            export_image = True
+
+        if not export_image:
+            return
+
+        image_url = None
+        if image == 'thumb':
+            image_url = item.thumbUrl
+        elif image == 'art':
+            image_url = item.artUrl
+
+        if not image_url:
+            return
+
+        r = requests.get(image_url, stream=True)
+        if r.status_code != 200:
+            return
+
+        if media_type in ('season', 'episode', 'album', 'track'):
+            item_title = item._defaultSyncTitle()
+        else:
+            item_title = item.title
+
+        dirpath = get_export_dirpath(self.directory, images_directory=self.title)
+        filename = helpers.clean_filename('{} [{}].{}.jpg'.format(item_title, rating_key, image))
+        filepath = os.path.join(dirpath, filename)
+
+        if not os.path.exists(dirpath):
+            os.makedirs(dirpath)
+
+        with open(filepath, 'wb') as outfile:
+            for chunk in r:
+                outfile.write(chunk)
+
+        self.file_size += os.path.getsize(filepath)
+
+        return os.path.join(os.path.basename(dirpath), filename)
+
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT filename, file_format, thumb_level, art_level, complete '
+    result = db.select_single('SELECT timestamp, title, file_format, thumb_level, art_level, '
+                              'individual_files, complete '
                               'FROM exports WHERE id = ?',
                               [export_id])
 
     if result:
-        result['exists'] = check_export_exists(result['filename'])
+        if result['individual_files']:
+            result['filename'] = None
+            result['exists'] = check_export_exists(result['title'], result['timestamp'])
+        else:
+            result['filename'] = '{}.{}'.format(result['title'], result['file_format'])
+            result['exists'] = check_export_exists(result['title'], result['timestamp'], result['filename'])
 
     return result
 
 
 def delete_export(export_id):
-    db = database.MonitorDatabase()
     if str(export_id).isdigit():
-        export_data = get_export(export_id=export_id)
+        deleted = True
 
-        logger.info("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
-        result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
-
-        if export_data and export_data['exists']:
-            filepath = get_export_filepath(export_data['filename'])
-            logger.info("Tautulli Exporter :: Deleting exported file from '%s'.", filepath)
+        result = get_export(export_id=export_id)
+        if result and check_export_exists(result['title'], result['timestamp']):  # Only check if folder exists
+            dirpath = get_export_dirpath(result['title'], result['timestamp'])
+            logger.info("Tautulli Exporter :: Deleting export '%s'.", dirpath)
             try:
-                os.remove(filepath)
-                images_folder = get_export_filepath(export_data['filename'], images=True)
-                shutil.rmtree(images_folder, ignore_errors=True)
+                shutil.rmtree(dirpath, ignore_errors=True)
             except OSError as e:
-                logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
-        return True
+                logger.error("Tautulli Exporter :: Failed to delete export '%s': %s", dirpath, e)
+                deleted = False
+
+        if deleted:
+            logger.info("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
+            db = database.MonitorDatabase()
+            result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
+
+        return deleted
     else:
         return False
 
 
 def delete_all_exports():
-    db = database.MonitorDatabase()
-    result = db.select('SELECT filename FROM exports')
+    logger.info("Tautulli Exporter :: Deleting all exports from the export directory.")
 
-    logger.info("Tautulli Exporter :: Deleting all exports from the database.")
+    export_dir = plexpy.CONFIG.EXPORT_DIR
+    try:
+        shutil.rmtree(export_dir, ignore_errors=True)
+    except OSError as e:
+        logger.error("Tautulli Exporter :: Failed to delete export directory '%s': %s", export_dir, e)
 
-    deleted_files = True
-    for row in result:
-        if check_export_exists(row['filename']):
-            filepath = get_export_filepath(row['filename'])
-            try:
-                os.remove(filepath)
-                images_folder = get_export_filepath(row['filename'], images=True)
-                shutil.rmtree(images_folder, ignore_errors=True)
-            except OSError as e:
-                logger.error("Tautulli Exporter :: Failed to delete exported file '%s': %s", filepath, e)
-                deleted_files = False
-                break
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
 
-    if deleted_files:
-        database.delete_exports()
-        return True
+    database.delete_exports()
+    return True
 
 
 def cancel_exports():
@@ -2003,13 +2093,17 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'exports.user_id',
                'exports.rating_key',
                'exports.media_type',
-               'exports.filename',
+               'CASE WHEN exports.media_type = "photoalbum" THEN "Photo Album" ELSE '
+               'UPPER(SUBSTR(exports.media_type, 1, 1)) || SUBSTR(exports.media_type, 2) END '
+               'AS media_type_title',
+               'exports.title',
                'exports.file_format',
                'exports.metadata_level',
                'exports.media_info_level',
                'exports.thumb_level',
                'exports.art_level',
                'exports.custom_fields',
+               'exports.individual_files',
                'exports.file_size',
                'exports.complete'
                ]
@@ -2030,8 +2124,12 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
 
     rows = []
     for item in result:
-        media_type_title = item['media_type'].title()
-        exists = helpers.cast_to_int(check_export_exists(item['filename']))
+        if item['individual_files']:
+            filename = None
+            exists = check_export_exists(item['title'], item['timestamp'])
+        else:
+            filename = format_export_filename(item['title'], item['file_format'])
+            exists = check_export_exists(item['title'], item['timestamp'], filename)
 
         row = {'export_id': item['export_id'],
                'timestamp': item['timestamp'],
@@ -2039,14 +2137,16 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'user_id': item['user_id'],
                'rating_key': item['rating_key'],
                'media_type': item['media_type'],
-               'media_type_title': media_type_title,
-               'filename': item['filename'],
+               'media_type_title': item['media_type_title'],
+               'title': item['title'],
+               'filename': filename,
                'file_format': item['file_format'],
                'metadata_level': item['metadata_level'],
                'media_info_level': item['media_info_level'],
                'thumb_level': item['thumb_level'],
                'art_level': item['art_level'],
                'custom_fields': item['custom_fields'],
+               'individual_files': item['individual_files'],
                'file_size': item['file_size'],
                'complete': item['complete'],
                'exists': exists
@@ -2063,15 +2163,32 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
     return result
 
 
-def get_export_filepath(filename, images=False):
-    if images:
-        images_folder = '{}.images'.format(os.path.splitext(filename)[0])
-        return os.path.join(plexpy.CONFIG.EXPORT_DIR, images_folder)
-    return os.path.join(plexpy.CONFIG.EXPORT_DIR, filename)
+def format_export_directory(title, timestamp):
+    return '{}.{}'.format(title, helpers.timestamp_to_YMDHMS(timestamp))
 
 
-def check_export_exists(filename):
-    return os.path.isfile(get_export_filepath(filename))
+def format_export_filename(title, file_format):
+    return '{}.{}'.format(title, file_format)
+
+
+def get_export_dirpath(title, timestamp=None, images_directory=None):
+    if timestamp:
+        title = format_export_directory(title, timestamp)
+    dirpath = os.path.join(plexpy.CONFIG.EXPORT_DIR, title)
+    if images_directory:
+        dirpath = os.path.join(dirpath, '{}.images'.format(images_directory))
+    return dirpath
+
+
+def get_export_filepath(title, timestamp, filename):
+    dirpath = get_export_dirpath(title, timestamp)
+    return os.path.join(dirpath, filename)
+
+
+def check_export_exists(title, timestamp=None, filename=None):
+    if filename:
+        return os.path.isfile(get_export_filepath(title, timestamp, filename))
+    return os.path.isdir(get_export_dirpath(title, timestamp))
 
 
 def get_custom_fields(media_type, sub_media_type=None):

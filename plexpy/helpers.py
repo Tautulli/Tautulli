@@ -1474,6 +1474,16 @@ def version_to_tuple(version):
     return tuple(cast_to_int(v) for v in version.strip('v').split('.'))
 
 
+# https://stackoverflow.com/a/1855118
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file),
+                       arcname=os.path.relpath(os.path.join(root, file),
+                                               os.path.join(path, '.')))
+
+
 def page(endpoint, *args, **kwargs):
     endpoints = {
         'pms_image_proxy': pms_image_proxy,

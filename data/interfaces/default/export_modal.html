@@ -56,6 +56,14 @@ DOCUMENTATION :: END
                     </div>
                     <p class="help-block">Select the export data file format.</p>
                 </div>
+                % if not rating_key:
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="export_individual_files" name="export_individual_files" value="1"> Export Individual Files
+                    </label>
+                    <p class="help-block">Enable to export one file for each ${media_type}, otherwise only export a single file containing all ${media_type}s.</p>
+                </div>
+                % endif
                 <div class="form-group">
                     <label for="export_metadata_level">Metadata Export Level</label>
                     <div class="row">
@@ -249,6 +257,7 @@ DOCUMENTATION :: END
             $('#export_custom_media_info_fields').val()
         ].filter(Boolean).join(',');
         var export_type = $('#export_export_type').val()
+        var individual_files = $('#export_individual_files').is(':checked')
 
         $.ajax({
             url: 'export_metadata',
@@ -262,7 +271,8 @@ DOCUMENTATION :: END
                 thumb_level: thumb_level,
                 art_level: art_level,
                 custom_fields: custom_fields,
-                export_type: export_type
+                export_type: export_type,
+                individual_files: individual_files
             },
             async: true,
             success: function (data) {

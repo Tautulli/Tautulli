@@ -6578,8 +6578,12 @@ class WebInterface(object):
             dt_columns = [("timestamp", True, False),
                           ("media_type_title", True, True),
                           ("rating_key", True, True),
+                          ("title", True, True),
                           ("file_format", True, True),
-                          ("filename", True, True),
+                          ("metadata_level", True, True),
+                          ("media_info_level", True, True),
+                          ("custom_fields", True, True),
+                          ("file_size", True, False),
                           ("complete", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
 
@@ -6646,7 +6650,7 @@ class WebInterface(object):
     def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
                         thumb_level=0, art_level=0,
-                        custom_fields='', export_type=None, **kwargs):
+                        custom_fields='', export_type=None, individual_files=False, **kwargs):
         """ Export library or media metadata to a file
 
             ```
@@ -6663,8 +6667,9 @@ class WebInterface(object):
                 art_level (int):           The level of background artwork images to export (default 0)
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
-                export_type (str):         collection or playlist for library/user export,
+                export_type (str):         'collection' or 'playlist' for library/user export,
                                            otherwise default to all library items
+                individual_files (bool):   Export each item as an individual file for library/user export.
 
             Returns:
                 json:
@@ -6673,6 +6678,7 @@ class WebInterface(object):
                      }
             ```
         """
+        individual_files = helpers.bool_true(individual_files)
         result = exporter.Export(section_id=section_id,
                                  user_id=user_id,
                                  rating_key=rating_key,
@@ -6682,7 +6688,8 @@ class WebInterface(object):
                                  thumb_level=thumb_level,
                                  art_level=art_level,
                                  custom_fields=custom_fields,
-                                 export_type=export_type).export()
+                                 export_type=export_type,
+                                 individual_files=individual_files).export()
 
         if result is True:
             return {'result': 'success', 'message': 'Metadata export has started.'}
@@ -6707,8 +6714,8 @@ class WebInterface(object):
         """
         result = exporter.get_export(export_id=export_id)
 
-        if result and result['complete'] == 1 and result['exists']:
-            filepath = exporter.get_export_filepath(result['filename'])
+        if result and result['complete'] == 1 and result['exists'] and not result['individual_files']:
+            filepath = exporter.get_export_filepath(result['title'], result['timestamp'], result['filename'])
 
             if result['file_format'] == 'csv':
                 with open(filepath, 'r', encoding='utf-8') as infile:
@@ -6769,28 +6776,23 @@ class WebInterface(object):
         result = exporter.get_export(export_id=export_id)
 
         if result and result['complete'] == 1 and result['exists']:
-            export_filepath = exporter.get_export_filepath(result['filename'])
+            if result['thumb_level'] or result['art_level'] or result['individual_files']:
+                directory = exporter.format_export_directory(result['title'], result['timestamp'])
+                dirpath = exporter.get_export_dirpath(directory)
+                zip_filename = '{}.zip'.format(directory)
 
-            if result['thumb_level'] or result['art_level']:
-                zip_filename = '{}.zip'.format(os.path.splitext(result['filename'])[0])
-                images_folder = exporter.get_export_filepath(result['filename'], images=True)
+                buffer = BytesIO()
+                temp_zip = zipfile.ZipFile(buffer, 'w')
+                helpers.zipdir(dirpath, temp_zip)
+                temp_zip.close()
 
-                if os.path.exists(images_folder):
-                    buffer = BytesIO()
-                    temp_zip = zipfile.ZipFile(buffer, 'w')
-                    temp_zip.write(export_filepath, arcname=result['filename'])
+                return serve_fileobj(buffer.getvalue(), content_type='application/zip',
+                                     disposition='attachment', name=zip_filename)
 
-                    _images_folder = os.path.basename(images_folder)
+            else:
+                filepath = exporter.get_export_filepath(result['title'], result['timestamp'], result['filename'])
+                return serve_download(filepath, name=result['filename'])
 
-                    for f in os.listdir(images_folder):
-                        image_path = os.path.join(images_folder, f)
-                        temp_zip.write(image_path, arcname=os.path.join(_images_folder, f))
-
-                    temp_zip.close()
-                    return serve_fileobj(buffer.getvalue(), content_type='application/zip',
-                                         disposition='attachment', name=zip_filename)
-
-            return serve_download(exporter.get_export_filepath(result['filename']), name=result['filename'])
         else:
             if result and result.get('complete') == 0:
                 msg = 'Export is still being processed.'
