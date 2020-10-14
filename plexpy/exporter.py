@@ -118,6 +118,7 @@ class Export(object):
 
         self.media_type = None
         self.obj = None
+        self.title = ''
 
         self.filename = None
         self.export_id = None
@@ -1528,12 +1529,12 @@ class Export(object):
                 self.section_id = self.obj.librarySectionID
 
             if self.media_type in ('season', 'episode', 'album', 'track'):
-                item_title = self.obj._defaultSyncTitle()
+                self.title = self.obj._defaultSyncTitle()
             else:
-                item_title = self.obj.title
+                self.title = self.obj.title
 
             filename = '{} - {} [{}].{}'.format(
-                self.media_type.capitalize(), item_title, self.rating_key,
+                self.media_type.capitalize(), self.title, self.rating_key,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
         elif self.user_id:
@@ -1547,10 +1548,10 @@ class Export(object):
             self.obj = plex.plex
             self.media_type = self.export_type
 
-            username = user_info['username']
+            self.title = user_info['username']
 
             filename = 'User - {} - {} [{}].{}'.format(
-                username, self.export_type.capitalize(), self.user_id,
+                self.title, self.export_type.capitalize(), self.user_id,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
         elif self.section_id:
@@ -1567,10 +1568,10 @@ class Export(object):
             else:
                 self.media_type = self.export_type
 
-            library_title = self.obj.title
+            self.title = self.obj.title
 
             filename = 'Library - {} - {} [{}].{}'.format(
-                library_title, self.export_type.capitalize(), self.section_id,
+                self.title, self.export_type.capitalize(), self.section_id,
                 helpers.timestamp_to_YMDHMS(self.timestamp))
 
         else:
@@ -1862,14 +1863,30 @@ class Export(object):
 
     def dict_to_m3u8(self, data):
         items = self._get_m3u8_items(data)
+        m3u8_metadata = {
+            'filename': self.filename,
+            'type': self.media_type
+        }
+        if self.rating_key:
+            m3u8_metadata['ratingKey'] = self.rating_key
+        if self.user_id:
+            m3u8_metadata['userID'] = self.user_id
+        if self.section_id:
+            m3u8_metadata['sectionID'] = self.section_id
 
         m3u8 = '#EXTM3U\n'
-        m3u8 += '# Playlist: {}\n\n'.format(self.filename)
-        m3u8_item_template = '# ratingKey: {ratingKey}\n#EXTINF:{duration},{title}\n{location}\n'
+        m3u8 += '# Playlist: {title}\n# {metadata}\n\n'.format(title=self.title, metadata=json.dumps(m3u8_metadata))
+        m3u8_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
         m3u8_items = []
 
         for item in items:
-            m3u8_items.append(m3u8_item_template.format(**item))
+            m3u8_values = {
+                'duration': item.pop('duration'),
+                'title': item.pop('title'),
+                'location': item.pop('location'),
+                'metadata': json.dumps(item)
+            }
+            m3u8_items.append(m3u8_item_template.format(**m3u8_values))
 
         m3u8 = m3u8 + '\n'.join(m3u8_items)
 
@@ -1884,13 +1901,14 @@ class Export(object):
                     full_title = '{} - {}'.format(d.get('originalTitle') or d['grandparentTitle'], d['title'])
                 else:
                     full_title = d['title']
-                location = {
+                metadata = {
+                    'type': d['type'],
                     'ratingKey': d['ratingKey'],
                     'duration': d['duration'],
                     'title': full_title,
-                    'location': d['locations'][0]
+                    'location': d['locations'][0]  # Only first file if multiple files
                 }
-                items.append(location)
+                items.append(metadata)
 
             for child_media_type in self.CHILD_MEDIA_TYPES[d['type']]:
                 child_locations = self._get_m3u8_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
