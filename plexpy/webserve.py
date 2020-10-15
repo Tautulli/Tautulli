@@ -6650,7 +6650,7 @@ class WebInterface(object):
     def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
                         thumb_level=0, art_level=0,
-                        custom_fields='', export_type=None, individual_files=False, **kwargs):
+                        custom_fields='', export_type='all', individual_files=False, **kwargs):
         """ Export library or media metadata to a file
 
             ```

@@ -101,7 +101,7 @@ class Export(object):
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
                  thumb_level=0, art_level=0,
-                 custom_fields='', export_type=None, individual_files=False):
+                 custom_fields='', export_type='all', individual_files=False):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
         self.rating_key = helpers.cast_to_int(rating_key) or None
@@ -112,7 +112,7 @@ class Export(object):
         self.art_level = helpers.cast_to_int(art_level)
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
-        self.export_type = str(export_type).lower() or 'all'
+        self.export_type = str(export_type).lower()
         self.individual_files = individual_files
 
         self.timestamp = helpers.timestamp()
