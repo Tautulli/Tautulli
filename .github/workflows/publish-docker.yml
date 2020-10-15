@@ -27,17 +27,21 @@ jobs:
           fi
           echo ::set-output name=commit::${GITHUB_SHA}
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/arm
+          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6
           echo ::set-output name=docker_image::${{ secrets.DOCKER_REPO }}/tautulli
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
+        uses: docker/setup-buildx-action@v1
         with:
-          buildx-version: latest
+          version: latest
 
       - name: Cache Docker Layers
-        id: cache
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
@@ -45,40 +49,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Docker Buildx (no push)
-        run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --cache-to "type=local,dest=/tmp/.buildx-cache" \
-            --platform ${{ steps.prepare.outputs.docker_platforms }} \
-            --output "type=image,push=false" \
-            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
-            --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
-            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
-            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
-            --file Dockerfile .
-
       - name: Docker Login
+        uses: docker/login-action@v1
         if: success()
-        env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "${DOCKER_PASSWORD}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Docker Buildx (push)
+      - name: Docker Build and Push
+        uses: docker/build-push-action@v2
         if: success()
-        run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --platform ${{ steps.prepare.outputs.docker_platforms }} \
-            --output "type=image,push=true" \
-            --build-arg "TAG=${{ steps.prepare.outputs.tag }}" \
-            --build-arg "BRANCH=${{ steps.prepare.outputs.branch }}" \
-            --build-arg "COMMIT=${{ steps.prepare.outputs.commit }}" \
-            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}" \
-            --file Dockerfile .
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: ${{ steps.prepare.outputs.docker_platforms }}
+          build-args: |
+            TAG=${{ steps.prepare.outputs.tag }},
+            BRANCH=${{ steps.prepare.outputs.branch }},
+            COMMIT=${{ steps.prepare.outputs.commit }},
+            BUILD_DATE=${{ steps.prepare.outputs.build_date }}
+          tags: ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Clear
         if: always()
