@@ -97,6 +97,7 @@ _CONFIG_DEFINITIONS = {
     'DO_NOT_OVERRIDE_GIT_BRANCH': (int, 'General', 0),
     'ENABLE_HTTPS': (int, 'General', 0),
     'EXPORT_DIR': (str, 'General', ''),
+    'EXPORT_THREADS': (int, 'Advanced', 8),
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
     'GET_FILE_SIZES': (int, 'General', 0),

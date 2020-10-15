@@ -1660,7 +1660,7 @@ class Export(object):
             method = getattr(self.obj, self.export_type)
             items = method()
 
-        pool = ThreadPool(processes=4)
+        pool = ThreadPool(processes=plexpy.CONFIG.EXPORT_THREADS)
         items = [ExportObject(self, item) for item in items]
 
         try:
