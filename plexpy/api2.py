@@ -48,6 +48,7 @@ if plexpy.PYTHON2:
     import notifiers
     import newsletter_handler
     import newsletters
+    import plextv
     import users
 else:
     from plexpy import common
@@ -61,6 +62,7 @@ else:
     from plexpy import notifiers
     from plexpy import newsletter_handler
     from plexpy import newsletters
+    from plexpy import plextv
     from plexpy import users
 
 
@@ -450,11 +452,12 @@ class API2(object):
 
             mobile_app.set_temp_device_token(True)
 
-            data = {
-                "pms_name": plexpy.CONFIG.PMS_NAME,
-                "server_id": plexpy.CONFIG.PMS_UUID,
-                "tautulli_version": common.RELEASE
-            }
+            plex_server = plextv.get_server_resources(return_info=True)
+            tautulli = plexpy.get_tautulli_info()
+
+            data = {"server_id": plexpy.CONFIG.PMS_UUID}
+            data.update(plex_server)
+            data.update(tautulli)
 
             return data
 

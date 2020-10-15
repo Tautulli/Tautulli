@@ -2401,3 +2401,19 @@ def check_folder_writable(folder, fallback, name):
             return folder, False
 
     return folder, True
+
+
+def get_tautulli_info():
+    tautulli = {
+        'tautulli_install_type': INSTALL_TYPE,
+        'tautulli_version': common.RELEASE,
+        'tautulli_branch': CONFIG.GIT_BRANCH,
+        'tautulli_commit': CURRENT_VERSION,
+        'tautulli_platform':common.PLATFORM,
+        'tautulli_platform_release': common.PLATFORM_RELEASE,
+        'tautulli_platform_version': common.PLATFORM_VERSION,
+        'tautulli_platform_linux_distro': common.PLATFORM_LINUX_DISTRO,
+        'tautulli_platform_device_name': common.PLATFORM_DEVICE_NAME,
+        'tautulli_python_version': common.PYTHON_VERSION,
+    }
+    return tautulli
