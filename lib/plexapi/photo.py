@@ -111,7 +111,7 @@ class Photo(PlexPartialObject):
     _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
                 '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
                 '&includeMarkers=1&includeConcerts=1&includePreferences=1'
-                '&indcludeBandwidths=1&includeLoudnessRamps=1')
+                '&includeBandwidths=1&includeLoudnessRamps=1')
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
