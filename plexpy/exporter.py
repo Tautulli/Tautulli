@@ -2366,5 +2366,5 @@ def build_export_docs():
 
         sections.append(section)
 
-    docs = '\n\n---\n\n'.join(sections)
+    docs = '\n\n\n'.join(sections)
     return helpers.sanitize(docs)
