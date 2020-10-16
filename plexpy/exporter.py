@@ -1936,7 +1936,7 @@ class Export(object):
                     'ratingKey': d['ratingKey'],
                     'duration': d['duration'],
                     'title': full_title,
-                    'location': d['locations'][0]  # Only first file if multiple files
+                    'location': '\n'.join(d['locations'])  # Add all locations
                 }
                 items.append(metadata)
 
