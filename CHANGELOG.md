@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.6.0-beta (2020-10-16)
+
+* Exporter:
+  * New: New exporter feature that allows you to export the metadata and images for any library, collection, playlist, or media item to csv, json, xml, or m3u8. Refer to the Exporter Guide in the wiki for more details.
+* UI:
+  * Fix: Margin on the homepage activity and statistic/library cards. (Thanks @dotsam)
+  * New: Added ability to browse collections and playlists from the library and user pages.
+* API:
+  * New: Added export_metadata, download_export, and delete_export API commands.
+  * New: Added get_collections_table, and get_playlists_table API commands.
+  * New: Added min_version parameter to the register_device API command.
+  * New: Added include_activity parameter to the get_history API command.
+  * New: Added a stat_id and stats_start parameters to the get_home_stats API command.
+  * New: Allow deleting a mobile device using the registration device_id for the delete_mobile_device API command.
+  * Change: Return Plex server info and Tautulli info from the register_device command.
+* Other:
+  * New: The Docker container is now also built for the arm32v6 architecture.
+  * Change: Tautulli is now using a forked version of plexapi 3.6.0. This is to support the exporter feature while still maintaining Python 2 compatibility.
+  * Change: Updated systemd script to remove process forking. (Thanks @MichaIng)
+
+
 ## v2.5.6 (2020-10-02)
 
 * Activity:
