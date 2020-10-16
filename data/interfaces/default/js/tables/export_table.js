@@ -167,7 +167,8 @@ export_table_options = {
                     var icon = (rowData['thumb_level'] || rowData['art_level'] || rowData['individual_files']) ? 'fa-file-archive' : 'fa-file-download';
                     $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['export_id'] + '"><span data-toggle="tooltip" data-placement="left"  title="' + tooltip_title + '"><i class="fa ' + icon + ' fa-fw"></i> Download</span></button>');
                 } else if (cellData === 0) {
-                    $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> Processing</span>');
+                    var percent = Math.min(getPercent(rowData['exported_items'], rowData['total_items']), 99)
+                    $(td).html('<span class="btn btn-xs btn-dark pull-left export-processing" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-spinner fa-spin fa-fw"></i> ' + percent + '%</span>');
                 } else if (cellData === -1) {
                     $(td).html('<span class="btn btn-xs btn-dark pull-left" data-id="' + rowData['export_id'] + '" disabled><i class="fa fa-exclamation-circle fa-fw"></i> Failed</span>');
                 } else {

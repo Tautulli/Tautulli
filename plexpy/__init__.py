@@ -802,7 +802,8 @@ def dbcheck():
         'metadata_level INTEGER, media_info_level INTEGER, '
         'thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, '
         'custom_fields TEXT, individual_files INTEGER DEFAULT 0, '
-        'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0)'
+        'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0, '
+        'exported_items INTEGER DEFAULT 0, total_items INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -2189,6 +2190,18 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE exports ADD COLUMN individual_files INTEGER DEFAULT 0'
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute('SELECT total_items FROM exports')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN exported_items INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0'
         )
 
     # Add "Local" user to database as default unauthenticated user.

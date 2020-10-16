@@ -112,7 +112,7 @@ class Export(object):
         self.art_level = helpers.cast_to_int(art_level)
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
-        self.export_type = str(export_type).lower()
+        self.export_type = str(export_type).lower() or 'all'
         self.individual_files = individual_files
 
         self.timestamp = helpers.timestamp()
@@ -129,8 +129,8 @@ class Export(object):
         self.exported_thumb = False
         self.exported_art = False
 
-        self._total_items = 0
-        self._exported_items = 0
+        self.total_items = 0
+        self.exported_items = 0
         self.success = False
 
         # Reset export options for m3u8
@@ -1651,6 +1651,18 @@ class Export(object):
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
+    def set_export_progress(self):
+        keys = {
+            'id': self.export_id
+        }
+        values = {
+            'total_items': self.total_items,
+            'exported_items': self.exported_items
+        }
+
+        db = database.MonitorDatabase()
+        db.upsert(table_name='exports', key_dict=keys, value_dict=values)
+
     def _real_export(self):
         logger.info("Tautulli Exporter :: Starting export for '%s'...", self.title)
 
@@ -1663,8 +1675,8 @@ class Export(object):
             method = getattr(self.obj, self.export_type)
             items = method()
 
-        self._total_items = len(items)
-        logger.info("Tautulli Exporter :: Exporting %d item(s).", self._total_items)
+        self.total_items = len(items)
+        logger.info("Tautulli Exporter :: Exporting %d item(s).", self.total_items)
 
         pool = ThreadPool(processes=plexpy.CONFIG.EXPORT_THREADS)
         items = [ExportObject(self, item) for item in items]
@@ -1701,7 +1713,8 @@ class Export(object):
 
     def _do_export(self, item):
         result = item._export_obj()
-        self._exported_items += 1
+        self.exported_items += 1
+        self.set_export_progress()
         return result
 
     def _save_file(self, result, obj=None):
@@ -2117,7 +2130,9 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'exports.custom_fields',
                'exports.individual_files',
                'exports.file_size',
-               'exports.complete'
+               'exports.complete',
+               'exports.total_items',
+               'exports.exported_items'
                ]
     try:
         query = data_tables.ssp_query(table_name='exports',
@@ -2161,6 +2176,8 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'individual_files': item['individual_files'],
                'file_size': item['file_size'],
                'complete': item['complete'],
+               'exported_items': item['exported_items'],
+               'total_items': item['total_items'],
                'exists': exists
                }
 

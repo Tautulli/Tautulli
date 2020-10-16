@@ -336,6 +336,18 @@ String.prototype.toProperCase = function () {
     });
 };
 
+function getPercent(value1, value2) {
+    value1 = parseFloat(value1) | 0
+    value2 = parseFloat(value2) | 0
+
+    var percent = 0;
+    if (value1 !== 0 && value2 !== 0) {
+        percent = (value1 / value2) * 100
+    }
+
+    return Math.round(percent)
+}
+
 function millisecondsToMinutes(ms, roundToMinute) {
     if (ms > 0) {
       var minutes = Math.floor(ms / 60000);
