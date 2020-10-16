@@ -128,6 +128,9 @@ class Export(object):
         self.file_size = 0
         self.exported_thumb = False
         self.exported_art = False
+
+        self._total_items = 0
+        self._exported_items = 0
         self.success = False
 
         # Reset export options for m3u8
@@ -1660,11 +1663,14 @@ class Export(object):
             method = getattr(self.obj, self.export_type)
             items = method()
 
+        self._total_items = len(items)
+        logger.info("Tautulli Exporter :: Exporting %d item(s).", self._total_items)
+
         pool = ThreadPool(processes=plexpy.CONFIG.EXPORT_THREADS)
         items = [ExportObject(self, item) for item in items]
 
         try:
-            result = pool.map(self._export_obj, items)
+            result = pool.map(self._do_export, items)
 
             if self.individual_files:
                 for item, item_result in zip(items, result):
@@ -1693,9 +1699,10 @@ class Export(object):
             pool.join()
             self.set_export_state()
 
-    @staticmethod
-    def _export_obj(export_obj):
-        return export_obj.export_obj(export_obj)
+    def _do_export(self, item):
+        result = item._export_obj()
+        self._exported_items += 1
+        return result
 
     def _save_file(self, result, obj=None):
         filename = obj.filename
@@ -1923,32 +1930,10 @@ class Export(object):
 
         return items
 
-    def export_obj(self, export_obj):
+    def _export_obj(self):
         pass
 
-    def get_any_hdr(self, item, media_type):
-        pass
-
-    def get_image(self, item, image):
-        pass
-
-
-class ExportObject(Export):
-    def __init__(self, export, obj):
-        super(ExportObject, self).__init__()
-        self.__dict__.update(export.__dict__)
-
-        self.obj = obj
-        self.rating_key = self.obj.ratingKey
-        self.filename = self._filename(obj=self.obj)
-        self.title = self._filename(obj=self.obj, extension=False)
-
-    def export_obj(self, export_obj):
-        if isinstance(export_obj, ExportObject):
-            obj = export_obj.obj
-        else:
-            obj = export_obj
-
+    def export_obj(self, obj):
         # Reload ~plexapi.base.PlexPartialObject
         if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
             obj = obj.reload()
@@ -2016,6 +2001,22 @@ class ExportObject(Export):
         self.file_size += os.path.getsize(filepath)
 
         return os.path.join(os.path.basename(dirpath), filename)
+
+
+class ExportObject(Export):
+    def __init__(self, export, obj):
+        super(ExportObject, self).__init__()
+        self.__dict__.update(export.__dict__)
+
+        self.obj = obj
+        self.rating_key = self.obj.ratingKey
+        self.filename = self._filename(obj=self.obj)
+        self.title = self._filename(obj=self.obj, extension=False)
+
+    def _export_obj(self):
+        result = self.export_obj(self.obj)
+        self.obj = None  # Clear the object to prevent memory leak
+        return result
 
 
 def get_export(export_id):
