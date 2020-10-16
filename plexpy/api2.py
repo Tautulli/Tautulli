@@ -414,9 +414,28 @@ class API2(object):
 
             Returns:
                 json:
-                    {"pms_name": "Winterfell-Server",
-                     "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
-                     "tautulli_version": "v2.5.6"
+                    {"pms_identifier": "08u2phnlkdshf890bhdlksghnljsahgleikjfg9t",
+                     "pms_ip": "10.10.10.1",
+                     "pms_is_remote": 0,
+                     "pms_name": "Winterfell-Server",
+                     "pms_platform": "Windows",
+                     "pms_plexpass": 1,
+                     "pms_port": 32400,
+                     "pms_ssl": 0,
+                     "pms_url": "http://10.10.10.1:32400",
+                     "pms_url_manual": 0,
+                     "pms_version": "1.20.0.3133-fede5bdc7"
+                     "server_id": "2ce060c87958445d8399a7a0c5663755",
+                     "tautulli_install_type": "git",
+                     "tautulli_branch": "master",
+                     "tautulli_commit": "14b98a32e085d969f010f0249c3d2f660db50880",
+                     "tautulli_platform": "Windows",
+                     "tautulli_platform_device_name": "Winterfell-PC",
+                     "tautulli_platform_linux_distro": "",
+                     "tautulli_platform_release": "10",
+                     "tautulli_platform_version": "10.0.18362",
+                     "tautulli_python_version": "3.8.3"
+                     "tautulli_version": "v2.5.6",
                      }
             ```
         """
