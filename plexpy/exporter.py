@@ -936,6 +936,7 @@ class Export(object):
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
+                'locations': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'parentGuid': None,
                 'parentIndex': None,
@@ -1379,7 +1380,7 @@ class Export(object):
             }
             _media_info_levels = {
                 1: [
-                    'media.aspectRatio', 'media.aperture',
+                    'locations', 'media.aspectRatio', 'media.aperture',
                     'media.container', 'media.height', 'media.width',
                     'media.iso', 'media.lens', 'media.make', 'media.model'
                 ],
@@ -1390,7 +1391,7 @@ class Export(object):
                 3: [
                 ],
                 9: [
-                    'media'
+                    'locations', 'media'
                 ]
             }
             return _metadata_levels, _media_info_levels
@@ -1934,7 +1935,7 @@ class Export(object):
                 metadata = {
                     'type': d['type'],
                     'ratingKey': d['ratingKey'],
-                    'duration': d['duration'],
+                    'duration': d.get('duration', 5),
                     'title': full_title,
                     'location': '\n'.join(d['locations'])  # Add all locations
                 }
