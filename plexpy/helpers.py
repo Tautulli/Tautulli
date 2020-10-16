@@ -1465,6 +1465,14 @@ def dict_to_xml(d, root_node=None, indent=None, level=0):
     return xml
 
 
+def move_to_front(l, value):
+    try:
+        l.insert(0, l.pop(l.index(value)))
+    except (ValueError, IndexError):
+        pass
+    return l
+
+
 def is_hdr(bit_depth, color_space):
     bit_depth = cast_to_int(bit_depth)
     return bit_depth > 8 and color_space == 'bt2020nc'

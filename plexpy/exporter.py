@@ -1728,6 +1728,9 @@ class Export(object):
         if self.file_format == 'csv':
             csv_data = helpers.flatten_dict(result)
             csv_headers = sorted(set().union(*csv_data), key=helpers.sort_attrs)
+            # Move ratingKey, title, and titleSort to front of headers
+            for key in ('titleSort', 'title', 'ratingKey'):
+                csv_headers = helpers.move_to_front(csv_headers, key)
             with open(filepath, 'w', encoding='utf-8', newline='') as outfile:
                 writer = csv.DictWriter(outfile, csv_headers)
                 writer.writeheader()
