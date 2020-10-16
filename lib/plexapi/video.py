@@ -328,7 +328,7 @@ class Movie(Playable, Video):
     @property
     def locations(self):
         """ This does not exist in plex xml response but is added to have a common
-            interface to get the location of the Movie/Show/Episode
+            interface to get the location of the Movie
         """
         return [part.file for part in self.iterParts() if part]
 
@@ -714,7 +714,7 @@ class Episode(Playable, Video):
     @property
     def locations(self):
         """ This does not exist in plex xml response but is added to have a common
-            interface to get the location of the Movie/Show
+            interface to get the location of the Episode
         """
         return [part.file for part in self.iterParts() if part]
 
@@ -770,3 +770,10 @@ class Clip(Playable, Video):
         self.type = data.attrib.get('type')
         self.year = utils.cast(int, data.attrib.get('year'))
         self.media = self.findItems(data, media.Media)
+
+    @property
+    def locations(self):
+        """ This does not exist in plex xml response but is added to have a common
+            interface to get the location of the Clip
+        """
+        return [part.file for part in self.iterParts() if part]

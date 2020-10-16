@@ -383,7 +383,7 @@ class Track(Audio, Playable):
     @property
     def locations(self):
         """ This does not exist in plex xml response but is added to have a common
-            interface to get the location of the Artist
+            interface to get the location of the Track
         """
         return [part.file for part in self.iterParts() if part]
         

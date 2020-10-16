@@ -159,6 +159,13 @@ class Photo(PlexPartialObject):
         else:
             raise BadRequest('Unable to get section for photo, can`t find librarySectionID')
 
+    @property
+    def locations(self):
+        """ This does not exist in plex xml response but is added to have a common
+            interface to get the location of the Photo
+        """
+        return [part.file for item in self.media for part in item.parts if part]
+        
     def sync(self, resolution, client=None, clientId=None, limit=None, title=None):
         """ Add current photo as sync item for specified device.
             See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
