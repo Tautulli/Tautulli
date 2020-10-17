@@ -2649,13 +2649,28 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_sync_rows(self, client_id, sync_id, **kwargs):
+    @addtoapi("delete_synced_item")
+    def delete_sync_rows(self, client_id=None, sync_id=None, **kwargs):
+        """ Delete a synced item from a device.
+
+            ```
+            Required parameters:
+                client_id (str):        The client ID of the device to delete from
+                sync_id (str):          The sync ID of the synced item
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         if client_id and sync_id:
             plex_tv = plextv.PlexTV()
             delete_row = plex_tv.delete_sync(client_id=client_id, sync_id=sync_id)
-            return {'message': 'Sync deleted'}
+            return {'result': 'success', 'message': 'Synced item deleted successfully.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'Missing client ID and sync ID.'}
 
 
     ##### Logs #####
