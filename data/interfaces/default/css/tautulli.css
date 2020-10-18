@@ -3850,19 +3850,19 @@ a:hover .overlay-refresh-image:hover {
     background-position: center !important;
 }
 .platform-android {
-    background-color: #a4ca39;
+    background-color: #3ddc84;
     background-image: url(../images/platforms/android.svg);
 }
 .platform-atv {
-    background-color: #858487;
+    background-color: #a2aaad;
     background-image: url(../images/platforms/atv.svg);
 }
 .platform-chrome {
-    background-color: #ed5e50;
+    background-color: #db4437;
     background-image: url(../images/platforms/chrome.svg);
 }
 .platform-chromecast {
-    background-color: #10a4e8;
+    background-color: #4285f4;
     background-image: url(../images/platforms/chromecast.svg);
 }
 .platform-default {
@@ -3870,11 +3870,11 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/default.svg);
 }
 .platform-dlna {
-    background-color: #0cb14b;
+    background-color: #4ba32f;
     background-image: url(../images/platforms/dlna.svg);
 }
 .platform-firefox {
-    background-color: #e67817;
+    background-color: #ff7139;
     background-image: url(../images/platforms/firefox.svg);
 }
 .platform-gtv {
@@ -3882,27 +3882,27 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/gtv.svg);
 }
 .platform-ie {
-    background-color: #00599e;
+    background-color: #18bcef;
     background-image: url(../images/platforms/ie.svg);
 }
 .platform-ios {
-    background-color: #858487;
+    background-color: #a2aaad;
     background-image: url(../images/platforms/ios.svg);
 }
 .platform-kodi {
-    background-color: #31afe1;
+    background-color: #30aada;
     background-image: url(../images/platforms/kodi.svg);
 }
 .platform-lg {
-    background-color: #a50034;
+    background-color: #990033;
     background-image: url(../images/platforms/lg.svg);
 }
 .platform-linux {
-    background-color: #1793d0;
+    background-color: #0099cc;
     background-image: url(../images/platforms/linux.svg);
 }
 .platform-macos {
-    background-color: #858487;
+    background-color: #a2aaad;
     background-image: url(../images/platforms/macos.svg);
 }
 .platform-msedge {
@@ -3910,11 +3910,11 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/msedge.svg);
 }
 .platform-opera {
-    background-color: #ff1b2d;
+    background-color: #fa1e4e;
     background-image: url(../images/platforms/opera.svg);
 }
 .platform-playstation {
-    background-color: #034da2;
+    background-color: #003087;
     background-image: url(../images/platforms/playstation.svg);
 }
 .platform-plex {
@@ -3926,11 +3926,11 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/plexamp.svg);
 }
 .platform-roku {
-    background-color: #6d3c97;
+    background-color: #673293;
     background-image: url(../images/platforms/roku.svg);
 }
 .platform-safari {
-    background-color: #00a9ec;
+    background-color: #00d3f9;
     background-image: url(../images/platforms/safari.svg);
 }
 .platform-samsung {
@@ -3950,7 +3950,7 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/wiiu.svg);
 }
 .platform-windows {
-    background-color: #2fc0f5;
+    background-color: #0078d7;
     background-image: url(../images/platforms/windows.svg);
 }
 .platform-wp {
@@ -3966,55 +3966,55 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/platforms/xbox.svg);
 }
 .platform-android-rgba {
-    background-color: rgba(164, 202, 57, 0.40);
+    background-color: rgba(61, 220, 132, 0.40);
 }
 .platform-atv-rgba {
-    background-color: rgba(133, 132, 135, 0.40);
+    background-color: rgba(162, 170, 173, 0.40);
 }
 .platform-chrome-rgba {
-    background-color: rgba(237, 94, 80, 0.40);
+    background-color: rgba(219, 68, 55, 0.40);
 }
 .platform-chromecast-rgba {
-    background-color: rgba(16, 164, 232, 0.40);
+    background-color: rgba(66, 133, 244, 0.40);
 }
 .platform-default-rgba {
     background-color: rgba(229, 160, 13, 0.40);
 }
 .platform-dlna-rgba {
-    background-color: rgba(12, 177, 75, 0.40);
+    background-color: rgba(75, 163, 47, 0.40);
 }
 .platform-firefox-rgba {
-    background-color: rgba(230, 120, 23, 0.40);
+    background-color: rgba(255, 113, 57, 0.40);
 }
 .platform-gtv-rgba {
     background-color: rgba(0, 139, 207, 0.40);
 }
 .platform-ie-rgba {
-    background-color: rgba(0, 89, 158, 0.40);
+    background-color: rgba(24, 188, 239, 0.40);
 }
 .platform-ios-rgba {
-    background-color: rgba(133, 132, 135, 0.40);
+    background-color: rgba(162, 170, 173, 0.40);
 }
 .platform-kodi-rgba {
-    background-color: rgba(49, 175, 225, 0.40);
+    background-color: rgba(48, 170, 218, 0.40);
 }
 .platform-lg-rgba {
-    background-color: rgba(165, 0, 52, 0.40);
+    background-color: rgba(153, 0, 51, 0.40);
 }
 .platform-linux-rgba {
-    background-color: rgba(23, 147, 208, 0.40);
+    background-color: rgba(0, 153, 204, 0.40);
 }
 .platform-macos-rgba {
-    background-color: rgba(133, 132, 135, 0.40);
+    background-color: rgba(162, 170, 173, 0.40);
 }
 .platform-msedge-rgba {
     background-color: rgba(0, 120, 215, 0.40);
 }
 .platform-opera-rgba {
-    background-color: rgba(255, 27, 45, 0.40);
+    background-color: rgba(250, 30, 78, 0.40);
 }
 .platform-playstation-rgba {
-    background-color: rgba(3, 77, 162, 0.40);
+    background-color: rgba(0, 48, 135, 0.40);
 }
 .platform-plex-rgba {
     background-color: rgba(229, 160, 13, 0.40);
@@ -4023,10 +4023,10 @@ a:hover .overlay-refresh-image:hover {
     background-color: rgba(229, 160, 13, 0.40);
 }
 .platform-roku-rgba {
-    background-color: rgba(109, 60, 151, 0.40);
+    background-color: rgba(103, 50, 147, 0.40);
 }
 .platform-safari-rgba {
-    background-color: rgba(0, 169, 236, 0.40);
+    background-color: rgba(0, 211, 249, 0.40);
 }
 .platform-samsung-rgba {
     background-color: rgba(3, 78, 162, 0.40);
@@ -4041,7 +4041,7 @@ a:hover .overlay-refresh-image:hover {
     background-color: rgba(3, 169, 244, 0.40);
 }
 .platform-windows-rgba {
-    background-color: rgba(47, 192, 245, 0.40);
+    background-color: rgba(0, 120, 215, 0.40);
 }
 .platform-wp-rgba {
     background-color: rgba(104, 33, 122, 0.40);
