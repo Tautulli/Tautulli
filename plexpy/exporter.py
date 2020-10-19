@@ -492,6 +492,7 @@ class Export(object):
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
+                'hasIntroMarker': None,
                 'index': None,
                 'key': None,
                 'lastViewedAt': helpers.datetime_to_iso,
@@ -499,6 +500,11 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'markers': {
+                    'end': None,
+                    'start': None,
+                    'type': None
+                },
                 'media': {
                     'aspectRatio': None,
                     'audioChannels': None,
@@ -1179,11 +1185,12 @@ class Export(object):
                     'rating', 'userRating', 'contentRating',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid', 'hasIntroMarker'
                 ],
                 2: [
                     'directors.tag', 'writers.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked',
+                    'markers.type', 'markers.start', 'markers.end'
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
