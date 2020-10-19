@@ -699,6 +699,7 @@ class Episode(Playable, Video):
         self.labels = self.findItems(data, media.Label)
         self.collections = self.findItems(data, media.Collection)
         self.chapters = self.findItems(data, media.Chapter)
+        self.markers = self.findItems(data, media.Marker)
 
     def __repr__(self):
         return '<%s>' % ':'.join([p for p in [
@@ -729,6 +730,13 @@ class Episode(Playable, Video):
     def seasonEpisode(self):
         """ Returns the s00e00 string containing the season and episode. """
         return 's%se%s' % (str(self.seasonNumber).zfill(2), str(self.index).zfill(2))
+
+    @property
+    def hasIntroMarker(self):
+        """ Returns True if this episode has an intro marker in the xml. """
+        if not self.isFullObject():
+            self.reload()
+        return any(marker.type == 'intro' for marker in self.markers)
 
     def season(self):
         """" Return this episodes :func:`~plexapi.video.Season`.. """

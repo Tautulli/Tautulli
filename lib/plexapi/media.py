@@ -822,6 +822,27 @@ class Chapter(PlexObject):
 
 
 @utils.registerPlexObject
+class Marker(PlexObject):
+    """ Represents a single Marker media tag.
+        Attributes:
+            TAG (str): 'Marker'
+    """
+    TAG = 'Marker'
+
+    def __repr__(self):
+        name = self._clean(self.firstAttr('type'))
+        start = utils.millisecondToHumanstr(self._clean(self.firstAttr('start')))
+        end = utils.millisecondToHumanstr(self._clean(self.firstAttr('end')))
+        return '<%s:%s %s - %s>' % (self.__class__.__name__, name, start, end)
+
+    def _loadData(self, data):
+        self._data = data
+        self.type = data.attrib.get('type')
+        self.start = cast(int, data.attrib.get('startTimeOffset'))
+        self.end = cast(int, data.attrib.get('endTimeOffset'))
+
+
+@utils.registerPlexObject
 class Field(PlexObject):
     """ Represents a single Field.
 
