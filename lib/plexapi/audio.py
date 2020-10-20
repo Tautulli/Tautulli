@@ -231,7 +231,7 @@ class Album(Audio):
         self.guid = data.attrib.get('guid')
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.loudnessAnalysisVersion = utils.cast(int, data.attrib.get('loudnessAnalysisVersion'))
-        self.key = self.key.replace('/children', '')  # fixes bug #50
+        self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.parentGuid = data.attrib.get('parentGuid')
         self.parentKey = data.attrib.get('parentKey')

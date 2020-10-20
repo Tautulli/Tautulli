@@ -38,7 +38,7 @@ class Photoalbum(PlexPartialObject):
         self.composite = data.attrib.get('composite')
         self.guid = data.attrib.get('guid')
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.key = data.attrib.get('key', '').replace('/children', '')
+        self.key = data.attrib.get('key', '').replace('/children', '')  # FIX_BUG_50
         self.librarySectionID = data.attrib.get('librarySectionID')
         self.librarySectionKey = data.attrib.get('librarySectionKey')
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')

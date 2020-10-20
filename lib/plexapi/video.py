@@ -402,7 +402,7 @@ class Show(Video):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
         # fix key if loaded from search
-        self.key = self.key.replace('/children', '')
+        self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.art = data.attrib.get('art')
         self.banner = data.attrib.get('banner')
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
