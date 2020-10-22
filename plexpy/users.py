@@ -48,6 +48,11 @@ def refresh_users():
     logger.info("Tautulli Users :: Requesting users list refresh...")
     result = plextv.PlexTV().get_full_users_list()
 
+    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    if not server_id:
+        logger.error("Tautulli Users :: No PMS identifier, cannot refresh users. Verify server in settings.")
+        return
+
     if result:
         monitor_db = database.MonitorDatabase()
 
