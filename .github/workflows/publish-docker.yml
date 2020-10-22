@@ -65,9 +65,9 @@ jobs:
           push: true
           platforms: ${{ steps.prepare.outputs.docker_platforms }}
           build-args: |
-            TAG=${{ steps.prepare.outputs.tag }},
-            BRANCH=${{ steps.prepare.outputs.branch }},
-            COMMIT=${{ steps.prepare.outputs.commit }},
+            TAG=${{ steps.prepare.outputs.tag }}
+            BRANCH=${{ steps.prepare.outputs.branch }}
+            COMMIT=${{ steps.prepare.outputs.commit }}
             BUILD_DATE=${{ steps.prepare.outputs.build_date }}
           tags: ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
