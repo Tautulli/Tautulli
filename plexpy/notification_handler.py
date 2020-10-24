@@ -831,12 +831,16 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = 1
         grandchild_count = 1
 
+    rating = notify_params['rating'] or notify_params['audience_rating']
+
     critic_rating = ''
-    if notify_params['rating_image'].startswith('rottentomatoes://') and notify_params['rating']:
+    if notify_params['rating_image'].startswith('rottentomatoes://') \
+            and notify_params['rating']:
         critic_rating = helpers.get_percent(notify_params['rating'], 10)
 
-    audience_rating = ''
-    if notify_params['audience_rating']:
+    audience_rating = notify_params['audience_rating']
+    if notify_params['audience_rating_image'].startswith(('rottentomatoes://', 'themoviedb://')) \
+            and audience_rating:
         audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
 
     now = arrow.now()
@@ -1013,9 +1017,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'collections': ', '.join(notify_params['collections']),
         'summary': notify_params['summary'],
         'tagline': notify_params['tagline'],
-        'rating': notify_params['rating'],
+        'rating': rating,
         'critic_rating':  critic_rating,
         'audience_rating': audience_rating,
+        'user_rating': notify_params['user_rating'],
         'duration': duration,
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
