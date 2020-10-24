@@ -303,16 +303,17 @@ DOCUMENTATION :: END
                     </div>
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
-                            % if data['rating']:
-                            % if data['rating_image']:
-                            % if data['rating_image'].startswith('imdb://'):
-                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
-                                <span class="rating-image rating-imdb"><strong>${data['rating']}</strong></span>
+                            <% rating = data['rating'] or data['audience_rating'] %>
+                            % if rating:
+                            % if data['audience_rating_image']:
+                            % if data['audience_rating_image'].startswith('imdb://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
+                                <span class="rating-image rating-imdb"><strong>${rating}</strong></span>
                             </div>
                             % endif
-                            % if data['rating_image'].startswith('themoviedb://'):
-                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
-                                <span class="rating-image rating-themoviedb"><strong>${get_percent(data['rating'], 10)}%</strong></span>
+                            % if data['audience_rating_image'].startswith('themoviedb://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
+                                <span class="rating-image rating-themoviedb"><strong>${get_percent(rating, 10)}%</strong></span>
                             </div>
                             % endif
                             % if data['audience_rating_image'].startswith('rottentomatoes://'):
@@ -326,8 +327,8 @@ DOCUMENTATION :: END
                             </div>
                             % endif
                             % else:
-                            <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
-                                <i class="star-icon fa fa-star"></i> <strong>${get_percent(data['rating'], 10)}%</strong>
+                            <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
+                                <i class="star-icon fa fa-star"></i> <strong>${get_percent(rating, 10)}%</strong>
                             </div>
                             % endif
                             % endif
