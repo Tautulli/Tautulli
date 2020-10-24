@@ -765,10 +765,17 @@ class MovieSection(LibrarySection):
     METADATA_TYPE = 'movie'
     CONTENT_TYPE = 'video'
 
+    def all(self, **kwargs):
+        """ Returns a list of all items from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype='movie', **kwargs)
+
     def collection(self, **kwargs):
-        """ Returns a list of collections from this library section. """
-        key = '/library/sections/%s/collections' % self.key
-        return self.fetchItems(key, **kwargs)
+        """ Returns a list of collections from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype='collection', **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
@@ -851,10 +858,17 @@ class ShowSection(LibrarySection):
         """
         return self.search(sort='addedAt:desc', libtype=libtype, maxresults=maxresults)
 
+    def all(self, libtype='show', **kwargs):
+        """ Returns a list of all items from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype=libtype, **kwargs)
+
     def collection(self, **kwargs):
-        """ Returns a list of collections from this library section. """
-        key = '/library/sections/%s/collections' % self.key
-        return self.fetchItems(key, **kwargs)
+        """ Returns a list of collections from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype='collection', **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
@@ -938,10 +952,17 @@ class MusicSection(LibrarySection):
         """ Search for a track. See :func:`~plexapi.library.LibrarySection.search()` for usage. """
         return self.search(libtype='track', **kwargs)
 
+    def all(self, libtype='artist', **kwargs):
+        """ Returns a list of all items from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype=libtype, **kwargs)
+
     def collection(self, **kwargs):
-        """ Returns a list of collections from this library section. """
-        key = '/library/sections/%s/collections' % self.key
-        return self.fetchItems(key, **kwargs)
+        """ Returns a list of collections from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype='collection', **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
@@ -1008,6 +1029,12 @@ class PhotoSection(LibrarySection):
     def searchPhotos(self, title, **kwargs):
         """ Search for a photo. See :func:`~plexapi.library.LibrarySection.search()` for usage. """
         return self.search(libtype='photo', title=title, **kwargs)
+
+    def all(self, libtype='photoalbum', **kwargs):
+        """ Returns a list of all items from this library section.
+            See description of :func:`plexapi.library.LibrarySection.search()` for details about filtering / sorting.
+        """
+        return self.search(libtype=libtype, **kwargs)
 
     def playlist(self, **kwargs):
         """ Returns a list of playlists from this library section. """
