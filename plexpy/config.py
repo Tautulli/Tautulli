@@ -89,6 +89,7 @@ _CONFIG_DEFINITIONS = {
     'CHECK_GITHUB': (int, 'General', 1),
     'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
+    'CHECK_GITHUB_CACHE_SECONDS': (int, 'Advanced', 3600),
     'CLEANUP_FILES': (int, 'General', 0),
     'CLOUDINARY_CLOUD_NAME': (str, 'Cloudinary', ''),
     'CLOUDINARY_API_KEY': (str, 'Cloudinary', ''),

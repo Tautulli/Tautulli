@@ -300,7 +300,7 @@ def initialize(config_file):
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
-                versioncheck.check_update()
+                versioncheck.check_update(use_cache=True)
             except:
                 logger.exception("Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION

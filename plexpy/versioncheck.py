@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import str
 
+import json
 import os
 import platform
 import re
@@ -29,10 +30,12 @@ import tarfile
 import plexpy
 if plexpy.PYTHON2:
     import common
+    import helpers
     import logger
     import request
 else:
     from plexpy import common
+    from plexpy import helpers
     from plexpy import logger
     from plexpy import request
 
@@ -154,8 +157,8 @@ def get_version_from_file():
     return current_version, current_branch
 
 
-def check_update(scheduler=False, notify=False):
-    check_github(scheduler=scheduler, notify=notify)
+def check_update(scheduler=False, notify=False, use_cache=False):
+    check_github(scheduler=scheduler, notify=notify, use_cache=use_cache)
 
     if not plexpy.CURRENT_VERSION:
         plexpy.UPDATE_AVAILABLE = None
@@ -173,7 +176,7 @@ def check_update(scheduler=False, notify=False):
         plexpy.MAC_SYS_TRAY_ICON.change_tray_update_icon()
 
 
-def check_github(scheduler=False, notify=False):
+def check_github(scheduler=False, notify=False, use_cache=False):
     plexpy.COMMITS_BEHIND = 0
 
     if plexpy.CONFIG.GIT_TOKEN:
@@ -181,12 +184,16 @@ def check_github(scheduler=False, notify=False):
     else:
         headers = {}
 
-    # Get the latest version available from github
-    logger.info('Retrieving latest version information from GitHub')
-    url = 'https://api.github.com/repos/%s/%s/commits/%s' % (plexpy.CONFIG.GIT_USER,
-                                                             plexpy.CONFIG.GIT_REPO,
-                                                             plexpy.CONFIG.GIT_BRANCH)
-    version = request.request_json(url, headers=headers, timeout=20, validator=lambda x: type(x) == dict)
+    version = github_cache('version', use_cache=use_cache)
+    if not version:
+        # Get the latest version available from github
+        logger.info('Retrieving latest version information from GitHub')
+        url = 'https://api.github.com/repos/%s/%s/commits/%s' % (plexpy.CONFIG.GIT_USER,
+                                                                 plexpy.CONFIG.GIT_REPO,
+                                                                 plexpy.CONFIG.GIT_BRANCH)
+        version = request.request_json(url, headers=headers, timeout=20,
+                                       validator=lambda x: type(x) == dict)
+        github_cache('version', github_data=version)
 
     if version is None:
         logger.warn('Could not get the latest version from GitHub. Are you running a local development version?')
@@ -204,13 +211,16 @@ def check_github(scheduler=False, notify=False):
         logger.info('Tautulli is up to date')
         return plexpy.LATEST_VERSION
 
-    logger.info('Comparing currently installed version with latest GitHub version')
-    url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER,
-                                                                  plexpy.CONFIG.GIT_REPO,
-                                                                  plexpy.LATEST_VERSION,
-                                                                  plexpy.CURRENT_VERSION)
-    commits = request.request_json(url, headers=headers, timeout=20, whitelist_status_code=404,
-                                   validator=lambda x: type(x) == dict)
+    commits = github_cache('commits', use_cache=use_cache)
+    if not commits:
+        logger.info('Comparing currently installed version with latest GitHub version')
+        url = 'https://api.github.com/repos/%s/%s/compare/%s...%s' % (plexpy.CONFIG.GIT_USER,
+                                                                      plexpy.CONFIG.GIT_REPO,
+                                                                      plexpy.LATEST_VERSION,
+                                                                      plexpy.CURRENT_VERSION)
+        commits = request.request_json(url, headers=headers, timeout=20, whitelist_status_code=404,
+                                       validator=lambda x: type(x) == dict)
+        github_cache('commits', github_data=commits)
 
     if commits is None:
         logger.warn('Could not get commits behind from GitHub.')
@@ -226,8 +236,13 @@ def check_github(scheduler=False, notify=False):
     if plexpy.COMMITS_BEHIND > 0:
         logger.info('New version is available. You are %s commits behind' % plexpy.COMMITS_BEHIND)
 
-        url = 'https://api.github.com/repos/%s/%s/releases' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)
-        releases = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == list)
+        releases = github_cache('releases', use_cache=use_cache)
+        if not releases:
+            url = 'https://api.github.com/repos/%s/%s/releases' % (plexpy.CONFIG.GIT_USER,
+                                                                   plexpy.CONFIG.GIT_REPO)
+            releases = request.request_json(url, timeout=20, whitelist_status_code=404,
+                                            validator=lambda x: type(x) == list)
+            github_cache('releases', github_data=releases)
 
         if releases is None:
             logger.warn('Could not get releases from GitHub.')
@@ -389,6 +404,30 @@ def checkout_git_branch():
 
         output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                  plexpy.CONFIG.GIT_BRANCH))
+
+
+def github_cache(cache, github_data=None, use_cache=True):
+    timestamp = helpers.timestamp()
+    cache_filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, 'github_{}.json'.format(cache))
+
+    if github_data:
+        cache_data = {'github_data': github_data, '_cache_time': timestamp}
+        try:
+            with open(cache_filepath, 'w', encoding='utf-8') as cache_file:
+                json.dump(cache_data, cache_file)
+        except:
+            pass
+    else:
+        if not use_cache:
+            return
+        try:
+            with open(cache_filepath, 'r', encoding='utf-8') as cache_file:
+                cache_data = json.load(cache_file)
+            if timestamp - cache_data['_cache_time'] < plexpy.CONFIG.CHECK_GITHUB_CACHE_SECONDS:
+                logger.debug('Using cached GitHub %s data', cache)
+                return cache_data['github_data']
+        except:
+            pass
 
 
 def read_changelog(latest_only=False, since_prev_release=False):
