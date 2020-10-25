@@ -2043,7 +2043,7 @@ def dbcheck():
         # Update official mobile device flag
         for device_id, in c_db.execute('SELECT device_id FROM mobile_devices').fetchall():
             c_db.execute('UPDATE mobile_devices SET official = ? WHERE device_id = ?',
-                         [mobile_app.validate_device_id(device_id), device_id])
+                         [mobile_app.validate_onesignal_id(device_id), device_id])
 
     # Upgrade mobile_devices table from earlier versions
     try:
