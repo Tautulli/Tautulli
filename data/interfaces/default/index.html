@@ -24,17 +24,13 @@
             </div>
             <div id="currentActivity">
                 % if PLEX_SERVER_UP:
-                <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i>&nbsp; Checking for activity...</div>
                 % elif config['pms_is_cloud']:
                 <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
                 % elif not config['first_run_complete']:
                 <div id="dashboard-no-activity" class="text-muted">The Tautulli setup wizard has not been completed. Please click <a href="welcome">here</a> to go to the setup wizard.</div>
                 % else:
-                <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
-                    % if _session['user_group'] == 'admin':
-                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
-                    % endif
-                </div>
+                <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i>&nbsp; Tautulli is connecting to the Plex server...</div>
                 % endif
             </div>
         </div>
@@ -65,7 +61,7 @@
     <div class="row">
         <div class="col-md-12">
             <div id="home-stats" class="home-platforms">
-                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading stats...</div>
                 <br>
             </div>
         </div>
@@ -84,7 +80,7 @@
     <div class="row">
         <div class="col-md-12">
             <div id="library-stats" class="library-platforms">
-                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading stats...</div>
                 <br>
             </div>
         </div>
@@ -132,17 +128,12 @@
         <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
                 % if PLEX_SERVER_UP:
-                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+                <div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>
                 % elif config['pms_is_cloud']:
                 <div class="text-muted">Plex Cloud server is sleeping.</div>
                 % else:
-                <div class="text-muted">There was an error communicating with your Plex Server.
-                    % if _session['user_group'] == 'admin':
-                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
-                    % endif
-                </div>
+                <div id="dashboard-no-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Tautulli is connecting to your Plex server...</div>
                 % endif
-                <br>
             </div>
         </div>
     </div>
@@ -229,7 +220,6 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-<% from plexpy import PLEX_SERVER_UP %>
 <script src="${http_root}js/jquery.scrollbar.min.js"></script>
 <script src="${http_root}js/jquery.mousewheel.min.js"></script>
 <script>
@@ -259,8 +249,33 @@
             }
         });
     }
+
+    % if _session['user_group'] == 'admin':
+    var msg_settings = ' Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+    % else:
+    var msg_settings = '';
+    % endif
+
+    var error_msg = 'There was an error communicating with your Plex Server.' + msg_settings;
+
+    var server_status;
+    server_status = setInterval(function() {
+        $.getJSON('server_status', function (data) {
+            if (data.connected === true) {
+                clearInterval(server_status);
+                $('#currentActivity').html('<div id="dashboard-checking-activity" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Checking for activity...</div>');
+                $('#recentlyAdded').html('<div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>');
+                activityConnected();
+                recentlyAddedConnected();
+            } else if (data.connected === false) {
+                clearInterval(server_status);
+                $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">' + error_msg + '</div>');
+                $('#recentlyAdded').html('<div id="dashboard-no-recently-added" class="text-muted">' + error_msg + '</div>');
+            }
+        });
+    }, 1000);
 </script>
-% if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
+% if 'current_activity' in config['home_sections']:
 <script>
     var defaultHandler = {
         get: function(target, name) {
@@ -271,7 +286,7 @@
     var create_instances = [];
     var activity_ready = true;
 
-     $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
+    $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
 
     function getCurrentActivity() {
         activity_ready = false;
@@ -297,13 +312,8 @@
                 }
 
                 if (!(current_activity)) {
-                    % if _session['user_group'] == 'admin':
-                    var msg_settings = ' Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
-                    % else:
-                    var msg_settings = '';
-                    % endif
                     $('#currentActivityHeader').hide();
-                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">' + error_msg + '</div>');
                     return
                 }
 
@@ -625,34 +635,36 @@
         });
     }
 
-    getCurrentActivity();
-    setInterval(function () {
-        if (!(create_instances.length) && activity_ready) {
-            getCurrentActivity();
-        }
-    }, ${config['home_refresh_interval'] * 1000});
+    function activityConnected() {
+        getCurrentActivity();
+        setInterval(function () {
+            if (!(create_instances.length) && activity_ready) {
+                getCurrentActivity();
+            }
+        }, ${config['home_refresh_interval'] * 1000});
 
-    setInterval(function(){
-        $('.progress_time_offset').each(function () {
-            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
-                var view_offset = parseInt($(this).data('view_offset'));
-                var stream_duration = parseInt($(this).data('stream_duration'));
-                var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
-                $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
-            }
-        });
-        $('.progress-bar').each(function () {
-            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
-                var view_offset = parseInt($(this).data('view_offset'));
-                var stream_duration = parseInt($(this).data('stream_duration'));
-                var progress_percent = Math.floor(view_offset / stream_duration * 100);
-                progress_percent = (progress_percent >= 0) ? Math.min(progress_percent, 100) : 100;
-                $(this).css({width: progress_percent - 3 + '%'}).html(progress_percent + '%')
-                    .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
-                    .data('view_offset', Math.min(view_offset + 1000, stream_duration));
-            }
-        });
-    }, 1000);
+        setInterval(function(){
+            $('.progress_time_offset').each(function () {
+                if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                    var view_offset = parseInt($(this).data('view_offset'));
+                    var stream_duration = parseInt($(this).data('stream_duration'));
+                    var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                    $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
+                }
+            });
+            $('.progress-bar').each(function () {
+                if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                    var view_offset = parseInt($(this).data('view_offset'));
+                    var stream_duration = parseInt($(this).data('stream_duration'));
+                    var progress_percent = Math.floor(view_offset / stream_duration * 100);
+                    progress_percent = (progress_percent >= 0) ? Math.min(progress_percent, 100) : 100;
+                    $(this).css({width: progress_percent - 3 + '%'}).html(progress_percent + '%')
+                        .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
+                        .data('view_offset', Math.min(view_offset + 1000, stream_duration));
+                }
+            });
+        }, 1000);
+    }
 
     $('#currentActivity').on('click', '.external_ip-modal', function () {
         $.get('get_ip_address_details', {
@@ -876,7 +888,7 @@
     getLibraryStats();
 </script>
 % endif
-% if 'recently_added' in config['home_sections'] and PLEX_SERVER_UP:
+% if 'recently_added' in config['home_sections']:
 <script>
     function recentlyAdded(recently_added_count, recently_added_type) {
         showMsg("Loading recently added items...", true, false, 0);
@@ -904,7 +916,9 @@
     $('#recently-added-toggle-' + recently_added_type).closest('label').addClass('active');
     $('#recently-added-count').val(recently_added_count);
 
-    recentlyAdded(recently_added_count, recently_added_type);
+    function recentlyAddedConnected() {
+        recentlyAdded(recently_added_count, recently_added_type);
+    }
 
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");

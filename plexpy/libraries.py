@@ -122,7 +122,8 @@ def add_live_tv_library(refresh=False):
     if result and not refresh or not result and refresh:
         return
 
-    logger.info("Tautulli Libraries :: Adding Live TV library to the database.")
+    if not refresh:
+        logger.info("Tautulli Libraries :: Adding Live TV library to the database.")
 
     section_keys = {'server_id': plexpy.CONFIG.PMS_IDENTIFIER,
                     'section_id': common.LIVE_TV_SECTION_ID}

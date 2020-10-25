@@ -750,7 +750,9 @@ a .users-poster-face:hover {
     position: relative;
 }
 #dashboard-checking-activity,
-#dashboard-no-activity {
+#dashboard-no-activity,
+#dashboard-checking-recently-added,
+#dashboard-no-recently-added {
     margin-bottom: 20px;
 }
 .dashboard-activity-instance {
@@ -1445,9 +1447,6 @@ a:hover .dashboard-stats-square {
     -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
-}
-#dashboard-no-recently-added {
-    margin-bottom: 20px;
 }
 .dashboard-recent-media-row {
     width: 100%;

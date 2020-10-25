@@ -334,18 +334,6 @@ def initialize(config_file):
             logger.error("Unable to write current release to file '%s': %s" %
                          (release_file, e))
 
-        # Get the real PMS urls for SSL and remote access
-        if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
-            plextv.get_server_resources()
-
-        # Refresh the users list on startup
-        if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
-            users.refresh_users()
-
-        # Refresh the libraries list on startup
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
-            libraries.refresh_libraries()
-
         # Store the original umask
         UMASK = os.umask(0)
         os.umask(UMASK)
@@ -523,6 +511,9 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        # Start refreshes on a separate thread
+        threading.Thread(target=startup_refresh).start()
+
         global SCHED
         SCHED = BackgroundScheduler(timezone=pytz.UTC)
         activity_handler.ACTIVITY_SCHED = BackgroundScheduler(timezone=pytz.UTC)
@@ -535,11 +526,12 @@ def start():
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
 
+        # Schedule newsletters
+        newsletter_handler.NEWSLETTER_SCHED.start()
+        newsletter_handler.schedule_newsletters()
+
         # Cancel processing exports
         exporter.cancel_exports()
-
-        if CONFIG.FIRST_RUN_COMPLETE:
-            activity_pinger.connect_server(log=True, startup=True)
 
         if CONFIG.SYSTEM_ANALYTICS:
             global TRACKER
@@ -554,11 +546,25 @@ def start():
 
             analytics_event(category='system', action='start')
 
-        # Schedule newsletters
-        newsletter_handler.NEWSLETTER_SCHED.start()
-        newsletter_handler.schedule_newsletters()
-
         _STARTED = True
+
+
+def startup_refresh():
+    # Get the real PMS urls for SSL and remote access
+    if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
+        plextv.get_server_resources()
+
+    # Connect server after server resource is refreshed
+    if CONFIG.FIRST_RUN_COMPLETE:
+        activity_pinger.connect_server(log=True, startup=True)
+
+    # Refresh the users list on startup
+    if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
+        users.refresh_users()
+
+    # Refresh the libraries list on startup
+    if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
+        libraries.refresh_libraries()
 
 
 def sig_handler(signum=None, frame=None):

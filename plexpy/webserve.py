@@ -6547,6 +6547,31 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    @addtoapi()
+    def server_status(self, *args, **kwargs):
+        """ Get the current status of Tautulli's connection to the Plex server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success",
+                     "connected": true,
+                     }
+            ```
+        """
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        status = {'result': 'success', 'connected': plexpy.PLEX_SERVER_UP}
+
+        return status
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_exports_table")
     def get_export_list(self, section_id=None, user_id=None, rating_key=None, **kwargs):
