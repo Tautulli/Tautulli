@@ -1819,9 +1819,6 @@ class GROWL(Notifier):
             logger.error("Tautulli Notifiers :: {name} notification failed: authentication error".format(name=self.NAME))
             return False
 
-        # Fix message
-        body = body.encode(plexpy.SYS_ENCODING, "replace")
-
         # Send it, including an image
         image_file = os.path.join(str(plexpy.PROG_DIR),
             "data/interfaces/default/images/logo-circle.png")
