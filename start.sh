@@ -4,8 +4,8 @@ if [[ "$TAUTULLI_DOCKER" == "True" ]]; then
     PUID=${PUID:-1000}
     PGID=${PGID:-1000}
 
-    groupmod -o -g $PGID tautulli
-	usermod -o -u $PUID tautulli
+    groupmod -o -g "$PGID" tautulli
+    usermod -o -u "$PUID" tautulli
 
     chown -R tautulli:tautulli /config
 
