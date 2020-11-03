@@ -784,7 +784,7 @@ def dbcheck():
     # image_hash_lookup table :: This table keeps record of the image hash lookups
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'img_hash TEXT, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, '
+        'img_hash TEXT UNIQUE, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, '
         'opacity INTEGER, background TEXT, blur INTEGER, fallback TEXT)'
     )
 
@@ -2209,6 +2209,13 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0'
         )
+
+    # Upgrade image_hash_lookup table from earlier versions
+    try:
+        c_db.execute('DELETE FROM image_hash_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM image_hash_lookup GROUP BY img_hash)')
+    except sqlite3.OperationalError:
+        pass
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
