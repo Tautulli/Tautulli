@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.6.1 (2020-11-03)
+
+* Other:
+  * Fix: High CPU/memory usage in some instances.
+  * Fix: Logger error preventing Tautulli from starting.
+  * Fix: Database issue with non-unique image hashes.
+
+
 ## v2.6.0 (2020-10-31)
 
 * Exporter:
