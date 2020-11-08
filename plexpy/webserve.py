@@ -1871,6 +1871,7 @@ class WebInterface(object):
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "live": 0,
+                          "machine_id": "lmd93nkn12k29j2lnm",
                           "media_index": 17,
                           "media_type": "episode",
                           "originally_available_at": "2016-04-24",
