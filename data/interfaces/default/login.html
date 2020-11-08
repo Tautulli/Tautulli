@@ -159,16 +159,20 @@
             data: data,
             dataType: 'json',
             statusCode: {
-                200: function() {
+                200: function(xhr, status) {
                    window.location = "${redirect_uri or http_root}";
                 },
-                401: function() {
+                401: function(xhr, status) {
                     if (plex) {
                         $('#sign-in-alert').text('Invalid Plex Login.').show();
                     } else {
                         $('#sign-in-alert').text('Incorrect username or password.').show();
                         $('#username').focus();
                     }
+                },
+                429: function(xhr, status) {
+                    var retry = Math.ceil(xhr.getResponseHeader('Retry-After') / 60)
+                    $('#sign-in-alert').text('Too many login attempts. Try again in ' + retry + ' minute(s).').show();
                 }
             },
             complete: function() {

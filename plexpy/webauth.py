@@ -33,11 +33,13 @@ import plexpy
 if plexpy.PYTHON2:
     import logger
     from database import MonitorDatabase
+    from helpers import timestamp
     from users import Users, refresh_users
     from plextv import PlexTV
 else:
     from plexpy import logger
     from plexpy.database import MonitorDatabase
+    from plexpy.helpers import timestamp
     from plexpy.users import Users, refresh_users
     from plexpy.plextv import PlexTV
 
@@ -246,6 +248,20 @@ def all_of(*conditions):
     return check
 
 
+def check_rate_limit(ip_address):
+    monitor_db = MonitorDatabase()
+    result = monitor_db.select('SELECT timestamp FROM user_login '
+                               'WHERE ip_address = ? AND success = 0 '
+                               'AND timestamp >= (SELECT MAX(timestamp) FROM user_login WHERE success = 1) '
+                               'AND timestamp > (SELECT MAX(timestamp) - ? FROM user_login) '
+                               'ORDER BY timestamp DESC',
+                               [ip_address, plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL])
+
+    if len(result) >= plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS:
+        last_timestamp = result[0]['timestamp']
+        return max(last_timestamp - (timestamp() - plexpy.CONFIG.HTTP_RATE_LIMIT_LOCKOUT_TIME), 0)
+
+
 # Controller to provide login and logout actions
 
 class AuthController(object):
@@ -324,6 +340,16 @@ class AuthController(object):
         if cherrypy.request.method != 'POST':
             cherrypy.response.status = 405
             return {'status': 'error', 'message': 'Sign in using POST.'}
+
+        ip_address = cherrypy.request.remote.ip
+        rate_limit = check_rate_limit(ip_address)
+
+        if rate_limit:
+            logger.debug("Tautulli WebAuth :: Too many incorrect login attempts from '%s'." % ip_address)
+            error_message = {'status': 'error', 'message': 'Too many login attempts.'}
+            cherrypy.response.status = 429
+            cherrypy.response.headers['Retry-After'] = rate_limit
+            return error_message
 
         error_message = {'status': 'error', 'message': 'Invalid credentials.'}
 

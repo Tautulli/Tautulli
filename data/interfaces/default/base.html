@@ -204,7 +204,7 @@ ${next.modalIncludes()}
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <span id="incorrect-login" style="padding-right: 25px; display: none;">Incorrect username or password.</span>
+                    <span id="sign-in-alert" style="padding-right: 25px; display: none;"></span>
                     <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
                 </div>
                 <input type="hidden" id="admin_login" name="admin_login" value="1" />
@@ -446,12 +446,16 @@ ${next.modalIncludes()}
             data: $(this).serialize(),
             dataType: 'json',
             statusCode: {
-                200: function() {
+                200: function(xhr, status) {
                    window.location = "${http_root}";
                 },
-                401: function() {
-                   $('#incorrect-login').show();
-                   $('#username').focus();
+                401: function(xhr, status) {
+                    $('#sign-in-alert').text('Incorrect username or password.').show();
+                    $('#username').focus();
+                },
+                429: function(xhr, status) {
+                    var retry = Math.ceil(xhr.getResponseHeader('Retry-After') / 60)
+                    $('#sign-in-alert').text('Too many login attempts. Try again in ' + retry + ' minute(s).').show();
                 }
             },
             complete: function() {
