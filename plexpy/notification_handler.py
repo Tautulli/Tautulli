@@ -193,7 +193,8 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
 
         elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
-            user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
+            user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'],
+                                                         history_only=not plexpy.CONFIG.NOTIFY_NEW_DEVICE_INITIAL_ONLY)
             evaluated = stream_data['machine_id'] not in user_devices
 
         elif stream_data['media_type'] in ('movie', 'episode', 'clip'):

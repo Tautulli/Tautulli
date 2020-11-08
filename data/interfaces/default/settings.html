@@ -997,6 +997,15 @@
                             </div>
                             <p class="help-block">The number of concurrent streams by a single user for Tautulli to trigger a notification. Minimum 2.</p>
                         </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="notify_new_device_initial_only" id="notify_new_device_initial_only" value="1" ${config['notify_new_device_initial_only']}> User New Device Notification First Time Only
+                            </label>
+                            <p class="help-block">
+                                Enable to only send a new device notification the first time a user streams from a new device.
+                                Disable to send a new device notification everytime a user streams from the device until it is recorded in history (i.e. exceeds the ignore interval).
+                            </p>
+                        </div>
                         <div class="form-group advanced-setting">
                             <label for="notify_concurrent_threshold">Continued Session Threshold</label>
                             <div class="row">

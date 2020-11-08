@@ -1841,12 +1841,22 @@ class DataFactory(object):
             logger.warn("Tautulli DataFactory :: Unable to execute database query for delete_newsletter_log: %s." % e)
             return False
 
-    def get_user_devices(self, user_id=''):
+    def get_user_devices(self, user_id='', history_only=True):
         monitor_db = database.MonitorDatabase()
 
         if user_id:
+            if history_only:
+                query = 'SELECT machine_id FROM session_history ' \
+                        'WHERE user_id = ? ' \
+                        'GROUP BY machine_id'
+            else:
+                query = 'SELECT * FROM (' \
+                        'SELECT user_id, machine_id FROM session_history ' \
+                        'UNION SELECT user_id, machine_id from sessions_continued) ' \
+                        'WHERE user_id = ? ' \
+                        'GROUP BY machine_id'
+
             try:
-                query = 'SELECT machine_id FROM session_history WHERE user_id = ? GROUP BY machine_id'
                 result = monitor_db.select(query=query, args=[user_id])
             except Exception as e:
                 logger.warn("Tautulli DataFactory :: Unable to execute database query for get_user_devices: %s." % e)
