@@ -977,15 +977,21 @@
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
+                                <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Playback Stop Notifications Exceeding Watched Percent
                             </label>
-                            <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                            <p class="help-block">
+                                Enable to allow sending of playback stop notifications after the watched percent is exceeded.
+                                Disable to only send playback stop notifications below the watched percent.
+                            </p>
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
                             </label>
-                            <p class="help-block">Enable to only send a notification of concurrent streams by a single user from different IP addresses.</p>
+                            <p class="help-block">
+                                Enable to only send a concurrent streams notification by a single user from different IP addresses.
+                                Disable to send a concurrent streams notification anytime the concurrent stream threshold is exceeded regardless of IP address.
+                            </p>
                         </div>
                         <div class="form-group">
                             <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
