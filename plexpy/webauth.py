@@ -250,15 +250,28 @@ def all_of(*conditions):
 
 def check_rate_limit(ip_address):
     monitor_db = MonitorDatabase()
-    result = monitor_db.select('SELECT timestamp FROM user_login '
-                               'WHERE ip_address = ? AND success = 0 '
-                               'AND timestamp >= (SELECT MAX(timestamp) FROM user_login WHERE success = 1) '
-                               'AND timestamp > (SELECT MAX(timestamp) - ? FROM user_login) '
+    result = monitor_db.select('SELECT timestamp, success FROM user_login '
+                               'WHERE ip_address = ? '
+                               'AND timestamp >= ( '
+                               'SELECT CASE WHEN MAX(timestamp) IS NULL THEN 0 ELSE MAX(timestamp) END '
+                               'FROM user_login WHERE ip_address = ? AND success = 1) '
                                'ORDER BY timestamp DESC',
-                               [ip_address, plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL])
+                               [ip_address, ip_address])
 
-    if len(result) >= plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS:
+    try:
         last_timestamp = result[0]['timestamp']
+    except IndexError:
+        last_timestamp = 0
+
+    try:
+        last_success = max(login['timestamp'] for login in result if login['success'])
+    except ValueError:
+        last_success = 0
+
+    max_timestamp = max(last_success, last_timestamp - plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL)
+    attempts = [login for login in result if login['timestamp'] >= max_timestamp and not login['success']]
+
+    if len(attempts) >= plexpy.CONFIG.HTTP_RATE_LIMIT_ATTEMPTS:
         return max(last_timestamp - (timestamp() - plexpy.CONFIG.HTTP_RATE_LIMIT_LOCKOUT_TIME), 0)
 
 
