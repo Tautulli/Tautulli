@@ -2926,10 +2926,6 @@ $(document).ready(function() {
         });
     });
 
-    $('#http_base_url').change(function () {
-       $(this).val($(this).val().replace(/\/*$/, ''));
-    });
-
     $('#http_root').change(function() {
         setBaseURLSuffix();
     });
