@@ -50,6 +50,7 @@ app = BUNDLE(
     version=VERSION,
     info_plist={
         'LSBackgroundOnly': True,
-        'LSUIElement': True
+        'LSUIElement': True,
+        'NSHighResolutionCapable': True
     }
 )
