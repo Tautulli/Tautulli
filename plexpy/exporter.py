@@ -309,7 +309,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'requiredBandwidths': None,
-                            'samplingRate': None
+                            'samplingRate': None,
+                            'streamIdentifier': None
                         },
                         'subtitleStreams': {
                             'codec': None,
@@ -616,7 +617,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'requiredBandwidths': None,
-                            'samplingRate': None
+                            'samplingRate': None,
+                            'streamIdentifier': None
                         },
                         'subtitleStreams': {
                             'codec': None,

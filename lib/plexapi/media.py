@@ -331,6 +331,7 @@ class AudioStream(MediaPartStream):
         self.profile = data.attrib.get('profile')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
         self.samplingRate = cast(int, data.attrib.get('samplingRate'))
+        self.streamIdentifier = cast(int, data.attrib.get('streamIdentifier'))
 
         # For Track only
         self.albumGain = cast(float, data.attrib.get('albumGain'))
