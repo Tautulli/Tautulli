@@ -330,7 +330,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'key': None
+                            'key': None,
+                            'transient': None
                         }
                     }
                 },
@@ -638,7 +639,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'key': None
+                            'key': None,
+                            'transient': None
                         }
                     }
                 },

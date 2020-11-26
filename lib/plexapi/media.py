@@ -369,6 +369,7 @@ class SubtitleStream(MediaPartStream):
         self.headerCompression = data.attrib.get('headerCompression')
         self.key = data.attrib.get('key')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
+        self.transient = data.attrib.get('transient')
 
 
 @utils.registerPlexObject
