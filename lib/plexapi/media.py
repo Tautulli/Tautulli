@@ -210,7 +210,6 @@ class MediaPartStream(PlexObject):
         """ Load attribute values from Plex XML response. """
         self._data = data
         self.codec = data.attrib.get('codec')
-        self.codecID = data.attrib.get('codecID')
         self.default = cast(bool, data.attrib.get('selected', '0'))
         self.displayTitle = data.attrib.get('displayTitle')
         self.extendedDisplayTitle = data.attrib.get('extendedDisplayTitle')
@@ -268,6 +267,7 @@ class VideoStream(MediaPartStream):
         self.cabac = cast(int, data.attrib.get('cabac'))
         self.chromaLocation = data.attrib.get('chromaLocation')
         self.chromaSubsampling = data.attrib.get('chromaSubsampling')
+        self.codecID = data.attrib.get('codecID')
         self.codedHeight = data.attrib.get('codedHeight')
         self.codedWidth = data.attrib.get('codedWidth')
         self.colorPrimaries = data.attrib.get('colorPrimaries')
@@ -326,7 +326,6 @@ class AudioStream(MediaPartStream):
         self.bitrate = cast(int, data.attrib.get('bitrate'))
         self.bitrateMode = data.attrib.get('bitrateMode')
         self.channels = cast(int, data.attrib.get('channels'))
-        self.dialogNorm = cast(int, data.attrib.get('dialogNorm'))
         self.duration = cast(int, data.attrib.get('duration'))
         self.profile = data.attrib.get('profile')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')

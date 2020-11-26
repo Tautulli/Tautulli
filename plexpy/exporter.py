@@ -288,7 +288,6 @@ class Export(object):
                         },
                         'audioStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
@@ -305,7 +304,6 @@ class Export(object):
                             'bitrate': None,
                             'bitrateMode': None,
                             'channels': None,
-                            'dialogNorm': None,
                             'duration': None,
                             'profile': None,
                             'requiredBandwidths': None,
@@ -314,7 +312,6 @@ class Export(object):
                         },
                         'subtitleStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
@@ -597,7 +594,6 @@ class Export(object):
                         },
                         'audioStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
@@ -614,7 +610,6 @@ class Export(object):
                             'bitrate': None,
                             'bitrateMode': None,
                             'channels': None,
-                            'dialogNorm': None,
                             'duration': None,
                             'profile': None,
                             'requiredBandwidths': None,
@@ -623,7 +618,6 @@ class Export(object):
                         },
                         'subtitleStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
@@ -833,7 +827,6 @@ class Export(object):
                         'syncState': None,
                         'audioStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
@@ -861,7 +854,6 @@ class Export(object):
                         },
                         'lyricStreams': {
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
