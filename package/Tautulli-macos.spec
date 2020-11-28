@@ -49,7 +49,6 @@ app = BUNDLE(
     bundle_identifier='com.Tautulli.Tautulli',
     version=VERSION,
     info_plist={
-        'LSBackgroundOnly': True,
         'LSUIElement': True,
         'NSHighResolutionCapable': True
     }
