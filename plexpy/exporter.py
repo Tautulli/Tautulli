@@ -136,6 +136,7 @@ class Export(object):
         self.file_size = 0
         self.exported_thumb = False
         self.exported_art = False
+        self._reload_check_files = False
 
         self.total_items = 0
         self.exported_items = 0
@@ -1101,7 +1102,7 @@ class Export(object):
                     'media.optimizedVersion', 'media.hdr'
                 ],
                 2: [
-                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.file', 'media.parts.duration',
                     'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
                     'media.parts.audioProfile', 'media.parts.videoProfile',
                     'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
@@ -1212,7 +1213,7 @@ class Export(object):
                     'media.optimizedVersion', 'media.hdr'
                 ],
                 2: [
-                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.file', 'media.parts.duration',
                     'media.parts.container', 'media.parts.indexes', 'media.parts.size', 'media.parts.sizeHuman',
                     'media.parts.audioProfile', 'media.parts.videoProfile',
                     'media.parts.optimizedForStreaming', 'media.parts.deepAnalysisVersion'
@@ -1321,7 +1322,7 @@ class Export(object):
                     'media.bitrate', 'media.container', 'media.duration'
                 ],
                 2: [
-                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file', 'media.parts.duration',
+                    'media.parts.file', 'media.parts.duration',
                     'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman',
                     'media.parts.audioProfile',
                     'media.parts.deepAnalysisVersion', 'media.parts.hasThumbnail'
@@ -1396,7 +1397,7 @@ class Export(object):
                     'media.iso', 'media.lens', 'media.make', 'media.model'
                 ],
                 2: [
-                    'media.parts.accessible', 'media.parts.exists', 'media.parts.file',
+                    'media.parts.file',
                     'media.parts.container', 'media.parts.size', 'media.parts.sizeHuman'
                 ],
                 3: [
@@ -1884,6 +1885,9 @@ class Export(object):
             elif self.media_type == 'playlist' and 'item' in self._custom_fields:
                 export_attrs_set.update(self._custom_fields['item'])
 
+        if 'media.parts.accessible' in export_attrs_set or 'media.parts.exists' in export_attrs_set:
+            self._reload_check_files = True
+
         for attr in export_attrs_set:
             try:
                 value = helpers.get_dict_value_by_path(media_attrs, attr)
@@ -1971,12 +1975,13 @@ class Export(object):
         pass
 
     def export_obj(self, obj):
-        # Reload ~plexapi.base.PlexPartialObject
-        if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
-            obj = obj.reload()
-
         media_type = self._media_type(obj)
         export_attrs = self._get_export_attrs(media_type)
+
+        # Reload ~plexapi.base.PlexPartialObject
+        if hasattr(obj, 'isPartialObject') and obj.isPartialObject():
+            obj = obj.reload(checkFiles=self._reload_check_files)
+
         return helpers.get_attrs_to_dict(obj, attrs=export_attrs)
 
     def get_any_hdr(self, item, media_type):
