@@ -562,7 +562,7 @@ class MediaTag(PlexObject):
             tag (str): Name of the tag. This will be Animation, SciFi etc for Genres. The name of
                 person for Directors and Roles (ex: Animation, Stephen Graham, etc).
             <Hub_Search_Attributes>: Attributes only applicable in search results from
-                PlexServer :func:`~plexapi.server.PlexServer.search()`. They provide details of which
+                PlexServer :func:`~plexapi.server.PlexServer.search`. They provide details of which
                 library section the tag was found as well as the url to dig deeper into the results.
 
                 * key (str): API URL to dig deeper into this tag (ex: /library/sections/1/all?actor=9081).
@@ -589,7 +589,7 @@ class MediaTag(PlexObject):
 
     def items(self, *args, **kwargs):
         """ Return the list of items within this tag. This function is only applicable
-            in search results from PlexServer :func:`~plexapi.server.PlexServer.search()`.
+            in search results from PlexServer :func:`~plexapi.server.PlexServer.search`.
         """
         if not self.key:
             raise BadRequest('Key is not defined for this tag: %s' % self.tag)

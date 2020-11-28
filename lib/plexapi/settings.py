@@ -21,7 +21,10 @@ class Settings(PlexObject):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return self.__dict__[attr]
+            try:
+                return self.__dict__[attr]
+            except KeyError:
+                raise AttributeError
         return self.get(attr).value
 
     def __setattr__(self, attr, value):

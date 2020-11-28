@@ -54,7 +54,7 @@ class AlertListener(threading.Thread):
 
     def stop(self):
         """ Stop the AlertListener thread. Once the notifier is stopped, it cannot be directly
-            started again. You must call :func:`plexapi.server.PlexServer.startAlertListener()`
+            started again. You must call :func:`~plexapi.server.PlexServer.startAlertListener`
             from a PlexServer instance.
         """
         log.info('Stopping AlertListener.')

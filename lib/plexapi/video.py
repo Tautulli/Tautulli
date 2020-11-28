@@ -13,6 +13,8 @@ class Video(PlexPartialObject):
 
         Attributes:
             addedAt (datetime): Datetime this item was added to the library.
+            art (str): URL to artwork image.
+            artBlurHash (str): BlurHash string for artwork image.
             key (str): API URL (/library/metadata/<ratingkey>).
             lastViewedAt (datetime): Datetime item was last accessed.
             librarySectionID (int): :class:`~plexapi.library.LibrarySection` ID.
@@ -20,6 +22,7 @@ class Video(PlexPartialObject):
             ratingKey (int): Unique key identifying this item.
             summary (str): Summary of the artist, track, or album.
             thumb (str): URL to thumbnail image.
+            thumbBlurHash (str): BlurHash string for thumbnail image.
             title (str): Artist, Album or Track title. (Jason Mraz, We Sing, Lucky, etc.)
             titleSort (str): Title to use when sorting (defaults to title).
             type (str): 'artist', 'album', or 'track'.
@@ -32,6 +35,8 @@ class Video(PlexPartialObject):
         self._data = data
         self.listType = 'video'
         self.addedAt = utils.toDatetime(data.attrib.get('addedAt'))
+        self.art = data.attrib.get('art')
+        self.artBlurHash = data.attrib.get('artBlurHash')
         self.key = data.attrib.get('key', '')
         self.lastViewedAt = utils.toDatetime(data.attrib.get('lastViewedAt'))
         self.librarySectionID = data.attrib.get('librarySectionID')
@@ -40,6 +45,7 @@ class Video(PlexPartialObject):
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
+        self.thumbBlurHash = data.attrib.get('thumbBlurHash')
         self.title = data.attrib.get('title')
         self.titleSort = data.attrib.get('titleSort', self.title)
         self.type = data.attrib.get('type')
@@ -201,21 +207,21 @@ class Video(PlexPartialObject):
 
     def sync(self, videoQuality, client=None, clientId=None, limit=None, unwatched=False, title=None):
         """ Add current video (movie, tv-show, season or episode) as sync item for specified device.
-            See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
+            See :func:`~plexapi.myplex.MyPlexAccount.sync` for possible exceptions.
 
             Parameters:
                 videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in
-                                    :mod:`plexapi.sync` module.
-                client (:class:`plexapi.myplex.MyPlexDevice`): sync destination, see
-                                                               :func:`plexapi.myplex.MyPlexAccount.sync`.
-                clientId (str): sync destination, see :func:`plexapi.myplex.MyPlexAccount.sync`.
+                                    :mod:`~plexapi.sync` module.
+                client (:class:`~plexapi.myplex.MyPlexDevice`): sync destination, see
+                                                               :func:`~plexapi.myplex.MyPlexAccount.sync`.
+                clientId (str): sync destination, see :func:`~plexapi.myplex.MyPlexAccount.sync`.
                 limit (int): maximum count of items to sync, unlimited if `None`.
                 unwatched (bool): if `True` watched videos wouldn't be synced.
-                title (str): descriptive title for the new :class:`plexapi.sync.SyncItem`, if empty the value would be
+                title (str): descriptive title for the new :class:`~plexapi.sync.SyncItem`, if empty the value would be
                              generated from metadata of current media.
 
             Returns:
-                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+                :class:`~plexapi.sync.SyncItem`: an instance of created syncItem.
         """
 
         from plexapi.sync import SyncItem, Policy, MediaSettings
@@ -277,17 +283,12 @@ class Movie(Playable, Video):
     TAG = 'Video'
     TYPE = 'movie'
     METADATA_TYPE = 'movie'
-    _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
-                '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
-                '&includeConcerts=1&includePreferences=1'
-                '&includeBandwidths=1')
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
         Playable._loadData(self, data)
 
-        self._details_key = self.key + self._include
         self.art = data.attrib.get('art')
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audienceRatingImage = data.attrib.get('audienceRatingImage')
@@ -343,7 +344,7 @@ class Movie(Playable, Video):
                 savepath (str): Defaults to current working dir.
                 keep_original_name (bool): True to keep the original file name otherwise
                     a friendlier is generated.
-                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL()`.
+                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL`.
         """
         filepaths = []
         locations = [i for i in self.iterParts() if i]
@@ -460,14 +461,14 @@ class Show(Video):
     def episode(self, title=None, season=None, episode=None):
         """ Find a episode using a title or season and episode.
 
-           Parameters:
+            Parameters:
                 title (str): Title of the episode to return
                 season (int): Season number (default:None; required if title not specified).
                 episode (int): Episode number (default:None; required if title not specified).
 
-           Raises:
-                :class:`plexapi.exceptions.BadRequest`: If season and episode is missing.
-                :class:`plexapi.exceptions.NotFound`: If the episode is missing.
+            Raises:
+                :exc:`plexapi.exceptions.BadRequest`: If season and episode is missing.
+                :exc:`plexapi.exceptions.NotFound`: If the episode is missing.
         """
         if title:
             key = '/library/metadata/%s/allLeaves' % self.ratingKey
@@ -488,7 +489,7 @@ class Show(Video):
         return self.episodes(viewCount=0)
 
     def get(self, title=None, season=None, episode=None):
-        """ Alias to :func:`~plexapi.video.Show.episode()`. """
+        """ Alias to :func:`~plexapi.video.Show.episode`. """
         return self.episode(title, season, episode)
 
     def download(self, savepath=None, keep_original_name=False, **kwargs):
@@ -498,7 +499,7 @@ class Show(Video):
                 savepath (str): Defaults to current working dir.
                 keep_original_name (bool): True to keep the original file name otherwise
                     a friendlier is generated.
-                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL()`.
+                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL`.
         """
         filepaths = []
         for episode in self.episodes():
@@ -585,7 +586,7 @@ class Season(Video):
         return self.fetchItem(key, parentIndex=self.index, index=episode)
 
     def get(self, title=None, episode=None):
-        """ Alias to :func:`~plexapi.video.Season.episode()`. """
+        """ Alias to :func:`~plexapi.video.Season.episode`. """
         return self.episode(title, episode)
 
     def show(self):
@@ -607,7 +608,7 @@ class Season(Video):
                 savepath (str): Defaults to current working dir.
                 keep_original_name (bool): True to keep the original file name otherwise
                     a friendlier is generated.
-                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL()`.
+                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL`.
         """
         filepaths = []
         for episode in self.episodes():
@@ -656,16 +657,10 @@ class Episode(Playable, Video):
     TYPE = 'episode'
     METADATA_TYPE = 'episode'
 
-    _include = ('?checkFiles=1&includeExtras=1&includeRelated=1'
-                '&includeOnDeck=1&includeChapters=1&includePopularLeaves=1'
-                '&includeMarkers=1&includeConcerts=1&includePreferences=1'
-                '&includeBandwidths=1')
-
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
         Playable._loadData(self, data)
-        self._details_key = self.key + self._include
         self._seasonNumber = None  # cached season number
         art = data.attrib.get('art')
         self.art = art if art and str(self.ratingKey) in art else None

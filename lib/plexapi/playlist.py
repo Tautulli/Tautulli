@@ -163,7 +163,7 @@ class Playlist(PlexPartialObject, Playable):
             **kwargs (dict): is passed to the filters. For a example see the search method.
 
         Returns:
-            :class:`plexapi.playlist.Playlist`: an instance of created Playlist.
+            :class:`~plexapi.playlist.Playlist`: an instance of created Playlist.
         """
         if smart:
             return cls._createSmart(server, title, section, limit, **kwargs)
@@ -217,29 +217,29 @@ class Playlist(PlexPartialObject, Playable):
     def sync(self, videoQuality=None, photoResolution=None, audioBitrate=None, client=None, clientId=None, limit=None,
              unwatched=False, title=None):
         """ Add current playlist as sync item for specified device.
-            See :func:`plexapi.myplex.MyPlexAccount.sync()` for possible exceptions.
+            See :func:`~plexapi.myplex.MyPlexAccount.sync` for possible exceptions.
 
             Parameters:
                 videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in
-                                    :mod:`plexapi.sync` module. Used only when playlist contains video.
+                                    :mod:`~plexapi.sync` module. Used only when playlist contains video.
                 photoResolution (str): maximum allowed resolution for synchronized photos, see PHOTO_QUALITY_* values in
-                                       the module :mod:`plexapi.sync`. Used only when playlist contains photos.
+                                       the module :mod:`~plexapi.sync`. Used only when playlist contains photos.
                 audioBitrate (int): maximum bitrate for synchronized music, better use one of MUSIC_BITRATE_* values
-                                    from the module :mod:`plexapi.sync`. Used only when playlist contains audio.
-                client (:class:`plexapi.myplex.MyPlexDevice`): sync destination, see
-                                                               :func:`plexapi.myplex.MyPlexAccount.sync`.
-                clientId (str): sync destination, see :func:`plexapi.myplex.MyPlexAccount.sync`.
+                                    from the module :mod:`~plexapi.sync`. Used only when playlist contains audio.
+                client (:class:`~plexapi.myplex.MyPlexDevice`): sync destination, see
+                                                               :func:`~plexapi.myplex.MyPlexAccount.sync`.
+                clientId (str): sync destination, see :func:`~plexapi.myplex.MyPlexAccount.sync`.
                 limit (int): maximum count of items to sync, unlimited if `None`.
                 unwatched (bool): if `True` watched videos wouldn't be synced.
-                title (str): descriptive title for the new :class:`plexapi.sync.SyncItem`, if empty the value would be
+                title (str): descriptive title for the new :class:`~plexapi.sync.SyncItem`, if empty the value would be
                              generated from metadata of current photo.
 
             Raises:
-                :class:`plexapi.exceptions.BadRequest`: when playlist is not allowed to sync.
-                :class:`plexapi.exceptions.Unsupported`: when playlist content is unsupported.
+                :exc:`plexapi.exceptions.BadRequest`: when playlist is not allowed to sync.
+                :exc:`plexapi.exceptions.Unsupported`: when playlist content is unsupported.
 
             Returns:
-                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+                :class:`~plexapi.sync.SyncItem`: an instance of created syncItem.
         """
 
         if not self.allowSync:

@@ -78,7 +78,7 @@ class SyncItem(PlexObject):
         self.location = data.find('Location').attrib.get('uri', '')
 
     def server(self):
-        """ Returns :class:`plexapi.myplex.MyPlexResource` with server of current item. """
+        """ Returns :class:`~plexapi.myplex.MyPlexResource` with server of current item. """
         server = [s for s in self._server.resources() if s.clientIdentifier == self.machineIdentifier]
         if len(server) == 0:
             raise NotFound('Unable to find server with uuid %s' % self.machineIdentifier)
@@ -201,7 +201,7 @@ class MediaSettings(object):
                 videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in this module.
 
             Raises:
-                :class:`plexapi.exceptions.BadRequest`: when provided unknown video quality.
+                :exc:`plexapi.exceptions.BadRequest`: when provided unknown video quality.
         """
         if videoQuality == VIDEO_QUALITY_ORIGINAL:
             return MediaSettings('', '', '')
@@ -231,7 +231,7 @@ class MediaSettings(object):
                                   module.
 
             Raises:
-                :class:`plexapi.exceptions.BadRequest` when provided unknown video quality.
+                :exc:`plexapi.exceptions.BadRequest` when provided unknown video quality.
         """
         if resolution in PHOTO_QUALITIES:
             return MediaSettings(photoQuality=PHOTO_QUALITIES[resolution], photoResolution=resolution)

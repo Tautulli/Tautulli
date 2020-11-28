@@ -544,7 +544,7 @@ class MyPlexAccount(PlexObject):
         return self.query(url, method=self._session.put, data=params)
 
     def syncItems(self, client=None, clientId=None):
-        """ Returns an instance of :class:`plexapi.sync.SyncList` for specified client.
+        """ Returns an instance of :class:`~plexapi.sync.SyncList` for specified client.
 
             Parameters:
                 client (:class:`~plexapi.myplex.MyPlexDevice`): a client to query SyncItems for.
@@ -564,22 +564,22 @@ class MyPlexAccount(PlexObject):
 
     def sync(self, sync_item, client=None, clientId=None):
         """ Adds specified sync item for the client. It's always easier to use methods defined directly in the media
-            objects, e.g. :func:`plexapi.video.Video.sync`, :func:`plexapi.audio.Audio.sync`.
+            objects, e.g. :func:`~plexapi.video.Video.sync`, :func:`~plexapi.audio.Audio.sync`.
 
             Parameters:
                 client (:class:`~plexapi.myplex.MyPlexDevice`): a client for which you need to add SyncItem to.
                 clientId (str): an identifier of a client for which you need to add SyncItem to.
-                sync_item (:class:`plexapi.sync.SyncItem`): prepared SyncItem object with all fields set.
+                sync_item (:class:`~plexapi.sync.SyncItem`): prepared SyncItem object with all fields set.
 
             If both `client` and `clientId` provided the client would be preferred.
             If neither `client` nor `clientId` provided the clientId would be set to current clients`s identifier.
 
             Returns:
-                :class:`plexapi.sync.SyncItem`: an instance of created syncItem.
+                :class:`~plexapi.sync.SyncItem`: an instance of created syncItem.
 
             Raises:
-                :class:`plexapi.exceptions.BadRequest`: when client with provided clientId wasn`t found.
-                :class:`plexapi.exceptions.BadRequest`: provided client doesn`t provides `sync-target`.
+                :exc:`plexapi.exceptions.BadRequest`: when client with provided clientId wasn`t found.
+                :exc:`plexapi.exceptions.BadRequest`: provided client doesn`t provides `sync-target`.
         """
         if not client and not clientId:
             clientId = X_PLEX_IDENTIFIER
@@ -686,7 +686,7 @@ class MyPlexAccount(PlexObject):
 
 class MyPlexUser(PlexObject):
     """ This object represents non-signed in users such as friends and linked
-        accounts. NOTE: This should not be confused with the :class:`~myplex.MyPlexAccount`
+        accounts. NOTE: This should not be confused with the :class:`~plexapi.myplex.MyPlexAccount`
         which is your specific account. The raw xml for the data presented here
         can be found at: https://plex.tv/api/users/
 
@@ -885,7 +885,7 @@ class MyPlexResource(PlexObject):
             key (str): 'https://plex.tv/api/resources?includeHttps=1&includeRelay=1'
             accessToken (str): This resources accesstoken.
             clientIdentifier (str): Unique ID for this resource.
-            connections (list): List of :class:`~myplex.ResourceConnection` objects
+            connections (list): List of :class:`~plexapi.myplex.ResourceConnection` objects
                 for this resource.
             createdAt (datetime): Timestamp this resource first connected to your server.
             device (str): Best guess on the type of device this is (PS, iPhone, Linux, etc).
@@ -930,7 +930,7 @@ class MyPlexResource(PlexObject):
         self.sourceTitle = data.attrib.get('sourceTitle')  # owners plex username.
 
     def connect(self, ssl=None, timeout=None):
-        """ Returns a new :class:`~server.PlexServer` or :class:`~client.PlexClient` object.
+        """ Returns a new :class:`~plexapi.server.PlexServer` or :class:`~plexapi.client.PlexClient` object.
             Often times there is more than one address specified for a server or client.
             This function will prioritize local connections before remote and HTTPS before HTTP.
             After trying to connect to all available addresses for this resource and
@@ -942,7 +942,7 @@ class MyPlexResource(PlexObject):
                     HTTP or HTTPS connection.
 
             Raises:
-                :class:`plexapi.exceptions.NotFound`: When unable to connect to any addresses for this resource.
+                :exc:`plexapi.exceptions.NotFound`: When unable to connect to any addresses for this resource.
         """
         # Sort connections from (https, local) to (http, remote)
         # Only check non-local connections unless we own the resource
@@ -965,7 +965,7 @@ class MyPlexResource(PlexObject):
 
 class ResourceConnection(PlexObject):
     """ Represents a Resource Connection object found within the
-        :class:`~myplex.MyPlexResource` objects.
+        :class:`~plexapi.myplex.MyPlexResource` objects.
 
         Attributes:
             TAG (str): 'Connection'
@@ -1049,7 +1049,7 @@ class MyPlexDevice(PlexObject):
             at least one connection was successful, the PlexClient object is built and returned.
 
             Raises:
-                :class:`plexapi.exceptions.NotFound`: When unable to connect to any addresses for this device.
+                :exc:`plexapi.exceptions.NotFound`: When unable to connect to any addresses for this device.
         """
         cls = PlexServer if 'server' in self.provides else PlexClient
         listargs = [[cls, url, self.token, timeout] for url in self.connections]
@@ -1063,10 +1063,10 @@ class MyPlexDevice(PlexObject):
         self._server.query(key, self._server._session.delete)
 
     def syncItems(self):
-        """ Returns an instance of :class:`plexapi.sync.SyncList` for current device.
+        """ Returns an instance of :class:`~plexapi.sync.SyncList` for current device.
 
             Raises:
-                :class:`plexapi.exceptions.BadRequest`: when the device doesn`t provides `sync-target`.
+                :exc:`plexapi.exceptions.BadRequest`: when the device doesn`t provides `sync-target`.
         """
         if 'sync-target' not in self.provides:
             raise BadRequest('Requested syncList for device which do not provides sync-target')
@@ -1082,12 +1082,12 @@ class MyPlexPinLogin(object):
         This helper class supports a polling, threaded and callback approach.
 
         - The polling approach expects the developer to periodically check if the PIN login was
-          successful using :func:`plexapi.myplex.MyPlexPinLogin.checkLogin`.
+          successful using :func:`~plexapi.myplex.MyPlexPinLogin.checkLogin`.
         - The threaded approach expects the developer to call
-          :func:`plexapi.myplex.MyPlexPinLogin.run` and then at a later time call
-          :func:`plexapi.myplex.MyPlexPinLogin.waitForLogin` to wait for and check the result.
+          :func:`~plexapi.myplex.MyPlexPinLogin.run` and then at a later time call
+          :func:`~plexapi.myplex.MyPlexPinLogin.waitForLogin` to wait for and check the result.
         - The callback approach is an extension of the threaded approach and expects the developer
-          to pass the `callback` parameter to the call to :func:`plexapi.myplex.MyPlexPinLogin.run`.
+          to pass the `callback` parameter to the call to :func:`~plexapi.myplex.MyPlexPinLogin.run`.
           The callback will be called when the thread waiting for the PIN login to succeed either
           finishes or expires. The parameter passed to the callback is the received authentication
           token or `None` if the login expired.

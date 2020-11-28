@@ -44,9 +44,9 @@ class PlexObject(object):
         self._server = server
         self._data = data
         self._initpath = initpath or self.key
-        self._details_key = ''
         if data is not None:
             self._loadData(data)
+        self._details_key = self._buildDetailsKey()
 
     def __repr__(self):
         uid = self._clean(self.firstAttr('_baseurl', 'key', 'id', 'playQueueID', 'uri'))
@@ -81,13 +81,29 @@ class PlexObject(object):
         raise UnknownType("Unknown library type <%s type='%s'../>" % (elem.tag, etype))
 
     def _buildItemOrNone(self, elem, cls=None, initpath=None):
-        """ Calls :func:`~plexapi.base.PlexObject._buildItem()` but returns
+        """ Calls :func:`~plexapi.base.PlexObject._buildItem` but returns
             None if elem is an unknown type.
         """
         try:
             return self._buildItem(elem, cls, initpath)
         except UnknownType:
             return None
+
+    def _buildDetailsKey(self, **kwargs):
+        """ Builds the details key with the XML include parameters.
+            All parameters are included by default with the option to override each parameter
+            or disable each parameter individually by setting it to False or 0.
+        """
+        details_key = self.key
+        if hasattr(self, '_INCLUDES'):
+            includes = {}
+            for k, v in self._INCLUDES.items():
+                value = kwargs.get(k, v)
+                if value not in [False, 0, '0']:
+                    includes[k] = 1 if value is True else value
+            if includes:
+                details_key += '?' + urlencode(sorted(includes.items()))
+        return details_key
 
     def fetchItem(self, ekey, cls=None, **kwargs):
         """ Load the specified key to find and build the first item with the
@@ -203,9 +219,39 @@ class PlexObject(object):
                 results.append(elem.attrib.get(attr))
         return results
 
-    def reload(self, key=None):
-        """ Reload the data for this object from self.key. """
-        key = key or self._details_key or self.key
+    def reload(self, key=None, **kwargs):
+        """ Reload the data for this object from self.key.
+
+            Parameters:
+                key (string, optional): Override the key to reload.
+                **kwargs (dict): A dictionary of XML include parameters to exclude or override.
+                    All parameters are included by default with the option to override each parameter
+                    or disable each parameter individually by setting it to False or 0.
+                    See :class:`~plexapi.base.PlexPartialObject` for all the available include parameters.
+
+            Example:
+
+                .. code-block:: python
+
+                    from plexapi.server import PlexServer
+                    plex = PlexServer('http://localhost:32400', token='xxxxxxxxxxxxxxxxxxxx')
+                    movie = plex.library.section('Movies').get('Cars')
+
+                    # Partial reload of the movie without the `checkFiles` parameter.
+                    # Excluding `checkFiles` will prevent the Plex server from reading the
+                    # file to check if the file still exists and is accessible.
+                    # The movie object will remain as a partial object.
+                    movie.reload(checkFiles=False)
+                    movie.isPartialObject()  # Returns True
+
+                    # Full reload of the movie with all include parameters.
+                    # The movie object will be a full object.
+                    movie.reload()
+                    movie.isFullObject()  # Returns True
+
+        """
+        details_key = self._buildDetailsKey(**kwargs) if kwargs else self._details_key
+        key = key or details_key or self.key
         if not key:
             raise Unsupported('Cannot reload an object not built from a URL.')
         self._initpath = key
@@ -281,6 +327,27 @@ class PlexPartialObject(PlexObject):
         and if the specified value you request is None it will fetch the full object
         automatically and update itself.
     """
+    _INCLUDES = {
+        'checkFiles': 1,
+        'includeAllConcerts': 1,
+        'includeBandwidths': 1,
+        'includeChapters': 1,
+        'includeChildren': 1,
+        'includeConcerts': 1,
+        'includeExternalMedia': 1,
+        'includeExtras': 1,
+        'includeFields': 'thumbBlurHash,artBlurHash',
+        'includeGeolocation': 1,
+        'includeLoudnessRamps': 1,
+        'includeMarkers': 1,
+        'includeOnDeck': 1,
+        'includePopularLeaves': 1,
+        'includePreferences': 1,
+        'includeRelated': 1,
+        'includeRelatedCount': 1,
+        'includeReviews': 1,
+        'includeStations': 1
+    }
 
     def __eq__(self, other):
         return other is not None and self.key == other.key
@@ -332,7 +399,7 @@ class PlexPartialObject(PlexObject):
         """ Retruns True if this is already a full object. A full object means all attributes
             were populated from the api path representing only this item. For example, the
             search result for a movie often only contain a portion of the attributes a full
-            object (main url) for that movie contain.
+            object (main url) for that movie would contain.
         """
         return not self.key or (self._details_key or self.key) == self._initpath
 
@@ -608,14 +675,6 @@ class Playable(object):
         self.accountID = utils.cast(int, data.attrib.get('accountID'))              # history
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
 
-    def isFullObject(self):
-        """ Retruns True if this is already a full object. A full object means all attributes
-            were populated from the api path representing only this item. For example, the
-            search result for a movie often only contain a portion of the attributes a full
-            object (main url) for that movie contain.
-        """
-        return self._details_key == self._initpath or not self.key
-
     def getStreamURL(self, **params):
         """ Returns a stream url that may be used by external applications such as VLC.
 
@@ -625,7 +684,7 @@ class Playable(object):
                     offset, copyts, protocol, mediaIndex, platform.
 
             Raises:
-                :class:`plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
+                :exc:`plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
         """
         if self.TYPE not in ('movie', 'episode', 'track'):
             raise Unsupported('Fetching stream URL for %s is unsupported.' % self.TYPE)
@@ -690,7 +749,7 @@ class Playable(object):
                 keep_original_name (bool): Set True to keep the original filename as stored in
                     the Plex server. False will create a new filename with the format
                     "<Artist> - <Album> <Track>".
-                kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL()` will
+                kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL` will
                     be returned and the additional arguments passed in will be sent to that
                     function. If kwargs is not specified, the media items will be downloaded
                     and saved to disk.

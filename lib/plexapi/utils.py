@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 import logging
 import os
 import re
@@ -147,7 +148,7 @@ def searchType(libtype):
             libtype (str): LibType to lookup (movie, show, season, episode, artist, album, track,
                                               collection)
         Raises:
-            :class:`plexapi.exceptions.NotFound`: Unknown libtype
+            :exc:`plexapi.exceptions.NotFound`: Unknown libtype
     """
     libtype = compat.ustr(libtype)
     if libtype in [compat.ustr(v) for v in SEARCHTYPES.values()]:
@@ -399,3 +400,7 @@ def getAgentIdentifier(section, agent):
         agents += identifiers
     raise NotFound('Couldnt find "%s" in agents list (%s)' %
                    (agent, ', '.join(agents)))
+
+
+def base64str(text):
+    return base64.b64encode(text.encode('utf-8')).decode('utf-8')
