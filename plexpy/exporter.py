@@ -92,6 +92,14 @@ class Export(object):
         'collection': ['children'],
         'playlist': ['item']
     }
+    TREE_MEDIA_TYPES = [
+        ('episode', 'season', 'show'),
+        ('track', 'album', 'artist'),
+        ('photo', 'photoalbum'),
+        ('clip', 'photoalbum'),
+        ('children', 'collection'),
+        ('item', 'playlist')
+    ]
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
     IMAGE_LEVELS = (0, 1, 2, 9)
@@ -1817,6 +1825,15 @@ class Export(object):
                 self._custom_fields[media_type].add(field)
             else:
                 self._custom_fields[media_type] = {field}
+
+        for tree in self.TREE_MEDIA_TYPES:
+            for child_media_type, parent_media_type in zip(tree[:-1], tree[1:]):
+                if child_media_type in self._custom_fields:
+                    plural_child_media_type = self.PLURAL_MEDIA_TYPES[child_media_type]
+                    if parent_media_type in self._custom_fields:
+                        self._custom_fields[parent_media_type].add(plural_child_media_type)
+                    else:
+                        self._custom_fields[parent_media_type] = {plural_child_media_type}
 
     def _parse_custom_field(self, media_type, field):
         for child_media_type in self.CHILD_MEDIA_TYPES.get(media_type, []):
