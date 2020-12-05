@@ -1197,9 +1197,10 @@ class Collections(PlexPartialObject):
         self.type = data.attrib.get('type')
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
 
-    @property
     def children(self):
-        return self.fetchItems(self.key)
+        """ Returns a list of all items in the collection. """
+        key = '/library/metadata/%s/children' % self.ratingKey
+        return self.fetchItems(key)
 
     @property
     def thumbUrl(self):
