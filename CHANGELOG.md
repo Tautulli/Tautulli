@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.6.2 (2020-12-05)
+
+* Notifications:
+  * Change: Send a notification of a user new device for the first time only. This can be toggled off in the settings.
+* Exporter:
+  * Fix: Allow exporting child fields only without requiring the parent fields as well.
+  * Fix: Exporting individual collection would fail.
+  * Change: Remove accessible and exists fields from the default media info export levels. This prevents the Plex server from reading the media files unnecessarily. 
+* Other:
+  * Fix: Enable high resolution for the macOS system tray icon and menu.
+  * New: Added rate limiting for failed login attempts.
+  * Change: Use a white logo for the macOS system tray icon.
+* API:
+  * New: Added machine_id to the get_history API response.
+
+
 ## v2.6.1 (2020-11-03)
 
 * Other:
