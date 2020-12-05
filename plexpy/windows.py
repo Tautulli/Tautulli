@@ -43,12 +43,11 @@ else:
 class WindowsSystemTray(object):
     def __init__(self):
         self.image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
+        self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
 
         if plexpy.UPDATE_AVAILABLE:
-            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
             self.hover_text = common.PRODUCT + ' - Update Available!'
         else:
-            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
             self.hover_text = common.PRODUCT
 
         if plexpy.CONFIG.LAUNCH_STARTUP:
@@ -116,12 +115,10 @@ class WindowsSystemTray(object):
 
     def change_tray_update_icon(self):
         if plexpy.UPDATE_AVAILABLE:
-            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
             self.hover_text = common.PRODUCT + ' - Update Available!'
         else:
-            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
             self.hover_text = common.PRODUCT + ' - No Update Available'
-        self.update(icon=self.icon, hover_text=self.hover_text)
+        self.update(hover_text=self.hover_text)
 
     def change_tray_icons(self):
         if plexpy.CONFIG.LAUNCH_STARTUP:

@@ -44,11 +44,12 @@ else:
 class MacOSSystemTray(object):
     def __init__(self):
         self.image_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/', plexpy.CONFIG.INTERFACE, 'images')
+        self.icon = os.path.join(self.image_dir, 'logo-flat-white.ico')
 
         if plexpy.UPDATE_AVAILABLE:
-            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
+            self.title = common.PRODUCT + ' - Update Available!'
         else:
-            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
+            self.title = common.PRODUCT
 
         self.menu = [
             rumps.MenuItem('Open Tautulli', callback=self.tray_open),
@@ -65,7 +66,8 @@ class MacOSSystemTray(object):
         self.menu[2].state = plexpy.CONFIG.LAUNCH_STARTUP
         self.menu[3].state = plexpy.CONFIG.LAUNCH_BROWSER
 
-        self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
+        self.tray_icon = rumps.App(common.PRODUCT, title=self.title,
+                                   icon=self.icon, menu=self.menu, quit_button=None)
 
     def start(self):
         logger.info("Launching MacOS menu bar icon.")
@@ -80,6 +82,8 @@ class MacOSSystemTray(object):
     def update(self, **kwargs):
         if 'icon' in kwargs:
             self.tray_icon.icon = kwargs['icon']
+        if 'title' in kwargs:
+            self.tray_icon.title = kwargs['title']
 
     def tray_open(self, tray_icon):
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
@@ -107,10 +111,10 @@ class MacOSSystemTray(object):
 
     def change_tray_update_icon(self):
         if plexpy.UPDATE_AVAILABLE:
-            self.icon = os.path.join(self.image_dir, 'logo-circle-update.ico')
+            self.title = common.PRODUCT + ' - Update Available!'
         else:
-            self.icon = os.path.join(self.image_dir, 'logo-circle.ico')
-        self.update(icon=self.icon)
+            self.title = common.PRODUCT + ' - No Update Available'
+        self.update(title=self.title)
 
     def change_tray_icons(self):
         self.tray_icon.menu['Start Tautulli at Login'].state = plexpy.CONFIG.LAUNCH_STARTUP
