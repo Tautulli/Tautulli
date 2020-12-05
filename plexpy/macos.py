@@ -47,9 +47,9 @@ class MacOSSystemTray(object):
         self.icon = os.path.join(self.image_dir, 'logo-flat-white.ico')
 
         if plexpy.UPDATE_AVAILABLE:
-            self.title = common.PRODUCT + ' - Update Available!'
+            self.update_title = 'Check for Updates - Update Available!'
         else:
-            self.title = common.PRODUCT
+            self.update_title = 'Check for Updates'
 
         self.menu = [
             rumps.MenuItem('Open Tautulli', callback=self.tray_open),
@@ -57,7 +57,7 @@ class MacOSSystemTray(object):
             rumps.MenuItem('Start Tautulli at Login', callback=self.tray_startup),
             rumps.MenuItem('Open Browser when Tautulli Starts', callback=self.tray_browser),
             None,
-            rumps.MenuItem('Check for Updates', callback=self.tray_check_update),
+            rumps.MenuItem(self.update_title, callback=self.tray_check_update),
             rumps.MenuItem('Restart', callback=self.tray_restart),
             rumps.MenuItem('Quit', callback=self.tray_quit)
         ]
@@ -66,8 +66,7 @@ class MacOSSystemTray(object):
         self.menu[2].state = plexpy.CONFIG.LAUNCH_STARTUP
         self.menu[3].state = plexpy.CONFIG.LAUNCH_BROWSER
 
-        self.tray_icon = rumps.App(common.PRODUCT, title=self.title,
-                                   icon=self.icon, menu=self.menu, quit_button=None)
+        self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
 
     def start(self):
         logger.info("Launching MacOS menu bar icon.")
@@ -82,8 +81,6 @@ class MacOSSystemTray(object):
     def update(self, **kwargs):
         if 'icon' in kwargs:
             self.tray_icon.icon = kwargs['icon']
-        if 'title' in kwargs:
-            self.tray_icon.title = kwargs['title']
 
     def tray_open(self, tray_icon):
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
@@ -102,6 +99,9 @@ class MacOSSystemTray(object):
     def tray_update(self, tray_icon):
         if plexpy.UPDATE_AVAILABLE:
             plexpy.SIGNAL = 'update'
+        else:
+            self.update_title = 'Check for Updates - No Update Available'
+            self.menu[5].title = self.update_title
 
     def tray_restart(self, tray_icon):
         plexpy.SIGNAL = 'restart'
@@ -111,10 +111,10 @@ class MacOSSystemTray(object):
 
     def change_tray_update_icon(self):
         if plexpy.UPDATE_AVAILABLE:
-            self.title = common.PRODUCT + ' - Update Available!'
+            self.update_title = 'Check for Updates - Update Available!'
         else:
-            self.title = common.PRODUCT + ' - No Update Available'
-        self.update(title=self.title)
+            self.update_title = 'Check for Updates'
+        self.menu[5].title = self.update_title
 
     def change_tray_icons(self):
         self.tray_icon.menu['Start Tautulli at Login'].state = plexpy.CONFIG.LAUNCH_STARTUP

@@ -47,8 +47,10 @@ class WindowsSystemTray(object):
 
         if plexpy.UPDATE_AVAILABLE:
             self.hover_text = common.PRODUCT + ' - Update Available!'
+            self.update_title = 'Check for Updates - Update Available!'
         else:
             self.hover_text = common.PRODUCT
+            self.update_title = 'Check for Updates'
 
         if plexpy.CONFIG.LAUNCH_STARTUP:
             launch_start_icon = os.path.join(self.image_dir, 'check-solid.ico')
@@ -65,7 +67,7 @@ class WindowsSystemTray(object):
             ['Start Tautulli at Login', launch_start_icon, self.tray_startup, None],
             ['Open Browser when Tautulli Starts', launch_browser_icon, self.tray_browser, None],
             ['', None, 'separator', None],
-            ['Check for Updates', None, self.tray_check_update, None],
+            [self.update_title, None, self.tray_check_update, None],
             ['Restart', None, self.tray_restart, None]
         ]
         if not plexpy.FROZEN:
@@ -104,8 +106,10 @@ class WindowsSystemTray(object):
         if plexpy.UPDATE_AVAILABLE:
             plexpy.SIGNAL = 'update'
         else:
-            hover_text = common.PRODUCT + ' - No Update Available'
-            self.update(hover_text=hover_text)
+            self.hover_text = common.PRODUCT + ' - No Update Available'
+            self.update_title = 'Check for Updates - No Update Available'
+            self.menu[5][0] = self.update_title
+            self.update(hover_text=self.hover_text, menu_options=self.menu)
 
     def tray_restart(self, tray_icon):
         plexpy.SIGNAL = 'restart'
@@ -116,9 +120,12 @@ class WindowsSystemTray(object):
     def change_tray_update_icon(self):
         if plexpy.UPDATE_AVAILABLE:
             self.hover_text = common.PRODUCT + ' - Update Available!'
+            self.update_title = 'Check for Updates - Update Available!'
         else:
             self.hover_text = common.PRODUCT + ' - No Update Available'
-        self.update(hover_text=self.hover_text)
+            self.update_title = 'Check for Updates'
+        self.menu[5][0] = self.update_title
+        self.update(hover_text=self.hover_text, menu_options=self.menu)
 
     def change_tray_icons(self):
         if plexpy.CONFIG.LAUNCH_STARTUP:
