@@ -213,6 +213,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
 
     keys_to_mask = {'user_id': '',
                     'user': 'Plex User',
+                    'username': 'Plex User',
                     'friendly_name': 'Plex User',
                     'user_thumb': common.DEFAULT_USER_THUMB,
                     'ip_address': 'N/A',
