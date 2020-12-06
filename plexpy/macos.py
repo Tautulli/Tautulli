@@ -66,7 +66,8 @@ class MacOSSystemTray(object):
         self.menu[2].state = plexpy.CONFIG.LAUNCH_STARTUP
         self.menu[3].state = plexpy.CONFIG.LAUNCH_BROWSER
 
-        self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, menu=self.menu, quit_button=None)
+        self.tray_icon = rumps.App(common.PRODUCT, icon=self.icon, template=True,
+                                   menu=self.menu, quit_button=None)
 
     def start(self):
         logger.info("Launching MacOS menu bar icon.")
