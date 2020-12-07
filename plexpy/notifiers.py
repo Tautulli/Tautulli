@@ -854,8 +854,8 @@ class Notifier(object):
 
         else:
             verify_msg = ""
-            if response is not None and response.status_code >= 400 and response.status_code < 500:
-                verify_msg = " Verify you notification agent settings are correct."
+            if response is not None and 400 <= response.status_code < 500:
+                verify_msg = " Verify your notification agent settings are correct."
 
             logger.error("Tautulli Notifiers :: {name} notification failed.{msg}".format(msg=verify_msg, name=self.NAME))
 
