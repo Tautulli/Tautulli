@@ -23,8 +23,10 @@ from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
 from future.moves.urllib.parse import urljoin
 
+import os
 import certifi
 import urllib3
+import requests
 
 import plexpy
 if plexpy.PYTHON2:
@@ -66,7 +68,8 @@ class HTTPHandler(object):
             self.headers['X-Plex-Token'] = self.token
 
         self.timeout = timeout
-        self.ssl_verify = ssl_verify
+
+        self.ssl_verify = certifi.where() if ssl_verify else False
 
         self.valid_request_types = ('GET', 'POST', 'PUT', 'DELETE')
 
@@ -118,43 +121,25 @@ class HTTPHandler(object):
             logger.debug("HTTP request made but no enpoint given.")
             return None
 
-    def _http_requests_pool(self, urls, workers=10, chunk=None):
-        """Generator function to request urls in chunks"""
-        # From cpython
-        if chunk is None:
-            chunk, extra = divmod(len(urls), workers * 4)
-            if extra:
-                chunk += 1
-            if len(urls) == 0:
-                chunk = 0
-
-        if self.ssl_verify:
-            session = urllib3.PoolManager(cert_reqs=2, ca_certs=certifi.where())  # ssl.CERT_REQUIRED = 2
-        else:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            session = urllib3.PoolManager()
-        part = partial(self._http_requests_urllib3, session=session)
+    def _http_requests_pool(self, urls):
+        """Generator function to request multiple urls"""
 
         if len(urls) == 1:
-            yield part(urls[0])
+            yield self._http_requests_single(urls[0])
         else:
-            pool = ThreadPool(workers)
+            for url in urls:
+                try:
+                    yield self._http_requests_single(url)
+                except Exception as e:
+                    if not self._silent:
+                        logger.error("Failed to yield request: %s" % e)
 
-            try:
-                for work in pool.imap_unordered(part, urls, chunk):
-                    yield work
-            except Exception as e:
-                if not self._silent:
-                    logger.error("Failed to yield request: %s" % e)
-            finally:
-                pool.close()
-                pool.join()
-
-    def _http_requests_urllib3(self, url, session):
+    def _http_requests_single(self, url):
         """Request the data from the url"""
         try:
-            r = session.request(self.request_type, url, headers=self.headers, fields=self.data,
-                                timeout=self.timeout, **self.request_kwargs)
+            r = requests.request(self.request_type, url, data=self.data, headers=self.headers,
+                                 timeout=self.timeout, verify=self.ssl_verify)
+
         except IOError as e:
             if not self._silent:
                 logger.warn("Failed to access uri endpoint %s with error %s" % (self.uri, e))
@@ -168,8 +153,8 @@ class HTTPHandler(object):
                 logger.warn("Failed to access uri endpoint %s with Uncaught exception." % self.uri)
             return None
 
-        response_status = r.status
-        response_content = r.data
+        response_status = r.status_code
+        response_content = r.content
         response_headers = r.headers
 
         if response_status in (200, 201):
