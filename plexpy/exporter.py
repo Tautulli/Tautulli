@@ -1885,7 +1885,8 @@ class Export(object):
             elif self.media_type == 'playlist' and 'item' in self._custom_fields:
                 export_attrs_set.update(self._custom_fields['item'])
 
-        if 'media.parts.accessible' in export_attrs_set or 'media.parts.exists' in export_attrs_set:
+        if 'media.parts.accessible' in export_attrs_set or 'media.parts.exists' in export_attrs_set or \
+                self.media_info_level == 9:
             self._reload_check_files = True
 
         for attr in export_attrs_set:
