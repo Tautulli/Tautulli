@@ -16,7 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# http://tools.cherrypy.org/wiki/AuthenticationAndAccessRestrictions
+# https://github.com/cherrypy/tools/blob/master/AuthenticationAndAccessRestrictions
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
