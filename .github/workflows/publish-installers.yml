@@ -1,12 +1,25 @@
-name: Publish Release
+name: Publish Installers
+
 on:
   push:
-    branches: [master, beta, nightly, python3]
+    branches: [master, beta, nightly]
     tags: [v*]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-installer:
+    name: Build ${{ matrix.os_upper }} Installer
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: 'windows'
+            os_upper: 'Windows'
+            ext: 'exe'
+          - os: 'macos'
+            os_upper: 'MacOS'
+            ext: 'pkg'
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -16,11 +29,13 @@ jobs:
         shell: bash
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
             VERSION_NSIS=${GITHUB_REF#refs/tags/v}.1
             echo ::set-output name=VERSION_NSIS::${VERSION_NSIS/%-beta.1/.0}
             echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
             echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
           else
+            echo "VERSION=0.0.0" >> $GITHUB_ENV
             echo ::set-output name=VERSION_NSIS::0.0.0.0
             echo ::set-output name=VERSION::0.0.0
             echo ::set-output name=RELEASE_VERSION::${GITHUB_SHA::7}
@@ -37,31 +52,44 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-windows.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles(format('package/requirements-{0}.txt', matrix.os)) }}
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r package/requirements-windows.txt
+          pip install -r package/requirements-${{ matrix.os }}.txt
 
       - name: Build Package
         run: |
-          pyinstaller -y ./package/Tautulli-windows.spec
+          pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
 
-      - name: Create Installer
+      - name: Create Windows Installer
+        if: matrix.os == 'windows'
         uses: joncloud/makensis-action@v1.2
         with:
           script-file: ./package/Tautulli.nsi
-          arguments: /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }} /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
+          arguments: >
+            /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }}
+            /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
           include-more-plugins: true
           include-custom-plugins-path: package/nsis-plugins
 
+      - name: Create MacOS Installer
+        if: matrix.os == 'macos'
+        run: |
+          sudo pkgbuild \
+            --install-location /Applications \
+            --version ${{ steps.get_version.outputs.VERSION }} \
+            --component ./dist/Tautulli.app \
+            --scripts ./package/macos-scripts \
+            Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
+
       - name: Upload Installer
         uses: actions/upload-artifact@v2
         with:
-          name: Tautulli-windows-installer
-          path: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
+          name: Tautulli-${{ matrix.os }}-installer
+          path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.${{ matrix.ext }}
 
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
@@ -69,73 +97,12 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
-          title: Build Windows Installer
-          nofail: true
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Set Release Version
-        id: get_version
-        shell: bash
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-            echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
-            echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
-          else
-            echo "VERSION=0.0.0" >> $GITHUB_ENV
-            echo ::set-output name=VERSION::0.0.0
-            echo ::set-output name=RELEASE_VERSION::${GITHUB_SHA::7}
-          fi
-          echo $GITHUB_SHA > version.txt
-
-      - name: Set Up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Cache Dependencies
-        id: cache_dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-macos.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r package/requirements-macos.txt
-
-      - name: Build Package
-        run: |
-          pyinstaller -y ./package/Tautulli-macos.spec
-
-      - name: Create Installer
-        run: |
-          sudo pkgbuild --install-location /Applications --version ${{ steps.get_version.outputs.VERSION }} --component ./dist/Tautulli.app --scripts ./package/macos-scripts Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
-
-      - name: Upload Installer
-        uses: actions/upload-artifact@v2
-        with:
-          name: Tautulli-macos-installer
-          path: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
-
-      - name: Post Status to Discord
-        uses: sarisia/actions-status-discord@v1
-        if: always()
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ job.status }}
-          title: Build MacOS Installer
+          title: Build ${{ matrix.os_upper }} Installer
           nofail: true
 
   release:
-    needs: [build-windows, build-macos]
+    name: Release Installers
+    needs: build-installer
     if: startsWith(github.ref, 'refs/tags/') && always()
     runs-on: ubuntu-latest
     steps:
@@ -150,21 +117,16 @@ jobs:
         run: |
           echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
 
-      - name: Download Windows Installer
+      - name: Download Installers
         if: env.WORKFLOW_CONCLUSION == 'success'
         uses: actions/download-artifact@v2
-        with:
-          name: Tautulli-windows-installer
-
-      - name: Download MacOS Installer
-        if: env.WORKFLOW_CONCLUSION == 'success'
-        uses: actions/download-artifact@v2
-        with:
-          name: Tautulli-macos-installer
 
       - name: Get Changelog
         id: get_changelog
-        run: echo ::set-output name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
+        run: |
+          changelog=$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
+            | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )
+          echo ::set-output name=CHANGELOG::$changelog
 
       - name: Create Release
         id: create_release

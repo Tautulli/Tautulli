@@ -1,10 +1,13 @@
 name: Publish Docker
+
 on:
   push:
-    branches: [master, beta, nightly, python3]
+    branches: [master, beta, nightly]
     tags: [v*]
+
 jobs:
-  build:
+  build-docker:
+    name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
