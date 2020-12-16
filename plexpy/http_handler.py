@@ -19,14 +19,12 @@ from __future__ import unicode_literals
 from future.builtins import object
 from future.builtins import str
 
-from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
 from future.moves.urllib.parse import urljoin
 
-import os
 import certifi
-import urllib3
 import requests
+import urllib3
 
 import plexpy
 if plexpy.PYTHON2:
@@ -43,6 +41,7 @@ class HTTPHandler(object):
     """
 
     def __init__(self, urls, headers=None, token=None, timeout=10, ssl_verify=True, silent=False):
+        self._valid_request_types = {'GET', 'POST', 'PUT', 'DELETE'}
         self._silent = silent
 
         if isinstance(urls, str):
@@ -53,25 +52,34 @@ class HTTPHandler(object):
         if headers:
             self.headers = headers
         else:
-            self.headers = {'X-Plex-Product': plexpy.common.PRODUCT,
-                            'X-Plex-Version': plexpy.common.RELEASE,
-                            'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                            'X-Plex-Platform': plexpy.common.PLATFORM,
-                            'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
-                            'X-Plex-Device': '{} {}'.format(plexpy.common.PLATFORM,
-                                                            plexpy.common.PLATFORM_RELEASE),
-                            'X-Plex-Device-Name': plexpy.common.PLATFORM_DEVICE_NAME
-                            }
+            self.headers = {
+                'X-Plex-Product': plexpy.common.PRODUCT,
+                'X-Plex-Version': plexpy.common.RELEASE,
+                'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
+                'X-Plex-Platform': plexpy.common.PLATFORM,
+                'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
+                'X-Plex-Device': '{} {}'.format(plexpy.common.PLATFORM,
+                                                plexpy.common.PLATFORM_RELEASE),
+                'X-Plex-Device-Name': plexpy.common.PLATFORM_DEVICE_NAME
+            }
 
         self.token = token
         if self.token:
             self.headers['X-Plex-Token'] = self.token
 
+        self._session = requests.Session()
         self.timeout = timeout
-
         self.ssl_verify = certifi.where() if ssl_verify else False
+        if not self.ssl_verify:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.valid_request_types = ('GET', 'POST', 'PUT', 'DELETE')
+        self.uri = None
+        self.data = None
+        self.request_type = 'GET'
+        self.output_format = 'raw'
+        self.return_type = False
+        self.callback = None
+        self.request_kwargs = {}
 
     def make_request(self,
                      uri=None,
@@ -99,7 +107,7 @@ class HTTPHandler(object):
         self.timeout = timeout or self.timeout
         self.request_kwargs = request_kwargs
 
-        if self.request_type not in self.valid_request_types:
+        if self.request_type not in self._valid_request_types:
             logger.debug("HTTP request made but unsupported request type given.")
             return None
 
@@ -118,39 +126,60 @@ class HTTPHandler(object):
             return responses[0]
 
         else:
-            logger.debug("HTTP request made but no enpoint given.")
+            logger.debug("HTTP request made but no uri endpoint provided.")
             return None
 
-    def _http_requests_pool(self, urls):
-        """Generator function to request multiple urls"""
+    def _http_requests_pool(self, urls, workers=10, chunk=None):
+        """Generator function to request urls in chunks"""
+        # From cpython
+        if chunk is None:
+            chunk, extra = divmod(len(urls), workers * 4)
+            if extra:
+                chunk += 1
+            if len(urls) == 0:
+                chunk = 0
 
         if len(urls) == 1:
             yield self._http_requests_single(urls[0])
         else:
-            for url in urls:
-                try:
-                    yield self._http_requests_single(url)
-                except Exception as e:
-                    if not self._silent:
-                        logger.error("Failed to yield request: %s" % e)
+            pool = ThreadPool(workers)
+
+            try:
+                for work in pool.imap_unordered(self._http_requests_single, urls, chunk):
+                    yield work
+            except Exception as e:
+                if not self._silent:
+                    logger.error("Failed to yield request: %s" % e)
+            finally:
+                pool.close()
+                pool.join()
 
     def _http_requests_single(self, url):
         """Request the data from the url"""
+        error_msg = "Failed to access uri endpoint %s. " % self.uri
         try:
-            r = requests.request(self.request_type, url, data=self.data, headers=self.headers,
-                                 timeout=self.timeout, verify=self.ssl_verify)
-
-        except IOError as e:
+            r = self._session.request(self.request_type, url, headers=self.headers, data=self.data,
+                                      timeout=self.timeout, verify=self.ssl_verify, **self.request_kwargs)
+            r.raise_for_status()
+        except requests.exceptions.Timeout as e:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s with error %s" % (self.uri, e))
+                logger.error(error_msg + "Request timed out: %s", e)
             return None
-        except Exception as e:
+        except requests.exceptions.SSLError as e:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (self.uri, e))
+                logger.error(error_msg + "Is your server maybe accepting SSL connections only? %s", e)
             return None
-        except:
+        except requests.exceptions.HTTPError as e:
             if not self._silent:
-                logger.warn("Failed to access uri endpoint %s with Uncaught exception." % self.uri)
+                logger.error(error_msg + "Status code %s", e)
+            return None
+        except requests.exceptions.ConnectionError as e:
+            if not self._silent:
+                logger.error(error_msg + "Connection error: %s", e)
+            return None
+        except requests.exceptions.RequestException as e:
+            if not self._silent:
+                logger.error(error_msg + "Uncaught exception: %s", e)
             return None
 
         response_status = r.status_code
@@ -159,10 +188,6 @@ class HTTPHandler(object):
 
         if response_status in (200, 201):
             return self._http_format_output(response_content, response_headers)
-        else:
-            if not self._silent:
-                logger.warn("Failed to access uri endpoint %s. Status code %r" % (self.uri, response_status))
-            return None
 
     def _http_format_output(self, response_content, response_headers):
         """Formats the request response to the desired type"""
