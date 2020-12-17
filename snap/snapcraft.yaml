@@ -24,9 +24,25 @@ parts:
       snapcraftctl pull
       TAG_FULL=$(git describe --tag)
       TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
-      COMMIT_HASH=$(git rev-parse --short=7 HEAD)
-      [ "$TAG" = "$TAG_FULL" ] && VERSION=$TAG || VERSION=$COMMIT_HASH
-      [ "$VERSION" = ${VERSION#v} ] || [ ! "$VERSION" = ${VERSION%-beta} ] && GRADE=devel || GRADE=stable
+      BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      COMMIT=$(git rev-parse HEAD)
+      if [ "$TAG" = "$TAG_FULL" ]; then
+        VERSION=$TAG
+      else
+        VERSION=$(echo $COMMIT | head -c 7)
+      fi
+      if [ ! "$VERSION" = "$TAG" ] || [ ! "$VERSION" = "${VERSION%-beta}" ]; then
+        GRADE=devel
+      else
+        GRADE=stable
+      fi
+      if [ "$VERSION" = "$TAG" ] && [ ! "$VERSION" = "${VERSION%-beta}" ]; then
+        BRANCH=beta
+      elif [ "$VERSION" = "$TAG" ]; then
+        BRANCH=master
+      fi
+      echo $BRANCH > branch.txt
+      echo $COMMIT > version.txt
       snapcraftctl set-version "$VERSION"
       snapcraftctl set-grade "$GRADE"
 
