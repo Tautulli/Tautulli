@@ -6,7 +6,7 @@ on:
     tags: [v*]
 
 jobs:
-  build-docker:
+  build-snap:
     name: Build Snap Package
     runs-on: ubuntu-latest
     steps:
