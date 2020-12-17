@@ -4,11 +4,22 @@ on:
   push:
     branches: [master, beta, nightly]
     tags: [v*]
+    pull_request: ~
 
 jobs:
   build-snap:
-    name: Build Snap Package
+    name: Build Snap Package (${{ matrix.architecture }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture:
+          - i386
+          - amd64
+          - arm64
+          - armhf
+          - ppc64le
+          #- s390x  # broken at the moment
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -17,37 +28,67 @@ jobs:
         id: prepare
         run: |
           git fetch --prune --unshallow --tags
-          if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
+          if [[ $GITHUB_REF == refs/tags/*-beta || $GITHUB_REF == refs/heads/beta ]]; then
             echo ::set-output name=RELEASE::beta
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+          elif [[ $GITHUB_REF == refs/tags/* || $GITHUB_REF == refs/heads/master ]]; then
             echo ::set-output name=RELEASE::stable
           else
             echo ::set-output name=RELEASE::edge
           fi
 
+      - name: Set Up QEMU
+        uses: docker/setup-qemu-action@v1
+
       - name: Build Snap Package
-        uses: snapcore/action-build@v1
         id: build
+        uses: diddlesnaps/snapcraft-multiarch-action@v1
+        with:
+          architecture: ${{ matrix.architecture }}
 
       - name: Upload Snap Package
         uses: actions/upload-artifact@v2
         with:
-          name: Tautulli-snap-package
+          name: Tautulli-snap-package-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}
 
+      - name: Review Snap Package
+        uses: diddlesnaps/snapcraft-review-tools-action@v1
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+
       - name: Publish Snap Package
-        if: startsWith(github.ref, 'refs/tags/')
+        if: >
+          github.event_name != 'pull_request' &&
+          (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/nightly')
         uses: snapcore/action-publish@v1
         with:
           store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.build.outputs.snap }}
           release: ${{ steps.prepare.outputs.RELEASE }}
 
+  discord:
+    name: Discord Notification
+    needs: build-snap
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Job Status
+        uses: technote-space/workflow-conclusion-action@v1
+
+      - name: Combine Job Status
+        id: status
+        run: |
+          failures=(neutral, skipped, timed_out, action_required)
+          if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
+            echo ::set-output name=status::failure
+          else
+            echo ::set-output name=status::$WORKFLOW_CONCLUSION
+          fi
+
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
-        if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ job.status }}
+          status: ${{ steps.status.outputs.status }}
           title: ${{ github.workflow }}
           nofail: true
