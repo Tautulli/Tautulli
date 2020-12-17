@@ -124,6 +124,8 @@ def main():
 
     if helpers.bool_true(os.getenv('TAUTULLI_DOCKER', False)):
         plexpy.DOCKER = True
+    if helpers.bool_true(os.getenv('TAUTULLI_SNAP', False)):
+        plexpy.SNAP = True
 
     if args.dev:
         plexpy.DEV = True
