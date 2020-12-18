@@ -18,7 +18,7 @@ jobs:
           - amd64
           - arm64
           - armhf
-          - ppc64le
+          - ppc64el
           #- s390x  # broken at the moment
     steps:
       - name: Checkout Code
