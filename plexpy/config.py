@@ -257,7 +257,7 @@ def import_tautulli_config(config=None, backup=False):
     # Remove keys that should not be imported
     for key in _DO_NOT_IMPORT_KEYS:
         delattr(imported_config, key)
-    if plexpy.DOCKER:
+    if plexpy.DOCKER or plexpy.SNAP:
         for key in _DO_NOT_IMPORT_KEYS_DOCKER:
             delattr(imported_config, key)
 
@@ -540,3 +540,9 @@ class Config(object):
                 self.JWT_UPDATE_SECRET = True
 
             self.CONFIG_VERSION = 16
+
+        if self.CONFIG_VERSION == 16:
+            if plexpy.SNAP:
+                self.PLEXPY_AUTO_UPDATE = 0
+
+            self.CONFIG_VERSION = 17

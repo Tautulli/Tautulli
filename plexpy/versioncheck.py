@@ -133,7 +133,13 @@ def get_version():
         return cur_commit_hash, remote_name, branch_name
 
     else:
-        plexpy.INSTALL_TYPE = 'docker' if plexpy.DOCKER else 'source'
+        if plexpy.DOCKER:
+            plexpy.INSTALL_TYPE = 'docker'
+        elif plexpy.SNAP:
+            plexpy.INSTALL_TYPE = 'snap'
+        else:
+            plexpy.INSTALL_TYPE = 'source'
+
         current_version, current_branch = get_version_from_file()
         return current_version, 'origin', current_branch
 
@@ -162,10 +168,13 @@ def check_update(scheduler=False, notify=False, use_cache=False):
 
     if not plexpy.CURRENT_VERSION:
         plexpy.UPDATE_AVAILABLE = None
-    elif plexpy.COMMITS_BEHIND > 0 and (plexpy.common.BRANCH in ('master', 'beta') or plexpy.FROZEN) and \
+    elif plexpy.COMMITS_BEHIND > 0 and \
+            (plexpy.common.BRANCH in ('master', 'beta') or plexpy.SNAP or plexpy.FROZEN) and \
             plexpy.common.RELEASE != plexpy.LATEST_RELEASE:
         plexpy.UPDATE_AVAILABLE = 'release'
-    elif plexpy.COMMITS_BEHIND > 0 and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and not plexpy.FROZEN:
+    elif plexpy.COMMITS_BEHIND > 0 and \
+            not plexpy.SNAP and not plexpy.FROZEN and \
+            plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION:
         plexpy.UPDATE_AVAILABLE = 'commit'
     else:
         plexpy.UPDATE_AVAILABLE = False
@@ -265,7 +274,8 @@ def check_github(scheduler=False, notify=False, use_cache=False):
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
-        if scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and not plexpy.DOCKER and not plexpy.FROZEN:
+        if scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and \
+                not plexpy.DOCKER and not plexpy.SNAP and not plexpy.FROZEN:
             logger.info('Running automatic update.')
             plexpy.shutdown(restart=True, update=True)
 
@@ -279,7 +289,7 @@ def update():
     if not plexpy.UPDATE_AVAILABLE:
         return
 
-    if plexpy.INSTALL_TYPE in ('docker', 'windows', 'macos'):
+    if plexpy.INSTALL_TYPE in ('docker', 'snap', 'windows', 'macos'):
         return
 
     elif plexpy.INSTALL_TYPE == 'git':

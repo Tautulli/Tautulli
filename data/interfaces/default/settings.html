@@ -220,7 +220,7 @@
                             <p class="help-block">Check for Tautulli updates periodically.</p>
                         </div>
                         <div id="git_update_options">
-                            % if not plexpy.FROZEN:
+                            % if not plexpy.SNAP and not plexpy.FROZEN:
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']} ${docker_setting}> Update Automatically ${docker_msg | n}
