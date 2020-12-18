@@ -1,0 +1,64 @@
+name: tautulli
+adopt-info: tautulli
+summary: A Python based monitoring and tracking tool for Plex Media Server.
+description: >
+  Tautulli is a 3rd party application that you can run alongside your Plex Media Server to monitor activity and track various statistics. 
+  Most importantly, these statistics include what has been watched, who watched it, when and where they watched it, and how it was watched. 
+  The only thing missing is "why they watched it", but who am I to question your 42 plays of Frozen. 
+  All statistics are presented in a nice and clean interface with many tables and graphs, which makes it easy to brag about your server to everyone else.
+
+base: core18
+confinement: strict
+
+parts:
+  tautulli:
+    plugin: dump
+    source: .
+    stage-packages:
+      - python3
+      - python3-setuptools
+      - python3-openssl
+    build-packages:
+      - git
+    override-pull: |
+      snapcraftctl pull
+      TAG_FULL=$(git describe --tag)
+      TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
+      BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      COMMIT=$(git rev-parse HEAD)
+      if [ "$TAG" = "$TAG_FULL" ]; then
+        VERSION=$TAG
+      else
+        VERSION=$(echo $COMMIT | head -c 7)
+      fi
+      if [ ! "$VERSION" = "$TAG" ] || [ ! "$VERSION" = "${VERSION%-beta}" ]; then
+        GRADE=devel
+      else
+        GRADE=stable
+      fi
+      if [ "$VERSION" = "$TAG" ] && [ ! "$VERSION" = "${VERSION%-beta}" ]; then
+        BRANCH=beta
+      elif [ "$VERSION" = "$TAG" ]; then
+        BRANCH=master
+      fi
+      echo $BRANCH > branch.txt
+      echo $COMMIT > version.txt
+      snapcraftctl set-version "$VERSION"
+      snapcraftctl set-grade "$GRADE"
+
+apps:
+  tautulli:
+    command: >
+      usr/bin/python3 $SNAP/Tautulli.py
+        --datadir $SNAP_USER_COMMON/Tautulli
+        --config $SNAP_USER_COMMON/Tautulli/config.ini
+        --quiet
+        --nolaunch
+    daemon: simple
+    restart-condition: on-abnormal
+    restart-delay: 5s
+    plugs:
+      - network
+      - network-bind
+    environment:
+      TAUTULLI_SNAP: "True"

@@ -4309,7 +4309,7 @@ class WebInterface(object):
                              plexpy.CONFIG.GIT_REPO,
                              plexpy.CURRENT_VERSION,
                              plexpy.LATEST_VERSION))
-                    }
+                      }
 
         else:
             update = {'result': 'success',
@@ -4317,7 +4317,7 @@ class WebInterface(object):
                       'message': 'Tautulli is up to date.'
                       }
 
-        if plexpy.DOCKER or plexpy.FROZEN:
+        if plexpy.DOCKER or plexpy.SNAP or plexpy.FROZEN:
             update['install_type'] = plexpy.INSTALL_TYPE
 
         return update
@@ -4351,7 +4351,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
-        if plexpy.DOCKER:
+        if plexpy.DOCKER or plexpy.SNAP:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
         # Show changelog after updating

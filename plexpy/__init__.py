@@ -98,6 +98,7 @@ CREATEPID = False
 PIDFILE = None
 NOFORK = False
 DOCKER = False
+SNAP = False
 FROZEN = False
 
 SCHED = None
@@ -194,6 +195,8 @@ def initialize(config_file):
 
         if DOCKER:
             build = '[Docker] '
+        elif SNAP:
+            build = '[Snap] '
         elif FROZEN:
             build = '[Bundle] '
         else:
