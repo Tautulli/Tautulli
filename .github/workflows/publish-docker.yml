@@ -23,7 +23,9 @@ jobs:
           else
             echo ::set-output name=tag::${GITHUB_REF#refs/heads/}
           fi
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
+          if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
+            echo ::set-output name=branch::beta
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
             echo ::set-output name=branch::master
           else
             echo ::set-output name=branch::${GITHUB_REF#refs/heads/}
@@ -33,10 +35,8 @@ jobs:
           echo ::set-output name=docker_platforms::linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6
           echo ::set-output name=docker_image::${{ secrets.DOCKER_REPO }}/tautulli
 
-      - name: Set up QEMU
+      - name: Set Up QEMU
         uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
 
       - name: Set up Docker Buildx
         id: buildx
