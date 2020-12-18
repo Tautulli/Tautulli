@@ -4,6 +4,7 @@ on:
   push:
     branches: [master, beta, nightly]
     tags: [v*]
+    pull_request: ~
 
 jobs:
   build-installer:
@@ -93,7 +94,7 @@ jobs:
 
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
@@ -103,7 +104,7 @@ jobs:
   release:
     name: Release Installers
     needs: build-installer
-    if: startsWith(github.ref, 'refs/tags/') && always()
+    if: always() && startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Job Status
