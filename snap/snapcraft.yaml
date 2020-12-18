@@ -16,8 +16,9 @@ parts:
     source: .
     stage-packages:
       - python3
-      - python3-setuptools
       - python3-openssl
+      - python3-pycryptodome
+      - python3-setuptools
     build-packages:
       - git
     override-pull: |
