@@ -87,11 +87,29 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
+  discord:
+    name: Discord Notification
+    needs: build-docker
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Job Status
+        uses: technote-space/workflow-conclusion-action@v1
+
+      - name: Combine Job Status
+        id: status
+        run: |
+          failures=(neutral, skipped, timed_out, action_required)
+          if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
+            echo ::set-output name=status::failure
+          else
+            echo ::set-output name=status::$WORKFLOW_CONCLUSION
+          fi
+
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
-        if: always() && github.event_name != 'pull_request'
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ job.status }}
+          status: ${{ steps.status.outputs.status }}
           title: ${{ github.workflow }}
           nofail: true
