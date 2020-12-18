@@ -40,8 +40,8 @@ jobs:
         uses: docker/setup-qemu-action@v1
 
       - name: Build Snap Package
-        id: build
         uses: diddlesnaps/snapcraft-multiarch-action@v1
+        id: build
         with:
           architecture: ${{ matrix.architecture }}
 
@@ -57,10 +57,10 @@ jobs:
           snap: ${{ steps.build.outputs.snap }}
 
       - name: Publish Snap Package
+        uses: snapcore/action-publish@v1
         if: >
           github.event_name != 'pull_request' &&
           (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/nightly')
-        uses: snapcore/action-publish@v1
         with:
           store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.build.outputs.snap }}
