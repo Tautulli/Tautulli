@@ -66,6 +66,16 @@ jobs:
           snap: ${{ steps.build.outputs.snap }}
           release: ${{ steps.prepare.outputs.RELEASE }}
 
+      - name: Publish Snap Package (beta)
+        uses: snapcore/action-publish@v1
+        if: >
+          github.event_name != 'pull_request' &&
+          startsWith(github.ref, 'refs/tags/') && !endsWith(github.ref, '-beta')
+        with:
+          store_login: ${{ secrets.SNAP_LOGIN }}
+          snap: ${{ steps.build.outputs.snap }}
+          release: beta
+
   discord:
     name: Discord Notification
     needs: build-snap
