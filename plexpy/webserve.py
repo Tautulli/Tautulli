@@ -4351,6 +4351,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
+        if plexpy.PYTHON2:
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home?update=python2")
         if plexpy.DOCKER or plexpy.SNAP:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 

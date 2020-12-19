@@ -274,7 +274,10 @@ def check_github(scheduler=False, notify=False, use_cache=False):
                                      'plexpy_update_commit': plexpy.LATEST_VERSION,
                                      'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
-        if scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and \
+        if plexpy.PYTHON2:
+            logger.warn('Tautulli is running using Python 2. Unable to run automatic update.')
+
+        elif scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and \
                 not plexpy.DOCKER and not plexpy.SNAP and not plexpy.FROZEN:
             logger.info('Running automatic update.')
             plexpy.shutdown(restart=True, update=True)
@@ -286,6 +289,10 @@ def check_github(scheduler=False, notify=False, use_cache=False):
 
 
 def update():
+    if plexpy.PYTHON2:
+        logger.warn('Tautulli is running using Python 2. Unable to update.')
+        return
+
     if not plexpy.UPDATE_AVAILABLE:
         return
 
