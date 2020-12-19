@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.6.3 (2020-12-19)
+
+* Announcements:
+  * This is the last Tautulli version to support Python 2. Python 3 will be required to continue receiving updates. You can check your Python version on the settings page.
+* Exporter:
+  * Fix: Accessible and exists attributes were blank for media info export level 9.
+* UI:
+  * Fix: Guest usernames were not masked on mouse hover.
+* Other:
+  * Fix: macOS menu bar icon for light and dark mode.
+  * New: Tautulli can officially be installed on Linux using a Snap package. See the installation wiki for details.
+
+
 ## v2.6.2 (2020-12-05)
 
 * Notifications:
