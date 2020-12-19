@@ -168,7 +168,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
+          asset_path: Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
           asset_name: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
@@ -179,6 +179,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
+          asset_path: Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
           asset_name: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
           asset_content_type: application/vnd.apple.installer+xml
