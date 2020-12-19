@@ -3,7 +3,7 @@ name: Publish Snap
 on:
   push:
     branches: [master, beta, nightly]
-    tags: [v*]
+    #tags: [v*]
     pull_request: ~
 
 jobs:
@@ -28,10 +28,10 @@ jobs:
         id: prepare
         run: |
           git fetch --prune --unshallow --tags
-          if [[ $GITHUB_REF == refs/tags/*-beta || $GITHUB_REF == refs/heads/beta ]]; then
-            echo ::set-output name=RELEASE::beta
-          elif [[ $GITHUB_REF == refs/tags/* || $GITHUB_REF == refs/heads/master ]]; then
+          if [[ $GITHUB_REF == refs/heads/master ]]; then
             echo ::set-output name=RELEASE::stable
+          elif [[ $GITHUB_REF == refs/heads/beta ]]; then
+            echo ::set-output name=RELEASE::beta
           else
             echo ::set-output name=RELEASE::edge
           fi
@@ -58,9 +58,7 @@ jobs:
 
       - name: Publish Snap Package
         uses: snapcore/action-publish@v1
-        if: >
-          github.event_name != 'pull_request' &&
-          (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/nightly')
+        if: github.event_name != 'pull_request'
         with:
           store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.build.outputs.snap }}

@@ -37,11 +37,6 @@ parts:
       else
         GRADE=stable
       fi
-      if [ "$VERSION" = "$TAG" ] && [ ! "$VERSION" = "${VERSION%-beta}" ]; then
-        BRANCH=beta
-      elif [ "$VERSION" = "$TAG" ]; then
-        BRANCH=master
-      fi
       echo $BRANCH > branch.txt
       echo $COMMIT > version.txt
       snapcraftctl set-version "$VERSION"
