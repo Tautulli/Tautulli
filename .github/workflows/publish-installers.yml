@@ -142,9 +142,8 @@ jobs:
       - name: Get Changelog
         id: get_changelog
         run: |
-          changelog=$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
-            | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )
-          echo ::set-output name=CHANGELOG::$changelog
+          echo ::set-output name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
+            | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
 
       - name: Create Release
         uses: actions/create-release@v1
