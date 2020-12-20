@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.6.4 (2020-12-20)
+
+* Other:
+  * Fix: Restore Snap data folder from previous installs.
+
+
 ## v2.6.3 (2020-12-19)
 
 * Announcements:
