@@ -162,10 +162,11 @@ def set_startup():
         plist_file_path = os.path.join(launch_agents, plist_file)
 
         exe = sys.executable
+        run_args = [arg for arg in plexpy.ARGS if arg != '--nolaunch']
         if plexpy.FROZEN:
-            args = [exe]
+            args = [exe] + run_args
         else:
-            args = [exe, plexpy.FULL_PATH]
+            args = [exe, plexpy.FULL_PATH] + run_args
 
         plist_dict = {
             'Label': common.PRODUCT,

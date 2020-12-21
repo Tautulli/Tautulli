@@ -148,10 +148,11 @@ def set_startup():
     startup_reg_path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
     exe = sys.executable
+    run_args = [arg for arg in plexpy.ARGS if arg != '--nolaunch']
     if plexpy.FROZEN:
-        args = [exe]
+        args = [exe] + run_args
     else:
-        args = [exe, plexpy.FULL_PATH]
+        args = [exe, plexpy.FULL_PATH] + run_args
 
     registry_key_name = '{}_{}'.format(common.PRODUCT, plexpy.CONFIG.PMS_UUID)
 
