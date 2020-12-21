@@ -153,13 +153,30 @@ def set_startup():
     else:
         args = [exe, plexpy.FULL_PATH]
 
+    registry_key_name = '{}_{}'.format(common.PRODUCT, plexpy.CONFIG.PMS_UUID)
+
     cmd = ' '.join(cmd_quote(arg) for arg in args).replace('python.exe', 'pythonw.exe').replace("'", '"')
 
     if plexpy.CONFIG.LAUNCH_STARTUP:
+        # Rename old Tautulli registry key
+        try:
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_ALL_ACCESS)
+            winreg.QueryValueEx(registry_key, common.PRODUCT)
+            reg_value_exists = True
+        except WindowsError:
+            reg_value_exists = False
+
+        if reg_value_exists:
+            try:
+                winreg.DeleteValue(registry_key, common.PRODUCT)
+                winreg.CloseKey(registry_key)
+            except WindowsError:
+                pass
+
         try:
             winreg.CreateKey(winreg.HKEY_CURRENT_USER, startup_reg_path)
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_WRITE)
-            winreg.SetValueEx(registry_key, common.PRODUCT, 0, winreg.REG_SZ, cmd)
+            winreg.SetValueEx(registry_key, registry_key_name, 0, winreg.REG_SZ, cmd)
             winreg.CloseKey(registry_key)
             logger.info("Added Tautulli to Windows system startup registry key.")
             return True
@@ -171,14 +188,14 @@ def set_startup():
         # Check if registry value exists
         try:
             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, startup_reg_path, 0, winreg.KEY_ALL_ACCESS)
-            winreg.QueryValueEx(registry_key, common.PRODUCT)
+            winreg.QueryValueEx(registry_key, registry_key_name)
             reg_value_exists = True
         except WindowsError:
             reg_value_exists = False
 
         if reg_value_exists:
             try:
-                winreg.DeleteValue(registry_key, common.PRODUCT)
+                winreg.DeleteValue(registry_key, registry_key_name)
                 winreg.CloseKey(registry_key)
                 logger.info("Removed Tautulli from Windows system startup registry key.")
                 return True
