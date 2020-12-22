@@ -41,6 +41,7 @@ jobs:
             echo ::set-output name=VERSION::0.0.0
             echo ::set-output name=RELEASE_VERSION::${GITHUB_SHA::7}
           fi
+          echo ${GITHUB_REF#refs/heads/} > branch.txt
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
@@ -63,6 +64,11 @@ jobs:
       - name: Build Package
         run: |
           pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
+
+      - name: Move Windows Updater Files
+        if: matrix.os == 'windows'
+        run: |
+          MOVE /Y dist\updater\* dist\Tautulli
 
       - name: Create Windows Installer
         uses: joncloud/makensis-action@v1.2
