@@ -277,6 +277,10 @@ def check_github(scheduler=False, notify=False, use_cache=False):
         if plexpy.PYTHON2:
             logger.warn('Tautulli is running using Python 2. Unable to run automatic update.')
 
+        elif scheduler and plexpy.FROZEN and common.PLATFORM == 'Windows':
+            logger.info('Running automatic update.')
+            plexpy.shutdown(update=True)
+
         elif scheduler and plexpy.CONFIG.PLEXPY_AUTO_UPDATE and \
                 not plexpy.DOCKER and not plexpy.SNAP and not plexpy.FROZEN:
             logger.info('Running automatic update.')
@@ -296,8 +300,12 @@ def update():
     if not plexpy.UPDATE_AVAILABLE:
         return
 
-    if plexpy.INSTALL_TYPE in ('docker', 'snap', 'windows', 'macos'):
+    if plexpy.INSTALL_TYPE in ('docker', 'snap', 'macos'):
         return
+
+    elif plexpy.INSTALL_TYPE == 'windows':
+        logger.info('Calling Windows scheduled task to update Tautulli')
+        subprocess.Popen(['SCHTASKS', '/Run', '/TN', 'TautulliUpdateTask'])
 
     elif plexpy.INSTALL_TYPE == 'git':
         output, err = runGit('pull --ff-only {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
