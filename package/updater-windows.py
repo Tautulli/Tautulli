@@ -60,11 +60,11 @@ def update_tautulli():
     logger.info('Starting Tautulli update check')
 
     with open(os.path.join(SCRIPT_PATH, 'branch.txt'), 'r') as f:
-        branch = f.read()
+        branch = f.read().strip(' \n\r')
     logger.info('Branch: %s', branch)
 
     with open(os.path.join(SCRIPT_PATH, 'version.txt'), 'r') as f:
-        current_version = f.read()
+        current_version = f.read().strip(' \n\r')
     logger.info('Current version: %s', current_version)
 
     logger.info('Retrieving latest version from GitHub')
