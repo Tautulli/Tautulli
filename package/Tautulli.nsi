@@ -123,6 +123,8 @@ SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
 File /nonfatal /a /r "..\dist\${APP_NAME}\"
 
+nsExec::Exec '$SYSDIR\SCHTASKS /Create /TN TautulliUpdateTask /XML "$INSTDIR\TautulliUpdateTask.xml" /F'
+
 IfSilent 0 +2
 ExecShell "" "$INSTDIR\${MAIN_APP_EXE}" $nolaunch
 SectionEnd
@@ -208,6 +210,9 @@ RmDir "$SMPROGRAMS\${APP_NAME}"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+
+nsExec::Exec "$SYSDIR\SCHTASKS /Delete /TN TautulliUpdateTask /F"
+
 SectionEnd
 
 ######################################################################
