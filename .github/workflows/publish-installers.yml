@@ -68,7 +68,7 @@ jobs:
       - name: Move Windows Updater Files
         if: matrix.os == 'windows'
         run: |
-          MOVE /Y dist\updater\* dist\Tautulli
+          Move-Item dist\updater\* dist\Tautulli\ -Force
 
       - name: Create Windows Installer
         uses: joncloud/makensis-action@v1.2
