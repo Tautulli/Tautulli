@@ -1,4 +1,5 @@
-pyinstaller==3.6
+apshceduler=3.6.3
+pyinstaller==4.1
 pyopenssl==20.0.0
 pycryptodomex==3.9.9
 pywin32==300
