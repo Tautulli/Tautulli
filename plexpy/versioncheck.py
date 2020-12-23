@@ -302,7 +302,9 @@ def update():
 
     elif plexpy.INSTALL_TYPE == 'windows':
         logger.info('Calling Windows scheduled task to update Tautulli')
-        subprocess.Popen(['SCHTASKS', '/Run', '/TN', 'TautulliUpdateTask'])
+        CREATE_NO_WINDOW = 0x08000000
+        subprocess.Popen(['SCHTASKS', '/Run', '/TN', 'TautulliUpdateTask'],
+                         creationflags=CREATE_NO_WINDOW)
 
     elif plexpy.INSTALL_TYPE == 'git':
         output, err = runGit('pull --ff-only {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
