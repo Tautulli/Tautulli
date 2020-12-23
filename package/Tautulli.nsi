@@ -76,9 +76,13 @@ InstallDir "$PROGRAMFILES\${APP_NAME}"
 
 !include Sections.nsh
 
+Var /GLOBAL norun
 Var /GLOBAL nolaunch
 
 !include "MUI.nsh"
+!include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
@@ -125,6 +129,7 @@ File /nonfatal /a /r "..\dist\${APP_NAME}\"
 
 nsExec::Exec '$SYSDIR\SCHTASKS /Create /TN TautulliUpdateTask /XML "$INSTDIR\TautulliUpdateTask.xml" /F'
 
+StrCmp $norun 1 +3 0
 IfSilent 0 +2
 ExecShell "" "$INSTDIR\${MAIN_APP_EXE}" $nolaunch
 SectionEnd
@@ -218,6 +223,12 @@ SectionEnd
 ######################################################################
 
 Function .onInit
+  StrCpy $norun 0
+  ${GetParameters} $CMDLINE
+  ${GetOptions} "$CMDLINE" "/NORUN" $R0
+  IfErrors +2 0
+  StrCpy $norun 1
+
   IfSilent 0 +2
   StrCpy $nolaunch "--nolaunch"
   

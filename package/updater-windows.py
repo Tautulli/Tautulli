@@ -18,6 +18,7 @@
 from logging import handlers
 import logging
 import os
+import psutil
 import requests
 import shutil
 import subprocess
@@ -44,43 +45,47 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def kill_if_exists(process_name):
-    output = subprocess.check_output(
-        ['TASKLIST', '/FI', 'IMAGENAME eq {}'.format(process_name)],
-        creationflags=CREATE_NO_WINDOW).decode()
-    output = output.strip().split('\n')[-1]
-    if output.lower().startswith(process_name.lower()):
-        return subprocess.check_call(
-            ['TASKKILL', '/IM', process_name],
-            creationflags=CREATE_NO_WINDOW)
-    return 0
+def read_file(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            return f.read().strip(' \n\r')
+    except Exception as e:
+        logger.error('Read file error: %s', e)
+        raise Exception(1)
+
+
+def request_json(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error('Request error: %s', e)
+        raise Exception(2)
+
+
+def kill_and_get_processes(process_name):
+    processes = []
+    for process in psutil.process_iter():
+        if process.name() == process_name:
+            processes.append(process.cmdline())
+            logger.info('Sending SIGTERM to %s (PID=%d)', process.name(), process.pid)
+            process.terminate()
+    return processes
 
 
 def update_tautulli():
     logger.info('Starting Tautulli update check')
 
-    with open(os.path.join(SCRIPT_PATH, 'branch.txt'), 'r') as f:
-        branch = f.read().strip(' \n\r')
+    branch = read_file(os.path.join(SCRIPT_PATH, 'branch.txt'))
     logger.info('Branch: %s', branch)
 
-    with open(os.path.join(SCRIPT_PATH, 'version.txt'), 'r') as f:
-        current_version = f.read().strip(' \n\r')
+    current_version = read_file(os.path.join(SCRIPT_PATH, 'version.txt'))
     logger.info('Current version: %s', current_version)
 
     logger.info('Retrieving latest version from GitHub')
-    try:
-        response = requests.get('{}/commits/{}'.format(REPO_URL, branch))
-        response.raise_for_status()
-    except Exception as e:
-        logger.error('Request error: %s', e)
-        return 2
-
-    try:
-        commits = response.json()
-        latest_version = commits['sha']
-    except Exception as e:
-        logger.error('Failed to retrieve latest version: %s', e)
-        return 1
+    commits = request_json('{}/commits/{}'.format(REPO_URL, branch))
+    latest_version = commits['sha']
     logger.info('Latest version: %s', latest_version)
 
     if current_version == latest_version:
@@ -88,78 +93,67 @@ def update_tautulli():
         return 0
 
     logger.info('Comparing version on GitHub')
-    try:
-        response = requests.get('{}/compare/{}...{}'.format(REPO_URL, latest_version, current_version))
-        response.raise_for_status()
-    except Exception as e:
-        logger.error('Request error: %s', e)
-        return 2
-
-    try:
-        compare = response.json()
-        commits_behind = compare['behind_by']
-    except Exception as e:
-        logger.error('Failed to compare commits: %s', e)
-        return 1
+    compare = request_json('{}/compare/{}...{}'.format(REPO_URL, latest_version, current_version))
+    commits_behind = compare['behind_by']
     logger.info('Commits behind: %s', commits_behind)
 
-    if commits_behind > 0:
-        logger.info('Retrieving releases on GitHub')
-        try:
-            response = requests.get('{}/releases'.format(REPO_URL))
-            response.raise_for_status()
-        except Exception as e:
-            logger.error('Request error: %s', e)
-            return 2
+    if commits_behind <= 0:
+        logger.info('Tautulli is already up to date')
+        return 0
 
-        try:
-            releases = response.json()
+    logger.info('Retrieving releases on GitHub')
+    releases = request_json('{}/releases'.format(REPO_URL))
 
-            if branch == 'master':
-                release = next((r for r in releases if not r['prerelease']), releases[0])
-            else:
-                release = next((r for r in releases), releases[0])
+    if branch == 'master':
+        release = next((r for r in releases if not r['prerelease']), releases[0])
+    else:
+        release = next((r for r in releases), releases[0])
 
-            version = release['tag_name']
-            asset = next((a for a in release['assets'] if a['content_type'] == 'application/vnd.microsoft.portable-executable'), None)
-            download_url = asset['browser_download_url']
-            download_file = asset['name']
-        except Exception as e:
-            logger.error('Failed to retrieve releases: %s', e)
-            return 1
-        logger.info('Release: %s', version)
+    version = release['tag_name']
+    logger.info('Release: %s', version)
 
-        file_path = os.path.join(tempfile.gettempdir(), download_file)
-        logger.info('Downloading installer to temporary directory: %s', file_path)
+    win_exe = 'application/vnd.microsoft.portable-executable'
+    asset = next((a for a in release['assets'] if a['content_type'] == win_exe), None)
+    download_url = asset['browser_download_url']
+    download_file = asset['name']
+
+    file_path = os.path.join(tempfile.gettempdir(), download_file)
+    logger.info('Downloading installer to temporary directory: %s', file_path)
+    try:
         with requests.get(download_url, stream=True) as r:
             with open(file_path, 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
+    except Exception as e:
+        logger.error('Failed to download %s: %s', download_file, e)
+        return 2
 
-        logger.info('Stopping Tautulli')
-        try:
-            killed = kill_if_exists('Tautulli.exe')
-        except Exception as e:
-            logger.error('Failed to stop Tautulli: %s', e)
-            return 1
+    logger.info('Stopping Tautulli processes')
+    try:
+        processes = kill_and_get_processes('Tautulli.exe')
+    except Exception as e:
+        logger.error('Failed to stop Tautulli: %s', e)
+        return 1
 
-        if killed != 0:
-            logger.error('Failed to stop Tautulli')
-            return 1
+    logger.info('Running %s', download_file)
+    try:
+        subprocess.call([file_path, '/S', '/NORUN'], creationflags=CREATE_NO_WINDOW)
+    except Exception as e:
+        logger.exception('Failed to install Tautulli: %s', e)
+        return -1
 
-        logger.info('Running %s', download_file)
-        try:
-            subprocess.call(
-                [file_path, '/S'],
-                creationflags=CREATE_NO_WINDOW)
-        except Exception as e:
-            logger.exception('Failed to install Tautulli: %s', e)
-            return -1
+    logger.info('Tautulli updated to %s', version)
 
-        logger.info('Tautulli updated to %s', version)
+    logger.info('Restarting Tautulli processes')
+    for process in processes:
+        logger.info('Starting process: %s', process)
+        subprocess.Popen(process, creationflags=CREATE_NO_WINDOW)
 
     return 0
 
 
 if __name__ == '__main__':
-    status = update_tautulli()
+    try:
+        status = update_tautulli()
+    except Exception as exc:
+        status = exc
     logger.debug('Update function returned %s', status)
