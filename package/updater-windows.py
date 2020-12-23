@@ -141,27 +141,29 @@ def update_tautulli():
     logger.info('Running %s', download_file)
     try:
         subprocess.call([file_path, '/S', '/NORUN'], creationflags=CREATE_NO_WINDOW)
+        status = 0
     except Exception as e:
         logger.exception('Failed to install Tautulli: %s', e)
-        return -1
+        status = -1
 
-    logger.info('Tautulli updated to %s', version)
+    if status == 0:
+        logger.info('Tautulli updated to %s', version)
 
     logger.info('Restarting Tautulli processes')
     for process in processes:
         logger.info('Starting process: %s', process)
         subprocess.Popen(process, creationflags=CREATE_NO_WINDOW)
 
-    return 0
+    return status
 
 
 if __name__ == '__main__':
     logger = init_logger()
 
     try:
-        status = update_tautulli()
+        status_code = update_tautulli()
     except Exception as exc:
-        status = exc
-    logger.debug('Update function returned status code %s', status)
+        status_code = exc
+    logger.debug('Update function returned status code %s', status_code)
 
-    sys.exit(status)
+    sys.exit(status_code)
