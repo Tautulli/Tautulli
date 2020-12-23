@@ -2279,6 +2279,9 @@ def upgrade():
 
 
 def shutdown(restart=False, update=False, checkout=False, reset=False):
+    if FROZEN and common.PLATFORM == 'Windows' and update:
+        restart = False
+
     webstart.stop()
 
     # Shutdown the websocket connection
