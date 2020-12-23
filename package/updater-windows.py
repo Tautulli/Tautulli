@@ -22,6 +22,7 @@ import psutil
 import requests
 import shutil
 import subprocess
+import sys
 import tempfile
 
 
@@ -31,18 +32,21 @@ REPO_URL = 'https://api.github.com/repos/Tautulli/Tautulli'
 
 LOGFILE = 'updater.log'
 LOGPATH = os.path.join(SCRIPT_PATH, LOGFILE)
-MAX_SIZE = 5000000
+MAX_SIZE = 1000000  # 1MB
 MAX_FILES = 1
 
-logger = logging.getLogger('updater')
-logger.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter(
-    '%(asctime)s - %(levelname)-7s :: %(threadName)s : Tautulli Updater :: %(message)s',
-    '%Y-%m-%d %H:%M:%S')
-file_handler = handlers.RotatingFileHandler(
-    LOGPATH, maxBytes=MAX_SIZE, backupCount=MAX_FILES, encoding='utf-8')
-file_handler.setFormatter(file_formatter)
-logger.addHandler(file_handler)
+
+def init_logger():
+    log = logging.getLogger('updater')
+    log.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)-7s :: %(threadName)s : Tautulli Updater :: %(message)s',
+        '%Y-%m-%d %H:%M:%S')
+    file_handler = handlers.RotatingFileHandler(
+        LOGPATH, maxBytes=MAX_SIZE, backupCount=MAX_FILES, encoding='utf-8')
+    file_handler.setFormatter(file_formatter)
+    log.addHandler(file_handler)
+    return log
 
 
 def read_file(file_path):
@@ -152,8 +156,12 @@ def update_tautulli():
 
 
 if __name__ == '__main__':
+    logger = init_logger()
+
     try:
         status = update_tautulli()
     except Exception as exc:
         status = exc
-    logger.debug('Update function returned %s', status)
+    logger.debug('Update function returned status code %s', status)
+
+    sys.exit(status)
