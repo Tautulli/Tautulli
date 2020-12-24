@@ -32,6 +32,7 @@ VIAddVersionKey "FileVersion"  "${VERSION}"
 
 ######################################################################
 
+Unicode True
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
@@ -39,7 +40,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "$PROGRAMFILES\${APP_NAME}"
+InstallDir "$PROGRAMFILES64\${APP_NAME}"
 
 ######################################################################
 
@@ -103,6 +104,7 @@ Var /GLOBAL nolaunch
 !insertmacro MUI_PAGE_STARTMENU Application $SM_Folder
 !endif
 
+!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_APP_EXE}"
@@ -123,10 +125,11 @@ Section -MainProgram
 Call UninstallPrevious
 
 ${INSTALL_TYPE}
-SetOverwrite ifnewer
+SetOverwrite on
 SetOutPath "$INSTDIR"
 File /nonfatal /a /r "..\dist\${APP_NAME}\"
 
+nsExec::Exec "$INSTDIR\updater.exe --xml"
 nsExec::Exec '$SYSDIR\SCHTASKS /Create /TN TautulliUpdateTask /XML "$INSTDIR\TautulliUpdateTask.xml" /F'
 
 StrCmp $norun 1 +3 0
