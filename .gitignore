@@ -1,6 +1,7 @@
 
 # Compiled source #
 ###################
+__pycache__
 *.pyc
 *.py~
 *.pyproj
@@ -64,7 +65,6 @@ Thumbs.db
 *.bak
 *.cache
 *.ilk
-*.log
 [Bb]in
 [Dd]ebug*/
 *.lib
@@ -86,11 +86,7 @@ _ReSharper*/
 /parts/
 /stage/
 /prime/
-
 *.snap
-
 .snapcraft
-__pycache__
-*.pyc
 *_source.tar.bz2
 snap/.snapcraft
