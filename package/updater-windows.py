@@ -16,14 +16,17 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from logging import handlers
+import argparse
 import logging
 import os
 import psutil
+import re
 import requests
 import shutil
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -140,7 +143,7 @@ def update_tautulli():
 
     logger.info('Running %s', download_file)
     try:
-        subprocess.call([file_path, '/S', '/NORUN'], creationflags=CREATE_NO_WINDOW)
+        subprocess.call([file_path, '/S', '/NORUN', '/D=' + SCRIPT_PATH], creationflags=CREATE_NO_WINDOW)
         status = 0
     except Exception as e:
         logger.exception('Failed to install Tautulli: %s', e)
@@ -158,12 +161,34 @@ def update_tautulli():
 
 
 if __name__ == '__main__':
-    logger = init_logger()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--xml', action='store_true')
+    opts = parser.parse_args()
 
-    try:
-        status_code = update_tautulli()
-    except Exception as exc:
-        status_code = exc
-    logger.debug('Update function returned status code %s', status_code)
+    if opts.xml:
+        xml_path = os.path.join(SCRIPT_PATH, 'TautulliUpdateTask.xml')
+        tree = ET.parse(xml_path)
+        task = tree.getroot()
 
-    sys.exit(status_code)
+        match = re.match(r'{(.*)}', task.tag)
+        namespace = match.group(1)
+        namespaces = {'': namespace}
+        ET.register_namespace('', namespace)
+
+        for elem in task.iterfind('./Actions/Exec/Command', namespaces=namespaces):
+            elem.text = os.path.join(SCRIPT_PATH, 'updater.exe')
+        for elem in task.iterfind('./Actions/Exec/WorkingDirectory', namespaces=namespaces):
+            elem.text = SCRIPT_PATH
+
+        tree.write(xml_path, encoding='UTF-16')
+
+    else:
+        logger = init_logger()
+
+        try:
+            status_code = update_tautulli()
+        except Exception as exc:
+            status_code = exc
+        logger.debug('Update function returned status code %s', status_code)
+
+        sys.exit(status_code)
