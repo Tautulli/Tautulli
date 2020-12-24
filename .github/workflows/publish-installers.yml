@@ -71,11 +71,6 @@ jobs:
         run: |
           pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
 
-      - name: Move Windows Updater Files
-        if: matrix.os == 'windows'
-        run: |
-          Move-Item dist\updater\* dist\Tautulli\ -Force
-
       - name: Create Windows Installer
         uses: joncloud/makensis-action@v3.4
         if: matrix.os == 'windows'

@@ -2295,12 +2295,7 @@ def upgrade():
     return
 
 
-def shutdown(restart=False, update=False, checkout=False, reset=False,
-             _shutdown=True):
-    if FROZEN and common.PLATFORM == 'Windows' and update:
-        restart = False
-        _shutdown = False
-
+def shutdown(restart=False, update=False, checkout=False, reset=False):
     webstart.stop()
 
     # Shutdown the websocket connection
@@ -2373,15 +2368,14 @@ def shutdown(restart=False, update=False, checkout=False, reset=False,
     else:
         logger.info("Tautulli is shutting down...")
 
-    if _shutdown:
-        logger.shutdown()
+    logger.shutdown()
 
-        if WIN_SYS_TRAY_ICON:
-            WIN_SYS_TRAY_ICON.shutdown()
-        elif MAC_SYS_TRAY_ICON:
-            MAC_SYS_TRAY_ICON.shutdown()
+    if WIN_SYS_TRAY_ICON:
+        WIN_SYS_TRAY_ICON.shutdown()
+    elif MAC_SYS_TRAY_ICON:
+        MAC_SYS_TRAY_ICON.shutdown()
 
-        os._exit(0)
+    os._exit(0)
 
 
 def generate_uuid():
