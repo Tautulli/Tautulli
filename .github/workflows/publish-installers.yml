@@ -41,7 +41,13 @@ jobs:
             echo ::set-output name=VERSION::0.0.0
             echo ::set-output name=RELEASE_VERSION::${GITHUB_SHA::7}
           fi
-          echo ${GITHUB_REF#refs/heads/} > branch.txt
+          if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
+            echo "beta" > branch.txt
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "master" > branch.txt
+          else
+            echo ${GITHUB_REF#refs/heads/} > branch.txt
+          fi
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
@@ -71,15 +77,14 @@ jobs:
           Move-Item dist\updater\* dist\Tautulli\ -Force
 
       - name: Create Windows Installer
-        uses: joncloud/makensis-action@v1.2
+        uses: joncloud/makensis-action@v3.4
         if: matrix.os == 'windows'
         with:
           script-file: ./package/Tautulli.nsi
           arguments: >
             /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }}
             /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
-          include-more-plugins: true
-          include-custom-plugins-path: package/nsis-plugins
+          additional-plugin-paths: package/nsis-plugins
 
       - name: Create MacOS Installer
         if: matrix.os == 'macos'
