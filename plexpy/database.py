@@ -228,7 +228,7 @@ def delete_rows_from_table(table, row_ids):
     if row_ids:
         logger.info("Tautulli Database :: Deleting row ids %s from %s database table", row_ids, table)
 
-        # SQlite verions prior to 3.32.0 (2020-05-22) have maximum variable limit of 999
+        # SQlite version prior to 3.32.0 (2020-05-22) have maximum variable limit of 999
         # https://sqlite.org/limits.html
         sqlite_max_variable_number = 999
 
