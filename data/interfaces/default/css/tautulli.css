@@ -4368,3 +4368,66 @@ a[data-tab-destination] {
 .news-body a:hover {
     color: #f9be03;
 }
+
+a.donate-with-crypto,
+a.donate-with-crypto > span {
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    clear: none;
+    clip: auto;
+    cursor: default;
+    display: block;
+    float: none;
+    height: auto;
+    margin: 0;
+    max-height: none;
+    min-height: none;
+    padding: 0;
+    opacity: 1;
+    text-shadow: none;
+    vertical-align: baseline;
+    visibility: visible;
+    width: auto;
+}
+a.donate-with-crypto {
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
+    text-decoration: none;
+    background: #1652f0 linear-gradient(#1652f0, #0655ab);
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, padding 0.2s;
+    border-radius: 6px;
+    display: inline-block;
+    height: 40px;
+    padding: 9px 15px 11px 15px;
+    position: relative;
+    min-width: 160px;
+}
+a.donate-with-crypto:hover {
+    background: #1652f0;
+}
+a.donate-with-crypto > span {
+    color: white;
+    font: normal 500 14px/20px -apple-system, BlinkMacSystemFont, '.SFNSText-Regular', 'San Francisco', 'Roboto', 'Segoe UI', 'Helvetica Neue', 'Lucida Grande', sans-serif;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+}
+a.donate-with-crypto::after {
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    opacity: 1;
+    top: 0;
+    left: 0;
+}
