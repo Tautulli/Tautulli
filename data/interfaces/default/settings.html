@@ -3105,7 +3105,7 @@ $(document).ready(function() {
                     if (news_item.subtitle) { content.append(subtitle); }
                     content.append(body);
                     var li = $('<li/>').append(header).append(content)
-                    if (index === 0 && Math.abs(now.diff(date, 'days')) < 7) {
+                    if (index === 0 && Math.abs(now.diff(date, 'days')) <= 30) {
                         li.addClass('open');
                         content.css('display', 'block');
                     }
