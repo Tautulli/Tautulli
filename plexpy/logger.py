@@ -103,11 +103,21 @@ class BlacklistFilter(logging.Filter):
             try:
                 if item in record.msg:
                     record.msg = record.msg.replace(item, 16 * '*')
-                if any(item in str(arg) for arg in record.args):
-                    record.args = tuple(arg.replace(item, 16 * '*') if isinstance(arg, str) else arg
-                                        for arg in record.args)
+
+                args = []
+                for arg in record.args:
+                    try:
+                        arg_str = str(arg)
+                        if item in arg_str:
+                            arg_str = arg_str.replace(item, 16 * '*')
+                            arg = arg_str
+                    except:
+                        pass
+                    args.append(arg)
+                record.args = tuple(args)
             except:
                 pass
+
         return True
 
 
