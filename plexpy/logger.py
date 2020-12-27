@@ -131,9 +131,15 @@ class RegexFilter(logging.Filter):
 
             args = []
             for arg in record.args:
-                matches = self.regex.findall(arg) if isinstance(arg, str) else []
-                for match in matches:
-                    arg = self.replace(arg, match)
+                try:
+                    arg_str = str(arg)
+                    matches = self.regex.findall(arg_str)
+                    if matches:
+                        for match in matches:
+                            arg_str = self.replace(arg_str, match)
+                        arg = arg_str
+                except:
+                    pass
                 args.append(arg)
             record.args = tuple(args)
         except:
