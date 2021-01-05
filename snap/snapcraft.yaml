@@ -59,6 +59,7 @@ apps:
     restart-condition: on-abnormal
     restart-delay: 5s
     plugs:
+      - home
       - network
       - network-bind
     environment:
