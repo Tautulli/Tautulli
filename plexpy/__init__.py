@@ -99,6 +99,7 @@ PIDFILE = None
 NOFORK = False
 DOCKER = False
 SNAP = False
+SNAP_MIGRATE = False
 FROZEN = False
 
 SCHED = None
@@ -172,6 +173,18 @@ def initialize(config_file):
 
         if _INITIALIZED:
             return False
+
+        if SNAP_MIGRATE:
+            snap_common = os.environ['SNAP_COMMON']
+            old_data_dir = os.path.join(snap_common, 'Tautulli')
+            CONFIG.HTTPS_CERT = CONFIG.HTTPS_CERT.replace(old_data_dir, DATA_DIR)
+            CONFIG.HTTPS_CERT_CHAIN = CONFIG.HTTPS_CERT_CHAIN.replace(old_data_dir, DATA_DIR)
+            CONFIG.HTTPS_KEY = CONFIG.HTTPS_KEY.replace(old_data_dir, DATA_DIR)
+            CONFIG.LOG_DIR = CONFIG.LOG_DIR.replace(old_data_dir, DATA_DIR)
+            CONFIG.BACKUP_DIR = CONFIG.BACKUP_DIR.replace(old_data_dir, DATA_DIR)
+            CONFIG.CACHE_DIR = CONFIG.CACHE_DIR.replace(old_data_dir, DATA_DIR)
+            CONFIG.EXPORT_DIR = CONFIG.EXPORT_DIR.replace(old_data_dir, DATA_DIR)
+            CONFIG.NEWSLETTER_DIR = CONFIG.NEWSLETTER_DIR.replace(old_data_dir, DATA_DIR)
 
         if CONFIG.HTTP_PORT < 21 or CONFIG.HTTP_PORT > 65535:
             logger.warn("HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)

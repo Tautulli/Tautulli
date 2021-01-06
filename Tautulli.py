@@ -31,6 +31,7 @@ import datetime
 import locale
 import pytz
 import signal
+import shutil
 import time
 import threading
 import tzlocal
@@ -187,6 +188,15 @@ def main():
         plexpy.DATA_DIR = appdirs.user_data_dir("Tautulli", False)
     else:
         plexpy.DATA_DIR = plexpy.PROG_DIR
+
+    # Migrate Snap data dir
+    if plexpy.SNAP:
+        snap_common = os.environ['SNAP_COMMON']
+        old_data_dir = os.path.join(snap_common, 'Tautulli')
+        if os.path.exists(old_data_dir) and os.listdir(old_data_dir):
+            plexpy.SNAP_MIGRATE = True
+            logger.info("Migrating Snap user data.")
+            shutil.move(old_data_dir, plexpy.DATA_DIR)
 
     if args.config:
         config_file = args.config

@@ -51,8 +51,8 @@ apps:
   tautulli:
     command: >
       usr/bin/python3 $SNAP/Tautulli.py
-        --datadir $SNAP_COMMON/Tautulli
-        --config $SNAP_COMMON/Tautulli/config.ini
+        --datadir $SNAP_USER_COMMON/Tautulli
+        --config $SNAP_USER_COMMON/Tautulli/config.ini
         --quiet
         --nolaunch
     daemon: simple
