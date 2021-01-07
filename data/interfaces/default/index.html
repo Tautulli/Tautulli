@@ -280,22 +280,32 @@
 
     var error_msg = 'There was an error communicating with your Plex Server.' + msg_settings;
 
+    % if 'current_activity' in config['home_sections'] or 'recently_added' in config['home_sections']:
     var server_status;
     server_status = setInterval(function() {
         $.getJSON('server_status', function (data) {
             if (data.connected === true) {
                 clearInterval(server_status);
+                % if 'current_activity' in config['home_sections']:
                 $('#currentActivity').html('<div id="dashboard-checking-activity" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Checking for activity...</div>');
-                $('#recentlyAdded').html('<div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>');
                 activityConnected();
+                % endif
+                % if 'recently_added' in config['home_sections']:
+                $('#recentlyAdded').html('<div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>');
                 recentlyAddedConnected();
+                % endif
             } else if (data.connected === false) {
                 clearInterval(server_status);
+                % if 'current_activity' in config['home_sections']:
                 $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">' + error_msg + '</div>');
+                % endif
+                % if 'recently_added' in config['home_sections']:
                 $('#recentlyAdded').html('<div id="dashboard-no-recently-added" class="text-muted">' + error_msg + '</div>');
+                % endif
             }
         });
     }, 1000);
+    % endif
 </script>
 % if 'current_activity' in config['home_sections']:
 <script>
