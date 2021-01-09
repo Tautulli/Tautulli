@@ -514,12 +514,16 @@ def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):
             SCHED.remove_job(name)
             logger.info("Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
-            SCHED.reschedule_job(name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC), args=args)
+            SCHED.reschedule_job(
+                name, trigger=IntervalTrigger(
+                    hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC),
+                args=args)
             logger.info("Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
-        SCHED.add_job(func, id=name, trigger=IntervalTrigger(
-            hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC), args=args)
+        SCHED.add_job(
+            func, id=name, trigger=IntervalTrigger(
+                hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC),
+            args=args, misfire_grace_time=None)
         logger.info("Scheduled background task: %s", name)
 
 

@@ -606,7 +606,8 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
         ACTIVITY_SCHED.add_job(
             func, args=args, id=id, trigger=DateTrigger(
                 run_date=datetime.datetime.now(pytz.UTC) + datetime.timedelta(**kwargs),
-                timezone=pytz.UTC))
+                timezone=pytz.UTC),
+            misfire_grace_time=None)
 
 
 def force_stop_stream(session_key, title, user):

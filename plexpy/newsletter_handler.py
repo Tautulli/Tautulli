@@ -82,7 +82,8 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
             logger.info("Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
     elif not remove_job:
         NEWSLETTER_SCHED.add_job(
-            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron))
+            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron),
+            misfire_grace_time=None)
         logger.info("Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
 
 
