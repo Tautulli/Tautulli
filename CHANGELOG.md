@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.6.5 (2021-01-09)
+
+* Other:
+  * Fix: Some IP addresses not being masked in the logs.
+  * New: Auto-updater for Windows exe installer.
+  * Change: Allow Snap package to access the user home directory.
+  * Change: Migrate Snap user data to a persistent location that is retained if Tautulli is reinstalled.
+
+
 ## v2.6.4 (2020-12-20)
 
 * Other:
