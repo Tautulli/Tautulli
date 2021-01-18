@@ -45,7 +45,7 @@ class Media(PlexObject):
         self.aspectRatio = cast(float, data.attrib.get('aspectRatio'))
         self.audioChannels = cast(int, data.attrib.get('audioChannels'))
         self.audioCodec = data.attrib.get('audioCodec')
-        self.audioProfile = data.attrib.get('videoProfile')
+        self.audioProfile = data.attrib.get('audioProfile')
         self.bitrate = cast(int, data.attrib.get('bitrate'))
         self.container = data.attrib.get('container')
         self.duration = cast(int, data.attrib.get('duration'))
