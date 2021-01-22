@@ -2934,7 +2934,11 @@ $(document).ready(function() {
         if (clear){
             $('#http_base_url').suffix("");
         } else {
-            $('#http_base_url').suffix($('#http_root').val());
+            var suffix = $('#http_root').val();
+            if (suffix && !suffix.startsWith('/')) {
+                suffix = '/' + suffix;
+            }
+            $('#http_base_url').suffix(suffix);
         }
     }
     setBaseURLSuffix();
@@ -3017,7 +3021,7 @@ $(document).ready(function() {
     baseURLSet();
 
     $('#http_base_url').change(function () {
-       baseURLSet();
+        baseURLSet();
     });
 
     function newsletterUploadEnabled() {
