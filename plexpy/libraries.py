@@ -154,7 +154,7 @@ def get_collections(section_id=None):
     if library.type not in ('movie', 'show', 'artist'):
         return []
 
-    collections = library.collection()
+    collections = library.collections()
 
     collections_list = []
     for collection in collections:
@@ -252,7 +252,7 @@ def get_playlists(section_id=None, user_id=None):
         playlists = plex.plex.playlists()
     else:
         library = plex.get_library(section_id)
-        playlists = library.playlist()
+        playlists = library.playlists()
 
     playlists_list = []
     for playlist in playlists:
