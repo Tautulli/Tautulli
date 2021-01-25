@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
+import weakref
+from urllib.parse import quote_plus, urlencode
 
 from plexapi import log, utils
-from plexapi.compat import quote_plus, urlencode
 from plexapi.exceptions import BadRequest, NotFound, UnknownType, Unsupported
 from plexapi.utils import tag_helper
 
@@ -35,15 +36,17 @@ class PlexObject(object):
             server (:class:`~plexapi.server.PlexServer`): PlexServer this client is connected to (optional)
             data (ElementTree): Response from PlexServer used to build this object (optional).
             initpath (str): Relative path requested when retrieving specified `data` (optional).
+            parent (:class:`~plexapi.base.PlexObject`): The parent object that this object is built from (optional).
     """
     TAG = None      # xml element tag
     TYPE = None     # xml element type
     key = None      # plex relative url
 
-    def __init__(self, server, data, initpath=None):
+    def __init__(self, server, data, initpath=None, parent=None):
         self._server = server
         self._data = data
         self._initpath = initpath or self.key
+        self._parent = weakref.ref(parent) if parent else None
         if data is not None:
             self._loadData(data)
         self._details_key = self._buildDetailsKey()
@@ -54,8 +57,8 @@ class PlexObject(object):
         return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid, name] if p])
 
     def __setattr__(self, attr, value):
-        # dont overwrite an attr with None unless its a private variable
-        if value is not None or attr.startswith('_') or attr not in self.__dict__:
+        # Don't overwrite an attr with None or [] unless it's a private variable
+        if value not in [None, []] or attr.startswith('_') or attr not in self.__dict__:
             self.__dict__[attr] = value
 
     def _clean(self, value):
@@ -63,6 +66,8 @@ class PlexObject(object):
         if value:
             value = str(value).replace('/library/metadata/', '')
             value = value.replace('/children', '')
+            value = value.replace('/accounts/', '')
+            value = value.replace('/devices/', '')
             return value.replace(' ', '-')[:20]
 
     def _buildItem(self, elem, cls=None, initpath=None):
@@ -70,9 +75,9 @@ class PlexObject(object):
         # cls is specified, build the object and return
         initpath = initpath or self._initpath
         if cls is not None:
-            return cls(self._server, elem, initpath)
+            return cls(self._server, elem, initpath, parent=self)
         # cls is not specified, try looking it up in PLEXOBJECTS
-        etype = elem.attrib.get('type', elem.attrib.get('streamType'))
+        etype = elem.attrib.get('streamType', elem.attrib.get('tagType', elem.attrib.get('type')))
         ehash = '%s.%s' % (elem.tag, etype) if etype else elem.tag
         ecls = utils.PLEXOBJECTS.get(ehash, utils.PLEXOBJECTS.get(elem.tag))
         # log.debug('Building %s as %s', elem.tag, ecls.__name__)
@@ -95,7 +100,7 @@ class PlexObject(object):
             or disable each parameter individually by setting it to False or 0.
         """
         details_key = self.key
-        if hasattr(self, '_INCLUDES'):
+        if details_key and hasattr(self, '_INCLUDES'):
             includes = {}
             for k, v in self._INCLUDES.items():
                 value = kwargs.get(k, v)
@@ -104,6 +109,21 @@ class PlexObject(object):
             if includes:
                 details_key += '?' + urlencode(sorted(includes.items()))
         return details_key
+
+    def _isChildOf(self, **kwargs):
+        """ Returns True if this object is a child of the given attributes.
+            This will search the parent objects all the way to the top.
+        
+            Parameters:
+                **kwargs (dict): The attributes and values to search for in the parent objects.
+                    See all possible `**kwargs*` in :func:`~plexapi.base.PlexObject.fetchItem`.
+        """
+        obj = self
+        while obj._parent is not None:
+            obj = obj._parent()
+            if obj._checkAttrs(obj._data, **kwargs):
+                return True
+        return False
 
     def fetchItem(self, ekey, cls=None, **kwargs):
         """ Load the specified key to find and build the first item with the
@@ -212,6 +232,7 @@ class PlexObject(object):
                 return value
 
     def listAttrs(self, data, attr, **kwargs):
+        """ Return a list of values from matching attribute. """
         results = []
         for elem in data:
             kwargs['%s__exists' % attr] = True
@@ -350,7 +371,7 @@ class PlexPartialObject(PlexObject):
     }
 
     def __eq__(self, other):
-        return other is not None and self.key == other.key
+        return other not in [None, []] and self.key == other.key
 
     def __hash__(self):
         return hash(repr(self))
@@ -391,6 +412,8 @@ class PlexPartialObject(PlexObject):
                 Playing screen to show a graphical representation of where playback
                 is. Video preview thumbnails creation is a CPU-intensive process akin
                 to transcoding the file.
+            * Generate intro video markers: Detects show intros, exposing the
+                'Skip Intro' button in clients.
         """
         key = '/%s/analyze' % self.key.lstrip('/')
         self._server.query(key, method=self._server._session.put)
@@ -663,6 +686,7 @@ class Playable(object):
                 if item is being transcoded (None otherwise).
             viewedAt (datetime): Datetime item was last viewed (history).
             playlistItemID (int): Playlist item ID (only populated for :class:`~plexapi.playlist.Playlist` items).
+            playQueueItemID (int): PlayQueue item ID (only populated for :class:`~plexapi.playlist.PlayQueue` items).
     """
 
     def _loadData(self, data):
@@ -674,6 +698,7 @@ class Playable(object):
         self.viewedAt = utils.toDatetime(data.attrib.get('viewedAt'))               # history
         self.accountID = utils.cast(int, data.attrib.get('accountID'))              # history
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
+        self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))  # playqueue
 
     def getStreamURL(self, **params):
         """ Returns a stream url that may be used by external applications such as VLC.
@@ -684,7 +709,7 @@ class Playable(object):
                     offset, copyts, protocol, mediaIndex, platform.
 
             Raises:
-                :exc:`plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
+                :exc:`~plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
         """
         if self.TYPE not in ('movie', 'episode', 'track'):
             raise Unsupported('Fetching stream URL for %s is unsupported.' % self.TYPE)
@@ -698,7 +723,7 @@ class Playable(object):
             'mediaIndex': params.get('mediaIndex', 0),
             'X-Plex-Platform': params.get('platform', 'Chrome'),
             'maxVideoBitrate': max(mvb, 64) if mvb else None,
-            'videoResolution': vr if re.match('^\d+x\d+$', vr) else None
+            'videoResolution': vr if re.match(r'^\d+x\d+$', vr) else None
         }
         # remove None values
         params = {k: v for k, v in params.items() if v is not None}

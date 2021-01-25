@@ -201,7 +201,7 @@ class MediaSettings(object):
                 videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in this module.
 
             Raises:
-                :exc:`plexapi.exceptions.BadRequest`: when provided unknown video quality.
+                :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
         """
         if videoQuality == VIDEO_QUALITY_ORIGINAL:
             return MediaSettings('', '', '')
@@ -231,7 +231,7 @@ class MediaSettings(object):
                                   module.
 
             Raises:
-                :exc:`plexapi.exceptions.BadRequest` when provided unknown video quality.
+                :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
         """
         if resolution in PHOTO_QUALITIES:
             return MediaSettings(photoQuality=PHOTO_QUALITIES[resolution], photoResolution=resolution)

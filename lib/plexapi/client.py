@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import time
+from xml.etree import ElementTree
 
 import requests
 from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, log, logfilter, utils
 from plexapi.base import PlexObject
-from plexapi.compat import ElementTree
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized, Unsupported
 from plexapi.playqueue import PlayQueue
 from requests.status_codes import _codes as codes
@@ -69,7 +69,9 @@ class PlexClient(PlexObject):
         self._proxyThroughServer = False
         self._commandId = 0
         self._last_call = 0
-        if not any([data, initpath, baseurl, token]):
+        self._timeline_cache = []
+        self._timeline_cache_timestamp = 0
+        if not any([data is not None, initpath, baseurl, token]):
             self._baseurl = CONFIG.get('auth.client_baseurl', 'http://localhost:32433')
             self._token = logfilter.add_secret(CONFIG.get('auth.client_token'))
         if connect and self._baseurl:
@@ -138,7 +140,7 @@ class PlexClient(PlexObject):
                 value (bool): Enable or disable proxying (optional, default True).
 
             Raises:
-                :exc:`plexapi.exceptions.Unsupported`: Cannot use client proxy with unknown server.
+                :exc:`~plexapi.exceptions.Unsupported`: Cannot use client proxy with unknown server.
         """
         if server:
             self._server = server
@@ -181,7 +183,7 @@ class PlexClient(PlexObject):
                 **params (dict): Additional GET parameters to include with the command.
 
             Raises:
-                :exc:`plexapi.exceptions.Unsupported`: When we detect the client doesn't support this capability.
+                :exc:`~plexapi.exceptions.Unsupported`: When we detect the client doesn't support this capability.
         """
         command = command.strip('/')
         controller = command.split('/')[0]
@@ -195,10 +197,11 @@ class PlexClient(PlexObject):
 
         # Workaround for ptp. See https://github.com/pkkid/python-plexapi/issues/244
         t = time.time()
-        if t - self._last_call >= 80 and self.product in ('ptp', 'Plex Media Player'):
-            url = '/player/timeline/poll?wait=0&commandID=%s' % self._nextCommandId()
-            query(url, headers=headers)
+        if command == 'timeline/poll':
             self._last_call = t
+        elif t - self._last_call >= 80 and self.product in ('ptp', 'Plex Media Player'):
+            self._last_call = t
+            self.sendCommand(ClientTimeline.key, wait=0)
 
         params['commandID'] = self._nextCommandId()
         key = '/player/%s%s' % (command, utils.joinArgs(params))
@@ -296,7 +299,7 @@ class PlexClient(PlexObject):
                 **params (dict): Additional GET parameters to include with the command.
 
             Raises:
-                :exc:`plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
+                :exc:`~plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
         """
         if not self._server:
             raise Unsupported('A server must be specified before using this command.')
@@ -466,7 +469,7 @@ class PlexClient(PlexObject):
                     also: https://github.com/plexinc/plex-media-player/wiki/Remote-control-API#modified-commands
 
             Raises:
-                :exc:`plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
+                :exc:`~plexapi.exceptions.Unsupported`: When no PlexServer specified in this object.
         """
         if not self._server:
             raise Unsupported('A server must be specified before using this command.')
@@ -484,15 +487,6 @@ class PlexClient(PlexObject):
         # mediatype must be in ["video", "music", "photo"]
         if mediatype == "audio":
             mediatype = "music"
-
-        if self.product != 'OpenPHT':
-            try:
-                self.sendCommand('timeline/subscribe', port=server_port, protocol='http')
-            except:  # noqa: E722
-                # some clients dont need or like this and raises http 400.
-                # We want to include the exception in the log,
-                # but it might still work so we swallow it.
-                log.exception('%s failed to subscribe ' % self.title)
 
         playqueue = media if isinstance(media, PlayQueue) else self._server.createPlayQueue(media)
         self.sendCommand('playback/playMedia', **dict({
@@ -548,20 +542,68 @@ class PlexClient(PlexObject):
 
     # -------------------
     # Timeline Commands
-    def timeline(self, wait=1):
-        """ Poll the current timeline and return the XML response. """
-        return self.sendCommand('timeline/poll', wait=wait)
+    def timelines(self, wait=0):
+        """Poll the client's timelines, create, and return timeline objects.
+           Some clients may not always respond to timeline requests, believe this
+           to be a Plex bug.
+        """
+        t = time.time()
+        if t - self._timeline_cache_timestamp > 1:
+            self._timeline_cache_timestamp = t
+            timelines = self.sendCommand(ClientTimeline.key, wait=wait) or []
+            self._timeline_cache = [ClientTimeline(self, data) for data in timelines]
 
-    def isPlayingMedia(self, includePaused=False):
-        """ Returns True if any media is currently playing.
+        return self._timeline_cache
+
+    @property
+    def timeline(self):
+        """Returns the active timeline object."""
+        return next((x for x in self.timelines() if x.state != 'stopped'), None)
+
+    def isPlayingMedia(self, includePaused=True):
+        """Returns True if any media is currently playing.
 
             Parameters:
                 includePaused (bool): Set True to treat currently paused items
-                    as playing (optional; default True).
+                                      as playing (optional; default True).
         """
-        for mediatype in self.timeline(wait=0):
-            if mediatype.get('state') == 'playing':
-                return True
-            if includePaused and mediatype.get('state') == 'paused':
-                return True
-        return False
+        state = getattr(self.timeline, "state", None)
+        return bool(state == 'playing' or (includePaused and state == 'paused'))
+
+
+class ClientTimeline(PlexObject):
+    """Get the timeline's attributes."""
+
+    key = 'timeline/poll'
+
+    def _loadData(self, data):
+        self._data = data
+        self.address = data.attrib.get('address')
+        self.audioStreamId = utils.cast(int, data.attrib.get('audioStreamId'))
+        self.autoPlay = utils.cast(bool, data.attrib.get('autoPlay'))
+        self.containerKey = data.attrib.get('containerKey')
+        self.controllable = data.attrib.get('controllable')
+        self.duration = utils.cast(int, data.attrib.get('duration'))
+        self.itemType = data.attrib.get('itemType')
+        self.key = data.attrib.get('key')
+        self.location = data.attrib.get('location')
+        self.machineIdentifier = data.attrib.get('machineIdentifier')
+        self.partCount = utils.cast(int, data.attrib.get('partCount'))
+        self.partIndex = utils.cast(int, data.attrib.get('partIndex'))
+        self.playQueueID = utils.cast(int, data.attrib.get('playQueueID'))
+        self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))
+        self.playQueueVersion = utils.cast(int, data.attrib.get('playQueueVersion'))
+        self.port = utils.cast(int, data.attrib.get('port'))
+        self.protocol = data.attrib.get('protocol')
+        self.providerIdentifier = data.attrib.get('providerIdentifier')
+        self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
+        self.repeat = utils.cast(bool, data.attrib.get('repeat'))
+        self.seekRange = data.attrib.get('seekRange')
+        self.shuffle = utils.cast(bool, data.attrib.get('shuffle'))
+        self.state = data.attrib.get('state')
+        self.subtitleColor = data.attrib.get('subtitleColor')
+        self.subtitlePosition = data.attrib.get('subtitlePosition')
+        self.subtitleSize = utils.cast(int, data.attrib.get('subtitleSize'))
+        self.time = utils.cast(int, data.attrib.get('time'))
+        self.type = data.attrib.get('type')
+        self.volume = utils.cast(int, data.attrib.get('volume'))

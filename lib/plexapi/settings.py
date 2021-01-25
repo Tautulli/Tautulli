@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from urllib.parse import quote
 
 from plexapi import log, utils
 from plexapi.base import PlexObject
-from plexapi.compat import quote, string_type
 from plexapi.exceptions import BadRequest, NotFound
 
 
@@ -104,12 +104,11 @@ class Setting(PlexObject):
     """
     _bool_cast = lambda x: True if x == 'true' or x == '1' else False
     _bool_str = lambda x: str(x).lower()
-    _str = lambda x: str(x).encode('utf-8')
     TYPES = {
         'bool': {'type': bool, 'cast': _bool_cast, 'tostr': _bool_str},
-        'double': {'type': float, 'cast': float, 'tostr': _str},
-        'int': {'type': int, 'cast': int, 'tostr': _str},
-        'text': {'type': string_type, 'cast': _str, 'tostr': _str},
+        'double': {'type': float, 'cast': float, 'tostr': str},
+        'int': {'type': int, 'cast': int, 'tostr': str},
+        'text': {'type': str, 'cast': str, 'tostr': str},
     }
 
     def _loadData(self, data):
@@ -158,3 +157,21 @@ class Setting(PlexObject):
     def toUrl(self):
         """Helper for urls"""
         return '%s=%s' % (self.id, self._value or self.value)
+
+
+@utils.registerPlexObject
+class Preferences(Setting):
+    """ Represents a single Preferences.
+
+        Attributes:
+            TAG (str): 'Preferences'
+            FILTER (str): 'preferences'
+    """
+    TAG = 'Preferences'
+    FILTER = 'preferences'
+
+    def _default(self):
+        """ Set the default value for this setting."""
+        key = '%s/prefs?' % self._initpath
+        url = key + '%s=%s' % (self.id, self.default)
+        self._server.query(url, method=self._server._session.put)

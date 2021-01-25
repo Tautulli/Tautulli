@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
+from urllib.parse import urlencode
+from xml.etree import ElementTree
+
 import requests
-from requests.status_codes import _codes as codes
-from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_CONTAINER_SIZE
-from plexapi import log, logfilter, utils
+from plexapi import (BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_CONTAINER_SIZE, log,
+                     logfilter)
+from plexapi import utils
 from plexapi.alert import AlertListener
 from plexapi.base import PlexObject
 from plexapi.client import PlexClient
-from plexapi.compat import ElementTree, urlencode
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized
 from plexapi.library import Hub, Library, Path, File
-from plexapi.settings import Settings
+from plexapi.media import Conversion, Optimized
 from plexapi.playlist import Playlist
 from plexapi.playqueue import PlayQueue
+from plexapi.settings import Settings
 from plexapi.utils import cast
-from plexapi.media import Optimized, Conversion
+from requests.status_codes import _codes as codes
 
 # Need these imports to populate utils.PLEXOBJECTS
-from plexapi import (audio as _audio, video as _video,        # noqa: F401
-    photo as _photo, media as _media, playlist as _playlist)  # noqa: F401
+from plexapi import audio as _audio  # noqa: F401; noqa: F401
+from plexapi import media as _media  # noqa: F401
+from plexapi import photo as _photo  # noqa: F401
+from plexapi import playlist as _playlist  # noqa: F401
+from plexapi import video as _video  # noqa: F401
 
 
 class PlexServer(PlexObject):
@@ -101,6 +107,8 @@ class PlexServer(PlexObject):
         self._library = None   # cached library
         self._settings = None   # cached settings
         self._myPlexAccount = None   # cached myPlexAccount
+        self._systemAccounts = None   # cached list of SystemAccount
+        self._systemDevices = None   # cached list of SystemDevice
         data = self.query(self.key, timeout=timeout)
         super(PlexServer, self).__init__(self, data, self.key)
 
@@ -184,6 +192,14 @@ class PlexServer(PlexObject):
         data = self.query(Account.key)
         return Account(self, data)
 
+    @property
+    def activities(self):
+        """Returns all current PMS activities."""
+        activities = []
+        for elem in self.query(Activity.key):
+            activities.append(Activity(self, elem))
+        return activities
+
     def agents(self, mediaType=None):
         """ Returns the :class:`~plexapi.media.Agent` objects this server has available. """
         key = '/system/agents'
@@ -200,11 +216,18 @@ class PlexServer(PlexObject):
         return q.attrib.get('token')
 
     def systemAccounts(self):
-        """ Returns the :class:`~plexapi.server.SystemAccounts` objects this server contains. """
-        accounts = []
-        for elem in self.query('/accounts'):
-            accounts.append(SystemAccount(self, data=elem))
-        return accounts
+        """ Returns a list of :class:`~plexapi.server.SystemAccounts` objects this server contains. """
+        if self._systemAccounts is None:
+            key = '/accounts'
+            self._systemAccounts = self.fetchItems(key, SystemAccount)
+        return self._systemAccounts
+
+    def systemDevices(self):
+        """ Returns a list of :class:`~plexapi.server.SystemDevices` objects this server contains. """
+        if self._systemDevices is None:
+            key = '/devices'
+            self._systemDevices = self.fetchItems(key, SystemDevice)
+        return self._systemDevices
 
     def myPlexAccount(self):
         """ Returns a :class:`~plexapi.myplex.MyPlexAccount` object using the same
@@ -303,7 +326,7 @@ class PlexServer(PlexObject):
                 name (str): Name of the client to return.
 
             Raises:
-                :exc:`plexapi.exceptions.NotFound`: Unknown client name
+                :exc:`~plexapi.exceptions.NotFound`: Unknown client name.
         """
         for client in self.clients():
             if client and client.title == name:
@@ -325,7 +348,7 @@ class PlexServer(PlexObject):
 
             Parameters:
                 item (Media or Playlist): Media or playlist to add to PlayQueue.
-                kwargs (dict): See `~plexapi.playerque.PlayQueue.create`.
+                kwargs (dict): See `~plexapi.playqueue.PlayQueue.create`.
         """
         return PlayQueue.create(self, item, **kwargs)
 
@@ -413,11 +436,11 @@ class PlexServer(PlexObject):
             args['X-Plex-Container-Start'] += args['X-Plex-Container-Size']
         return results
 
-    def playlists(self, **kwargs):
+    def playlists(self):
         """ Returns a list of all :class:`~plexapi.playlist.Playlist` objects saved on the server. """
         # TODO: Add sort and type options?
         # /playlists/all?type=15&sort=titleSort%3Aasc&playlistType=video&smart=0
-        return self.fetchItems('/playlists', **kwargs)
+        return self.fetchItems('/playlists')
 
     def playlist(self, title):
         """ Returns the :class:`~plexapi.client.Playlist` that matches the specified title.
@@ -426,7 +449,7 @@ class PlexServer(PlexObject):
                 title (str): Title of the playlist to return.
 
             Raises:
-                :exc:`plexapi.exceptions.NotFound`: Invalid playlist title
+                :exc:`~plexapi.exceptions.NotFound`: Invalid playlist title.
         """
         return self.fetchItem('/playlists', title=title)
 
@@ -471,7 +494,7 @@ class PlexServer(PlexObject):
         log.debug('%s %s', method.__name__.upper(), url)
         headers = self._headers(**headers or {})
         response = method(url, headers=headers, timeout=timeout, **kwargs)
-        if response.status_code not in (200, 201):
+        if response.status_code not in (200, 201, 204):
             codename = codes.get(response.status_code)[0]
             errtext = response.text.replace('\n', ' ')
             message = '(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext)
@@ -499,22 +522,33 @@ class PlexServer(PlexObject):
             Parameters:
                 query (str): Query to use when searching your library.
                 mediatype (str): Optionally limit your search to the specified media type.
+                    actor, album, artist, autotag, collection, director, episode, game, genre,
+                    movie, photo, photoalbum, place, playlist, shared, show, tag, track
                 limit (int): Optionally limit to the specified number of results per Hub.
         """
         results = []
-        params = {'query': query}
-        if mediatype:
-            params['section'] = utils.SEARCHTYPES[mediatype]
+        params = {
+            'query': query,
+            'includeCollections': 1,
+            'includeExternalMedia': 1}
         if limit:
             params['limit'] = limit
         key = '/hubs/search?%s' % urlencode(params)
         for hub in self.fetchItems(key, Hub):
-            results += hub.items
+            if mediatype:
+                if hub.type == mediatype:
+                    return hub.items
+            else:
+                results += hub.items
         return results
 
     def sessions(self):
         """ Returns a list of all active session (currently playing) media objects. """
         return self.fetchItems('/status/sessions')
+
+    def transcodeSessions(self):
+        """ Returns a list of all active :class:`~plexapi.media.TranscodeSession` objects. """
+        return self.fetchItems('/transcode/sessions')
 
     def startAlertListener(self, callback=None):
         """ Creates a websocket connection to the Plex Server to optionally recieve
@@ -528,7 +562,7 @@ class PlexServer(PlexObject):
                 callback (func): Callback function to call on recieved messages.
 
             Raises:
-                :exc:`plexapi.exception.Unsupported`: Websocket-client not installed.
+                :exc:`~plexapi.exception.Unsupported`: Websocket-client not installed.
         """
         notifier = AlertListener(self, callback)
         notifier.start()
@@ -593,6 +627,103 @@ class PlexServer(PlexObject):
         value = 1 if toggle is True else 0
         return self.query('/:/prefs?allowMediaDeletion=%s' % value, self._session.put)
 
+    def bandwidth(self, timespan=None, **kwargs):
+        """ Returns a list of :class:`~plexapi.server.StatisticsBandwidth` objects
+            with the Plex server dashboard bandwidth data.
+
+            Parameters:
+                timespan (str, optional): The timespan to bin the bandwidth data. Default is seconds.
+                    Available timespans: seconds, hours, days, weeks, months.
+                **kwargs (dict, optional): Any of the available filters that can be applied to the bandwidth data.
+                    The time frame (at) and bytes can also be filtered using less than or greater than (see examples below).
+
+                    * accountID (int): The :class:`~plexapi.server.SystemAccount` ID to filter.
+                    * at (datetime): The time frame to filter (inclusive). The time frame can be either:
+                        1. An exact time frame (e.g. Only December 1st 2020 `at=datetime(2020, 12, 1)`).
+                        2. Before a specific time (e.g. Before and including December 2020 `at<=datetime(2020, 12, 1)`).
+                        3. After a specific time (e.g. After and including January 2021 `at>=datetime(2021, 1, 1)`).
+                    * bytes (int): The amount of bytes to filter (inclusive). The bytes can be either:
+                        1. An exact number of bytes (not very useful) (e.g. `bytes=1024**3`).
+                        2. Less than or equal number of bytes (e.g. `bytes<=1024**3`).
+                        3. Greater than or equal number of bytes (e.g. `bytes>=1024**3`).
+                    * deviceID (int): The :class:`~plexapi.server.SystemDevice` ID to filter.
+                    * lan (bool): True to only retrieve local bandwidth, False to only retrieve remote bandwidth.
+                        Default returns all local and remote bandwidth.
+
+            Raises:
+                :exc:`~plexapi.exceptions.BadRequest`: When applying an invalid timespan or unknown filter.
+
+            Example:
+
+                .. code-block:: python
+
+                    from plexapi.server import PlexServer
+                    plex = PlexServer('http://localhost:32400', token='xxxxxxxxxxxxxxxxxxxx')
+
+                    # Filter bandwidth data for December 2020 and later, and more than 1 GB used.
+                    filters = {
+                        'at>': datetime(2020, 12, 1),
+                        'bytes>': 1024**3
+                    }
+
+                    # Retrieve bandwidth data in one day timespans.
+                    bandwidthData = plex.bandwidth(timespan='days', **filters)
+
+                    # Print out bandwidth usage for each account and device combination.
+                    for bandwidth in sorted(bandwidthData, key=lambda x: x.at):
+                        account = bandwidth.account()
+                        device = bandwidth.device()
+                        gigabytes = round(bandwidth.bytes / 1024**3, 3)
+                        local = 'local' if bandwidth.lan else 'remote'
+                        date = bandwidth.at.strftime('%Y-%m-%d')
+                        print('%s used %s GB of %s bandwidth on %s from %s'
+                              % (account.name, gigabytes, local, date, device.name))
+
+        """
+        params = {}
+
+        if timespan is None:
+            params['timespan'] = 6  # Default to seconds
+        else:
+            timespans = {
+                'seconds': 6,
+                'hours': 4,
+                'days': 3,
+                'weeks': 2,
+                'months': 1
+            }
+            try:
+                params['timespan'] = timespans[timespan]
+            except KeyError:
+                raise BadRequest('Invalid timespan specified: %s. '
+                    'Available timespans: %s' % (timespan, ', '.join(timespans.keys())))
+
+        filters = {'accountID', 'at', 'at<', 'at>', 'bytes', 'bytes<', 'bytes>', 'deviceID', 'lan'}
+
+        for key, value in kwargs.items():
+            if key not in filters:
+                raise BadRequest('Unknown filter: %s=%s' % (key, value))
+            if key.startswith('at'):
+                try:
+                    value = cast(int, value.timestamp())
+                except AttributeError:
+                    raise BadRequest('Time frame filter must be a datetime object: %s=%s' % (key, value))
+            elif key.startswith('bytes') or key == 'lan':
+                value = cast(int, value)
+            elif key == 'accountID':
+                if value == self.myPlexAccount().id:
+                    value = 1  # The admin account is accountID=1
+            params[key] = value
+
+        key = '/statistics/bandwidth?%s' % urlencode(params)
+        return self.fetchItems(key, StatisticsBandwidth)
+
+    def resources(self):
+        """ Returns a list of :class:`~plexapi.server.StatisticsResources` objects
+            with the Plex server dashboard resources data. """
+        key = '/statistics/resources?timespan=6'
+        return self.fetchItems(key, StatisticsResources)
+
 
 class Account(PlexObject):
     """ Contains the locally cached MyPlex account information. The properties provided don't
@@ -642,12 +773,148 @@ class Account(PlexObject):
         self.subscriptionState = data.attrib.get('subscriptionState')
 
 
-class SystemAccount(PlexObject):
-    """ Minimal api to list system accounts. """
-    key = '/accounts'
+class Activity(PlexObject):
+    """A currently running activity on the PlexServer."""
+    key = '/activities'
 
     def _loadData(self, data):
         self._data = data
-        self.accountID = cast(int, data.attrib.get('id'))
-        self.accountKey = data.attrib.get('key')
+        self.cancellable = cast(bool, data.attrib.get('cancellable'))
+        self.progress = cast(int, data.attrib.get('progress'))
+        self.title = data.attrib.get('title')
+        self.subtitle = data.attrib.get('subtitle')
+        self.type = data.attrib.get('type')
+        self.uuid = data.attrib.get('uuid')
+
+
+class SystemAccount(PlexObject):
+    """ Represents a single system account.
+
+        Attributes:
+            TAG (str): 'Account'
+            autoSelectAudio (bool): True or False if the account has automatic audio language enabled.
+            defaultAudioLanguage (str): The default audio language code for the account.
+            defaultSubtitleLanguage (str): The default subtitle language code for the account.
+            id (int): The Plex account ID.
+            key (str): API URL (/accounts/<id>)
+            name (str): The username of the account.
+            subtitleMode (bool): The subtitle mode for the account.
+            thumb (str): URL for the account thumbnail.
+    """
+    TAG = 'Account'
+
+    def _loadData(self, data):
+        self._data = data
+        self.autoSelectAudio = cast(bool, data.attrib.get('autoSelectAudio'))
+        self.defaultAudioLanguage = data.attrib.get('defaultAudioLanguage')
+        self.defaultSubtitleLanguage = data.attrib.get('defaultSubtitleLanguage')
+        self.id = cast(int, data.attrib.get('id'))
+        self.key = data.attrib.get('key')
         self.name = data.attrib.get('name')
+        self.subtitleMode = cast(int, data.attrib.get('subtitleMode'))
+        self.thumb = data.attrib.get('thumb')
+        # For backwards compatibility
+        self.accountID = self.id
+        self.accountKey = self.key
+
+
+class SystemDevice(PlexObject):
+    """ Represents a single system device.
+
+        Attributes:
+            TAG (str): 'Device'
+            createdAt (datatime): Datetime the device was created.
+            id (int): The ID of the device (not the same as :class:`~plexapi.myplex.MyPlexDevice` ID).
+            key (str): API URL (/devices/<id>)
+            name (str): The name of the device.
+            platform (str): OS the device is running (Linux, Windows, Chrome, etc.)
+    """
+    TAG = 'Device'
+
+    def _loadData(self, data):
+        self._data = data
+        self.createdAt = utils.toDatetime(data.attrib.get('createdAt'))
+        self.id = cast(int, data.attrib.get('id'))
+        self.key = '/devices/%s' % self.id
+        self.name = data.attrib.get('name')
+        self.platform = data.attrib.get('platform')
+
+
+class StatisticsBandwidth(PlexObject):
+    """ Represents a single statistics bandwidth data.
+
+        Attributes:
+            TAG (str): 'StatisticsBandwidth'
+            accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
+            at (datatime): Datetime of the bandwidth data.
+            bytes (int): The total number of bytes for the specified timespan.
+            deviceID (int): The associated :class:`~plexapi.server.SystemDevice` ID.
+            lan (bool): True or False wheter the bandwidth is local or remote.
+            timespan (int): The timespan for the bandwidth data.
+                1: months, 2: weeks, 3: days, 4: hours, 6: seconds.
+
+    """
+    TAG = 'StatisticsBandwidth'
+
+    def _loadData(self, data):
+        self._data = data
+        self.accountID = cast(int, data.attrib.get('accountID'))
+        self.at = utils.toDatetime(data.attrib.get('at'))
+        self.bytes = cast(int, data.attrib.get('bytes'))
+        self.deviceID = cast(int, data.attrib.get('deviceID'))
+        self.lan = cast(bool, data.attrib.get('lan'))
+        self.timespan = cast(int, data.attrib.get('timespan'))
+
+    def __repr__(self):
+        return '<%s>' % ':'.join([p for p in [
+            self.__class__.__name__,
+            self._clean(self.accountID),
+            self._clean(self.deviceID),
+            self._clean(int(self.at.timestamp()))
+        ] if p])
+
+    def account(self):
+        """ Returns the :class:`~plexapi.server.SystemAccount` associated with the bandwidth data. """
+        accounts = self._server.systemAccounts()
+        try:
+            return next(account for account in accounts if account.id == self.accountID)
+        except StopIteration:
+            raise NotFound('Unknown account for this bandwidth data: accountID=%s' % self.accountID)
+
+    def device(self):
+        """ Returns the :class:`~plexapi.server.SystemDevice` associated with the bandwidth data. """
+        devices = self._server.systemDevices()
+        try:
+            return next(device for device in devices if device.id == self.deviceID)
+        except StopIteration:
+            raise NotFound('Unknown device for this bandwidth data: deviceID=%s' % self.deviceID)
+
+
+class StatisticsResources(PlexObject):
+    """ Represents a single statistics resources data.
+
+        Attributes:
+            TAG (str): 'StatisticsResources'
+            at (datatime): Datetime of the resource data.
+            hostCpuUtilization (float): The system CPU usage %.
+            hostMemoryUtilization (float): The Plex Media Server CPU usage %.
+            processCpuUtilization (float): The system RAM usage %.
+            processMemoryUtilization (float): The Plex Media Server RAM usage %.
+            timespan (int): The timespan for the resource data (6: seconds).
+    """
+    TAG = 'StatisticsResources'
+
+    def _loadData(self, data):
+        self._data = data
+        self.at = utils.toDatetime(data.attrib.get('at'))
+        self.hostCpuUtilization = cast(float, data.attrib.get('hostCpuUtilization'))
+        self.hostMemoryUtilization = cast(float, data.attrib.get('hostMemoryUtilization'))
+        self.processCpuUtilization = cast(float, data.attrib.get('processCpuUtilization'))
+        self.processMemoryUtilization = cast(float, data.attrib.get('processMemoryUtilization'))
+        self.timespan = cast(int, data.attrib.get('timespan'))
+
+    def __repr__(self):
+        return '<%s>' % ':'.join([p for p in [
+            self.__class__.__name__,
+            self._clean(int(self.at.timestamp()))
+        ] if p])

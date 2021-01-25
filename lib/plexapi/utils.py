@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 import base64
+import functools
 import logging
 import os
 import re
 import time
+import warnings
 import zipfile
 from datetime import datetime
 from getpass import getpass
 from threading import Event, Thread
+from urllib.parse import quote
 
 import requests
-from plexapi import compat
-from plexapi.exceptions import NotFound
+from plexapi.exceptions import BadRequest, NotFound
 
 try:
     from tqdm import tqdm
@@ -19,13 +21,13 @@ except ImportError:
     tqdm = None
 
 log = logging.getLogger('plexapi')
+warnings.simplefilter('default', category=DeprecationWarning)
 
 # Search Types - Plex uses these to filter specific media types when searching.
 # Library Types - Populated at runtime
 SEARCHTYPES = {'movie': 1, 'show': 2, 'season': 3, 'episode': 4, 'trailer': 5, 'comic': 6, 'person': 7,
                'artist': 8, 'album': 9, 'track': 10, 'picture': 11, 'clip': 12, 'photo': 13, 'photoalbum': 14,
-               'playlist': 15, 'playlistFolder': 16, 'collection': 18,
-               'optimizedVersion': 42, 'userPlaylistItem': 1001}
+               'playlist': 15, 'playlistFolder': 16, 'collection': 18, 'optimizedVersion': 42, 'userPlaylistItem': 1001}
 PLEXOBJECTS = {}
 
 
@@ -43,7 +45,7 @@ class SecretsFilter(logging.Filter):
     def filter(self, record):
         cleanargs = list(record.args)
         for i in range(len(cleanargs)):
-            if isinstance(cleanargs[i], compat.string_type):
+            if isinstance(cleanargs[i], str):
                 for secret in self.secrets:
                     cleanargs[i] = cleanargs[i].replace(secret, '<hidden>')
         record.args = tuple(cleanargs)
@@ -55,7 +57,7 @@ def registerPlexObject(cls):
         define a few helper functions to dynamically convery the XML into objects. See
         buildItem() below for an example.
     """
-    etype = getattr(cls, 'STREAMTYPE', cls.TYPE)
+    etype = getattr(cls, 'STREAMTYPE', getattr(cls, 'TAGTYPE', cls.TYPE))
     ehash = '%s.%s' % (cls.TAG, etype) if etype else cls.TAG
     if ehash in PLEXOBJECTS:
         raise Exception('Ambiguous PlexObject definition %s(tag=%s, type=%s) with %s' %
@@ -101,8 +103,8 @@ def joinArgs(args):
         return ''
     arglist = []
     for key in sorted(args, key=lambda x: x.lower()):
-        value = compat.ustr(args[key])
-        arglist.append('%s=%s' % (key, compat.quote(value, safe='')))
+        value = str(args[key])
+        arglist.append('%s=%s' % (key, quote(value, safe='')))
     return '?%s' % '&'.join(arglist)
 
 
@@ -112,7 +114,7 @@ def lowerFirst(s):
 
 def rget(obj, attrstr, default=None, delim='.'):  # pragma: no cover
     """ Returns the value at the specified attrstr location within a nexted tree of
-        dicts, lists, tuples, functions, classes, etc. The lookup is done recursivley
+        dicts, lists, tuples, functions, classes, etc. The lookup is done recursively
         for each key in attrstr (split by by the delimiter) This function is heavily
         influenced by the lookups used in Django templates.
 
@@ -148,10 +150,10 @@ def searchType(libtype):
             libtype (str): LibType to lookup (movie, show, season, episode, artist, album, track,
                                               collection)
         Raises:
-            :exc:`plexapi.exceptions.NotFound`: Unknown libtype
+            :exc:`~plexapi.exceptions.NotFound`: Unknown libtype
     """
-    libtype = compat.ustr(libtype)
-    if libtype in [compat.ustr(v) for v in SEARCHTYPES.values()]:
+    libtype = str(libtype)
+    if libtype in [str(v) for v in SEARCHTYPES.values()]:
         return libtype
     if SEARCHTYPES.get(libtype) is not None:
         return SEARCHTYPES[libtype]
@@ -159,12 +161,12 @@ def searchType(libtype):
 
 
 def threaded(callback, listargs):
-    """ Returns the result of <callback> for each set of \*args in listargs. Each call
+    """ Returns the result of <callback> for each set of `*args` in listargs. Each call
         to <callback> is called concurrently in their own separate threads.
 
         Parameters:
-            callback (func): Callback function to apply to each set of \*args.
-            listargs (list): List of lists; \*args to pass each thread.
+            callback (func): Callback function to apply to each set of `*args`.
+            listargs (list): List of lists; `*args` to pass each thread.
     """
     threads, results = [], []
     job_is_done_event = Event()
@@ -204,6 +206,19 @@ def toDatetime(value, format=None):
                 value = 86400
             value = datetime.fromtimestamp(int(value))
     return value
+
+
+def millisecondToHumanstr(milliseconds):
+    """ Returns human readable time duration from milliseconds.
+        HH:MM:SS:MMMM
+
+        Parameters:
+            milliseconds (str,int): time duration in milliseconds.
+    """
+    milliseconds = int(milliseconds)
+    r = datetime.utcfromtimestamp(milliseconds / 1000)
+    f = r.strftime("%H:%M:%S.%f")
+    return f[:-2]
 
 
 def toList(value, itemcast=None, delim=','):
@@ -277,7 +292,7 @@ def download(url, token, filename=None, savepath=None, session=None, chunksize=4
     response = session.get(url, headers=headers, stream=True)
     # make sure the savepath directory exists
     savepath = savepath or os.getcwd()
-    compat.makedirs(savepath, exist_ok=True)
+    os.makedirs(savepath, exist_ok=True)
 
     # try getting filename from header if not specified in arguments (used for logs, db)
     if not filename and response.headers.get('Content-Disposition'):
@@ -356,11 +371,39 @@ def getMyPlexAccount(opts=None):  # pragma: no cover
     if config_username and config_password:
         print('Authenticating with Plex.tv as %s..' % config_username)
         return MyPlexAccount(config_username, config_password)
+    config_token = CONFIG.get('auth.server_token')
+    if config_token:
+        print('Authenticating with Plex.tv with token')
+        return MyPlexAccount(token=config_token)
     # 3. Prompt for username and password on the command line
     username = input('What is your plex.tv username: ')
     password = getpass('What is your plex.tv password: ')
     print('Authenticating with Plex.tv as %s..' % username)
     return MyPlexAccount(username, password)
+
+
+def createMyPlexDevice(headers, account, timeout=10):  # pragma: no cover
+    """ Helper function to create a new MyPlexDevice.
+
+        Parameters:
+            headers (dict): Provide the X-Plex- headers for the new device.
+                A unique X-Plex-Client-Identifier is required.
+            account (MyPlexAccount): The Plex account to create the device on.
+            timeout (int): Timeout in seconds to wait for device login.
+    """
+    from plexapi.myplex import MyPlexPinLogin
+
+    if 'X-Plex-Client-Identifier' not in headers:
+        raise BadRequest('The X-Plex-Client-Identifier header is required.')
+
+    clientIdentifier = headers['X-Plex-Client-Identifier']
+
+    pinlogin = MyPlexPinLogin(headers=headers)
+    pinlogin.run(timeout=timeout)
+    account.link(pinlogin.pin)
+    pinlogin.waitForLogin()
+
+    return account.device(clientId=clientIdentifier)
 
 
 def choose(msg, items, attr):  # pragma: no cover
@@ -404,3 +447,18 @@ def getAgentIdentifier(section, agent):
 
 def base64str(text):
     return base64.b64encode(text.encode('utf-8')).decode('utf-8')
+
+
+def deprecated(message):
+    def decorator(func):
+        """This is a decorator which can be used to mark functions
+        as deprecated. It will result in a warning being emitted
+        when the function is used."""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            msg = 'Call to deprecated function or method "%s", %s.' % (func.__name__, message)
+            warnings.warn(msg, category=DeprecationWarning, stacklevel=3)
+            log.warning(msg)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

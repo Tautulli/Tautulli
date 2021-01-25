@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from collections import defaultdict
-from plexapi.compat import ConfigParser
+from configparser import ConfigParser
 
 
 class PlexConfig(ConfigParser):
@@ -13,6 +13,7 @@ class PlexConfig(ConfigParser):
         Parameters:
             path (str): Path of the configuration file to load.
     """
+
     def __init__(self, path):
         ConfigParser.__init__(self)
         self.read(path)

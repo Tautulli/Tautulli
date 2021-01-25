@@ -23,12 +23,12 @@ class GDM:
         """Scan the network."""
         self.update(scan_for_clients)
 
-    def all(self):
+    def all(self, scan_for_clients=False):
         """Return all found entries.
 
         Will scan for entries if not scanned recently.
         """
-        self.scan()
+        self.scan(scan_for_clients)
         return list(self.entries)
 
     def find_by_content_type(self, value):
