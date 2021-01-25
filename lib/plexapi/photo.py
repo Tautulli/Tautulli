@@ -44,7 +44,7 @@ class Photoalbum(PlexPartialObject):
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.key = data.attrib.get('key', '')
+        self.key = data.attrib.get('key', '').replace('/children', '')  # FIX_BUG_50
         self.librarySectionID = data.attrib.get('librarySectionID')
         self.librarySectionKey = data.attrib.get('librarySectionKey')
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
