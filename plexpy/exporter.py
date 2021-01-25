@@ -74,7 +74,6 @@ class Export(object):
         'photo': 'photos',
         'clip': 'clips',
         'collection': 'collections',
-        'children': 'children',
         'playlist': 'playlists',
         'item': 'items'
     }
@@ -89,7 +88,7 @@ class Export(object):
         'photoalbum': ['photoalbum', 'photo', 'clip'],
         'photo': [],
         'clip': [],
-        'collection': ['children'],
+        'collection': ['item'],
         'playlist': ['item']
     }
     TREE_MEDIA_TYPES = [
@@ -97,7 +96,7 @@ class Export(object):
         ('track', 'album', 'artist'),
         ('photo', 'photoalbum'),
         ('clip', 'photoalbum'),
-        ('children', 'collection'),
+        ('item', 'collection'),
         ('item', 'playlist')
     ]
     METADATA_LEVELS = (0, 1, 2, 3, 9)
@@ -158,6 +157,7 @@ class Export(object):
             _movie_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
@@ -217,9 +217,10 @@ class Export(object):
                     'duration': None,
                     'height': None,
                     'id': None,
+                    'isOptimizedVersion': None,
                     'has64bitOffsets': None,
                     'optimizedForStreaming': None,
-                    'optimizedVersion': None,
+                    'proxyType': None,
                     'target': None,
                     'title': None,
                     'videoCodec': None,
@@ -237,36 +238,42 @@ class Export(object):
                         'exists': None,
                         'file': None,
                         'has64bitOffsets': None,
+                        'hasThumbnail': None,
                         'id': None,
                         'indexes': None,
                         'key': None,
-                        'size': None,
-                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'optimizedForStreaming': None,
                         'packetLength': None,
                         'requiredBandwidths': None,
+                        'size': None,
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'syncItemId': None,
                         'syncState': None,
                         'videoProfile': None,
                         'videoStreams': {
+                            'bitrate': None,
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
+                            'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
                             'title': None,
                             'type': None,
+                            'anamorphic': None,
                             'bitDepth': None,
-                            'bitrate': None,
                             'cabac': None,
                             'chromaLocation': None,
                             'chromaSubsampling': None,
+                            'codecID': None,
+                            'codedHeight': None,
+                            'codedWidth': None,
                             'colorPrimaries': None,
                             'colorRange': None,
                             'colorSpace': None,
@@ -290,32 +297,32 @@ class Export(object):
                             'pixelFormat': None,
                             'profile': None,
                             'refFrames': None,
-                            'requiredBandwidths': None,
                             'scanType': None,
                             'streamIdentifier': None,
                             'width': None
                         },
                         'audioStreams': {
+                            'bitrate': None,
                             'codec': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
+                            'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
                             'title': None,
                             'type': None,
                             'audioChannelLayout': None,
                             'bitDepth': None,
-                            'bitrate': None,
                             'bitrateMode': None,
                             'channels': None,
                             'duration': None,
                             'profile': None,
-                            'requiredBandwidths': None,
                             'samplingRate': None,
                             'streamIdentifier': None
                         },
@@ -326,6 +333,7 @@ class Export(object):
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
                             'requiredBandwidths': None,
@@ -333,10 +341,10 @@ class Export(object):
                             'streamType': None,
                             'title': None,
                             'type': None,
+                            'container': None,
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'key': None,
                             'transient': None
                         }
                     }
@@ -360,6 +368,7 @@ class Export(object):
                 'summary': None,
                 'tagline': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -367,6 +376,7 @@ class Export(object):
                 'updatedAt': helpers.datetime_to_iso,
                 'userRating': None,
                 'viewCount': None,
+                'viewOffset': None,
                 'writers': {
                     'id': None,
                     'tag': None
@@ -379,6 +389,7 @@ class Export(object):
             _show_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'banner': None,
                 'childCount': None,
@@ -423,6 +434,7 @@ class Export(object):
                 'summary': None,
                 'theme': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -440,6 +452,7 @@ class Export(object):
             _season_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'fields': {
                     'name': None,
@@ -463,6 +476,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -479,7 +493,16 @@ class Export(object):
             _episode_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
+                'chapters': {
+                    'id': None,
+                    'tag': None,
+                    'index': None,
+                    'start': None,
+                    'end': None,
+                    'thumb': None
+                },
                 'chapterSource': None,
                 'contentRating': None,
                 'directors': {
@@ -523,9 +546,10 @@ class Export(object):
                     'duration': None,
                     'height': None,
                     'id': None,
+                    'isOptimizedVersion': None,
                     'has64bitOffsets': None,
                     'optimizedForStreaming': None,
-                    'optimizedVersion': None,
+                    'proxyType': None,
                     'target': None,
                     'title': None,
                     'videoCodec': None,
@@ -543,36 +567,42 @@ class Export(object):
                         'exists': None,
                         'file': None,
                         'has64bitOffsets': None,
+                        'hasThumbnail': None,
                         'id': None,
                         'indexes': None,
                         'key': None,
-                        'size': None,
-                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'optimizedForStreaming': None,
                         'packetLength': None,
                         'requiredBandwidths': None,
+                        'size': None,
+                        'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
                         'syncItemId': None,
                         'syncState': None,
                         'videoProfile': None,
                         'videoStreams': {
+                            'bitrate': None,
                             'codec': None,
-                            'codecID': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
+                            'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
                             'title': None,
                             'type': None,
+                            'anamorphic': None,
                             'bitDepth': None,
-                            'bitrate': None,
                             'cabac': None,
                             'chromaLocation': None,
                             'chromaSubsampling': None,
+                            'codecID': None,
+                            'codedHeight': None,
+                            'codedWidth': None,
                             'colorPrimaries': None,
                             'colorRange': None,
                             'colorSpace': None,
@@ -596,32 +626,32 @@ class Export(object):
                             'pixelFormat': None,
                             'profile': None,
                             'refFrames': None,
-                            'requiredBandwidths': None,
                             'scanType': None,
                             'streamIdentifier': None,
                             'width': None
                         },
                         'audioStreams': {
+                            'bitrate': None,
                             'codec': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
+                            'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
                             'title': None,
                             'type': None,
                             'audioChannelLayout': None,
                             'bitDepth': None,
-                            'bitrate': None,
                             'bitrateMode': None,
                             'channels': None,
                             'duration': None,
                             'profile': None,
-                            'requiredBandwidths': None,
                             'samplingRate': None,
                             'streamIdentifier': None
                         },
@@ -632,6 +662,7 @@ class Export(object):
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
                             'language': None,
                             'languageCode': None,
                             'requiredBandwidths': None,
@@ -639,10 +670,10 @@ class Export(object):
                             'streamType': None,
                             'title': None,
                             'type': None,
+                            'container': None,
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'key': None,
                             'transient': None
                         }
                     }
@@ -658,6 +689,7 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -665,6 +697,7 @@ class Export(object):
                 'updatedAt': helpers.datetime_to_iso,
                 'userRating': None,
                 'viewCount': None,
+                'viewOffset': None,
                 'writers': {
                     'id': None,
                     'tag': None
@@ -677,6 +710,7 @@ class Export(object):
             _artist_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'collections': {
                     'id': None,
@@ -708,12 +742,17 @@ class Export(object):
                 },
                 'rating': None,
                 'ratingKey': None,
+                'similar': {
+                    'id': None,
+                    'tag': None
+                },
                 'styles': {
                     'id': None,
                     'tag': None
                 },
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -729,6 +768,7 @@ class Export(object):
             _album_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'collections': {
                     'id': None,
@@ -767,12 +807,14 @@ class Export(object):
                 'parentTitle': None,
                 'rating': None,
                 'ratingKey': None,
+                'studio': None,
                 'styles': {
                     'id': None,
                     'tag': None
                 },
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
@@ -781,6 +823,7 @@ class Export(object):
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
+                'year': None,
                 'tracks': lambda e: self.export_obj(e)
             }
             return _album_attrs
@@ -789,6 +832,8 @@ class Export(object):
             _track_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
+                'chapterSource': None,
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'fields': {
@@ -829,18 +874,23 @@ class Export(object):
                         'hasThumbnail': None,
                         'id': None,
                         'key': None,
+                        'requiredBandwidths': None,
                         'size': None,
                         'sizeHuman': lambda o: helpers.human_file_size(getattr(o, 'size', 0)),
-                        'requiredBandwidths': None,
                         'syncItemId': None,
                         'syncState': None,
                         'audioStreams': {
+                            'bitrate': None,
                             'codec': None,
                             'default': None,
                             'displayTitle': None,
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
+                            'key': None,
+                            'language': None,
+                            'languageCode': None,
+                            'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
                             'title': None,
@@ -849,7 +899,8 @@ class Export(object):
                             'albumPeak': None,
                             'albumRange': None,
                             'audioChannelLayout': None,
-                            'bitrate': None,
+                            'bitDepth': None,
+                            'bitrateMode': None,
                             'channels': None,
                             'duration': None,
                             'endRamp': None,
@@ -857,9 +908,9 @@ class Export(object):
                             'loudness': None,
                             'lra': None,
                             'peak': None,
-                            'requiredBandwidths': None,
+                            'profile': None,
                             'samplingRate': None,
-                            'startRamp': None,
+                            'startRamp': None
                         },
                         'lyricStreams': {
                             'codec': None,
@@ -868,14 +919,18 @@ class Export(object):
                             'extendedDisplayTitle': None,
                             'id': None,
                             'index': None,
-                            'minLines': None,
-                            'provider': None,
+                            'key': None,
+                            'language': None,
+                            'languageCode': None,
+                            'requiredBandwidths': None,
+                            'selected': None,
                             'streamType': None,
-                            'timed': None,
                             'title': None,
                             'type': None,
                             'format': None,
-                            'key': None
+                            'minLines': None,
+                            'provider': None,
+                            'timed': None
                         }
                     }
                 },
@@ -894,12 +949,14 @@ class Export(object):
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'title': None,
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
                 'userRating': None,
                 'viewCount': None,
+                'viewOffset': None,
                 'year': None,
             }
             return _track_attrs
@@ -926,6 +983,7 @@ class Export(object):
                 'titleSort': None,
                 'type': lambda e: 'photoalbum' if e == 'photo' else e,
                 'updatedAt': helpers.datetime_to_iso,
+                'userRating': None,
                 'photoalbums': lambda o: [self.export_obj(e) for e in getattr(o, 'albums')()],
                 'photos': lambda e: self.export_obj(e),
                 'clips': lambda e: self.export_obj(e)
@@ -967,6 +1025,7 @@ class Export(object):
                     'aperture': None,
                     'aspectRatio': None,
                     'container': None,
+                    'exposure': None,
                     'height': None,
                     'id': None,
                     'iso': None,
@@ -997,6 +1056,7 @@ class Export(object):
             _collection_attrs = {
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
+                'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'childCount': None,
                 'collectionMode': None,
@@ -1022,12 +1082,13 @@ class Export(object):
                 'subtype': None,
                 'summary': None,
                 'thumb': None,
+                'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
-                'children': lambda e: self.export_obj(e)
+                'items': lambda e: self.export_obj(e)
             }
             return _collection_attrs
 
@@ -1099,7 +1160,7 @@ class Export(object):
                     'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
                     'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
                     'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-                    'media.optimizedVersion', 'media.hdr'
+                    'media.isOptimizedVersion', 'media.hdr'
                 ],
                 2: [
                     'media.parts.file', 'media.parts.duration',
@@ -1128,7 +1189,7 @@ class Export(object):
                     'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
                     'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
                     'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-                    'media.parts.subtitleStreams.default'
+                    'media.parts.subtitleStreams.default', 'media.parts.subtitleStreams.container'
                 ],
                 9: [
                     'locations', 'media'
@@ -1199,6 +1260,7 @@ class Export(object):
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
+                    'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
                     'updatedAt', 'lastViewedAt', 'viewCount',
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
@@ -1210,7 +1272,7 @@ class Export(object):
                     'locations', 'media.aspectRatio', 'media.audioChannels', 'media.audioCodec', 'media.audioProfile',
                     'media.bitrate', 'media.container', 'media.duration', 'media.height', 'media.width',
                     'media.videoCodec', 'media.videoFrameRate', 'media.videoProfile', 'media.videoResolution',
-                    'media.optimizedVersion', 'media.hdr'
+                    'media.isOptimizedVersion', 'media.hdr'
                 ],
                 2: [
                     'media.parts.file', 'media.parts.duration',
@@ -1239,7 +1301,7 @@ class Export(object):
                     'media.parts.subtitleStreams.language', 'media.parts.subtitleStreams.languageCode',
                     'media.parts.subtitleStreams.title', 'media.parts.subtitleStreams.displayTitle',
                     'media.parts.subtitleStreams.extendedDisplayTitle', 'media.parts.subtitleStreams.forced',
-                    'media.parts.subtitleStreams.default'
+                    'media.parts.subtitleStreams.default', 'media.parts.subtitleStreams.container'
                 ],
                 9: [
                     'locations', 'media'
@@ -1257,7 +1319,7 @@ class Export(object):
                     'albums'
                 ],
                 2: [
-                    'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'styles.tag',
+                    'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'similar.tag', 'styles.tag',
                     'fields.name', 'fields.locked'
                 ],
                 3: [
@@ -1274,7 +1336,7 @@ class Export(object):
             _metadata_levels = {
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'addedAt',
-                    'rating', 'userRating',
+                    'rating', 'userRating', 'studio', 'year',
                     'summary', 'guid', 'type', 'index',
                     'parentTitle', 'parentRatingKey', 'parentGuid',
                     'tracks'
@@ -1304,7 +1366,7 @@ class Export(object):
                     'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
                 ],
                 2: [
-                    'moods.tag', 'writers.tag',
+                    'moods.tag',
                     'fields.name', 'fields.locked'
                 ],
                 3: [
@@ -1356,7 +1418,7 @@ class Export(object):
             _metadata_levels = {
                 1: [
                     'ratingKey', 'title', 'titleSort', 'addedAt',
-                    'summary', 'guid', 'type', 'index',
+                    'summary', 'guid', 'type', 'index', 'userRating',
                     'photoalbums', 'photos', 'clips'
                 ],
                 2: [
@@ -1392,7 +1454,7 @@ class Export(object):
             }
             _media_info_levels = {
                 1: [
-                    'locations', 'media.aspectRatio', 'media.aperture',
+                    'locations', 'media.aspectRatio', 'media.aperture', 'media.exposure',
                     'media.container', 'media.height', 'media.width',
                     'media.iso', 'media.lens', 'media.make', 'media.model'
                 ],
@@ -1416,7 +1478,7 @@ class Export(object):
                     'contentRating',
                     'summary', 'guid', 'type', 'subtype', 'childCount',
                     'collectionMode', 'collectionSort',
-                    'children'
+                    'items'
                 ],
                 2: [
                     'labels.tag',
@@ -1880,8 +1942,8 @@ class Export(object):
                 export_attrs_set.add(self.PLURAL_MEDIA_TYPES[child_media_type])
 
         if media_type != self.media_type:
-            if self.media_type == 'collection' and 'children' in self._custom_fields:
-                export_attrs_set.update(self._custom_fields['children'])
+            if self.media_type == 'collection' and 'item' in self._custom_fields:
+                export_attrs_set.update(self._custom_fields['item'])
             elif self.media_type == 'playlist' and 'item' in self._custom_fields:
                 export_attrs_set.update(self._custom_fields['item'])
 
@@ -2284,7 +2346,7 @@ def get_custom_fields(media_type, sub_media_type=None):
             prefix = ''
 
             while child_media_type:
-                if child_media_type in ('children', 'item'):
+                if child_media_type == 'item':
                     fields_child_media_type = sub_media_type
                 else:
                     fields_child_media_type = child_media_type
@@ -2406,10 +2468,10 @@ def build_export_docs():
         section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
 
         if media_type == 'collection':
-            section += '\n\n* <a id="children">**Note:**</a> `children` can be [Movies](#movie) or [Shows](#show) ' \
+            section += '\n\n* <a id="collection-items">**Note:**</a> Collection `items` can be [Movies](#movie) or [Shows](#show) ' \
                        'depending on the collection.'
         elif media_type == 'playlist':
-            section += '\n\n* <a id="item">**Note:**</a> `items` can be [Movies](#movie), [Episodes](#episode), ' \
+            section += '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be [Movies](#movie), [Episodes](#episode), ' \
                        '[Tracks](#track), or [Photos](#photo) depending on the playlist.'
 
         sections.append(section)
