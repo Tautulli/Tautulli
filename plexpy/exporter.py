@@ -2396,7 +2396,8 @@ def build_export_docs():
                 child_section_title = 'Photo Albums'
             else:
                 child_section_title = child_plural_media_type.capitalize()
-            child_text = u'\u2713<br>Includes [{}](#{}) Level {{}}'.format(child_section_title, child_media_type)
+            child_text = u'\u2713<br>Includes [{}](#{}-{}) Level {{}}'.format(
+                child_section_title, media_type, child_media_type)
             child_row = {
                 'attr': child_plural_media_type,
                 'level0': '',
@@ -2468,7 +2469,7 @@ def build_export_docs():
         section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
 
         if media_type == 'collection':
-            section += '\n\n* <a id="collection-items">**Note:**</a> Collection `items` can be [Movies](#movie) or [Shows](#show) ' \
+            section += '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be [Movies](#movie) or [Shows](#show) ' \
                        'depending on the collection.'
         elif media_type == 'playlist':
             section += '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be [Movies](#movie), [Episodes](#episode), ' \
