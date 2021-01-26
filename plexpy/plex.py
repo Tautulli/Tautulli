@@ -19,13 +19,36 @@ from __future__ import unicode_literals
 from future.builtins import object
 from future.builtins import str
 
-from plexapi.server import PlexServer
+import sys
 
 import plexpy
 if plexpy.PYTHON2:
     import logger
 else:
     from plexpy import logger
+
+
+class DummyObject(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+    def __getattr__(self, attr):
+        return self
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        raise StopIteration
+
+
+if sys.version_info >= (3, 6):
+    from plexapi.server import PlexServer
+else:
+    PlexServer = DummyObject
 
 
 class Plex(object):
