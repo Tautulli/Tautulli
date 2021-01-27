@@ -210,8 +210,9 @@ class DataFactory(object):
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+                    'data': [],
+                    'filter_duration': '0',
+                    'total_duration': '0'}
 
         history = query['result']
 
@@ -1719,8 +1720,7 @@ class DataFactory(object):
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+                    'data': []}
 
         notifications = query['result']
 
@@ -1798,8 +1798,7 @@ class DataFactory(object):
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+                    'data': []}
 
         newsletters = query['result']
 

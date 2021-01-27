@@ -103,8 +103,7 @@ class Users(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'data': []}
 
         data_tables = datatables.DataTables()
 
@@ -241,8 +240,7 @@ class Users(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'data': []}
 
         if not session.allow_session_user(user_id):
             return default_return
@@ -871,8 +869,7 @@ class Users(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'data': []}
 
         if not session.allow_session_user(user_id):
             return default_return

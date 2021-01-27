@@ -197,8 +197,7 @@ def get_collections_list(section_id=None, **kwargs):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to get collections: missing section_id.'}
+                          'data': []}
         return default_return
 
     collections = get_collections(section_id=section_id)
@@ -282,8 +281,7 @@ def get_playlists_list(section_id=None, user_id=None, **kwargs):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to get playlists: missing section_id.'}
+                          'data': []}
         return default_return
 
     playlists = get_playlists(section_id=section_id, user_id=user_id)
@@ -313,8 +311,7 @@ class Libraries(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'data': []}
 
         data_tables = datatables.DataTables()
 
@@ -456,8 +453,9 @@ class Libraries(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': 'null',
-                          'error': 'Unable to execute database query.'}
+                          'data': [],
+                          'filtered_file_size': 0,
+                          'total_file_size': 0}
 
         if not session.allow_session_library(section_id):
             return default_return
