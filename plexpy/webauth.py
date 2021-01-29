@@ -422,4 +422,7 @@ class AuthController(object):
 
     @cherrypy.expose
     def redirect(self, redirect_uri='', *args, **kwargs):
+        root = plexpy.HTTP_ROOT.rstrip('/')
+        if redirect_uri.startswith(root):
+            redirect_uri = redirect_uri[len(root):]
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + redirect_uri.strip('/'))
