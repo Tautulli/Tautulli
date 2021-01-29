@@ -419,3 +419,7 @@ class AuthController(object):
             logger.debug("Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
             cherrypy.response.status = 401
             return error_message
+
+    @cherrypy.expose
+    def redirect(self, redirect_uri='', *args, **kwargs):
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + redirect_uri.strip('/'))

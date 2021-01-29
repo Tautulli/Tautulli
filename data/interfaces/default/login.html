@@ -160,7 +160,7 @@
             dataType: 'json',
             statusCode: {
                 200: function(xhr, status) {
-                   window.location = "${redirect_uri or http_root}";
+                   window.location = "redirect?redirect_uri=${redirect_uri}";
                 },
                 401: function(xhr, status) {
                     if (plex) {
