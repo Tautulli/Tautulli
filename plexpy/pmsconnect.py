@@ -2293,6 +2293,10 @@ class PmsConnect(object):
 
         Output: array
         """
+        default_return = {'children_count': 0,
+                          'children_list': []
+                          }
+
         if media_type == 'playlist':
             children_data = self.get_playlist_items(rating_key, output_format='xml')
         elif get_grandchildren:
@@ -2304,7 +2308,7 @@ class PmsConnect(object):
             xml_head = children_data.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_item_children: %s." % e)
-            return []
+            return default_return
 
         children_list = []
 
@@ -2312,10 +2316,7 @@ class PmsConnect(object):
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
                     logger.debug("Tautulli Pmsconnect :: No children data.")
-                    children_list = {'children_count': 0,
-                                     'children_list': []
-                                     }
-                    return children_list
+                    return default_return
 
             result_data = []
 
@@ -2356,8 +2357,8 @@ class PmsConnect(object):
                         media_type = 'photo_album'
 
                     children_output = {'media_type': media_type,
-                                       'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
-                                       'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
+                                       'section_id': helpers.get_xml_attr(a, 'librarySectionID'),
+                                       'library_name': helpers.get_xml_attr(a, 'librarySectionTitle'),
                                        'rating_key': helpers.get_xml_attr(m, 'ratingKey'),
                                        'parent_rating_key': helpers.get_xml_attr(m, 'parentRatingKey'),
                                        'grandparent_rating_key': helpers.get_xml_attr(m, 'grandparentRatingKey'),

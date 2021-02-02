@@ -4482,6 +4482,85 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi("get_children_metadata")
+    def get_children_metadata_details(self, rating_key='', media_type=None, **kwargs):
+        """ Get the metadata for the children of a media item.
+
+            ```
+            Required parameters:
+                rating_key (str):       Rating key of the item
+                media_type (str):       Media type of the item
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"children_count": 9,
+                     "children_type": "season",
+                     "title": "Game of Thrones",
+                     "children_list": [
+                         {...},
+                         {"actors": [],
+                          "added_at": "1403553078",
+                          "art": "/library/metadata/1219/art/1562110346",
+                          "audience_rating": "",
+                          "audience_rating_image": "",
+                          "banner": "",
+                          "content_rating": "",
+                          "directors": [],
+                          "duration": "",
+                          "full_title": "Season 1"
+                          "genres": [],
+                          "grandparent_rating_key": "",
+                          "grandparent_thumb": "",
+                          "grandparent_title": "",
+                          "guid": "com.plexapp.agents.thetvdb://121361/1?lang=en",
+                          "labels": [],
+                          "last_viewed_at": "1589992348",
+                          "library_name": "TV Shows",
+                          "media_index": "1",
+                          "media_type": "season",
+                          "original_title": "",
+                          "originally_available_at": "",
+                          "parent_media_index": "1",
+                          "parent_rating_key": "1219",
+                          "parent_thumb": "/library/metadata/1219/thumb/1562110346",
+                          "parent_title": "Game of Thrones",
+                          "rating": "",
+                          "rating_image": "",
+                          "rating_key": "1220",
+                          "section_id": "2",
+                          "sort_title": "",
+                          "studio": "",
+                          "summary": "",
+                          "tagline": "",
+                          "thumb": "/library/metadata/1220/thumb/1602176313",
+                          "title": "Season 1",
+                          "updated_at": "1602176313",
+                          "user_rating": "",
+                          "writers": [],
+                          "year": ""
+                          },
+                          {...},
+                          {...}
+                         ]
+                     }
+            ```
+        """
+        pms_connect = pmsconnect.PmsConnect()
+        metadata = pms_connect.get_item_children(rating_key=rating_key,
+                                                 media_type=media_type)
+
+        if metadata:
+            return metadata
+        else:
+            logger.warn("Unable to retrieve data for get_children_metadata_details.")
+            return metadata
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     @addtoapi('notify_recently_added')
     def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
         """ Send a recently added notification using Tautulli.
