@@ -191,7 +191,7 @@ def main():
 
     try:
         import plexapi
-        plexapi.CONFIG_PATH = plexpy.DATA_DIR
+        plexapi.CONFIG_PATH = os.path.join(plexpy.DATA_DIR, 'plexapi.config.ini')
     except:
         pass
 
