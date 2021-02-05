@@ -327,7 +327,7 @@ class DataFactory(object):
             if stat == 'top_movies':
                 top_movies = []
                 try:
-                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
+                    query = 'SELECT t.id, t.full_title, t.year, t.rating_key, t.thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -349,6 +349,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['full_title'],
+                           'year': item['year'],
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'users_watched': '',
@@ -378,7 +379,7 @@ class DataFactory(object):
             elif stat == 'popular_movies':
                 popular_movies = []
                 try:
-                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
+                    query = 'SELECT t.id, t.full_title, t.year, t.rating_key, t.thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
@@ -401,6 +402,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['full_title'],
+                           'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['rating_key'],
                            'last_play': item['last_watch'],
@@ -429,7 +431,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
+                            't.year, t.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -450,6 +452,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['grandparent_title'],
+                           'year': item['year'],
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'users_watched': '',
@@ -480,7 +483,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
+                            't.year, t.rating_key, t.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -502,6 +505,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['grandparent_title'],
+                           'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['rating_key'] if item['live'] else item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
@@ -529,7 +533,7 @@ class DataFactory(object):
             elif stat == 'top_music':
                 top_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.original_title, t.year, ' \
                             't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
@@ -552,6 +556,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['original_title'] or item['grandparent_title'],
+                           'year': item['year'],
                            'total_plays': item['total_plays'],
                            'total_duration': item['total_duration'],
                            'users_watched': '',
@@ -581,7 +586,7 @@ class DataFactory(object):
             elif stat == 'popular_music':
                 popular_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.original_title, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.original_title, t.year, ' \
                             't.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.started, t.live, t.guid, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
@@ -605,6 +610,7 @@ class DataFactory(object):
 
                 for item in result:
                     row = {'title': item['original_title'] or item['grandparent_title'],
+                           'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
@@ -735,7 +741,9 @@ class DataFactory(object):
             elif stat == 'last_watched':
                 last_watched = []
                 try:
-                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.grandparent_thumb, ' \
+                    query = 'SELECT t.id, t.title, t.grandparent_title, t.full_title, t.year, ' \
+                            't.media_index, t.parent_media_index, ' \
+                            't.rating_key, t.thumb, t.grandparent_thumb, ' \
                             't.user, t.user_id, t.custom_avatar_url as user_thumb, t.player, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.live, t.guid, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
@@ -775,6 +783,11 @@ class DataFactory(object):
                            'user_id': item['user_id'],
                            'user_thumb': item['user_thumb'],
                            'title': item['full_title'],
+                           'grandparent_title': item['grandparent_title'],
+                           'grandchild_title': item['title'],
+                           'year': item['year'],
+                           'media_index': item['media_index'],
+                           'parent_media_index': item['parent_media_index'],
                            'rating_key': item['rating_key'],
                            'thumb': thumb,
                            'grandparent_thumb': item['grandparent_thumb'],
