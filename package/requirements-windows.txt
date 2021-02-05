@@ -1,6 +1,6 @@
 apscheduler==3.6.3
 psutil==5.8.0
-pyinstaller==4.1
-pyopenssl==20.0.0
+pyinstaller==4.2
+pyopenssl==20.0.1
 pycryptodomex==3.9.9
 pywin32==300
