@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.6.6 (2021-02-06)
+
+* Exporter:
+  * Fix: Exporting failed with long file paths on Windows.
+  * New: Updated various exporter fields.
+  * Change: Renamed collection children to collection items.
+* UI:
+  * Fix: Client side login redirect changed to server side.
+  * Change: Renamed "Fix Metadata" button to "Fix Match".
+* API:
+  * New: Added get_children_metadata API command.
+  * New: Return more metadata from the get_home_stats API command.
+* Other:
+  * New: Updated PlexAPI to 4.3.1.
+
+
 ## v2.6.5 (2021-01-09)
 
 * Other:
