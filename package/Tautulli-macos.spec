@@ -15,6 +15,7 @@ analysis = Analysis(
         ('../data', 'data'),
         ('../CHANGELOG.md', '.'),
         ('../LICENSE', '.'),
+        ('../branch.txt', '.'),
         ('../version.txt', '.'),
         ('../lib/ipwhois/data', 'ipwhois/data')
     ],
