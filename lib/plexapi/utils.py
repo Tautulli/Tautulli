@@ -21,7 +21,6 @@ except ImportError:
     tqdm = None
 
 log = logging.getLogger('plexapi')
-warnings.simplefilter('default', category=DeprecationWarning)
 
 # Search Types - Plex uses these to filter specific media types when searching.
 # Library Types - Populated at runtime
