@@ -1598,7 +1598,7 @@ class Export(object):
         else:
             plex_token = plexpy.CONFIG.PMS_TOKEN
 
-        plex = Plex(plexpy.CONFIG.PMS_URL, plex_token)
+        plex = Plex(token=plex_token)
 
         if self.rating_key:
             logger.debug(

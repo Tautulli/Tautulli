@@ -52,7 +52,9 @@ else:
 
 
 class Plex(object):
-    def __init__(self, url, token):
+    def __init__(self, url=None, token=None):
+        url = url or plexpy.CONFIG.PMS_URL
+        token = token or plexpy.CONFIG.PMS_TOKEN
         self.plex = PlexServer(url, token)
 
     def get_library(self, section_id):
