@@ -558,16 +558,20 @@ class PlexTV(object):
                 sync_item = synced.getElementsByTagName('SyncItem')
                 for item in sync_item:
 
+                    sync_media_type = None
                     rating_key = None
                     for location in item.getElementsByTagName('Location'):
                         location_uri = unquote(helpers.get_xml_attr(location, 'uri'))
 
                         if location_uri.startswith('library://'):
+                            if 'collection' in location_uri:
+                                sync_media_type = 'collection'
                             clean_uri = location_uri.split('/')
                             rating_key = next((j for i, j in zip(clean_uri[:-1], clean_uri[1:])
                                               if i in ('metadata', 'collections')), None)
 
                         elif location_uri.startswith('playlist://'):
+                            sync_media_type = 'playlist'
                             tokens = users.Users().get_tokens(user_id=device_user_id)
                             if tokens['server_token']:
                                 plex = Plex(token=tokens['server_token'])
@@ -635,7 +639,8 @@ class PlexTV(object):
                                     "total_size": status_total_size,
                                     "failure": status_failure,
                                     "client_id": client_id,
-                                    "sync_id": sync_id
+                                    "sync_id": sync_id,
+                                    "sync_media_type": sync_media_type
                                     }
 
                     synced_items.append(sync_details)

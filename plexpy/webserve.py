@@ -5977,6 +5977,7 @@ class WebInterface(object):
                       "root_title": "Movies",
                       "state": "complete",
                       "sync_id": "11617019",
+                      "sync_media_type": null,
                       "sync_title": "Deadpool",
                       "total_size": "560718134",
                       "user": "DrukenDwarfMan",
