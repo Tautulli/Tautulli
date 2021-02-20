@@ -5953,9 +5953,10 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                machine_id (str):       The PMS identifier
+                None
 
             Optional parameters:
+                machine_id (str):       The PMS identifier
                 user_id (str):          The id of the Plex user
 
             Returns:
