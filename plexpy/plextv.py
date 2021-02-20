@@ -19,8 +19,8 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import str
 from future.builtins import object
+from future.moves.urllib.parse import unquote
 
-import base64
 import json
 
 import plexpy
@@ -32,6 +32,7 @@ if plexpy.PYTHON2:
     import users
     import pmsconnect
     import session
+    from plex import Plex
 else:
     from plexpy import common
     from plexpy import helpers
@@ -40,6 +41,7 @@ else:
     from plexpy import users
     from plexpy import pmsconnect
     from plexpy import session
+    from plexpy.plex import Plex
 
 
 def get_server_resources(return_presence=False, return_server=False, return_info=False, **kwargs):
@@ -556,11 +558,22 @@ class PlexTV(object):
                 sync_item = synced.getElementsByTagName('SyncItem')
                 for item in sync_item:
 
+                    rating_key = None
                     for location in item.getElementsByTagName('Location'):
-                        clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
+                        location_uri = unquote(helpers.get_xml_attr(location, 'uri'))
 
-                    rating_key = next((clean_uri[(idx + 1) % len(clean_uri)]
-                                       for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
+                        if location_uri.startswith('library://'):
+                            clean_uri = location_uri.split('/')
+                            rating_key = next((j for i, j in zip(clean_uri[:-1], clean_uri[1:])
+                                              if i in ('metadata', 'collections')), None)
+
+                        elif location_uri.startswith('playlist://'):
+                            tokens = users.Users().get_tokens(user_id=device_user_id)
+                            if tokens['server_token']:
+                                plex = Plex(token=tokens['server_token'])
+                                for playlist in plex.plex.playlists():
+                                    if location_uri.endswith(playlist.guid):
+                                        rating_key = playlist.ratingKey
 
                     # Filter by rating_key
                     if rating_key_filter and rating_key not in rating_key_filter:
