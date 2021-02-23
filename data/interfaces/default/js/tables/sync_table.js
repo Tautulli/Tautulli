@@ -66,7 +66,7 @@ sync_table_options = {
             "data": "sync_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['rating_key']) {
+                    if (rowData['rating_key'] && !rowData['rating_key'].includes(',')) {
                         $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     } else {
                         $(td).html(cellData);
