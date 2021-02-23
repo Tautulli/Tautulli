@@ -577,7 +577,7 @@ class PlexTV(object):
                                 plex = Plex(token=tokens['server_token'])
                                 for playlist in plex.plex.playlists():
                                     if location_uri.endswith(playlist.guid):
-                                        rating_key = playlist.ratingKey
+                                        rating_key = str(playlist.ratingKey)  # String for backwards consistency
 
                     # Filter by rating_key
                     if rating_key_filter and rating_key not in rating_key_filter:
