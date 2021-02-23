@@ -206,6 +206,15 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
+        os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
+        os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
+        try:
+            import plexapi
+            import importlib
+            importlib.reload(plexapi)
+        except:
+            pass
+
         if DOCKER:
             build = '[Docker] '
         elif SNAP:

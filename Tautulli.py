@@ -189,12 +189,6 @@ def main():
     else:
         plexpy.DATA_DIR = plexpy.PROG_DIR
 
-    try:
-        import plexapi
-        plexapi.CONFIG_PATH = os.path.join(plexpy.DATA_DIR, 'plexapi.config.ini')
-    except:
-        pass
-
     # Migrate Snap data dir
     if plexpy.SNAP:
         snap_common = os.environ['SNAP_COMMON']
