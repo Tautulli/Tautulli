@@ -4658,11 +4658,15 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        if img.startswith('/library/metadata'):
-            parts = 6 if 'composite' in img else 5
+        if img:
+            parts = 5
+            if img.startswith('/playlists'):
+                parts -= 1
+            rating_key_idx = parts - 2
+            parts += int('composite' in img)
             img_split = img.split('/')
             img = '/'.join(img_split[:parts])
-            img_rating_key = img_split[3]
+            img_rating_key = img_split[rating_key_idx]
             if rating_key != img_rating_key:
                 rating_key = img_rating_key
 
@@ -4693,6 +4697,7 @@ class WebInterface(object):
             # the image does not exist, download it from pms
             try:
                 pms_connect = pmsconnect.PmsConnect()
+                pms_connect.request_handler._silent = True
                 result = pms_connect.get_image(img=img,
                                                width=width,
                                                height=height,
