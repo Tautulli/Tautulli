@@ -364,10 +364,10 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
-        if result is True:
-            return {'result': 'success', 'message': 'Session terminated.'}
-        elif result:
+        if isinstance(result, str):
             return {'result': 'error', 'message': 'Failed to terminate session: {}.'.format(result)}
+        elif result is True:
+            return {'result': 'success', 'message': 'Session terminated.'}
         else:
             return {'result': 'error', 'message': 'Failed to terminate session.'}
 
