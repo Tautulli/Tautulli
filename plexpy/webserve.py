@@ -2669,7 +2669,10 @@ class WebInterface(object):
         if client_id and sync_id:
             plex_tv = plextv.PlexTV()
             delete_row = plex_tv.delete_sync(client_id=client_id, sync_id=sync_id)
-            return {'result': 'success', 'message': 'Synced item deleted successfully.'}
+            if delete_row:
+                return {'result': 'success', 'message': 'Synced item deleted successfully.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to delete synced item.'}
         else:
             return {'result': 'error', 'message': 'Missing client ID and sync ID.'}
 

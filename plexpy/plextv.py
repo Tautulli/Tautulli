@@ -387,11 +387,11 @@ class PlexTV(object):
 
         return request
 
-    def delete_plextv_sync(self, client_id='', sync_id='', output_format=''):
+    def delete_plextv_sync(self, client_id='', sync_id=''):
         uri = '/devices/%s/sync_items/%s' % (client_id, sync_id)
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='DELETE',
-                                                    output_format=output_format)
+                                                    return_response=True)
 
         return request
 
@@ -649,7 +649,8 @@ class PlexTV(object):
 
     def delete_sync(self, client_id, sync_id):
         logger.info("Tautulli PlexTV :: Deleting sync item '%s'." % sync_id)
-        self.delete_plextv_sync(client_id=client_id, sync_id=sync_id)
+        response = self.delete_plextv_sync(client_id=client_id, sync_id=sync_id)
+        return response.ok
 
     def get_server_connections(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True):
 
