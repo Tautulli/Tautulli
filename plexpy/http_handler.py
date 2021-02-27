@@ -77,6 +77,7 @@ class HTTPHandler(object):
         self.data = None
         self.request_type = 'GET'
         self.output_format = 'raw'
+        self.return_response = False
         self.return_type = False
         self.callback = None
         self.request_kwargs = {}
@@ -87,6 +88,7 @@ class HTTPHandler(object):
                      data=None,
                      request_type='GET',
                      output_format='raw',
+                     return_response=False,
                      return_type=False,
                      no_token=False,
                      timeout=None,
@@ -102,6 +104,7 @@ class HTTPHandler(object):
         self.data = data
         self.request_type = request_type.upper()
         self.output_format = output_format.lower()
+        self.return_response = return_response
         self.return_type = return_type
         self.callback = callback
         self.timeout = timeout or self.timeout
@@ -156,6 +159,7 @@ class HTTPHandler(object):
 
     def _http_requests_single(self, url):
         """Request the data from the url"""
+        e = None
         error_msg = "Failed to access uri endpoint %s. " % self.uri
         try:
             r = self._session.request(self.request_type, url, headers=self.headers, data=self.data,
@@ -164,22 +168,22 @@ class HTTPHandler(object):
         except requests.exceptions.Timeout as e:
             if not self._silent:
                 logger.error(error_msg + "Request timed out: %s", e)
-            return None
         except requests.exceptions.SSLError as e:
             if not self._silent:
                 logger.error(error_msg + "Is your server maybe accepting SSL connections only? %s", e)
-            return None
         except requests.exceptions.HTTPError as e:
             if not self._silent:
                 logger.error(error_msg + "Status code %s", e)
-            return None
         except requests.exceptions.ConnectionError as e:
             if not self._silent:
                 logger.error(error_msg + "Connection error: %s", e)
-            return None
         except requests.exceptions.RequestException as e:
             if not self._silent:
                 logger.error(error_msg + "Uncaught exception: %s", e)
+
+        if self.return_response:
+            return r
+        elif e:
             return None
 
         response_status = r.status_code
