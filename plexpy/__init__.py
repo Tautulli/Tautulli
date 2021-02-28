@@ -53,6 +53,7 @@ if PYTHON2:
     import newsletter_handler
     import notification_handler
     import notifiers
+    import plex
     import plextv
     import users
     import versioncheck
@@ -73,6 +74,7 @@ else:
     from plexpy import newsletter_handler
     from plexpy import notification_handler
     from plexpy import notifiers
+    from plexpy import plex
     from plexpy import plextv
     from plexpy import users
     from plexpy import versioncheck
@@ -206,14 +208,10 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
-        os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
-        os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
-        try:
-            import plexapi
-            import importlib
-            importlib.reload(plexapi)
-        except:
-            pass
+        if not PYTHON2:
+            os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
+            os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
+            plex.initialize_plexapi()
 
         if DOCKER:
             build = '[Docker] '

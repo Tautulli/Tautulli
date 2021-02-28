@@ -19,8 +19,6 @@ from __future__ import unicode_literals
 from future.builtins import object
 from future.builtins import str
 
-import sys
-
 import plexpy
 if plexpy.PYTHON2:
     import logger
@@ -45,17 +43,20 @@ class DummyObject(object):
         raise StopIteration
 
 
-if sys.version_info >= (3, 6):
+PlexObject = DummyObject
+
+
+def initialize_plexapi():
     from plexapi.server import PlexServer
-else:
-    PlexServer = DummyObject
+    global PlexObject
+    PlexObject = PlexServer
 
 
 class Plex(object):
     def __init__(self, url=None, token=None):
         url = url or plexpy.CONFIG.PMS_URL
         token = token or plexpy.CONFIG.PMS_TOKEN
-        self.plex = PlexServer(url, token)
+        self.plex = PlexObject(url, token)
 
     def get_library(self, section_id):
         return self.plex.library.sectionByID(str(section_id))
