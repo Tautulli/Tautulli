@@ -218,6 +218,13 @@ DOCUMENTATION :: END
                         <td>${data['stream_audio_channels']}</td>
                         <td>${data['audio_channels']}</td>
                     </tr>
+                    % if data['stream_audio_language'] != '':
+                    <tr>
+                        <td>Language</td>
+                        <td>${data['stream_audio_language']}</td>
+                        <td>${data['audio_language']}</td>
+                    </tr>
+                    % endif
                 </tbody>
             </table>
             % if data['subtitles'] == 1:
