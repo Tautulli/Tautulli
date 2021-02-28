@@ -4,7 +4,6 @@ on:
   push:
     branches: [master, beta, nightly]
     tags: [v*]
-  pull_request: ~
 
 jobs:
   build-docker:
