@@ -620,13 +620,14 @@ def dbcheck():
         'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, '
         'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, '
         'video_dynamic_range TEXT, aspect_ratio TEXT, '
-        'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, subtitle_codec TEXT, '
-        'stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
+        'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, '
+        'subtitle_codec TEXT, stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
         'stream_container_decision TEXT, stream_container TEXT, '
         'stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, '
         'stream_video_height INTEGER, stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, '
         'stream_video_dynamic_range TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
+        'stream_audio_language TEXT, stream_audio_language_code TEXT, '
         'subtitles INTEGER, stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
         'transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
@@ -663,8 +664,8 @@ def dbcheck():
         'container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, video_bitrate INTEGER, video_bit_depth INTEGER, '
         'video_codec TEXT, video_codec_level TEXT, video_width INTEGER, video_height INTEGER, video_resolution TEXT, '
         'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, video_dynamic_range TEXT, aspect_ratio TEXT, '
-        'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
-        'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
+        'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, '
+        'transcode_protocol TEXT, transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
         'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, '
         'transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, '
         'transcode_hw_decode TEXT, transcode_hw_decode_title TEXT, transcode_hw_decoding INTEGER, '
@@ -674,6 +675,7 @@ def dbcheck():
         'stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, '
         'stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, stream_video_dynamic_range TEXT, '
         'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
+        'stream_audio_language TEXT, stream_audio_language_code TEXT, '
         'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, '
         'subtitles INTEGER, subtitle_codec TEXT, synced_version INTEGER, synced_version_profile TEXT, '
         'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT)'
@@ -1331,6 +1333,24 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN initial_stream INTEGER DEFAULT 1'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT audio_language FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_language TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_language_code TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_language TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stream_audio_language_code TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1718,7 +1738,25 @@ def dbcheck():
             'UPDATE session_history_media_info SET stream_video_dynamic_range = "SDR" '
             'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"'
         )
-
+    
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT audio_language FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN audio_language TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN audio_language_code TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language_code TEXT'
+        ) 
+    
     # Upgrade users table from earlier versions
     try:
         c_db.execute('SELECT do_notify FROM users')
