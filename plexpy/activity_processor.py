@@ -135,7 +135,7 @@ class ActivityProcessor(object):
                       'stream_audio_bitrate': session.get('stream_audio_bitrate', ''),
                       'stream_audio_channels': session.get('stream_audio_channels', ''),
                       'stream_audio_language': session.get('stream_audio_language', ''),
-                      'stream_audio_language_code': session.get('stream_audio_language_code'),
+                      'stream_audio_language_code': session.get('stream_audio_language_code', ''),
                       'stream_subtitle_decision': session.get('stream_subtitle_decision', ''),
                       'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
                       'subtitles': session.get('subtitles', 0),
