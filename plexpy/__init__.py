@@ -1629,7 +1629,7 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT '
+            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1638,10 +1638,10 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT '
+            'ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT'
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT '
+            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1650,13 +1650,13 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER '
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER'
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encoding INTEGER '
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encoding INTEGER'
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL '
+            'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1666,16 +1666,16 @@ def dbcheck():
         if len(result) > 0:
             logger.debug("Altering database. Removing NULL values from session_history_media_info table.")
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_container = "" WHERE stream_container IS NULL '
+                'UPDATE session_history_media_info SET stream_container = "" WHERE stream_container IS NULL'
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_video_codec = "" WHERE stream_video_codec IS NULL '
+                'UPDATE session_history_media_info SET stream_video_codec = "" WHERE stream_video_codec IS NULL'
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_audio_codec = "" WHERE stream_audio_codec IS NULL '
+                'UPDATE session_history_media_info SET stream_audio_codec = "" WHERE stream_audio_codec IS NULL'
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_subtitle_codec = "" WHERE stream_subtitle_codec IS NULL '
+                'UPDATE session_history_media_info SET stream_subtitle_codec = "" WHERE stream_subtitle_codec IS NULL'
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to remove NULL values from session_history_media_info table.")
@@ -1725,10 +1725,10 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT '
+            'ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT'
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT '
+            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT'
         )
 
     result = c_db.execute('SELECT * FROM session_history_media_info '
