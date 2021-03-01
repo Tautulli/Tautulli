@@ -114,7 +114,7 @@ _CONFIG_DEFINITIONS = {
     'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music',
-        'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
+        'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent', 'top_libraries']),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),

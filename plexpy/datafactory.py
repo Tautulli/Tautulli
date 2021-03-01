@@ -29,11 +29,13 @@ if plexpy.PYTHON2:
     import common
     import database
     import datatables
+    import libraries
     import helpers
     import logger
     import pmsconnect
     import session
 else:
+    from plexpy import libraries
     from plexpy import common
     from plexpy import database
     from plexpy import datatables
@@ -888,6 +890,39 @@ class DataFactory(object):
                                    'stat_title': 'Most Concurrent Streams',
                                    'rows': most_concurrent})
 
+            elif stat == 'top_libraries':
+                top_libraries = []
+
+                try:
+                    query = 'SELECT section_id, section_name, section_type ' \
+                        'FROM library_sections'
+
+                    result = monitor_db.select(query)
+                except Exception as e:
+                    logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_libraries: %s." % e)
+                    return None
+
+                library_data = libraries.Libraries()
+
+                for item in result:
+                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days=time_range)
+
+                    row = {
+                        'total_plays': library_item[0]['total_plays'],
+                        'total_duration': library_item[0]['total_time'],
+                        'type': item['section_type'],
+                        'library_name': item['section_name']
+                    }
+
+                    top_libraries.append(row)
+
+                home_stats.append({
+                    'stat_id': stat,
+                    'stat_type': sort_type,
+                    'stat_title': 'Most Active Libraries',
+                    'rows': session.mask_session_info(sorted(top_libraries, key=lambda k: k[sort_type], reverse=True), mask_metadata=False)
+                })
+
         if stat_id and home_stats:
             return home_stats[0]
         return home_stats
@@ -915,7 +950,11 @@ class DataFactory(object):
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
             return None
 
+        library_data = libraries.Libraries()
+
         for item in result:
+            library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days='0')
+
             if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                 library_thumb = item['custom_thumb']
             elif item['library_thumb']:
@@ -935,7 +974,8 @@ class DataFactory(object):
                        'art': library_art,
                        'count': item['count'],
                        'child_count': item['parent_count'],
-                       'grandchild_count': item['child_count']
+                       'grandchild_count': item['child_count'],
+                       'total_plays': library_item[0]['total_plays']
                        }
             library_stats.append(library)
 

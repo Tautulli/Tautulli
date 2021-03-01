@@ -810,6 +810,10 @@
                 $('#stats-background-' + stat_id).removeClass(function (index, className) {
                     return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
                 }).addClass('platform-' + $(elem).data('platform') + '-rgba');
+            } else if (stat_id == 'top_libraries') {
+                $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
+                    return (className.match (/(^|\s)library-\S+/g) || []).join(' ');
+                }).addClass('library-' + $(elem).data('library-type'));
             } else {
                 if (rating_key) {
                     if (live) {

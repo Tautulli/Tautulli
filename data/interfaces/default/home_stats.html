@@ -25,7 +25,7 @@ grandparent_thumb       Returns location of the item's thumbnail. Use with pms_i
 rating_key              Returns the unique identifier for the media item.
 title                   Returns the title for the associated stat.
 
-== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_music' or 'top_user' or 'top_platform' ==
+== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_music' or 'top_user' or 'top_platform' or 'top_libraries' ==
 total_plays             Returns the count for the associated stat.
 total_duration          Returns the total duration for the associated stat.
 
@@ -111,6 +111,8 @@ DOCUMENTATION :: END
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
             % elif stat_id == 'most_concurrent':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon stats-${stat_id} transparent hidden-xs"></div>
+            % elif stat_id == 'top_libraries':
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['type']} hidden-xs"></div>
             % endif
             <div class="dashboard-stats-info-container">
                 <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
@@ -133,7 +135,7 @@ DOCUMENTATION :: END
                             % for row in top_stat['rows']:
                             <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}"
                                 data-rating_key="${row.get('rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
-                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
+                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('type')}"
                                 data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
                                 <div class="sub-list">${loop.index + 1}</div>
@@ -159,6 +161,8 @@ DOCUMENTATION :: END
                                     ${row['platform']}
                                     % elif stat_id == 'most_concurrent':
                                     ${row['title']}
+                                    % elif stat_id == 'top_libraries':
+                                    ${row['library_name']}
                                     % endif
                                 </div>
                                 <div class="sub-count">

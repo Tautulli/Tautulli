@@ -19,6 +19,7 @@ thumb                   Returns the thumb of the library.
 count                   Returns the number of top level items in the library.
 parent_count            Returns the number of parent items in the library.
 child_count             Returns the number of child items in the library.
+total_plays             Returns the number of total plays of the library.
 
 DOCUMENTATION :: END
 </%doc>
@@ -28,9 +29,9 @@ DOCUMENTATION :: END
     from plexpy.helpers import page
 
     types = ('movie', 'show', 'artist', 'photo')
-    headers = {'movie': ('Movie Libraries', ('Movies', '', '')),
-               'show': ('TV Show Libraries', ('Shows', 'Seasons', 'Episodes')),
-               'artist': ('Music Libraries', ('Artists', 'Albums', 'Tracks')),
+    headers = {'movie': ('Movie Libraries', ('Movies', '', '', 'Total Plays')),
+               'show': ('TV Show Libraries', ('Shows', 'Seasons', 'Episodes', 'Total Plays')),
+               'artist': ('Music Libraries', ('Artists', 'Albums', 'Tracks', 'Total Plays')),
                'photo': ('Photo Libraries', ('Albums', 'Photos', 'Videos'))}
 %>
 % for section_type in types:
@@ -78,6 +79,12 @@ DOCUMENTATION :: END
                                 <div class="sub-divider"> / </div>
                                 <div class="sub-count">
                                     ${section['grandchild_count']}
+                                </div>
+                                % endif
+                                % if headers[section_type][1][3]:
+                                <div class="sub-divider"> / </div>
+                                <div class="sub-count">
+                                    ${section['total_plays']}
                                 </div>
                                 % endif
                             </li>
