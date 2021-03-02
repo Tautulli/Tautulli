@@ -950,11 +950,7 @@ class DataFactory(object):
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
             return None
 
-        library_data = libraries.Libraries()
-
         for item in result:
-            library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days='0')
-
             if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                 library_thumb = item['custom_thumb']
             elif item['library_thumb']:
@@ -974,8 +970,7 @@ class DataFactory(object):
                        'art': library_art,
                        'count': item['count'],
                        'child_count': item['parent_count'],
-                       'grandchild_count': item['child_count'],
-                       'total_plays': library_item[0]['total_plays']
+                       'grandchild_count': item['child_count']
                        }
             library_stats.append(library)
 
