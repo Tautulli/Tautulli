@@ -36,7 +36,7 @@ and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 [![Docker Stars][badge-docker-stars]][DockerHub]
 [![Downloads][badge-downloads]][Releases Latest]
 
-[badge-python]: https://img.shields.io/badge/python-3.6,%203.7,%203.8-blue?style=flat-square
+[badge-python]: https://img.shields.io/badge/python->=3.6-blue?style=flat-square
 [badge-docker-pulls]: https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square
 [badge-docker-stars]: https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square
 [badge-downloads]: https://img.shields.io/github/downloads/Tautulli/Tautulli/total?style=flat-square
@@ -82,11 +82,13 @@ Read the [Installation Guides][Installation] for instructions on how to install 
 [![Discord][badge-discord]][Discord]
 [![Reddit][badge-reddit]][Reddit]
 [![Plex Forums][badge-forums]][Plex Forums]
+[![Issues][badge-issues]][Issues]
 
 [badge-wiki]: https://img.shields.io/badge/github-wiki-black?style=flat-square
 [badge-discord]: https://img.shields.io/discord/183396325142822912?label=discord&style=flat-square&color=7289DA
 [badge-reddit]: https://img.shields.io/reddit/subreddit-subscribers/tautulli?label=reddit&style=flat-square&color=FF5700
 [badge-forums]: https://img.shields.io/badge/plex%20forums-discussion-E5A00D?style=flat-square
+[badge-issues]: https://img.shields.io/badge/github-issues-black?style=flat-square
 
 If you think you've found a bug in Tautulli make sure you have read the [FAQ][]
 first to make sure it hasn't been covered by one of the questions there. If your
@@ -97,28 +99,25 @@ problem isn't answered in the FAQ try the following first:
 -   Analyzing your logs, you just might find the solution yourself!
 -   Using the **search** function to see if this issue has already been reported/solved.
 -   Checking the [Wiki][] for [Installation][] instructions and reading the [FAQs][FAQ].
--   For basic questions try asking on [Discord][Discord], [Reddit][Reddit], 
-    or the [Plex Forums][Plex Forums] first before opening an issue.
+-   For basic questions try asking on [Discord][], [Reddit][], 
+    or the [Plex Forums][] first before opening an issue.
 
 ##### If nothing has worked:
 
-1.  Open a new issue on the GitHub [Issue][].
-2.  Provide a clear title to easily help identify your problem.
-3.  Use proper [Markdown Syntax][] to structure your post (i.e. code/log in code blocks).
-4.  Make sure to fill out the required information on the issue template.
-5.  Close your issue when it's solved! If you found the solution yourself please
+1.  Please check the [issues tracker][Issues] to see if someone else has already reported the bug.
+2.  If this is a new bug, open a [bug report][Issue New] on issues tracker.
+3.  Provide a clear title to easily help identify your problem.
+4.  Use proper [Markdown syntax][] to structure your post (i.e. code/log in code blocks).
+5.  Make sure to fill out the required information on the issue template.
+6.  Close your issue when it's solved! If you found the solution yourself please
     comment so that others benefit from it.
 
 ## Feature Requests
 
-[![FeatHub][badge-feathub]][FeatHub]
-
-[badge-feathub]: https://img.shields.io/badge/FeatHub-requests-9B9B9B?style=flat-square
-
-This is **not** the place to file a feature request! Please head over to [FeatHub][]
-and search the existing issues. If a similar idea has already been posted,
-give it a thumbs up (+1). If you can't find your idea then feel free to file a
-new request _over there_, thanks!
+1.  Check the [issues tracker][Issues] to see if someone else has already requested the feature.
+    If a similar idea has already been posted, _give it a thumbs up_. **Do not comment
+    with with `+1` or something similar as it creates unnecessary spam.**
+2.  If this is a new feature request, open a [feature request][Issue New] on the issues tracker.
 
 ## License
 
@@ -142,8 +141,9 @@ https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 [FAQ]: https://github.com/Tautulli/Tautulli/wiki/Frequently-Asked-Questions
 [FeatHub]: https://feathub.com/Tautulli/Tautulli
 [Installation]: https://github.com/Tautulli/Tautulli/wiki/Installation
-[Issue]: https://github.com/Tautulli/Tautulli/issues/new/choose
-[Markdown Syntax]: https://help.github.com/articles/github-flavored-markdown
+[Issues]: https://github.com/Tautulli/Tautulli/issues
+[Issue New]: https://github.com/Tautulli/Tautulli/issues/new/choose
+[Markdown syntax]: https://help.github.com/articles/github-flavored-markdown
 [Tautulli]: http://tautulli.com
 [Wiki]: https://github.com/Tautulli/Tautulli/wiki
 [Discord]: https://tautulli.com/discord
