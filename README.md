@@ -114,8 +114,8 @@ problem isn't answered in the FAQ try the following first:
 
 ## Feature Requests
 
-1.  Check the [issues tracker][Issues] to see if someone else has already requested the feature.
-    If a similar idea has already been posted, _give it a thumbs up_. **Do not comment
+1.  Pleases check the [issues tracker][Issues] to see if someone else has already requested the feature.
+    If a similar idea has already been requested, _give it a thumbs up_. **Do not comment
     with with `+1` or something similar as it creates unnecessary spam.**
 2.  If this is a new feature request, open a [feature request][Issue New] on the issues tracker.
 
@@ -139,7 +139,6 @@ https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 [Releases Latest]: https://github.com/Tautulli/Tautulli/releases/latest
 [License]: https://github.com/Tautulli/Tautulli/blob/master/LICENSE
 [FAQ]: https://github.com/Tautulli/Tautulli/wiki/Frequently-Asked-Questions
-[FeatHub]: https://feathub.com/Tautulli/Tautulli
 [Installation]: https://github.com/Tautulli/Tautulli/wiki/Installation
 [Issues]: https://github.com/Tautulli/Tautulli/issues
 [Issue New]: https://github.com/Tautulli/Tautulli/issues/new/choose
