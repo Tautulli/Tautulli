@@ -2,7 +2,7 @@
 name: Bug Report
 about: Please do not use bug reports for support issues.
 title: ''
-labels: 'status:awaiting-triage'
+labels: 'status:awaiting-triage, type:bug'
 assignees: ''
 
 ---
