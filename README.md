@@ -1,66 +1,164 @@
 # Tautulli
 
-A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
+A python based web application for monitoring, analytics and notifications for 
+[Plex Media Server](https://plex.tv).
 
-This project is based on code from [Headphones](https://github.com/rembo10/headphones) and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
+This project is based on code from [Headphones](https://github.com/rembo10/headphones)
+and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 
 ## Features
 
-* Responsive web design viewable on desktop, tablet and mobile web browsers.
-* Themed to complement Plex/Web.
-* Easy configuration setup (no separate web server required).
-* Monitor current Plex Media Server activity.
-* Fully customizable notifications for stream activity and recently added media.
-* Top statistics on home page with configurable duration and measurement metric.
-* Global watching history with search/filtering & dynamic column sorting.
-* Full user list with general information and comparison stats.
-* Individual user information including devices IP addresses.
-* Complete library statistics and media file information.
-* Rich analytics presented using Highcharts graphing.
-* Beautiful content information pages.
-* Full sync list data on all users syncing items from your library.
-* And many more!!
+-   Responsive web design viewable on desktop, tablet and mobile web browsers.
+-   Themed to complement Plex/Web.
+-   Easy configuration setup (no separate web server required).
+-   Monitor current Plex Media Server activity.
+-   Fully customizable notifications for stream activity and recently added media.
+-   Top statistics on home page with configurable duration and measurement metric.
+-   Global watching history with search/filtering & dynamic column sorting.
+-   Full user list with general information and comparison stats.
+-   Individual user information including devices IP addresses.
+-   Complete library statistics and media file information.
+-   Rich analytics presented using Highcharts graphing.
+-   Beautiful content information pages.
+-   Full sync list data on all users syncing items from your library.
+-   And many more!!
 
 ## Preview
 
-* [Full preview gallery available on our website](https://tautulli.com)
+[Full preview gallery available on our website][Tautulli]
 
 ![Tautulli Homepage](https://tautulli.com/images/screenshots/activity-compressed.jpg?v=2)
 
-## Installation & Support
+## Installation
 
-[![Python](https://img.shields.io/badge/python-2.7.17,%203.6,%203.7,%203.8-blue?style=flat-square)](https://python.org/downloads)
-[![Docker Pulls](https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
-[![Docker Stars](https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli)
-[![Downloads](https://img.shields.io/github/downloads/Tautulli/Tautulli/total?style=flat-square)](https://github.com/Tautulli/Tautulli/releases/latest)
+[![Python][badge-python]][Python]
+[![Docker Pulls][badge-docker-pulls]][DockerHub]
+[![Docker Stars][badge-docker-stars]][DockerHub]
+[![Downloads][badge-downloads]][Releases Latest]
+
+[badge-python]: https://img.shields.io/badge/python-3.6,%203.7,%203.8-blue?style=flat-square
+[badge-docker-pulls]: https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square
+[badge-docker-stars]: https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square
+[badge-downloads]: https://img.shields.io/github/downloads/Tautulli/Tautulli/total?style=flat-square
 
 | Status | Branch: `master` | Branch: `beta` | Branch: `nightly` |
 | --- | --- | --- | --- |
-| Release   | [![Release@master](https://img.shields.io/github/v/release/Tautulli/Tautulli?style=flat-square)](https://github.com/Tautulli/Tautulli/releases/latest) <br> [![Release Date@master](https://img.shields.io/github/release-date/Tautulli/Tautulli?style=flat-square&color=blue)](https://github.com/Tautulli/Tautulli/releases/latest) | [![Release@beta](https://img.shields.io/github/v/release/Tautulli/Tautulli?include_prereleases&style=flat-square)](https://github.com/Tautulli/Tautulli/releases) <br> [![Commits@beta](https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/beta?style=flat-square&color=blue)](https://github.com/Tautulli/Tautulli/commits/beta) | [![Last Commits@nightly](https://img.shields.io/github/last-commit/Tautulli/Tautulli/nightly?style=flat-square&color=blue)](https://github.com/Tautulli/Tautulli/commits/nightly) <br> [![Commits@nightly](https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/nightly?style=flat-square&color=blue)](https://github.com/Tautulli/Tautulli/commits/nightly) |
-| Docker    | [![Docker@master](https://img.shields.io/badge/docker-latest-blue?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli) <br> [![Docker Build@master](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/master?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Amaster) | [![Docker@beta](https://img.shields.io/badge/docker-beta-blue?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli) <br> [![Docker Build@beta](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/beta?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Abeta) | [![Docker@nightly](https://img.shields.io/badge/docker-nightly-blue?style=flat-square)](https://hub.docker.com/r/tautulli/tautulli) <br> [![Docker Build@nightly](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/nightly?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Anightly) |
-| Snap      | [![Snap@master](https://img.shields.io/badge/snap-stable-blue?style=flat-square)](https://snapcraft.io/tautulli) <br> [![Snap Build@master](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/master?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Amaster) | [![Snap@beta](https://img.shields.io/badge/snap-beta-blue?style=flat-square)](https://snapcraft.io/tautulli) <br> [![Snap Build@beta](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/beta?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Abeta) | [![Snap@nightly](https://img.shields.io/badge/snap-edge-blue?style=flat-square)](https://snapcraft.io/tautulli) <br> [![Snap Build@nightly](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/nightly?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Anightly) |
-| Installer | [![Windows@master](https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&style=flat-square)](https://github.com/Tautulli/Tautulli/releases/latest) <br> [![MacOS@master](https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&style=flat-square)](https://github.com/Tautulli/Tautulli/releases/latest) <br> [![Installer Build@master](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/master?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Amaster) | [![Windows@beta](https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&include_prereleases&style=flat-square)](https://github.com/Tautulli/Tautulli/releases) <br> [![MacOS@beta](https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&include_prereleases&style=flat-square)](https://github.com/Tautulli/Tautulli/releases) <br> [![Installer Build@beta](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/beta?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Abeta) | [![Installer Build@nightly](https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/nightly?style=flat-square)](https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Anightly) |
+| Release   | [![Release@master][badge-release-master]][Releases Latest] <br> [![Release Date@master][badge-release-master-date]][Releases Latest] | [![Release@beta][badge-release-beta]][Releases] <br> [![Commits@beta][badge-release-beta-commits]][Commits Beta] | [![Last Commits@nightly][badge-release-nightly-last-commit]][commits Nightly] <br> [![Commits@nightly][badge-release-nightly-commits]][Commits Nightly] |
+| Docker    | [![Docker@master][badge-docker-master]][DockerHub] <br> [![Docker Build@master][badge-docker-master-ci]][Publish Docker Master] | [![Docker@beta][badge-docker-beta]][DockerHub] <br> [![Docker Build@beta][badge-docker-beta-ci]][Publish Docker Beta] | [![Docker@nightly][badge-docker-nightly]][DockerHub] <br> [![Docker Build@nightly][badge-docker-nightly-ci]][Publish Docker Nightly] |
+| Snap      | [![Snap@master][badge-snap-master]][Snapcraft] <br> [![Snap Build@master][badge-snap-master-ci]][Publish Snap Master] | [![Snap@beta][badge-snap-beta]][Snapcraft] <br> [![Snap Build@beta][badge-snap-beta-ci]][Publish Snap Beta] | [![Snap@nightly][badge-snap-nightly]][Snapcraft] <br> [![Snap Build@nightly][badge-snap-nightly-ci]][Publish Snap Nightly] |
+| Installer | [![Windows@master][badge-installer-master-win]][Releases Latest] <br> [![MacOS@master][badge-installer-master-macos]][Releases Latest] <br> [![Installer Build@master][badge-installer-master-ci]][Publish Installer Master] | [![Windows@beta][badge-installer-beta-win]][Releases] <br> [![MacOS@beta][badge-installer-beta-macos]][Releases] <br> [![Installer Build@beta][badge-installer-beta-ci]][Publish Installer Beta] | [![Installer Build@nightly][badge-installer-nightly-ci]][Publish Installer Nightly] |
 
-[![Wiki](https://img.shields.io/badge/github-wiki-black?style=flat-square)](https://github.com/Tautulli/Tautulli-Wiki/wiki)
-[![Discord](https://img.shields.io/discord/183396325142822912?label=discord&style=flat-square&color=7289DA)](https://tautulli.com/discord)
-[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/tautulli?label=reddit&style=flat-square&color=FF5700)](https://www.reddit.com/r/Tautulli/)
-[![Plex Forums](https://img.shields.io/badge/plex%20forums-discussion-E5A00D?style=flat-square)](https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242)
+Read the [Installation Guides][Installation] for instructions on how to install Tautulli.
 
-* Read the [Installation Guides](https://github.com/Tautulli/Tautulli-Wiki/wiki/Installation) for instructions to install Tautulli.
-* The [Frequently Asked Questions](https://github.com/Tautulli/Tautulli-Wiki/wiki/Frequently-Asked-Questions) in the wiki can help you with common problems.
-* Support is available on [Discord](https://tautulli.com/discord), [Reddit](https://www.reddit.com/r/Tautulli), or the [Plex Forums](https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242).
+[badge-release-master]: https://img.shields.io/github/v/release/Tautulli/Tautulli?style=flat-square
+[badge-release-master-date]: https://img.shields.io/github/release-date/Tautulli/Tautulli?style=flat-square&color=blue
+[badge-release-beta]: https://img.shields.io/github/v/release/Tautulli/Tautulli?include_prereleases&style=flat-square
+[badge-release-beta-commits]: https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/beta?style=flat-square&color=blue
+[badge-release-nightly-last-commit]: https://img.shields.io/github/last-commit/Tautulli/Tautulli/nightly?style=flat-square&color=blue
+[badge-release-nightly-commits]: https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/nightly?style=flat-square&color=blue
+[badge-docker-master]: https://img.shields.io/badge/docker-latest-blue?style=flat-square
+[badge-docker-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/master?style=flat-square
+[badge-docker-beta]: https://img.shields.io/badge/docker-beta-blue?style=flat-square
+[badge-docker-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/beta?style=flat-square
+[badge-docker-nightly]: https://img.shields.io/badge/docker-nightly-blue?style=flat-square
+[badge-docker-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/nightly?style=flat-square
+[badge-snap-master]: https://img.shields.io/badge/snap-stable-blue?style=flat-square
+[badge-snap-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/master?style=flat-square
+[badge-snap-beta]: https://img.shields.io/badge/snap-beta-blue?style=flat-square
+[badge-snap-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/beta?style=flat-square
+[badge-snap-nightly]: https://img.shields.io/badge/snap-edge-blue?style=flat-square
+[badge-snap-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/nightly?style=flat-square
+[badge-installer-master-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&style=flat-square
+[badge-installer-master-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&style=flat-square
+[badge-installer-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/master?style=flat-square
+[badge-installer-beta-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&include_prereleases&style=flat-square
+[badge-installer-beta-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&include_prereleases&style=flat-square
+[badge-installer-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/beta?style=flat-square
+[badge-installer-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/nightly?style=flat-square
 
-## Issues & Feature Requests
+## Support
 
-[![Issues](https://img.shields.io/badge/github-issues-red?style=flat-square)](https://github.com/Tautulli/Tautulli-Issues)
-[![Feathub](https://img.shields.io/badge/feathub-requests-lightgrey?style=flat-square)](https://feathub.com/Tautulli/Tautulli)
+[![Wiki][badge-wiki]][Wiki]
+[![Discord][badge-discord]][Discord]
+[![Reddit][badge-reddit]][Reddit]
+[![Plex Forums][badge-forums]][Plex Forums]
 
-* Please see the [Issues Repository](https://github.com/Tautulli/Tautulli-Issues).
+[badge-wiki]: https://img.shields.io/badge/github-wiki-black?style=flat-square
+[badge-discord]: https://img.shields.io/discord/183396325142822912?label=discord&style=flat-square&color=7289DA
+[badge-reddit]: https://img.shields.io/reddit/subreddit-subscribers/tautulli?label=reddit&style=flat-square&color=FF5700
+[badge-forums]: https://img.shields.io/badge/plex%20forums-discussion-E5A00D?style=flat-square
+
+If you think you've found a bug in Tautulli make sure you have read the [FAQ][]
+first to make sure it hasn't been covered by one of the questions there. If your
+problem isn't answered in the FAQ try the following first:
+
+-   Update to the latest version of Tautulli.
+-   Turning your device off and on again.
+-   Analyzing your logs, you just might find the solution yourself!
+-   Using the **search** function to see if this issue has already been reported/solved.
+-   Checking the [Wiki][] for [Installation][] instructions and reading the [FAQs][FAQ].
+-   For basic questions try asking on [Discord][Discord], [Reddit][Reddit], 
+    or the [Plex Forums][Plex Forums] first before opening an issue.
+
+##### If nothing has worked:
+
+1.  Open a new issue on the GitHub [Issue][].
+2.  Provide a clear title to easily help identify your problem.
+3.  Use proper [Markdown Syntax][] to structure your post (i.e. code/log in code blocks).
+4.  Make sure to fill out the required information on the issue template.
+5.  Close your issue when it's solved! If you found the solution yourself please
+    comment so that others benefit from it.
+
+## Feature Requests
+
+[![FeatHub][badge-feathub]][FeatHub]
+
+[badge-feathub]: https://img.shields.io/badge/FeatHub-requests-9B9B9B?style=flat-square
+
+This is **not** the place to file a feature request! Please head over to [FeatHub][]
+and search the existing issues. If a similar idea has already been posted,
+give it a thumbs up (+1). If you can't find your idea then feel free to file a
+new request _over there_, thanks!
 
 ## License
 
-[![License](https://img.shields.io/github/license/Tautulli/Tautulli?style=flat-square)](https://github.com/Tautulli/Tautulli/blob/master/LICENSE)
+[![License][badge-license]][License]
 
-This is free software under the GPL v3 open source license. Feel free to do with it what you wish, but any modification must be open sourced. A copy of the license is included.
+[badge-license]: https://img.shields.io/github/license/Tautulli/Tautulli?style=flat-square
 
-This software includes Highsoft software libraries which you may freely distribute for non-commercial use. Commerical users must licence this software, for more information visit https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
+This is free software under the GPL v3 open source license. Feel free to do with it what you wish,
+but any modification must be open sourced. A copy of the license is included.
+
+This software includes Highsoft software libraries which you may freely distribute for 
+non-commercial use. Commerical users must licence this software, for more information visit
+https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
+
+
+[Python]: https://python.org/downloads
+[DockerHub]: https://hub.docker.com/r/tautulli/tautulli
+[Releases]: https://github.com/Tautulli/Tautulli/releases
+[Releases Latest]: https://github.com/Tautulli/Tautulli/releases/latest
+[License]: https://github.com/Tautulli/Tautulli/blob/master/LICENSE
+[FAQ]: https://github.com/Tautulli/Tautulli/wiki/Frequently-Asked-Questions
+[FeatHub]: https://feathub.com/Tautulli/Tautulli
+[Installation]: https://github.com/Tautulli/Tautulli/wiki/Installation
+[Issue]: https://github.com/Tautulli/Tautulli/issues/new/choose
+[Markdown Syntax]: https://help.github.com/articles/github-flavored-markdown
+[Tautulli]: http://tautulli.com
+[Wiki]: https://github.com/Tautulli/Tautulli/wiki
+[Discord]: https://tautulli.com/discord
+[Reddit]: https://reddit.com/r/Tautulli
+[Plex Forums]: https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242
+[Snapcraft]: https://snapcraft.io/tautulli
+[Commits Beta]: https://github.com/Tautulli/Tautulli/commits/beta
+[Commits Nightly]: https://github.com/Tautulli/Tautulli/commits/nightly
+
+[Publish Docker Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Amaster
+[Publish Docker Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Abeta
+[Publish Docker Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Anightly
+[Publish Snap Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Amaster
+[Publish Snap Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Abeta
+[Publish Snap Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Anightly
+[Publish Installer Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Amaster
+[Publish Installer Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Abeta
+[Publish Installer Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Anightly
