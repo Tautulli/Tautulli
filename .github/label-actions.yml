@@ -1,0 +1,42 @@
+# Configuration for Label Actions - https://github.com/dessant/label-actions
+
+fixed:next-release:
+  comment: >
+    This issue has been fixed and will be available in the next release of Tautulli.
+
+invalid:duplicate:
+  comment: >
+    :wave: @{issue-author}, this appears to be a duplicate of a pre-existing issue.
+  close: true
+  lock: true
+  unlabel: 'status:awaiting-triage'
+
+-invalid:duplicate:
+  reopen: true
+  unlock: true
+
+invalid:support:
+  comment: >
+    :wave: @{issue-author}, we use the issue tracker exclusively for bug reports.
+    However, this issue appears to be a support request. Please use our support
+    channels to get help with Tautulli. Thanks.
+    - [Discord](https://tautulli.com/discord)
+    - [Reddit](https://reddit.com/r/Tautulli)
+  close: true
+  lock: true
+  lock-reason: 'off-topic'
+  unlabel: 'status:awaiting-triage'
+
+-invalid:support:
+  reopen: true
+  unlock: true
+
+invalid:template-incomplete:
+  comment: >
+    :wave: @{issue-author}, please edit your issue to complete the template with
+    all the required info. Thanks.
+  lock: true
+  lock-reason: ''
+
+-invalid:template-incomplete:
+  unlock: true
