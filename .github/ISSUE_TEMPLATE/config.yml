@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Tautulli Wiki
+    url: https://github.com/Tautulli/Tautulli/wiki
+    about: Please check the wiki to see if your question has already been answered.
+  - name: Discord
+    url: https://tautulli.com/discord
+    about: Please use Discord to ask for support.
+  - name: FeatHub
+    url: https://feathub.com/Tautulli/Tautulli
+    about: Please use FeatHub for feature requests
