@@ -866,3 +866,10 @@ MEDIA_TYPE_HEADERS = {
     'audio': 'Tracks',
     'photo': 'Photos'
 }
+
+function short_season(title) {
+    if (title.startsWith('Season ') && /^\d+$/.test(title.substring(7))) {
+        return 'S' + title.substring(7)
+    }
+    return title
+}
