@@ -767,10 +767,7 @@ class PrettyMetadata(object):
         elif self.media_type == 'season':
             title = '%s - %s' % (self.parameters['show_name'], self.parameters['season_name'])
         elif self.media_type == 'episode':
-            if self.parameters['season_name'].startswith('Season '):
-                season = 'S%s' % self.parameters['season_num']
-            else:
-                season = self.parameters['season_name']
+            season = helpers.short_season(self.parameters['season_name'])
             title = '%s - %s (%s %s E%s)' % (self.parameters['show_name'],
                                              self.parameters['episode_name'],
                                              season,

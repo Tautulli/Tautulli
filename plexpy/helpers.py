@@ -1660,3 +1660,9 @@ def delete_file(file_path):
     except OSError:
         logger.error("Tautulli Helpers :: Failed to delete file: %s", file_path)
         return False
+
+
+def short_season(title):
+    if title.startswith('Season ') and title[7:].isdigit():
+        return 'S%s' % title[7:]
+    return title
