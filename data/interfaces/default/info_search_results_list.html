@@ -54,7 +54,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import page
+    from plexpy.helpers import page, short_season
 %>
 % if data['results_count'] > 0:
 % if 'collection' in data['results_list'] and data['results_list']['collection']:
@@ -149,7 +149,7 @@ DOCUMENTATION :: END
                 </div>
                 <div class="item-children-instance-text-wrapper poster-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
-                    <h3 class="text-muted">S${child['media_index']}</h3>
+                    <h3 class="text-muted">${short_season(child['title'])}</h3>
                 </div>
             </a>
         </li>
@@ -175,7 +175,7 @@ DOCUMENTATION :: END
                 <div class="item-children-instance-text-wrapper episode-item">
                     <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
-                    <h3 class="text-muted">S${child['parent_media_index']} &middot; E${child['media_index']}</h3>
+                    <h3 class="text-muted">${short_season(child['parent_title'])} &middot; E${child['media_index']}</h3>
                 </div>
             </a>
         </li>

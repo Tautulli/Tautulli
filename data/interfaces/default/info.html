@@ -41,7 +41,7 @@ DOCUMENTATION :: END
 
     from plexpy import notifiers
     from plexpy.common import MEDIA_TYPE_HEADERS, MEDIA_FLAGS_AUDIO, MEDIA_FLAGS_VIDEO
-    from plexpy.helpers import page, get_percent, cast_to_int
+    from plexpy.helpers import page, get_percent, cast_to_int, short_season
 
     # Get audio codec file
     def af(codec):
@@ -81,6 +81,11 @@ DOCUMENTATION :: END
 <%
     data = defaultdict(lambda: None, **metadata)
     media_info = defaultdict(lambda: None, **(data['media_info'][0] if data['media_info'] else {}))
+    season = ''
+    if data['media_type'] == 'episode':
+        season = short_season(data['parent_title'])
+    elif data['media_type'] == 'season':
+        season = short_season(data['title'])
 %>
 <div class="container-fluid">
     <div class="row">
@@ -105,7 +110,7 @@ DOCUMENTATION :: END
                             <li class="hidden-xs hidden-sm">${data['grandparent_title']}</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % if data['media_index']:
-                            <li>Season ${data['parent_media_index']}</li>
+                            <li> ${data['parent_title']}</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                             % else:
@@ -125,13 +130,13 @@ DOCUMENTATION :: END
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="active metadata-xml">Season ${data['media_index']}</li>
+                        <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'episode':
                         <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">Season ${data['parent_media_index']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
@@ -242,18 +247,18 @@ DOCUMENTATION :: END
                             <h1>${data['grandparent_title']}</h1>
                             <h2>${data['title']}</h2>
                             % if data['media_index']:
-                            <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
+                            <h3 class="hidden-xs">${season} &middot; E${data['media_index']}</h3>
                             % endif
                             % endif
                         % elif data['media_type'] in ('movie', 'show', 'artist', 'collection', 'playlist', 'photo_album'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
-                        <h3 class="hidden-xs">S${data['media_index']}</h3>
+                        <h3 class="hidden-xs">${season}</h3>
                         % elif data['media_type'] == 'episode':
                         <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
-                        <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
+                        <h3 class="hidden-xs">${season} &middot; E${data['media_index']}</h3>
                         % elif data['media_type'] == 'album':
                         <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
@@ -705,6 +710,11 @@ DOCUMENTATION :: END
 % if metadata:
 <%
     data = defaultdict(None, **metadata)
+    season = ''
+    if data['media_type'] == 'episode':
+        season = short_season(data['parent_title'])
+    elif data['media_type'] == 'season':
+        season = short_season(data['title'])
 %>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
@@ -744,9 +754,9 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'show':
                         ${data['title']}
                         % elif data['media_type'] == 'season':
-                        ${data['parent_title']}<br />S${data['media_index']}
+                        ${data['parent_title']}<br />${data['title']}
                         % elif data['media_type'] == 'episode':
-                        ${data['grandparent_title']}<br />${data['title']}<br />S${data['parent_media_index']} &middot; E${data['media_index']}
+                        ${data['grandparent_title']}<br />${data['title']}<br />${season} &middot; E${data['media_index']}
                         % elif data['media_type'] == 'artist':
                         ${data['title']}
                         % elif data['media_type'] == 'album':

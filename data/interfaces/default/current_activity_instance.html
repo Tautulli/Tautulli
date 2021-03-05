@@ -62,7 +62,7 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from plexpy.helpers import cast_to_int, page
+    from plexpy.helpers import cast_to_int, page, short_season
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
@@ -74,6 +74,7 @@ DOCUMENTATION :: END
     parent_href = page('info', data['parent_rating_key'])
     grandparent_href = page('info', data['grandparent_rating_key'])
     user_href = page('user', data['user_id']) if data['user_id'] else '#'
+    season = short_season(data['parent_title'])
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
     data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}"
@@ -478,7 +479,7 @@ DOCUMENTATION :: END
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
                     % if data['media_index']:
-                    <a href="${href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
+                    <a href="${href}" title="${data['parent_title']}" class="sub-heading">${season}</a>
                     &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % else:
                     <a href="${href}" title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</a>
@@ -490,7 +491,7 @@ DOCUMENTATION :: END
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
-                    <a href="${parent_href}" title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</a>
+                    <a href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${season}</a>
                     &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
                     % elif data['media_type'] == 'track':
                     <a id="metadata-parent_title-${sk}" href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
@@ -507,7 +508,7 @@ DOCUMENTATION :: END
                 % elif data['channel_title']:
                 <span title="${data['channel_title']}" class="sub-heading">${data['channel_title']}</span>
                     % if data['media_type'] == 'episode' and data['parent_media_index'] and data['media_index']:
-                    (<span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
+                    (<span title="${data['parent_title']}" class="sub-heading">${season}</span>
                     &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>)
                     % elif data['media_type'] == 'episode' and data['originally_available_at']:
                     (<span title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</span>)
@@ -515,7 +516,7 @@ DOCUMENTATION :: END
                 % else:
                 <span title="Channel" class="sub-heading">Channel</span>
                     % if data['media_type'] == 'episode' and data['parent_media_index'] and data['media_index']:
-                    (<span title="Season ${data['parent_media_index']}" class="sub-heading">S${data['parent_media_index']}</span>
+                    (<span title="${data['parent_title']}" class="sub-heading">${season}</span>
                     &middot; <span title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</span>)
                     % elif data['media_type'] == 'episode' and data['originally_available_at']:
                     (<span title="${data['originally_available_at']}" class="sub-heading">${data['originally_available_at']}</span>)

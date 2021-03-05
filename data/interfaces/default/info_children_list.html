@@ -28,7 +28,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import cast_to_int, page
+    from plexpy.helpers import cast_to_int, page, short_season
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
@@ -71,7 +71,7 @@ DOCUMENTATION :: END
                 </h3>
             </div>
             % elif data['children_type'] == 'season':
-            <a href="${page('info', child['rating_key'])}" title="Season ${child['media_index']}">
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     % if child['thumb']:
                     <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});">
@@ -80,7 +80,7 @@ DOCUMENTATION :: END
                     % endif
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Season ${child['media_index']}
+                                ${child['title']}
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ DOCUMENTATION :: END
                                 ${child['title']}
                             </span>
                         </a>
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">S${child['parent_media_index']}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
                         % elif child['media_type'] == 'track':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
                         <a href="${page('info', child['rating_key'])}" title="${child['title']}">

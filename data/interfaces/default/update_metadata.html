@@ -50,13 +50,13 @@ DOCUMENTATION :: END
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="hidden-xs hidden-sm">${query['grandparent_title']}</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                            <li class="active">Season ${query['parent_media_index']}</li>
+                            <li class="active">${query['parent_title']}</li>
                             % elif query['media_type'] == 'episode':
                             <li class="hidden-xs hidden-sm">TV Shows</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="hidden-xs hidden-sm">${query['grandparent_title']}</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                            <li>Season ${query['parent_media_index']}</li>
+                            <li>${query['parent_title']}</li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             <li class="active">Episode ${query['media_index']} - ${query['title']}</li>
                             % elif query['media_type'] == 'artist':
@@ -141,6 +141,9 @@ DOCUMENTATION :: END
 
 <%def name="modalIncludes()">
 % if query:
+<%
+    from plexpy.helpers import short_season
+%>
 <div class="modal fade" id="confirm-modal-update" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-update">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -157,9 +160,9 @@ DOCUMENTATION :: END
                         % elif query['media_type'] == 'show':
                         ${query['grandparent_title']}
                         % elif query['media_type'] == 'season':
-                        ${query['grandparent_title']}<br />S${query['parent_media_index']}
+                        ${query['grandparent_title']}<br />${query['parent_title']}
                         % elif query['media_type'] == 'episode':
-                        ${query['grandparent_title']}<br />${query['title']}<br />S${query['parent_media_index']} &middot; E${query['media_index']}
+                        ${query['grandparent_title']}<br />${query['title']}<br />${short_season(query['parent_title'])} &middot; E${query['media_index']}
                         % elif query['media_type'] == 'artist':
                         ${query['grandparent_title']}
                         % elif query['media_type'] == 'album':

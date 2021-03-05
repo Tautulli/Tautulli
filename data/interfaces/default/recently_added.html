@@ -32,7 +32,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import cast_to_int, page
+    from plexpy.helpers import cast_to_int, page, short_season
 %>
 % if data:
 <div class="dashboard-recent-media-row">
@@ -146,7 +146,7 @@ DOCUMENTATION :: END
                             <a href="${page('info', item['rating_key'])}" title="${item['title']}">${item['title']}</a>
                         </h3>
                         <h3 class="text-muted">
-                            <a href="${page('info', item['parent_rating_key'])}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                            <a href="${page('info', item['parent_rating_key'])}" title="${item['parent_title']}">${short_season(item['parent_title'])}</a>
                             &middot;
                             <a href="${page('info', item['rating_key'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                         </h3>
