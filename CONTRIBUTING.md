@@ -9,7 +9,7 @@ All pull requests should be based on the `nightly` branch, to minimize cross mer
 ### Python Code
 
 #### Compatibility
-The code should work with Python 2.7.17 or Python 3.6+. Note that Tautulli runs on many different platforms.
+The code should work with Python 3.6+. Note that Tautulli runs on many different platforms.
 
 Re-use existing code. Do not hesitate to add logging in your code. You can the logger module `plexpy.logger.*` for this. Web requests are invoked via `plexpy.request.*` and derived ones. Use these methods to automatically add proper and meaningful error handling.
 
