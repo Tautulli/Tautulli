@@ -781,6 +781,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT)
         and notify_params['media_type'] in ('show', 'artist')):
         show_name = notify_params['title']
+        season_name = ''
         episode_name = ''
         artist_name = notify_params['title']
         album_name = ''
@@ -800,6 +801,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     elif ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT)
           and notify_params['media_type'] in ('season', 'album')):
         show_name = notify_params['parent_title']
+        season_name = notify_params['title']
         episode_name = ''
         artist_name = notify_params['parent_title']
         album_name = notify_params['title']
@@ -819,6 +821,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     else:
         show_name = notify_params['grandparent_title']
+        season_name = notify_params['parent_title']
         episode_name = notify_params['title']
         artist_name = notify_params['grandparent_title']
         album_name = notify_params['parent_title']
@@ -982,6 +985,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'title': notify_params['full_title'],
         'library_name': notify_params['library_name'],
         'show_name': show_name,
+        'season_name': season_name,
         'episode_name': episode_name,
         'artist_name': artist_name,
         'album_name': album_name,

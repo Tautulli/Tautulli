@@ -765,13 +765,17 @@ class PrettyMetadata(object):
         elif self.media_type == 'show':
             title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
         elif self.media_type == 'season':
-            title = '%s - Season %s' % (self.parameters['show_name'], self.parameters['season_num'])
+            title = '%s - %s' % (self.parameters['show_name'], self.parameters['season_name'])
         elif self.media_type == 'episode':
-            title = '%s - %s (S%s %s E%s)' % (self.parameters['show_name'],
-                                              self.parameters['episode_name'],
-                                              self.parameters['season_num'],
-                                              divider,
-                                              self.parameters['episode_num'])
+            if self.parameters['season_name'].startswith('Season '):
+                season = 'S%s' % self.parameters['season_num']
+            else:
+                season = self.parameters['season_name']
+            title = '%s - %s (%s %s E%s)' % (self.parameters['show_name'],
+                                             self.parameters['episode_name'],
+                                             season,
+                                             divider,
+                                             self.parameters['episode_num'])
         elif self.media_type == 'artist':
             title = self.parameters['artist_name']
         elif self.media_type == 'album':
