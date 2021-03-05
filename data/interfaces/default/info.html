@@ -316,6 +316,11 @@ DOCUMENTATION :: END
                                 <span class="rating-image rating-themoviedb"><strong>${get_percent(rating, 10)}%</strong></span>
                             </div>
                             % endif
+                            % if data['audience_rating_image'].startswith('thetvdb://'):
+                            <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
+                                <span class="rating-image rating-thetvdb"><strong>${get_percent(rating, 10)}%</strong></span>
+                            </div>
+                            % endif
                             % if data['audience_rating_image'].startswith('rottentomatoes://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${data['audience_rating']}">
                                 <span class="rating-image rating-rottentomatos-${data['audience_rating_image'].rsplit('.')[-1]}"><strong>${get_percent(data['audience_rating'], 10)}%</strong></span>
