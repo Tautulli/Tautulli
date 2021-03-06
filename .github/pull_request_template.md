@@ -2,7 +2,7 @@
 
 Please include a summary of the change and which issue is fixed.
 
-Fixes Tautulli/Tautulli-Issues#(issue)
+Fixes #(issue)
 
 ## Type of change
 
