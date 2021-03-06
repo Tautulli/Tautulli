@@ -302,8 +302,6 @@ def initialize(config_file):
             except IOError as e:
                 logger.error("Unable to read previous version from file '%s': %s" %
                              (version_lock_file, e))
-        else:
-            prev_version = 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca'
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
@@ -340,8 +338,6 @@ def initialize(config_file):
             except IOError as e:
                 logger.error("Unable to read previous release from file '%s': %s" %
                              (release_file, e))
-        elif prev_version == 'cfd30996264b7e9fe4ef87f02d1cc52d1ae8bfca':  # Commit hash for v1.4.25
-            PREV_RELEASE = 'v1.4.25'
 
         # Check if the release was updated
         if common.RELEASE != PREV_RELEASE:
