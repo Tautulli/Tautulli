@@ -754,9 +754,9 @@
                                                                             <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                 % for i, season in enumerate(show['season'][:8]):
                                                                                     % if season['episode_count'] == 1:
-                                                                                        Season ${season['media_index']} &middot; Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
+                                                                                        ${season['title']} &middot; Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
                                                                                     % else:
-                                                                                        Season ${season['media_index']} &middot; Episodes ${season['episode_range']}
+                                                                                        ${season['title']} &middot; Episodes ${season['episode_range']}
                                                                                     % endif
                                                                                     % if i < min(show['season_count'], 7):
                                                                                         <br>

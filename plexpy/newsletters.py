@@ -757,11 +757,13 @@ class RecentlyAdded(Newsletter):
                 filtered_children.sort(key=lambda x: int(x['parent_media_index']))
 
                 seasons = []
-                for k, v in groupby(filtered_children, key=lambda x: x['parent_media_index']):
-                    episodes = list(v)
+                for (index, title), children in groupby(filtered_children,
+                                                        key=lambda x: (x['parent_media_index'], x['parent_title'])):
+                    episodes = list(children)
                     num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
 
-                    seasons.append({'media_index': k,
+                    seasons.append({'media_index': index,
+                                    'title': title,
                                     'episode_range': num00,
                                     'episode_count': len(episodes),
                                     'episode': episodes})
