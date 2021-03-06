@@ -159,31 +159,36 @@ class HTTPHandler(object):
 
     def _http_requests_single(self, url):
         """Request the data from the url"""
-        e = None
+        err = False
         error_msg = "Failed to access uri endpoint %s. " % self.uri
         try:
             r = self._session.request(self.request_type, url, headers=self.headers, data=self.data,
                                       timeout=self.timeout, verify=self.ssl_verify, **self.request_kwargs)
             r.raise_for_status()
         except requests.exceptions.Timeout as e:
+            err = True
             if not self._silent:
                 logger.error(error_msg + "Request timed out: %s", e)
         except requests.exceptions.SSLError as e:
+            err = True
             if not self._silent:
                 logger.error(error_msg + "Is your server maybe accepting SSL connections only? %s", e)
         except requests.exceptions.HTTPError as e:
+            err = True
             if not self._silent:
                 logger.error(error_msg + "Status code %s", e)
         except requests.exceptions.ConnectionError as e:
+            err = True
             if not self._silent:
                 logger.error(error_msg + "Connection error: %s", e)
         except requests.exceptions.RequestException as e:
+            err = True
             if not self._silent:
                 logger.error(error_msg + "Uncaught exception: %s", e)
 
         if self.return_response:
             return r
-        elif e:
+        elif err:
             return None
 
         response_status = r.status_code
