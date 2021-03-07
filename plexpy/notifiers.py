@@ -996,7 +996,7 @@ class ANDROIDAPP(Notifier):
                                'Please install the library to encrypt the notification contents. '
                                'Instructions can be found in the '
                                '<a href="' + helpers.anon_url(
-                                 'https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
+                                 'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
                                  % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.' ,
                 'input_type': 'help'
                 })
