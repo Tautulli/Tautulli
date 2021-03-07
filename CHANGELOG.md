@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.6.7 (2021-03-07)
+
+* History:
+  * New: Added audio language to detailed stream info. (Thanks @herby2212)
+* Notifications:
+  * New: Added season_name notification parameter.
+  * New: Update notifications to support custom season titles.
+* Newsletters:
+  * New: Update recently added newsletter template to support custom season titles.
+* Exporter:
+  * New: Added originalTitle and bannerFile to TV show export fields.
+* UI:
+  * New: Added TVDB rating image to info page for the new Plex TV agent.
+  * New: Update the UI to support custom season titles.
+* API:
+  * Fix: Return rating key for collections/playlists in get_synced_items.
+  * Fix: Return error when delete_synced_item fails.
+  * New: Return sync_media_type for collections/playlist in get_synced_items.
+  * New: Update pms_image_proxy to support playlist composite images.
+* Other:
+  * Remove: Auto-updater for the Windows exe installer.
+  * New: Updated PlexAPI to 4.4.0.
+
+
 ## v2.6.6 (2021-02-06)
 
 * Exporter:
