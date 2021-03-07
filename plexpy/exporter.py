@@ -392,6 +392,7 @@ class Export(object):
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'banner': None,
+                'bannerFile': lambda o: self.get_image(o, 'banner'),
                 'childCount': None,
                 'collections': {
                     'id': None,
@@ -422,6 +423,7 @@ class Export(object):
                 'librarySectionTitle': None,
                 'locations': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
+                'originalTitle': None,
                 'rating': None,
                 'ratingKey': None,
                 'roles': {
@@ -1201,7 +1203,7 @@ class Export(object):
             _media_type = 'show'
             _metadata_levels = {
                 1: [
-                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
+                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'year', 'addedAt',
                     'rating', 'userRating', 'contentRating',
                     'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
                     'seasons'
@@ -2079,6 +2081,8 @@ class Export(object):
             image_url = item.thumbUrl
         elif image == 'art':
             image_url = item.artUrl
+        elif image == 'banner':
+            image_url = item.bannerUrl
 
         if not image_url:
             return
