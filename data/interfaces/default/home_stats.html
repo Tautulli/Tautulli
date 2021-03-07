@@ -112,7 +112,7 @@ DOCUMENTATION :: END
             % elif stat_id == 'most_concurrent':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon stats-${stat_id} transparent hidden-xs"></div>
             % elif stat_id == 'top_libraries':
-            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['type']} hidden-xs"></div>
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
             % endif
             <div class="dashboard-stats-info-container">
                 <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
@@ -135,7 +135,7 @@ DOCUMENTATION :: END
                             % for row in top_stat['rows']:
                             <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}"
                                 data-rating_key="${row.get('rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
-                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('type')}"
+                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('section_type')}"
                                 data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
                                 data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
                                 <div class="sub-list">${loop.index + 1}</div>
@@ -162,7 +162,10 @@ DOCUMENTATION :: END
                                     % elif stat_id == 'most_concurrent':
                                     ${row['title']}
                                     % elif stat_id == 'top_libraries':
-                                    ${row['library_name']}
+                                    <% library_href = page('library', row['section_id']) %>
+                                    <a href="${library_href}" title="${row['section_name']}">
+                                        ${row['section_name']}
+                                    </a>
                                     % endif
                                 </div>
                                 <div class="sub-count">

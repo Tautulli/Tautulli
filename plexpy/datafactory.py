@@ -894,8 +894,10 @@ class DataFactory(object):
                 top_libraries = []
 
                 try:
-                    query = 'SELECT section_id, section_name, section_type ' \
-                        'FROM library_sections'
+                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
+                        'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
+                        'FROM library_sections ' \
+                        'WHERE deleted_section = 0'
 
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -907,11 +909,27 @@ class DataFactory(object):
                 for item in result:
                     library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days=time_range)
 
+                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
+                        library_thumb = item['custom_thumb']
+                    elif item['library_thumb']:
+                        library_thumb = item['library_thumb']
+                    else:
+                        library_thumb = common.DEFAULT_COVER_THUMB
+
+                    if item['custom_art'] and item['custom_art'] != item['library_art']:
+                        library_art = item['custom_art']
+                    else:
+                        library_art = item['library_art']
+
                     row = {
                         'total_plays': library_item[0]['total_plays'],
                         'total_duration': library_item[0]['total_time'],
-                        'type': item['section_type'],
-                        'library_name': item['section_name']
+                        'section_type': item['section_type'],
+                        'section_name': item['section_name'],
+                        'section_id': item['section_id'],
+                        'last_play': '',
+                        'thumb': library_thumb,
+                        'art': library_art
                     }
 
                     top_libraries.append(row)
