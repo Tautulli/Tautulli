@@ -146,6 +146,7 @@ history_table_modal_options = {
         $('body').popover({
             selector: '[data-toggle="popover"]',
             html: true,
+            sanitize: false,
             container: '#history-modal',
             trigger: 'hover',
             placement: 'right',

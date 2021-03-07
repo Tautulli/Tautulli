@@ -93,6 +93,7 @@ collections_table_options = {
         $('body').popover({
             selector: '[data-toggle="popover"]',
             html: true,
+            sanitize: false,
             container: 'body',
             trigger: 'hover',
             placement: 'right',
