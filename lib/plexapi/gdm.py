@@ -13,11 +13,14 @@ import struct
 
 
 class GDM:
-    """Base class to discover GDM services."""
+    """Base class to discover GDM services.
+
+       Atrributes:
+           entries (List<dict>): List of server and/or client data discovered.
+    """
 
     def __init__(self):
         self.entries = []
-        self.last_scan = None
 
     def scan(self, scan_for_clients=False):
         """Scan the network."""
@@ -35,7 +38,7 @@ class GDM:
         """Return a list of entries that match the content_type."""
         self.scan()
         return [entry for entry in self.entries
-                if value in entry['data']['Content_Type']]
+                if value in entry['data']['Content-Type']]
 
     def find_by_data(self, values):
         """Return a list of entries that match the search parameters."""

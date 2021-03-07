@@ -15,7 +15,7 @@ CONFIG = PlexConfig(CONFIG_PATH)
 
 # PlexAPI Settings
 PROJECT = 'PlexAPI'
-VERSION = '4.3.1'
+VERSION = '4.4.0'
 TIMEOUT = CONFIG.get('plexapi.timeout', 30, int)
 X_PLEX_CONTAINER_SIZE = CONFIG.get('plexapi.container_size', 100, int)
 X_PLEX_ENABLE_FAST_CONNECT = CONFIG.get('plexapi.enable_fast_connect', False, bool)

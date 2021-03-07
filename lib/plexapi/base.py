@@ -5,9 +5,10 @@ from urllib.parse import quote_plus, urlencode
 
 from plexapi import log, utils
 from plexapi.exceptions import BadRequest, NotFound, UnknownType, Unsupported
-from plexapi.utils import tag_helper
+from plexapi.utils import tag_plural, tag_helper
 
-DONT_RELOAD_FOR_KEYS = ['key', 'session']
+DONT_RELOAD_FOR_KEYS = {'key', 'session'}
+DONT_OVERWRITE_SESSION_KEYS = {'usernames', 'players', 'transcodeSessions', 'session'}
 OPERATORS = {
     'exact': lambda v, q: v == q,
     'iexact': lambda v, q: v.lower() == q.lower(),
@@ -47,6 +48,7 @@ class PlexObject(object):
         self._data = data
         self._initpath = initpath or self.key
         self._parent = weakref.ref(parent) if parent else None
+        self._details_key = None
         if data is not None:
             self._loadData(data)
         self._details_key = self._buildDetailsKey()
@@ -57,8 +59,11 @@ class PlexObject(object):
         return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid, name] if p])
 
     def __setattr__(self, attr, value):
-        # Don't overwrite an attr with None or [] unless it's a private variable
-        if value not in [None, []] or attr.startswith('_') or attr not in self.__dict__:
+        # Don't overwrite session specific attr with []
+        if attr in DONT_OVERWRITE_SESSION_KEYS and value == []:
+            value = getattr(self, attr, [])
+        # Don't overwrite an attr with None unless it's a private variable
+        if value is not None or attr.startswith('_') or attr not in self.__dict__:
             self.__dict__[attr] = value
 
     def _clean(self, value):
@@ -113,15 +118,15 @@ class PlexObject(object):
     def _isChildOf(self, **kwargs):
         """ Returns True if this object is a child of the given attributes.
             This will search the parent objects all the way to the top.
-        
+
             Parameters:
                 **kwargs (dict): The attributes and values to search for in the parent objects.
                     See all possible `**kwargs*` in :func:`~plexapi.base.PlexObject.fetchItem`.
         """
         obj = self
-        while obj._parent is not None:
+        while obj and obj._parent is not None:
             obj = obj._parent()
-            if obj._checkAttrs(obj._data, **kwargs):
+            if obj and obj._checkAttrs(obj._data, **kwargs):
                 return True
         return False
 
@@ -227,7 +232,7 @@ class PlexObject(object):
     def firstAttr(self, *attrs):
         """ Return the first attribute in attrs that is not None. """
         for attr in attrs:
-            value = self.__dict__.get(attr)
+            value = getattr(self, attr, None)
             if value is not None:
                 return value
 
@@ -384,6 +389,7 @@ class PlexPartialObject(PlexObject):
         value = super(PlexPartialObject, self).__getattribute__(attr)
         # Check a few cases where we dont want to reload
         if attr in DONT_RELOAD_FOR_KEYS: return value
+        if attr in DONT_OVERWRITE_SESSION_KEYS: return value
         if attr.startswith('_'): return value
         if value not in (None, []): return value
         if self.isFullObject(): return value
@@ -391,7 +397,7 @@ class PlexPartialObject(PlexObject):
         clsname = self.__class__.__name__
         title = self.__dict__.get('title', self.__dict__.get('name'))
         objname = "%s '%s'" % (clsname, title) if title else clsname
-        log.debug("Reloading %s for attr '%s'" % (objname, attr))
+        log.debug("Reloading %s for attr '%s'", objname, attr)
         # Reload and return the value
         self.reload()
         return super(PlexPartialObject, self).__getattribute__(attr)
@@ -452,49 +458,20 @@ class PlexPartialObject(PlexObject):
         self._server.query(part, method=self._server._session.put)
 
     def _edit_tags(self, tag, items, locked=True, remove=False):
-        """ Helper to edit and refresh a tags.
+        """ Helper to edit tags.
 
             Parameters:
-                tag (str): tag name
-                items (list): list of tags to add
-                locked (bool): lock this field.
-                remove (bool): If this is active remove the tags in items.
+                tag (str): Tag name.
+                items (list): List of tags to add.
+                locked (bool): True to lock the field.
+                remove (bool): True to remove the tags in items.
         """
         if not isinstance(items, list):
             items = [items]
-        value = getattr(self, tag + 's')
-        existing_cols = [t.tag for t in value if t and remove is False]
-        d = tag_helper(tag, existing_cols + items, locked, remove)
-        self.edit(**d)
-        self.refresh()
-
-    def addCollection(self, collections):
-        """ Add a collection(s).
-
-           Parameters:
-                collections (list): list of strings
-        """
-        self._edit_tags('collection', collections)
-
-    def removeCollection(self, collections):
-        """ Remove a collection(s). """
-        self._edit_tags('collection', collections, remove=True)
-
-    def addLabel(self, labels):
-        """ Add a label(s). """
-        self._edit_tags('label', labels)
-
-    def removeLabel(self, labels):
-        """ Remove a label(s). """
-        self._edit_tags('label', labels, remove=True)
-
-    def addGenre(self, genres):
-        """ Add a genre(s). """
-        self._edit_tags('genre', genres)
-
-    def removeGenre(self, genres):
-        """ Remove a genre(s). """
-        self._edit_tags('genre', genres, remove=True)
+        value = getattr(self, tag_plural(tag))
+        existing_tags = [t.tag for t in value if t and remove is False]
+        tag_edits = tag_helper(tag, existing_tags + items, locked, remove)
+        self.edit(**tag_edits)
 
     def refresh(self):
         """ Refreshing a Library or individual item causes the metadata for the item to be
@@ -524,7 +501,7 @@ class PlexPartialObject(PlexObject):
             return self._server.query(self.key, method=self._server._session.delete)
         except BadRequest:  # pragma: no cover
             log.error('Failed to delete %s. This could be because you '
-                'havnt allowed items to be deleted' % self.key)
+                'have not allowed items to be deleted', self.key)
             raise
 
     def history(self, maxresults=9999999, mindate=None):
@@ -534,142 +511,6 @@ class PlexPartialObject(PlexObject):
                 mindate (datetime): Min datetime to return results from.
         """
         return self._server.history(maxresults=maxresults, mindate=mindate, ratingKey=self.ratingKey)
-
-    def posters(self):
-        """ Returns list of available poster objects. :class:`~plexapi.media.Poster`. """
-
-        return self.fetchItems('%s/posters' % self.key)
-
-    def uploadPoster(self, url=None, filepath=None):
-        """ Upload poster from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
-        if url:
-            key = '%s/posters?url=%s' % (self.key, quote_plus(url))
-            self._server.query(key, method=self._server._session.post)
-        elif filepath:
-            key = '%s/posters?' % self.key
-            data = open(filepath, 'rb').read()
-            self._server.query(key, method=self._server._session.post, data=data)
-
-    def setPoster(self, poster):
-        """ Set . :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
-        poster.select()
-
-    def arts(self):
-        """ Returns list of available art objects. :class:`~plexapi.media.Poster`. """
-
-        return self.fetchItems('%s/arts' % self.key)
-
-    def uploadArt(self, url=None, filepath=None):
-        """ Upload art from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
-        if url:
-            key = '/library/metadata/%s/arts?url=%s' % (self.ratingKey, quote_plus(url))
-            self._server.query(key, method=self._server._session.post)
-        elif filepath:
-            key = '/library/metadata/%s/arts?' % self.ratingKey
-            data = open(filepath, 'rb').read()
-            self._server.query(key, method=self._server._session.post, data=data)
-
-    def setArt(self, art):
-        """ Set :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
-        art.select()
-
-    def unmatch(self):
-        """ Unmatches metadata match from object. """
-        key = '/library/metadata/%s/unmatch' % self.ratingKey
-        self._server.query(key, method=self._server._session.put)
-
-    def matches(self, agent=None, title=None, year=None, language=None):
-        """ Return list of (:class:`~plexapi.media.SearchResult`) metadata matches.
-
-             Parameters:
-                agent (str): Agent name to be used (imdb, thetvdb, themoviedb, etc.)
-                title (str): Title of item to search for
-                year (str): Year of item to search in
-                language (str) : Language of item to search in
-
-            Examples:
-                1. video.matches()
-                2. video.matches(title="something", year=2020)
-                3. video.matches(title="something")
-                4. video.matches(year=2020)
-                5. video.matches(title="something", year="")
-                6. video.matches(title="", year=2020)
-                7. video.matches(title="", year="")
-
-                1. The default behaviour in Plex Web = no params in plexapi
-                2. Both title and year specified by user
-                3. Year automatically filled in
-                4. Title automatically filled in
-                5. Explicitly searches for title with blank year
-                6. Explicitly searches for blank title with year
-                7. I don't know what the user is thinking... return the same result as 1
-
-                For 2 to 7, the agent and language is automatically filled in
-        """
-        key = '/library/metadata/%s/matches' % self.ratingKey
-        params = {'manual': 1}
-
-        if agent and not any([title, year, language]):
-            params['language'] = self.section().language
-            params['agent'] = utils.getAgentIdentifier(self.section(), agent)
-        else:
-            if any(x is not None for x in [agent, title, year, language]):
-                if title is None:
-                    params['title'] = self.title
-                else:
-                    params['title'] = title
-
-                if year is None:
-                    params['year'] = self.year
-                else:
-                    params['year'] = year
-
-                params['language'] = language or self.section().language
-
-                if agent is None:
-                    params['agent'] = self.section().agent
-                else:
-                    params['agent'] = utils.getAgentIdentifier(self.section(), agent)
-
-        key = key + '?' + urlencode(params)
-        data = self._server.query(key, method=self._server._session.get)
-        return self.findItems(data, initpath=key)
-
-    def fixMatch(self, searchResult=None, auto=False, agent=None):
-        """ Use match result to update show metadata.
-
-            Parameters:
-                auto (bool): True uses first match from matches
-                    False allows user to provide the match
-                searchResult (:class:`~plexapi.media.SearchResult`): Search result from
-                    ~plexapi.base.matches()
-                agent (str): Agent name to be used (imdb, thetvdb, themoviedb, etc.)
-        """
-        key = '/library/metadata/%s/match' % self.ratingKey
-        if auto:
-            autoMatch = self.matches(agent=agent)
-            if autoMatch:
-                searchResult = autoMatch[0]
-            else:
-                raise NotFound('No matches found using this agent: (%s:%s)' % (agent, autoMatch))
-        elif not searchResult:
-            raise NotFound('fixMatch() requires either auto=True or '
-                           'searchResult=:class:`~plexapi.media.SearchResult`.')
-
-        params = {'guid': searchResult.guid,
-                  'name': searchResult.name}
-
-        data = key + '?' + urlencode(params)
-        self._server.query(data, method=self._server._session.put)
-
-    # The photo tag cant be built atm. TODO
-    # def arts(self):
-    #     part = '%s/arts' % self.key
-    #     return self.fetchItem(part)
-
-    # def poster(self):
-    #     part = '%s/posters' % self.key
-    #     return self.fetchItem(part, etag='Photo')
 
 
 class Playable(object):
@@ -738,24 +579,6 @@ class Playable(object):
         for item in self.media:
             for part in item.parts:
                 yield part
-
-    def split(self):
-        """Split a duplicate."""
-        key = '%s/split' % self.key
-        return self._server.query(key, method=self._server._session.put)
-
-    def merge(self, ratingKeys):
-        """Merge duplicate items."""
-        if not isinstance(ratingKeys, list):
-            ratingKeys = str(ratingKeys).split(",")
-
-        key = '%s/merge?ids=%s' % (self.key, ','.join(ratingKeys))
-        return self._server.query(key, method=self._server._session.put)
-
-    def unmatch(self):
-        """Unmatch a media file."""
-        key = '%s/unmatch' % self.key
-        return self._server.query(key, method=self._server._session.put)
 
     def play(self, client):
         """ Start playback on the specified client.
@@ -834,17 +657,3 @@ class Playable(object):
         key %= (self.ratingKey, self.key, time, state, durationStr)
         self._server.query(key)
         self.reload()
-
-
-@utils.registerPlexObject
-class Release(PlexObject):
-    TAG = 'Release'
-    key = '/updater/status'
-
-    def _loadData(self, data):
-        self.download_key = data.attrib.get('key')
-        self.version = data.attrib.get('version')
-        self.added = data.attrib.get('added')
-        self.fixed = data.attrib.get('fixed')
-        self.downloadURL = data.attrib.get('downloadURL')
-        self.state = data.attrib.get('state')

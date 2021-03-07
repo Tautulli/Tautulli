@@ -15,11 +15,12 @@ from plexapi.media import Conversion, Optimized
 from plexapi.playlist import Playlist
 from plexapi.playqueue import PlayQueue
 from plexapi.settings import Settings
-from plexapi.utils import cast
+from plexapi.utils import cast, deprecated
 from requests.status_codes import _codes as codes
 
 # Need these imports to populate utils.PLEXOBJECTS
-from plexapi import audio as _audio  # noqa: F401; noqa: F401
+from plexapi import audio as _audio  # noqa: F401
+from plexapi import collection as _collection  # noqa: F401
 from plexapi import media as _media  # noqa: F401
 from plexapi import photo as _photo  # noqa: F401
 from plexapi import playlist as _playlist  # noqa: F401
@@ -374,7 +375,11 @@ class PlexServer(PlexObject):
         filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack)
         return filepath
 
+    @deprecated('use "checkForUpdate" instead')
     def check_for_update(self, force=True, download=False):
+        return self.checkForUpdate()
+
+    def checkForUpdate(self, force=True, download=False):
         """ Returns a :class:`~plexapi.base.Release` object containing release info.
 
            Parameters:
@@ -390,7 +395,7 @@ class PlexServer(PlexObject):
 
     def isLatest(self):
         """ Check if the installed version of PMS is the latest. """
-        release = self.check_for_update(force=True)
+        release = self.checkForUpdate(force=True)
         return release is None
 
     def installUpdate(self):
@@ -398,7 +403,7 @@ class PlexServer(PlexObject):
         # We can add this but dunno how useful this is since it sometimes
         # requires user action using a gui.
         part = '/updater/apply'
-        release = self.check_for_update(force=True, download=True)
+        release = self.checkForUpdate(force=True, download=True)
         if release and release.version != self.version:
             # figure out what method this is..
             return self.query(part, method=self._session.put)
@@ -785,6 +790,20 @@ class Activity(PlexObject):
         self.subtitle = data.attrib.get('subtitle')
         self.type = data.attrib.get('type')
         self.uuid = data.attrib.get('uuid')
+
+
+@utils.registerPlexObject
+class Release(PlexObject):
+    TAG = 'Release'
+    key = '/updater/status'
+
+    def _loadData(self, data):
+        self.download_key = data.attrib.get('key')
+        self.version = data.attrib.get('version')
+        self.added = data.attrib.get('added')
+        self.fixed = data.attrib.get('fixed')
+        self.downloadURL = data.attrib.get('downloadURL')
+        self.state = data.attrib.get('state')
 
 
 class SystemAccount(PlexObject):

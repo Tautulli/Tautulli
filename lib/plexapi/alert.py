@@ -84,4 +84,4 @@ class AlertListener(threading.Thread):
             This is to support compatibility with current and previous releases of websocket-client.
         """
         err = args[-1]
-        log.error('AlertListener Error: %s' % err)
+        log.error('AlertListener Error: %s', err)

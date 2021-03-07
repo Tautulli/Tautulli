@@ -5,12 +5,13 @@ from plexapi import utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection
+from plexapi.mixins import ArtMixin, PosterMixin
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import cast, toDatetime
 
 
 @utils.registerPlexObject
-class Playlist(PlexPartialObject, Playable):
+class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin):
     """ Represents a single Playlist.
 
         Attributes:
@@ -61,6 +62,11 @@ class Playlist(PlexPartialObject, Playable):
     def __iter__(self):  # pragma: no cover
         for item in self.items():
             yield item
+
+    @property
+    def thumb(self):
+        """ Alias to self.composite. """
+        return self.composite
 
     @property
     def metadataType(self):
@@ -311,41 +317,3 @@ class Playlist(PlexPartialObject, Playable):
             raise Unsupported('Unsupported playlist content')
 
         return myplex.sync(sync_item, client=client, clientId=clientId)
-
-    def posters(self):
-        """ Returns list of available poster objects. :class:`~plexapi.media.Poster`. """
-
-        return self.fetchItems('/library/metadata/%s/posters' % self.ratingKey)
-
-    def uploadPoster(self, url=None, filepath=None):
-        """ Upload poster from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
-        if url:
-            key = '/library/metadata/%s/posters?url=%s' % (self.ratingKey, quote_plus(url))
-            self._server.query(key, method=self._server._session.post)
-        elif filepath:
-            key = '/library/metadata/%s/posters?' % self.ratingKey
-            data = open(filepath, 'rb').read()
-            self._server.query(key, method=self._server._session.post, data=data)
-
-    def setPoster(self, poster):
-        """ Set . :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
-        poster.select()
-
-    def arts(self):
-        """ Returns list of available art objects. :class:`~plexapi.media.Poster`. """
-
-        return self.fetchItems('/library/metadata/%s/arts' % self.ratingKey)
-
-    def uploadArt(self, url=None, filepath=None):
-        """ Upload art from url or filepath. :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video`. """
-        if url:
-            key = '/library/metadata/%s/arts?url=%s' % (self.ratingKey, quote_plus(url))
-            self._server.query(key, method=self._server._session.post)
-        elif filepath:
-            key = '/library/metadata/%s/arts?' % self.ratingKey
-            data = open(filepath, 'rb').read()
-            self._server.query(key, method=self._server._session.post, data=data)
-
-    def setArt(self, art):
-        """ Set :class:`~plexapi.media.Poster` to :class:`~plexapi.video.Video` """
-        art.select()

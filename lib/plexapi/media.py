@@ -708,10 +708,10 @@ class Collection(MediaTag):
 
 @utils.registerPlexObject
 class Label(MediaTag):
-    """ Represents a single label media tag.
+    """ Represents a single Label media tag.
 
         Attributes:
-            TAG (str): 'label'
+            TAG (str): 'Label'
             FILTER (str): 'label'
     """
     TAG = 'Label'
@@ -720,10 +720,10 @@ class Label(MediaTag):
 
 @utils.registerPlexObject
 class Tag(MediaTag):
-    """ Represents a single tag media tag.
+    """ Represents a single Tag media tag.
 
         Attributes:
-            TAG (str): 'tag'
+            TAG (str): 'Tag'
             FILTER (str): 'tag'
     """
     TAG = 'Tag'
@@ -807,20 +807,25 @@ class Style(MediaTag):
     FILTER = 'style'
 
 
-@utils.registerPlexObject
-class Poster(PlexObject):
-    """ Represents a Poster.
+class BaseImage(PlexObject):
+    """ Base class for all Art, Banner, and Poster objects.
 
         Attributes:
             TAG (str): 'Photo'
+            key (str): API URL (/library/metadata/<ratingkey>).
+            provider (str): The source of the poster or art.
+            ratingKey (str): Unique key identifying the poster or art.
+            selected (bool): True if the poster or art is currently selected.
+            thumb (str): The URL to retrieve the poster or art thumbnail.
     """
     TAG = 'Photo'
 
     def _loadData(self, data):
         self._data = data
         self.key = data.attrib.get('key')
+        self.provider = data.attrib.get('provider')
         self.ratingKey = data.attrib.get('ratingKey')
-        self.selected = data.attrib.get('selected')
+        self.selected = cast(bool, data.attrib.get('selected'))
         self.thumb = data.attrib.get('thumb')
 
     def select(self):
@@ -830,6 +835,18 @@ class Poster(PlexObject):
             self._server.query(data, method=self._server._session.put)
         except xml.etree.ElementTree.ParseError:
             pass
+
+
+class Art(BaseImage):
+    """ Represents a single Art object. """
+
+
+class Banner(BaseImage):
+    """ Represents a single Banner object. """
+
+
+class Poster(BaseImage):
+    """ Represents a single Poster object. """
 
 
 @utils.registerPlexObject

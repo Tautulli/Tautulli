@@ -4,6 +4,9 @@ from urllib.parse import quote_plus
 from plexapi import library, media, utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest
+from plexapi.mixins import ArtUrlMixin, ArtMixin, PosterUrlMixin, PosterMixin
+from plexapi.mixins import SplitMergeMixin, UnmatchMatchMixin
+from plexapi.mixins import CollectionMixin, CountryMixin, GenreMixin, LabelMixin, MoodMixin, SimilarArtistMixin, StyleMixin
 
 
 class Audio(PlexPartialObject):
@@ -65,18 +68,6 @@ class Audio(PlexPartialObject):
         self.userRating = utils.cast(float, data.attrib.get('userRating', 0))
         self.viewCount = utils.cast(int, data.attrib.get('viewCount', 0))
 
-    @property
-    def thumbUrl(self):
-        """ Return url to for the thumbnail image. """
-        key = self.firstAttr('thumb', 'parentThumb', 'granparentThumb')
-        return self._server.url(key, includeToken=True) if key else None
-
-    @property
-    def artUrl(self):
-        """ Return the first art url starting on the most specific for that item."""
-        art = self.firstAttr('art', 'grandparentArt')
-        return self._server.url(art, includeToken=True) if art else None
-
     def url(self, part):
         """ Returns the full URL for the audio item. Typically used for getting a specific track. """
         return self._server.url(part, includeToken=True) if part else None
@@ -123,7 +114,8 @@ class Audio(PlexPartialObject):
 
 
 @utils.registerPlexObject
-class Artist(Audio):
+class Artist(Audio, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatchMixin,
+        CollectionMixin, CountryMixin, GenreMixin, MoodMixin, SimilarArtistMixin, StyleMixin):
     """ Represents a single Artist.
 
         Attributes:
@@ -226,7 +218,8 @@ class Artist(Audio):
 
 
 @utils.registerPlexObject
-class Album(Audio):
+class Album(Audio, ArtMixin, PosterMixin, UnmatchMatchMixin,
+        CollectionMixin, GenreMixin, LabelMixin, MoodMixin, StyleMixin):
     """ Represents a single Album.
 
         Attributes:
@@ -332,7 +325,7 @@ class Album(Audio):
 
 
 @utils.registerPlexObject
-class Track(Audio, Playable):
+class Track(Audio, Playable, ArtUrlMixin, PosterUrlMixin, MoodMixin):
     """ Represents a single Track.
 
         Attributes:
