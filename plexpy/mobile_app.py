@@ -184,8 +184,12 @@ def validate_onesignal_id(onesignal_id):
     headers = {'Content-Type': 'application/json'}
     payload = {'app_id': _ONESIGNAL_APP_ID}
 
-    r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
-    return r.status_code == 200
+    try:
+        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
+        return r.status_code == 200
+    except Exception as e:
+        logger.warn("Tautulli MobileApp :: Failed to validate OneSignal ID: %s." % e)
+        return
 
 
 def blacklist_logger():
