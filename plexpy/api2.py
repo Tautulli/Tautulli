@@ -759,7 +759,7 @@ General optional parameters:
             if kwargs.get('password'):
                 logger._BLACKLIST_WORDS.add(kwargs['password'])
 
-        result = {}
+        result = None
         logger.api_debug('Tautulli APIv2 :: API called with kwargs: %s' % kwargs)
 
         self._api_validate(**kwargs)
@@ -793,7 +793,7 @@ General optional parameters:
         try:
             if isinstance(result, (dict, list)):
                 ret = result
-            else:
+            elif result is not None:
                 raise Exception
         except Exception:
             try:
