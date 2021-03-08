@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.6.8 (2021-03-08)
+
+* Mobile App:
+  * New: An all new Tautulli Remote App 2.0. Go to the Google Play link in the settings to download the new version.
+  * Fix: Registering the new app would fail if OneSignal is blocked.
+
+
 ## v2.6.7 (2021-03-07)
 
 * History:
