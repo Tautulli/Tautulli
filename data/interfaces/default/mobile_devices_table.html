@@ -98,7 +98,9 @@ DOCUMENTATION :: END
                         $.ajax({
                             url: 'verify_mobile_device',
                             type: 'GET',
-                            data: { device_token: token },
+                            data: {
+                                device_token: token
+                            },
                             success: function (data) {
                                 if (data.result === 'success') {
                                     verifiedDevice = true;
@@ -135,7 +137,10 @@ DOCUMENTATION :: END
             $.ajax({
                 url: 'verify_mobile_device',
                 type: 'GET',
-                data: { cancel: true },
+                data: {
+                    device_token: $('#api_qr_token').val(),
+                    cancel: true
+                },
                 success: function (data) {
                     showMsg('<i class="fa fa-times"></i> ' + data.message, false, true, 5000, false);
                 }

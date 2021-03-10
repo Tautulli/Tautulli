@@ -146,7 +146,7 @@ class API2(object):
             if not self._api_app and self._api_apikey == plexpy.CONFIG.API_KEY:
                 self._api_authenticated = True
 
-            elif self._api_app and self._api_apikey == mobile_app.get_temp_device_token() and \
+            elif self._api_app and mobile_app.get_temp_device_token(self._api_apikey) and \
                     self._api_cmd == 'register_device':
                 self._api_authenticated = True
 
@@ -469,7 +469,7 @@ class API2(object):
             self._api_msg = 'Device registration successful.'
             self._api_result_type = 'success'
 
-            mobile_app.set_temp_device_token(True)
+            mobile_app.set_temp_device_token(self._api_apikey, success=True)
 
             plex_server = plextv.get_server_resources(return_info=True)
             tautulli = plexpy.get_tautulli_info()

@@ -32,32 +32,34 @@ else:
     from plexpy import logger
 
 
-TEMP_DEVICE_TOKEN = None
-INVALIDATE_TIMER = None
-
 _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
+TEMP_DEVICE_TOKENS = {}
 
-def set_temp_device_token(token=None):
-    global TEMP_DEVICE_TOKEN
-    TEMP_DEVICE_TOKEN = token
 
-    if TEMP_DEVICE_TOKEN:
-        logger._BLACKLIST_WORDS.add(TEMP_DEVICE_TOKEN)
-    else:
-        logger._BLACKLIST_WORDS.discard(TEMP_DEVICE_TOKEN)
+def set_temp_device_token(token=None, remove=False, add=False, success=False):
+    global TEMP_DEVICE_TOKENS
 
-    if TEMP_DEVICE_TOKEN is not None:
-        global INVALIDATE_TIMER
-        if INVALIDATE_TIMER:
-            INVALIDATE_TIMER.cancel()
+    if token in TEMP_DEVICE_TOKENS and success:
+        if isinstance(TEMP_DEVICE_TOKENS[token], threading.Timer):
+            TEMP_DEVICE_TOKENS[token].cancel()
+        TEMP_DEVICE_TOKENS[token] = True
+
+    elif token in TEMP_DEVICE_TOKENS and remove:
+        if isinstance(TEMP_DEVICE_TOKENS[token], threading.Timer):
+            TEMP_DEVICE_TOKENS[token].cancel()
+        del TEMP_DEVICE_TOKENS[token]
+        logger._BLACKLIST_WORDS.discard(token)
+
+    elif token not in TEMP_DEVICE_TOKENS and add:
         invalidate_time = 5 * 60  # 5 minutes
-        INVALIDATE_TIMER = threading.Timer(invalidate_time, set_temp_device_token, args=[None])
-        INVALIDATE_TIMER.start()
+        TEMP_DEVICE_TOKENS[token] = threading.Timer(invalidate_time, set_temp_device_token, args=[token, True])
+        TEMP_DEVICE_TOKENS[token].start()
+        logger._BLACKLIST_WORDS.add(token)
 
 
-def get_temp_device_token():
-    return TEMP_DEVICE_TOKEN
+def get_temp_device_token(token=None):
+    return TEMP_DEVICE_TOKENS.get(token)
 
 
 def get_mobile_devices(device_id=None, device_token=None):
