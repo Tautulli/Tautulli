@@ -192,14 +192,17 @@ def set_last_seen(device_token=None):
 
 def validate_onesignal_id(onesignal_id):
     if onesignal_id is None:
-        return False
+        return 0
 
     headers = {'Content-Type': 'application/json'}
     payload = {'app_id': _ONESIGNAL_APP_ID}
 
+    logger.info("Tautulli MobileApp :: Validating OneSignal ID")
     try:
         r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
-        return int(r.status_code == 200)
+        status_code = r.status_code
+        logger.info("Tautulli MobileApp :: OneSignal ID validation returned status code %s", status_code)
+        return int(status_code == 200)
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to validate OneSignal ID: %s." % e)
         return -1
