@@ -95,8 +95,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None, frien
     keys = {'device_id': device_id}
     values = {'device_name': device_name,
               'device_token': device_token,
-              'onesignal_id': onesignal_id,
-              'official': validate_onesignal_id(onesignal_id=onesignal_id)}
+              'onesignal_id': onesignal_id}
 
     if friendly_name:
         values['friendly_name'] = friendly_name
@@ -113,6 +112,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None, frien
     else:
         logger.debug("Tautulli MobileApp :: Re-registered mobile device '%s' in the database." % device_name)
 
+    threading.Thread(target=set_official, args=[device_id, onesignal_id]).start()
     return True
 
 
@@ -166,9 +166,20 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
         return False
 
 
+def set_official(device_id, onesignal_id):
+    db = database.MonitorDatabase()
+    official = validate_onesignal_id(onesignal_id=onesignal_id)
+
+    try:
+        result = db.action('UPDATE mobile_devices SET official = ? WHERE device_id = ?',
+                           args=[official, device_id])
+    except Exception as e:
+        logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
+        return
+
+
 def set_last_seen(device_token=None):
     db = database.MonitorDatabase()
-
     last_seen = helpers.timestamp()
 
     try:
@@ -188,10 +199,10 @@ def validate_onesignal_id(onesignal_id):
 
     try:
         r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
-        return r.status_code == 200
+        return int(r.status_code == 200)
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to validate OneSignal ID: %s." % e)
-        return
+        return -1
 
 
 def blacklist_logger():
