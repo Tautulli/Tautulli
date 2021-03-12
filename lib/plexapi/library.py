@@ -216,12 +216,13 @@ class Library(PlexObject):
 
             **Show Preferences**
 
-                * **agent** (str): com.plexapp.agents.none, com.plexapp.agents.thetvdb, com.plexapp.agents.themoviedb
+                * **agent** (str): com.plexapp.agents.none, com.plexapp.agents.thetvdb, com.plexapp.agents.themoviedb,
+                  tv.plex.agent.series
                 * **enableBIFGeneration** (bool): Enable video preview thumbnails. Default value true.
                 * **episodeSort** (int): Episode order. Default -1 Possible options: 0:Oldest first, 1:Newest first.
                 * **flattenSeasons** (int): Seasons. Default value 0 Possible options: 0:Show,1:Hide.
                 * **includeInGlobal** (bool): Include in dashboard. Default value true.
-                * **scanner** (str): Plex Series Scanner
+                * **scanner** (str): Plex TV Series, Plex Series Scanner
 
             **TheTVDB Show Options** (com.plexapp.agents.thetvdb)
 

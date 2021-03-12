@@ -121,6 +121,8 @@ class Artist(Audio, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatchMixin,
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'artist'
+            albumSort (int): Setting that indicates how albums are sorted for the artist
+                (-1 = Library default, 0 = Newest first, 1 = Oldest first, 2 = By name).
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             countries (List<:class:`~plexapi.media.Country`>): List country objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
@@ -135,6 +137,7 @@ class Artist(Audio, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatchMixin,
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
+        self.albumSort = utils.cast(int, data.attrib.get('albumSort', '-1'))
         self.collections = self.findItems(data, media.Collection)
         self.countries = self.findItems(data, media.Country)
         self.genres = self.findItems(data, media.Genre)

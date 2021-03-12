@@ -267,6 +267,8 @@ class Movie(Video, Playable, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatc
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
+            languageOverride (str): Setting that indicates if a languge is used to override metadata
+                (eg. en-CA, None = Library default).
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             originallyAvailableAt (datetime): Datetime the movie was released.
             originalTitle (str): Original title, often the foreign title (転々; 엽기적인 그녀).
@@ -278,6 +280,8 @@ class Movie(Video, Playable, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatc
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created movie (Di Bonaventura Pictures; 21 Laps Entertainment).
             tagline (str): Movie tag line (Back 2 Work; Who says men can't change?).
+            useOriginalTitle (int): Setting that indicates if the original title is used for the movie
+                (-1 = Library default, 0 = No, 1 = Yes).
             userRating (float): User rating (2.0; 8.0).
             viewOffset (int): View offset in milliseconds.
             writers (List<:class:`~plexapi.media.Writer`>): List of writers objects.
@@ -303,6 +307,7 @@ class Movie(Video, Playable, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatc
         self.genres = self.findItems(data, media.Genre)
         self.guids = self.findItems(data, media.Guid)
         self.labels = self.findItems(data, media.Label)
+        self.languageOverride = data.attrib.get('languageOverride')
         self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
@@ -314,6 +319,7 @@ class Movie(Video, Playable, ArtMixin, PosterMixin, SplitMergeMixin, UnmatchMatc
         self.similar = self.findItems(data, media.Similar)
         self.studio = data.attrib.get('studio')
         self.tagline = data.attrib.get('tagline')
+        self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
@@ -382,24 +388,47 @@ class Show(Video, ArtMixin, BannerMixin, PosterMixin, SplitMergeMixin, UnmatchMa
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'show'
+            audienceRating (float): Audience rating (TMDB or TVDB).
+            audienceRatingImage (str): Key to audience rating image (tmdb://image.rating).
+            autoDeletionItemPolicyUnwatchedLibrary (int): Setting that indicates the number of unplayed
+                episodes to keep for the show (0 = All episodes, 5 = 5 latest episodes, 3 = 3 latest episodes,
+                1 = 1 latest episode, -3 = Episodes added in the past 3 days, -7 = Episodes added in the
+                past 7 days, -30 = Episodes added in the past 30 days).
+            autoDeletionItemPolicyWatchedLibrary (int): Setting that indicates if episodes are deleted
+                after being watched for the show (0 = Never, 1 = After a day, 7 = After a week,
+                100 = On next refresh).
             banner (str): Key to banner artwork (/library/metadata/<ratingkey>/banner/<bannerid>).
             childCount (int): Number of seasons in the show.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             duration (int): Typical duration of the show episodes in milliseconds.
+            episodeSort (int): Setting that indicates how episodes are sorted for the show
+                (-1 = Library default, 0 = Oldest first, 1 = Newest first).
+            flattenSeasons (int): Setting that indicates if seasons are set to hidden for the show
+                (-1 = Library default, 0 = Hide, 1 = Show).
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Plex index number for the show.
             key (str): API URL (/library/metadata/<ratingkey>).
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
+            languageOverride (str): Setting that indicates if a languge is used to override metadata
+                (eg. en-CA, None = Library default).
             leafCount (int): Number of items in the show view.
             locations (List<str>): List of folder paths where the show is found on disk.
+            network (str): The network that distributed the show.
             originallyAvailableAt (datetime): Datetime the show was released.
             originalTitle (str): The original title of the show.
             rating (float): Show rating (7.9; 9.8; 8.1).
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
+            showOrdering (str): Setting that indicates the episode ordering for the show
+                (None = Library default).
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created show (Di Bonaventura Pictures; 21 Laps Entertainment).
+            tagline (str): Show tag line.
             theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
+            useOriginalTitle (int): Setting that indicates if the original title is used for the show
+                (-1 = Library default, 0 = No, 1 = Yes).
+            userRating (float): User rating (2.0; 8.0).
             viewedLeafCount (int): Number of items marked as played in the show view.
             year (int): Year the show was released.
     """
@@ -410,24 +439,39 @@ class Show(Video, ArtMixin, BannerMixin, PosterMixin, SplitMergeMixin, UnmatchMa
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
+        self.audienceRatingImage = data.attrib.get('audienceRatingImage')
+        self.autoDeletionItemPolicyUnwatchedLibrary = utils.cast(
+            int, data.attrib.get('autoDeletionItemPolicyUnwatchedLibrary', '0'))
+        self.autoDeletionItemPolicyWatchedLibrary = utils.cast(
+            int, data.attrib.get('autoDeletionItemPolicyWatchedLibrary', '0'))
         self.banner = data.attrib.get('banner')
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
+        self.episodeSort = utils.cast(int, data.attrib.get('episodeSort', '-1'))
+        self.flattenSeasons = utils.cast(int, data.attrib.get('flattenSeasons', '-1'))
         self.genres = self.findItems(data, media.Genre)
+        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.labels = self.findItems(data, media.Label)
+        self.languageOverride = data.attrib.get('languageOverride')
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.locations = self.listAttrs(data, 'path', etag='Location')
+        self.network = data.attrib.get('network')
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.roles = self.findItems(data, media.Role)
+        self.showOrdering = data.attrib.get('showOrdering')
         self.similar = self.findItems(data, media.Similar)
         self.studio = data.attrib.get('studio')
+        self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
+        self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
+        self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
@@ -582,6 +626,7 @@ class Season(Video, ArtMixin, PosterMixin):
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'season'
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Season number.
             key (str): API URL (/library/metadata/<ratingkey>).
             leafCount (int): Number of items in the season view.
@@ -601,6 +646,7 @@ class Season(Video, ArtMixin, PosterMixin):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
+        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
@@ -676,11 +722,11 @@ class Season(Video, ArtMixin, PosterMixin):
 
     def watched(self):
         """ Returns list of watched :class:`~plexapi.video.Episode` objects. """
-        return self.episodes(watched=True)
+        return self.episodes(viewCount__gt=0)
 
     def unwatched(self):
         """ Returns list of unwatched :class:`~plexapi.video.Episode` objects. """
-        return self.episodes(watched=False)
+        return self.episodes(viewCount=0)
 
     def download(self, savepath=None, keep_original_name=False, **kwargs):
         """ Download video files to specified directory.
@@ -709,6 +755,8 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
         Attributes:
             TAG (str): 'Video'
             TYPE (str): 'episode'
+            audienceRating (float): Audience rating (TMDB or TVDB).
+            audienceRatingImage (str): Key to audience rating image (tmdb://image.rating).
             chapters (List<:class:`~plexapi.media.Chapter`>): List of Chapter objects.
             chapterSource (str): Chapter source (agent; media; mixed).
             contentRating (str) Content rating (PG-13; NR; TV-G).
@@ -721,6 +769,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
             grandparentTheme (str): URL to show theme resource (/library/metadata/<grandparentRatingkey>/theme/<themeid>).
             grandparentThumb (str): URL to show thumbnail image (/library/metadata/<grandparentRatingKey>/thumb/<thumbid>).
             grandparentTitle (str): Name of the show for the episode.
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Episode number.
             markers (List<:class:`~plexapi.media.Marker`>): List of marker objects.
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
@@ -733,6 +782,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
             parentTitle (str): Name of the season for the episode.
             rating (float): Episode rating (7.9; 9.8; 8.1).
             skipParent (bool): True if the show's seasons are set to hidden.
+            userRating (float): User rating (2.0; 8.0).
             viewOffset (int): View offset in milliseconds.
             writers (List<:class:`~plexapi.media.Writer`>): List of writers objects.
             year (int): Year episode was released.
@@ -746,6 +796,8 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
         Video._loadData(self, data)
         Playable._loadData(self, data)
         self._seasonNumber = None  # cached season number
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
+        self.audienceRatingImage = data.attrib.get('audienceRatingImage')
         self.chapters = self.findItems(data, media.Chapter)
         self.chapterSource = data.attrib.get('chapterSource')
         self.contentRating = data.attrib.get('contentRating')
@@ -758,6 +810,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
         self.grandparentTheme = data.attrib.get('grandparentTheme')
         self.grandparentThumb = data.attrib.get('grandparentThumb')
         self.grandparentTitle = data.attrib.get('grandparentTitle')
+        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.markers = self.findItems(data, media.Marker)
         self.media = self.findItems(data, media.Media)
@@ -770,6 +823,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin,
         self.parentTitle = data.attrib.get('parentTitle')
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.skipParent = utils.cast(bool, data.attrib.get('skipParent', '0'))
+        self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
         self.year = utils.cast(int, data.attrib.get('year'))

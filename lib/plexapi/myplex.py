@@ -237,19 +237,21 @@ class MyPlexAccount(PlexObject):
         """ Share library content with the specified user.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be added.
-                server (PlexServer): PlexServer object or machineIdentifier containing the library sections to share.
-                sections ([Section]): Library sections, names or ids to be shared (default None).
-                    [Section] must be defined in order to update shared sections.
+                user (:class:`~plexapi.myplex.MyPlexUser`): `MyPlexUser` object, username, or email
+                    of the user to be added.
+                server (:class:`~plexapi.server.PlexServer`): `PlexServer` object, or machineIdentifier
+                    containing the library sections to share.
+                sections (List<:class:`~plexapi.library.LibrarySection`>): List of `LibrarySection` objecs, or names
+                    to be shared (default None). `sections` must be defined in order to update shared libraries.
                 allowSync (Bool): Set True to allow user to sync content.
                 allowCameraUpload (Bool): Set True to allow user to upload photos.
                 allowChannels (Bool): Set True to allow user to utilize installed channels.
                 filterMovies (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterTelevision (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterMusic (Dict): Dict containing key 'label' set to a list of values to be filtered.
-                    ex: {'label':['foo']}
+                    ex: `{'label':['foo']}`
         """
         username = user.username if isinstance(user, MyPlexUser) else user
         machineId = server.machineIdentifier if isinstance(server, PlexServer) else server
@@ -275,18 +277,21 @@ class MyPlexAccount(PlexObject):
         """ Share library content with the specified user.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be added.
-                server (PlexServer): PlexServer object or machineIdentifier containing the library sections to share.
-                sections ([Section]): Library sections, names or ids to be shared (default None shares all sections).
+                user (:class:`~plexapi.myplex.MyPlexUser`): `MyPlexUser` object, username, or email
+                    of the user to be added.
+                server (:class:`~plexapi.server.PlexServer`): `PlexServer` object, or machineIdentifier
+                    containing the library sections to share.
+                sections (List<:class:`~plexapi.library.LibrarySection`>): List of `LibrarySection` objecs, or names
+                    to be shared (default None). `sections` must be defined in order to update shared libraries.
                 allowSync (Bool): Set True to allow user to sync content.
                 allowCameraUpload (Bool): Set True to allow user to upload photos.
                 allowChannels (Bool): Set True to allow user to utilize installed channels.
                 filterMovies (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterTelevision (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterMusic (Dict): Dict containing key 'label' set to a list of values to be filtered.
-                    ex: {'label':['foo']}
+                    ex: `{'label':['foo']}`
         """
         machineId = server.machineIdentifier if isinstance(server, PlexServer) else server
         sectionIds = self._getSectionIds(server, sections)
@@ -321,18 +326,21 @@ class MyPlexAccount(PlexObject):
         """ Share library content with the specified user.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be added.
-                server (PlexServer): PlexServer object or machineIdentifier containing the library sections to share.
-                sections ([Section]): Library sections, names or ids to be shared (default None shares all sections).
+                user (:class:`~plexapi.myplex.MyPlexUser`): `MyPlexUser` object, username, or email
+                    of the user to be added.
+                server (:class:`~plexapi.server.PlexServer`): `PlexServer` object, or machineIdentifier
+                    containing the library sections to share.
+                sections (List<:class:`~plexapi.library.LibrarySection`>): List of `LibrarySection` objecs, or names
+                    to be shared (default None). `sections` must be defined in order to update shared libraries.
                 allowSync (Bool): Set True to allow user to sync content.
                 allowCameraUpload (Bool): Set True to allow user to upload photos.
                 allowChannels (Bool): Set True to allow user to utilize installed channels.
                 filterMovies (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterTelevision (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterMusic (Dict): Dict containing key 'label' set to a list of values to be filtered.
-                    ex: {'label':['foo']}
+                    ex: `{'label':['foo']}`
         """
         headers = {'Content-Type': 'application/json'}
         # If user already exists, carry over sections and settings.
@@ -392,20 +400,22 @@ class MyPlexAccount(PlexObject):
         """ Update the specified user's share settings.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be added.
-                server (PlexServer): PlexServer object or machineIdentifier containing the library sections to share.
-                sections: ([Section]): Library sections, names or ids to be shared (default None).
-                    [Section] must be defined in order to update shared sections.
+                user (:class:`~plexapi.myplex.MyPlexUser`): `MyPlexUser` object, username, or email
+                    of the user to be updated.
+                server (:class:`~plexapi.server.PlexServer`): `PlexServer` object, or machineIdentifier
+                    containing the library sections to share.
+                sections (List<:class:`~plexapi.library.LibrarySection`>): List of `LibrarySection` objecs, or names
+                    to be shared (default None). `sections` must be defined in order to update shared libraries.
                 removeSections (Bool): Set True to remove all shares. Supersedes sections.
                 allowSync (Bool): Set True to allow user to sync content.
                 allowCameraUpload (Bool): Set True to allow user to upload photos.
                 allowChannels (Bool): Set True to allow user to utilize installed channels.
                 filterMovies (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterTelevision (Dict): Dict containing key 'contentRating' and/or 'label' each set to a list of
-                    values to be filtered. ex: {'contentRating':['G'], 'label':['foo']}
+                    values to be filtered. ex: `{'contentRating':['G'], 'label':['foo']}`
                 filterMusic (Dict): Dict containing key 'label' set to a list of values to be filtered.
-                    ex: {'label':['foo']}
+                    ex: `{'label':['foo']}`
         """
         # Update friend servers
         response_filters = ''
