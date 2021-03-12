@@ -202,6 +202,7 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'languageOverride': None,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
                 'librarySectionKey': None,
@@ -374,6 +375,7 @@ class Export(object):
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
+                'useOriginalTitle': None,
                 'userRating': None,
                 'viewCount': None,
                 'viewOffset': None,
@@ -391,6 +393,10 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
+                'audienceRating': None,
+                'audienceRatingImage': None,
+                'autoDeletionItemPolicyUnwatchedLibrary': None,
+                'autoDeletionItemPolicyWatchedLibrary': None,
                 'banner': None,
                 'bannerFile': lambda o: self.get_image(o, 'banner'),
                 'childCount': None,
@@ -401,27 +407,34 @@ class Export(object):
                 'contentRating': None,
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'episodeSort': None,
                 'fields': {
                     'name': None,
                     'locked': None
                 },
+                'flattenSeasons': None,
                 'genres': {
                     'id': None,
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'index': None,
                 'key': None,
                 'labels': {
                     'id': None,
                     'tag': None
                 },
+                'languageOverride': None,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'leafCount': None,
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'network': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'originalTitle': None,
                 'rating': None,
@@ -432,8 +445,10 @@ class Export(object):
                     'role': None,
                     'thumb': None
                 },
+                'showOrdering': None,
                 'studio': None,
                 'summary': None,
+                'tagline': None,
                 'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -442,6 +457,7 @@ class Export(object):
                 'titleSort': None,
                 'type': None,
                 'updatedAt': helpers.datetime_to_iso,
+                'useOriginalTitle': None,
                 'userRating': None,
                 'viewCount': None,
                 'viewedLeafCount': None,
@@ -461,6 +477,9 @@ class Export(object):
                     'locked': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'index': None,
                 'key': None,
                 'lastViewedAt': helpers.datetime_to_iso,
@@ -497,6 +516,8 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
+                'audienceRating': None,
+                'audienceRatingImage': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -525,6 +546,9 @@ class Export(object):
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'hasIntroMarker': None,
                 'index': None,
                 'key': None,
@@ -711,6 +735,7 @@ class Export(object):
         def artist_attrs():
             _artist_attrs = {
                 'addedAt': helpers.datetime_to_iso,
+                'albumSort': None,
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
@@ -1204,14 +1229,14 @@ class Export(object):
             _metadata_levels = {
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'year', 'addedAt',
-                    'rating', 'userRating', 'contentRating',
-                    'studio', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
+                    'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating', 'network',
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
                     'seasons'
                 ],
                 2: [
                     'roles.tag', 'roles.role',
                     'genres.tag', 'collections.tag', 'labels.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'banner', 'theme', 'key',
@@ -1233,7 +1258,7 @@ class Export(object):
                     'episodes'
                 ],
                 2: [
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1250,14 +1275,14 @@ class Export(object):
             _metadata_levels = {
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'year', 'addedAt',
-                    'rating', 'userRating', 'contentRating',
+                    'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'index',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
                     'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid', 'hasIntroMarker'
                 ],
                 2: [
                     'directors.tag', 'writers.tag',
-                    'fields.name', 'fields.locked',
+                    'fields.name', 'fields.locked', 'guids.id',
                     'markers.type', 'markers.start', 'markers.end'
                 ],
                 3: [
