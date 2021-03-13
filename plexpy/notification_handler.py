@@ -1109,6 +1109,15 @@ def build_server_notify_params(notify_action=None, **kwargs):
     plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
     remote_access_info = defaultdict(str, kwargs.pop('remote_access_info', {}))
 
+    windows_exe = macos_pkg = ''
+    if plexpy_download_info:
+        release_assets = plexpy_download_info.get('assets', [])
+        for asset in release_assets:
+            if asset['content_type'] == 'application/vnd.microsoft.portable-executable':
+                windows_exe = asset['browser_download_url']
+            elif asset['content_type'] == 'application/vnd.apple.installer+xml':
+                macos_pkg = asset['browser_download_url']
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -1163,6 +1172,8 @@ def build_server_notify_params(notify_action=None, **kwargs):
         # Tautulli update parameters
         'tautulli_update_version': plexpy_download_info['tag_name'],
         'tautulli_update_release_url': plexpy_download_info['html_url'],
+        'tautulli_update_exe': windows_exe,
+        'tautulli_update_pkg': macos_pkg,
         'tautulli_update_tar': plexpy_download_info['tarball_url'],
         'tautulli_update_zip': plexpy_download_info['zipball_url'],
         'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),

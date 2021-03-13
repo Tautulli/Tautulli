@@ -606,6 +606,8 @@ NOTIFICATION_PARAMETERS = [
         'parameters': [
              {'name': 'Tautulli Update Version', 'type': 'str', 'value': 'tautulli_update_version', 'description': 'The available update version for Tautulli.'},
              {'name': 'Tautulli Update Release URL', 'type': 'str', 'value': 'tautulli_update_release_url', 'description': 'The release page URL on GitHub.'},
+             {'name': 'Tautulli Update Exe', 'type': 'str', 'value': 'tautulli_update_exe', 'description': 'The Windows exe download URL for the available update.'},
+             {'name': 'Tautulli Update Pkg', 'type': 'str', 'value': 'tautulli_update_pkg', 'description': 'The MacOS pkg download URL for the available update.'},
              {'name': 'Tautulli Update Tar', 'type': 'str', 'value': 'tautulli_update_tar', 'description': 'The tar download URL for the available update.'},
              {'name': 'Tautulli Update Zip', 'type': 'str', 'value': 'tautulli_update_zip', 'description': 'The zip download URL for the available update.'},
              {'name': 'Tautulli Update Commit', 'type': 'str', 'value': 'tautulli_update_commit', 'description': 'The commit hash for the available update.'},
