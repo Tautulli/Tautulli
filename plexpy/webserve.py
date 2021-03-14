@@ -4665,7 +4665,7 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        if img:
+        if img and not img.startswith('http'):
             parts = 5
             if img.startswith('/playlists'):
                 parts -= 1
