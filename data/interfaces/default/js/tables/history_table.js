@@ -483,6 +483,7 @@ function childTableOptions(rowData) {
         $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
+            sanitize: false,
             container: 'body',
             trigger: 'hover',
             placement: 'right',

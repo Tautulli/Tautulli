@@ -647,6 +647,7 @@
                 $('#activity-instance-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
                 $('#activity-instance-' + session_key + ' [data-toggle=popover]').popover({
                     html: true,
+                    sanitize: false,
                     container: 'body',
                     trigger: 'hover',
                     placement: 'right',

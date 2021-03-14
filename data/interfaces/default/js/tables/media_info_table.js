@@ -382,6 +382,7 @@ function childTableOptionsMedia(rowData) {
         $('.media-type-tooltip').tooltip();
         $('.thumb-tooltip').popover({
             html: true,
+            sanitize: false,
             container: 'body',
             trigger: 'hover',
             placement: 'right',
