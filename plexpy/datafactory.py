@@ -909,6 +909,9 @@ class DataFactory(object):
                 for item in result:
                     library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days=time_range)
 
+                    if library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
+                        continue
+
                     if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                         library_thumb = item['custom_thumb']
                     elif item['library_thumb']:
@@ -938,7 +941,9 @@ class DataFactory(object):
                     'stat_id': stat,
                     'stat_type': sort_type,
                     'stat_title': 'Most Active Libraries',
-                    'rows': session.mask_session_info(sorted(top_libraries, key=lambda k: k[sort_type], reverse=True), mask_metadata=False)
+                    'rows': session.mask_session_info(
+                        sorted(top_libraries, key=lambda k: k[sort_type], reverse=True),
+                        mask_metadata=False)
                 })
 
         if stat_id and home_stats:

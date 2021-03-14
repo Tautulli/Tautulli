@@ -557,3 +557,4 @@ class Config(object):
             self.HOME_STATS_CARDS = home_stats_cards
 
             self.CONFIG_VERSION = 18
+            
