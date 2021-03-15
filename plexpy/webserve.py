@@ -6044,7 +6044,7 @@ class WebInterface(object):
                 stats_start (int)       The row number of the stat item to start at, 0
                 stats_count (int):      The number of stat items to return, 5
                 stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
-                                        'top_tv', 'popular_tv', 'top_music', 'popular_music',
+                                        'top_tv', 'popular_tv', 'top_music', 'popular_music', 'top_libraries',
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
 
             Returns:
@@ -6094,6 +6094,10 @@ class WebInterface(object):
                       "rows": [{...}]
                       },
                      {"stat_id": "last_watched",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "top_libraries",
+                      "stat_type": "total_plays",
                       "rows": [{...}]
                       },
                      {"stat_id": "top_users",
