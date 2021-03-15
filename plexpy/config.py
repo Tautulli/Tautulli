@@ -114,7 +114,7 @@ _CONFIG_DEFINITIONS = {
     'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music',
-        'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
+        'popular_music', 'last_watched', 'top_libraries', 'top_users', 'top_platforms', 'most_concurrent']),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
@@ -546,3 +546,15 @@ class Config(object):
                 self.PLEXPY_AUTO_UPDATE = 0
 
             self.CONFIG_VERSION = 17
+
+        if self.CONFIG_VERSION == 17:
+            home_stats_cards = self.HOME_STATS_CARDS
+            if 'top_users' in home_stats_cards:
+                top_users_index = home_stats_cards.index('top_users')
+                home_stats_cards.insert(top_users_index, 'top_libraries')
+            else:
+                home_stats_cards.add('top_libaries')
+            self.HOME_STATS_CARDS = home_stats_cards
+
+            self.CONFIG_VERSION = 18
+            
