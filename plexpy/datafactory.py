@@ -916,7 +916,8 @@ class DataFactory(object):
                     if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
                         continue
 
-                    library_watched = library_data.get_recently_watched(section_id=item['section_id'])
+                    library_watched = library_data.get_recently_watched(section_id=item['section_id'],
+                                                                        limit='1')
                     last_play = library_watched[0]['time'] if library_watched else 0
 
                     if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
