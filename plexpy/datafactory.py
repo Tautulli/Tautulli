@@ -942,7 +942,7 @@ class DataFactory(object):
                     'stat_type': sort_type,
                     'stat_title': 'Most Active Libraries',
                     'rows': session.mask_session_info(
-                        sorted(top_libraries, key=lambda k: k[sort_type], reverse=True),
+                        sorted(top_libraries, key=lambda k: k[sort_type], reverse=True)[:10],
                         mask_metadata=False)
                 })
 
