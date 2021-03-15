@@ -309,6 +309,8 @@ class DataFactory(object):
                        stats_start=0, stats_count=10, stat_id='', stats_cards=None):
         monitor_db = database.MonitorDatabase()
 
+        stats_start = helpers.cast_to_int(stats_start)
+        stats_count = helpers.cast_to_int(stats_count)
         if stat_id:
             stats_cards = [stat_id]
         if grouping is None:
@@ -908,10 +910,14 @@ class DataFactory(object):
 
                 for item in result:
                     library_item = library_data.get_watch_time_stats(section_id=item['section_id'],
+                                                                     grouping=grouping,
                                                                      query_days=time_range)
 
                     if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
                         continue
+
+                    library_watched = library_data.get_recently_watched(section_id=item['section_id'])
+                    last_play = library_watched[0]['time'] if library_watched else 0
 
                     if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                         library_thumb = item['custom_thumb']
@@ -931,7 +937,7 @@ class DataFactory(object):
                         'section_type': item['section_type'],
                         'section_name': item['section_name'],
                         'section_id': item['section_id'],
-                        'last_play': '',
+                        'last_play': last_play,
                         'thumb': library_thumb,
                         'grandparent_thumb': '',
                         'art': library_art,
@@ -951,7 +957,9 @@ class DataFactory(object):
                     'stat_type': sort_type,
                     'stat_title': 'Most Active Libraries',
                     'rows': session.mask_session_info(
-                        sorted(top_libraries, key=lambda k: k[sort_type], reverse=True)[:10],
+                        sorted(top_libraries,
+                               key=lambda k: k[sort_type],
+                               reverse=True)[stats_start:stats_start + stats_count],
                         mask_metadata=False)
                 })
 
