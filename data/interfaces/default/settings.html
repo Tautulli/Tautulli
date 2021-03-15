@@ -490,15 +490,6 @@
                             </label>
                             <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
                         </div>
-                        <div class="form-group advanced-setting">
-                            <label for="http_host">HTTP Host</label> ${docker_msg | n}
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required ${docker_setting}>
-                                </div>
-                            </div>
-                            <p class="help-block">localhost or an IP address to bind the web server to. Default 0.0.0.0 to bind to all interfaces.</p>
-                        </div>
                         <div class="form-group">
                             <label for="http_port">HTTP Port</label> ${docker_msg | n}
                             <div class="row">
