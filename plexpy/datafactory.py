@@ -933,7 +933,15 @@ class DataFactory(object):
                         'section_id': item['section_id'],
                         'last_play': '',
                         'thumb': library_thumb,
-                        'art': library_art
+                        'grandparent_thumb': '',
+                        'art': library_art,
+                        'user': '',
+                        'friendly_name': '',
+                        'users_watched': '',
+                        'rating_key': '',
+                        'title': '',
+                        'platform': '',
+                        'row_id': ''
                     }
 
                     top_libraries.append(row)
