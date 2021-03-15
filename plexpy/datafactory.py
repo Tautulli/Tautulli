@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -895,9 +895,9 @@ class DataFactory(object):
 
                 try:
                     query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                        'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
-                        'FROM library_sections ' \
-                        'WHERE deleted_section = 0'
+                            'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
+                            'FROM library_sections ' \
+                            'WHERE deleted_section = 0'
 
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -907,7 +907,8 @@ class DataFactory(object):
                 library_data = libraries.Libraries()
 
                 for item in result:
-                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'], grouping=None , query_days=time_range)
+                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'],
+                                                                     query_days=time_range)
 
                     if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
                         continue
