@@ -24,7 +24,12 @@
                                 <label for="friendly_name">Device Token</label>
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <input type="text" class="form-control" id="device_token" value="${device['device_token']}" size="30" readonly>
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="device_token" value="${device['device_token']}" size="30" readonly>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">Your app device token.</p>
@@ -33,7 +38,12 @@
                                 <label for="friendly_name">OneSignal Device ID</label>
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <input type="text" class="form-control" id="onesignal_id" value="${device['onesignal_id'] or ''}" size="30" readonly>
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="onesignal_id" value="${device['onesignal_id'] or ''}" size="30" readonly>
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">Your OneSignal device ID for notifications.</p>
