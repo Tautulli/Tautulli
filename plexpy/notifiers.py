@@ -1106,7 +1106,7 @@ class BOXCAR(Notifier):
                           'value': self.config['token'],
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Sound',
                           'value': self.config['sound'],
@@ -1255,7 +1255,7 @@ class DISCORD(Notifier):
                           'value': self.config['hook'],
                           'name': 'discord_hook',
                           'description': 'Your Discord incoming webhook URL.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Discord Username',
                           'value': self.config['username'],
@@ -1628,13 +1628,13 @@ class FACEBOOK(Notifier):
                           'value': self.config['app_id'],
                           'name': 'facebook_app_id',
                           'description': 'Your Facebook app ID.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Facebook App Secret',
                           'value': self.config['app_secret'],
                           'name': 'facebook_app_secret',
                           'description': 'Your Facebook app secret.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Request Authorization',
                           'value': 'Request Authorization',
@@ -1647,7 +1647,7 @@ class FACEBOOK(Notifier):
                           'name': 'facebook_access_token',
                           'description': 'Your Facebook access token. '
                                          'Automatically filled in after requesting authorization.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Facebook Group ID',
                           'value': self.config['group_id'],
@@ -1751,13 +1751,13 @@ class GROUPME(Notifier):
                           'value': self.config['access_token'],
                           'name': 'groupme_access_token',
                           'description': 'Your GroupMe access token.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'GroupMe Bot ID',
                           'value': self.config['bot_id'],
                           'name': 'groupme_bot_id',
                           'description': 'Your GroupMe bot ID.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
@@ -1889,7 +1889,7 @@ class IFTTT(Notifier):
                           'name': 'ifttt_key',
                           'description': 'Your IFTTT webhook key. You can get a key from'
                                          ' <a href="' + helpers.anon_url('https://ifttt.com/maker_webhooks') + '" target="_blank">here</a>.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'IFTTT Event',
                           'value': self.config['event'],
@@ -2007,7 +2007,7 @@ class JOIN(Notifier):
                           'value': self.config['api_key'],
                           'name': 'join_api_key',
                           'description': 'Your Join API key. Required for group notifications.',
-                          'input_type': 'text',
+                          'input_type': 'token',
                           'refresh': True
                           },
                          {'label': 'Device Name(s)',
@@ -2597,7 +2597,7 @@ class PROWL(Notifier):
                           'value': self.config['key'],
                           'name': 'prowl_key',
                           'description': 'Your Prowl API key.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Priority',
                           'value': self.config['priority'],
@@ -2704,7 +2704,7 @@ class PUSHBULLET(Notifier):
                           'value': self.config['api_key'],
                           'name': 'pushbullet_api_key',
                           'description': 'Your Pushbullet access token.',
-                          'input_type': 'text',
+                          'input_type': 'token',
                           'refresh': True
                           },
                          {'label': 'Device',
@@ -2870,14 +2870,14 @@ class PUSHOVER(Notifier):
                           'value': self.config['api_token'],
                           'name': 'pushover_api_token',
                           'description': 'Your Pushover API token.',
-                          'input_type': 'text',
+                          'input_type': 'token',
                           'refresh': True
                           },
                          {'label': 'Pushover User or Group Key',
                           'value': self.config['key'],
                           'name': 'pushover_key',
                           'description': 'Your Pushover user or group key.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Sound',
                           'value': self.config['sound'],
@@ -3275,7 +3275,7 @@ class SLACK(Notifier):
                           'value': self.config['hook'],
                           'name': 'slack_hook',
                           'description': 'Your Slack incoming webhook URL.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Slack Channel',
                           'value': self.config['channel'],
@@ -3439,7 +3439,7 @@ class TELEGRAM(Notifier):
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') +
                                          '" target="_blank">@BotFather</a>'
                                          ' on Telegram to get one.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Telegram Chat ID, Group ID, or Channel Username',
                           'value': self.config['chat_id'],
@@ -3540,25 +3540,25 @@ class TWITTER(Notifier):
                           'value': self.config['consumer_key'],
                           'name': 'twitter_consumer_key',
                           'description': 'Your Twitter consumer key.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Twitter Consumer Secret',
                           'value': self.config['consumer_secret'],
                           'name': 'twitter_consumer_secret',
                           'description': 'Your Twitter consumer secret.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Twitter Access Token',
                           'value': self.config['access_token'],
                           'name': 'twitter_access_token',
                           'description': 'Your Twitter access token.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Twitter Access Token Secret',
                           'value': self.config['access_token_secret'],
                           'name': 'twitter_access_token_secret',
                           'description': 'Your Twitter access token secret.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
@@ -3625,7 +3625,7 @@ class WEBHOOK(Notifier):
                           'value': self.config['hook'],
                           'name': 'webhook_hook',
                           'description': 'Your Webhook URL.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Webhook Method',
                           'value': self.config['method'],
@@ -3814,7 +3814,7 @@ class ZAPIER(Notifier):
                           'value': self.config['hook'],
                           'name': 'zapier_hook',
                           'description': 'Your Zapier webhook URL.',
-                          'input_type': 'text'
+                          'input_type': 'token'
                           },
                          {'label': 'Test Zapier Webhook',
                           'value': 'Send Test Data',

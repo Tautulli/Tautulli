@@ -63,6 +63,21 @@
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
                                     </div>
+                                    % elif item['input_type'] == 'token':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="input-group">
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                                    </span>
+                                                    <input type="password" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
                                     % elif item['input_type'] == 'number':
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
