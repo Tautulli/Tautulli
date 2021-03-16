@@ -74,10 +74,10 @@ DOCUMENTATION :: END
         % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
         <% fallback = 'art-live' if row0['live'] else 'art' %>
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
-        % elif stat_id == 'top_platforms':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % elif stat_id == 'top_libraries':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], None, 500, 280, 40, '282828', 3, fallback='art')});">
+        % elif stat_id == 'top_platforms':
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
         <div id="stats-background-${stat_id}" class="dashboard-stats-background flat">
         % endif
@@ -104,6 +104,12 @@ DOCUMENTATION :: END
                     <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['grandparent_rating_key'] or row0['rating_key'], 300, height, fallback=fallback)});"></div>
                 </a>
             </div>
+            % elif stat_id == 'top_libraries':
+                % if row0['thumb'].startswith('http'):
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
+                % else:
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
+                % endif
             % elif stat_id == 'top_users':
             <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['user']}" class="hidden-xs">
@@ -113,12 +119,6 @@ DOCUMENTATION :: END
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
             % elif stat_id == 'most_concurrent':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon stats-${stat_id} transparent hidden-xs"></div>
-            % elif stat_id == 'top_libraries':
-                % if row0['thumb'].startswith('http'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
-                % else:
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
-                % endif         
             % endif
             <div class="dashboard-stats-info-container">
                 <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
@@ -158,6 +158,11 @@ DOCUMENTATION :: END
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
                                     </a>
+                                    % elif stat_id == 'top_libraries':
+                                    <% library_href = page('library', row['section_id']) %>
+                                    <a href="${library_href}" title="${row['section_name']}">
+                                        ${row['section_name']}
+                                    </a>
                                     % elif stat_id == 'top_users':
                                     <% user_href = page('user', row['user_id']) if row['user_id'] else '#' %>
                                     <a href="${user_href}" title="${row['user']}">
@@ -167,11 +172,6 @@ DOCUMENTATION :: END
                                     ${row['platform']}
                                     % elif stat_id == 'most_concurrent':
                                     ${row['title']}
-                                    % elif stat_id == 'top_libraries':
-                                    <% library_href = page('library', row['section_id']) %>
-                                    <a href="${library_href}" title="${row['section_name']}">
-                                        ${row['section_name']}
-                                    </a>
                                     % endif
                                 </div>
                                 <div class="sub-count">

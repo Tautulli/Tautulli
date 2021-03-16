@@ -645,6 +645,79 @@ class DataFactory(object):
                                    'stat_title': 'Most Popular Artists',
                                    'rows': session.mask_session_info(popular_music)})
 
+            elif stat == 'top_libraries':
+                top_libraries = []
+
+                try:
+                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
+                            'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
+                            'FROM library_sections ' \
+                            'WHERE deleted_section = 0'
+
+                    result = monitor_db.select(query)
+                except Exception as e:
+                    logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_libraries: %s." % e)
+                    return None
+
+                library_data = libraries.Libraries()
+
+                for item in result:
+                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'],
+                                                                     grouping=grouping,
+                                                                     query_days=time_range)
+
+                    if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
+                        continue
+
+                    library_watched = library_data.get_recently_watched(section_id=item['section_id'],
+                                                                        limit='1')
+                    last_play = library_watched[0]['time'] if library_watched else 0
+
+                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
+                        library_thumb = item['custom_thumb']
+                    elif item['library_thumb']:
+                        library_thumb = item['library_thumb']
+                    else:
+                        library_thumb = common.DEFAULT_COVER_THUMB
+
+                    if item['custom_art'] and item['custom_art'] != item['library_art']:
+                        library_art = item['custom_art']
+                    else:
+                        library_art = item['library_art']
+
+                    row = {
+                        'total_plays': library_item[0]['total_plays'],
+                        'total_duration': library_item[0]['total_time'],
+                        'section_type': item['section_type'],
+                        'section_name': item['section_name'],
+                        'section_id': item['section_id'],
+                        'last_play': last_play,
+                        'thumb': library_thumb,
+                        'grandparent_thumb': '',
+                        'art': library_art,
+                        'user': '',
+                        'friendly_name': '',
+                        'users_watched': '',
+                        'rating_key': '',
+                        'grandparent_rating_key': '',
+                        'title': '',
+                        'platform': '',
+                        'row_id': ''
+                    }
+
+                    top_libraries.append(row)
+
+                home_stats.append({
+                    'stat_id': stat,
+                    'stat_type': sort_type,
+                    'stat_title': 'Most Active Libraries',
+                    'rows': session.mask_session_info(
+                        sorted(top_libraries,
+                               key=lambda k: k[sort_type],
+                               reverse=True)[stats_start:stats_start + stats_count],
+                        mask_metadata=False)
+                })
+
             elif stat == 'top_users':
                 top_users = []
                 try:
@@ -900,79 +973,6 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'stat_title': 'Most Concurrent Streams',
                                    'rows': most_concurrent})
-
-            elif stat == 'top_libraries':
-                top_libraries = []
-
-                try:
-                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                            'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
-                            'FROM library_sections ' \
-                            'WHERE deleted_section = 0'
-
-                    result = monitor_db.select(query)
-                except Exception as e:
-                    logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_libraries: %s." % e)
-                    return None
-
-                library_data = libraries.Libraries()
-
-                for item in result:
-                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'],
-                                                                     grouping=grouping,
-                                                                     query_days=time_range)
-
-                    if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
-                        continue
-
-                    library_watched = library_data.get_recently_watched(section_id=item['section_id'],
-                                                                        limit='1')
-                    last_play = library_watched[0]['time'] if library_watched else 0
-
-                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
-                        library_thumb = item['custom_thumb']
-                    elif item['library_thumb']:
-                        library_thumb = item['library_thumb']
-                    else:
-                        library_thumb = common.DEFAULT_COVER_THUMB
-
-                    if item['custom_art'] and item['custom_art'] != item['library_art']:
-                        library_art = item['custom_art']
-                    else:
-                        library_art = item['library_art']
-
-                    row = {
-                        'total_plays': library_item[0]['total_plays'],
-                        'total_duration': library_item[0]['total_time'],
-                        'section_type': item['section_type'],
-                        'section_name': item['section_name'],
-                        'section_id': item['section_id'],
-                        'last_play': last_play,
-                        'thumb': library_thumb,
-                        'grandparent_thumb': '',
-                        'art': library_art,
-                        'user': '',
-                        'friendly_name': '',
-                        'users_watched': '',
-                        'rating_key': '',
-                        'grandparent_rating_key': '',
-                        'title': '',
-                        'platform': '',
-                        'row_id': ''
-                    }
-
-                    top_libraries.append(row)
-
-                home_stats.append({
-                    'stat_id': stat,
-                    'stat_type': sort_type,
-                    'stat_title': 'Most Active Libraries',
-                    'rows': session.mask_session_info(
-                        sorted(top_libraries,
-                               key=lambda k: k[sort_type],
-                               reverse=True)[stats_start:stats_start + stats_count],
-                        mask_metadata=False)
-                })
 
         if stat_id and home_stats:
             return home_stats[0]
