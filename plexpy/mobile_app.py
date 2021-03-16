@@ -49,7 +49,6 @@ def set_temp_device_token(token=None, remove=False, add=False, success=False):
         if isinstance(TEMP_DEVICE_TOKENS[token], threading.Timer):
             TEMP_DEVICE_TOKENS[token].cancel()
         del TEMP_DEVICE_TOKENS[token]
-        logger._BLACKLIST_WORDS.discard(token)
 
     elif token not in TEMP_DEVICE_TOKENS and add:
         invalidate_time = 5 * 60  # 5 minutes
