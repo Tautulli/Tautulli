@@ -358,6 +358,7 @@ class DataFactory(object):
                            'total_duration': item['total_duration'],
                            'users_watched': '',
                            'rating_key': item['rating_key'],
+                           'grandparent_rating_key': '',
                            'last_play': item['last_watch'],
                            'grandparent_thumb': '',
                            'thumb': item['thumb'],
@@ -409,6 +410,7 @@ class DataFactory(object):
                            'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['rating_key'],
+                           'grandparent_rating_key': '',
                            'last_play': item['last_watch'],
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': '',
@@ -461,6 +463,7 @@ class DataFactory(object):
                            'total_duration': item['total_duration'],
                            'users_watched': '',
                            'rating_key': item['rating_key'] if item['live'] else item['grandparent_rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': item['grandparent_thumb'],
@@ -512,6 +515,7 @@ class DataFactory(object):
                            'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['rating_key'] if item['live'] else item['grandparent_rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': item['grandparent_thumb'],
@@ -565,6 +569,7 @@ class DataFactory(object):
                            'total_duration': item['total_duration'],
                            'users_watched': '',
                            'rating_key': item['grandparent_rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': item['grandparent_thumb'],
@@ -617,6 +622,7 @@ class DataFactory(object):
                            'year': item['year'],
                            'users_watched': item['users_watched'],
                            'rating_key': item['grandparent_rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
                            'last_play': item['last_watch'],
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': item['grandparent_thumb'],
@@ -682,6 +688,7 @@ class DataFactory(object):
                            'art': '',
                            'users_watched': '',
                            'rating_key': '',
+                           'grandparent_rating_key': '',
                            'title': '',
                            'platform': '',
                            'row_id': ''
@@ -731,6 +738,7 @@ class DataFactory(object):
                            'art': '',
                            'users_watched': '',
                            'rating_key': '',
+                           'grandparent_rating_key': '',
                            'user': '',
                            'friendly_name': '',
                            'row_id': ''
@@ -747,7 +755,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.title, t.grandparent_title, t.full_title, t.year, ' \
                             't.media_index, t.parent_media_index, ' \
-                            't.rating_key, t.thumb, t.grandparent_thumb, ' \
+                            't.rating_key, t.grandparent_rating_key, t.thumb, t.grandparent_thumb, ' \
                             't.user, t.user_id, t.custom_avatar_url as user_thumb, t.player, t.section_id, ' \
                             't.art, t.media_type, t.content_rating, t.labels, t.live, t.guid, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
@@ -793,6 +801,7 @@ class DataFactory(object):
                            'media_index': item['media_index'],
                            'parent_media_index': item['parent_media_index'],
                            'rating_key': item['rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
                            'thumb': thumb,
                            'grandparent_thumb': item['grandparent_thumb'],
                            'art': item['art'],
@@ -946,6 +955,7 @@ class DataFactory(object):
                         'friendly_name': '',
                         'users_watched': '',
                         'rating_key': '',
+                        'grandparent_rating_key': '',
                         'title': '',
                         'platform': '',
                         'row_id': ''
