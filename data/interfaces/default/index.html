@@ -787,6 +787,7 @@
             var library_type = $(elem).data('library-type');
             var user_thumb = $(elem).data('user_thumb');
             var rating_key = $(elem).data('rating_key');
+            var grandparent_rating_key = $(elem).data('grandparent_rating_key');
             var guid = $(elem).data('guid');
             var live = $(elem).data('live');
             var [height, fallback_poster, fallback_art] = [450, 'poster', 'art'];
@@ -830,13 +831,14 @@
                         href = page('info', rating_key);
                     }
                 }
+                var img_rating_key = grandparent_rating_key || rating_key;
                 $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
-                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, rating_key, 300, height, null, null, null, fallback_poster) + ')');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, rating_key, 300, height, 60, '282828', 3, fallback_poster) + ')');
-                $('#library-stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
+                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, null, null, null, fallback_poster) + ')');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, 60, '282828', 3, fallback_poster) + ')');
+                $('#library-stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
                 if (thumb.startsWith('http')) {
-                    $('#library-stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, rating_key, 300, 300, null, null, null, 'cover') + ')')
+                    $('#library-stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, 300, null, null, null, 'cover') + ')')
                         .removeClass('svg-icon library-' + stat_id);
                 } else {
                     $('#library-stats-thumb-' + stat_id).css('background-image', '')
