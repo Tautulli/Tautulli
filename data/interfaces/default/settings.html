@@ -688,14 +688,17 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="input-group">
-                                            <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input class="form-control" type="password" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
                                             <span class="input-group-btn">
                                                 <button class="btn btn-form" type="button" id="generate_api">Generate</button>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="help-block">Current API key: <strong>${config['api_key']}</strong></p>
+                                <p class="help-block">API key used to access the Tautulli API.</p>
                             </div>
                         </div>
 
@@ -774,7 +777,12 @@
                             <label for="pms_url">Plex Server Identifier</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}" size="30" readonly>
+                                    <div class="input-group">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                        </span>
+                                        <input type="password" class="form-control" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}" size="30" readonly>
+                                    </div>
                                 </div>
                             </div>
                             <p class="help-block">
@@ -923,7 +931,10 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                        </span>
+                                        <input type="password" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required readonly>
                                         <span class="input-group-btn">
                                             <button id="sign-in-plex" class="btn btn-form" type="button">Fetch Token</button>
                                         </span>
@@ -1130,7 +1141,12 @@
                                 <label for="newsletter_password">Newsletter Password</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="newsletter_password" name="newsletter_password" value="${config['newsletter_password']}">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="newsletter_password" name="newsletter_password" value="${config['newsletter_password']}">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">Enter the password that will be required to view self-hosted newsletters.</p>
@@ -1259,7 +1275,12 @@
                                 <label for="imgur_client_id">Imgur Client ID</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">Enter your Imgur API Client ID.</p>
@@ -1281,7 +1302,12 @@
                                 <label for="cloudinary_cloud_name">Cloudinary Cloud Name</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="cloudinary_cloud_name" name="cloudinary_cloud_name" value="${config['cloudinary_cloud_name']}" data-parsley-trigger="change">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="cloudinary_cloud_name" name="cloudinary_cloud_name" value="${config['cloudinary_cloud_name']}" data-parsley-trigger="change">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">
@@ -1292,7 +1318,12 @@
                                 <label for="cloudinary_api_key">Cloudinary API Key</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="cloudinary_api_key" name="cloudinary_api_key" value="${config['cloudinary_api_key']}" data-parsley-trigger="change">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="cloudinary_api_key" name="cloudinary_api_key" value="${config['cloudinary_api_key']}" data-parsley-trigger="change">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">
@@ -1303,7 +1334,12 @@
                                 <label for="cloudinary_api_secret">Cloudinary API Secret</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="cloudinary_api_secret" name="cloudinary_api_secret" value="${config['cloudinary_api_secret']}" data-parsley-trigger="change">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="cloudinary_api_secret" name="cloudinary_api_secret" value="${config['cloudinary_api_secret']}" data-parsley-trigger="change">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">
@@ -3123,12 +3159,23 @@ $(document).ready(function() {
         }
     });
 
-    $("body").on('click', '[data-toggle=browse]', function () {
+    $('body').on('click', '[data-toggle=browse]', function () {
         var filter = $(this).data('filter');
         var target = $(this).data('target');
         var path = $(target).val();
         var description = $(this).data('description') || $("label[for='" + target.replace('#', '') + "']").text();
         openBrowsePath(null, path, filter, description, target);
+    });
+
+    $('body').on('click', '.reveal-token', function() {
+        var input = $(this).parent().next('input');
+        if (input.prop('type') === 'password') {
+            input.prop('type', 'text');
+            $(this).children('.fa').removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            input.prop('type', 'password');
+            $(this).children('.fa').removeClass('fa-eye').addClass('fa-eye-slash');
+        }
     });
 });
 </script>
