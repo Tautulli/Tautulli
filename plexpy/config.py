@@ -553,8 +553,7 @@ class Config(object):
                 top_users_index = home_stats_cards.index('top_users')
                 home_stats_cards.insert(top_users_index, 'top_libraries')
             else:
-                home_stats_cards.add('top_libaries')
+                home_stats_cards.append('top_libraries')
             self.HOME_STATS_CARDS = home_stats_cards
 
             self.CONFIG_VERSION = 18
-            
