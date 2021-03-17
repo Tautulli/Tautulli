@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.6.10 (2021-03-17)
+
+* Other:
+  * Fix: Configuration upgrade would fail if the Most Active User card was disabled.
+
+
 ## v2.6.9 (2021-03-17)
 
 * Notifications:
