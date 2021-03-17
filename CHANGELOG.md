@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.6.9 (2021-03-17)
+
+* Notifications:
+  * New: Added tautulli_update_exe and tautulli_update_exe notification parameters for Tautulli update notifications.
+* Exporter:
+  * New: Added new TV show export fields for the beta Plex TV agent.
+* UI:
+  * Fix: Some popover images not showing up on hover.
+  * Remove: HTTP Host setting removed from the UI. This setting may still be changed in the config file.
+  * New: Added a Most Active Libraries statistics card to the homepage. (Thanks @herby2212) 
+  * New: Mask sensitive text fields in the settings. Settings can be revealed by clicking on the eye icon.
+* Mobile App:
+  * Change: Make OneSignal validation asynchronous to help timeout issues when registering a device.
+* API:
+  * Added top_libraries stat_id option to get_home_stats API commaand.
+* Ohter:
+  * New: Updated PlexAPI to 4.4.1.
+
+
 ## v2.6.8 (2021-03-08)
 
 * Mobile App:
@@ -27,7 +46,7 @@
   * New: Return sync_media_type for collections/playlist in get_synced_items.
   * New: Update pms_image_proxy to support playlist composite images.
 * Other:
-  * Remove: Auto-updater for the Windows exe installer.
+  * Remove: Auto-updater for the Windows exe installer due to it being flagged by antivirus software.
   * New: Updated PlexAPI to 4.4.0.
 
 
