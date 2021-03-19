@@ -1353,14 +1353,19 @@ class EMAIL(Notifier):
                        'cc': [],
                        'bcc': [],
                        'smtp_server': '',
-                       'smtp_port': 25,
+                       'smtp_port': 465,
                        'smtp_user': '',
                        'smtp_password': '',
-                       'tls': 0,
+                       'tls': 2,
                        'html_support': 1
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
+        if not self.config['smtp_server']:
+            logger.error("Tautulli Notifiers :: %s notification failed: %s",
+                         self.NAME, "Missing SMTP server")
+            return False
+
         if self.config['html_support']:
             plain = MIMEText(None, 'plain', 'utf-8')
             plain.replace_header('Content-Transfer-Encoding', 'quoted-printable')
@@ -1396,10 +1401,14 @@ class EMAIL(Notifier):
         success = False
 
         try:
-            mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+            if self.config['tls'] == 2:
+                mailserver = smtplib.SMTP_SSL(self.config['smtp_server'], self.config['smtp_port'])
+            else:
+                mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+
             mailserver.ehlo()
 
-            if self.config['tls']:
+            if self.config['tls'] == 1:
                 mailserver.starttls()
                 mailserver.ehlo()
 
@@ -1484,10 +1493,10 @@ class EMAIL(Notifier):
                           'description': 'Port for the SMTP server.',
                           'input_type': 'number'
                           },
-                         {'label': 'SMTP User',
+                         {'label': 'SMTP Username',
                           'value': self.config['smtp_user'],
                           'name': 'email_smtp_user',
-                          'description': 'User for the SMTP server.',
+                          'description': 'Username for the SMTP server.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Password',
@@ -1496,11 +1505,14 @@ class EMAIL(Notifier):
                           'description': 'Password for the SMTP server.',
                           'input_type': 'password'
                           },
-                         {'label': 'TLS',
+                         {'label': 'Encryption',
                           'value': self.config['tls'],
                           'name': 'email_tls',
-                          'description': 'Does the server use encryption.',
-                          'input_type': 'checkbox'
+                          'description': 'Send emails encrypted using SSL or TLS.',
+                          'input_type': 'select',
+                          'select_options': {0: 'None',
+                                             1: 'TLS/STARTTLS (Typically port 587)',
+                                             2: 'SSL/TLS (Typically port 465)'}
                           },
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
