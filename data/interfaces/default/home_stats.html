@@ -76,6 +76,8 @@ DOCUMENTATION :: END
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
         % elif stat_id == 'top_libraries':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], None, 500, 280, 40, '282828', 3, fallback='art')});">
+        % elif stat_id == 'top_users':
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 80, 80, 40, '282828', 0, fallback='user')}">
         % elif stat_id == 'top_platforms':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
@@ -113,7 +115,7 @@ DOCUMENTATION :: END
             % elif stat_id == 'top_users':
             <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['user']}" class="hidden-xs">
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 80, 80, fallback='user')})"></div>
             </a>
             % elif stat_id == 'top_platforms':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>

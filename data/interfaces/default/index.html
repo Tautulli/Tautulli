@@ -778,6 +778,7 @@
 <script>
     function statsCardCallback() {
         $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar();
+        loadAllBlurHash();
 
         function changeImages(elem) {
             var stat_id = $(elem).data('stat_id');
@@ -811,7 +812,8 @@
                         .addClass('svg-icon library-' + library_type);
                 }
             } else if (stat_id === 'top_users') {
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (user_thumb || 'images/gravatar-default.png') + ')');
+                loadBlurHash($('#stats-background-' + stat_id), page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 80, 80, 40, '282828', 0, 'user'));
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 80, 80, null, null, null, 'user') + ')');
                 if (user_id) {
                     href = page('user', user_id);
                 }

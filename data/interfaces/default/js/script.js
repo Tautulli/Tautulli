@@ -873,3 +873,39 @@ function short_season(title) {
     }
     return title
 }
+
+function loadAllBlurHash() {
+    $('[data-blurhash]').each(function() {
+        const elem = $(this);
+        const src = elem.data('blurhash');
+        loadBlurHash(elem, src);
+    });
+}
+
+function loadBlurHash(elem, src) {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+        const imgData = blurhash.getImageData(img);
+
+        blurhash
+            .encodePromise(imgData, img.width, img.height, 4, 4)
+            .then(hash => {
+                return blurhash.decodePromise(
+                    hash,
+                    img.width,
+                    img.height
+                );
+            })
+            .then(blurhashImgData => {
+                const imgObject = blurhash.getImageDataAsImage(
+                    blurhashImgData,
+                    img.width,
+                    img.height,
+                    (event, imgObject) => {
+                        elem.css('background-image', 'url(' + imgObject.src + ')')
+                    }
+                );
+            });
+    }
+}
