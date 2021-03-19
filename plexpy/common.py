@@ -63,7 +63,8 @@ DEFAULT_IMAGES = {
     'art': DEFAULT_ART,
     'poster-live': DEFAULT_LIVE_TV_POSTER_THUMB,
     'art-live': DEFAULT_LIVE_TV_ART,
-    'art-live-full': DEFAULT_LIVE_TV_ART_FULL
+    'art-live-full': DEFAULT_LIVE_TV_ART_FULL,
+    'user': DEFAULT_USER_THUMB
 }
 
 MEDIA_TYPE_HEADERS = {
