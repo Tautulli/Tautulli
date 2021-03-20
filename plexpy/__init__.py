@@ -2367,6 +2367,11 @@ def dbcheck():
 
 
 def upgrade():
+    if CONFIG.UPGRADE_FLAG == 0:
+        mobile_app.revalidate_onesignal_ids()
+        CONFIG.UPGRADE_FLAG = 1
+        CONFIG.write()
+
     return
 
 

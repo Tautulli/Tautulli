@@ -33,6 +33,7 @@ else:
 
 
 _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
+_ONESIGNAL_DISABLED = 'onesignal-disabled'
 
 TEMP_DEVICE_TOKENS = {}
 
@@ -126,6 +127,9 @@ def get_mobile_device_config(mobile_device_id=None):
     result = db.select_single('SELECT * FROM mobile_devices WHERE id = ?',
                               args=[mobile_device_id])
 
+    if result['onesignal_id'] == _ONESIGNAL_DISABLED:
+        result['onesignal_id'] = ''
+
     return result
 
 
@@ -192,6 +196,8 @@ def set_last_seen(device_token=None):
 def validate_onesignal_id(onesignal_id):
     if onesignal_id is None:
         return 0
+    elif onesignal_id == _ONESIGNAL_DISABLED:
+        return 2
 
     headers = {'Content-Type': 'application/json'}
     payload = {'app_id': _ONESIGNAL_APP_ID}
@@ -205,6 +211,11 @@ def validate_onesignal_id(onesignal_id):
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to validate OneSignal ID: %s." % e)
         return -1
+
+
+def revalidate_onesignal_ids():
+    for device in get_mobile_devices():
+        set_official(device['device_id'], device['onesignal_id'])
 
 
 def blacklist_logger():

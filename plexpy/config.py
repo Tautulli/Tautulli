@@ -185,6 +185,7 @@ _CONFIG_DEFINITIONS = {
     'TV_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
     'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
+    'UPGRADE_FLAG': (int, 'Advanced', 0),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
