@@ -755,10 +755,10 @@ def dbcheck():
     # newsletters table :: This table keeps record of the newsletter settings
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL DEFAULT "", '
+        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, '
         'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
         'subject TEXT, body TEXT, message TEXT, '
-        'cron TEXT NOT NULL DEFAULT "0 0 * * 0", active INTEGER DEFAULT 0)'
+        'cron TEXT NOT NULL DEFAULT \'0 0 * * 0\', active INTEGER DEFAULT 0)'
     )
 
     # newsletter_log table :: This is a table which logs newsletters sent
@@ -1950,8 +1950,42 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table newsletters.")
         c_db.execute(
-            'ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL DEFAULT ""'
+            'ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL'
         )
+
+    # Upgrade newsletters table from earlier versions
+    try:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="newsletters"').fetchone()
+        if '"cron"\tTEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
+            logger.debug("Altering database. Updating default cron value in newsletters table.")
+            c_db.execute(
+                'CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, '
+                'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
+                'subject TEXT, body TEXT, message TEXT, '
+                'cron TEXT NOT NULL DEFAULT \'0 0 * * 0\', active INTEGER DEFAULT 0)'
+            )
+            c_db.execute(
+                'INSERT INTO newsletters_temp (id, agent_id, agent_name, agent_label, id_name, '
+                'friendly_name, newsletter_config, email_config, subject, body, message, cron, active) '
+                'SELECT id, agent_id, agent_name, agent_label, id_name, '
+                'friendly_name, newsletter_config, email_config, subject, body, message, cron, active '
+                'FROM newsletters'
+            )
+            c_db.execute(
+                'DROP TABLE newsletters'
+            )
+            c_db.execute(
+                'ALTER TABLE newsletters_temp RENAME TO newsletters'
+            )
+    except sqlite3.OperationalError:
+        logger.warn("Unable to update default cron value in newsletters table.")
+        try:
+            c_db.execute(
+                'DROP TABLE newsletters_temp'
+            )
+        except:
+            pass
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
     try:
