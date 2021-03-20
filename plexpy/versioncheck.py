@@ -441,7 +441,9 @@ def github_cache(cache, github_data=None, use_cache=True):
     cache_filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, 'github_{}.json'.format(cache))
 
     if github_data:
-        cache_data = {'github_data': github_data, '_cache_time': timestamp}
+        cache_data = {'github_data': github_data,
+                      '_cache_time': timestamp,
+                      '_release_version': common.RELEASE}
         try:
             with open(cache_filepath, 'w', encoding='utf-8') as cache_file:
                 json.dump(cache_data, cache_file)
@@ -453,7 +455,10 @@ def github_cache(cache, github_data=None, use_cache=True):
         try:
             with open(cache_filepath, 'r', encoding='utf-8') as cache_file:
                 cache_data = json.load(cache_file)
-            if timestamp - cache_data['_cache_time'] < plexpy.CONFIG.CHECK_GITHUB_CACHE_SECONDS:
+            if (
+                timestamp - cache_data['_cache_time'] < plexpy.CONFIG.CHECK_GITHUB_CACHE_SECONDS and
+                cache_data['_release_version'] == common.RELEASE
+            ):
                 logger.debug('Using cached GitHub %s data', cache)
                 return cache_data['github_data']
         except:
