@@ -1022,7 +1022,8 @@ class ANDROIDAPP(Notifier):
                 'label': 'Device',
                 'description': 'No mobile devices registered with OneSignal. '
                                '<a data-tab-destination="android_app" data-toggle="tab" data-dismiss="modal">'
-                               'Get the Android App</a> and register a device.',
+                               'Get the Android App</a> and register a device.<br>'
+                               'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
                 'input_type': 'help'
                 })
         else:
@@ -1032,7 +1033,8 @@ class ANDROIDAPP(Notifier):
                 'name': 'androidapp_device_id',
                 'description': 'Set your mobile device or '
                                '<a data-tab-destination="android_app" data-toggle="tab" data-dismiss="modal">'
-                               'register a new device</a> with Tautulli.',
+                               'register a new device</a> with Tautulli.<br>'
+                               'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
                 'input_type': 'select',
                 'select_options': devices
                 })
