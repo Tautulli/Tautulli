@@ -4637,7 +4637,7 @@ class WebInterface(object):
                 background (str):       Hex color, e.g. 282828
                 blur (str):             3
                 img_format (str):       png
-                fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full"
+                fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full", "user"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
 
