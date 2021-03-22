@@ -281,7 +281,7 @@ function isPrivateIP(ip_address) {
 
     if (ipaddr.isValid(ip_address)) {
         var addr = ipaddr.process(ip_address);
-        if (addr.range() === 'loopback' || addr.range() === 'private') {
+        if (addr.range() === 'loopback' || addr.range() === 'private' || addr.range() === 'linkLocal') {
             defer.resolve();
         } else {
             defer.reject();
