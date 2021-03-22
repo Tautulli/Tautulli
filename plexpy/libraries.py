@@ -796,59 +796,7 @@ class Libraries(object):
         if server_id is None:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
-        def get_library_details(section_id=section_id, server_id=server_id):
-            monitor_db = database.MonitorDatabase()
-
-            try:
-                if str(section_id).isdigit():
-                    query = 'SELECT id AS row_id, server_id, section_id, section_name, section_type, ' \
-                            'count, parent_count, child_count, ' \
-                            'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art AS library_art, ' \
-                            'custom_art_url AS custom_art, is_active, ' \
-                            'do_notify, do_notify_created, keep_history, deleted_section ' \
-                            'FROM library_sections ' \
-                            'WHERE section_id = ? AND server_id = ? '
-                    result = monitor_db.select(query, args=[section_id, server_id])
-                else:
-                    result = []
-            except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_details: %s." % e)
-                result = []
-
-            library_details = {}
-            if result:
-                for item in result:
-                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
-                        library_thumb = item['custom_thumb']
-                    elif item['library_thumb']:
-                        library_thumb = item['library_thumb']
-                    else:
-                        library_thumb = common.DEFAULT_COVER_THUMB
-
-                    if item['custom_art'] and item['custom_art'] != item['library_art']:
-                        library_art = item['custom_art']
-                    else:
-                        library_art = item['library_art']
-
-                    library_details = {'row_id': item['row_id'],
-                                       'server_id': item['server_id'],
-                                       'section_id': item['section_id'],
-                                       'section_name': item['section_name'],
-                                       'section_type': item['section_type'],
-                                       'library_thumb': library_thumb,
-                                       'library_art': library_art,
-                                       'count': item['count'],
-                                       'parent_count': item['parent_count'],
-                                       'child_count': item['child_count'],
-                                       'is_active': item['is_active'],
-                                       'do_notify': item['do_notify'],
-                                       'do_notify_created': item['do_notify_created'],
-                                       'keep_history': item['keep_history'],
-                                       'deleted_section': item['deleted_section']
-                                       }
-            return library_details
-
-        library_details = get_library_details(section_id=section_id, server_id=server_id)
+        library_details = self.get_library_details(section_id=section_id, server_id=server_id)
 
         if library_details:
             return library_details
@@ -859,7 +807,7 @@ class Libraries(object):
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
             refresh_libraries()
 
-            library_details = get_library_details(section_id=section_id, server_id=server_id)
+            library_details = self.get_library_details(section_id=section_id, server_id=server_id)
 
             if library_details:
                 return library_details
@@ -869,6 +817,61 @@ class Libraries(object):
                             % section_id)
                 # If there is no library data we must return something
                 return default_return
+
+    def get_library_details(self, section_id=None, server_id=None):
+        if server_id is None:
+            server_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            if str(section_id).isdigit():
+                query = 'SELECT id AS row_id, server_id, section_id, section_name, section_type, ' \
+                        'count, parent_count, child_count, ' \
+                        'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art AS library_art, ' \
+                        'custom_art_url AS custom_art, is_active, ' \
+                        'do_notify, do_notify_created, keep_history, deleted_section ' \
+                        'FROM library_sections ' \
+                        'WHERE section_id = ? AND server_id = ? '
+                result = monitor_db.select(query, args=[section_id, server_id])
+            else:
+                result = []
+        except Exception as e:
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_details: %s." % e)
+            result = []
+
+        library_details = {}
+        if result:
+            for item in result:
+                if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
+                    library_thumb = item['custom_thumb']
+                elif item['library_thumb']:
+                    library_thumb = item['library_thumb']
+                else:
+                    library_thumb = common.DEFAULT_COVER_THUMB
+
+                if item['custom_art'] and item['custom_art'] != item['library_art']:
+                    library_art = item['custom_art']
+                else:
+                    library_art = item['library_art']
+
+                library_details = {'row_id': item['row_id'],
+                                   'server_id': item['server_id'],
+                                   'section_id': item['section_id'],
+                                   'section_name': item['section_name'],
+                                   'section_type': item['section_type'],
+                                   'library_thumb': library_thumb,
+                                   'library_art': library_art,
+                                   'count': item['count'],
+                                   'parent_count': item['parent_count'],
+                                   'child_count': item['child_count'],
+                                   'is_active': item['is_active'],
+                                   'do_notify': item['do_notify'],
+                                   'do_notify_created': item['do_notify_created'],
+                                   'keep_history': item['keep_history'],
+                                   'deleted_section': item['deleted_section']
+                                   }
+        return library_details
 
     def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None):
         if not session.allow_session_library(section_id):

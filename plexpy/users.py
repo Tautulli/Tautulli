@@ -381,82 +381,7 @@ class Users(object):
         if user_id is None and not user and not email:
             return default_return
 
-        def get_user_details(user_id=user_id, user=user, email=email):
-            monitor_db = database.MonitorDatabase()
-
-            try:
-                if str(user_id).isdigit():
-                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                            'do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
-                            'FROM users ' \
-                            'WHERE user_id = ? '
-                    result = monitor_db.select(query, args=[user_id])
-                elif user:
-                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                            'do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
-                            'FROM users ' \
-                            'WHERE username = ? COLLATE NOCASE '
-                    result = monitor_db.select(query, args=[user])
-                elif email:
-                    query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                            'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                            'do_notify, keep_history, deleted_user, ' \
-                            'allow_guest, shared_libraries ' \
-                            'FROM users ' \
-                            'WHERE email = ? COLLATE NOCASE '
-                    result = monitor_db.select(query, args=[email])
-                else:
-                    result = []
-            except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for get_details: %s." % e)
-                result = []
-
-            user_details = {}
-            if result:
-                for item in result:
-                    if session.get_session_user_id():
-                        friendly_name = session.get_session_user()
-                    elif item['friendly_name']:
-                        friendly_name = item['friendly_name']
-                    else:
-                        friendly_name = item['username']
-
-                    if item['custom_thumb'] and item['custom_thumb'] != item['user_thumb']:
-                        user_thumb = item['custom_thumb']
-                    elif item['user_thumb']:
-                        user_thumb = item['user_thumb']
-                    else:
-                        user_thumb = common.DEFAULT_USER_THUMB
-
-                    shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
-
-                    user_details = {'row_id': item['row_id'],
-                                    'user_id': item['user_id'],
-                                    'username': item['username'],
-                                    'friendly_name': friendly_name,
-                                    'user_thumb': user_thumb,
-                                    'email': item['email'],
-                                    'is_active': item['is_active'],
-                                    'is_admin': item['is_admin'],
-                                    'is_home_user': item['is_home_user'],
-                                    'is_allow_sync': item['is_allow_sync'],
-                                    'is_restricted': item['is_restricted'],
-                                    'do_notify': item['do_notify'],
-                                    'keep_history': item['keep_history'],
-                                    'deleted_user': item['deleted_user'],
-                                    'allow_guest': item['allow_guest'],
-                                    'shared_libraries': shared_libraries
-                                    }
-            return user_details
-
-        user_details = get_user_details(user_id=user_id, user=user)
+        user_details = self.get_user_details(user_id=user_id, user=user, email=email)
 
         if user_details:
             return user_details
@@ -467,7 +392,7 @@ class Users(object):
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             refresh_users()
 
-            user_details = get_user_details(user_id=user_id, user=user)
+            user_details = self.get_user_details(user_id=user_id, user=user, email=email)
 
             if user_details:
                 return user_details
@@ -478,6 +403,81 @@ class Users(object):
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
+
+    def get_user_details(self, user_id=None, user=None, email=None):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            if str(user_id).isdigit():
+                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                        'do_notify, keep_history, deleted_user, ' \
+                        'allow_guest, shared_libraries ' \
+                        'FROM users ' \
+                        'WHERE user_id = ? '
+                result = monitor_db.select(query, args=[user_id])
+            elif user:
+                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                        'do_notify, keep_history, deleted_user, ' \
+                        'allow_guest, shared_libraries ' \
+                        'FROM users ' \
+                        'WHERE username = ? COLLATE NOCASE '
+                result = monitor_db.select(query, args=[user])
+            elif email:
+                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
+                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                        'do_notify, keep_history, deleted_user, ' \
+                        'allow_guest, shared_libraries ' \
+                        'FROM users ' \
+                        'WHERE email = ? COLLATE NOCASE '
+                result = monitor_db.select(query, args=[email])
+            else:
+                result = []
+        except Exception as e:
+            logger.warn("Tautulli Users :: Unable to execute database query for get_details: %s." % e)
+            result = []
+
+        user_details = {}
+        if result:
+            for item in result:
+                if session.get_session_user_id():
+                    friendly_name = session.get_session_user()
+                elif item['friendly_name']:
+                    friendly_name = item['friendly_name']
+                else:
+                    friendly_name = item['username']
+
+                if item['custom_thumb'] and item['custom_thumb'] != item['user_thumb']:
+                    user_thumb = item['custom_thumb']
+                elif item['user_thumb']:
+                    user_thumb = item['user_thumb']
+                else:
+                    user_thumb = common.DEFAULT_USER_THUMB
+
+                shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
+
+                user_details = {'row_id': item['row_id'],
+                                'user_id': item['user_id'],
+                                'username': item['username'],
+                                'friendly_name': friendly_name,
+                                'user_thumb': user_thumb,
+                                'email': item['email'],
+                                'is_active': item['is_active'],
+                                'is_admin': item['is_admin'],
+                                'is_home_user': item['is_home_user'],
+                                'is_allow_sync': item['is_allow_sync'],
+                                'is_restricted': item['is_restricted'],
+                                'do_notify': item['do_notify'],
+                                'keep_history': item['keep_history'],
+                                'deleted_user': item['deleted_user'],
+                                'allow_guest': item['allow_guest'],
+                                'shared_libraries': shared_libraries
+                                }
+        return user_details
 
     def get_watch_time_stats(self, user_id=None, grouping=None, query_days=None):
         if not session.allow_session_user(user_id):
