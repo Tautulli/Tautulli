@@ -313,27 +313,27 @@ DOCUMENTATION :: END
                             % if data['audience_rating_image']:
                             % if data['audience_rating_image'].startswith('imdb://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
-                                <span class="rating-image rating-imdb"><strong>${rating}</strong></span>
+                                <span class="rating-image rating-imdb"></span><strong>${rating}</strong>
                             </div>
                             % endif
                             % if data['audience_rating_image'].startswith('themoviedb://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
-                                <span class="rating-image rating-themoviedb"><strong>${get_percent(rating, 10)}%</strong></span>
+                                <span class="rating-image rating-themoviedb"></span><strong>${get_percent(rating, 10)}%</strong>
                             </div>
                             % endif
                             % if data['audience_rating_image'].startswith('thetvdb://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${rating}">
-                                <span class="rating-image rating-thetvdb"><strong>${get_percent(rating, 10)}%</strong></span>
+                                <span class="rating-image rating-thetvdb"></span><strong>${get_percent(rating, 10)}%</strong>
                             </div>
                             % endif
                             % if data['audience_rating_image'].startswith('rottentomatoes://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${data['audience_rating']}">
-                                <span class="rating-image rating-rottentomatos-${data['audience_rating_image'].rsplit('.')[-1]}"><strong>${get_percent(data['audience_rating'], 10)}%</strong></span>
+                                <span class="rating-image rating-rottentomatos-${data['audience_rating_image'].rsplit('.')[-1]}"></span><strong>${get_percent(data['audience_rating'], 10)}%</strong>
                             </div>
                             % endif
                             % if data['rating_image'].startswith('rottentomatoes://'):
                             <div class="critic-rating hidden-xs hidden-sm" title="${data['rating']}">
-                                <span class="rating-image rating-rottentomatos-${data['rating_image'].rsplit('.')[-1]}"><strong>${get_percent(data['rating'], 10)}%</strong></span>
+                                <span class="rating-image rating-rottentomatos-${data['rating_image'].rsplit('.')[-1]}"></span><strong>${get_percent(data['rating'], 10)}%</strong>
                             </div>
                             % endif
                             % else:

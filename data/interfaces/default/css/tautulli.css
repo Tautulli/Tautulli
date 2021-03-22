@@ -1923,7 +1923,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     color: #999;
 }
 .critic-rating {
-    display: inline-block;
+    display: flex;
     font-size: 14px;
     overflow: hidden;
     white-space: nowrap;
@@ -4073,41 +4073,48 @@ a:hover .overlay-refresh-image:hover {
     background-image: url(../images/icons/most-concurrent-streams.svg);
 }
 .rating-image {
-    width: 51px;
     height: 20px;
     margin-left: 10px;
+    margin-right: 5px;
     display: inline-block;
     background-origin: content-box !important;
-    background-size: contain !important;
     background-repeat: no-repeat !important;
     background-position: left !important;
-    text-align: right;
 }
 .rating-imdb {
-    width: 62px !important;
+    width: 36px;
     background-image: url(../images/rating/imdb.svg);
+    background-size: auto 20px;
 }
 .rating-themoviedb {
-    width: 72px !important;
+    width: 38px;
     background-image: url(../images/rating/themoviedb.svg);
-    background-size: auto 16px !important;
+    background-size: auto 16px;
 }
 .rating-thetvdb {
-    width: 72px !important;
+    width: 36px;
     background-image: url(../images/rating/thetvdb.svg);
-    background-size: auto 36px !important;
+    background-size: auto 36px;
 }
 .rating-rottentomatos-ripe {
+    width: 17px;
     background-image: url(../images/rating/tomato-ripe.svg);
+    background-size: auto 20px;
 }
 .rating-rottentomatos-rotten {
+    width: 17px;
     background-image: url(../images/rating/tomato-rotten.svg);
+    background-size: auto 20px;
 }
 .rating-rottentomatos-upright {
+    width: 16px;
     background-image: url(../images/rating/popcorn-upright.svg);
+    background-size: auto 20px;
 }
 .rating-rottentomatos-spilled {
+    width: 19px;
     background-image: url(../images/rating/popcorn-spilled.svg);
+    background-size: auto 20px;
 }
 .transparent {
     background-color: transparent !important;
